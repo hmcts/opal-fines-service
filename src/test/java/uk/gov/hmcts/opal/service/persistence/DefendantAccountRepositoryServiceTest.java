@@ -1,10 +1,8 @@
 package uk.gov.hmcts.opal.service.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -14,7 +12,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 
@@ -111,62 +108,4 @@ class DefendantAccountRepositoryServiceTest {
         verify(defendantAccountRepository).save(account);
     }
 
-    @Test
-    void validateAccountExistsInBusinessUnit_whenBusinessUnitMatches_doesNotThrow() {
-        // arrange
-        DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 78).build())
-            .build();
-
-        // act / assert
-        assertThatCode(() -> service.validateAccountExistsInBusinessUnit(account, "78"))
-            .doesNotThrowAnyException();
-
-        verifyNoInteractions(defendantAccountRepository);
-    }
-
-    @Test
-    void validateAccountExistsInBusinessUnit_whenBusinessUnitMissing_throwsEntityNotFoundException() {
-        // arrange
-        DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .businessUnit(null)
-            .build();
-
-        // act / assert
-        assertThatThrownBy(() -> service.validateAccountExistsInBusinessUnit(account, "78"))
-            .isInstanceOf(EntityNotFoundException.class)
-            .hasMessage("Defendant Account not found in business unit 78");
-
-        verifyNoInteractions(defendantAccountRepository);
-    }
-
-    @Test
-    void validateAccountExistsInBusinessUnit_whenBusinessUnitIdMissing_throwsEntityNotFoundException() {
-        // arrange
-        DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId(null).build())
-            .build();
-
-        // act / assert
-        assertThatThrownBy(() -> service.validateAccountExistsInBusinessUnit(account, "78"))
-            .isInstanceOf(EntityNotFoundException.class)
-            .hasMessage("Defendant Account not found in business unit 78");
-
-        verifyNoInteractions(defendantAccountRepository);
-    }
-
-    @Test
-    void validateAccountExistsInBusinessUnit_whenBusinessUnitDoesNotMatch_throwsEntityNotFoundException() {
-        // arrange
-        DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 99).build())
-            .build();
-
-        // act / assert
-        assertThatThrownBy(() -> service.validateAccountExistsInBusinessUnit(account, "78"))
-            .isInstanceOf(EntityNotFoundException.class)
-            .hasMessage("Defendant Account not found in business unit 78");
-
-        verifyNoInteractions(defendantAccountRepository);
-    }
 }

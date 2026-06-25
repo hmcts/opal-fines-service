@@ -43,16 +43,4 @@ public class DefendantAccountRepositoryService {
     public DefendantAccountEntity save(DefendantAccountEntity defendantAccountEntity) {
         return defendantAccountRepository.save(defendantAccountEntity);
     }
-
-    /**
-     * Convenience method to validate that a given DefendantAccountEntity is associated with the specified
-     * business unit id.
-     */
-    public void validateAccountExistsInBusinessUnit(DefendantAccountEntity account, String buId) {
-        if (account.getBusinessUnit() == null
-            || account.getBusinessUnit().getBusinessUnitId() == null
-            || !String.valueOf(account.getBusinessUnit().getBusinessUnitId()).equals(buId)) {
-            throw new EntityNotFoundException("Defendant Account not found in business unit " + buId);
-        }
-    }
 }

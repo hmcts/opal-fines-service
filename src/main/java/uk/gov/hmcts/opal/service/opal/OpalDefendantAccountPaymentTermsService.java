@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -80,8 +81,14 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
 
     private DefendantAccountEntity loadAndValidateAccount(Long accountId, String buId) {
         DefendantAccountEntity account = defendantAccountRepositoryService.findById(accountId);
-        defendantAccountRepositoryService.validateAccountExistsInBusinessUnit(account, buId);
+        validateAccountExistsInBusinessUnit(account, buId);
         return account;
+    }
+
+    private void validateAccountExistsInBusinessUnit(DefendantAccountEntity account, String businessUnitId) {
+        if (!account.isInBusinessUnit(businessUnitId)) {
+            throw new EntityNotFoundException("Defendant Account not found in business unit " + businessUnitId);
+        }
     }
 
     private void ensureNoExistingPaymentCardRequest(Long accountId) {

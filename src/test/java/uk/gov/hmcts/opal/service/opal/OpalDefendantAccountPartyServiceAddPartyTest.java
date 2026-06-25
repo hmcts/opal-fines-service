@@ -203,8 +203,6 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
             .defendantAccountId(accountId).businessUnit(buWrong).versionNumber(1L).build();
 
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
-        doThrow(new EntityNotFoundException("Defendant Account not found in business unit " + businessUnitId))
-            .when(defendantAccountRepositoryService).validateAccountExistsInBusinessUnit(account, businessUnitId);
         AddDefendantAccountPartyRequest request = validOrganisationRequest();
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
@@ -212,7 +210,6 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
 
         assertEquals("Defendant Account not found in business unit " + businessUnitId, exception.getMessage());
         verify(defendantAccountRepositoryService).findById(accountId);
-        verify(defendantAccountRepositoryService).validateAccountExistsInBusinessUnit(account, businessUnitId);
         verifyNoAddSideEffects();
     }
 
@@ -306,7 +303,6 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
 
         assertEquals("Defendant Account not found with id: " + accountId, exception.getMessage());
         verify(defendantAccountRepositoryService).findById(accountId);
-        verify(defendantAccountRepositoryService, never()).validateAccountExistsInBusinessUnit(any(), any());
         verifyNoAddSideEffects();
     }
 
@@ -323,7 +319,6 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
             service.addDefendantAccountParty(accountId, businessUnitId, "bu-user-1", "tester", "\"4\"", request));
 
         verify(defendantAccountRepositoryService).findById(accountId);
-        verify(defendantAccountRepositoryService).validateAccountExistsInBusinessUnit(account, businessUnitId);
         verifyNoAddSideEffects();
     }
 

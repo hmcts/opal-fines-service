@@ -128,8 +128,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         log.debug(":addDefendantAccountParty: Opal mode: accountId={}, buId={}, postedBy={}, businessUserId={}",
             accountId, businessUnitId, postedBy, businessUserId);
 
-        // Verify the defendant account exists in the business unit.
-        defendantAccountRepositoryService.validateAccountExistsInBusinessUnit(account, businessUnitId);
+        validateAccountExistsInBusinessUnit(account, businessUnitId);
 
         VersionUtils.verifyIfMatch(account, ifMatch, accountId, "addDefendantAccountParty");
         defendantAccountControlValidator.validateCanMutateParty(account);
@@ -234,7 +233,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         log.debug(":replaceDefendantAccountParty: Opal mode: accountId={}, dapId={}, buId={}, postedBy={}, "
                 + "businessUserId={}", accountId, dapId, businessUnitId, postedBy, businessUserId);
 
-        defendantAccountRepositoryService.validateAccountExistsInBusinessUnit(account, businessUnitId);
+        validateAccountExistsInBusinessUnit(account, businessUnitId);
 
         VersionUtils.verifyIfMatch(account, ifMatch, accountId, "replaceDefendantAccountParty");
 
@@ -350,7 +349,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         log.debug(":removeDefendantAccountParty: accountId={}, dapId={}, buId={}, postedBy={}",
             defendantAccountId, defendantAccountPartyId, businessUnitId, postedBy);
 
-        defendantAccountRepositoryService.validateAccountExistsInBusinessUnit(account, String.valueOf(businessUnitId));
+        validateAccountExistsInBusinessUnit(account, String.valueOf(businessUnitId));
 
         VersionUtils.verifyIfMatch(account, ifMatch, defendantAccountId, "removeDefendantAccountParty");
         defendantAccountControlValidator.validateCanMutateParty(account);
@@ -616,6 +615,12 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         log.debug("replaceDebtorDetail: post-change debtor: {}", debtor);
 
         debtorDetailRepositoryService.save(debtor);
+    }
+
+    private void validateAccountExistsInBusinessUnit(DefendantAccountEntity account, String businessUnitId) {
+        if (!account.isInBusinessUnit(businessUnitId)) {
+            throw new EntityNotFoundException("Defendant Account not found in business unit " + businessUnitId);
+        }
     }
 
 }

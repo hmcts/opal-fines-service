@@ -10,7 +10,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -137,7 +136,9 @@ public class OpalDefendantAccountEnforcementService
             VersionUtils.extractBigInteger(ifMatch).longValue()
         );
 
-        clearPersistenceContext();
+        // The stored procedure updates defendant_accounts outside Hibernate. Refresh the managed account so chained
+        // payment terms and the response use the latest version and enforcement state.
+        entityManager.refresh(defendant);
 
         if (request.getPaymentTerms() != null) {
             DefendantAccountEntity defendantEntity = defendantAccountRepositoryService.findById(defendantAccountId);
@@ -178,10 +179,6 @@ public class OpalDefendantAccountEnforcementService
         }
 
         return resultResponsesMap;
-    }
-
-    private void clearPersistenceContext() {
-        Optional.ofNullable(entityManager).ifPresent(EntityManager::clear);
     }
 
     @Override
