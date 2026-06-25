@@ -702,3 +702,44 @@ Conclusion:
 - The remaining cache churn is no longer obviously caused by direct-use spies;
   the remaining spies are tied to stubbing, verification, or forced error
   paths and would need deliberate test redesign rather than mechanical removal.
+
+### 2026-06-25: Cache-size comparison reproduced resource exhaustion
+
+Experiment:
+
+- Ran `integration` with a temporary Gradle init script overriding
+  `spring.test.context.cache.maxSize=32`.
+- This did not change repository code.
+
+Result:
+
+| Variant | Cache max size | Outcome | Notable failure |
+| --- | ---: | --- | --- |
+| Current repo config | 4 | Passed | n/a |
+| Temporary large cache | 32 | Failed | `FATAL: sorry, too many clients already` |
+| Temporary large cache plus smaller Hikari pool | 32 | Failed | `FATAL: sorry, too many clients already` |
+
+Observed details:
+
+- Large-cache run failed after 713 tests completed, with 141 failures.
+- Large-cache plus small-pool run failed after 650 tests completed, with
+  166 failures.
+- After resetting the polluted reusable Testcontainers Postgres container, the
+  normal repo configuration passed again in 2m 25s with `missCount=44`,
+  `hitCount=11764`, and `maxSize=4`.
+- The failing contexts show full `WebMergedContextConfiguration` output,
+  including distinct active profiles, inline properties, and
+  `BeanOverrideContextCustomizer` entries.
+- Testcontainers Postgres is started with `max_connections=200`.
+- Main datasource defaults allow each Spring context to create a Hikari pool
+  with `minimumIdle=2` and `maximumPoolSize=10`.
+
+Conclusion:
+
+- Raising Spring's context cache size is not a sustainable fix in this suite.
+- The current low cache size avoids retaining too many live contexts at once,
+  but it also causes repeated context creation.
+- The root issue is the combination of many distinct Spring context keys and
+  heavy retained resources per context, especially datasource pools.
+- Sustainable fixes should continue reducing unique context keys and should
+  also consider explicit integration-test datasource pool limits.
