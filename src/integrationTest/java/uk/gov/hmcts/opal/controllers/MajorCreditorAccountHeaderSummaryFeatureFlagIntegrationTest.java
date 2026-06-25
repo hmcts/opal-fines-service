@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -12,9 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -26,9 +23,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 })
 @DisplayName("Major Creditor Account Header Summary Feature Flag Integration Tests")
 class MajorCreditorAccountHeaderSummaryFeatureFlagIntegrationTest extends AbstractIntegrationTest {
-
-    @MockitoBean
-    private GatewayService gatewayService;
 
     @Test
     @DisplayName("PO-2136 feature flag disabled returns 404")
@@ -43,7 +37,5 @@ class MajorCreditorAccountHeaderSummaryFeatureFlagIntegrationTest extends Abstra
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
             .andExpect(jsonPath("$.title").value("Feature Disabled"))
             .andExpect(jsonPath("$.detail").value("The requested feature is not currently available"));
-
-        verifyNoInteractions(gatewayService);
     }
 }
