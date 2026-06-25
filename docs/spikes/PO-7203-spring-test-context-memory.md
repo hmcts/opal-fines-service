@@ -332,3 +332,43 @@ Conclusion:
 - The full integration task now has a local Docker/Testcontainers baseline:
   `missCount = 55`, `maxSize = 4`, `hitCount = 11915`, `failureCount = 0`,
   99 XML suites, and no heap failure.
+
+### 2026-06-25: Removed further redundant test property entries
+
+Code changes:
+
+- Removed remaining inline feature-flag properties where the active test profile
+  already supplies the same default value.
+- Collapsed duplicate `@TestPropertySource` declarations on
+  `JwtControllerIntegrationTest`.
+
+Files changed:
+
+- `CentralFundControllerIntegrationTest`
+- `ResultControllerIntegrationTest`
+- `ResultControllerRelease1aDisabledIntegrationTest`
+- `ResultControllerRelease1bDisabledIntegrationTest`
+- `DefendantAccountSearchRelease1cDisabledIntegrationTest`
+- `JwtControllerIntegrationTest`
+- `OpalDefendantsSearchIntegrationTest`
+- `MinorCreditorApiControllerFeatureFlagIntegrationTest`
+- `DefendantAccountHistoryFeatureFlagIntegrationTest`
+
+Validation:
+
+| Task | Before misses | After misses | Result |
+| --- | ---: | ---: | --- |
+| `compileIntegrationTestJava` | n/a | n/a | Passed |
+| `integrationBase` | 30 | 30 | Passed |
+| `integrationOpal` | 10 | 10 | Passed |
+| `integrationSecurity` | 2 | 2 | Passed |
+| `checkstyleIntegrationTest` | n/a | n/a | Passed |
+
+Conclusion:
+
+- This cleanup is behaviour-safe and reduces misleading per-class configuration
+  noise, but it does not further reduce context creation in the measured split
+  tasks.
+- The useful next fix is therefore not more default-value trimming; it should
+  target remaining genuinely distinct context keys, especially tests with
+  different LaunchDarkly-enabled settings or unique mock/spy bean customizers.
