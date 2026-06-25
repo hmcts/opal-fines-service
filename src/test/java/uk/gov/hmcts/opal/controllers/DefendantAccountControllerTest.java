@@ -3,14 +3,10 @@ package uk.gov.hmcts.opal.controllers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import tools.jackson.core.JacksonException;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,8 +15,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
-import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
@@ -31,15 +25,13 @@ import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
+import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
+import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
-import uk.gov.hmcts.opal.util.FeatureFlags;
-
 
 @ExtendWith(MockitoExtension.class)
 class DefendantAccountControllerTest {
@@ -54,90 +46,13 @@ class DefendantAccountControllerTest {
     private DefendantAccountPartyService defendantAccountPartyService;
 
     @Mock
-    private FeatureToggleApi featureToggleApi;
+    private DefendantAccountFixedPenaltyService defendantAccountFixedPenaltyService;
+
+    @Mock
+    private DefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
 
     @InjectMocks
     private DefendantAccountController defendantAccountController;
-
-    @Test
-    void testPostDefendantAccountSearch_Success() {
-        // Arrange
-        AccountSearchDto requestEntity = AccountSearchDto.builder().build();
-        DefendantAccountSearchResultsDto mockResponse = DefendantAccountSearchResultsDto.builder().build();
-
-        when(defendantAccountService.searchDefendantAccounts(any(AccountSearchDto.class)))
-            .thenReturn(mockResponse);
-
-        // Act
-        ResponseEntity<DefendantAccountSearchResultsDto> responseEntity =
-            defendantAccountController.postDefendantAccountSearch(requestEntity);
-
-        // Assert
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertNotNull(responseEntity.getBody());
-        assertEquals(mockResponse, responseEntity.getBody());
-
-        verify(defendantAccountService, times(1))
-            .searchDefendantAccounts(any(AccountSearchDto.class));
-        verifyNoInteractions(featureToggleApi);
-    }
-
-    @Test
-    void postDefendantAccountSearch_consolidatedSearchEnabled_callsService() {
-        // Arrange
-        AccountSearchDto requestEntity = AccountSearchDto.builder().consolidationSearch(true).build();
-        DefendantAccountSearchResultsDto mockResponse = DefendantAccountSearchResultsDto.builder()
-            .defendantAccounts(List.of())
-            .build();
-
-        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
-            FeatureFlags.RELEASE_1C,
-            FeatureFlags.RELEASE_1C_ENABLED_PROPERTY,
-            false
-        )).thenReturn(true);
-        when(defendantAccountService.searchDefendantAccounts(requestEntity)).thenReturn(mockResponse);
-
-        // Act
-        ResponseEntity<DefendantAccountSearchResultsDto> responseEntity =
-            defendantAccountController.postDefendantAccountSearch(requestEntity);
-
-        // Assert
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals(mockResponse, responseEntity.getBody());
-        verify(featureToggleApi).isFeatureEnabledWithPropertyValueDefault(
-            FeatureFlags.RELEASE_1C,
-            FeatureFlags.RELEASE_1C_ENABLED_PROPERTY,
-            false
-        );
-        verify(defendantAccountService).searchDefendantAccounts(requestEntity);
-    }
-
-    @Test
-    void postDefendantAccountSearch_consolidatedSearchDisabled_throwsFeatureDisabled() {
-        // Arrange
-        AccountSearchDto requestEntity = AccountSearchDto.builder().consolidationSearch(true).build();
-
-        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
-            FeatureFlags.RELEASE_1C,
-            FeatureFlags.RELEASE_1C_ENABLED_PROPERTY,
-            false
-        )).thenReturn(false);
-
-        // Act
-        FeatureDisabledException exception = assertThrows(
-            FeatureDisabledException.class,
-            () -> defendantAccountController.postDefendantAccountSearch(requestEntity));
-
-        // Assert
-        assertEquals("Feature release-1c is not enabled for defendant account consolidated search",
-            exception.getMessage());
-        verify(featureToggleApi).isFeatureEnabledWithPropertyValueDefault(
-            FeatureFlags.RELEASE_1C,
-            FeatureFlags.RELEASE_1C_ENABLED_PROPERTY,
-            false
-        );
-        verifyNoInteractions(defendantAccountService);
-    }
 
     @Test
     void testGetHeaderSummary_Success() {

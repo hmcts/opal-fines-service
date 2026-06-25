@@ -92,4 +92,8 @@ public class ReportInstanceEntity {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "errors", columnDefinition = "json")
     private ReportError errors;
+
+    public String getReportId() {
+        return report.getReportId();
+    }
 }

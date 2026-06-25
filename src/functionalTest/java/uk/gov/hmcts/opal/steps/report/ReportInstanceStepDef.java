@@ -48,6 +48,8 @@ public class ReportInstanceStepDef extends BaseStepDef {
     private static final Set<String> VALID_SUPPORTED_FILE_TYPES = Set.of("CSV", "PDF", "XML");
 
     private TestHttpResponse latestRawReportInstanceResponse;
+    private TestHttpResponse latestRawGetReportInstanceResponse;
+    private Long createdReportInstanceId;
 
 
     /**
@@ -79,6 +81,75 @@ public class ReportInstanceStepDef extends BaseStepDef {
             MINIMAL_CREATE_REQUEST
         );
         ScenarioContextHolder.current().setLatestHttpResponse(latestRawReportInstanceResponse);
+    }
+
+    /**
+     * Calls the get-report-instance endpoint using the requested authentication state.
+     *
+     * @param instanceId report instance id to request.
+     * @param authenticationState whether the request should be sent with no token or an invalid
+     *                            token.
+     */
+    @When("I call GET on the report instance api for id {int} with {string}")
+    public void callGetOnTheReportInstanceApiWithAuthenticationState(int instanceId, String authenticationState) {
+        Map<String, String> headers = new LinkedHashMap<>();
+        headers.put("Accept", "*/*");
+
+        switch (authenticationState) {
+            case "no token" -> {
+                // leave Authorization absent
+            }
+            case "invalid token" -> headers.put("Authorization", "Bearer invalidToken");
+            default -> throw new IllegalArgumentException(
+                "Unknown authentication state for get report instance request: " + authenticationState
+            );
+        }
+
+        latestRawGetReportInstanceResponse = TestHttpClient.request(
+            "GET",
+            getTestUrl() + REPORT_INSTANCES_URI + "/" + instanceId,
+            headers,
+            null
+        );
+        ScenarioContextHolder.current().setLatestHttpResponse(latestRawGetReportInstanceResponse);
+    }
+
+    /**
+     * Requests the supplied report instance id using the current scenario user.
+     *
+     * @param instanceId report instance id to request.
+     */
+    @When("I request report instance with id {int}")
+    public void requestReportInstanceWithId(int instanceId) {
+        latestRawGetReportInstanceResponse = TestHttpClient.request(
+            "GET",
+            getTestUrl() + REPORT_INSTANCES_URI + "/" + instanceId,
+            Map.of(
+                "Accept", "*/*",
+                "Authorization", "Bearer " + uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken()
+            ),
+            null
+        );
+        ScenarioContextHolder.current().setLatestHttpResponse(latestRawGetReportInstanceResponse);
+    }
+
+    /**
+     * Requests the previously created report instance using the current scenario user.
+     */
+    @When("I request the created report instance")
+    public void requestTheCreatedReportInstance() {
+        assertNotNull(createdReportInstanceId, "Expected a stored created report instance id");
+
+        latestRawGetReportInstanceResponse = TestHttpClient.request(
+            "GET",
+            getTestUrl() + REPORT_INSTANCES_URI + "/" + createdReportInstanceId,
+            Map.of(
+                "Accept", "*/*",
+                "Authorization", "Bearer " + uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken()
+            ),
+            null
+        );
+        ScenarioContextHolder.current().setLatestHttpResponse(latestRawGetReportInstanceResponse);
     }
 
     /**
@@ -202,6 +273,49 @@ public class ReportInstanceStepDef extends BaseStepDef {
     }
 
     /**
+     * Asserts that the get-report-instance response contains the same instance id as the one
+     * returned by the create-report-instance call earlier in the scenario.
+     */
+    @Then("the report instance response contains the created instance id")
+    public void reportInstanceResponseContainsTheCreatedInstanceId() throws Exception {
+        TestHttpResponse latestHttpResponse = latestRawGetReportInstanceResponse;
+
+        assertNotNull(latestHttpResponse, "Expected a raw HTTP response for the latest get report instance request");
+        assertNotNull(createdReportInstanceId, "Expected a stored created report instance id");
+        assertEquals(200, latestHttpResponse.statusCode(), "Unexpected HTTP status");
+
+        JsonNode root = OBJECT_MAPPER.readTree(latestHttpResponse.body());
+        assertEquals(createdReportInstanceId.longValue(), root.path("instance_id").asLong(),
+            "Unexpected instance_id in response");
+    }
+
+    /**
+     * Asserts that the get-report-instance response contains the core fields expected for a
+     * successfully retrieved report instance.
+     */
+    @Then("the report instance response contains core instance details")
+    public void reportInstanceResponseContainsCoreInstanceDetails() throws Exception {
+        TestHttpResponse latestHttpResponse = latestRawGetReportInstanceResponse;
+        latestRawGetReportInstanceResponse = null;
+
+        assertNotNull(latestHttpResponse, "Expected a raw HTTP response for the latest get report instance request");
+        assertEquals(200, latestHttpResponse.statusCode(), "Unexpected HTTP status");
+
+        JsonNode root = OBJECT_MAPPER.readTree(latestHttpResponse.body());
+
+        assertTrue(root.path("requested_at").isTextual(), "requested_at should be present");
+        assertFalse(root.path("requested_at").asText().isBlank(), "requested_at should not be blank");
+
+        assertTrue(root.path("requested_by").isObject(), "requested_by should be present");
+        assertFalse(root.path("requested_by").path("user_id").isMissingNode(),
+            "requested_by.user_id should be present");
+        assertFalse(root.path("requested_by").path("name").isMissingNode(), "requested_by.name should be present");
+
+        assertTrue(root.path("name").isTextual(), "name should be present");
+        assertFalse(root.path("name").asText().isBlank(), "name should not be blank");
+    }
+
+    /**
      * Sends a report-instances request containing business-unit data the current user cannot
      * access.
      */
@@ -265,10 +379,20 @@ public class ReportInstanceStepDef extends BaseStepDef {
     @Then("the report instances response contains the following data")
     public void reportInstancesResponseContainsTheFollowingData(DataTable data) throws Exception {
         JsonNode root = readReportInstanceListResponse();
-        Map<String, String> expectedData = data.asMap(String.class, String.class);
 
+        assertTrue(root.path("status").isObject(), "status should be present");
+        assertTrue(root.path("status").path("code").isTextual(), "status.code should be present");
+        assertFalse(root.path("status").path("code").asText().isBlank(), "status.code should not be blank");
+
+        assertTrue(root.path("report").isObject(), "report should be present");
+        assertTrue(root.path("report").path("id").isTextual(), "report.id should be present");
+        assertFalse(root.path("report").path("id").asText().isBlank(), "report.id should not be blank");
+
+        Map<String, String> expectedData = data.asMap(String.class, String.class);
         JsonNode matchingReportInstance = findReportInstanceContaining(root, expectedData);
         assertNotNull(matchingReportInstance, "No report instance matched the expected response data");
+        assertTrue(root.path("business_units").isArray(), "business_units should be present");
+        assertFalse(root.path("business_units").isEmpty(), "business_units should not be empty");
     }
 
     /**
@@ -318,6 +442,19 @@ public class ReportInstanceStepDef extends BaseStepDef {
     }
 
     /**
+     * Stores the report_instance_id returned by the latest create-report-instance response.
+     */
+    @Then("I store the created report instance id")
+    public void storeTheCreatedReportInstanceId() throws Exception {
+        TestHttpResponse latestHttpResponse = latestRawReportInstanceResponse;
+        assertNotNull(latestHttpResponse, "Expected a raw HTTP response for the latest report instance request");
+        assertEquals(201, latestHttpResponse.statusCode(), "Unexpected HTTP status");
+
+        JsonNode root = OBJECT_MAPPER.readTree(latestHttpResponse.body());
+        createdReportInstanceId = root.path("report_instance_id").asLong();
+    }
+
+    /**
      * Asserts that the latest no-token report-instance create response is an unauthorised response,
      * tolerating both the local plain-text security-layer message and the deployed problem-detail
      * shape returned in some environments.
@@ -328,6 +465,31 @@ public class ReportInstanceStepDef extends BaseStepDef {
         latestRawReportInstanceResponse = null;
 
         assertNotNull(latestHttpResponse, "Expected a raw HTTP response for the latest report instance request");
+        assertEquals(401, latestHttpResponse.statusCode(), "Unexpected HTTP status");
+
+        String body = latestHttpResponse.body();
+        if (body != null && body.trim().startsWith("{")) {
+            validateProblemDetailResponse(body, 401);
+            return;
+        }
+
+        assertTrue(
+            body != null && body.contains("Full authentication is required"),
+            "Unexpected no-token response body"
+        );
+    }
+
+    /**
+     * Asserts that the latest no-token get-report-instance response is an unauthorised response,
+     * tolerating both the local plain-text security-layer message and the deployed problem-detail
+     * shape returned in some environments.
+     */
+    @Then("the latest get report instance response is an unauthorized response")
+    public void latestGetReportInstanceResponseIsAnUnauthorizedResponse() throws Exception {
+        TestHttpResponse latestHttpResponse = latestRawGetReportInstanceResponse;
+        latestRawGetReportInstanceResponse = null;
+
+        assertNotNull(latestHttpResponse, "Expected a raw HTTP response for the latest get report instance request");
         assertEquals(401, latestHttpResponse.statusCode(), "Unexpected HTTP status");
 
         String body = latestHttpResponse.body();
@@ -356,6 +518,24 @@ public class ReportInstanceStepDef extends BaseStepDef {
 
         assertNotNull(latestHttpResponse, "Expected a raw HTTP response for the latest report instance request");
         assertEquals(expectedStatus, latestHttpResponse.statusCode(), "Unexpected HTTP status");
+        validateProblemDetailResponse(latestHttpResponse.body(), expectedStatus);
+    }
+
+    /**
+     * Asserts that the latest get-report-instance error response matches the shared ProblemDetail
+     * top-level contract for the expected status.
+     *
+     * @param expectedStatus expected HTTP status code.
+     */
+    @Then("the latest get report instance error response matches the standard problem detail contract for status {int}")
+    public void latestGetReportInstanceErrorResponseMatchesProblemDetailContract(int expectedStatus)
+        throws Exception {
+        TestHttpResponse latestHttpResponse = latestRawGetReportInstanceResponse;
+        latestRawGetReportInstanceResponse = null;
+
+        assertNotNull(latestHttpResponse, "Expected a raw HTTP response for the latest get report instance request");
+        assertEquals(expectedStatus, latestHttpResponse.statusCode(), "Unexpected HTTP status");
+
         validateProblemDetailResponse(latestHttpResponse.body(), expectedStatus);
     }
 

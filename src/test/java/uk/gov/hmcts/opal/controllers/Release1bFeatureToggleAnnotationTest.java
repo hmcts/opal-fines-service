@@ -51,6 +51,7 @@ class Release1bFeatureToggleAnnotationTest {
         Set<String> expectedAnnotatedMethods = Set.of(
             "DefendantAccountApiController#getEnforcementStatus",
             "DefendantAccountApiController#getImpositions",
+            "DefendantAccountApiController#postDefendantAccountSearch",
             "DefendantAccountApiController#updateDefendantAccount",
             "DefendantAccountController#addDefendantAccountParty",
             "DefendantAccountController#addEnforcement",
@@ -61,7 +62,6 @@ class Release1bFeatureToggleAnnotationTest {
             "DefendantAccountController#getDefendantAccountFixedPenalty",
             "DefendantAccountController#getDefendantAccountParty",
             "DefendantAccountController#getHeaderSummary",
-            "DefendantAccountController#postDefendantAccountSearch",
             "DefendantAccountController#removeDefendantAccountParty",
             "DefendantAccountController#removeEnforcementHold",
             "DefendantAccountController#replaceDefendantAccountParty",

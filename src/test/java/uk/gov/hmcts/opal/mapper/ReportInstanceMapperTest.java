@@ -17,12 +17,26 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import java.util.Collections;
+import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.testcontainers.shaded.org.hamcrest.MatcherAssert;
+import org.testcontainers.shaded.org.hamcrest.Matchers;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.report.SupportedFileType;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
+import uk.gov.hmcts.opal.generated.model.ReportInstanceReports;
+import uk.gov.hmcts.opal.generated.model.ReportReferenceReports.SupportedFileTypesEnum;
+import uk.gov.hmcts.opal.generated.model.StatusReports.CodeEnum;
+import uk.gov.hmcts.opal.mapper.common.BusinessUnitSummaryMapper;
+import uk.gov.hmcts.opal.mapper.helper.JsonMapperHelper;
+import uk.gov.hmcts.opal.service.report.ReportError;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
 import uk.gov.hmcts.opal.generated.model.StatusReports;
 import uk.gov.hmcts.opal.generated.model.UserByNameDetailsCommon;
@@ -31,6 +45,12 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
 
     @Autowired
     private ReportInstanceMapper mapper;
+
+    @Autowired
+    private BusinessUnitSummaryMapper businessUnitSummaryMapper;
+
+    @Autowired
+    private JsonMapperHelper jsonMapperHelper;
 
     private ReportEntity buildReportEntity() {
         return ReportEntity.builder()
@@ -108,6 +128,245 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
             );
         }
     }
+
+    @Nested
+    @DisplayName("toReportInstanceReportsDto()")
+    class ToReportInstanceReportsDto {
+
+        private static final long REPORT_INSTANCE_ID = 123L;
+        private static final String REPORT_ID = "REPORT-ID-1";
+        private static final String REPORT_TITLE = "Report 1 Title";
+        private static final LocalDateTime REQUESTED_AT = LocalDateTime.now().minusDays(1);
+        private static final LocalDateTime GENERATED_AT = LocalDateTime.now();
+        private static final LocalDateTime SCHEDULED_DELETION = LocalDateTime.now().plusDays(1);
+        private static final Long NO_OF_RECORDS = 10L;
+
+        @Configuration
+        @ComponentScan(basePackageClasses = ReportInstanceMapper.class)
+        static class TestConfig {
+
+        }
+
+        @Test
+        public void toReportInstanceReportsDto_completedReportInstanceNoErrors() {
+            ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
+                .reportInstanceId(REPORT_INSTANCE_ID)
+                .requestedAt(REQUESTED_AT)
+                .createdTimestamp(GENERATED_AT)
+                .report(ReportEntity.builder()
+                    .reportId(REPORT_ID)
+                    .reportTitle(REPORT_TITLE)
+                    .supportedFileTypes(List.of(
+                        SupportedFileType.XML, SupportedFileType.CSV, SupportedFileType.PDF, SupportedFileType.JSON))
+                    .build())
+                .reportName(null)
+                .businessUnit(List.of(1, 2))
+                .generationStatus(ReportInstanceGenerationStatus.READY)
+                .noOfRecords(NO_OF_RECORDS)
+                .errors(null)
+                .reportParameters("{\"report_param_1\":\"param_value\"}")
+                .scheduledDeletionTimestamp(SCHEDULED_DELETION)
+                .build();
+
+            List<BusinessUnitEntity> businessUnitEntityList = Lists.list(
+                BusinessUnitEntity.builder().businessUnitId((short)1).businessUnitName("BU_1")
+                    .welshLanguage(true).build(),
+                BusinessUnitEntity.builder().businessUnitId((short)2).businessUnitName("BU_2")
+                    .welshLanguage(false).build()
+            );
+
+            ReportInstanceReports response =
+                mapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntityList);
+
+            //asserts
+            assertNotNull(response);
+            assertEquals(REPORT_INSTANCE_ID, response.getInstanceId());
+            assertEquals(REQUESTED_AT, response.getRequestedAt());
+            assertEquals(GENERATED_AT, response.getGeneratedAt());
+            assertEquals(REPORT_TITLE, response.getName());
+
+            //business units
+            MatcherAssert.assertThat(response.getBusinessUnits(), Matchers.containsInAnyOrder(
+                    Matchers.allOf(
+                        Matchers.hasProperty("businessUnitName", Matchers.is("BU_1")),
+                        Matchers.hasProperty("businessUnitId", Matchers.is("1")),
+                        Matchers.hasProperty("welshSpeaking", Matchers.is("Y"))),
+                    Matchers.allOf(
+                        Matchers.hasProperty("businessUnitName", Matchers.is("BU_2")),
+                        Matchers.hasProperty("businessUnitId", Matchers.is("2")),
+                        Matchers.hasProperty("welshSpeaking", Matchers.is("N")))
+                )
+            );
+
+            assertEquals(CodeEnum.READY, response.getStatus().getCode());
+            assertEquals(ReportInstanceGenerationStatus.READY.toString(), response.getStatus().getDisplayName());
+
+            assertEquals(NO_OF_RECORDS, response.getNumberOfRecords().shortValue());
+            assertEquals(true, response.getIsDownloadable());
+
+            assertNull(response.getErrors()); //no errors
+
+            MatcherAssert.assertThat(response.getReportParameters(), Matchers.allOf(
+                Matchers.hasEntry("report_param_1", "param_value")
+            ));
+
+            assertEquals(SCHEDULED_DELETION, response.getRetainUntil());
+
+            assertEquals(REPORT_ID, response.getReport().getId());
+            MatcherAssert.assertThat(response.getReport().getSupportedFileTypes(),
+                Matchers.containsInAnyOrder(
+                    SupportedFileTypesEnum.XML,
+                    SupportedFileTypesEnum.CSV,
+                    SupportedFileTypesEnum.PDF,
+                    SupportedFileTypesEnum.JSON));
+        }
+
+        @Test
+        public void toReportInstanceReportsDto_customReportInstanceNameOverridesReportTitle() {
+            ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
+                .reportInstanceId(REPORT_INSTANCE_ID)
+                .requestedAt(REQUESTED_AT)
+                .createdTimestamp(GENERATED_AT)
+                .report(ReportEntity.builder()
+                    .reportId(REPORT_ID)
+                    .reportTitle(REPORT_TITLE)
+                    .supportedFileTypes(List.of(SupportedFileType.XML, SupportedFileType.CSV))
+                    .build())
+                .reportName("Custom Name")
+                .businessUnit(List.of(1, 2))
+                .generationStatus(ReportInstanceGenerationStatus.READY)
+                .noOfRecords(NO_OF_RECORDS)
+                .errors(null)
+                .reportParameters("{\"report_param_1\":\"param_value\"}")
+                .scheduledDeletionTimestamp(SCHEDULED_DELETION)
+                .build();
+
+            List<BusinessUnitEntity> businessUnitEntityList = Lists.list(
+                BusinessUnitEntity.builder().businessUnitId((short)1).businessUnitName("BU_1")
+                    .welshLanguage(true).build(),
+                BusinessUnitEntity.builder().businessUnitId((short)2).businessUnitName("BU_2")
+                    .welshLanguage(false).build()
+            );
+
+            ReportInstanceReports response =
+                mapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntityList);
+
+            assertNotNull(response);
+            assertEquals("Custom Name", response.getName());
+        }
+
+        @Test
+        public void toReportInstanceReportsDto_errors() {
+            ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
+                .reportInstanceId(REPORT_INSTANCE_ID)
+                .requestedAt(REQUESTED_AT)
+                .createdTimestamp(GENERATED_AT)
+                .report(ReportEntity.builder()
+                    .reportId(REPORT_ID)
+                    .reportTitle(REPORT_TITLE)
+                    .supportedFileTypes(List.of(SupportedFileType.XML, SupportedFileType.CSV))
+                    .build())
+                .reportName(null)
+                .businessUnit(List.of(1, 2))
+                .generationStatus(ReportInstanceGenerationStatus.ERROR)
+                .noOfRecords(NO_OF_RECORDS)
+                .errors(ReportError.builder().operationId("ERROR-ID").error("Unit test error").build())
+                .reportParameters(null)
+                .scheduledDeletionTimestamp(SCHEDULED_DELETION)
+                .build();
+            List<BusinessUnitEntity> businessUnitEntityList = Lists.list(
+                BusinessUnitEntity.builder().businessUnitId((short)1).businessUnitName("BU_1")
+                    .welshLanguage(true).build(),
+                BusinessUnitEntity.builder().businessUnitId((short)2).businessUnitName("BU_2")
+                    .welshLanguage(false).build()
+            );
+
+            ReportInstanceReports response =
+                mapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntityList);
+
+            assertNotNull(response);
+            assertEquals(CodeEnum.ERROR, response.getStatus().getCode());
+            assertEquals(CodeEnum.ERROR.getValue(), response.getStatus().getDisplayName());
+            assertEquals(Collections.emptyMap(), response.getReportParameters());
+
+            assertNotNull(response.getErrors());
+            assertEquals(1, response.getErrors().size());
+            MatcherAssert.assertThat(response.getErrors().getFirst(), Matchers.allOf(
+                Matchers.aMapWithSize(2),
+                Matchers.hasEntry("operationId", "ERROR-ID"),
+                Matchers.hasEntry("error", "Unit test error")
+            ));
+        }
+
+        @Test
+        public void toReportInstanceReportsDto_reportInstanceReadyButSupportedFiletypesIsNull() {
+            ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
+                .reportInstanceId(REPORT_INSTANCE_ID)
+                .requestedAt(REQUESTED_AT)
+                .createdTimestamp(GENERATED_AT)
+                .report(ReportEntity.builder()
+                .reportId(REPORT_ID)
+                .reportTitle(REPORT_TITLE)
+                .supportedFileTypes(null)
+                .build())
+                .reportName(null)
+                .businessUnit(List.of(1, 2))
+                .generationStatus(ReportInstanceGenerationStatus.READY)
+                .noOfRecords(NO_OF_RECORDS)
+                .errors(ReportError.builder().operationId("ERROR-ID").error("Unit test error").build())
+                .reportParameters(null)
+                .scheduledDeletionTimestamp(SCHEDULED_DELETION)
+                .build();
+            List<BusinessUnitEntity> businessUnitEntityList = Lists.list(
+                BusinessUnitEntity.builder().businessUnitId((short)1).businessUnitName("BU_1")
+                    .welshLanguage(true).build(),
+                BusinessUnitEntity.builder().businessUnitId((short)2).businessUnitName("BU_2")
+                    .welshLanguage(false).build()
+            );
+
+            ReportInstanceReports response =
+                mapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntityList);
+            assertNotNull(response);
+            assertEquals(CodeEnum.READY, response.getStatus().getCode());
+            assertEquals(CodeEnum.READY.getValue(), response.getStatus().getDisplayName());
+            assertEquals(false, response.getIsDownloadable());
+        }
+
+        @Test
+        public void toReportInstanceReportsDto_reportInstanceReadyButSupportedFiletypesIsEmpty() {
+            ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
+                .reportInstanceId(REPORT_INSTANCE_ID)
+                .requestedAt(REQUESTED_AT)
+                .createdTimestamp(GENERATED_AT)
+                .report(ReportEntity.builder()
+                .reportId(REPORT_ID)
+                .reportTitle(REPORT_TITLE)
+                .supportedFileTypes(Collections.emptyList())
+                .build())
+                .reportName(null)
+                .businessUnit(List.of(1, 2))
+                .generationStatus(ReportInstanceGenerationStatus.READY)
+                .noOfRecords(NO_OF_RECORDS)
+                .errors(ReportError.builder().operationId("ERROR-ID").error("Unit test error").build())
+                .reportParameters(null)
+                .scheduledDeletionTimestamp(SCHEDULED_DELETION)
+                .build();
+            List<BusinessUnitEntity> businessUnitEntityList = Lists.list(
+                BusinessUnitEntity.builder().businessUnitId((short)1).businessUnitName("BU_1")
+                    .welshLanguage(true).build(),
+                BusinessUnitEntity.builder().businessUnitId((short)2).businessUnitName("BU_2")
+                    .welshLanguage(false).build()
+            );
+
+            ReportInstanceReports response =
+                mapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntityList);
+            assertNotNull(response);
+            assertEquals(CodeEnum.READY, response.getStatus().getCode());
+            assertEquals(CodeEnum.READY.getValue(), response.getStatus().getDisplayName());
+            assertEquals(false, response.getIsDownloadable());
+        }
+    }
+
 
     @Nested
     @DisplayName("mapReportName()")

@@ -18,6 +18,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 import java.math.BigInteger;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -41,6 +42,11 @@ import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchReferenceNumberDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
+import uk.gov.hmcts.opal.mapper.request.DefendantAccountSearchRequestMapper;
+import uk.gov.hmcts.opal.mapper.response.DefendantAccountSearchResponseMapper;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
@@ -59,6 +65,15 @@ class DefendantAccountServiceTest {
 
     @Mock
     private OpalDefendantAccountService opalDefendantAccountService;
+
+    @Mock
+    private DefendantAccountSearchRequestMapper defendantAccountSearchRequestMapper;
+
+    @Mock
+    private DefendantAccountSearchResponseMapper defendantAccountSearchResponseMapper;
+
+    @Mock
+    private DefendantAccountSearchRequestValidator defendantAccountSearchRequestValidator;
 
     @InjectMocks
     private DefendantAccountService defendantAccountService;
@@ -226,6 +241,40 @@ class DefendantAccountServiceTest {
 
         assertNotNull(result);
         verify(defendantAccountServiceProxy).searchDefendantAccounts(dto);
+    }
+
+    @Test
+    void searchDefendantAccounts_generatedRequest_happyPath_mapsAndReturnsGeneratedResponse() {
+        PostDefendantAccountSearchRequestDefendantAccount request =
+            PostDefendantAccountSearchRequestDefendantAccount.builder()
+                .activeAccountsOnly(true)
+                .businessUnitIds(List.of(77))
+                .referenceNumber(new DefendantAccountSearchReferenceNumberDefendantAccount()
+                    .organisation(false)
+                    .accountNumber("A123"))
+                .build();
+        AccountSearchDto mappedRequest = AccountSearchDto.builder().build();
+        DefendantAccountSearchResultsDto proxyResults = DefendantAccountSearchResultsDto.builder().build();
+        PostDefendantAccountSearchResponseDefendantAccount expectedResponse =
+            PostDefendantAccountSearchResponseDefendantAccount.builder()
+                .count(0)
+                .defendantAccounts(List.of())
+                .build();
+
+        when(defendantAccountSearchRequestMapper.toAccountSearchDto(request)).thenReturn(mappedRequest);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
+        when(defendantAccountServiceProxy.searchDefendantAccounts(mappedRequest)).thenReturn(proxyResults);
+        when(defendantAccountSearchResponseMapper.toResponse(proxyResults)).thenReturn(expectedResponse);
+
+        PostDefendantAccountSearchResponseDefendantAccount result =
+            defendantAccountService.searchDefendantAccounts(request);
+
+        assertSame(expectedResponse, result);
+        verify(defendantAccountSearchRequestValidator).validateAndCheckFeature(request);
+        verify(defendantAccountSearchRequestMapper).toAccountSearchDto(request);
+        verify(defendantAccountServiceProxy).searchDefendantAccounts(mappedRequest);
+        verify(defendantAccountSearchResponseMapper).toResponse(proxyResults);
     }
 
     @Test
