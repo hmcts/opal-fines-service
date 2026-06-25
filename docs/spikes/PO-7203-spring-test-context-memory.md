@@ -435,3 +435,55 @@ Conclusion:
 - Remaining unique contexts are now more likely caused by still-required spies,
   gateway/user-state mock combinations, SQL setup differences, or explicit
   feature-flag properties.
+
+### 2026-06-25: Reduced ReportInstances mock bean customizers
+
+Code changes:
+
+- Replaced Spring-level `@MockitoBean` declarations for `UserState` and
+  `BusinessUnitUser` in `ReportInstancesControllerIntegrationTest` with plain
+  test objects returned by the mocked `UserStateService`.
+- Kept the Spring-level mocks that are still needed:
+  - `UserStateService`
+  - `ReportQueuePublisherImpl`
+
+Validation:
+
+| Task | Before misses | After misses | Result |
+| --- | ---: | ---: | --- |
+| `compileIntegrationTestJava` | n/a | n/a | Passed |
+| `integrationBase` | 30 | 30 | Passed |
+
+Conclusion:
+
+- This removes unnecessary bean override customizers from one heavy base test,
+  but it does not merge the test with another existing base context.
+- It remains useful cleanup because mock domain objects do not need to be part
+  of the Spring ApplicationContext.
+
+### 2026-06-25: Removed non-feature LaunchDarkly disabled overrides
+
+Code changes:
+
+- Removed `launchdarkly.enabled=false` from tests that do not assert
+  feature-toggle behaviour:
+  - `CentralFundControllerIntegrationTest`
+  - `ResultControllerIntegrationTest`
+- These tests now use the standard integration profile LaunchDarkly setup, which
+  uses the local integration flag file.
+
+Validation:
+
+| Task | Before misses | After misses | Result |
+| --- | ---: | ---: | --- |
+| `compileIntegrationTestJava` | n/a | n/a | Passed |
+| `integrationBase` | 30 | 29 | Passed |
+| `checkstyleIntegrationTest` | n/a | n/a | Passed |
+
+Conclusion:
+
+- This confirms that some historical `launchdarkly.enabled=false` overrides were
+  unnecessary in non-feature tests and were creating avoidable context keys.
+- `CentralFundControllerIntegrationTest` now reuses the next standard
+  integration context; `ResultControllerIntegrationTest` still creates a unique
+  context because it has a `JsonSchemaValidationService` spy.
