@@ -9,9 +9,9 @@
         false
       ],
       "fallthrough": {
-        "variation": 0
+        "variation": 1
       },
-      "offVariation": 0
+      "offVariation": 1
     },
     "release-1b": {
       "key": "release-1b",
@@ -45,9 +45,9 @@
         false
       ],
       "fallthrough": {
-        "variation": 0
+        "variation": 1
       },
-      "offVariation": 0
+      "offVariation": 1
     },
     "legacy-app-mode-enabled": {
       "key": "legacy-app-mode-enabled",
