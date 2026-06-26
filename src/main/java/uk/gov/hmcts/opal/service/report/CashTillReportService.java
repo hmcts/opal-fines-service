@@ -71,6 +71,11 @@ public class CashTillReportService implements ReportInterface<CashTillReportData
     }
 
     @Override
+    public Class<? extends CashTillReportData> getStoredReportDataClass(ReportInstanceEntity reportInstance) {
+        return CashTillReportData.class;
+    }
+
+    @Override
     public byte[] convertReportDataToFileType(ReportInstanceEntity reportInstance, CashTillReportData reportData,
         FileType fileType) {
         if (fileType != CSV) {

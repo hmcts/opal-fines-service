@@ -97,6 +97,8 @@ class GenericReportServiceTest {
     @Mock
     ReportInstanceSearchService reportInstanceSearchService;
     @Mock
+    GetReportInstanceContentService getReportInstanceContentService;
+    @Mock
     private UserStateService userStateService;
     @Mock
     private UserState userState;
@@ -141,7 +143,8 @@ class GenericReportServiceTest {
             clock,
             mapper,
             businessUnitRepository,
-            reportInstanceSearchService
+            reportInstanceSearchService,
+            getReportInstanceContentService
         );
     }
 

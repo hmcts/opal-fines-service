@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 
 @Service
-public class FpRegisterService implements ReportInterface {
+public class FpRegisterService implements ReportInterface<FpRegisterService.FpRegisterData> {
 
     @Override
     public ReportId getReportId() {
@@ -20,7 +20,12 @@ public class FpRegisterService implements ReportInterface {
     }
 
     @Override
-    public byte[] convertReportDataToFileType(ReportInstanceEntity reportInstance, ReportDataInterface reportData,
+    public Class<? extends FpRegisterData> getStoredReportDataClass(ReportInstanceEntity reportInstance) {
+        return FpRegisterData.class;
+    }
+
+    @Override
+    public byte[] convertReportDataToFileType(ReportInstanceEntity reportInstance, FpRegisterData reportData,
         FileType fileType) {
         return new byte[0];
     }

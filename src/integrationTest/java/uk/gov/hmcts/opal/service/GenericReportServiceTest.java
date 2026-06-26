@@ -158,6 +158,11 @@ class GenericReportServiceTest extends AbstractIntegrationTest {
         }
 
         @Override
+        public Class<? extends TestReportData> getStoredReportDataClass(ReportInstanceEntity reportInstance) {
+            return null;
+        }
+
+        @Override
         public byte[] convertReportDataToFileType(ReportInstanceEntity reportInstance, TestReportData reportData,
             FileType fileType) {
             return new byte[0];
