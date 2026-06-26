@@ -271,8 +271,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         }
     }
 
-    @Transactional
-    public Map<String, Object> publishAccountStoredProc(DraftAccountEntity publishEntity) {
+    private Map<String, Object> publishAccountStoredProc(DraftAccountEntity publishEntity) {
 
         return draftAccountRepository.createDefendantAccount(publishEntity.getDraftAccountId(),
                                                              publishEntity.getBusinessUnit().getBusinessUnitId(),
