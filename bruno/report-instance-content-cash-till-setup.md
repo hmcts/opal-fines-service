@@ -8,7 +8,7 @@ It matches the current integration-test setup for:
 - report id: `cash_till`
 - report instance id: `99000000353000`
 - blob location: `stored-cash-till-report-location`
-- business unit id: `1778`
+- business unit id: `77`
 
 ## Preconditions
 
@@ -16,6 +16,14 @@ It matches the current integration-test setup for:
 - local Postgres is available
 - Azurite blob storage is running
 - Bruno is using your local fines-service environment
+- `opal-shared-infrastructure/docker-files/.env.shared` contains:
+
+```text
+AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;
+REPORT_AZURE_STORAGE_CONTAINER=reports
+```
+
+- use business unit id `77` for this local cash till content setup
 
 The Bruno request already exists at:
 
@@ -50,7 +58,7 @@ INSERT INTO business_units (
     business_unit_type,
     welsh_language
 ) VALUES (
-    1778,
+    77,
     'Cash Till Business Unit',
     'CTIL',
     CAST('Area' AS t_business_unit_type_enum),
@@ -64,7 +72,7 @@ INSERT INTO tills (
     owned_by
 ) VALUES (
     99000000353100,
-    1778,
+    77,
     9011,
     'L080JG'
 );
@@ -81,7 +89,7 @@ INSERT INTO defendant_accounts (
     version_number
 ) VALUES (
     99000000353200,
-    1778,
+    77,
     'ACC456',
     250.00,
     125.50,
@@ -137,7 +145,7 @@ INSERT INTO report_instances (
 ) VALUES (
     99000000353000,
     'cash_till',
-    ARRAY[1778]::smallint[],
+    ARRAY[77]::smallint[],
     1,
     12345678,
     '{"till_id":99000000353100,"allocated_report":false}'::json,
@@ -246,7 +254,7 @@ DELETE FROM tills
 WHERE till_id = 99000000353100;
 
 DELETE FROM business_units
-WHERE business_unit_id = 1778;
+WHERE business_unit_id = 77;
 
 UPDATE reports
 SET retention_period = '14',
