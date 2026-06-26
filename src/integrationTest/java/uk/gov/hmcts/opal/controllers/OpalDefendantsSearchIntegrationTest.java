@@ -936,7 +936,8 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("OPAL: Fuzzy surname match when exact_match_surname = false")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
-    @JiraTestKey("PO-6082")
+    @JiraTestKey(value="PO-6082",arguments = "false")
+    @JiraTestKey(value = "PO-8365", arguments = "true")
     void testPostDefendantAccountsSearch_Opal_SurnamePartialMatch(boolean consolidation) throws Exception {
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL)

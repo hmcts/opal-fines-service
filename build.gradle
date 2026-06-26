@@ -634,8 +634,8 @@ dependencies {
 
   implementation 'uk.gov.hmcts:opal-common-lib:0.3.19'
 
-  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.1.0'
-  testImplementation 'uk.gov.hmcts:zephyr-automation:1.1.0'
+  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.2.0'
+  testImplementation 'uk.gov.hmcts:zephyr-automation:1.2.0'
   testImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.14.0'
 
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.45"
