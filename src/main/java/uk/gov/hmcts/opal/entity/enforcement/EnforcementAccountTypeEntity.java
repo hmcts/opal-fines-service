@@ -15,7 +15,7 @@ import lombok.NonNull;
 import uk.gov.hmcts.opal.entity.LowHighValue;
 import uk.gov.hmcts.opal.entity.converter.AccountTypeConverter;
 import uk.gov.hmcts.opal.entity.converter.EnforcementAccountTypeConverter;
-import uk.gov.hmcts.opal.entity.converter.LowHighConverter;
+import uk.gov.hmcts.opal.entity.converter.LowHighValueConverter;
 
 @Entity
 @Table(name = "enforcement_account_types")
@@ -39,7 +39,7 @@ public class EnforcementAccountTypeEntity {
     @NonNull
     private AccountType accountType;
 
-    @Convert(converter = LowHighConverter.class)
+    @Convert(converter = LowHighValueConverter.class)
     @Column
     @NonNull
     private LowHighValue accountTypePath;

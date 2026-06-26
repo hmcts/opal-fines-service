@@ -5,7 +5,7 @@ import jakarta.persistence.Converter;
 import uk.gov.hmcts.opal.entity.LowHighValue;
 
 @Converter(autoApply = true)
-public class LowHighConverter implements AttributeConverter<LowHighValue, String> {
+public class LowHighValueConverter implements AttributeConverter<LowHighValue, String> {
 
     @Override
     public String convertToDatabaseColumn(LowHighValue value) {
