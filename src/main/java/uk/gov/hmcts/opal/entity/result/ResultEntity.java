@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.entity.result;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
@@ -14,7 +15,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.ColumnTransformer;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
+import uk.gov.hmcts.opal.entity.converter.ImpositionCreditorConverter;
+import uk.gov.hmcts.opal.entity.converter.ResultTypeConverter;
 
 import java.util.List;
 
@@ -48,8 +52,10 @@ public class ResultEntity {
     @Column(name = "result_title_cy", length = 50, nullable = false)
     private String resultTitleCy;
 
-    @Column(name = "result_type", length = 10, nullable = false)
-    private String resultType;
+    @Convert(converter = ResultTypeConverter.class)
+    @ColumnTransformer(read = "result_type::text", write = "?::t_result_type_enum")
+    @Column(name = "result_type", length = 10, nullable = false, columnDefinition = "t_result_type_enum")
+    private ResultType resultType;
 
     @Column(name = "active", nullable = false)
     private boolean active;
@@ -58,8 +64,10 @@ public class ResultEntity {
     @Column(name = "imposition_allocation_priority")
     private Short impositionAllocationPriority;
 
-    @Column(name = "imposition_creditor", length = 10)
-    private String impositionCreditor;
+    @Convert(converter = ImpositionCreditorConverter.class)
+    @ColumnTransformer(read = "imposition_creditor::text", write = "?::t_imposition_creditor_enum")
+    @Column(name = "imposition_creditor", length = 10, columnDefinition = "t_imposition_creditor_enum")
+    private ImpositionCreditor impositionCreditor;
 
     @Column(name = "imposition", nullable = false)
     private boolean imposition;

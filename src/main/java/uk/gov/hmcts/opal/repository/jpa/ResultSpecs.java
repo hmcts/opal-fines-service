@@ -1,10 +1,11 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
+import org.hibernate.query.criteria.JpaExpression;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity_;
+import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 
 import java.util.List;
 import java.util.Optional;
@@ -71,8 +72,8 @@ public class ResultSpecs extends EntitySpecs<ResultEntity> {
     }
 
     public static Specification<ResultEntity> likeResultType(String resultType) {
-        return (root, query, builder) ->
-            likeWildcardPredicate(root.get(ResultEntity_.resultType), builder, resultType);
+        return (root, query, builder) -> likeWildcardPredicate(
+            ((JpaExpression<?>) root.get(ResultEntity_.resultType)).cast(String.class), builder, resultType);
     }
 
     public static Specification<ResultEntity>
@@ -82,8 +83,9 @@ public class ResultSpecs extends EntitySpecs<ResultEntity> {
     }
 
     public static Specification<ResultEntity> likeImpositionCreditor(String impositionCreditor) {
-        return (root, query, builder) -> likeWildcardPredicate(root.get(ResultEntity_.impositionCreditor), builder,
-                                                               impositionCreditor);
+        return (root, query, builder) -> likeWildcardPredicate(
+            ((JpaExpression<?>) root.get(ResultEntity_.impositionCreditor)).cast(String.class), builder,
+            impositionCreditor);
     }
 
     public Specification<ResultEntity> likeAnyResult(String filter) {
