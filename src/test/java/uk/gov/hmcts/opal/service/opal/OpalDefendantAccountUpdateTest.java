@@ -306,6 +306,7 @@ class OpalDefendantAccountUpdateTest {
                 .build())
             .version(BigInteger.ZERO)
             .build();
+        when(defendantAccountControlValidator.isProtectedUpdate(req, entity)).thenReturn(true);
 
         UnprocessableException result = assertThrows(UnprocessableException.class,
             () -> service.updateDefendantAccount(77L, "78", req, "tester"));

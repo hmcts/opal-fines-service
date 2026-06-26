@@ -67,11 +67,9 @@ import uk.gov.hmcts.opal.entity.search.SearchConsolidatedEntity;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
-import uk.gov.hmcts.opal.generated.model.CollectionOrderCommon;
 import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementCourtDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
 import uk.gov.hmcts.opal.mapper.ConsolidatedAccountMapper;
 import uk.gov.hmcts.opal.mapper.DefendantAccountHeaderSummaryMapper;
@@ -356,7 +354,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         VersionUtils.verifyIfMatch(entity, request.getVersion(), defendantAccountId, "updateDefendantAccount");
 
-        if (isProtectedUpdate(request, entity)) {
+        if (defendantAccountControlValidator.isProtectedUpdate(request, entity)) {
             defendantAccountControlValidator.validateCanUpdateProtectedFields(entity);
         }
 
@@ -409,55 +407,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             )
             .version(newVersion)
             .build();
-    }
-
-    private boolean isProtectedUpdate(UpdateDefendantAccountRequest request, DefendantAccountEntity entity) {
-        UpdateDefendantAccountRequestPayload payload = request.getPayload();
-        return isEnforcementCourtChange(payload.getEnforcementCourt(), entity)
-            || isCollectionOrderChange(payload.getCollectionOrder(), entity)
-            || isEnforcementOverrideChange(payload.getEnforcementOverride(), entity);
-    }
-
-    private boolean isEnforcementCourtChange(EnforcementCourtDefendantAccount enforcementCourt,
-                                             DefendantAccountEntity entity) {
-        if (enforcementCourt == null) {
-            return false;
-        }
-        Long currentCourtId = Optional.ofNullable(entity.getEnforcingCourt())
-            .map(CourtEntity::getCourtId)
-            .orElse(null);
-        return !Objects.equals(enforcementCourt.getCourtId(), currentCourtId);
-    }
-
-    private boolean isCollectionOrderChange(CollectionOrderCommon collectionOrder, DefendantAccountEntity entity) {
-        if (collectionOrder == null) {
-            return false;
-        }
-        return !Objects.equals(collectionOrder.getCollectionOrderFlag(), entity.getCollectionOrder())
-            || !Objects.equals(collectionOrder.getCollectionOrderDate(), entity.getCollectionOrderEffectiveDate());
-    }
-
-    private boolean isEnforcementOverrideChange(EnforcementOverrideDefendantAccount enforcementOverride,
-                                                DefendantAccountEntity entity) {
-        if (enforcementOverride == null) {
-            return false;
-        }
-        String requestedResultId = enforcementOverride.getEnforcementOverrideResult() == null
-            ? null
-            : enforcementOverride.getEnforcementOverrideResult().getEnforcementOverrideResultId();
-        Long requestedEnforcerId = enforcementOverride.getEnforcer() == null
-            ? null
-            : enforcementOverride.getEnforcer().getEnforcerId();
-        Integer requestedLjaId = enforcementOverride.getLja() == null
-            ? null
-            : enforcementOverride.getLja().getLjaId();
-        Integer currentLjaId = Optional.ofNullable(entity.getEnforcementOverrideTfoLjaId())
-            .map(Short::intValue)
-            .orElse(null);
-
-        return !Objects.equals(requestedResultId, entity.getEnforcementOverrideResultId())
-            || !Objects.equals(requestedEnforcerId, entity.getEnforcementOverrideEnforcerId())
-            || !Objects.equals(requestedLjaId, currentLjaId);
     }
 
     /**
