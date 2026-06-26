@@ -62,7 +62,7 @@ Feature: Report Instances
 
 #    GET :/reports-instances/{id} Test scenarios
 
-  @JIRA-STORY:PO-2254 @JIRA-EPIC:PO-2248
+  @JIRA-STORY:PO-2254 @JIRA-EPIC:PO-2248 @JIRA-TEST-KEY:PO-8295
   Scenario: Get report instance returns complete instance details
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a report instance with report id "operational_report_enforcement" for business unit 73
@@ -72,19 +72,19 @@ Feature: Report Instances
     And the report instance response contains the created instance id
     And the report instance response contains core instance details
 
-  @JIRA-STORY:PO-2254 @JIRA-EPIC:PO-2248
+  @JIRA-STORY:PO-2254 @JIRA-EPIC:PO-2248 @JIRA-TEST-KEY:PO-8296
   Scenario: Get report instance without a token is rejected by the security layer
     When I call GET on the report instance api for id 1 with "no token"
     Then the request is rejected with status 401
     And the latest get report instance response is an unauthorized response
 
-  @JIRA-STORY:PO-2254 @JIRA-EPIC:PO-2248
+  @JIRA-STORY:PO-2254 @JIRA-EPIC:PO-2248 @JIRA-TEST-KEY:PO-8297
   Scenario: Get report instance with an invalid token is rejected with standard error responses
     When I call GET on the report instance api for id 1 with "invalid token"
     Then the request is rejected with status 401
     And the latest get report instance error response matches the standard problem detail contract for status 401
 
-  @JIRA-STORY:PO-2254 @JIRA-EPIC:PO-2248
+  @JIRA-STORY:PO-2254 @JIRA-EPIC:PO-2248 @JIRA-TEST-KEY:PO-8298
   Scenario: Get report instance without permission in the requested business unit is rejected as forbidden
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a report instance with report id "operational_report_enforcement" for business unit 73
@@ -94,7 +94,7 @@ Feature: Report Instances
     Then the request is rejected as forbidden
     And the latest get report instance error response matches the standard problem detail contract for status 403
 
-  @JIRA-STORY:PO-2254 @JIRA-EPIC:PO-2248
+  @JIRA-STORY:PO-2254 @JIRA-EPIC:PO-2248 @JIRA-TEST-KEY:PO-8299
   Scenario: Get report instance with an unknown id is rejected as not found
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I request report instance with id -1
