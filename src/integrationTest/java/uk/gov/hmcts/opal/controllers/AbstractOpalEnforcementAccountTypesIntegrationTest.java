@@ -6,7 +6,6 @@ import org.mockito.Mockito;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
@@ -46,20 +45,11 @@ abstract class AbstractOpalEnforcementAccountTypesIntegrationTest extends Abstra
     }
 
     protected void authorizeWithPermission(short businessUnitId) {
-//        when(userStateService.checkForAuthorisedUser(org.mockito.ArgumentMatchers.any()))
-//            .thenReturn(UserStateUtil.allPermissionsUser());
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions(businessUnitId, FinesPermission.AUTO_ENFORCEMENT);
     }
 
     protected void authoriseNoPermissions() {
-//        when(userStateService.checkForAuthorisedUser(org.mockito.ArgumentMatchers.any()))
-//            .thenReturn(UserStateUtil.noFinesPermissionUser());
         userStateStub.setupWithNoPermissions();
-    }
-
-    protected void authorise(short businessUnitId, FinesPermission permission) {
-        when(userStateService.checkForAuthorisedUser(org.mockito.ArgumentMatchers.any()))
-            .thenReturn(UserStateUtil.permissionUser(businessUnitId, permission));
     }
 }
