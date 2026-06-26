@@ -9,7 +9,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.service.opal.ReportEntryService;
@@ -18,9 +17,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @DisplayName("Remove Defendant Account Enforcement Hold Integration Tests")
-@TestPropertySource(properties = {
-    "launchdarkly.default-flag-values.release-1b=true"
-})
 class OpalDefendantAccountRemoveEnforcementHoldIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
 
     static final String URL_BASE = "/defendant-accounts";

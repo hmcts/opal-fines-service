@@ -12,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -21,9 +20,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "opal"})
 @Slf4j(topic = "opal.MinorCreditorAuthIntegrationTest")
-@TestPropertySource(properties = {
-    "launchdarkly.default-flag-values.release-1b=true"
-})
 class MinorCreditorAuthIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/minor-creditor-accounts";

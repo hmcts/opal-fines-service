@@ -9,16 +9,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @DisplayName("Defendant Account At A Glance Payment Terms Integration Tests")
-@TestPropertySource(properties = {
-    "launchdarkly.default-flag-values.release-1b=true"
-})
 class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
 
     private static final long ACCOUNT_MULTI_TERMS_ONE_ACTIVE = 262901L;

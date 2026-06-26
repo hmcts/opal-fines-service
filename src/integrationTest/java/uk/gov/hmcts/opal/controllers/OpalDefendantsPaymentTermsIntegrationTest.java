@@ -11,7 +11,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
@@ -21,9 +20,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Slf4j(topic = "opal.OpalDefendantsPaymentTermsIntegrationTest")
-@TestPropertySource(properties = {
-    "launchdarkly.default-flag-values.release-1b=true"
-})
 class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
 
     @Test

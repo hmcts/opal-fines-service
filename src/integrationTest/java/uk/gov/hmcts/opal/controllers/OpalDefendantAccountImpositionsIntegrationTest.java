@@ -16,7 +16,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
@@ -37,9 +36,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
     scripts = "classpath:db/deleteData/delete_from_impositions_entity_graph.sql",
     executionPhase = AFTER_TEST_CLASS
 )
-@TestPropertySource(properties = {
-    "launchdarkly.default-flag-values.release-1b=true"
-})
 class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/defendant-accounts";
