@@ -1,12 +1,14 @@
 package uk.gov.hmcts.opal.entity.converter;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.MockedStatic;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementAccountTypeExtended;
 
 
@@ -32,21 +34,24 @@ public class EnforcementAccountTypeExtendedConverterTest {
 
     @Test
     void convertToEntityAttribute() {
-        EnforcementAccountTypeExtended colh = converter.convertToEntityAttribute("COLH");
-        EnforcementAccountTypeExtended coll = converter.convertToEntityAttribute("COLL");
-        EnforcementAccountTypeExtended fpvh = converter.convertToEntityAttribute("FPVH");
-        EnforcementAccountTypeExtended fpvl = converter.convertToEntityAttribute("FPVL");
+        try (MockedStatic<EnforcementAccountTypeExtended> enfAccountTyoe = mockStatic(
+            EnforcementAccountTypeExtended.class)) {
+            converter.convertToEntityAttribute("COLH");
+            enfAccountTyoe.verify(
+                () -> EnforcementAccountTypeExtended.fromCode("COLH"), times(1)
+            );
+        }
+    }
 
-        EnforcementAccountTypeExtended nullAttr = converter.convertToEntityAttribute(null);
+    @Test
+    void convertToNullEntityAttribute() {
+        try (MockedStatic<EnforcementAccountTypeExtended> enfAccountTyoe = mockStatic(
+            EnforcementAccountTypeExtended.class)) {
+            EnforcementAccountTypeExtended entityAttr = converter.convertToEntityAttribute(null);
 
-        assertAll(
-            () -> assertEquals(EnforcementAccountTypeExtended.ADULT_COLLECTION_ORDER_HIGH, colh),
-            () -> assertEquals(EnforcementAccountTypeExtended.ADULT_COLLECTION_ORDER_LOW, coll),
-            () -> assertEquals(EnforcementAccountTypeExtended.FPVH, fpvh),
-            () -> assertEquals(EnforcementAccountTypeExtended.FPVL, fpvl),
-            () -> assertNull(nullAttr)
-        );
-
+            assertNull(entityAttr);
+            enfAccountTyoe.verifyNoInteractions();
+        }
     }
 
 }

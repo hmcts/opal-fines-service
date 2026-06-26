@@ -1,12 +1,14 @@
 package uk.gov.hmcts.opal.entity.converter;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.MockedStatic;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementAccountType;
 
 
@@ -31,20 +33,20 @@ public class EnforcementAccountTypeConverterTest {
 
     @Test
     void convertToEntityAttribute() {
-        EnforcementAccountType colh = converter.convertToEntityAttribute("COLH");
-        EnforcementAccountType coll = converter.convertToEntityAttribute("COLL");
-        EnforcementAccountType yh = converter.convertToEntityAttribute("YH");
-        EnforcementAccountType yl = converter.convertToEntityAttribute("YL");
-        EnforcementAccountType nullAttr = converter.convertToEntityAttribute(null);
+        try (MockedStatic<EnforcementAccountType> enfAccountTyoe = mockStatic(EnforcementAccountType.class)) {
+            converter.convertToEntityAttribute("COLH");
+            enfAccountTyoe.verify(() -> EnforcementAccountType.getByCode("COLH"), times(1));
+        }
+    }
 
-        assertAll(
-            () -> assertEquals(EnforcementAccountType.ADULT_COLLECTION_ORDER_HIGH, colh),
-            () -> assertEquals(EnforcementAccountType.ADULT_COLLECTION_ORDER_LOW, coll),
-            () -> assertEquals(EnforcementAccountType.YOUTH_HIGH, yh),
-            () -> assertEquals(EnforcementAccountType.YOUTH_LOW, yl),
-            () -> assertNull(nullAttr)
-        );
+    @Test
+    void convertToNullEntityAttribute() {
+        try (MockedStatic<EnforcementAccountType> enfAccountTyoe = mockStatic(EnforcementAccountType.class)) {
+            EnforcementAccountType entityAttr = converter.convertToEntityAttribute(null);
 
+            assertNull(entityAttr);
+            enfAccountTyoe.verifyNoInteractions();
+        }
     }
 
 }

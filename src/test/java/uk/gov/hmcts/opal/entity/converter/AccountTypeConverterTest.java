@@ -1,12 +1,14 @@
 package uk.gov.hmcts.opal.entity.converter;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.MockedStatic;
 import uk.gov.hmcts.opal.entity.enforcement.AccountType;
 
 
@@ -31,16 +33,19 @@ public class AccountTypeConverterTest {
 
     @Test
     void convertToEntityAttribute() {
-        AccountType col = converter.convertToEntityAttribute("COL");
-        AccountType youth = converter.convertToEntityAttribute("Y");
-        AccountType nullAttr = converter.convertToEntityAttribute(null);
-
-        assertAll(
-            () -> assertEquals(AccountType.ADULT_COLLECTION_ORDER, col),
-            () -> assertEquals(AccountType.YOUTH, youth),
-            () -> assertNull(nullAttr)
-        );
-
+        try (MockedStatic<AccountType> accountType = mockStatic(AccountType.class)) {
+            converter.convertToEntityAttribute("COL");
+            accountType.verify(() -> AccountType.getByCode("COL"), times(1));
+        }
     }
 
+    @Test
+    void convertToNullEntityAttribute() {
+        try (MockedStatic<AccountType> accountType = mockStatic(AccountType.class)) {
+            AccountType entityAttr = converter.convertToEntityAttribute(null);
+
+            assertNull(entityAttr);
+            accountType.verifyNoInteractions();
+        }
+    }
 }
