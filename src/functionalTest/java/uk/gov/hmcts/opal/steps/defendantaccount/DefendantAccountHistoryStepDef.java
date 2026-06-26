@@ -114,32 +114,11 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     }
 
     /**
-     * Requests defendant-account history using the current scenario user's bearer token.
-     *
-     * @param accountId defendant-account identifier to request.
-     */
-    @When("I request defendant account history for account {long}")
-    public void requestDefendantAccountHistory(long accountId) {
-        getHistory(BearerTokenStepDef.getToken(), accountId, null);
-    }
-
-    /**
      * Requests defendant-account history for the account created by the current scenario.
      */
     @When("I request defendant account history for the created defendant account")
     public void requestDefendantAccountHistoryForCreatedDefendantAccount() {
         getHistory(BearerTokenStepDef.getToken(), createdDefendantAccountId(), null);
-    }
-
-    /**
-     * Requests defendant-account history with a raw query string.
-     *
-     * @param accountId defendant-account identifier to request.
-     * @param query query string to append to the request URI.
-     */
-    @When("I request defendant account history for account {long} with query {string}")
-    public void requestDefendantAccountHistoryWithQuery(long accountId, String query) {
-        getHistory(BearerTokenStepDef.getToken(), accountId, query);
     }
 
     /**
@@ -150,29 +129,6 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     @When("I request defendant account history for the created defendant account with query {string}")
     public void requestCreatedDefendantAccountHistoryWithQuery(String query) {
         getHistory(BearerTokenStepDef.getToken(), createdDefendantAccountId(), query);
-    }
-
-    /**
-     * Requests defendant-account history twice with the same query string.
-     *
-     * @param accountId defendant-account identifier to request.
-     * @param query query string to append to both request URIs.
-     */
-    @When("I request defendant account history for account {long} with query {string} twice")
-    public void requestDefendantAccountHistoryWithQueryTwice(long accountId, String query) {
-        firstResponse = getHistory(BearerTokenStepDef.getToken(), accountId, query);
-        secondResponse = getHistory(BearerTokenStepDef.getToken(), accountId, query);
-    }
-
-    /**
-     * Requests defendant-account history for the created account twice with the same query string.
-     *
-     * @param query query string to append to both request URIs.
-     */
-    @When("I request defendant account history for the created defendant account with query {string} twice")
-    public void requestCreatedDefendantAccountHistoryWithQueryTwice(String query) {
-        firstResponse = getHistory(BearerTokenStepDef.getToken(), createdDefendantAccountId(), query);
-        secondResponse = getHistory(BearerTokenStepDef.getToken(), createdDefendantAccountId(), query);
     }
 
     /**
@@ -225,17 +181,6 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     }
 
     /**
-     * Requests defendant-account history as a specific test user.
-     *
-     * @param user user email used to resolve a bearer token.
-     * @param accountId defendant-account identifier to request.
-     */
-    @When("the {string} user requests defendant account history for account {long}")
-    public void userRequestsDefendantAccountHistory(String user, long accountId) {
-        getHistory(BearerTokenStepDef.getAccessTokenForUser(user), accountId, null);
-    }
-
-    /**
      * Requests defendant-account history for the created account as a specific test user.
      *
      * @param user user email used to resolve a bearer token.
@@ -243,16 +188,6 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     @When("the {string} user requests defendant account history for the created defendant account")
     public void userRequestsCreatedDefendantAccountHistory(String user) {
         getHistory(BearerTokenStepDef.getAccessTokenForUser(user), createdDefendantAccountId(), null);
-    }
-
-    /**
-     * Requests defendant-account history without an Authorization header.
-     *
-     * @param accountId defendant-account identifier to request.
-     */
-    @When("I request defendant account history for account {long} without a token")
-    public void requestDefendantAccountHistoryWithoutToken(long accountId) {
-        getHistory(null, accountId, null);
     }
 
     /**
@@ -298,24 +233,6 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     @Then("the defendant account history request succeeds")
     public void defendantAccountHistoryRequestSucceeds() {
         then().statusCode(200);
-    }
-
-    /**
-     * Asserts exact item-type counts in the latest history response.
-     *
-     * @param dataTable expected item type to count mappings.
-     * @throws Exception if the response body cannot be parsed as JSON.
-     */
-    @Then("the defendant account history contains exactly the following item counts")
-    public void defendantAccountHistoryContainsExactlyTheFollowingItemCounts(DataTable dataTable)
-        throws Exception {
-
-        Map<String, Long> expectedCounts = new LinkedHashMap<>();
-        dataTable.asMap(String.class, String.class)
-            .forEach((type, count) -> expectedCounts.put(type, Long.parseLong(count)));
-
-        Map<String, Long> actualCounts = typeCounts();
-        assertEquals(expectedCounts, actualCounts, "Unexpected defendant-account history item counts");
     }
 
     /**
@@ -432,17 +349,6 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     }
 
     /**
-     * Asserts every returned item is on or after the supplied posted date.
-     *
-     * @param date inclusive lower-bound date.
-     * @throws Exception if the response body cannot be parsed as JSON.
-     */
-    @Then("the defendant account history response contains only items on or after {string}")
-    public void defendantAccountHistoryContainsOnlyItemsOnOrAfter(String date) throws Exception {
-        assertHistoryContainsOnlyItemsOnOrAfter(LocalDate.parse(date));
-    }
-
-    /**
      * Asserts every returned item is on or after the remembered dateFrom boundary.
      *
      * @throws Exception if the response body cannot be parsed as JSON.
@@ -454,17 +360,6 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     }
 
     /**
-     * Asserts every returned item is on or before the supplied posted date.
-     *
-     * @param date inclusive upper-bound date.
-     * @throws Exception if the response body cannot be parsed as JSON.
-     */
-    @Then("the defendant account history response contains only items on or before {string}")
-    public void defendantAccountHistoryContainsOnlyItemsOnOrBefore(String date) throws Exception {
-        assertHistoryContainsOnlyItemsOnOrBefore(LocalDate.parse(date));
-    }
-
-    /**
      * Asserts every returned item is on or before the remembered dateTo boundary.
      *
      * @throws Exception if the response body cannot be parsed as JSON.
@@ -473,17 +368,6 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     public void defendantAccountHistoryContainsOnlyItemsOnOrBeforeRememberedDateTo() throws Exception {
         assertRememberedDateRange();
         assertHistoryContainsOnlyItemsOnOrBefore(rememberedDateTo);
-    }
-
-    /**
-     * Asserts the latest history response contains at least one item on the supplied posted date.
-     *
-     * @param date expected posted date.
-     * @throws Exception if the response body cannot be parsed as JSON.
-     */
-    @Then("the defendant account history response includes an item on {string}")
-    public void defendantAccountHistoryResponseIncludesAnItemOn(String date) throws Exception {
-        assertHistoryIncludesItemOn(LocalDate.parse(date));
     }
 
     /**
