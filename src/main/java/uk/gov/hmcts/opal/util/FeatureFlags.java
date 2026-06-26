@@ -13,6 +13,10 @@ public final class FeatureFlags {
         RELEASE_1C + "-enforcement-operational-reporting";
     public static final String RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_ENABLED_PROPERTY =
         DEFAULT_VALUE_PROPERTY_PREFIX + RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING;
+    public static final String RELEASE_1C_AUTO_ENFORCEMENT_CONFIG =
+        RELEASE_1C + "-auto-enforcement-config";
+    public static final String RELEASE_1C_AUTO_ENFORCEMENT_CONFIG_ENABLED_PROPERTY =
+        DEFAULT_VALUE_PROPERTY_PREFIX + RELEASE_1C_AUTO_ENFORCEMENT_CONFIG;
 
     private FeatureFlags() {
     }

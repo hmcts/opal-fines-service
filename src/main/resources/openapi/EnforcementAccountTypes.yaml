@@ -73,6 +73,13 @@ paths:
       summary: Update Enforcement Account Type
       description: The Update Enforcement Account Type will be used to update the minimum balance for a specific Enforcement Account Type.
       operationId: patchEnforcementAccountType
+      parameters:
+        - in: header
+          name: Authorization
+          description: Bearer token
+          schema:
+            type: string
+          required: false
       requestBody:
         content:
           application/json:
@@ -83,7 +90,6 @@ paths:
                 required:
                   - id
                   - version
-                  - minimum_balance
                 properties:
                   id:
                     type: integer
