@@ -1,13 +1,17 @@
 meta {
-  name: Get Report Instance Content
+  name: Get Report Instance Content - JSON
   type: http
-  seq: 1
+  seq: 2
 }
 
 get {
   url: {{finesUrl}}/report-instances/99000000353000/content
   body: none
   auth: inherit
+}
+
+headers {
+  Accept: application/csv
 }
 
 settings {
