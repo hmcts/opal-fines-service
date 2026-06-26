@@ -13,6 +13,9 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.service.report.FileType.CSV;
 import static uk.gov.hmcts.opal.service.report.FileType.JSON;
+import static uk.gov.hmcts.opal.service.report.GetReportInstanceContentTestData.createReportInstanceEntity;
+import static uk.gov.hmcts.opal.service.report.GetReportInstanceContentTestData.createStoredReportContent;
+import static uk.gov.hmcts.opal.service.report.GetReportInstanceContentTestData.createTestReportData;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
@@ -37,10 +40,10 @@ import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.repository.ReportInstanceRepository;
 import uk.gov.hmcts.opal.service.blobstore.ReportBlobStore;
+import uk.gov.hmcts.opal.service.report.GetReportInstanceContentTestData.TestReportData;
 
 @ExtendWith(MockitoExtension.class)
 class GetReportInstanceContentServiceTest {
@@ -80,20 +83,14 @@ class GetReportInstanceContentServiceTest {
             reportBlobStore,
             mapper
         );
-
-        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-        securityContext.setAuthentication(authToken);
-        SecurityContextHolder.setContext(securityContext);
-
-        ReportEntity reportEntity = new ReportEntity();
-        reportEntity.setReportId(REPORT_ID);
-        reportEntity.setPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-
-        reportInstance = new ReportInstanceEntity();
-        reportInstance.setReport(reportEntity);
-        reportInstance.setBusinessUnit(List.of(77));
-        reportData = new TestReportData();
-        storedReportContent = StoredReportContent.builder().reportData(Map.of("rows", 2)).build();
+        mock_authenticationContext();
+        reportInstance = createReportInstanceEntity(
+            REPORT_ID,
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
+            List.of(77)
+        );
+        reportData = createTestReportData();
+        storedReportContent = createStoredReportContent(Map.of("rows", 2));
     }
 
     @AfterEach
@@ -176,8 +173,10 @@ class GetReportInstanceContentServiceTest {
             mock_hasPermissionForReportAndBusinessUnit();
             when(mapper.readValue(REPORT_JSON, StoredReportContent.class))
                 .thenReturn(storedReportContent);
-            doReturn(TestReportData.class).when(reportInterfaceImplementation).getStoredReportDataClass(reportInstance);
-            when(mapper.convertValue(Map.of("rows", 2), TestReportData.class)).thenReturn(reportData);
+            doReturn(GetReportInstanceContentTestData.TestReportData.class)
+                .when(reportInterfaceImplementation).getStoredReportDataClass(reportInstance);
+            when(mapper.convertValue(Map.of("rows", 2), GetReportInstanceContentTestData.TestReportData.class))
+                .thenReturn(reportData);
             byte[] expected = "a,b".getBytes();
             when(reportInterfaceImplementation.convertReportDataToFileType(reportInstance, reportData, CSV))
                 .thenReturn(expected);
@@ -270,23 +269,15 @@ class GetReportInstanceContentServiceTest {
         }
 
     }
-
-    private static class TestReportData implements ReportDataInterface {
-
-        @Override
-        public long getNumberOfRecords() {
-            return 0;
-        }
-
-        @Override
-        public ReportMetaData getReportMetaData() {
-            return new ReportMetaData(java.util.List.of());
-        }
-    }
-
     private void mock_reportInstanceAtLocation(String location) {
         reportInstance.setLocation(location);
         when(reportInstanceRepository.findById(1L)).thenReturn(Optional.of(reportInstance));
+    }
+
+    private void mock_authenticationContext() {
+        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+        securityContext.setAuthentication(authToken);
+        SecurityContextHolder.setContext(securityContext);
     }
 
     private void mock_storedReportContent(String reportContent) {

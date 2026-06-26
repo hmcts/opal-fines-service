@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
@@ -9,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
+import static uk.gov.hmcts.opal.controllers.util.ReportInstanceContentTestData.storedReportBytes;
 
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
@@ -35,17 +35,8 @@ class ReportInstancesApiControllerGetContentIntegrationTest extends AbstractInte
 
     private static final String URL_BASE = "/report-instances";
     private static final Long REPORT_INSTANCE_ID = 99000000353000L;
-    private static final String REPORT_ID = "cash_till";
     private static final short BUSINESS_UNIT_ID = 1778;
     private static final String LOCATION = "stored-cash-till-report-location";
-
-    private static final String STORED_REPORT_JSON = """
-        {"reportData":{"rows":[{"business_unit":"Cash Till Business Unit","cash_till_number":"9011",
-        "cashier":"opal-test","payment_date_time":"2026-05-26T14:30:00","destination_type":"FA",
-        "details":"ACC456","auto_payment":false,"payment_method":"NC","amount":125.50,
-        "receipt":true,"balance":124.50,"allocated":false}],"allocated_report":false,
-        "report_meta_data":{"pdpo_party_ids":[]}}}
-        """;
 
     @Autowired
     private BlobServiceClient blobServiceClient;
@@ -59,16 +50,13 @@ class ReportInstancesApiControllerGetContentIntegrationTest extends AbstractInte
     void setUp() {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions(BUSINESS_UNIT_ID, SEARCH_AND_VIEW_ACCOUNTS);
+
         blobContainerClient = blobServiceClient.getBlobContainerClient(containerName);
         if (!blobContainerClient.exists()) {
             blobContainerClient.create();
         }
-        byte[] storedReportBytes = STORED_REPORT_JSON.getBytes(UTF_8);
-        blobContainerClient.getBlobClient(LOCATION).upload(
-            new ByteArrayInputStream(storedReportBytes),
-            storedReportBytes.length,
-            true
-        );
+        blobContainerClient.getBlobClient(LOCATION)
+            .upload(new ByteArrayInputStream(storedReportBytes), storedReportBytes.length, true);
     }
 
     @AfterEach
