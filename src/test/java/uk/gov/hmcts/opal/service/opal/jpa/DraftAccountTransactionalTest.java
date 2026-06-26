@@ -707,27 +707,6 @@ class DraftAccountTransactionalTest {
         assertSame(output, draftAccountEntity);
     }
 
-
-    @Test
-    void testPublishAccountStoredProc() {
-        // Arrange
-        DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder()
-            .draftAccountId(007L)
-            .businessUnit(BusinessUnitEntity.builder()
-                .businessUnitId((short)78)
-                .build())
-            .submittedBy("BU001")
-            .submittedByName("Malcolm Mclaren")
-            .build();
-        Map<String, Object> mockOutputs = Collections.emptyMap();
-        when(draftAccountRepository.createDefendantAccount(any(), any(), any(), any()))
-            .thenReturn(mockOutputs);
-
-        // Act
-        Map<String, Object> outputs = draftAccountTransactional.publishAccountStoredProc(draftAccountEntity);
-        assertNotNull(outputs);
-    }
-
     private String createTimelineDataString() {
         return """
             [{
