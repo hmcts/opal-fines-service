@@ -632,6 +632,12 @@ components:
       title: Post Defendant Account Search Request
       type: object
       additionalProperties: false
+      description: |
+        Search request criteria are validated by the JSON Schema used at runtime.
+        Exactly one of reference_number or defendant must be populated.
+        If national_insurance_number is populated, no other defendant search fields may be populated.
+        If forenames or birth_date is populated, surname must also be populated.
+        address_line_1 and postcode can be used without surname or organisation_name.
       required:
         - active_accounts_only
         - business_unit_ids
@@ -640,15 +646,19 @@ components:
           type: boolean
         business_unit_ids:
           type: array
+          nullable: true
           items:
             type: integer
             format: int32
         reference_number:
+          nullable: true
           $ref: '#/components/schemas/defendantAccountSearchReferenceNumber'
         defendant:
+          nullable: true
           $ref: '#/components/schemas/defendantAccountSearchDefendant'
         consolidation_search:
           type: boolean
+          nullable: true
     postDefendantAccountSearchResponse:
       title: Post Defendant Account Search Response
       type: object
@@ -663,13 +673,15 @@ components:
           description: The total number of records identified.
         defendant_accounts:
           type: array
-          description: A list of defendant accounts.
+          nullable: true
+          description: A list of defendant accounts. Null if none are found.
           items:
             $ref: '#/components/schemas/defendantAccountSearchResult'
     defendantAccountSearchReferenceNumber:
       title: Defendant Account Search Reference Number
       type: object
       additionalProperties: false
+      description: Exactly one of account_number or prosecutor_case_reference must be populated.
       required:
         - organisation
       properties:
@@ -677,12 +689,18 @@ components:
           type: boolean
         account_number:
           type: string
+          nullable: true
         prosecutor_case_reference:
           type: string
+          nullable: true
     defendantAccountSearchDefendant:
       title: Defendant Account Search Defendant
       type: object
       additionalProperties: false
+      description: |
+        If national_insurance_number is populated, no other defendant search fields may be populated.
+        If forenames or birth_date is populated, surname must also be populated.
+        address_line_1 and postcode can be used without surname or organisation_name.
       required:
         - include_aliases
         - organisation
@@ -693,38 +711,60 @@ components:
           type: boolean
         address_line_1:
           type: string
+          nullable: true
         postcode:
           type: string
+          nullable: true
         organisation_name:
           type: string
+          nullable: true
         exact_match_organisation_name:
           type: boolean
+          nullable: true
         surname:
           type: string
+          nullable: true
         exact_match_surname:
           type: boolean
+          nullable: true
         forenames:
           type: string
+          nullable: true
         exact_match_forenames:
           type: boolean
+          nullable: true
         birth_date:
           type: string
           format: date
+          nullable: true
         national_insurance_number:
           type: string
+          nullable: true
     defendantAccountSearchResult:
       title: Defendant Account Search Result
       type: object
       additionalProperties: false
+      description: Details of a defendant account. Consolidated search fields are present only for consolidated searches.
       required:
         - defendant_account_id
         - account_number
         - organisation
         - aliases
         - address_line_1
+        - postcode
         - business_unit_name
         - business_unit_id
+        - prosecutor_case_reference
+        - last_enforcement_action
         - account_balance
+        - organisation_name
+        - defendant_title
+        - defendant_firstnames
+        - defendant_surname
+        - birth_date
+        - national_insurance_number
+        - parent_guardian_surname
+        - parent_guardian_firstnames
       properties:
         defendant_account_id:
           type: string
@@ -734,6 +774,7 @@ components:
           type: boolean
         aliases:
           type: array
+          nullable: true
           maxItems: 5
           items:
             $ref: '#/components/schemas/defendantAccountSearchAlias'
@@ -741,53 +782,76 @@ components:
           type: string
         postcode:
           type: string
+          nullable: true
         business_unit_name:
           type: string
         business_unit_id:
           type: string
         prosecutor_case_reference:
           type: string
+          nullable: true
         last_enforcement_action:
           type: string
+          nullable: true
         account_balance:
           $ref: './types.yaml#/components/schemas/monetaryNegativeOrPositive'
         organisation_name:
           type: string
+          nullable: true
         defendant_title:
           type: string
+          nullable: true
         defendant_firstnames:
           type: string
+          nullable: true
         defendant_surname:
           type: string
+          nullable: true
         birth_date:
           type: string
           format: date
+          nullable: true
         national_insurance_number:
           type: string
+          nullable: true
         parent_guardian_surname:
           type: string
+          nullable: true
         parent_guardian_firstnames:
           type: string
+          nullable: true
         has_collection_order:
           type: boolean
+          nullable: true
         account_version:
+          nullable: true
           $ref: './types.yaml#/components/schemas/BigInt'
         checks:
+          nullable: true
           $ref: '#/components/schemas/defendantAccountSearchChecks'
     defendantAccountSearchAlias:
       title: Defendant Account Search Alias
       type: object
       additionalProperties: false
+      description: Details of a single alias.
+      required:
+        - alias_number
+        - organisation_name
+        - surname
+        - forenames
       properties:
         alias_number:
           type: integer
           format: int32
         organisation_name:
           type: string
+          nullable: true
         surname:
           type: string
+          nullable: true
         forenames:
           type: string
+          nullable: true
     defendantAccountSearchChecks:
       title: Defendant Account Search Checks
       type: object

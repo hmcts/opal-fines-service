@@ -124,7 +124,7 @@ launchdarkly:
   default-flag-values:
     release-1a: ${RELEASE_1A_ENABLED:true}
     release-1b: ${RELEASE_1B_ENABLED:false}
-    release-1c: ${RELEASE_1C_ENABLED:false}
+    release-1c-write-off: ${RELEASE_1C_WRITE_OFF_ENABLED:false}
     release-1c-enforcement-operational-reporting: ${RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_ENABLED:true}
 
 opal:
