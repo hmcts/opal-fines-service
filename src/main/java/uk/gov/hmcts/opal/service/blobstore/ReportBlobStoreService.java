@@ -4,6 +4,9 @@ import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,5 +39,18 @@ public class ReportBlobStoreService implements ReportBlobStore {
         blob.upload(new ByteArrayInputStream(bytes), bytes.length);
         log.info("Stored report at location: {}", location);
         return location;
+    }
+
+    public String getReport(String location) {
+        BlobContainerClient container = blobServiceClient.getBlobContainerClient(containerName);
+        BlobClient blob = container.getBlobClient(location);
+
+        log.info("Reading report from location: {}", location);
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            blob.downloadStream(outputStream);
+            return outputStream.toString(StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to read report from blob store at: " + location, e);
+        }
     }
 }
