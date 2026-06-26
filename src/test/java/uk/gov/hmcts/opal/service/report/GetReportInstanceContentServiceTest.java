@@ -269,6 +269,7 @@ class GetReportInstanceContentServiceTest {
         }
 
     }
+
     private void mock_reportInstanceAtLocation(String location) {
         reportInstance.setLocation(location);
         when(reportInstanceRepository.findById(1L)).thenReturn(Optional.of(reportInstance));
