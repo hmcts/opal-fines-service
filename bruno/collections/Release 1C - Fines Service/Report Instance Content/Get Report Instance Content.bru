@@ -1,0 +1,16 @@
+meta {
+  name: Get Report Instance Content
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{finesUrl}}/report-instances/99000000353000/content
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
