@@ -2,15 +2,23 @@ package uk.gov.hmcts.opal.service.opal;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
+import uk.gov.hmcts.opal.generated.model.CollectionOrderCommon;
+import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
+import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 
 class DefendantAccountControlValidatorTest {
 
@@ -85,5 +93,56 @@ class DefendantAccountControlValidatorTest {
             .build();
 
         assertDoesNotThrow(() -> validator.validateCanUpdateProtectedFields(account));
+    }
+
+    @Test
+    void isProtectedUpdate_returnsTrueWhenProtectedFieldChanges() {
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .collectionOrder(false)
+            .collectionOrderEffectiveDate(LocalDate.of(2025, 1, 1))
+            .build();
+        UpdateDefendantAccountRequest request = UpdateDefendantAccountRequest.builder()
+            .payload(UpdateDefendantAccountRequestPayload.builder()
+                .collectionOrder(CollectionOrderCommon.builder()
+                    .collectionOrderFlag(true)
+                    .collectionOrderDate(LocalDate.of(2025, 1, 1))
+                    .build())
+                .build())
+            .build();
+
+        assertTrue(validator.isProtectedUpdate(request, account));
+    }
+
+    @Test
+    void isProtectedUpdate_returnsFalseWhenProtectedFieldIsUnchanged() {
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .enforcingCourt(CourtEntity.builder().courtId(100L).build())
+            .collectionOrder(true)
+            .collectionOrderEffectiveDate(LocalDate.of(2025, 1, 1))
+            .build();
+        UpdateDefendantAccountRequest request = UpdateDefendantAccountRequest.builder()
+            .payload(UpdateDefendantAccountRequestPayload.builder()
+                .collectionOrder(CollectionOrderCommon.builder()
+                    .collectionOrderFlag(true)
+                    .collectionOrderDate(LocalDate.of(2025, 1, 1))
+                    .build())
+                .build())
+            .build();
+
+        assertFalse(validator.isProtectedUpdate(request, account));
+    }
+
+    @Test
+    void isProtectedUpdate_returnsFalseWhenOnlyCommentsChange() {
+        DefendantAccountEntity account = DefendantAccountEntity.builder().build();
+        UpdateDefendantAccountRequest request = UpdateDefendantAccountRequest.builder()
+            .payload(UpdateDefendantAccountRequestPayload.builder()
+                .commentAndNotes(CommentsAndNotesCommon.builder()
+                    .accountComment("comment only")
+                    .build())
+                .build())
+            .build();
+
+        assertFalse(validator.isProtectedUpdate(request, account));
     }
 }
