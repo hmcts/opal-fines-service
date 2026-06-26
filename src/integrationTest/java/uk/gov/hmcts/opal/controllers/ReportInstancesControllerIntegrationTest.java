@@ -24,7 +24,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
@@ -38,7 +37,6 @@ import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
 import uk.gov.hmcts.opal.repository.ReportInstanceRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.messaging.ReportQueuePublisherImpl;
-import uk.gov.hmcts.opal.util.FeatureFlags;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -47,10 +45,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Slf4j(topic = "opal.ReportInstanceControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_reports.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_reports.sql", executionPhase = AFTER_TEST_CLASS)
-@TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    FeatureFlags.RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_ENABLED_PROPERTY + "=true"
-})
 public class ReportInstancesControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String URL_BASE = "/report-instances";
     private static final String REPORT_1BU_ID = "IT-report-1";

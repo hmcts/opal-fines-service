@@ -16,7 +16,6 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -24,17 +23,12 @@ import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
 import uk.gov.hmcts.opal.service.report.GenericReportService;
-import uk.gov.hmcts.opal.util.FeatureFlags;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Sql(scripts = "classpath:db/insertData/insert_into_report_instances.sql", executionPhase = BEFORE_TEST_METHOD)
 @Sql(scripts = "classpath:db/deleteData/delete_from_report_instances.sql", executionPhase = AFTER_TEST_METHOD)
-@TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    FeatureFlags.RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_ENABLED_PROPERTY + "=true"
-})
 class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String REPORT_ID = "it_report_instances";
