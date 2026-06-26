@@ -20,7 +20,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -51,8 +50,8 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.entity.draft.TimelineData;
-import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 
@@ -79,7 +78,7 @@ class DraftAccountTransactionalTest {
     void testGetDraftAccount() {
         // Arrange
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
-                BusinessUnitEntity.builder().businessUnitId((short)77).build())
+                BusinessUnitEntity.builder().businessUnitId((short) 77).build())
             .build();
         when(draftAccountRepository.findById(any())).thenReturn(Optional.of(draftAccountEntity));
 
@@ -98,7 +97,7 @@ class DraftAccountTransactionalTest {
         when(sfq.sortBy(any())).thenReturn(sfq);
 
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
-                BusinessUnitEntity.builder().businessUnitId((short)77).build())
+                BusinessUnitEntity.builder().businessUnitId((short) 77).build())
             .build();
         Page<DraftAccountEntity> mockPage = new PageImpl<>(List.of(draftAccountEntity), Pageable.unpaged(), 999L);
         when(draftAccountRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
@@ -143,7 +142,7 @@ class DraftAccountTransactionalTest {
         String minimalAccountJson = createAccountString();
 
         AddDraftAccountRequestDto dto = AddDraftAccountRequestDto.builder()
-            .businessUnitId((short)2)
+            .businessUnitId((short) 2)
             .submittedBy("TestUser")
             .submittedByName("Test User")
             .account(minimalAccountJson)
@@ -298,7 +297,7 @@ class DraftAccountTransactionalTest {
         // Arrange
         Long draftAccountId = 1L;
         ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
-            .businessUnitId((short)1)
+            .businessUnitId((short) 1)
             .accountType(DraftAccountType.FINE)
             .account(createAccountString())
             .submittedBy("TestUser")
@@ -320,7 +319,7 @@ class DraftAccountTransactionalTest {
         // Arrange
         Long draftAccountId = 1L;
         ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
-            .businessUnitId((short)2)
+            .businessUnitId((short) 2)
             .accountType(DraftAccountType.FINE)
             .account(createAccountString())
             .submittedBy("TestUser")
@@ -681,7 +680,8 @@ class DraftAccountTransactionalTest {
             draftAccountTransactional
         );
 
-        Assertions.assertDoesNotThrow(() -> { }); // Stops SonarQube complaining about no assertions in method.
+        Assertions.assertDoesNotThrow(() -> {
+        }); // Stops SonarQube complaining about no assertions in method.
     }
 
     @Test
@@ -691,7 +691,7 @@ class DraftAccountTransactionalTest {
             .draftAccountId(7L)
             .versionNumber(0L)
             .businessUnit(BusinessUnitEntity.builder()
-                .businessUnitId((short)78)
+                .businessUnitId((short) 78)
                 .build())
             .submittedBy("BU001")
             .submittedByName("Malcolm Mclaren")
