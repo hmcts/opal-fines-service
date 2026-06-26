@@ -27,6 +27,7 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
 @TestPropertySource(properties = {
@@ -47,6 +48,7 @@ class LegacyMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegra
     @DisplayName("PO-2137 INT.01 to INT.04 - valid request returns mapped body and ETag")
     @JiraStory("PO-2137")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7588")
     void getAtAGlance_successReturnsMappedResponseAndEtag() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
@@ -78,6 +80,7 @@ class LegacyMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegra
     @DisplayName("PO-2137 INT.05 - repeated request returns consistent body and ETag")
     @JiraStory("PO-2137")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7590")
     void getAtAGlance_repeatedRequestReturnsConsistentResponse() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
@@ -99,6 +102,7 @@ class LegacyMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegra
     @DisplayName("PO-2137 INT.07 - valid token without permission returns 403")
     @JiraStory("PO-2137")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7591")
     void getAtAGlance_withoutPermissionReturns403() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(noPermissionsUser());
 
@@ -113,6 +117,7 @@ class LegacyMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegra
     @DisplayName("PO-2137 INT.08 - permission in different business unit still returns 200")
     @JiraStory("PO-2137")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7587")
     void getAtAGlance_permissionInDifferentBusinessUnitReturns200() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
@@ -128,6 +133,7 @@ class LegacyMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegra
     @DisplayName("PO-2137 INT.06 - missing token returns 401 and does not invoke gateway")
     @JiraStory("PO-2137")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7589")
     void getAtAGlance_missingTokenReturns401() throws Exception {
         doThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized"))
             .when(userStateService).getUserStateV1FromSecurityContext();
@@ -142,6 +148,7 @@ class LegacyMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegra
     @DisplayName("PO-2137 INT.09 - missing major creditor account returns 404")
     @JiraStory("PO-2137")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7586")
     void getAtAGlance_notFoundReturns404() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(permissionUser((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));

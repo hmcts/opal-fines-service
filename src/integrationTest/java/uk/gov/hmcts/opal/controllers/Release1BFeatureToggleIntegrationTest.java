@@ -14,6 +14,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 
 /**
@@ -40,6 +41,7 @@ class Release1BFeatureToggleIntegrationTest extends AbstractFeatureToggleIntegra
     @DisplayName("should return 404 Not Found")
     @JiraStory("PO-2077")
     @JiraEpic("PO-979")
+    @JiraTestKey("PO-7660")
     void shouldReturn404WhenRelease1bIsDisabled(String description, MockHttpServletRequestBuilder request)
         throws Exception {
         log.debug("Testing feature-disabled 404 for: {}", description);

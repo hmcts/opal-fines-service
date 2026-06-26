@@ -39,6 +39,7 @@ import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.messaging.ReportQueuePublisherImpl;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.ReportInstanceControllerIntegrationTest")
@@ -75,6 +76,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @DisplayName("create report instance single business unit")
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-7742")
     void createReportInstance_singleBU() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
@@ -139,6 +141,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @Test
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-7744")
     void createReportInstance_multiBUs() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
@@ -171,6 +174,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @Test
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-7746")
     void createReportInstance_singleBU_fail2BUs_422() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
@@ -196,6 +200,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @Test
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-7750")
     void createReportInstance_cannotManuallyCreate_422() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
@@ -220,6 +225,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @Test
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-7743")
     void createReportInstance_wrongBU_403() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
@@ -243,6 +249,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @Test
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-7752")
     void createReportInstance_notAllBUs_403() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
@@ -266,6 +273,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @Test
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-7745")
     void createReportInstance_reportIDNotFound_404() throws Exception {
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId("unknown-report-id")
@@ -296,6 +304,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @Test
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-7748")
     void createReportInstance_missingBUs_400() throws Exception {
         String payload = """
             {
@@ -317,6 +326,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @Test
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-7749")
     void createReportInstance_malformedRequest_400() throws Exception {
         String payload = """
             {
@@ -349,6 +359,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @Test
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-7747")
     void createReportInstance_publishFail() throws Exception {
         doThrow(new IllegalArgumentException("Unable to publish report queue message"))
             .when(reportQueuePublisher).publish(anyLong());
@@ -397,6 +408,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @Test
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-7741")
     void createReportInstance_reportParameterValidation_mandatoryFieldsNotSuppliedFail() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
@@ -428,6 +440,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @Test
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-7751")
     void createReportInstance_reportParameterValidation_unknownParameterFail() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
@@ -469,6 +482,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @Test
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-7754")
     void createReportInstance_reportParameterValidation_parameterTypeMismatchFail() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
@@ -510,6 +524,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @Test
     @JiraStory("PO-2252")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-7753")
     void createReportInstance_repeatSuccess() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));

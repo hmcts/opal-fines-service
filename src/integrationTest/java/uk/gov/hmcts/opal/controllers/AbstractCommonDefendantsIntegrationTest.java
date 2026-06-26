@@ -265,7 +265,8 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
                         "prosecutor_case_reference": null,
                         "organisation": false
                       },
-                      "defendant": null
+                      "defendant": null,
+                      "consolidation_search": false
                     }
                     """));
 

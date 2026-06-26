@@ -15,6 +15,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 /**
  * Verifies that all Release 1C Enforcement Operational Reporting endpoints guarded by @FeatureToggle return 404 when
@@ -34,8 +35,11 @@ class Release1CEnforcementOperationalReportingFeatureToggleIntegrationTest
         return Stream.of(
             // ReportsApiController
             args("GET /reports/{id}", withAuth(get("/reports/1"))),
+            // ReportInstancesApiController
+            args("GET /report-instances", withAuth(get("/report-instances"))),
             args("POST /report-instances", withAuthAndJson(post("/report-instances")
-                .content("{\"business_unit_ids\":[1],\"report_id\":\"report-id\",\"report_parameters\":{}}")))
+                .content("{\"business_unit_ids\":[1],\"report_id\":\"report-id\",\"report_parameters\":{}}"))),
+            args("GET /report-instances/{id}", withAuth(get("/report-instances/1")))
         );
     }
 
@@ -44,7 +48,9 @@ class Release1CEnforcementOperationalReportingFeatureToggleIntegrationTest
     @DisplayName("should return 404 Not Found")
     @JiraStory("PO-2250")
     @JiraStory("PO-2252")
+    @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-7661")
     void shouldReturn404When1cEnforcementOperationalReportingIsDisabled(String description,
         MockHttpServletRequestBuilder request)
         throws Exception {
