@@ -24,6 +24,7 @@ import uk.gov.hmcts.opal.repository.jpa.EnforcementReportSpecs;
 import uk.gov.hmcts.opal.service.report.ReportEnforcementMode;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @Sql(scripts = "classpath:db/insertData/insert_into_enforcements.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -53,6 +54,7 @@ class EnforcementReportSpecsTest extends AbstractIntegrationTest {
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7778")
     void noMode_returnsAllAccountsWithEnforcements() {
         OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder().build();
 
@@ -65,6 +67,7 @@ class EnforcementReportSpecsTest extends AbstractIntegrationTest {
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7779")
     void allMode_noDates_returnsAllAccountsWithEnforcements() {
         OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
             .reportEnforcementMode(ReportEnforcementMode.ALL)
@@ -79,6 +82,7 @@ class EnforcementReportSpecsTest extends AbstractIntegrationTest {
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7784")
     void allMode_withDates_filtersCorrectly() {
         OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
             .reportEnforcementMode(ReportEnforcementMode.ALL)
@@ -101,6 +105,7 @@ class EnforcementReportSpecsTest extends AbstractIntegrationTest {
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7781")
     void lastAction_withEnforcementActionAndDates_returnsAccountsWithSpecifiedLastActionBetweenDates() {
         LocalDateTime start = LocalDate.of(2000, 1, 1).atStartOfDay();
         LocalDateTime end = LocalDate.of(2000, 12, 30).atStartOfDay();
@@ -130,6 +135,7 @@ class EnforcementReportSpecsTest extends AbstractIntegrationTest {
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7783")
     void lastAction_withEnforcementActionAndNoDates_returnsAccountsWithSpecifiedLastAction() {
         OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
             .reportEnforcementMode(ReportEnforcementMode.LAST_ACTION)
@@ -152,6 +158,7 @@ class EnforcementReportSpecsTest extends AbstractIntegrationTest {
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7777")
     void lastAction_withNoEnforcementAction_throwsError() {
         OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
             .reportEnforcementMode(ReportEnforcementMode.LAST_ACTION)
@@ -170,6 +177,7 @@ class EnforcementReportSpecsTest extends AbstractIntegrationTest {
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7780")
     void regfMode_returnsAccountsWithRegf() {
         OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
             .reportEnforcementMode(ReportEnforcementMode.REGF)
@@ -190,6 +198,7 @@ class EnforcementReportSpecsTest extends AbstractIntegrationTest {
     @JiraStory("PO-2255")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-7782")
     void regfMode_regfEnforcementBetweenDateRange_returnsAccountsWithRegf() {
 
         LocalDate from = LocalDate.of(2000, 1, 1);

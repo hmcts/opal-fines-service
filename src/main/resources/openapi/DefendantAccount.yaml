@@ -334,6 +334,72 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 
+  /defendant-accounts/search:
+    post:
+      tags:
+        - Defendant Account
+      summary: Search defendant accounts
+      description: Searches defendant accounts based upon criteria in request body.
+      operationId: postDefendantAccountSearch
+      security:
+        - permissions:
+            - Search and View Accounts (in at least one business unit)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/postDefendantAccountSearchRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/postDefendantAccountSearchResponse'
+        400:
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        422:
+          description: Unprocessable content
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
   /defendant-accounts/{id}:
     patch:
       summary: Update a defendant account (partial update)
@@ -562,6 +628,194 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    postDefendantAccountSearchRequest:
+      title: Post Defendant Account Search Request
+      type: object
+      additionalProperties: false
+      required:
+        - active_accounts_only
+        - business_unit_ids
+      properties:
+        active_accounts_only:
+          type: boolean
+        business_unit_ids:
+          type: array
+          items:
+            type: integer
+            format: int32
+        reference_number:
+          $ref: '#/components/schemas/defendantAccountSearchReferenceNumber'
+        defendant:
+          $ref: '#/components/schemas/defendantAccountSearchDefendant'
+        consolidation_search:
+          type: boolean
+    postDefendantAccountSearchResponse:
+      title: Post Defendant Account Search Response
+      type: object
+      additionalProperties: false
+      required:
+        - count
+        - defendant_accounts
+      properties:
+        count:
+          type: integer
+          format: int32
+          description: The total number of records identified.
+        defendant_accounts:
+          type: array
+          description: A list of defendant accounts.
+          items:
+            $ref: '#/components/schemas/defendantAccountSearchResult'
+    defendantAccountSearchReferenceNumber:
+      title: Defendant Account Search Reference Number
+      type: object
+      additionalProperties: false
+      required:
+        - organisation
+      properties:
+        organisation:
+          type: boolean
+        account_number:
+          type: string
+        prosecutor_case_reference:
+          type: string
+    defendantAccountSearchDefendant:
+      title: Defendant Account Search Defendant
+      type: object
+      additionalProperties: false
+      required:
+        - include_aliases
+        - organisation
+      properties:
+        include_aliases:
+          type: boolean
+        organisation:
+          type: boolean
+        address_line_1:
+          type: string
+        postcode:
+          type: string
+        organisation_name:
+          type: string
+        exact_match_organisation_name:
+          type: boolean
+        surname:
+          type: string
+        exact_match_surname:
+          type: boolean
+        forenames:
+          type: string
+        exact_match_forenames:
+          type: boolean
+        birth_date:
+          type: string
+          format: date
+        national_insurance_number:
+          type: string
+    defendantAccountSearchResult:
+      title: Defendant Account Search Result
+      type: object
+      additionalProperties: false
+      required:
+        - defendant_account_id
+        - account_number
+        - organisation
+        - aliases
+        - address_line_1
+        - business_unit_name
+        - business_unit_id
+        - account_balance
+      properties:
+        defendant_account_id:
+          type: string
+        account_number:
+          type: string
+        organisation:
+          type: boolean
+        aliases:
+          type: array
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/defendantAccountSearchAlias'
+        address_line_1:
+          type: string
+        postcode:
+          type: string
+        business_unit_name:
+          type: string
+        business_unit_id:
+          type: string
+        prosecutor_case_reference:
+          type: string
+        last_enforcement_action:
+          type: string
+        account_balance:
+          $ref: './types.yaml#/components/schemas/monetaryNegativeOrPositive'
+        organisation_name:
+          type: string
+        defendant_title:
+          type: string
+        defendant_firstnames:
+          type: string
+        defendant_surname:
+          type: string
+        birth_date:
+          type: string
+          format: date
+        national_insurance_number:
+          type: string
+        parent_guardian_surname:
+          type: string
+        parent_guardian_firstnames:
+          type: string
+        has_collection_order:
+          type: boolean
+        account_version:
+          $ref: './types.yaml#/components/schemas/BigInt'
+        checks:
+          $ref: '#/components/schemas/defendantAccountSearchChecks'
+    defendantAccountSearchAlias:
+      title: Defendant Account Search Alias
+      type: object
+      additionalProperties: false
+      properties:
+        alias_number:
+          type: integer
+          format: int32
+        organisation_name:
+          type: string
+        surname:
+          type: string
+        forenames:
+          type: string
+    defendantAccountSearchChecks:
+      title: Defendant Account Search Checks
+      type: object
+      additionalProperties: false
+      required:
+        - warnings
+        - errors
+      properties:
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/defendantAccountSearchCheck'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/defendantAccountSearchCheck'
+    defendantAccountSearchCheck:
+      title: Defendant Account Search Check
+      type: object
+      additionalProperties: false
+      required:
+        - reference
+        - message
+      properties:
+        reference:
+          type: string
+        message:
+          type: string
     enforcementOverview:
       type: object
       additionalProperties: false

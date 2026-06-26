@@ -44,3 +44,4 @@ bruno/environments/*.env
 
 # But keep the template (example)
 !bruno/environments/env.template
+/integration-output/

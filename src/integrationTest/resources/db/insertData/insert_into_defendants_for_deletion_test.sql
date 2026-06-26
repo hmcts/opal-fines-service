@@ -126,12 +126,12 @@ VALUES (9105, 1001, '2023-11-03 16:05:10', '01000000A', 'User9100',
 -- Insert allocations (Level 3 - references both imposition and defendant_transaction)
 INSERT INTO allocations (allocation_id, imposition_id, defendant_transaction_id,
                          allocated_date, allocated_amount, transaction_type, allocation_function)
-VALUES (9106, 9105, 9104, '2023-11-04 10:00:00', 100.00, 'Payment', 'Auto');
+VALUES (9106, 9105, 9104, '2023-11-04 10:00:00', 100.00, 'PAYMNT', 'Auto');
 
 -- Insert another allocation (Level 3 - only references imposition)
 INSERT INTO allocations (allocation_id, imposition_id, allocated_date, allocated_amount,
                          transaction_type, allocation_function)
-VALUES (9108, 9105, '2023-11-05 10:00:00', 50.00, 'Adjustment', 'Manual');
+VALUES (9108, 9105, '2023-11-05 10:00:00', 50.00, 'MADJ', 'Manual');
 
 -- Insert cheque (Level 3 - references defendant_transaction)
 INSERT INTO cheques (cheque_id, business_unit_id, cheque_number, issue_date,

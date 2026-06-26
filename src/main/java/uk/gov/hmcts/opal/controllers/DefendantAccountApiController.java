@@ -20,6 +20,8 @@ import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Resp
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
+import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
@@ -62,6 +64,15 @@ public class DefendantAccountApiController implements DefendantAccountApi {
         log.debug(":GET:getDefendantAccountEnforcementStatus: for defendant id: {}", id);
 
         return buildResponse(defendantAccountService.getEnforcementStatus(id));
+    }
+
+    @Override
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
+    public ResponseEntity<PostDefendantAccountSearchResponseDefendantAccount> postDefendantAccountSearch(
+        PostDefendantAccountSearchRequestDefendantAccount request) {
+        log.debug(":POST:postDefendantAccountSearch");
+
+        return buildResponse(defendantAccountService.searchDefendantAccounts(request));
     }
 
     @Override
