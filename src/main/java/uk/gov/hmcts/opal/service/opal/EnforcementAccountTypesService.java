@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service;
+package uk.gov.hmcts.opal.service.opal;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -8,13 +8,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.util.SecurityUtil;
 import uk.gov.hmcts.opal.entity.LowHighValue;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementAccountTypeEntity;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
-import uk.gov.hmcts.opal.generated.model.PatchEnforcementAccountType200Response;
+import uk.gov.hmcts.opal.generated.model.EnforcementAccountTypeCommon;
 import uk.gov.hmcts.opal.generated.model.PatchEnforcementAccountTypeRequestInner;
 import uk.gov.hmcts.opal.mapper.EnforcementAccountTypeMapper;
 import uk.gov.hmcts.opal.repository.EnforcementAccountTypeRepository;
@@ -28,10 +29,10 @@ import java.util.List;
 public class EnforcementAccountTypesService {
 
     private final EnforcementAccountTypeRepository enforcementAccountTypeRepository;
-    private final UserStateService userStateService;
     private final EnforcementAccountTypeMapper enforcementAccountTypeMapper;
 
-    public PatchEnforcementAccountType200Response updateEnforcementAccountType(
+    @Transactional
+    public List<EnforcementAccountTypeCommon> updateEnforcementAccountType(
         List<PatchEnforcementAccountTypeRequestInner> request) {
 
         checkPermissions();
@@ -46,7 +47,7 @@ public class EnforcementAccountTypesService {
             if (entity.getAccountTypePath() == LowHighValue.L
                 && requestObject.getMinimumBalance() == null) {
                 throw new UnprocessableException("Can not update enforcement account type minimum balance for a low "
-                                                     + "enforcement path");
+                    + "enforcement path");
             }
 
             if (requestObject.getMinimumBalance() != null
@@ -56,7 +57,7 @@ public class EnforcementAccountTypesService {
 
             if (entity.getVersionNumber() != requestObject.getVersion().longValue()) {
                 throw new ObjectOptimisticLockingFailureException("versionNumber", entity.getVersionNumber(),
-                                                                  "Version numbers do not match", null);
+                    "Version numbers do not match", null);
             }
 
             entity.setMinimumBalance(requestObject.getMinimumBalance());
@@ -64,11 +65,8 @@ public class EnforcementAccountTypesService {
 
             entities.add(entity);
         }
-        List<EnforcementAccountTypeEntity> updatedEntities = enforcementAccountTypeRepository.saveAll(entities);
 
-        var resp = new PatchEnforcementAccountType200Response();
-        resp.setEnforcementAccountTypes(enforcementAccountTypeMapper.toDtos(updatedEntities));
-        return resp;
+        return enforcementAccountTypeMapper.toDtos(entities);
     }
 
     private void checkPermissions() {

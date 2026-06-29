@@ -6,8 +6,8 @@ INSERT INTO enforcement_account_types (enforcement_account_type_id, account_type
                                        enforcement_account_type, account_type_path, version_number)
 VALUES
   (1, 'COL', 100, 'COLH',
-        'L', 0),
+        'L', 1),
   (2, 'COL', 200, 'COLL',
-   'L', 0),
+   'L', 1),
 (3, 'A', 300, 'AH',
-  'H', 0);
+  'H', 1);

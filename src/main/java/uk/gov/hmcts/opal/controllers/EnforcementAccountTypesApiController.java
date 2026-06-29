@@ -9,9 +9,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestBody;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.generated.http.api.EnforcementAccountTypesApi;
+import uk.gov.hmcts.opal.generated.model.EnforcementAccountTypeCommon;
 import uk.gov.hmcts.opal.generated.model.PatchEnforcementAccountType200Response;
 import uk.gov.hmcts.opal.generated.model.PatchEnforcementAccountTypeRequestInner;
-import uk.gov.hmcts.opal.service.EnforcementAccountTypesService;
+import uk.gov.hmcts.opal.service.opal.EnforcementAccountTypesService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
@@ -36,8 +37,12 @@ public class EnforcementAccountTypesApiController implements EnforcementAccountT
         @RequestBody List<PatchEnforcementAccountTypeRequestInner> request) {
         log.debug(":PATCH:patchEnforcementAccountType");
 
-        PatchEnforcementAccountType200Response response =
+        List<EnforcementAccountTypeCommon> updatedEntities =
             enforcementAccountTypesService.updateEnforcementAccountType(request);
+
+        PatchEnforcementAccountType200Response response = PatchEnforcementAccountType200Response.builder()
+            .enforcementAccountTypes(updatedEntities)
+            .build();
         return buildResponse(response, HttpStatus.OK);
     }
 }
