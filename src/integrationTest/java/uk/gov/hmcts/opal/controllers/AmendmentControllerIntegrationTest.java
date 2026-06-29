@@ -109,6 +109,24 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-3851")
+    @JiraEpic("PO-3372")
+    void testPostAmendmentsSearch_byAssociatedRecordType() throws Exception {
+        ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"associated_record_type\":\"defendant_accounts\"}"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostAmendmentsSearch_byAssociatedRecordType: Response body:\n"
+                 + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.searchData[0].associated_record_type").value("defendant_accounts"));
+    }
+
+    @Test
     @JiraStory("PO-1590")
     @JiraEpic("PO-812")
     @JiraTestKey("PO-5788")

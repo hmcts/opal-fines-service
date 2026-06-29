@@ -149,6 +149,6 @@ VALUES (1, 'AC', 'defendant_accounts', '1001',
 INSERT INTO amendments (amendment_id, business_unit_id, associated_record_type,
                         associated_record_id, amended_date, amended_by, field_code, old_value,
                         new_value, case_reference, function_code)
-VALUES (1, 78, 'DEF', 1001,
+VALUES (1, 78, 'defendant_accounts', 1001,
         '2025-10-27 15:50:42.498414+00', '01000000A', 1,
         'L', 'C', '11111111A', 'UPD');
