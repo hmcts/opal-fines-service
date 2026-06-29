@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import tools.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,6 +22,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
+import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
@@ -261,6 +263,51 @@ class ResultServiceTest {
         assertEquals(true, result.getRequiresEmploymentData());
         verify(resultRepository).findById("ABC");
         verify(resultMapper).toDto(entity);
+    }
+
+    @Test
+    void getResult_whenIncludeWelshTrue_addsWelshTextParameterAfterOriginal() throws Exception {
+        // Arrange
+        String resultParameters = """
+            [
+              {
+                "name": "sample_name",
+                "type": "text",
+                "hint": "some hint",
+                "language_dependent": true
+              },
+              {
+                "name": "sample_name_2",
+                "type": "text",
+                "hint": "some hint 2",
+                "language_dependent": false
+              }
+            ]
+            """;
+        ResultEntity entity = ResultEntity.builder()
+            .resultId("ABC")
+            .resultParameters(resultParameters)
+            .build();
+        uk.gov.hmcts.opal.dto.ResultDto dto = uk.gov.hmcts.opal.dto.ResultDto.builder()
+            .resultId("ABC")
+            .resultParameters(resultParameters)
+            .build();
+
+        when(resultRepository.findById("ABC")).thenReturn(Optional.of(entity));
+        when(resultMapper.toDto(entity)).thenReturn(dto);
+
+        // Act
+        uk.gov.hmcts.opal.dto.ResultDto result = resultService.getResult("ABC", true);
+
+        // Assert
+        JsonNode parameters = ToJsonString.toJsonNode(result.getResultParameters());
+        assertEquals(3, parameters.size());
+        assertEquals("sample_name", parameters.get(0).get("name").asText());
+        assertEquals("cy_sample_name", parameters.get(1).get("name").asText());
+        assertEquals("Provide a welsh version for the defendant", parameters.get(1).get("hint").asText());
+        assertEquals(true, parameters.get(1).get("language_dependent").asBoolean());
+        assertEquals("text", parameters.get(1).get("type").asText());
+        assertEquals("sample_name_2", parameters.get(2).get("name").asText());
     }
 
     @Test
