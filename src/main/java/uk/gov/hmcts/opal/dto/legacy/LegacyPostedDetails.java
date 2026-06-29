@@ -25,6 +25,6 @@ public class LegacyPostedDetails {
     @XmlElement(name = "posted_by")
     private String postedBy;
 
-    @XmlElement(name = "posted_name")
+    @XmlElement(name = "posted_by_name")
     private String postedByName;
 }

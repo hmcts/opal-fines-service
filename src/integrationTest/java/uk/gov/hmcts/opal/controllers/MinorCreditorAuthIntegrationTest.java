@@ -16,6 +16,7 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "opal"})
 @Slf4j(topic = "opal.MinorCreditorAuthIntegrationTest")
@@ -29,6 +30,7 @@ class MinorCreditorAuthIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-1986")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-7615")
     void getMinorCreditorAccount_withBacsPermissionInSecurityContext_returnsBacsFields() throws Exception {
         mockMvc.perform(get(URL_BASE + "/{id}", ACCOUNT_ID)
                 .accept(MediaType.APPLICATION_JSON)
@@ -51,6 +53,7 @@ class MinorCreditorAuthIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-1986")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-7616")
     void getMinorCreditorAccount_withoutBacsPermissionInSecurityContext_redactsBacsFields() throws Exception {
 
         mockMvc.perform(get(URL_BASE + "/{id}", ACCOUNT_ID)
@@ -73,6 +76,7 @@ class MinorCreditorAuthIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-1986")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-7617")
     void getMinorCreditorAccount_withBacsPermissionInAuthenticatedUserState_returnsBacsFields() throws Exception {
         mockMvc.perform(get(URL_BASE + "/{id}", ACCOUNT_ID)
                 .accept(MediaType.APPLICATION_JSON)
@@ -94,6 +98,7 @@ class MinorCreditorAuthIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-1986")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-7618")
     void getMinorCreditorAccount_withoutBacsPermissionInAuthenticatedUserState_redactsBacsFields() throws Exception {
         userStateStub.setupWithNoPermissions();
         mockMvc.perform(get(URL_BASE + "/{id}", ACCOUNT_ID)

@@ -26,9 +26,12 @@ import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchReferenceNumberDefendantAccount;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
+import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.ImpositionService;
@@ -94,6 +97,32 @@ class DefendantAccountApiControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertSame(status, response.getBody());
         verify(defendantAccountService).getEnforcementStatus(defendantId);
+    }
+
+    @Test
+    void given_validRequest_when_postDefendantAccountSearch_then_returnsOkResponse() {
+        PostDefendantAccountSearchRequestDefendantAccount request =
+            PostDefendantAccountSearchRequestDefendantAccount.builder()
+                .activeAccountsOnly(true)
+                .businessUnitIds(List.of(101))
+                .referenceNumber(new DefendantAccountSearchReferenceNumberDefendantAccount()
+                    .organisation(false)
+                    .accountNumber("AC123"))
+                .build();
+        PostDefendantAccountSearchResponseDefendantAccount serviceResponse =
+            PostDefendantAccountSearchResponseDefendantAccount.builder()
+                .count(1)
+                .defendantAccounts(List.of())
+                .build();
+
+        when(defendantAccountService.searchDefendantAccounts(request)).thenReturn(serviceResponse);
+
+        ResponseEntity<PostDefendantAccountSearchResponseDefendantAccount> response =
+            defendantAccountApiController.postDefendantAccountSearch(request);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertSame(serviceResponse, response.getBody());
+        verify(defendantAccountService).searchDefendantAccounts(request);
     }
 
     @Test
