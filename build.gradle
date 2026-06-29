@@ -42,9 +42,6 @@ ext {
   cucumberVersion = "7.23.0" // Keep the forced Cucumber version stable while aligning Serenity with the Gradle plugin
 }
 
-//Should we fail fast on test failures?
-//Defaults to true if env is not present
-var failFast = System.getenv('FAIL_FAST') == null || System.getenv('FAIL_FAST').toBoolean()
 def defaultLegacyStubImage = 'hmctsprod.azurecr.io/opal/legacy-db-stub:latest'
 def legacyStubImage = System.getenv('OPAL_LEGACY_STUB_IMAGE') ?: defaultLegacyStubImage
 def legacyStubPort = 4553
@@ -268,9 +265,7 @@ tasks.withType(Test).configureEach {
     exceptionFormat = 'full'
   }
   maxHeapSize = "2g"
-  if (failFast) {
-    failFast = true
-  }
+  failFast = false
 }
 
 tasks.register('integration', Test) {
