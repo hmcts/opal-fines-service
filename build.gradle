@@ -303,7 +303,6 @@ tasks.register('functionalOpal', Test) {
   outputs.upToDateWhen { false }
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal"))
   testLogging.showStandardStreams = true
-  gradle.startParameter.continueOnFailure = true
   environment("DEFAULT_APP_MODE", "opal")
   include '**/OpalTestRunner.class'
 
@@ -318,7 +317,6 @@ tasks.register('functionalOpalTags', Test) {
   outputs.upToDateWhen { false }
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal-tags"))
   testLogging.showStandardStreams = true
-  gradle.startParameter.continueOnFailure = true
   environment("DEFAULT_APP_MODE", "opal")
 
   include '**/OpalTaggedTestRunner.class'
@@ -347,7 +345,6 @@ tasks.register('functionalLegacy', Test) {
   classpath = sourceSets.functionalTest.runtimeClasspath
   outputs.upToDateWhen { false }
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/legacy"))
-  gradle.startParameter.continueOnFailure = true
   testLogging.showStandardStreams = true
   environment("DEFAULT_APP_MODE", "legacy")
 
@@ -421,7 +418,6 @@ tasks.register('mergeFunctionalOpalTagsResults', Copy) {
 tasks.register('functional') {
   description = "Runs functional tests"
   group = "Verification"
-  gradle.startParameter.continueOnFailure = true
   dependsOn('clearReports', 'functionalOpal', 'aggregate', 'copyFunctionalReport', 'mergeFunctionalResults')
   tasks.functionalOpal.mustRunAfter clearReports
   tasks.mergeFunctionalResults.mustRunAfter functionalOpal
@@ -433,7 +429,6 @@ tasks.register('functional') {
 tasks.register('functionalWithTags') {
   description = "Runs functional tests with the default Opal suite plus tagged Opal scenarios"
   group = "Verification"
-  gradle.startParameter.continueOnFailure = true
   dependsOn('clearReports', 'functionalOpal', 'functionalOpalTags', 'aggregate', 'copyDemoFunctionalReport',
     'mergeFunctionalWithTagsResults')
   tasks.functionalOpal.mustRunAfter clearReports
@@ -452,7 +447,6 @@ tasks.register('smokeOpal', Test) {
   classpath = sourceSets.functionalTest.runtimeClasspath
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/smoke"))
   testLogging.showStandardStreams = true
-  gradle.startParameter.continueOnFailure = true
 
   include '**/SmokeTestRunner.class'
   finalizedBy 'copySmokeCucumberJson'
@@ -481,7 +475,6 @@ tasks.register('packageSmokeOutput', Copy) {
 tasks.register('smoke') {
   description = "Runs Smoke Tests"
   group = "Verification"
-  gradle.startParameter.continueOnFailure = true
   dependsOn('clearReports', 'smokeOpal', 'aggregate', 'copySmokeReport')
   tasks.smokeOpal.mustRunAfter clearReports
   tasks.aggregate.mustRunAfter smokeOpal
