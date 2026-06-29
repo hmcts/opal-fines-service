@@ -17,7 +17,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
     "opal.common.content-digest.request.auto-generate=true",
     "opal.common.content-digest.response.enforce=true"
 })
-class ContentDigestRequestAndResponseIntegrationTest extends AbstractContentDigestIntegrationTest {
+class ParameterizedTestContentDigestRequestAndResponseIntegrationTest extends AbstractContentDigestIntegrationTest {
 
     @Test
     @JiraStory("PO-2878")
