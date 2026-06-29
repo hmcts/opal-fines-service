@@ -1,12 +1,15 @@
 package uk.gov.hmcts.opal.repository;
 
-import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
-
+import java.time.LocalDateTime;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
+import uk.gov.hmcts.opal.repository.projection.MinorCreditorAmendmentHistoryProjection;
 
 @Repository
 public interface AmendmentRepository extends JpaRepository<AmendmentEntity, Long>,
@@ -34,4 +37,25 @@ public interface AmendmentRepository extends JpaRepository<AmendmentEntity, Long
 
     void deleteByAssociatedRecordId(String defendantAccountId);
 
+    @Query(value = """
+        SELECT a.amendment_id AS amendmentId,
+               a.amended_date AS postedDate,
+               a.amended_by AS postedBy,
+               a.amended_by_name AS postedByName,
+               aaf.data_item AS attributeName,
+               a.old_value AS oldValue,
+               a.new_value AS newValue
+          FROM amendments a
+          JOIN audit_amendment_fields aaf
+            ON aaf.field_code = a.field_code
+         WHERE a.associated_record_type = 'creditor_accounts'
+           AND a.associated_record_id = :creditorAccountId
+           AND a.amended_date >= :postedFromInclusive
+           AND a.amended_date < :postedToExclusive
+         ORDER BY a.amended_date DESC, a.amendment_id
+        """, nativeQuery = true)
+    List<MinorCreditorAmendmentHistoryProjection> findMinorCreditorHistory(
+        @Param("creditorAccountId") String creditorAccountId,
+        @Param("postedFromInclusive") LocalDateTime postedFromInclusive,
+        @Param("postedToExclusive") LocalDateTime postedToExclusive);
 }
