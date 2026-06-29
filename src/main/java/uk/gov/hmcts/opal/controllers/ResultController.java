@@ -51,11 +51,13 @@ public class ResultController {
         feature = FeatureFlags.RELEASE_1B,
         defaultValueProperty = FeatureFlags.RELEASE_1B_ENABLED_PROPERTY
     )
-    public ResponseEntity<ResultDto> getResultById(@PathVariable String resultId) {
+    public ResponseEntity<ResultDto> getResultById(
+        @PathVariable String resultId,
+        @RequestParam(name = "include_welsh", required = false, defaultValue = "false") boolean includeWelsh) {
 
-        log.debug(":GET:getResultById: resultId: {}", resultId);
+        log.debug(":GET:getResultById: resultId: {}, includeWelsh: {}", resultId, includeWelsh);
 
-        return buildResponse(resultService.getResult(resultId));
+        return buildResponse(resultService.getResult(resultId, includeWelsh));
     }
 
 
