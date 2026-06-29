@@ -25,7 +25,7 @@ public enum FinesPermission implements PermissionDescriptor {
     ENTER_ENFORCEMENT(10L, "Enter Enforcement"),
     CONSOLIDATE(13L, "Consolidate"),
     ADD_AND_REMOVE_PAYMENT_HOLD(14L, "Add and Remove payment hold"),
-    AUTO_ENFORCEMENT(15L, "");/* TODO: This description */
+    AUTO_ENFORCEMENT(15L, "Auto Enforcement");
 
     /**
      * Convenience aggregate used by parts of the service that require both draft account permissions.

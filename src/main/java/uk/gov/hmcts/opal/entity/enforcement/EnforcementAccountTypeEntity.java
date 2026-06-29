@@ -24,7 +24,6 @@ import uk.gov.hmcts.opal.util.Versioned;
 
 @Entity
 @Table(name = "enforcement_account_types")
-//@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
