@@ -215,14 +215,14 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
         jsonSchemaValidationService.validateOrError(body, GET_LJAS_REF_DATA_RESPONSE);
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "testGetLocalJusticeAreasRefData_filterByMultipleLjaTypes [{index}]")
     @MethodSource("testCasesForQueryParameterInput")
     @DisplayName("Verify search result for LocalJusticeAreasRefData GET request multiple lja_type [@PO-2757]")
     @JiraStory("PO-2757")
     @JiraEpic("PO-2750")
-    @JiraTestKey(value = "PO-8407", name = "[1] requestBuilder = org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder@468855f")
-    @JiraTestKey(value = "PO-8408", name = "[2] requestBuilder = org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder@5a247eea")
-    @JiraTestKey(value = "PO-8409", name = "[3] requestBuilder = org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder@4a7d90db")
+    @JiraTestKey(value = "PO-8407", name = "testGetLocalJusticeAreasRefData_filterByMultipleLjaTypes [1]")
+    @JiraTestKey(value = "PO-8408", name = "testGetLocalJusticeAreasRefData_filterByMultipleLjaTypes [2]")
+    @JiraTestKey(value = "PO-8409", name = "testGetLocalJusticeAreasRefData_filterByMultipleLjaTypes [3]")
     public void testGetLocalJusticeAreasRefData_filterByMultipleLjaTypes(MockHttpServletRequestBuilder requestBuilder)
         throws Exception {
         ResultActions actions = mockMvc.perform(requestBuilder);
