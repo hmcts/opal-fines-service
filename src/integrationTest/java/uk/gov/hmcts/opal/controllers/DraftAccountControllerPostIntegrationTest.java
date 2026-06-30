@@ -22,6 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
@@ -337,6 +338,42 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     }
 
     @Test
+    @DisplayName("Create draft account - Should return 400 when reference validation fails and leave data unchanged")
+    @JiraStory("PO-973")
+    @JiraEpic("PO-2219")
+    void shouldReturn400WhenReferenceValidationFailsAndLeaveExistingDataUnchanged() throws Exception {
+        DraftAccountEntity before = getDraftAccount(5L);
+        long countBefore = draftAccountRepository.count();
+
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(invalidReferenceCreateRequestBody()))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Bad Request"))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"))
+            .andExpect(jsonPath("$.detail").value(expectedReferenceValidationErrorMessage()));
+
+        DraftAccountEntity after = getDraftAccount(5L);
+
+        assertEquals(countBefore, draftAccountRepository.count());
+        assertEquals(before.getAccount(), after.getAccount());
+        assertEquals(before.getAccountStatus(), after.getAccountStatus());
+        assertEquals(before.getVersionNumber(), after.getVersionNumber());
+        assertEquals(before.getAccountId(), after.getAccountId());
+        assertEquals(before.getAccountNumber(), after.getAccountNumber());
+        assertEquals(before.getStatusMessage(), after.getStatusMessage());
+        assertEquals(before.getSubmittedBy(), after.getSubmittedBy());
+        assertEquals(before.getSubmittedByName(), after.getSubmittedByName());
+        assertEquals(before.getValidatedBy(), after.getValidatedBy());
+        assertEquals(before.getValidatedByName(), after.getValidatedByName());
+        assertEquals(before.getAccountSnapshot(), after.getAccountSnapshot());
+        assertEquals(before.getTimelineData(), after.getTimelineData());
+    }
+
+    @Test
     @DisplayName("Create draft account - Should return 400 Bad Request [@PO-973, @PO-691]")
     @JiraStory("PO-973")
     @JiraStory("PO-691")
@@ -641,6 +678,26 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
               "account_status": "Submitted",
               "version": 0
             }""";
+    }
+
+    private static String invalidReferenceCreateRequestBody() {
+        return validCreateRequestBody()
+            .replace("\"enforcement_court_id\": 101", "\"enforcement_court_id\": 999999")
+            .replace("\"offence_id\": 1234", "\"offence_id\": 999998")
+            .replace("\"imposing_court_id\": 202", "\"imposing_court_id\": 999997")
+            .replace("\"result_id\": \"1\"", "\"result_id\": \"NOT-A-RESULT\"")
+            .replace("\"major_creditor_id\": 999", "\"major_creditor_id\": 999996");
+    }
+
+    private static String expectedReferenceValidationErrorMessage() {
+        return """
+            Draft account reference validation failed with 5 error(s):
+             - $.enforcement_court_id: court id 999999 does not exist
+             - $.offences[0].offence_id: offence id 999998 does not exist
+             - $.offences[0].imposing_court_id: court id 999997 does not exist
+             - $.offences[0].impositions[0].result_id: result id NOT-A-RESULT does not exist
+             - $.offences[0].impositions[0].major_creditor_id: major creditor id 999996 does not exist
+            """.stripIndent().stripTrailing();
     }
 
     private static String invalidCreateRequestBody() {
