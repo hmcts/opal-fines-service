@@ -31,8 +31,7 @@ public abstract class DetailedTransactionRowMapper
     @Mapping(target = "transactionUserId", source = "transaction.postedByUsername")
     @Mapping(target = "transactionAmount", source = "transaction.transactionAmount")
     @Mapping(target = "consolidatedAccountNo", expression = "java(getConsolidatedAccountNo(transaction, context))")
-    @Mapping(target = "transactionDetails",
-        expression = "java(getTransactionDetails(transaction, account, imposition))")
+    @Mapping(target = "transactionDetails", expression = "java(getTransactionDetails(transaction, account, imposition))")
     public abstract DetailedReportTransactionRowDto map(
         DefendantTransactionEntity transaction,
         DefendantAccountEntity account,
