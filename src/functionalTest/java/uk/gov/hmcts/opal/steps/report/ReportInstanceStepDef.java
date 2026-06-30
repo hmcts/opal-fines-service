@@ -49,6 +49,7 @@ public class ReportInstanceStepDef extends BaseStepDef {
 
     private TestHttpResponse latestRawReportInstanceResponse;
     private TestHttpResponse latestRawGetReportInstanceResponse;
+    private TestHttpResponse latestRawGetReportInstanceContentResponse;
     private Long createdReportInstanceId;
 
 
@@ -112,6 +113,75 @@ public class ReportInstanceStepDef extends BaseStepDef {
             null
         );
         ScenarioContextHolder.current().setLatestHttpResponse(latestRawGetReportInstanceResponse);
+    }
+
+    /**
+     * Requests report instance content for the supplied id using the current scenario user.
+     *
+     * @param instanceId report instance id to request content for.
+     */
+    @When("I request report instance content with id {int}")
+    public void requestReportInstanceContentWithId(int instanceId) {
+        latestRawGetReportInstanceContentResponse = TestHttpClient.request(
+            "GET",
+            getTestUrl() + REPORT_INSTANCES_URI + "/" + instanceId + "/content",
+            Map.of(
+                "Accept", "*/*",
+                "Authorization", "Bearer " + uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken()
+            ),
+            null
+        );
+        ScenarioContextHolder.current().setLatestHttpResponse(latestRawGetReportInstanceContentResponse);
+    }
+
+    /**
+     * Calls the get-report-instance-content endpoint using the requested authentication state.
+     *
+     * @param instanceId report instance id to request content for.
+     * @param authenticationState whether the request should be sent with no token or an invalid token.
+     */
+    @When("I call GET on the report instance content api for id {int} with {string}")
+    public void callGetOnTheReportInstanceContentApiWithAuthenticationState(int instanceId,
+        String authenticationState) {
+        Map<String, String> headers = new LinkedHashMap<>();
+        headers.put("Accept", "*/*");
+
+        switch (authenticationState) {
+            case "no token" -> {
+                // leave Authorization absent
+            }
+            case "invalid token" -> headers.put("Authorization", "Bearer invalidToken");
+            default -> throw new IllegalArgumentException(
+                "Unknown authentication state for get report instance content request: " + authenticationState
+            );
+        }
+
+        latestRawGetReportInstanceContentResponse = TestHttpClient.request(
+            "GET",
+            getTestUrl() + REPORT_INSTANCES_URI + "/" + instanceId + "/content",
+            headers,
+            null
+        );
+        ScenarioContextHolder.current().setLatestHttpResponse(latestRawGetReportInstanceContentResponse);
+    }
+
+    /**
+     * Requests content for the previously created report instance using the current scenario user.
+     */
+    @When("I request the created report instance content")
+    public void requestTheCreatedReportInstanceContent() {
+        assertNotNull(createdReportInstanceId, "Expected a stored created report instance id");
+
+        latestRawGetReportInstanceContentResponse = TestHttpClient.request(
+            "GET",
+            getTestUrl() + REPORT_INSTANCES_URI + "/" + createdReportInstanceId + "/content",
+            Map.of(
+                "Accept", "*/*",
+                "Authorization", "Bearer " + uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken()
+            ),
+            null
+        );
+        ScenarioContextHolder.current().setLatestHttpResponse(latestRawGetReportInstanceContentResponse);
     }
 
     /**
@@ -534,6 +604,49 @@ public class ReportInstanceStepDef extends BaseStepDef {
         latestRawGetReportInstanceResponse = null;
 
         assertNotNull(latestHttpResponse, "Expected a raw HTTP response for the latest get report instance request");
+        assertEquals(expectedStatus, latestHttpResponse.statusCode(), "Unexpected HTTP status");
+
+        validateProblemDetailResponse(latestHttpResponse.body(), expectedStatus);
+    }
+
+    /**
+     * Asserts that the latest no-token get-report-instance-content response is an unauthorised response.
+     */
+    @Then("the latest get report instance content response is an unauthorized response")
+    public void latestGetReportInstanceContentResponseIsAnUnauthorizedResponse() throws Exception {
+        TestHttpResponse latestHttpResponse = latestRawGetReportInstanceContentResponse;
+        latestRawGetReportInstanceContentResponse = null;
+
+        assertNotNull(latestHttpResponse,
+            "Expected a raw HTTP response for the latest get report instance content request");
+        assertEquals(401, latestHttpResponse.statusCode(), "Unexpected HTTP status");
+
+        String body = latestHttpResponse.body();
+        if (body != null && body.trim().startsWith("{")) {
+            validateProblemDetailResponse(body, 401);
+            return;
+        }
+
+        assertTrue(
+            body != null && body.contains("Full authentication is required"),
+            "Unexpected no-token response body"
+        );
+    }
+
+    /**
+     * Asserts that the latest get-report-instance-content error response matches the shared
+     * ProblemDetail contract for the expected status.
+     *
+     * @param expectedStatus expected HTTP status code.
+     */
+    @Then("the latest get report instance content error response matches the standard problem detail contract for status {int}")
+    public void latestGetReportInstanceContentErrorResponseMatchesProblemDetailContract(int expectedStatus)
+        throws Exception {
+        TestHttpResponse latestHttpResponse = latestRawGetReportInstanceContentResponse;
+        latestRawGetReportInstanceContentResponse = null;
+
+        assertNotNull(latestHttpResponse,
+            "Expected a raw HTTP response for the latest get report instance content request");
         assertEquals(expectedStatus, latestHttpResponse.statusCode(), "Unexpected HTTP status");
 
         validateProblemDetailResponse(latestHttpResponse.body(), expectedStatus);
