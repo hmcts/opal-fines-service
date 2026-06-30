@@ -42,9 +42,6 @@ ext {
   cucumberVersion = "7.23.0" // Keep the forced Cucumber version stable while aligning Serenity with the Gradle plugin
 }
 
-//Should we fail fast on test failures?
-//Defaults to true if env is not present
-var failFast = System.getenv('FAIL_FAST') == null || System.getenv('FAIL_FAST').toBoolean()
 def defaultLegacyStubImage = 'hmctsprod.azurecr.io/opal/legacy-db-stub:latest'
 def legacyStubImage = System.getenv('OPAL_LEGACY_STUB_IMAGE') ?: defaultLegacyStubImage
 def legacyStubPort = 4553
@@ -268,9 +265,7 @@ tasks.withType(Test).configureEach {
     exceptionFormat = 'full'
   }
   maxHeapSize = "2g"
-  if (failFast) {
-    failFast = true
-  }
+  failFast = false
 }
 
 tasks.register('integration', Test) {
@@ -303,7 +298,6 @@ tasks.register('functionalOpal', Test) {
   outputs.upToDateWhen { false }
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal"))
   testLogging.showStandardStreams = true
-  gradle.startParameter.continueOnFailure = true
   environment("DEFAULT_APP_MODE", "opal")
   include '**/OpalTestRunner.class'
 
@@ -318,7 +312,6 @@ tasks.register('functionalOpalTags', Test) {
   outputs.upToDateWhen { false }
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal-tags"))
   testLogging.showStandardStreams = true
-  gradle.startParameter.continueOnFailure = true
   environment("DEFAULT_APP_MODE", "opal")
 
   include '**/OpalTaggedTestRunner.class'
@@ -347,7 +340,6 @@ tasks.register('functionalLegacy', Test) {
   classpath = sourceSets.functionalTest.runtimeClasspath
   outputs.upToDateWhen { false }
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/legacy"))
-  gradle.startParameter.continueOnFailure = true
   testLogging.showStandardStreams = true
   environment("DEFAULT_APP_MODE", "legacy")
 
@@ -421,7 +413,6 @@ tasks.register('mergeFunctionalOpalTagsResults', Copy) {
 tasks.register('functional') {
   description = "Runs functional tests"
   group = "Verification"
-  gradle.startParameter.continueOnFailure = true
   dependsOn('clearReports', 'functionalOpal', 'aggregate', 'copyFunctionalReport', 'mergeFunctionalResults')
   tasks.functionalOpal.mustRunAfter clearReports
   tasks.mergeFunctionalResults.mustRunAfter functionalOpal
@@ -433,7 +424,6 @@ tasks.register('functional') {
 tasks.register('functionalWithTags') {
   description = "Runs functional tests with the default Opal suite plus tagged Opal scenarios"
   group = "Verification"
-  gradle.startParameter.continueOnFailure = true
   dependsOn('clearReports', 'functionalOpal', 'functionalOpalTags', 'aggregate', 'copyDemoFunctionalReport',
     'mergeFunctionalWithTagsResults')
   tasks.functionalOpal.mustRunAfter clearReports
@@ -452,7 +442,6 @@ tasks.register('smokeOpal', Test) {
   classpath = sourceSets.functionalTest.runtimeClasspath
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/smoke"))
   testLogging.showStandardStreams = true
-  gradle.startParameter.continueOnFailure = true
 
   include '**/SmokeTestRunner.class'
   finalizedBy 'copySmokeCucumberJson'
@@ -481,7 +470,6 @@ tasks.register('packageSmokeOutput', Copy) {
 tasks.register('smoke') {
   description = "Runs Smoke Tests"
   group = "Verification"
-  gradle.startParameter.continueOnFailure = true
   dependsOn('clearReports', 'smokeOpal', 'aggregate', 'copySmokeReport')
   tasks.smokeOpal.mustRunAfter clearReports
   tasks.aggregate.mustRunAfter smokeOpal
@@ -634,8 +622,8 @@ dependencies {
 
   implementation 'uk.gov.hmcts:opal-common-lib:0.3.19'
 
-  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.1.0'
-  testImplementation 'uk.gov.hmcts:zephyr-automation:1.1.0'
+  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.2.1'
+  testImplementation 'uk.gov.hmcts:zephyr-automation:1.2.1'
   testImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.14.0'
 
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.45"
