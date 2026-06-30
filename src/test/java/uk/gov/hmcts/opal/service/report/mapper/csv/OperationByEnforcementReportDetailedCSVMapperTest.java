@@ -55,6 +55,7 @@ class OperationByEnforcementReportDetailedCSVMapperTest {
     private static final String TXN_CONSOLIDATED_ACCOUNT_NO_1 = "CON-1";
     private static final LocalDate TXN_DATE_1 = LocalDate.of(2026, 6, 11);
     private static final String TXN_TYPE_1 = "PAYMENT";
+    private static final String TXN_DETAILS_1 = "Payment for enforcement action";
     private static final String TXN_USER_ID_1 = "user-1";
     private static final BigDecimal TXN_AMOUNT_1 = new BigDecimal("12.34");
 
@@ -62,6 +63,7 @@ class OperationByEnforcementReportDetailedCSVMapperTest {
     private static final String TXN_CONSOLIDATED_ACCOUNT_NO_2 = "CON-2";
     private static final LocalDate TXN_DATE_2 = LocalDate.of(2026, 6, 12);
     private static final String TXN_TYPE_2 = "ADJUSTMENT";
+    private static final String TXN_DETAILS_2 = "Adjustment made after review";
     private static final String TXN_USER_ID_2 = "user-2";
     private static final BigDecimal TXN_AMOUNT_2 = new BigDecimal("56.78");
 
@@ -230,15 +232,15 @@ class OperationByEnforcementReportDetailedCSVMapperTest {
                 accountRow(),
                 List.of(
                     transactionRow(TXN_ACCOUNT_NO_1, TXN_CONSOLIDATED_ACCOUNT_NO_1, TXN_DATE_1,
-                        TXN_TYPE_1, TXN_USER_ID_1, TXN_AMOUNT_1),
+                        TXN_TYPE_1, TXN_DETAILS_1, TXN_USER_ID_1, TXN_AMOUNT_1),
                     transactionRow(TXN_ACCOUNT_NO_2, TXN_CONSOLIDATED_ACCOUNT_NO_2, TXN_DATE_2,
-                        TXN_TYPE_2, TXN_USER_ID_2, TXN_AMOUNT_2)
+                        TXN_TYPE_2, TXN_DETAILS_2, TXN_USER_ID_2, TXN_AMOUNT_2)
                 )
             ),
             accountReport(
                 accountRow(),
                 List.of(transactionRow(TXN_ACCOUNT_NO_2, TXN_CONSOLIDATED_ACCOUNT_NO_2, TXN_DATE_2,
-                    TXN_TYPE_2, TXN_USER_ID_2, TXN_AMOUNT_2))
+                    TXN_TYPE_2, TXN_DETAILS_2, TXN_USER_ID_2, TXN_AMOUNT_2))
             )
         ));
 
@@ -333,7 +335,7 @@ class OperationByEnforcementReportDetailedCSVMapperTest {
                 TXN_CONSOLIDATED_ACCOUNT_NO_1,
                 TXN_DATE_1.toString(),
                 TXN_TYPE_1,
-                "",
+                TXN_DETAILS_1,
                 TXN_USER_ID_1,
                 TXN_AMOUNT_1.toString()
             )
@@ -343,7 +345,7 @@ class OperationByEnforcementReportDetailedCSVMapperTest {
                 TXN_CONSOLIDATED_ACCOUNT_NO_2,
                 TXN_DATE_2.toString(),
                 TXN_TYPE_2,
-                "",
+                TXN_DETAILS_2,
                 TXN_USER_ID_2,
                 TXN_AMOUNT_2.toString()
             )
@@ -389,7 +391,7 @@ class OperationByEnforcementReportDetailedCSVMapperTest {
                 TXN_CONSOLIDATED_ACCOUNT_NO_2,
                 TXN_DATE_2.toString(),
                 TXN_TYPE_2,
-                "",
+                TXN_DETAILS_2,
                 TXN_USER_ID_2,
                 TXN_AMOUNT_2.toString()
             ),
@@ -461,6 +463,7 @@ class OperationByEnforcementReportDetailedCSVMapperTest {
         String consolidatedAccountNo,
         LocalDate transactionDate,
         String transactionType,
+        String transactionDetails,
         String transactionUserId,
         BigDecimal transactionAmount) {
         return OperationByEnforcementDetailedReportTransactionRowDto.builder()
@@ -468,6 +471,7 @@ class OperationByEnforcementReportDetailedCSVMapperTest {
             .consolidatedAccountNo(consolidatedAccountNo)
             .transactionDate(transactionDate)
             .transactionType(transactionType)
+            .transactionDetails(transactionDetails)
             .transactionUserId(transactionUserId)
             .transactionAmount(transactionAmount)
             .build();
