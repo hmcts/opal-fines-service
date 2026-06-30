@@ -11,6 +11,7 @@
 * ----------    --------     -------     ---------------------------------------------------------------------------------------------------------
 * 01/05/2026    S WALL       1.0         PO2255 Insert test data for enforcements integration tests
 * 26/05/2026    S WALL       1.1         PO2255 Add impositions data for enforcement integration tests
+  30/06/2026    A REEVES     1.2         PO-2283 Adding more defendant_transactions data for integration tests
 **/
 
 SET search_path TO public;
@@ -418,7 +419,8 @@ INSERT INTO defendant_transactions (
     transaction_amount,
     status_date,
     associated_record_type,
-    associated_record_id
+    associated_record_id,
+    payment_method
 )
 VALUES
     (
@@ -430,7 +432,8 @@ VALUES
         123.45,
         TIMESTAMP '2026-05-14 10:00:00',
         'defendant_accounts',
-        '78'
+        '78',
+        NULL
     ),
     (
         100002,
@@ -441,7 +444,8 @@ VALUES
         50.00,
         TIMESTAMP '2026-05-14 10:05:00',
         NULL,
-        NULL
+        NULL,
+        'CT'
     )
     ON CONFLICT (defendant_transaction_id)
 DO UPDATE SET
