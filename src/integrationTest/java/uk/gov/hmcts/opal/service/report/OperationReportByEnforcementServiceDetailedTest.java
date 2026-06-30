@@ -823,4 +823,3 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
         verifyMetadata(result);
     }
 }
-
