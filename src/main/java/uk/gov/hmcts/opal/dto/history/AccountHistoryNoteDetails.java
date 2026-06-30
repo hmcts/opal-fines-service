@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.opal.history.core;
+package uk.gov.hmcts.opal.dto.history;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
