@@ -157,7 +157,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
         DefendantAccountHeaderSummary result = legacyDefendantAccountService.getHeaderSummary(1L);
 
         assertNotNull(result);
-        assertEquals("77", result.getResponse().getDefendantPartyId());
+        assertEquals("77", result.getResponse().getDefendantAccountPartyId());
     }
 
     @Test

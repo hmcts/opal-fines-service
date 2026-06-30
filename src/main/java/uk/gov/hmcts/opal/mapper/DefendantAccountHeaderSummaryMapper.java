@@ -38,7 +38,7 @@ public interface DefendantAccountHeaderSummaryMapper {
         @Mapping(target = "response.partyDetails", source = "."),
         @Mapping(target = "response.accountNumber", source = "entity.accountNumber"),
         @Mapping(target = "response.accountType", source = "entity.accountType"),
-        @Mapping(target = "response.defendantPartyId", source = "entity.defendantAccountPartyId"),
+        @Mapping(target = "response.defendantAccountPartyId", source = "entity.defendantAccountPartyId"),
         @Mapping(target = "response.fixedPenaltyTicketNumber", source = "entity.fixedPenaltyTicketNumber"),
         @Mapping(target = "response.prosecutorCaseReference", source = "entity.prosecutorCaseReference"),
         @Mapping(target = "response.hasConsolidatedAccounts"),

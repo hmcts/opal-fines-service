@@ -109,7 +109,7 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
         log.info("PO-2297 Individual header summary response:\n{}", ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.defendant_party_id").value("77"))
+            .andExpect(jsonPath("$.defendant_account_party_id").value("77"))
             .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
             .andExpect(jsonPath("$.party_details.individual_details.forenames").value("Anna"))
             .andExpect(jsonPath("$.party_details.individual_details.surname").value("Graham"));
@@ -132,7 +132,7 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
         log.info("PO-2297 Organisation header summary response:\n{}", ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.defendant_party_id").value("10001"))
+            .andExpect(jsonPath("$.defendant_account_party_id").value("10001"))
             .andExpect(jsonPath("$.party_details.party_id").value("10001"))
             .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
             .andExpect(jsonPath("$.party_details.organisation_details.organisation_name").value("Kings Arms"));

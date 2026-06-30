@@ -343,9 +343,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         GetDefendantAccountHeaderSummary200Response defendantAccHeaderSummaryResponse =
             GetDefendantAccountHeaderSummary200Response.builder()
             .defendantAccountId(response.getDefendantAccountId())
-            .defendantPartyId(response.getDefendantPartyId())
+            .defendantAccountPartyId(response.getDefendantPartyId())
             .accountNumber(response.getAccountNumber())
-            .defendantPartyId(response.getDefendantPartyId())
             .parentGuardianPartyId(response.getParentGuardianPartyId())
             .debtorType(response.getDebtorType() == null ? DebtorTypeEnum.DEFENDANT
                 : DebtorTypeEnum.fromValue(response.getDebtorType()))
