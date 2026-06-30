@@ -10,6 +10,8 @@ import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionType;
+import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
+import uk.gov.hmcts.opal.service.opal.history.defendant.DefendantTransactionDetailsService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 
@@ -20,17 +22,27 @@ public abstract class DetailedTransactionRowMapper
     @Autowired
     protected DefendantAccountRepositoryService defendantAccountService;
 
+    @Autowired
+    protected DefendantTransactionDetailsService defendantTransactionDetailsService;
+
     @Mapping(target = "accountNo", source = "account.accountNumber")
     @Mapping(target = "transactionDate", source = "transaction.postedDate")
     @Mapping(target = "transactionType", source = "transaction.transactionType")
     @Mapping(target = "transactionUserId", source = "transaction.postedByUsername")
     @Mapping(target = "transactionAmount", source = "transaction.transactionAmount")
     @Mapping(target = "consolidatedAccountNo", expression = "java(getConsolidatedAccountNo(transaction, context))")
+    @Mapping(target = "transactionDetails", expression = "java(getTransactionDetails(transaction, account, imposition))")
     public abstract OperationByEnforcementDetailedReportTransactionRowDto map(
         DefendantTransactionEntity transaction,
         DefendantAccountEntity account,
+        ImpositionEntity imposition,
         ReportMetadataContext context
     );
+
+    protected String getTransactionDetails(DefendantTransactionEntity transaction,
+        DefendantAccountEntity account, ImpositionEntity imposition) {
+        return defendantTransactionDetailsService.generateTransactionDetails(transaction, account, imposition);
+    }
 
     protected String getConsolidatedAccountNo(DefendantTransactionEntity entity, ReportMetadataContext context) {
         if (DefendantTransactionType.CONSOL.equals(entity.getTransactionType())

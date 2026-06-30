@@ -20,6 +20,8 @@ import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionType;
+import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
+import uk.gov.hmcts.opal.service.opal.history.defendant.DefendantTransactionDetailsService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 import uk.gov.hmcts.opal.service.report.operationbyenforcement.mapper.DetailedTransactionRowMapper;
@@ -30,15 +32,22 @@ class DetailedTransactionRowMapperTest {
     @Mock
     private DefendantAccountRepositoryService defendantAccountService;
 
+    @Mock
+    private DefendantTransactionDetailsService defendantTransactionDetailsService;
+
     private DetailedTransactionRowMapper mapper;
 
     private DefendantAccountEntity account;
+
+    @Mock
+    ImpositionEntity imposition;
 
     @BeforeEach
     void setUp() {
         mapper = Mappers.getMapper(
             DetailedTransactionRowMapper.class);
         ReflectionTestUtils.setField(mapper, "defendantAccountService", defendantAccountService);
+        ReflectionTestUtils.setField(mapper, "defendantTransactionDetailsService", defendantTransactionDetailsService);
         account = new DefendantAccountEntity();
         account.setAccountNumber("ACCOUNT");
     }
@@ -54,9 +63,11 @@ class DetailedTransactionRowMapperTest {
         transaction.setAssociatedRecordId("12");
         DefendantAccountEntity consolidated = DefendantAccountEntity.builder().accountNumber("CONSOLIDATED").build();
         when(defendantAccountService.findById(12)).thenReturn(consolidated);
+        when(defendantTransactionDetailsService.generateTransactionDetails(transaction, account, imposition))
+            .thenReturn("txn details");
 
         OperationByEnforcementDetailedReportTransactionRowDto result =
-            mapper.map(transaction, account, new ReportMetadataContext());
+            mapper.map(transaction, account, imposition, new ReportMetadataContext());
 
         assertThat(result).isNotNull();
         assertThat(result.getAccountNo()).isEqualTo("ACCOUNT");
@@ -70,6 +81,8 @@ class DetailedTransactionRowMapperTest {
             .isEqualByComparingTo("125.50");
         assertThat(result.getConsolidatedAccountNo())
             .isEqualTo("CONSOLIDATED");
+        assertThat(result.getTransactionDetails())
+            .isEqualTo("txn details");
     }
 
     @ParameterizedTest
@@ -81,7 +94,7 @@ class DetailedTransactionRowMapperTest {
         entity.setAssociatedRecordId("12");
 
         OperationByEnforcementDetailedReportTransactionRowDto result =
-            mapper.map(entity, account, new ReportMetadataContext());
+            mapper.map(entity, account, imposition, new ReportMetadataContext());
 
         assertThat(result.getConsolidatedAccountNo()).isNull();
     }
@@ -95,7 +108,7 @@ class DetailedTransactionRowMapperTest {
         entity.setAssociatedRecordId("12");
 
         OperationByEnforcementDetailedReportTransactionRowDto result =
-            mapper.map(entity, account, new ReportMetadataContext());
+            mapper.map(entity, account, imposition, new ReportMetadataContext());
 
         assertThat(result.getConsolidatedAccountNo()).isNull();
     }

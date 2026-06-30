@@ -17,6 +17,7 @@ public class OperationByEnforcementDetailedReportTransactionRowDto {
     private String consolidatedAccountNo;
     private LocalDate transactionDate;
     private String transactionType;
+    private String transactionDetails;
     private String transactionUserId;
     private BigDecimal transactionAmount;
 

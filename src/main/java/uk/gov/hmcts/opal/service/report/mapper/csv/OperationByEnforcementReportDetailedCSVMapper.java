@@ -117,7 +117,7 @@ public class OperationByEnforcementReportDetailedCSVMapper
             getDataValue(transactionRow.getConsolidatedAccountNo()),
             getDataValue(transactionRow.getTransactionDate()),
             getDataValue(transactionRow.getTransactionType()),
-            EMPTY_VALUE,
+            getDataValue(transactionRow.getTransactionDetails()),
             getDataValue(transactionRow.getTransactionUserId()),
             getDataValue(transactionRow.getTransactionAmount())
         );
