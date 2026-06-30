@@ -94,6 +94,8 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
         "{}"
     })
     @JiraTestKey("PO-7815")
+    @JiraTestKey(value = "PO-8655", name = "[1] json = \"{\\\"reportType\\\": \\\"DETAILED\\\"}\"")
+    @JiraTestKey(value = "PO-8656", name = "[2] json = \"{}\"")
     void generateReportData_filterDetailedReportType_returnSortedResultsOfDetailedReportType(String json) {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
@@ -515,6 +517,8 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
         "WITHOUT, false"
     })
     @JiraTestKey("PO-7813")
+    @JiraTestKey(value = "PO-8653", name = "[1] collectionOrderChoice = \"WITH\", expectedValue = \"true\"")
+    @JiraTestKey(value = "PO-8654", name = "[2] collectionOrderChoice = \"WITHOUT\", expectedValue = \"false\"")
     void generateReportData_filterByCollectionOrderChoice_returnResults(
         String collectionOrderChoice,
         boolean expectedValue
