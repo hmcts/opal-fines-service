@@ -9,6 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementAccountTypeEntity;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -24,12 +25,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Slf4j(topic = "opal.OpalEnforcementAccountTypesPatchIntegrationTest")
 @Sql(
-    scripts = "classpath:db/insertData/insert_into_enforcement_account_types.sql",
-    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    scripts = "classpath:db/deleteData/delete_from_enforcement_account_types.sql",
+    executionPhase = ExecutionPhase.AFTER_TEST_METHOD
 )
 class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractOpalEnforcementAccountTypesIntegrationTest {
 
-    private final RowMapper<EnforcementAccountTypeEntity> eafRowMapper = (resultSet, rowNum) -> {
+    private final RowMapper<EnforcementAccountTypeEntity> eatRowMapper = (resultSet, rowNum) -> {
         EnforcementAccountTypeEntity entity = new EnforcementAccountTypeEntity();
         entity.setEnforcementAccountTypeId(resultSet.getLong("enforcement_account_type_id"));
         entity.setMinimumBalance(resultSet.getBigDecimal("minimum_balance"));
@@ -75,7 +76,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractOpalEnforc
 
         EnforcementAccountTypeEntity changedObject = jdbcTemplate.queryForObject(
             "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id = '1'",
-            eafRowMapper);
+            eatRowMapper);
 
         assertEquals(2L, changedObject.getVersionNumber());
         assertEquals(new BigDecimal("200.00"), changedObject.getMinimumBalance());
@@ -126,13 +127,13 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractOpalEnforc
 
         EnforcementAccountTypeEntity firstChanged = jdbcTemplate.queryForObject(
             "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id = '1'",
-            eafRowMapper);
+            eatRowMapper);
         assertEquals(2L, firstChanged.getVersionNumber());
         assertEquals(new BigDecimal("200.00"), firstChanged.getMinimumBalance());
 
         EnforcementAccountTypeEntity secondChanged = jdbcTemplate.queryForObject(
             "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id = '2'",
-            eafRowMapper);
+            eatRowMapper);
         assertEquals(2L, secondChanged.getVersionNumber());
         assertEquals(new BigDecimal("300.00"), secondChanged.getMinimumBalance());
     }
@@ -174,10 +175,10 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractOpalEnforc
 
         EnforcementAccountTypeEntity changedObject = jdbcTemplate.queryForObject(
             "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id = '1'",
-            eafRowMapper);
+            eatRowMapper);
 
         assertEquals(1L, changedObject.getVersionNumber());
-        assertEquals(new BigDecimal("100.00"), changedObject.getMinimumBalance());
+        assertNull(changedObject.getMinimumBalance());
 
     }
 
@@ -217,7 +218,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractOpalEnforc
 
         EnforcementAccountTypeEntity changedObject = jdbcTemplate.queryForObject(
             "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id = '3'",
-            eafRowMapper);
+            eatRowMapper);
 
         assertEquals(2L, changedObject.getVersionNumber());
         assertNull(changedObject.getMinimumBalance());
@@ -262,10 +263,10 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractOpalEnforc
 
         EnforcementAccountTypeEntity changedObject = jdbcTemplate.queryForObject(
             "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id = '1'",
-            eafRowMapper);
+            eatRowMapper);
 
         assertEquals(1L, changedObject.getVersionNumber());
-        assertEquals(new BigDecimal("100.00"), changedObject.getMinimumBalance());
+        assertNull(changedObject.getMinimumBalance());
     }
 
     @Test
@@ -302,7 +303,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractOpalEnforc
             .andExpect(jsonPath("$.retriable").value("false"));
 
         List<EnforcementAccountTypeEntity> changedObject = jdbcTemplate.query(
-            "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id IN (1, 2, 3)", eafRowMapper);
+            "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id IN (1, 2, 3)", eatRowMapper);
         assertEquals(1L, changedObject.getFirst().getVersionNumber());
         assertEquals(1L, changedObject.get(1).getVersionNumber());
         assertEquals(1L, changedObject.get(2).getVersionNumber());
@@ -344,7 +345,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractOpalEnforc
                            .value("You do not have permission to access this resource"));
 
         List<EnforcementAccountTypeEntity> changedObject = jdbcTemplate.query(
-            "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id IN (1, 2, 3)", eafRowMapper);
+            "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id IN (1, 2, 3)", eatRowMapper);
         assertEquals(1L, changedObject.getFirst().getVersionNumber());
         assertEquals(1L, changedObject.get(1).getVersionNumber());
         assertEquals(1L, changedObject.get(2).getVersionNumber());
@@ -363,7 +364,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractOpalEnforc
 
         EnforcementAccountTypeEntity orig = jdbcTemplate.queryForObject(
             "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id = '1'",
-            eafRowMapper);
+            eatRowMapper);
 
         String body = """
             [
@@ -400,7 +401,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractOpalEnforc
 
 
         List<EnforcementAccountTypeEntity> changedObject = jdbcTemplate.query(
-            "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id IN (1, 2, 3)", eafRowMapper);
+            "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id IN (1, 2, 3)", eatRowMapper);
         assertEquals(1L, changedObject.getFirst().getVersionNumber());
         assertEquals(1L, changedObject.get(1).getVersionNumber());
         assertEquals(1L, changedObject.get(2).getVersionNumber());
@@ -455,7 +456,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractOpalEnforc
 
 
         List<EnforcementAccountTypeEntity> changedObject = jdbcTemplate.query(
-            "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id IN (1, 2, 3)", eafRowMapper);
+            "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id IN (1, 2, 3)", eatRowMapper);
         assertEquals(1L, changedObject.getFirst().getVersionNumber());
         assertEquals(1L, changedObject.get(1).getVersionNumber());
         assertEquals(1L, changedObject.get(2).getVersionNumber());
@@ -499,7 +500,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractOpalEnforc
 
 
         List<EnforcementAccountTypeEntity> changedObject = jdbcTemplate.query(
-            "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id IN (1, 2, 3)", eafRowMapper);
+            "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id IN (1, 2, 3)", eatRowMapper);
         assertEquals(1L, changedObject.getFirst().getVersionNumber());
         assertEquals(1L, changedObject.get(1).getVersionNumber());
         assertEquals(1L, changedObject.get(2).getVersionNumber());
