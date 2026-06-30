@@ -29,6 +29,7 @@ import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
 @TestPropertySource(properties = {
@@ -49,6 +50,7 @@ class LegacyDefendantAccountHistoryIntegrationTest extends AbstractLegacyDefenda
     @DisplayName("PO-2647 legacy history returns mixed items and maps them")
     @JiraStory("PO-2647")
     @JiraEpic("PO-2621")
+    @JiraTestKey("PO-8619")
     void getDefendantAccountHistory_successReturnsMappedResponse() throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
@@ -96,6 +98,7 @@ class LegacyDefendantAccountHistoryIntegrationTest extends AbstractLegacyDefenda
     @DisplayName("PO-2647 legacy history passes filters to gateway")
     @JiraStory("PO-2647")
     @JiraEpic("PO-2621")
+    @JiraTestKey("PO-8618")
     void getDefendantAccountHistory_filtersAreForwardedToLegacyRequest() throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
@@ -128,6 +131,7 @@ class LegacyDefendantAccountHistoryIntegrationTest extends AbstractLegacyDefenda
     @DisplayName("PO-2647 legacy history not found returns 404")
     @JiraStory("PO-2647")
     @JiraEpic("PO-2621")
+    @JiraTestKey("PO-8620")
     void getDefendantAccountHistory_notFoundReturns404() throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
@@ -144,6 +148,7 @@ class LegacyDefendantAccountHistoryIntegrationTest extends AbstractLegacyDefenda
     @DisplayName("PO-2647 legacy history without permission returns 403")
     @JiraStory("PO-2647")
     @JiraEpic("PO-2621")
+    @JiraTestKey("PO-8621")
     void getDefendantAccountHistory_withoutPermissionReturns403() throws Exception {
         userStateStub.setupWithNoPermissions();
 

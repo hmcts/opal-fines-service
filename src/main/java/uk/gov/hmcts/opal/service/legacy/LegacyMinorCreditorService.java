@@ -1,8 +1,14 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.dto.CreditorAccountDto;
@@ -23,7 +29,9 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsResponse;
+import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.mapper.legacy.GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyMinorCreditorAccountResponseMapper;
@@ -32,11 +40,6 @@ import uk.gov.hmcts.opal.mapper.request.UpdateMinorCreditorAccountRequestMapper;
 import uk.gov.hmcts.opal.mapper.response.GetMinorCreditorAccountAtAGlanceResponseMapper;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
-
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -142,6 +145,13 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
         }
 
         return mappedResponse;
+    }
+
+    @Override
+    public GetMinorCreditorHistoryResponse getMinorCreditorHistory(
+        Long minorCreditorAccountId,
+        MinorCreditorHistoryFilters filters) {
+        throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED, "Not yet implemented");
     }
 
     @Override
