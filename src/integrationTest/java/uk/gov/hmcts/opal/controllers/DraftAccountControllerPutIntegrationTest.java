@@ -523,7 +523,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 "originator_name": "Police Force",
                 "originator_id": 12345,
                 "originator_type": "NEW",
-                "enforcement_court_id": 101,
+                "enforcement_court_id": 260000000048,
                 "collection_order_made": true,
                 "collection_order_made_today": false,
                 "payment_card_request": true,
@@ -559,14 +559,14 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 "offences": [
                   {
                     "date_of_sentence": "2023-11-15",
-                    "imposing_court_id": 202,
-                    "offence_id": 1234,
+                    "imposing_court_id": 260000000048,
+                    "offence_id": 35014,
                     "impositions": [
                       {
-                        "result_id": "1",
+                        "result_id": "FO",
                         "amount_imposed": 500.00,
                         "amount_paid": 200.00,
-                        "major_creditor_id": 999
+                        "major_creditor_id": null
                       }
                     ]
                   }
@@ -605,7 +605,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 "originator_name": "Police Force",
                 "originator_id": 12345,
                 "originator_type": "TFO",
-                "enforcement_court_id": 101,
+                "enforcement_court_id": 260000000048,
                 "collection_order_made": true,
                 "collection_order_made_today": false,
                 "payment_card_request": true,
@@ -641,14 +641,14 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 "offences": [
                   {
                     "date_of_sentence": "2023-11-15",
-                    "imposing_court_id": 202,
-                    "offence_id": 1234,
+                    "imposing_court_id": 260000000048,
+                    "offence_id": 35014,
                     "impositions": [
                       {
-                        "result_id": "1",
+                        "result_id": "FO",
                         "amount_imposed": 500.00,
                         "amount_paid": 200.00,
-                        "major_creditor_id": 999
+                        "major_creditor_id": null
                       }
                     ]
                   }
@@ -680,11 +680,11 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
     private static String invalidReferenceReplaceRequestBody(Long version) {
         return validReplaceRequestBody(version)
-            .replace("\"enforcement_court_id\": 101", "\"enforcement_court_id\": 999999")
-            .replace("\"offence_id\": 1234", "\"offence_id\": 999998")
-            .replace("\"imposing_court_id\": 202", "\"imposing_court_id\": 999997")
-            .replace("\"result_id\": \"1\"", "\"result_id\": \"NOT-A-RESULT\"")
-            .replace("\"major_creditor_id\": 999", "\"major_creditor_id\": 999996");
+            .replace("\"enforcement_court_id\": 260000000048", "\"enforcement_court_id\": 999999")
+            .replace("\"offence_id\": 35014", "\"offence_id\": 999998")
+            .replace("\"imposing_court_id\": 260000000048", "\"imposing_court_id\": 999997")
+            .replace("\"result_id\": \"FO\"", "\"result_id\": \"NOT-A-RESULT\"")
+            .replace("\"major_creditor_id\": null", "\"major_creditor_id\": 999996");
     }
 
     private static String expectedReferenceValidationErrorMessage() {
@@ -710,7 +710,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 "originator_name": "Police Force",
                 "originator_id": 12345,
                 "originator_type": "NEW",
-                "enforcement_court_id": 101,
+                "enforcement_court_id": 260000000048,
                 "collection_order_made": true,
                 "collection_order_made_today": false,
                 "payment_card_request": true,
@@ -734,11 +734,11 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 "offences": [
                   {
                     "date_of_sentence": "2023-11-15",
-                    "imposing_court_id": 202,
-                    "offence_id": 1234,
+                    "imposing_court_id": 260000000048,
+                    "offence_id": 35014,
                     "impositions": [
                       {
-                        "result_id": "1",
+                        "result_id": "FO",
                         "amount_imposed": 500.00,
                         "amount_paid": 200.00,
                         "major_creditor_id": null,
@@ -783,7 +783,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 "originator_name": "Police Force",
                 "originator_id": 12345,
                 "originator_type": "NEW",
-                "enforcement_court_id": 101,
+                "enforcement_court_id": 260000000048,
                 "collection_order_made": true,
                 "collection_order_made_today": false,
                 "payment_card_request": true,
@@ -799,14 +799,14 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 "offences": [
                   {
                     "date_of_sentence": "2023-11-15",
-                    "imposing_court_id": 202,
-                    "offence_id": 1234,
+                    "imposing_court_id": 260000000048,
+                    "offence_id": 35014,
                     "impositions": [
                       {
-                        "result_id": "1",
+                        "result_id": "FO",
                         "amount_imposed": 500.00,
                         "amount_paid": 200.00,
-                        "major_creditor_id": 999
+                        "major_creditor_id": null
                       }
                     ]
                   }
@@ -841,7 +841,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 "originator_name": "Police Force",
                 "originator_id": 12345,
                 "originator_type": "NEW",
-                "enforcement_court_id": 101,
+                "enforcement_court_id": 260000000048,
                 "collection_order_made": true,
                 "collection_order_made_today": false,
                 "payment_card_request": true,
@@ -865,14 +865,14 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 "offences": [
                   {
                     "date_of_sentence": "2023-11-15",
-                    "imposing_court_id": 202,
-                    "offence_id": 1234,
+                    "imposing_court_id": 260000000048,
+                    "offence_id": 35014,
                     "impositions": [
                       {
-                        "result_id": "1",
+                        "result_id": "FO",
                         "amount_imposed": 500.00,
                         "amount_paid": 200.00,
-                        "major_creditor_id": 999
+                        "major_creditor_id": null
                       }
                     ]
                   }
@@ -907,7 +907,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 "originator_name": "Police Force",
                 "originator_id": 12345,
                 "originator_type": "NEW",
-                "enforcement_court_id": 101,
+                "enforcement_court_id": 260000000048,
                 "collection_order_made": true,
                 "collection_order_made_today": false,
                 "payment_card_request": true,
@@ -923,11 +923,11 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 "offences": [
                   {
                     "date_of_sentence": "2023-11-15",
-                    "imposing_court_id": 202,
-                    "offence_id": 1234,
+                    "imposing_court_id": 260000000048,
+                    "offence_id": 35014,
                     "impositions": [
                       {
-                        "result_id": "1",
+                        "result_id": "FO",
                         "amount_imposed": 500.00,
                         "amount_paid": 200.00,
                         "major_creditor_id": null,
