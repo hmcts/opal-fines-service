@@ -13,7 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
+import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.repository.CourtLiteRepository;
 import uk.gov.hmcts.opal.repository.MajorCreditorRepository;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
@@ -54,7 +54,7 @@ class DraftAccountReferenceValidationServiceTest {
         when(resultRepository.existsById(anyString())).thenReturn(false);
         when(majorCreditorRepository.existsById(anyLong())).thenReturn(false);
 
-        JsonSchemaValidationException exception = assertThrows(JsonSchemaValidationException.class,
+        InvalidReferenceValidationException exception = assertThrows(InvalidReferenceValidationException.class,
             () -> service.validateReferences(validAccountJson()));
 
         String message = exception.getMessage();

@@ -353,7 +353,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Bad Request"))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/invalid-reference-validation"))
             .andExpect(jsonPath("$.detail").value(expectedReferenceValidationErrorMessage()));
 
         DraftAccountEntity after = getDraftAccount(5L);
