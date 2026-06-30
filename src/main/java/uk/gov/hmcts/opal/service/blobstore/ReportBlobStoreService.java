@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.blobstore;
 import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
+import com.azure.storage.blob.models.BlobStorageException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -11,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
 import uk.gov.hmcts.opal.util.UuidProvider;
 
 @Service
@@ -49,6 +51,11 @@ public class ReportBlobStoreService implements ReportBlobStore {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             blob.downloadStream(outputStream);
             return outputStream.toString(StandardCharsets.UTF_8);
+        } catch (BlobStorageException blobStorageException) {
+            if (blobStorageException.getStatusCode() == 404) {
+                throw new MissingStoredReportContentException(location);
+            }
+            throw blobStorageException;
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to read report from blob store at: " + location, e);
         }

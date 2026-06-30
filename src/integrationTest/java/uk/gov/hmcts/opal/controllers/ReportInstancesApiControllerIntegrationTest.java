@@ -1,17 +1,16 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
 
-import jakarta.servlet.ServletException;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -19,7 +18,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
 import uk.gov.hmcts.opal.service.report.GenericReportService;
@@ -103,15 +101,16 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         @JiraTestKey("PO-8292")
-        void whenNoTokenPresent_unauthorizedIsReturned_sadPath() {
-            ServletException exception = assertThrows(
-                ServletException.class,
-                () -> mockMvc.perform(get(URL_BASE).param("report_id", REPORT_ID))
-            );
-
-            assertThat(exception.getCause())
-                .isInstanceOf(UnauthorizedException.class)
-                .hasMessage("Current user is not authenticated with OpalJwtAuthenticationToken");
+        void whenNoTokenPresent_unauthorizedIsReturned_sadPath() throws Exception {
+            mockMvc.perform(get(URL_BASE).param("report_id", REPORT_ID))
+                .andExpectAll(
+                    status().isUnauthorized(),
+                    content().contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON),
+                    jsonPath("$.title").value("Unauthorized"),
+                    jsonPath("$.detail").value("Missing or invalid access token"),
+                    jsonPath("$.status").value(401),
+                    jsonPath("$.retriable").value(false)
+                );
         }
 
         @Test

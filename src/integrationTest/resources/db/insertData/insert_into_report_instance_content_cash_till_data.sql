@@ -1,6 +1,7 @@
 UPDATE reports
 SET retention_period = 'P14D',
-    permission = 'SEARCH_AND_VIEW_ACCOUNTS'
+    permission = 'SEARCH_AND_VIEW_ACCOUNTS',
+    supported_file_types = '{CSV,PDF,JSON}'
 WHERE report_id = 'cash_till';
 
 INSERT INTO business_units (
