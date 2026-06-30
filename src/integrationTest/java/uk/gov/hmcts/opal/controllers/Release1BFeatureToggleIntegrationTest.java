@@ -41,7 +41,7 @@ class Release1BFeatureToggleIntegrationTest extends AbstractFeatureToggleIntegra
     @DisplayName("should return 404 Not Found")
     @JiraStory("PO-2077")
     @JiraEpic("PO-979")
-    @JiraTestKey("PO-7660")
+    @JiraTestKey(value = "PO-8545", name = "\"GET /defendant-accounts/{id}/impositions\"")
     void shouldReturn404WhenRelease1bIsDisabled(String description, MockHttpServletRequestBuilder request)
         throws Exception {
         log.debug("Testing feature-disabled 404 for: {}", description);

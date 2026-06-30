@@ -4,15 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_ENABLED_PROPERTY;
 
-import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
-import uk.gov.hmcts.opal.controllers.print.PrintRequestController;
-
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
+import uk.gov.hmcts.opal.controllers.print.PrintRequestController;
 
 class Release1bFeatureToggleAnnotationTest {
 
@@ -70,6 +69,7 @@ class Release1bFeatureToggleAnnotationTest {
             "MinorCreditorApiController#getMinorCreditorAccount",
             "DefendantAccountController#getAtAGlance",
             "MajorCreditorApiController#getMajorCreditorAccountHeaderSummary",
+            "MinorCreditorApiController#getMinorCreditorHistory",
             "DefendantAccountApiController#getImpositions",
             "MinorCreditorApiController#patchMinorCreditorAccount",
             "MinorCreditorController#postMinorCreditorsSearch",

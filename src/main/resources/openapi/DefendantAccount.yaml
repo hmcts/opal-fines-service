@@ -142,7 +142,7 @@ paths:
                 required:
                   - defendant_account_id
                   - account_number
-                  - defendant_party_id
+                  - defendant_account_party_id
                   - debtor_type
                   - is_youth
                   - has_consolidated_accounts
@@ -160,7 +160,7 @@ paths:
                   account_number:
                     type: string
                     description: DB Mapping - defendant_accounts.account_number
-                  defendant_party_id:
+                  defendant_account_party_id:
                     type: string
                     description: defendant_account_parties.defendant_account_party_id (where defendant_account_parties.association_type = 'Defendant')
                   parent_guardian_party_id:

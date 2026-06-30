@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -87,6 +88,96 @@ class MinorCreditorApiControllerFeatureFlagLocalEnabledIntegrationTest
         CreditorAccountEntity creditorAccount = getCurrentCreditorAccount();
         assertTrue(creditorAccount.isHoldPayout());
         assertEquals(3L, creditorAccount.getVersionNumber());
+    }
+
+    @Test
+    @JiraStory("PO-2642")
+    @JiraEpic("PO-2653")
+    @JiraTestKey("PO-2642")
+    void getMinorCreditorHistory_whenHistoryExists_returnsMergedHistoryItems() throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+
+        ResultActions result = mockMvc.perform(get("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID + "/history")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
+            .queryParam("dateFrom", "2026-01-29")
+            .queryParam("dateTo", "2026-01-31"));
+
+        String body = result.andReturn().getResponse().getContentAsString();
+        log.info(":getMinorCreditorHistory_whenHistoryExists_returnsMergedHistoryItems body:\n{}",
+                 ToJsonString.toPrettyJson(body));
+
+        result.andExpect(status().isOk())
+            .andExpect(header().string("ETag", "\"1\""))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.historyItems.length()").value(3))
+            .andExpect(jsonPath("$.historyItems[0].type").value("Amendment"))
+            .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_date").value("2026-01-31"))
+            .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_by").value("AMENDUSR"))
+            .andExpect(jsonPath("$.historyItems[0].details.attributeName").value("Hold Pay Out"))
+            .andExpect(jsonPath("$.historyItems[0].details.oldValue").value("false"))
+            .andExpect(jsonPath("$.historyItems[0].details.newValue").value("true"))
+            .andExpect(jsonPath("$.historyItems[1].type").value("Note"))
+            .andExpect(jsonPath("$.historyItems[1].postedDetails.posted_date").value("2026-01-30"))
+            .andExpect(jsonPath("$.historyItems[1].details.noteText").value("Review creditor"))
+            .andExpect(jsonPath("$.historyItems[2].type").value("Financial"))
+            .andExpect(jsonPath("$.historyItems[2].postedDetails.posted_date").value("2026-01-29"))
+            .andExpect(jsonPath("$.historyItems[2].amount").value(42.00))
+            .andExpect(jsonPath("$.historyItems[2].details.transactionType.transactionType").value("PAYMNT"))
+            .andExpect(jsonPath("$.historyItems[2].details.status.creditorTransactionStatus").value("C"))
+            .andExpect(jsonPath("$.historyItems[2].details.accountNumber").value("HOLD1234"))
+            .andExpect(jsonPath("$.historyItems[2].details.defendantAccountNumber").value("DEF123456"))
+            .andExpect(jsonPath("$.historyItems[2].details.defendantAccountId").value(70000000000000L));
+    }
+
+    @Test
+    @JiraStory("PO-2642")
+    @JiraEpic("PO-2653")
+    @JiraTestKey("PO-2642")
+    void getMinorCreditorHistory_whenItemTypeInvalid_returns400ProblemResponse() throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+
+        ResultActions result = mockMvc.perform(get("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID + "/history")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
+            .queryParam("itemTypes", "payment"));
+
+        String body = result.andReturn().getResponse().getContentAsString();
+        log.info(":getMinorCreditorHistory_whenItemTypeInvalid_returns400ProblemResponse body:\n{}",
+                 ToJsonString.toPrettyJson(body));
+
+        result.andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Bad Request"))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/illegal-argument"))
+            .andExpect(jsonPath("$.detail").value("Invalid arguments were provided in the request"));
+    }
+
+    @Test
+    @JiraStory("PO-2642")
+    @JiraEpic("PO-2653")
+    @JiraTestKey("PO-2642")
+    void getMinorCreditorHistory_whenDateFromAfterDateTo_returns400ProblemResponse() throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+
+        ResultActions result = mockMvc.perform(get("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID + "/history")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
+            .queryParam("dateFrom", "2026-02-01")
+            .queryParam("dateTo", "2026-01-31"));
+
+        String body = result.andReturn().getResponse().getContentAsString();
+        log.info(":getMinorCreditorHistory_whenDateFromAfterDateTo_returns400ProblemResponse body:\n{}",
+                 ToJsonString.toPrettyJson(body));
+
+        result.andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Bad Request"))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/illegal-argument"))
+            .andExpect(jsonPath("$.detail").value("Invalid arguments were provided in the request"));
     }
 
     private PatchMinorCreditorAccountRequest patchMinorCreditorAccountRequest() {

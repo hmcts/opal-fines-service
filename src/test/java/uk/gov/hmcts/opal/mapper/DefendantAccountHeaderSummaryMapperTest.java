@@ -125,8 +125,8 @@ class DefendantAccountHeaderSummaryMapperTest {
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
 
         assertNotNull(dto);
-        assertEquals("77", dto.getResponse().getDefendantPartyId());
-        assertNotEquals("999", dto.getResponse().getDefendantPartyId());
+        assertEquals("77", dto.getResponse().getDefendantAccountPartyId());
+        assertNotEquals("999", dto.getResponse().getDefendantAccountPartyId());
     }
 
     @Test
@@ -140,7 +140,7 @@ class DefendantAccountHeaderSummaryMapperTest {
 
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
 
-        assertNull(dto.getResponse().getDefendantPartyId());
+        assertNull(dto.getResponse().getDefendantAccountPartyId());
     }
 
     @Test
@@ -264,7 +264,7 @@ class DefendantAccountHeaderSummaryMapperTest {
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
         String json = new ObjectMapper().writeValueAsString(dto);
 
-        assertTrue(json.contains("\"defendant_party_id\""));
+        assertTrue(json.contains("\"defendant_account_party_id\""));
         assertTrue(json.contains("\"party_details\""));
         assertTrue(json.contains("\"account_number\""));
     }

@@ -639,6 +639,8 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
         "WITHOUT, false"
     })
     @JiraTestKey("PO-7833")
+    @JiraTestKey(value = "PO-8657", name = "[1] collectionOrderChoice = \"WITH\", expectedValue = \"true\"")
+    @JiraTestKey(value = "PO-8658", name = "[2] collectionOrderChoice = \"WITHOUT\", expectedValue = \"false\"")
     void generateReportData_filterByCollectionOrderChoice_returnResults(
         String collectionOrderChoice,
         boolean expectedValue

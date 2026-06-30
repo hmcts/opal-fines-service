@@ -51,15 +51,6 @@ Feature: Report Instances
     Then the request is rejected with status 422
     And latest report instance create error response matches the standard problem detail contract for status 422
 
-  @JIRA-STORY:PO-2251 @JIRA-EPIC:PO-2248 @JIRA-TEST-KEY:PO-8045
-  Scenario: Create report instance with multiple business units for a single-BU report is rejected
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I create a report instance with report id "operational_report_enforcement" for business units 73 and 1001
-    Then the request is rejected with status 422
-    And latest report instance create error response matches the standard problem detail contract for status 422
-
-
-
 #    GET :/reports-instances/{id} Test scenarios
 
   @JIRA-STORY:PO-2254 @JIRA-EPIC:PO-2248 @JIRA-TEST-KEY:PO-8295

@@ -288,6 +288,10 @@ public final class Release1bFeatureToggleRequestUtil {
                 getWithAuthorization("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID)
             ),
             Arguments.of(
+                "Get Minor Creditor History",
+                getWithAuthorization("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID + "/history")
+            ),
+            Arguments.of(
                 "Patch Minor Creditor Account",
                 patchJsonWithBusinessHeaders("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID, """
                     {

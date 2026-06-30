@@ -50,7 +50,10 @@ class Release1CEnforcementOperationalReportingFeatureToggleIntegrationTest
     @JiraStory("PO-2252")
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
-    @JiraTestKey("PO-7661")
+    @JiraTestKey(value = "PO-8600", name = "\"GET /reports/{id}\"")
+    @JiraTestKey(value = "PO-8601", name = "\"GET /report-instances\"")
+    @JiraTestKey(value = "PO-8602", name = "\"POST /report-instances\"")
+    @JiraTestKey(value = "PO-8603", name = "\"GET /report-instances/{id}\"")
     void shouldReturn404When1cEnforcementOperationalReportingIsDisabled(String description,
         MockHttpServletRequestBuilder request)
         throws Exception {
