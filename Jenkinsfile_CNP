@@ -137,6 +137,23 @@ def publishFunctionalResults(String reportNameSuffix = '') {
   ]
 }
 
+def publishIntegrationResults() {
+  ensureIntegrationReportOutputExists()
+
+  steps.junit allowEmptyResults: true, testResults: '**/test-results/integration/*.xml'
+  failBuildOnUnstableResults()
+  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'integration-output/**/*'
+
+  publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "integration-output/report",
+      reportFiles          : "index.html",
+      reportName           : "Integration Tests Report"
+  ]
+}
+
 def publishSmokeResults(String reportNameSuffix = '') {
   ensureSmokeReportOutputExists()
 
@@ -168,6 +185,12 @@ withPipeline(type, product, component) {
     onPR {
       determineDevEnvironmentDeployment()
     }
+
+    try {
+      steps.sh './gradlew checkTestJiraAnnotations integration'
+    } finally {
+      publishIntegrationResults()
+    }
   }
 
   before('test') {
@@ -175,10 +198,7 @@ withPipeline(type, product, component) {
   }
 
   afterAlways('test') {
-    steps.junit '**/test-results/integration/*.xml'
-    failBuildOnUnstableResults()
-    ensureIntegrationReportOutputExists()
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'integration-output/**/*'
+    publishIntegrationResults()
 
     publishHTML target: [
         allowMissing         : true,
