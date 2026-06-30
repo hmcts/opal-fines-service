@@ -166,6 +166,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
                 .transactionType(DefendantTransactionType.CONSOL.getLabel())
                 .transactionUserId("enforcement.test")
                 .transactionAmount(new BigDecimal("123.45"))
+                .transactionDetails("Account consolidated | 77 | Amount credited to master account")
                 .build(),
             OperationByEnforcementDetailedReportTransactionRowDto.builder()
                 .accountNo("177A")
@@ -174,6 +175,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
                 .transactionType(DefendantTransactionType.PAYMNT.getLabel())
                 .transactionUserId("enforcement.test")
                 .transactionAmount(new BigDecimal("50.00"))
+                .transactionDetails("Payment received | Credit Transfer")
                 .build()
         );
         verifyMetadata(result);
@@ -725,5 +727,4 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
         verifyMetadata(result);
     }
 }
-
 
