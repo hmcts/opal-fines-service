@@ -48,6 +48,8 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @ParameterizedTest
     @NullAndEmptySource
     @JiraTestKey("PO-7796")
+    @JiraTestKey(value = "PO-8651", name = "[1] buIds = null")
+    @JiraTestKey(value = "PO-8652", name = "[2] buIds = []")
     void businessUnitSpec_businessUnitIdsNullOrEmpty_returnConjunction(List<Long> buIds) {
         //Arrange
         long total = defendantAccountRepository.count();
@@ -369,6 +371,8 @@ public class ReportSpecsTest extends AbstractIntegrationTest {
     @ParameterizedTest
     @MethodSource("emptyAccountIdLists")
     @JiraTestKey("PO-7794")
+    @JiraTestKey(value = "PO-8649", name = "[1] accountIds = null")
+    @JiraTestKey(value = "PO-8650", name = "[2] accountIds = []")
     void defendantAccountIdsIn_emptyOrNullList_returnsNoResults(List<Long> accountIds) {
         // Arrange
         Specification<DefendantAccountEntity> spec =

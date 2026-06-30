@@ -38,7 +38,8 @@ class Release1CEnforcementOperationalReportingFeatureToggleIntegrationTest
             // ReportInstancesApiController
             args("GET /report-instances", withAuth(get("/report-instances"))),
             args("POST /report-instances", withAuthAndJson(post("/report-instances")
-                .content("{\"business_unit_ids\":[1],\"report_id\":\"report-id\",\"report_parameters\":{}}")))
+                .content("{\"business_unit_ids\":[1],\"report_id\":\"report-id\",\"report_parameters\":{}}"))),
+            args("GET /report-instances/{id}", withAuth(get("/report-instances/1")))
         );
     }
 
@@ -47,8 +48,12 @@ class Release1CEnforcementOperationalReportingFeatureToggleIntegrationTest
     @DisplayName("should return 404 Not Found")
     @JiraStory("PO-2250")
     @JiraStory("PO-2252")
+    @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
-    @JiraTestKey("PO-7661")
+    @JiraTestKey(value = "PO-8600", name = "\"GET /reports/{id}\"")
+    @JiraTestKey(value = "PO-8601", name = "\"GET /report-instances\"")
+    @JiraTestKey(value = "PO-8602", name = "\"POST /report-instances\"")
+    @JiraTestKey(value = "PO-8603", name = "\"GET /report-instances/{id}\"")
     void shouldReturn404When1cEnforcementOperationalReportingIsDisabled(String description,
         MockHttpServletRequestBuilder request)
         throws Exception {
