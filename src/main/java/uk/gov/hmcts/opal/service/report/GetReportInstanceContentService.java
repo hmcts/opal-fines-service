@@ -5,6 +5,7 @@ import static uk.gov.hmcts.opal.common.util.SecurityUtil.getOpalJwtAuthenticatio
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,9 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
+import uk.gov.hmcts.opal.entity.report.SupportedFileType;
+import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
+import uk.gov.hmcts.opal.exception.UnsupportedContentTypeException;
 import uk.gov.hmcts.opal.repository.ReportInstanceRepository;
 import uk.gov.hmcts.opal.service.blobstore.ReportBlobStore;
 
@@ -40,6 +44,7 @@ public class GetReportInstanceContentService {
             .orElseThrow(() -> new EntityNotFoundException("Report instance not found for id: " + id));
 
         validateReportAccess(instance);
+        validateSupportedContentType(instance, fileType);
 
         String storedReport = loadRequiredStoredReport(id, instance);
 
@@ -77,12 +82,35 @@ public class GetReportInstanceContentService {
             throw new EntityNotFoundException("Report instance content not found for id: " + id);
         }
 
-        String storedReport = blobStore.getReport(location);
+        String storedReport;
+        try {
+            storedReport = blobStore.getReport(location);
+        } catch (MissingStoredReportContentException missingStoredReportContentException) {
+            throw new MissingStoredReportContentException(id, location);
+        }
+
         if (storedReport == null) {
             throw new EntityNotFoundException("Report instance content not found for id: " + id);
         }
 
         return storedReport;
+    }
+
+    private void validateSupportedContentType(ReportInstanceEntity instance, FileType fileType) {
+        List<SupportedFileType> supportedFileTypes = instance.getReport().getSupportedFileTypes();
+        SupportedFileType requestedFileType = SupportedFileType.valueOf(fileType.name());
+
+        if (supportedFileTypes == null || !supportedFileTypes.contains(requestedFileType)) {
+            List<String> supportedTypes = supportedFileTypes == null ? List.of() : supportedFileTypes.stream()
+                .map(Enum::name)
+                .collect(Collectors.toList());
+
+            throw new UnsupportedContentTypeException(
+                "report '" + instance.getReport().getReportId() + "'",
+                fileType.name(),
+                supportedTypes
+            );
+        }
     }
 
     private Map<String, Object> loadReportAsJson(Long id, String storedReport) {

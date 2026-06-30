@@ -5,6 +5,7 @@ import java.util.Map;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
+import uk.gov.hmcts.opal.entity.report.SupportedFileType;
 
 public final class GetReportInstanceContentTestData {
 
@@ -15,6 +16,12 @@ public final class GetReportInstanceContentTestData {
         ReportEntity reportEntity = new ReportEntity();
         reportEntity.setReportId(reportId);
         reportEntity.setPermission(permission);
+        reportEntity.setSupportedFileTypes(List.of(
+            SupportedFileType.CSV,
+            SupportedFileType.PDF,
+            SupportedFileType.JSON,
+            SupportedFileType.XML
+        ));
         return reportEntity;
     }
 
