@@ -62,6 +62,8 @@ public class DraftAccountService {
 
     private final JsonSchemaValidationService jsonSchemaValidationService;
 
+    private final DraftAccountReferenceValidationService referenceValidationService;
+
     private final DraftAccountMapper draftAccountMapper;
 
     private final DraftAccountPublishProxy accountPublishProxy;
@@ -174,6 +176,7 @@ public class DraftAccountService {
             applySubmittedBy(dto, userState, unitUser);
 
             jsonSchemaValidationService.validateOrError(dto.toJson(), ADD_DRAFT_ACCOUNT_REQUEST_JSON);
+            referenceValidationService.validateReferences(dto.getAccount());
             DraftAccountEntity entity = draftAccountTransactional.submitDraftAccount(dto);
             log.debug(":submitDraftAccount: created in DB: {}", entity);
 
@@ -199,7 +202,7 @@ public class DraftAccountService {
             BusinessUnitUser unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());
             applySubmittedBy(dto, userState, unitUser);
             jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
-
+            referenceValidationService.validateReferences(dto.getAccount());
             DraftAccountEntity replacedEntity = draftAccountTransactional
                 .replaceDraftAccount(draftAccountId, dto, draftAccountTransactional, ifMatch);
             verifyUpdated(replacedEntity, dto, draftAccountId, "replaceDraftAccount");
@@ -227,9 +230,7 @@ public class DraftAccountService {
                 applyValidatedBy(dto, userState, unitUser.orElseThrow());
             }
             jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
-
             BigInteger updateVersion = extractBigInteger(ifMatch);
-
             DraftAccountEntity updatedEntity = draftAccountTransactional.updateDraftAccount(draftAccountId, dto,
                 draftAccountTransactional, updateVersion, userState);
             verifyUpdated(updatedEntity, updateVersion, draftAccountId, "updateDraftAccount");
