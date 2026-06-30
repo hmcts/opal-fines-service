@@ -14,8 +14,6 @@ public class DefendantTransactionDetailsService {
     /**
      * The Text generated is based on the type of the defendant transaction, and then it's values.
      *
-     * TODO (where ever this is used) prob have to loop all def transactions to find all impositions and do a single big call, account is there
-     *
      * @param transaction
      * @param account
      * @param imposition
