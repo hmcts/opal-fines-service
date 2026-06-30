@@ -61,7 +61,8 @@ public abstract class DetailedResultMapper
                     .map(transaction ->
                         Long.valueOf(transaction.getAssociatedRecordId()))
                     .toList();
-                Map<String, ImpositionEntity> impositionsForTransactions = impositionRepository.findAllById(impositionIds)
+                Map<String, ImpositionEntity> impositionsForTransactions = impositionRepository
+                    .findAllById(impositionIds)
                     .stream().collect(Collectors.toMap(
                         imposition -> imposition.getImpositionId().toString(),
                         imposition -> imposition));

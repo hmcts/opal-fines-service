@@ -14,10 +14,11 @@ public class DefendantTransactionDetailsService {
     /**
      * The Text generated is based on the type of the defendant transaction, and then it's values.
      *
-     * @param transaction
-     * @param account
-     * @param imposition
-     * @return
+     * @param transaction the defendant transaction entity
+     * @param account the associated defendant account entity
+     * @param imposition the imposition entity, will only be populated (and used) if the transaction associated record
+     *                   type is IMPOSITIONS
+     * @return the transaction's description/details as a String
      */
     public String generateTransactionDetails(DefendantTransactionEntity transaction,
         DefendantAccountEntity account, ImpositionEntity imposition) {
@@ -48,11 +49,10 @@ public class DefendantTransactionDetailsService {
                 + transaction.getStatusDate();
             default -> "";
         };
-        return prefix + " | Cheque number: " +
-            (transaction.getPaymentReference() != null
+        return prefix + " | Cheque number: " + (transaction.getPaymentReference() != null
                 ? transaction.getPaymentReference()
                 : "Not yet written")
-            +  status;
+            + status;
     }
 
     private String payment(DefendantTransactionEntity transaction) {

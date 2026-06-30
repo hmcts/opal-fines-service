@@ -14,7 +14,6 @@ import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationByEnforcementDetailedAccountReportDto;
 import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationByEnforcementDetailedReportAccountRowDto;
 import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationByEnforcementDetailedReportDto;
@@ -93,7 +92,8 @@ class DetailedResultMapperTest {
         OperationByEnforcementDetailedReportTransactionRowDto transactionRow3 =
             mock(OperationByEnforcementDetailedReportTransactionRowDto.class);
 
-        when(transactionRowMapper.map(eq(transaction1), eq(account1), eq(imposition1), any(ReportMetadataContext.class)))
+        when(transactionRowMapper
+            .map(eq(transaction1), eq(account1), eq(imposition1), any(ReportMetadataContext.class)))
             .thenReturn(transactionRow1);
         when(transactionRowMapper.map(eq(transaction2), eq(account1), isNull(), any(ReportMetadataContext.class)))
             .thenReturn(transactionRow2);
