@@ -10,6 +10,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.repository.CourtLiteRepository;
 import uk.gov.hmcts.opal.repository.MajorCreditorRepository;
@@ -44,7 +45,7 @@ public class DraftAccountReferenceValidationService {
         validatePaymentTermsEnforcements(docContext, failures);
 
         if (!failures.isEmpty()) {
-            throw new JsonSchemaValidationException(buildFailureMessage(failures));
+            throw new InvalidReferenceValidationException(buildFailureMessage(failures));
         }
     }
 
