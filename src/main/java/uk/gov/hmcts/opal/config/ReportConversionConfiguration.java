@@ -14,11 +14,11 @@ public class ReportConversionConfiguration {
 
     /**
      * Configuration for CSV report conversion. The Map Key will be the class/type of the report data, and value is the
-     * ReportCSVMapper that
-     * Note: The generics for each map entry should be the same concrete type
+     * ReportCSVMapper that converts the ReportDataInterface implementation into a CSV string.
+     * Note: The generics for each map entry should be the same concrete type.
      *
-     * @param operationByEnforcementReportDetailedCSVMapper
-     * @return Map of
+     * @param operationByEnforcementReportDetailedCSVMapper csv mapper for OperationByEnforcementDetailedReport
+     * @return Map of ReportDataInterface to the CSV mapper that will generate the csv format string
      */
     @Bean
     public Map<Class<? extends ReportDataInterface>, ReportCSVMapper<? extends ReportDataInterface>>
