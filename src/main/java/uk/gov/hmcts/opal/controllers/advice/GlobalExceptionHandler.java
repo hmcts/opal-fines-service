@@ -454,7 +454,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(InvalidReferenceValidationException.class)
-    public ResponseEntity<ProblemDetail> handleInvalidReferenceValidationException(InvalidReferenceValidationException e) {
+    public ResponseEntity<ProblemDetail> handleInvalidReferenceValidationException(
+        InvalidReferenceValidationException e) {
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.BAD_REQUEST,
             "Bad Request",
