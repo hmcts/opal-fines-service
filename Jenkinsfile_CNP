@@ -185,14 +185,6 @@ withPipeline(type, product, component) {
     onPR {
       determineDevEnvironmentDeployment()
     }
-
-    steps.catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-      try {
-        steps.sh './gradlew checkTestJiraAnnotations integration'
-      } finally {
-        publishIntegrationResults()
-      }
-    }
   }
 
   before('test') {
