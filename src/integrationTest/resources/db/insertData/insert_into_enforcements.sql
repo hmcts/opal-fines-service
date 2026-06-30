@@ -821,7 +821,8 @@ VALUES
         NULL,
         'defendant_transactions',
         'X-4',
-        NULL
+        NULL,
+        'CT'
     )
     ON CONFLICT (defendant_transaction_id)
     DO UPDATE SET
