@@ -137,7 +137,7 @@ VALUES (9108, 9105, '2023-11-05 10:00:00', 50.00, 'MADJ', 'Manual');
 INSERT INTO cheques (cheque_id, business_unit_id, cheque_number, issue_date,
                      defendant_transaction_id, amount, status)
 VALUES (9107, 78, 123456, '2023-11-04 10:00:00',
-        9104, 100.00, 'C');
+        9104, 100.00, 'P');
 
 INSERT INTO notes(note_id, note_type, associated_record_type,
                          associated_record_id, note_text, posted_date,
