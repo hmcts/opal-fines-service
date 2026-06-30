@@ -254,7 +254,7 @@ class ResultServiceTest {
         when(resultMapper.toDto(entity)).thenReturn(dto);
 
         // Act
-        uk.gov.hmcts.opal.dto.ResultDto result = resultService.getResult("ABC");
+        uk.gov.hmcts.opal.dto.ResultDto result = resultService.getResult("ABC", false);
 
         // Assert
         assertNotNull(result);
@@ -393,47 +393,6 @@ class ResultServiceTest {
     }
 
     @Test
-    void getResult_whenIncludeWelshOmitted_doesNotAddWelshTextParameter() throws Exception {
-        // Arrange
-        String resultParameters = """
-            [
-              {
-                "name": "sample_name",
-                "type": "text",
-                "hint": "some hint",
-                "language_dependent": true
-              },
-              {
-                "name": "sample_name_2",
-                "type": "text",
-                "hint": "some hint 2",
-                "language_dependent": false
-              }
-            ]
-            """;
-        ResultEntity entity = ResultEntity.builder()
-            .resultId("ABC")
-            .resultParameters(resultParameters)
-            .build();
-        uk.gov.hmcts.opal.dto.ResultDto dto = uk.gov.hmcts.opal.dto.ResultDto.builder()
-            .resultId("ABC")
-            .resultParameters(resultParameters)
-            .build();
-
-        when(resultRepository.findById("ABC")).thenReturn(Optional.of(entity));
-        when(resultMapper.toDto(entity)).thenReturn(dto);
-
-        // Act
-        uk.gov.hmcts.opal.dto.ResultDto result = resultService.getResult("ABC");
-
-        // Assert
-        JsonNode parameters = ToJsonString.toJsonNode(result.getResultParameters());
-        assertEquals(2, parameters.size());
-        assertEquals("sample_name", parameters.get(0).get("name").asText());
-        assertEquals("sample_name_2", parameters.get(1).get("name").asText());
-    }
-
-    @Test
     void testGetResult_ThrowsWhenNotFound() {
         // Arrange
         when(resultRepository.findById("MISSING")).thenReturn(Optional.empty());
@@ -441,7 +400,7 @@ class ResultServiceTest {
         // Act + Assert
         org.junit.jupiter.api.Assertions.assertThrows(
             jakarta.persistence.EntityNotFoundException.class,
-            () -> resultService.getResult("MISSING")
+            () -> resultService.getResult("MISSING", false)
         );
     }
 

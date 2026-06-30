@@ -48,11 +48,7 @@ public class ResultService {
         return resultMapper.toRefData(getResultById(resultId));
     }
 
-    @Cacheable(value = "resultsCache", key = "#root.method.name + '_' + #resultId")
-    public ResultDto getResult(String resultId) {
-        return getResult(resultId, false);
-    }
-
+    @Cacheable(value = "resultsCache", key = "#root.method.name + '_' + #resultId + '_' + #includeWelsh")
     public ResultDto getResult(String resultId, boolean includeWelsh) {
         ResultEntity entity = resultRepository.findById(resultId)
             .orElseThrow(() -> new EntityNotFoundException("'Result' not found with id: " + resultId));
