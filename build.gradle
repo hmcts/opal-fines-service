@@ -130,6 +130,45 @@ def pullLatestLegacyStubImageIfLocal = {
   }
 }
 
+def logPublishedHtmlReport = { String label, String reportDirectory ->
+  def indexFile = file("${reportDirectory}/index.html")
+  if (indexFile.exists()) {
+    logger.lifecycle("${label} available at - file://${indexFile.absolutePath}")
+  } else {
+    logger.lifecycle("${label} was not generated at ${reportDirectory}")
+  }
+}
+
+def syncFunctionalArtifacts = { String reportLabel, String rawReportDirectory, String outputDirectory, String cucumberJsonFileName ->
+  delete(rawReportDirectory)
+  delete("${outputDirectory}/report")
+
+  if (file("${rootDir}/target/site/serenity").exists()) {
+    copy {
+      from("${rootDir}/target/site/serenity")
+      into(rawReportDirectory)
+    }
+    copy {
+      from("${rootDir}/target/site/serenity")
+      into("${outputDirectory}/report")
+    }
+  }
+
+  if (cucumberJsonFileName != null) {
+    delete("${outputDirectory}/zephyr/${cucumberJsonFileName}")
+
+    def cucumberJsonFile = file("${rootDir}/target/zephyr-reports/${cucumberJsonFileName}")
+    if (cucumberJsonFile.exists()) {
+      copy {
+        from(cucumberJsonFile)
+        into("${outputDirectory}/zephyr")
+      }
+    }
+  }
+
+  logPublishedHtmlReport(reportLabel, "${outputDirectory}/report")
+}
+
 group = 'uk.gov.hmcts'
 version = '0.0.1'
 
@@ -350,13 +389,17 @@ tasks.register('copyFunctionalReport', Copy) {
   dependsOn 'aggregate'
   from("${rootDir}/target/site/serenity")
   into("${rootDir}/functional-test-report")
-  logger.quiet("Functional Test Report available at - file://${rootDir}/functional-test-report/index.html")
+  doLast {
+    logPublishedHtmlReport("Functional Test Report", "${rootDir}/functional-test-report")
+  }
 }
 tasks.register('copyDemoFunctionalReport', Copy) {
   dependsOn 'aggregate'
   from("${rootDir}/target/site/serenity")
   into("${rootDir}/functional-test-report-demo")
-  logger.quiet("Demo Functional Test Report available at - file://${rootDir}/functional-test-report-demo/index.html")
+  doLast {
+    logPublishedHtmlReport("Demo Functional Test Report", "${rootDir}/functional-test-report-demo")
+  }
 }
 tasks.register('packageFunctionalOutput', Copy) {
   dependsOn 'copyFunctionalReport', 'copyOpalCucumberJson'
@@ -377,6 +420,26 @@ tasks.register('packageTaggedDemoFunctionalOutput', Copy) {
   into("${rootDir}/functional-output-demo")
   from("${rootDir}/functional-test-report-demo") {
     into("report")
+  }
+}
+tasks.register('syncFunctionalArtifactsFromExistingResults') {
+  doLast {
+    syncFunctionalArtifacts(
+      'Functional Test Report',
+      "${rootDir}/functional-test-report",
+      "${rootDir}/functional-output",
+      'cucumber-opal.json'
+    )
+  }
+}
+tasks.register('syncTaggedFunctionalArtifactsFromExistingResults') {
+  doLast {
+    syncFunctionalArtifacts(
+      'Demo Functional Test Report',
+      "${rootDir}/functional-test-report-demo",
+      "${rootDir}/functional-output-demo",
+      'cucumber-opal-tags.json'
+    )
   }
 }
 tasks.register('copyIntegrationJunit5Report', Copy) {
@@ -451,7 +514,9 @@ tasks.register('copySmokeReport', Copy) {
   dependsOn 'aggregate'
   from("${rootDir}/target/site/serenity")
   into("${rootDir}/smoke-test-report")
-  logger.quiet("Smoke Test Report available at - file://${rootDir}/smoke-test-report/index.html")
+  doLast {
+    logPublishedHtmlReport("Smoke Test Report", "${rootDir}/smoke-test-report")
+  }
 }
 tasks.register('copySmokeCucumberJson', Copy) {
   from("target/cucumber.json")

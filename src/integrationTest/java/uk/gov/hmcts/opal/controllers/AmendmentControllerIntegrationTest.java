@@ -111,6 +111,7 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-3851")
     @JiraEpic("PO-3372")
+    @JiraTestKey("PO-8617")
     void testPostAmendmentsSearch_byAssociatedRecordType() throws Exception {
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
             .contentType(MediaType.APPLICATION_JSON)
