@@ -46,7 +46,6 @@ class Release1bFeatureToggleDisabledIntegrationTest extends AbstractIntegrationT
     @JiraTestKey(value = "PO-8534", name = "\"Get Defendant Account Fixed Penalty\"")
     @JiraTestKey(value = "PO-8535", name = "\"Get Central Fund\"")
     @JiraTestKey(value = "PO-8536", name = "\"Get Major Creditor Account Header Summary\"")
-    @JiraTestKey(value = "PO-8537", name = "\"Get Major Creditor Account At A Glance\"")
     @JiraTestKey(value = "PO-8538", name = "\"Search Minor Creditor Accounts\"")
     @JiraTestKey(value = "PO-8539", name = "\"Get Minor Creditor Account Header Summary\"")
     @JiraTestKey(value = "PO-8540", name = "\"Get Minor Creditor Account At A Glance\"")
