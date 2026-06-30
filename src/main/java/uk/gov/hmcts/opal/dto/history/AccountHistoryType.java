@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.opal.history.core;
+package uk.gov.hmcts.opal.dto.history;
 
 public enum AccountHistoryType {
     DEFENDANT,
