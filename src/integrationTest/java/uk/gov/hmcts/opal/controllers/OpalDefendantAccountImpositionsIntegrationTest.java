@@ -24,6 +24,7 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "opal"})
 @DisplayName("OPAL Defendant Account Impositions Integration Tests")
@@ -47,6 +48,7 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
     @DisplayName("OPAL: Get Defendant Account Impositions returns major creditor imposition with schema-valid body")
     @JiraStory("PO-2077")
     @JiraEpic("PO-979")
+    @JiraTestKey("PO-7638")
     void getImpositions_returnsMajorCreditorImposition() throws Exception {
         MvcResult result = performGetImpositions(551002L)
             .andExpect(status().isOk())
@@ -85,6 +87,7 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
     @DisplayName("OPAL: Get Defendant Account Impositions returns minor creditor imposition")
     @JiraStory("PO-2077")
     @JiraEpic("PO-979")
+    @JiraTestKey("PO-7635")
     void getImpositions_returnsMinorCreditorImposition() throws Exception {
         MvcResult result = performGetImpositions(551008L)
             .andExpect(status().isOk())
@@ -114,6 +117,7 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
     @DisplayName("OPAL: Get Defendant Account Impositions returns empty list for account without impositions")
     @JiraStory("PO-2077")
     @JiraEpic("PO-979")
+    @JiraTestKey("PO-7636")
     void getImpositions_whenNoImpositions_returnsEmptyList() throws Exception {
         MvcResult result = performGetImpositions(551010L)
             .andExpect(status().isOk())
@@ -132,6 +136,7 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
     @DisplayName("OPAL: Get Defendant Account Impositions returns 404 for missing account")
     @JiraStory("PO-2077")
     @JiraEpic("PO-979")
+    @JiraTestKey("PO-7637")
     void getImpositions_whenAccountDoesNotExist_returnsNotFound() throws Exception {
         performGetImpositions(559999L)
             .andExpect(status().isNotFound())
@@ -144,6 +149,7 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
     @DisplayName("OPAL: Get Defendant Account Impositions returns 403 when user lacks permission")
     @JiraStory("PO-2077")
     @JiraEpic("PO-979")
+    @JiraTestKey("PO-7634")
     void getImpositions_whenUserLacksPermission_returnsForbidden() throws Exception {
         userStateStub.setupWithNoPermissions();
         performGetImpositions(551002L)

@@ -19,6 +19,7 @@ public final class Release1bFeatureToggleRequestUtil {
     private static final String IF_MATCH = "\"0\"";
     private static final String DEFENDANT_ACCOUNT_ID = "999999";
     private static final String DEFENDANT_ACCOUNT_PARTY_ID = "999999";
+    private static final String MAJOR_CREDITOR_ACCOUNT_ID = "10770000000041";
     private static final String MINOR_CREDITOR_ACCOUNT_ID = "999999";
 
     private Release1bFeatureToggleRequestUtil() {
@@ -37,7 +38,8 @@ public final class Release1bFeatureToggleRequestUtil {
                         "account_number": "12345678",
                         "prosecutor_case_reference": null
                       },
-                      "defendant": null
+                      "defendant": null,
+                      "consolidation_search": false
                     }
                     """)
             ),
@@ -55,6 +57,10 @@ public final class Release1bFeatureToggleRequestUtil {
             Arguments.of(
                 "Get Defendant Account At A Glance",
                 getWithAuthorization("/defendant-accounts/" + DEFENDANT_ACCOUNT_ID + "/at-a-glance")
+            ),
+            Arguments.of(
+                "Get Major Creditor Account At A Glance",
+                getWithAuthorization("/major-creditor-accounts/" + MAJOR_CREDITOR_ACCOUNT_ID + "/at-a-glance")
             ),
             Arguments.of(
                 "Update Defendant Account",
@@ -248,6 +254,18 @@ public final class Release1bFeatureToggleRequestUtil {
                 getWithAuthorization("/defendant-accounts/" + DEFENDANT_ACCOUNT_ID + "/fixed-penalty")
             ),
             Arguments.of(
+                "Get Central Fund",
+                getWithAuthorization("/central-funds/" + BUSINESS_UNIT_ID)
+            ),
+            Arguments.of(
+                "Get Major Creditor Account Header Summary",
+                getWithAuthorization("/major-creditor-accounts/" + MAJOR_CREDITOR_ACCOUNT_ID + "/header-summary")
+            ),
+            Arguments.of(
+                "Get Major Creditor Account At A Glance",
+                getWithAuthorization("/major-creditor-accounts/" + MAJOR_CREDITOR_ACCOUNT_ID + "/at-a-glance")
+            ),
+            Arguments.of(
                 "Search Minor Creditor Accounts",
                 postJson("/minor-creditor-accounts/search", """
                     {
@@ -268,6 +286,10 @@ public final class Release1bFeatureToggleRequestUtil {
             Arguments.of(
                 "Get Minor Creditor Account",
                 getWithAuthorization("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID)
+            ),
+            Arguments.of(
+                "Get Minor Creditor History",
+                getWithAuthorization("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID + "/history")
             ),
             Arguments.of(
                 "Patch Minor Creditor Account",

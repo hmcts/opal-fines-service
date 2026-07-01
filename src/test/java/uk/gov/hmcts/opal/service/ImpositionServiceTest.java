@@ -110,19 +110,18 @@ class ImpositionServiceTest {
     @Test
     void getImpositions_whenUserHasPermission_returnsImpositionsServiceResult() {
         Long defendantAccountId = 77L;
-        String authHeader = "Bearer abc";
         GetDefendantAccountImpositionsResponse impositionsResponse = GetDefendantAccountImpositionsResponse.builder()
             .version(BigInteger.valueOf(9))
             .build();
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(impositionServiceProxy.getImpositions(defendantAccountId)).thenReturn(impositionsResponse);
 
         GetDefendantAccountImpositionsResponse result =
-            impositionService.getImpositions(defendantAccountId, authHeader);
+            impositionService.getImpositions(defendantAccountId);
 
         assertSame(impositionsResponse, result);
-        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verify(impositionServiceProxy).getImpositions(defendantAccountId);
         verifyNoMoreInteractions(userStateService, userState, impositionServiceProxy);
@@ -131,16 +130,15 @@ class ImpositionServiceTest {
     @Test
     void getImpositions_whenUserLacksPermission_throwsPermissionNotAllowed() {
         Long defendantAccountId = 77L;
-        String authHeader = "Bearer abc";
-        when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
 
         assertThrows(
             PermissionNotAllowedException.class,
-            () -> impositionService.getImpositions(defendantAccountId, authHeader)
+            () -> impositionService.getImpositions(defendantAccountId)
         );
 
-        verify(userStateService).checkForAuthorisedUser(authHeader);
+        verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verifyNoInteractions(impositionServiceProxy);
         verifyNoMoreInteractions(userStateService, userState);

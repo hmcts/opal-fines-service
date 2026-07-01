@@ -60,7 +60,7 @@ Feature: Results Reference Data
       | imposition_creditor         |                                         |
       | imposition_allocation_order |                                         |
 
-  @JIRA-STORY:PO-6425 @JIRA-EPIC:PO-1674
+  @JIRA-STORY:PO-6425 @JIRA-EPIC:PO-1674 @JIRA-TEST-KEY:PO-7869
   Scenario: Result by ID includes employment data requirement flag
     When I request result with identifier "AEO"
     Then the result response contains
@@ -75,4 +75,4 @@ Feature: Results Reference Data
   @JIRA-STORY:PO-3765 @Ignore @release-1b
   Scenario: Result filtering is rejected when release-1b is disabled
     When I request results using filter "active" with value "true"
-    Then the response status code is 405
+    Then the response status code is 404

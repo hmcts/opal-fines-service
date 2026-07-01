@@ -14,10 +14,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AppMode;
-import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
+import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 
 @RestController
 @RequestMapping("/testing-support")
@@ -25,13 +28,16 @@ import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 @Slf4j(topic = "opal.TestingSupportController")
 @Tag(name = "Testing Support Controller")
 @ConditionalOnProperty(prefix = "opal.testing-support-endpoints", name = "enabled", havingValue = "true")
+@SuppressWarnings("java:S1874")
 public class TestingSupportController {
+    private static final long CURRENT_USER_ID = 0L;
 
     private final DynamicConfigService dynamicConfigService;
     private final FeatureToggleApi featureToggleApi;
     private final AccessTokenService accessTokenService;
     private final DefendantAccountDeletionService defendantAccountDeletionService;
     private final UserStateClientService userStateClientService;
+    private final UserStateMapper userStateMapper;
 
     @GetMapping("/app-mode")
     @Operation(summary = "Retrieves the value for app mode.")
@@ -52,6 +58,19 @@ public class TestingSupportController {
     @GetMapping("/token/parse")
     public ResponseEntity<String> parseToken(@RequestHeader("Authorization") String authorization) {
         return ResponseEntity.ok(this.accessTokenService.extractPreferredUsername(authorization));
+    }
+
+    @GetMapping("/user-client/{userId}")
+    @Operation(summary = "Retrieves user state via User Service client")
+    public ResponseEntity<UserState> getUserState(@PathVariable Long userId) {
+        if (!Long.valueOf(CURRENT_USER_ID).equals(userId)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return userStateClientService.getUserStateByAuthenticatedUser()
+            .map(userStateV2 -> userStateMapper.toUserState(userStateV2, Domain.FINES))
+            .map(ResponseEntity::ok)
+            .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/defendant-accounts/{defendantAccountId}")

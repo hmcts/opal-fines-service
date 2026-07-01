@@ -21,15 +21,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class MinorCreditorControllerTest {
-
-    static final String BEARER_TOKEN = "Bearer a_token_here";
 
     @Mock
     MinorCreditorService minorCreditorService;
@@ -52,16 +49,16 @@ class MinorCreditorControllerTest {
             .creditor(new Creditor(/* set Creditor fields as needed */))
             .build();
 
-        when(minorCreditorService.searchMinorCreditors(any(), any())).thenReturn(mockResponse);
+        when(minorCreditorService.searchMinorCreditors(any())).thenReturn(mockResponse);
 
         // Act
         ResponseEntity<PostMinorCreditorAccountsSearchResponse> responseEntity =
-            minorCreditorController.postMinorCreditorsSearch(search, BEARER_TOKEN);
+            minorCreditorController.postMinorCreditorsSearch(search);
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(mockResponse, responseEntity.getBody());
-        verify(minorCreditorService, times(1)).searchMinorCreditors(any(), any());
+        verify(minorCreditorService, times(1)).searchMinorCreditors(any());
     }
 
     @Test
@@ -69,11 +66,11 @@ class MinorCreditorControllerTest {
         // Arrange
         GetMinorCreditorAccountAtAGlanceResponse mockResponse = new GetMinorCreditorAccountAtAGlanceResponse();
 
-        when(minorCreditorService.getMinorCreditorAtAGlance(101L, BEARER_TOKEN)).thenReturn(mockResponse);
+        when(minorCreditorService.getMinorCreditorAtAGlance(101L)).thenReturn(mockResponse);
 
         // Act
         ResponseEntity<GetMinorCreditorAccountAtAGlanceResponse> responseEntity =
-            minorCreditorController.getMinorCreditorsAtAGlance(101L,  BEARER_TOKEN);
+            minorCreditorController.getMinorCreditorsAtAGlance(101L);
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -83,11 +80,11 @@ class MinorCreditorControllerTest {
     @Test
     void testDeleteMinorCreditor_Success() {
         // Arrange
-        when(opalCreditorAccountService.deleteCreditorAccount(anyLong(), anyBoolean(), anyString())).thenReturn("OK");
+        when(opalCreditorAccountService.deleteCreditorAccount(anyLong(), anyBoolean())).thenReturn("OK");
 
         // Act
         ResponseEntity<String> responseEntity = minorCreditorController
-            .deleteMinorCreditorById(444L, "auth", "if-match", Optional.of(false));
+            .deleteMinorCreditorById(444L, "if-match", Optional.of(false));
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());

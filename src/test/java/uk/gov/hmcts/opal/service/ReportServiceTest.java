@@ -48,7 +48,7 @@ class ReportServiceTest {
 
     private UserState stubUserAndRepo(String reportId, ReportEntity repoResult) {
         UserState userState = mock(UserState.class);
-        when(userStateService.checkForAuthorisedUser()).thenReturn(userState);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(reportRepository.findById(reportId)).thenReturn(Optional.ofNullable(repoResult));
         return userState;
     }

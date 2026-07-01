@@ -8,6 +8,7 @@ public class Constants {
     public static final String OFFENCES_REF_DATA_URI = "/offences";
     public static final String OFFENCES_SEARCH_URI = "/offences/search";
     public static final String REPORTS_URI = "/reports";
+    public static final String REPORT_INSTANCES_URI = "/report-instances";
 
     public static final String ENFORCERS_REF_DATA_URI = "/enforcers?q=Aldridge";
     public static final String MAJOR_CREDITORS_URI = "/major-creditors";

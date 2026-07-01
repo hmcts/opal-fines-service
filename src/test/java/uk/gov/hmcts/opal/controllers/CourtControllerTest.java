@@ -28,8 +28,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CourtControllerTest {
 
-    static final String BEARER_TOKEN = "Bearer a_token_here";
-
     @Mock
     private CourtService courtService;
 
@@ -47,7 +45,7 @@ class CourtControllerTest {
         when(courtService.getCourtById(any(Long.class))).thenReturn(entity);
 
         // Act
-        ResponseEntity<CourtEntity> response = courtController.getCourtById(1L, BEARER_TOKEN);
+        ResponseEntity<CourtEntity> response = courtController.getCourtById(1L);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -66,7 +64,7 @@ class CourtControllerTest {
         // Act
         CourtSearchDto searchDto = CourtSearchDto.builder().build();
         ResponseEntity<SearchDataResponse<CourtEntity>> response =
-            courtController.postCourtsSearch(searchDto, BEARER_TOKEN);
+            courtController.postCourtsSearch(searchDto);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());

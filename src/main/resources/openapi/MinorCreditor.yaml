@@ -95,12 +95,6 @@ paths:
           schema:
             type: string
         - in: header
-          name: Authorization
-          description: Bearer token
-          schema:
-            type: string
-          required: false
-        - in: header
           name: Business-Unit-Id
           description: Business unit identifier
           schema:
@@ -208,12 +202,6 @@ paths:
                 - note
             style: form
             explode: false
-        - in: header
-          name: Authorization
-          description: Bearer token
-          schema:
-            type: string
-          required: false
       responses:
         '200':
           description: OK
@@ -224,6 +212,9 @@ paths:
             application/json:
               schema:
                 type: object
+                additionalProperties: false
+                required:
+                  - historyItems
                 properties:
                   historyItems:
                     type: array
@@ -247,6 +238,18 @@ paths:
             application/json+problem:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: Not Found
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        408:
+          description: Request timeout
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
         500:
           description: Internal server error
           content:
@@ -260,6 +263,11 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     minorCreditorAccountResponse:
       additionalProperties: false

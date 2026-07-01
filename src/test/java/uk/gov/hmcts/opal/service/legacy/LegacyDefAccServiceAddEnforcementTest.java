@@ -47,7 +47,7 @@ class LegacyDefAccServiceAddEnforcementTest extends AbstractLegacyDefAccServiceT
         );
 
         AddEnforcementResponse out =
-            legacyDefendantAccountService.addEnforcement(123L, "BU-1", "user-1", "\"1\"", "auth", null);
+            legacyDefendantAccountService.addEnforcement(123L, "BU-1", "user-1", "\"1\"", null);
 
         assertNotNull(out);
         assertEquals("ENF-1", out.getEnforcementId());
@@ -74,7 +74,7 @@ class LegacyDefAccServiceAddEnforcementTest extends AbstractLegacyDefAccServiceT
         );
 
         AddEnforcementResponse out =
-            legacyDefendantAccountService.addEnforcement(500L, "BU-500", "user-500", "\"5\"", "auth", null);
+            legacyDefendantAccountService.addEnforcement(500L, "BU-500", "user-500", "\"5\"", null);
 
         assertNotNull(out);
         assertEquals("ENF-500", out.getEnforcementId());
@@ -118,7 +118,7 @@ class LegacyDefAccServiceAddEnforcementTest extends AbstractLegacyDefAccServiceT
         );
 
         AddEnforcementResponse out =
-            legacyDefendantAccountService.addEnforcement(999L, "BU-TEST", "user-test", "\"11\"", "auth", request);
+            legacyDefendantAccountService.addEnforcement(999L, "BU-TEST", "user-test", "\"11\"", request);
 
         assertNotNull(out);
         assertEquals("ENF-CAP", out.getEnforcementId());
@@ -167,7 +167,7 @@ class LegacyDefAccServiceAddEnforcementTest extends AbstractLegacyDefAccServiceT
         );
 
         AddEnforcementResponse out =
-            legacyDefendantAccountService.addEnforcement(500L, "BU-500", "user-500", "\"5\"", "auth", null);
+            legacyDefendantAccountService.addEnforcement(500L, "BU-500", "user-500", "\"5\"", null);
 
         assertNotNull(out);
         assertEquals("ENF-500", out.getEnforcementId());
@@ -188,7 +188,7 @@ class LegacyDefAccServiceAddEnforcementTest extends AbstractLegacyDefAccServiceT
         );
 
         assertThrows(NullPointerException.class, () ->
-            legacyDefendantAccountService.addEnforcement(1L, "BU", "U", "\"1\"", "auth", null)
+            legacyDefendantAccountService.addEnforcement(1L, "BU", "U", "\"1\"", null)
         );
     }
 }

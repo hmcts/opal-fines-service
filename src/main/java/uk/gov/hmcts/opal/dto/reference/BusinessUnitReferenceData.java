@@ -2,18 +2,16 @@ package uk.gov.hmcts.opal.dto.reference;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.entity.BusinessUnitRef;
-
-import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class BusinessUnitReferenceData implements BusinessUnitRef {
+public class BusinessUnitReferenceData {
 
     @JsonProperty("business_unit_id")
     Short businessUnitId;
@@ -38,11 +36,6 @@ public class BusinessUnitReferenceData implements BusinessUnitRef {
 
     @JsonProperty("configuration_items")
     List<ConfigItemRefData> configurationItems;
-
-    @Override
-    public Short getBusinessUnitId() {
-        return businessUnitId;
-    }
 
     @AllArgsConstructor
     @NoArgsConstructor

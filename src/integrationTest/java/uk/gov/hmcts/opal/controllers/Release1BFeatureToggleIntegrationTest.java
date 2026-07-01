@@ -14,14 +14,15 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 
 /**
- * Verifies that all Release 1B endpoints guarded by @FeatureToggle return 405 when the release-1b flag is disabled.
+ * Verifies that all Release 1B endpoints guarded by @FeatureToggle return 404 when the release-1b flag is disabled.
  */
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.Release1BFeatureToggleIntegrationTest")
-@DisplayName("Release 1B - returns 405 when release-1b flag is disabled")
+@DisplayName("Release 1B - returns 404 when release-1b flag is disabled")
 @TestPropertySource(properties = {
     "launchdarkly.enabled=false",
     "launchdarkly.default-flag-values.release-1b=false"
@@ -40,7 +41,8 @@ class Release1BFeatureToggleIntegrationTest extends AbstractFeatureToggleIntegra
     @DisplayName("should return 404 Not Found")
     @JiraStory("PO-2077")
     @JiraEpic("PO-979")
-    void shouldReturn405WhenRelease1bIsDisabled(String description, MockHttpServletRequestBuilder request)
+    @JiraTestKey(value = "PO-8545", name = "\"GET /defendant-accounts/{id}/impositions\"")
+    void shouldReturn404WhenRelease1bIsDisabled(String description, MockHttpServletRequestBuilder request)
         throws Exception {
         log.debug("Testing feature-disabled 404 for: {}", description);
         mockMvc.perform(request)

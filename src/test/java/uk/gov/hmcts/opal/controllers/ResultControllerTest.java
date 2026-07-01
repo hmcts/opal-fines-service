@@ -68,6 +68,11 @@ class ResultControllerTest {
             .resultTitleCy("Welsh Title")
             .resultType("TYPE1")
             .active(true)
+            .allowAdditionalAction(true)
+            .allowPaymentTerms(false)
+            .generatesWarrant(true)
+            .requiresLja(false)
+            .manualEnforcement(true)
             .build();
 
         when(resultService.getResult("ABC")).thenReturn(dto);
@@ -82,6 +87,11 @@ class ResultControllerTest {
         assertEquals("Welsh Title", response.getBody().getResultTitleCy());
         assertEquals("TYPE1", response.getBody().getResultType());
         assertEquals(true, response.getBody().isActive());
+        assertEquals(true, response.getBody().getAllowAdditionalAction());
+        assertEquals(false, response.getBody().getAllowPaymentTerms());
+        assertEquals(true, response.getBody().isGeneratesWarrant());
+        assertEquals(false, response.getBody().getRequiresLja());
+        assertEquals(true, response.getBody().isManualEnforcement());
     }
 
     @Test

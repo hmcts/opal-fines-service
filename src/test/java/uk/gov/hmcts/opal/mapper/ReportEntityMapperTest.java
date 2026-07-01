@@ -10,7 +10,6 @@ import static uk.gov.hmcts.opal.entity.report.SupportedFileType.XML;
 import static uk.gov.hmcts.opal.testdata.ReportTestData.createDefaultReportEntity;
 import static uk.gov.hmcts.opal.testdata.ReportTestData.createFullReportEntity;
 import static uk.gov.hmcts.opal.testdata.ReportTestData.createMinimalReportEntity;
-import static uk.gov.hmcts.opal.testdata.ReportTestData.createReportEntityWithComplexParameters;
 import static uk.gov.hmcts.opal.testdata.ReportTestData.defaultReportEntityBuilder;
 
 import java.time.Duration;
@@ -53,12 +52,13 @@ class ReportEntityMapperTest {
                 () -> assertEquals(entity.getReportId(), actual.getReportId()),
                 () -> assertEquals(entity.getReportTitle(), actual.getReportTitle()),
                 () -> assertEquals(entity.getReportGroup(), actual.getReportGroup()),
-                () -> assertEquals(3, actual.getSupportedFileTypes().size()),
+                () -> assertEquals(4, actual.getSupportedFileTypes().size()),
                 () -> assertTrue(actual.getSupportedFileTypes().contains(ReportReports.SupportedFileTypesEnum.CSV)),
                 () -> assertTrue(actual.getSupportedFileTypes().contains(ReportReports.SupportedFileTypesEnum.PDF)),
                 () -> assertTrue(actual.getSupportedFileTypes().contains(ReportReports.SupportedFileTypesEnum.XML)),
-                () -> assertEquals("2026-01-01", params.get("fromDate")),
-                () -> assertEquals("2026-04-24", params.get("toDate")),
+                () -> assertTrue(actual.getSupportedFileTypes().contains(ReportReports.SupportedFileTypesEnum.JSON)),
+                () -> assertEquals("2026-01-01", ((Map<?, ?>)params.get("date-param")).get("min")),
+                () -> assertEquals("2026-04-24", ((Map<?, ?>)params.get("date-param")).get("max")),
                 () -> assertEquals(entity.isAuditedReport(), actual.getAuditedReport()),
                 () -> assertEquals(entity.isSupportsMultiBu(), actual.getSupportsMultipleBusinessUnits()),
                 () -> assertEquals(entity.isBespokeJourney(), actual.getIsBespokeJourney()),
@@ -95,31 +95,13 @@ class ReportEntityMapperTest {
         @Test
         @DisplayName("Should return null when report parameters is empty JSON object")
         void toDto_withEmptyReportParameters_shouldReturnNull() {
-            ReportEntity entity = defaultReportEntityBuilder().reportParameters("{}").build();
+            ReportEntity entity = defaultReportEntityBuilder().reportParameters(List.of()).build();
 
             ReportReports actual = reportEntityMapper.toDto(entity);
 
             assertTrue(actual.getReportParameters() == null || actual.getReportParameters().isEmpty());
         }
 
-        @Test
-        @DisplayName("Should parse complex JSON parameters correctly")
-        void toDto_withComplexReportParameters_shouldParseCorrectly() {
-            ReportEntity entity = createReportEntityWithComplexParameters();
-
-            Map<?, ?> params = reportEntityMapper.toDto(entity).getReportParameters();
-
-            assertAll(
-                () -> {
-                    assert params != null;
-                    assertTrue(params.containsKey("filters"));
-                },
-                () -> {
-                    assert params != null;
-                    assertTrue(params.containsKey("options"));
-                }
-            );
-        }
     }
 
     @Nested
@@ -186,4 +168,3 @@ class ReportEntityMapperTest {
 
     }
 }
-

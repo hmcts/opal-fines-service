@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -46,6 +47,7 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
     @JiraEpic("PO-1875")
     @JiraStory("PO-1941")
     @DisplayName("LEGACY: Remove Defendant Account Party - Happy Path [@PO-1941]")
+    @JiraTestKey("PO-7585")
     void removeDefendantAccountParty_Happy() throws Exception {
         ResultActions actions = mockMvc.perform(
             delete(URL_BASE + "/77/defendant-account-parties/77")
@@ -71,6 +73,7 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
     @JiraEpic("PO-1875")
     @JiraStory("PO-1941")
     @DisplayName("LEGACY: Remove Defendant Account Party - 500 Error [@PO-1941]")
+    @JiraTestKey("PO-7582")
     void removeDefendantAccountParty_500Error() throws Exception {
         ResultActions actions = mockMvc.perform(
             delete(URL_BASE + "/500/defendant-account-parties/500")
@@ -91,6 +94,7 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
     @JiraEpic("PO-1875")
     @JiraStory("PO-1941")
     @DisplayName("LEGACY: Remove Defendant Account Party - Organisation Only [@PO-1941]")
+    @JiraTestKey("PO-7583")
     void removeDefendantAccountParty_Organisation() throws Exception {
         ResultActions actions = mockMvc.perform(
             delete(URL_BASE + "/555/defendant-account-parties/555")
@@ -116,6 +120,7 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
     @JiraEpic("PO-1875")
     @JiraStory("PO-1941")
     @DisplayName("LEGACY: Remove Defendant Account Party - Individual Only [@PO-1941]")
+    @JiraTestKey("PO-7584")
     void testRemoveDefendantAccountParty_Individual() throws Exception {
         ResultActions actions = mockMvc.perform(
             delete(URL_BASE + "/666/defendant-account-parties/666")

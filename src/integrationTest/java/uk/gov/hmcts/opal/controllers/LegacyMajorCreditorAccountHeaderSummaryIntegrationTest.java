@@ -30,6 +30,7 @@ import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyRe
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
 @TestPropertySource(properties = {
@@ -48,7 +49,8 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
     @Test
     @DisplayName("PO-2136 INT.01 to INT.04 - valid request returns mapped body and ETag")
     @JiraStory("PO-2136")
-    @JiraEpic("FAE: View Major Creditor Account Summary")
+    @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7595")
     void getHeaderSummary_successReturnsMappedResponseAndEtag() throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
@@ -91,7 +93,8 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
     @Test
     @DisplayName("PO-2136 INT.05 - repeated request returns consistent body and ETag")
     @JiraStory("PO-2136")
-    @JiraEpic("FAE: View Major Creditor Account Summary")
+    @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7596")
     void getHeaderSummary_repeatedRequestReturnsConsistentResponse() throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
@@ -114,7 +117,8 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
     @Test
     @DisplayName("PO-2136 INT.07 - valid token without permission returns 403")
     @JiraStory("PO-2136")
-    @JiraEpic("FAE: View Major Creditor Account Summary")
+    @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7592")
     void getHeaderSummary_withoutPermissionReturns403() throws Exception {
         userStateStub.setupWithNoPermissions();
 
@@ -130,7 +134,8 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
     @Test
     @DisplayName("PO-2136 INT.07 - permission in non-matching business unit returns 403")
     @JiraStory("PO-2136")
-    @JiraEpic("FAE: View Major Creditor Account Summary")
+    @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7597")
     void getHeaderSummary_permissionInDifferentBusinessUnitReturns403() throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
@@ -145,7 +150,8 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
     @Test
     @DisplayName("PO-2136 INT.08 - missing token returns 403 and does not invoke gateway")
     @JiraStory("PO-2136")
-    @JiraEpic("FAE: View Major Creditor Account Summary")
+    @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7594")
     void getHeaderSummary_missingTokenReturns401() throws Exception {
         userStateStub.setupWithNoPermissions();
 
@@ -162,7 +168,8 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
     @Test
     @DisplayName("PO-2136 INT.09 - missing major creditor account returns 404")
     @JiraStory("PO-2136")
-    @JiraEpic("FAE: View Major Creditor Account Summary")
+    @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7593")
     void getHeaderSummary_notFoundReturns404() throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);

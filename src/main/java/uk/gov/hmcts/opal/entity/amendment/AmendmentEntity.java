@@ -1,8 +1,12 @@
 package uk.gov.hmcts.opal.entity.amendment;
 
-import uk.gov.hmcts.opal.util.LocalDateAdapter;
+import jakarta.persistence.Convert;
+import org.hibernate.annotations.ColumnTransformer;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
+import uk.gov.hmcts.opal.entity.converter.AssociatedRecordTypeConverter;
+import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -39,9 +43,12 @@ public class AmendmentEntity {
     @JsonProperty("business_unit_id")
     private Short businessUnitId;
 
-    @Column(name = "associated_record_type", length = 30, nullable = false)
+    @Convert(converter = AssociatedRecordTypeConverter.class)
+    @ColumnTransformer(write = "?::t_associated_record_type_enum")
+    @Column(name = "associated_record_type", length = 30, nullable = false,
+        columnDefinition = "t_associated_record_type_enum")
     @JsonProperty("associated_record_type")
-    private String associatedRecordType;
+    private AssociatedRecordType associatedRecordType;
 
     @Column(name = "associated_record_id", length = 30, nullable = false)
     @JsonProperty("associated_record_id")
@@ -49,8 +56,8 @@ public class AmendmentEntity {
 
     @Column(name = "amended_date", nullable = false)
     @JsonProperty("amended_date")
-    @XmlJavaTypeAdapter(LocalDateAdapter.class)
-    private LocalDate amendedDate;
+    @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
+    private LocalDateTime amendedDate;
 
     @Column(name = "amended_by", length = 20, nullable = false)
     @JsonProperty("amended_by")

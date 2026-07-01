@@ -17,6 +17,7 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
 @TestPropertySource(properties = {
@@ -32,7 +33,8 @@ class MajorCreditorAccountHeaderSummaryFeatureFlagIntegrationTest extends Abstra
     @Test
     @DisplayName("PO-2136 feature flag disabled returns 404")
     @JiraStory("PO-2136")
-    @JiraEpic("FAE: View Major Creditor Account Summary")
+    @JiraEpic("PO-1286")
+    @JiraTestKey("PO-7614")
     void getHeaderSummary_whenRelease1bDisabledReturns404() throws Exception {
         mockMvc.perform(get("/major-creditor-accounts/{id}/header-summary", 99000000000800L)
                 .accept(MediaType.APPLICATION_JSON)

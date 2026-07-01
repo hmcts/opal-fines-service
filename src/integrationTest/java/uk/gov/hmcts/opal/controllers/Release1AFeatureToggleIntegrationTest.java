@@ -22,11 +22,11 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 
 /**
- * Verifies that all Release 1A endpoints guarded by @FeatureToggle return 405 when the release-1a flag is disabled.
+ * Verifies that all Release 1A endpoints guarded by @FeatureToggle return 404 when the release-1a flag is disabled.
  */
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.Release1AFeatureToggleIntegrationTest")
-@DisplayName("Release 1A - returns 405 when release-1a flag is disabled")
+@DisplayName("Release 1A - returns 404 when release-1a flag is disabled")
 @TestPropertySource(properties = {
     "launchdarkly.enabled=false",
     "launchdarkly.default-flag-values.release-1a=false"
@@ -86,7 +86,27 @@ class Release1AFeatureToggleIntegrationTest extends AbstractFeatureToggleIntegra
     @JiraStory("PO-2833")
     @JiraEpic("PO-2352")
     @JiraTestKey("PO-6232")
-    void shouldReturn405WhenRelease1aIsDisabled(String description, MockHttpServletRequestBuilder request)
+    @JiraTestKey(value = "PO-8498", name = "\"GET /business-units/{id}\"")
+    @JiraTestKey(value = "PO-8499", name = "\"GET /business-units\"")
+    @JiraTestKey(value = "PO-8500", name = "\"GET /courts/{id}\"")
+    @JiraTestKey(value = "PO-8501", name = "\"POST /courts/search\"")
+    @JiraTestKey(value = "PO-8502", name = "\"GET /courts\"")
+    @JiraTestKey(value = "PO-8503", name = "\"GET /draft-accounts/{id}\"")
+    @JiraTestKey(value = "PO-8504", name = "\"GET /draft-accounts\"")
+    @JiraTestKey(value = "PO-8505", name = "\"POST /draft-accounts\"")
+    @JiraTestKey(value = "PO-8506", name = "\"PUT /draft-accounts/{id}\"")
+    @JiraTestKey(value = "PO-8507", name = "\"PATCH /draft-accounts/{id}\"")
+    @JiraTestKey(value = "PO-8508", name = "\"GET /local-justice-areas/{id}\"")
+    @JiraTestKey(value = "PO-8509", name = "\"GET /local-justice-areas\"")
+    @JiraTestKey(value = "PO-8510", name = "\"GET /major-creditors/{id}\"")
+    @JiraTestKey(value = "PO-8511", name = "\"GET /major-creditors\"")
+    @JiraTestKey(value = "PO-8512", name = "\"GET /offences/{id}\"")
+    @JiraTestKey(value = "PO-8513", name = "\"POST /offences/search\"")
+    @JiraTestKey(value = "PO-8514", name = "\"GET /offences\"")
+    @JiraTestKey(value = "PO-8515", name = "\"GET /prosecutors/{id}\"")
+    @JiraTestKey(value = "PO-8516", name = "\"GET /prosecutors\"")
+    @JiraTestKey(value = "PO-8517", name = "\"GET /results\"")
+    void shouldReturn404WhenRelease1aIsDisabled(String description, MockHttpServletRequestBuilder request)
         throws Exception {
         log.debug("Testing feature-disabled 404 for: {}", description);
         mockMvc.perform(request)

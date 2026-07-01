@@ -41,6 +41,7 @@ components:
     minorCreditorHistoryItem:
       name: historyItem
       type: object
+      additionalProperties: false
       required:
         - postedDetails
         - type
@@ -110,8 +111,9 @@ components:
           format: date
     noteDetails:
       type: object
+      additionalProperties: false
       required:
-        - note
+        - noteText
       properties:
         noteText:
           type: string
@@ -156,6 +158,7 @@ components:
     creditorTransactionDetails:
       name: transactionDetails
       type: object
+      additionalProperties: false
       required:
         - transactionType
       properties:
@@ -178,4 +181,4 @@ components:
           type: string
         defendantAccountId:
           type: integer
-
+          format: int64

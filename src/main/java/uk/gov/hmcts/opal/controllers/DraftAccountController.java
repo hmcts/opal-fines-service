@@ -57,12 +57,11 @@ public class DraftAccountController {
     @FeatureToggle(feature = FeatureFlags.RELEASE_1A,
         defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<DraftAccountResponseDto> getDraftAccountById(
-        @PathVariable Long draftAccountId,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+        @PathVariable Long draftAccountId) {
 
         log.debug(":GET:getDraftAccountById: draftAccountId: {}", draftAccountId);
 
-        return buildResponse(draftAccountService.getDraftAccount(draftAccountId, authHeaderValue));
+        return buildResponse(draftAccountService.getDraftAccount(draftAccountId));
     }
 
     @GetMapping()
@@ -76,25 +75,23 @@ public class DraftAccountController {
         @RequestParam(value = "submitted_by") Optional<List<String>> optionalSubmittedBys,
         @RequestParam(value = "not_submitted_by") Optional<List<String>> optionalNotSubmittedBys,
         @RequestParam(value = "account_status_date_from") Optional<LocalDate> accountStatusDateFrom,
-        @RequestParam(value = "account_status_date_to") Optional<LocalDate> accountStatusDateTo,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+        @RequestParam(value = "account_status_date_to") Optional<LocalDate> accountStatusDateTo) {
 
         log.debug(":GET:getDraftAccountSummaries:");
 
         return buildResponse(
             draftAccountService.getDraftAccounts(optionalBusinessUnitIds, optionalStatus, optionalSubmittedBys,
-                optionalNotSubmittedBys, accountStatusDateFrom, accountStatusDateTo, authHeaderValue));
+                optionalNotSubmittedBys, accountStatusDateFrom, accountStatusDateTo));
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches Draft Accounts based upon criteria in request body")
     public ResponseEntity<List<DraftAccountResponseDto>> postDraftAccountsSearch(
-        @RequestBody DraftAccountSearchDto criteria,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+        @RequestBody DraftAccountSearchDto criteria) {
 
         log.debug(":POST:postDraftAccountsSearch: query: \n{}", criteria);
 
-        return buildResponse(draftAccountService.searchDraftAccounts(criteria, authHeaderValue));
+        return buildResponse(draftAccountService.searchDraftAccounts(criteria));
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -104,13 +101,12 @@ public class DraftAccountController {
         defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<DraftAccountResponseDto> postDraftAccount(
         @JsonSchemaValidated(schemaPath = SchemaPaths.DRAFT_ACCOUNT + "/addDraftAccountRequest.json")
-        @RequestBody AddDraftAccountRequestDto dto,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+        @RequestBody AddDraftAccountRequestDto dto) {
         rejectTimelineDataIfSupplied(dto.getTimelineData());
 
         log.debug(":POST:postDraftAccount: creating a new draft account entity: \n{}", dto.toPrettyJson());
 
-        return buildCreatedResponse(draftAccountService.submitDraftAccount(dto, authHeaderValue));
+        return buildCreatedResponse(draftAccountService.submitDraftAccount(dto));
     }
 
     @Hidden
@@ -119,7 +115,6 @@ public class DraftAccountController {
     @ConditionalOnProperty(prefix = "opal.testing-support-endpoints", name = "enabled", havingValue = "true")
     public ResponseEntity<String> deleteDraftAccountById(
         @PathVariable Long draftAccountId,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @RequestHeader(value = "If-Match", required = false) String ifMatch,
         @RequestParam("ignore_missing") Optional<Boolean> ignoreMissing) {
 
@@ -129,7 +124,7 @@ public class DraftAccountController {
         log.debug(":DELETE:deleteDraftAccountById: Delete Draft Account: {}{}", draftAccountId,
             checkExisted ? "" : ", ignore if missing");
 
-        return buildResponse(draftAccountService.deleteDraftAccount((draftAccountId), checkExisted, authHeaderValue));
+        return buildResponse(draftAccountService.deleteDraftAccount((draftAccountId), checkExisted));
 
     }
 
@@ -142,13 +137,12 @@ public class DraftAccountController {
         @PathVariable Long draftAccountId,
         @JsonSchemaValidated(schemaPath = SchemaPaths.DRAFT_ACCOUNT + "/replaceDraftAccountRequest.json")
         @RequestBody ReplaceDraftAccountRequestDto dto,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @RequestHeader(value = "If-Match") String ifMatch) {
         rejectTimelineDataIfSupplied(dto.getTimelineData());
 
         log.debug(":PUT:putDraftAccount: replacing draft account '{}' with: \n{}", draftAccountId, dto.toPrettyJson());
 
-        return buildResponse(draftAccountService.replaceDraftAccount(draftAccountId, dto, authHeaderValue, ifMatch));
+        return buildResponse(draftAccountService.replaceDraftAccount(draftAccountId, dto, ifMatch));
     }
 
     @PatchMapping(value = "/{draftAccountId}", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -160,13 +154,12 @@ public class DraftAccountController {
         @PathVariable Long draftAccountId,
         @JsonSchemaValidated(schemaPath = SchemaPaths.DRAFT_ACCOUNT + "/updateDraftAccountRequest.json")
         @RequestBody UpdateDraftAccountRequestDto dto,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @RequestHeader(value = "If-Match") String ifMatch) {
         rejectTimelineDataIfSupplied(dto.getTimelineData());
 
         log.info(":PATCH:patchDraftAccount: updating draft account entity: {}", draftAccountId);
 
-        return buildResponse(draftAccountService.updateDraftAccount(draftAccountId, dto, authHeaderValue, ifMatch));
+        return buildResponse(draftAccountService.updateDraftAccount(draftAccountId, dto, ifMatch));
     }
 
     private static void rejectTimelineDataIfSupplied(Object timelineData) {

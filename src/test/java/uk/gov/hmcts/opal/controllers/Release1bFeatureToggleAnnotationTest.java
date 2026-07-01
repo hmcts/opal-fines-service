@@ -4,15 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_ENABLED_PROPERTY;
 
-import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
-import uk.gov.hmcts.opal.controllers.print.PrintRequestController;
-
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
+import uk.gov.hmcts.opal.controllers.print.PrintRequestController;
 
 class Release1bFeatureToggleAnnotationTest {
 
@@ -29,6 +28,7 @@ class Release1bFeatureToggleAnnotationTest {
             DraftAccountController.class,
             EnforcerController.class,
             LocalJusticeAreaController.class,
+            MajorCreditorApiController.class,
             MajorCreditorController.class,
             MinorCreditorApiController.class,
             MinorCreditorController.class,
@@ -50,6 +50,7 @@ class Release1bFeatureToggleAnnotationTest {
         Set<String> expectedAnnotatedMethods = Set.of(
             "DefendantAccountApiController#getEnforcementStatus",
             "DefendantAccountApiController#getImpositions",
+            "DefendantAccountApiController#postDefendantAccountSearch",
             "DefendantAccountApiController#updateDefendantAccount",
             "DefendantAccountController#addDefendantAccountParty",
             "DefendantAccountController#addEnforcement",
@@ -60,11 +61,15 @@ class Release1bFeatureToggleAnnotationTest {
             "DefendantAccountController#getDefendantAccountFixedPenalty",
             "DefendantAccountController#getDefendantAccountParty",
             "DefendantAccountController#getHeaderSummary",
-            "DefendantAccountController#postDefendantAccountSearch",
             "DefendantAccountController#removeDefendantAccountParty",
             "DefendantAccountController#removeEnforcementHold",
             "DefendantAccountController#replaceDefendantAccountParty",
+            "DefendantAccountApiController#getDefendantAccountHistory",
+            "MajorCreditorApiController#getCentralFundByBusinessUnit",
+            "MajorCreditorApiController#getMajorCreditorAccountAtAGlance",
+            "MajorCreditorApiController#getMajorCreditorAccountHeaderSummary",
             "MinorCreditorApiController#getMinorCreditorAccount",
+            "MinorCreditorApiController#getMinorCreditorHistory",
             "MinorCreditorApiController#patchMinorCreditorAccount",
             "MinorCreditorController#getMinorCreditorAccountHeaderSummary",
             "MinorCreditorController#getMinorCreditorsAtAGlance",

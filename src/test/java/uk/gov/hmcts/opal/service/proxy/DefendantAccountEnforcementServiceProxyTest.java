@@ -102,17 +102,17 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
             .build();
 
         when(legacyService.addEnforcement(defendantAccountId, businessUnitId,
-            businessUnitUserId, ifMatch, auth, req))
+            businessUnitUserId, ifMatch, req))
             .thenReturn(expected);
 
         // act
         AddEnforcementResponse result =
             serviceProxy.addEnforcement(defendantAccountId, businessUnitId,
-                businessUnitUserId, ifMatch, auth, req);
+                businessUnitUserId, ifMatch, req);
 
         // assert
         verify(legacyService).addEnforcement(defendantAccountId, businessUnitId,
-            businessUnitUserId, ifMatch, auth, req);
+            businessUnitUserId, ifMatch, req);
         verifyNoInteractions(opalService);
         assertEquals(expected, result);
     }
@@ -137,17 +137,17 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
             .build();
 
         when(opalService.addEnforcement(defendantAccountId, businessUnitId,
-            businessUnitUserId, ifMatch, auth, req))
+            businessUnitUserId, ifMatch, req))
             .thenReturn(expected);
 
         // act
         AddEnforcementResponse result =
             serviceProxy.addEnforcement(defendantAccountId, businessUnitId,
-                businessUnitUserId, ifMatch, auth, req);
+                businessUnitUserId, ifMatch, req);
 
         // assert
         verify(opalService).addEnforcement(defendantAccountId, businessUnitId,
-            businessUnitUserId, ifMatch, auth, req);
+            businessUnitUserId, ifMatch, req);
         verifyNoInteractions(legacyService);
         assertEquals(expected, result);
     }
@@ -173,7 +173,6 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
             businessUnitId,
             businessUnitUserId,
             ifMatch,
-            auth,
             req
         )).thenReturn(expected);
 
@@ -183,7 +182,6 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
                 businessUnitId,
                 businessUnitUserId,
                 ifMatch,
-                auth,
                 req
             );
 
@@ -193,7 +191,6 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
             businessUnitId,
             businessUnitUserId,
             ifMatch,
-            auth,
             req
         );
         verifyNoInteractions(opalService);

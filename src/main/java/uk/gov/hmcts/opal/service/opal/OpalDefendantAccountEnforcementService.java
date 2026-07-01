@@ -4,6 +4,10 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,8 +38,6 @@ import uk.gov.hmcts.opal.service.persistence.LocalJusticeAreaRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.ResultRepositoryService;
 import uk.gov.hmcts.opal.service.proxy.NotesProxy;
 import uk.gov.hmcts.opal.util.VersionUtils;
-
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementAction;
@@ -81,15 +83,18 @@ public class OpalDefendantAccountEnforcementService
         Short businessUnitId,
         String businessUnitUserId,
         String ifMatch,
-        String authHeader,
         AddDefendantAccountEnforcementRequest request) throws JacksonException {
 
         String reason = null;
         Integer jailDays = null;
         Long enforcerId = null;
         LocalDateTime earliestReleaseDate = null;
+        List<ResultResponse> enforcementResultResponses =
+            request != null && request.getEnforcementResultResponses() != null
+                ? request.getEnforcementResultResponses()
+                : List.of();
 
-        for (ResultResponse result : request.getEnforcementResultResponses()) {
+        for (ResultResponse result : enforcementResultResponses) {
             if (Objects.equals(result.getParameterName(), "reason")) {
                 reason = result.getResponse();
             }
@@ -104,9 +109,9 @@ public class OpalDefendantAccountEnforcementService
             }
         }
 
-        String resultResponses = objectMapper.writeValueAsString(request.getEnforcementResultResponses());
+        String resultResponses = objectMapper.writeValueAsString(toResultResponsesMap(enforcementResultResponses));
 
-        UserState userState = userStateService.checkForAuthorisedUser(authHeader);
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
         DefendantAccountEntity defendant = defendantAccountRepositoryService.findById(defendantAccountId);
 
         Long enforcementId = enforcementRepositoryService.addDefendantAccountEnforcement(
@@ -127,16 +132,17 @@ public class OpalDefendantAccountEnforcementService
 
         if (request.getPaymentTerms() != null) {
             DefendantAccountEntity defendantEntity = defendantAccountRepositoryService.findById(defendantAccountId);
-            opalDefendantAccountService.addPaymentTerms(defendantAccountId,
-                                                        businessUnitId.toString(),
-                                                        businessUnitUserId,
-                                                        defendantEntity.getVersion().toString(),
-                                                        authHeader,
-                                                        AddDefendantAccountPaymentTermsRequest.builder()
-                                                            .paymentTerms(request.getPaymentTerms())
-                                                            .requestPaymentCard(false)
-                                                            .generatePaymentTermsChangeLetter(false)
-                                                            .build()
+            opalDefendantAccountService.addPaymentTermsPreservingLastEnforcement(
+                defendantAccountId,
+                businessUnitId.toString(),
+                businessUnitUserId,
+                defendantEntity.getVersion().toString(),
+                null,
+                AddDefendantAccountPaymentTermsRequest.builder()
+                    .paymentTerms(request.getPaymentTerms())
+                    .requestPaymentCard(false)
+                    .generatePaymentTermsChangeLetter(false)
+                    .build()
             );
         }
 
@@ -149,6 +155,22 @@ public class OpalDefendantAccountEnforcementService
             .build();
     }
 
+    private Map<String, String> toResultResponsesMap(List<ResultResponse> responses) {
+        Map<String, String> resultResponsesMap = new LinkedHashMap<>();
+        if (responses == null) {
+            return resultResponsesMap;
+        }
+
+        for (ResultResponse response : responses) {
+            if (response == null || response.getParameterName() == null) {
+                continue;
+            }
+            resultResponsesMap.put(response.getParameterName(), response.getResponse());
+        }
+
+        return resultResponsesMap;
+    }
+
     @Override
     @Transactional
     public RemoveDefendantAccountEnforcementHoldResponse removeEnforcementHold(
@@ -156,13 +178,12 @@ public class OpalDefendantAccountEnforcementService
         Short businessUnitId,
         String businessUnitUserId,
         String ifMatch,
-        String authHeader,
         RemoveDefendantAccountEnforcementHoldRequest request) {
 
         log.debug(":removeEnforcementHold: defendantAccountId={}, businessUnitId={}",
             defendantAccountId, businessUnitId);
 
-        final UserState userState = userStateService.checkForAuthorisedUser(authHeader);
+        final UserState userState = userStateService.getUserStateV1FromSecurityContext();
         DefendantAccountEntity defendantEntity = defendantAccountRepositoryService.findById(defendantAccountId);
 
         if (ifMatch == null || ifMatch.isBlank()) {

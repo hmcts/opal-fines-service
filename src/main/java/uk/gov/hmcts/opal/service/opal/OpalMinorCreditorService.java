@@ -1,11 +1,12 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.LockModeType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,21 +21,30 @@ import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.RecordType;
+import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItem;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItemType;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
-import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderEntityMapper;
-import uk.gov.hmcts.opal.mapper.MinorCreditorAccountUpdateMapper;
-import uk.gov.hmcts.opal.mapper.MinorCreditorAccountResponseMapper;
+import uk.gov.hmcts.opal.generated.model.GetMinorCreditorHistory200Response;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
+import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderEntityMapper;
+import uk.gov.hmcts.opal.mapper.MinorCreditorAccountResponseMapper;
+import uk.gov.hmcts.opal.mapper.MinorCreditorAccountUpdateMapper;
+import uk.gov.hmcts.opal.mapper.MinorCreditorHistoryItemMapper;
 import uk.gov.hmcts.opal.mapper.response.GetMinorCreditorAccountAtAGlanceResponseMapper;
+import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
+import uk.gov.hmcts.opal.repository.CreditorTransactionRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountAtAGlanceRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountHeaderRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorRepository;
+import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PartyRepository;
 import uk.gov.hmcts.opal.repository.jpa.MinorCreditorSpecs;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
@@ -45,15 +55,22 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 @RequiredArgsConstructor
 public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
+    private static final LocalDateTime MIN_HISTORY_POSTED_DATE = LocalDateTime.of(1, 1, 1, 0, 0);
+    private static final LocalDateTime MAX_HISTORY_POSTED_DATE = LocalDateTime.of(9999, 12, 31, 23, 59, 59);
+
     private final MinorCreditorRepository minorCreditorRepository;
     private final MinorCreditorAccountHeaderRepository minorCreditorAccountHeaderRepository;
     private final MinorCreditorAccountAtAGlanceRepository minorCreditorAccountAtAGlanceRepository;
     private final CreditorAccountRepository creditorAccountRepository;
     private final PartyRepository partyRepository;
+    private final AmendmentRepository amendmentRepository;
+    private final NoteRepository noteRepository;
+    private final CreditorTransactionRepository creditorTransactionRepository;
     private final AmendmentService amendmentService;
     private final MinorCreditorAccountHeaderEntityMapper headerSummaryMapper;
     private final MinorCreditorAccountUpdateMapper updateMapper;
     private final MinorCreditorAccountResponseMapper responseMapper;
+    private final MinorCreditorHistoryItemMapper historyItemMapper;
     private final GetMinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
     private final EntityManager em;
     private final MinorCreditorSpecs specs = new MinorCreditorSpecs();
@@ -87,6 +104,73 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
         MinorCreditorAccountResponse response = responseMapper.toMinorCreditorAccountResponse(creditorAccount, party);
         response.setVersion(creditorAccount.getVersion());
         return response;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public GetMinorCreditorHistoryResponse getMinorCreditorHistory(
+        Long minorCreditorAccountId,
+        MinorCreditorHistoryFilters filters) {
+        log.debug(":getMinorCreditorHistory (Opal): minorCreditorAccountId={}", minorCreditorAccountId);
+
+        CreditorAccountEntity creditorAccount = creditorAccountRepository.findById(minorCreditorAccountId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Minor creditor account not found: " + minorCreditorAccountId
+            ));
+
+        if (creditorAccount.getCreditorAccountType() == null || !creditorAccount.getCreditorAccountType()
+            .isMinorCreditor()) {
+            throw new EntityNotFoundException("Account is not a minor creditor account: " + minorCreditorAccountId);
+        }
+
+        List<MinorCreditorHistoryItem> historyItems = getMinorCreditorHistoryItems(minorCreditorAccountId, filters);
+
+        return GetMinorCreditorHistoryResponse.builder()
+            .payload(new GetMinorCreditorHistory200Response().historyItems(historyItems.stream()
+                .sorted(MinorCreditorHistoryItem.ORDERING)
+                .map(MinorCreditorHistoryItem::responseItem)
+                .toList()))
+            .version(creditorAccount.getVersion())
+            .build();
+    }
+
+    private List<MinorCreditorHistoryItem> getMinorCreditorHistoryItems(
+        Long minorCreditorAccountId,
+        MinorCreditorHistoryFilters filters) {
+
+        List<MinorCreditorHistoryItem> historyItems = new ArrayList<>();
+        LocalDateTime postedFromInclusive = postedFromInclusive(filters);
+        LocalDateTime postedToExclusive = postedToExclusive(filters);
+        if (filters.includes(MinorCreditorHistoryItemType.AMENDMENT)) {
+            amendmentRepository.findMinorCreditorHistory(
+                String.valueOf(minorCreditorAccountId),
+                postedFromInclusive,
+                postedToExclusive
+            ).stream().map(historyItemMapper::toHistoryItem).forEach(historyItems::add);
+        }
+        if (filters.includes(MinorCreditorHistoryItemType.NOTE)) {
+            noteRepository.findMinorCreditorHistory(
+                String.valueOf(minorCreditorAccountId),
+                postedFromInclusive,
+                postedToExclusive
+            ).stream().map(historyItemMapper::toHistoryItem).forEach(historyItems::add);
+        }
+        if (filters.includes(MinorCreditorHistoryItemType.FINANCIAL)) {
+            creditorTransactionRepository.findMinorCreditorHistory(
+                minorCreditorAccountId,
+                postedFromInclusive,
+                postedToExclusive
+            ).stream().map(historyItemMapper::toHistoryItem).forEach(historyItems::add);
+        }
+        return historyItems;
+    }
+
+    private LocalDateTime postedFromInclusive(MinorCreditorHistoryFilters filters) {
+        return filters.postedFromInclusive() == null ? MIN_HISTORY_POSTED_DATE : filters.postedFromInclusive();
+    }
+
+    private LocalDateTime postedToExclusive(MinorCreditorHistoryFilters filters) {
+        return filters.postedToExclusive() == null ? MAX_HISTORY_POSTED_DATE : filters.postedToExclusive();
     }
 
     @Override

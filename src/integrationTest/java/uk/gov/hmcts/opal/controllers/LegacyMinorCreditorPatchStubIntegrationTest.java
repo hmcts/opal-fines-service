@@ -27,6 +27,7 @@ import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
 @TestPropertySource(properties = {
@@ -45,6 +46,7 @@ class LegacyMinorCreditorPatchStubIntegrationTest extends AbstractIntegrationTes
     @Test
     @JiraStory("PO-1915")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-7610")
     void patchMinorCreditor_notFound_hitsLegacyStub() throws Exception {
         stubLegacyPatchResponse(404, "<error><message>Minor creditor account not found</message></error>");
 
@@ -56,6 +58,7 @@ class LegacyMinorCreditorPatchStubIntegrationTest extends AbstractIntegrationTes
     @Test
     @JiraStory("PO-1915")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-7613")
     void patchMinorCreditor_timeout_hitsLegacyStub() throws Exception {
         stubLegacyPatchResponse(408, "<error><message>Request Timeout</message></error>");
 
@@ -67,6 +70,7 @@ class LegacyMinorCreditorPatchStubIntegrationTest extends AbstractIntegrationTes
     @Test
     @JiraStory("PO-1915")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-7611")
     void patchMinorCreditor_conflict_hitsLegacyStub() throws Exception {
         stubLegacyPatchResponse(409, "<error><message>Conflict</message></error>");
 
@@ -78,6 +82,7 @@ class LegacyMinorCreditorPatchStubIntegrationTest extends AbstractIntegrationTes
     @Test
     @JiraStory("PO-1915")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-7609")
     void patchMinorCreditor_serviceUnavailable_hitsLegacyStub() throws Exception {
         stubLegacyPatchResponse(503, "<error><message>Service Unavailable</message></error>");
 
@@ -89,6 +94,7 @@ class LegacyMinorCreditorPatchStubIntegrationTest extends AbstractIntegrationTes
     @Test
     @JiraStory("PO-1915")
     @JiraEpic("PO-812")
+    @JiraTestKey("PO-7612")
     void patchMinorCreditor_serverError_hitsLegacyStub() throws Exception {
         stubLegacyPatchResponse(500, "<error><message>Internal Server Error</message></error>");
 

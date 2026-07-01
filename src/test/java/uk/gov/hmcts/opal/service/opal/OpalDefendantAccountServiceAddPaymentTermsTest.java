@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.opal;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
@@ -9,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityManager;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +38,8 @@ import uk.gov.hmcts.opal.service.UserStateService;
 
 @ExtendWith(MockitoExtension.class)
 public class OpalDefendantAccountServiceAddPaymentTermsTest {
+    private static final LocalDateTime TEST_POSTED_DATE = LocalDateTime.of(2026, Month.JUNE, 11, 10, 0);
+
     @Mock
     private DefendantAccountPaymentTermsRepository paymentTermsRepository;
 
@@ -120,7 +124,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
 
         PaymentTermsEntity paymentTerms = PaymentTermsEntity.builder()
             .active(Boolean.TRUE)
-            .postedDate(LocalDateTime.now())
+            .postedDate(TEST_POSTED_DATE)
             .postedBy(postedBy)
             .postedByUsername(postedBy)
             .build();
@@ -130,7 +134,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
         EnforcementEntity enforcementLite = new EnforcementEntity();
         enforcementLite.setEnforcementId(300L);
         enforcementLite.setDefendantAccountId(defendantAccountId);
-        enforcementLite.setPostedDate(LocalDateTime.now());
+        enforcementLite.setPostedDate(TEST_POSTED_DATE);
         enforcementLite.setPostedBy("enf_tester");
         enforcementLite.setResultId("55");
 
@@ -146,7 +150,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
 
         // Act
         defendantAccountService.addPaymentTerms(defendantAccountId, businessUnitId, "tester",
-            ifMatch, postedBy, request);
+            ifMatch, request);
 
         // Assert
         // 1) Verify PaymentTermsService.addPaymentTerm was called
@@ -167,7 +171,6 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
         final String businessUnitId = "10";
         final String businessUnitUserId = "userX";
         final String ifMatch = "\"1\"";
-        final String authHeader = "Bearer token";
 
         BusinessUnitEntity bu = BusinessUnitEntity.builder()
             .businessUnitId((short) 10)
@@ -205,13 +208,72 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
         when(paymentTermsService.addPaymentTerm(any(PaymentTermsEntity.class))).thenReturn(savedPaymentTermsEntity);
 
         // Act
-        defendantAccountService.addPaymentTerms(defendantAccountId, businessUnitId, businessUnitUserId, ifMatch,
-            authHeader, request);
+        defendantAccountService.addPaymentTerms(
+            defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, request);
 
         // Assert
         verify(paymentTermsService).addPaymentTerm(argThat(entity ->
             businessUnitUserId.equals(entity.getPostedBy())
                 && businessUnitUserId.equals(entity.getPostedByUsername())
         ));
+    }
+
+    @Test
+    void addPaymentTerms_preservesLastEnforcement_whenRequestedByEnforcementFlow() {
+        final Long defendantAccountId = 77L;
+        final String businessUnitId = "10";
+        final String ifMatch = "\"1\"";
+        final String businessUnitUserId = "tester";
+
+        BusinessUnitEntity bu = BusinessUnitEntity.builder()
+            .businessUnitId((short) 10)
+            .build();
+
+        DefendantAccountEntity account = new DefendantAccountEntity();
+        account.setDefendantAccountId(defendantAccountId);
+        account.setBusinessUnit(bu);
+        account.setLastEnforcement("55");
+        account.setVersionNumber(1L);
+
+        PaymentTerms paymentTermsDto = new PaymentTerms();
+        AddDefendantAccountPaymentTermsRequest request = new AddDefendantAccountPaymentTermsRequest();
+        request.setPaymentTerms(paymentTermsDto);
+
+        when(defendantAccountRepository.findByDefendantAccountIdForUpdate(defendantAccountId))
+            .thenReturn(Optional.of(account));
+
+        PaymentTermsEntity paymentTerms = PaymentTermsEntity.builder()
+            .active(Boolean.TRUE)
+            .postedDate(TEST_POSTED_DATE)
+            .postedBy(businessUnitUserId)
+            .postedByUsername(businessUnitUserId)
+            .build();
+
+        when(paymentTermsMapper.toEntity(any(PaymentTerms.class))).thenReturn(paymentTerms);
+
+        PaymentTermsEntity savedPaymentTermsEntity = PaymentTermsEntity.builder()
+            .paymentTermsId(200L)
+            .active(Boolean.TRUE)
+            .defendantAccount(account)
+            .extension(Boolean.TRUE)
+            .build();
+
+        when(paymentTermsService.addPaymentTerm(any(PaymentTermsEntity.class))).thenReturn(savedPaymentTermsEntity);
+
+        defendantAccountService.addPaymentTermsPreservingLastEnforcement(
+            defendantAccountId,
+            businessUnitId,
+            businessUnitUserId,
+            ifMatch,
+            businessUnitUserId,
+            request
+        );
+
+        verify(defendantAccountRepository).save(accountCaptor.capture());
+        DefendantAccountEntity savedAccount = accountCaptor.getValue();
+        assertNotNull(savedAccount);
+        assertEquals("55", savedAccount.getLastEnforcement(),
+            "Expected lastEnforcement to be preserved for enforcement-driven payment terms");
+        verify(reportEntryService).createExtendTtpReportEntry(any(Long.class), any(short.class));
     }
 }
