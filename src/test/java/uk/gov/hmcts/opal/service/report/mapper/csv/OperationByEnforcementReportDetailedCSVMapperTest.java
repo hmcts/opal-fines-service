@@ -6,11 +6,11 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationByEnforcementDetailedAccountReportDto;
-import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationByEnforcementDetailedReportAccountRowDto;
-import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationByEnforcementDetailedReportDto;
-import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationByEnforcementDetailedReportTransactionRowDto;
-import uk.gov.hmcts.opal.service.report.operationbyenforcement.OperationByEnforcementDetailedReport;
+import uk.gov.hmcts.opal.dto.report.operation.DetailedAccountReportDto;
+import uk.gov.hmcts.opal.dto.report.operation.DetailedOperationReportAccountRowDto;
+import uk.gov.hmcts.opal.dto.report.operation.DetailedReportDto;
+import uk.gov.hmcts.opal.dto.report.operation.DetailedReportTransactionRowDto;
+import uk.gov.hmcts.opal.service.report.operation.OperationDetailedReport;
 
 class OperationByEnforcementReportDetailedCSVMapperTest {
 
@@ -72,7 +72,7 @@ class OperationByEnforcementReportDetailedCSVMapperTest {
 
     @Test
     void reportToCSVString_withNoAccounts_returnsOnlyHeaders() {
-        OperationByEnforcementDetailedReport report = reportWithAccounts(List.of());
+        OperationDetailedReport report = reportWithAccounts(List.of());
 
         String csv = mapper.reportToCSVString(report);
 
@@ -129,7 +129,7 @@ class OperationByEnforcementReportDetailedCSVMapperTest {
 
     @Test
     void reportToCSVString_withOneAccountAndNoTransactions_returnsHeadersAndAccountRow() {
-        OperationByEnforcementDetailedReport report = reportWithAccounts(List.of(
+        OperationDetailedReport report = reportWithAccounts(List.of(
             accountReport(
                 accountRow(),
                 List.of()
@@ -227,7 +227,7 @@ class OperationByEnforcementReportDetailedCSVMapperTest {
 
     @Test
     void reportToCSVString_withMultipleAccountsAndTransactions_returnsAllRowsInOrder() {
-        OperationByEnforcementDetailedReport report = reportWithAccounts(List.of(
+        OperationDetailedReport report = reportWithAccounts(List.of(
             accountReport(
                 accountRow(),
                 List.of(
@@ -399,28 +399,28 @@ class OperationByEnforcementReportDetailedCSVMapperTest {
         );
     }
 
-    private OperationByEnforcementDetailedReport reportWithAccounts(
-        List<OperationByEnforcementDetailedAccountReportDto> accounts) {
-        OperationByEnforcementDetailedReportDto detailedReportDto = OperationByEnforcementDetailedReportDto.builder()
+    private OperationDetailedReport reportWithAccounts(
+        List<DetailedAccountReportDto> accounts) {
+        DetailedReportDto detailedReportDto = DetailedReportDto.builder()
             .accountTransactionReports(accounts)
             .build();
 
-        OperationByEnforcementDetailedReport report = new OperationByEnforcementDetailedReport();
-        report.setEnforcementReport(detailedReportDto);
+        OperationDetailedReport report = new OperationDetailedReport();
+        report.setDetailedReport(detailedReportDto);
         return report;
     }
 
-    private OperationByEnforcementDetailedAccountReportDto accountReport(
-        OperationByEnforcementDetailedReportAccountRowDto accountRow,
-        List<OperationByEnforcementDetailedReportTransactionRowDto> transactionRows) {
-        return OperationByEnforcementDetailedAccountReportDto.builder()
+    private DetailedAccountReportDto accountReport(
+        DetailedOperationReportAccountRowDto accountRow,
+        List<DetailedReportTransactionRowDto> transactionRows) {
+        return DetailedAccountReportDto.builder()
             .accountRow(accountRow)
             .transactionRows(transactionRows)
             .build();
     }
 
-    private OperationByEnforcementDetailedReportAccountRowDto accountRow() {
-        return OperationByEnforcementDetailedReportAccountRowDto.builder()
+    private DetailedOperationReportAccountRowDto accountRow() {
+        return DetailedOperationReportAccountRowDto.builder()
             .header1(DETAIL)
             .company(COMPANY)
             .accountNo(ACCOUNT_NO)
@@ -458,7 +458,7 @@ class OperationByEnforcementReportDetailedCSVMapperTest {
             .build();
     }
 
-    private OperationByEnforcementDetailedReportTransactionRowDto transactionRow(
+    private DetailedReportTransactionRowDto transactionRow(
         String accountNo,
         String consolidatedAccountNo,
         LocalDate transactionDate,
@@ -466,7 +466,7 @@ class OperationByEnforcementReportDetailedCSVMapperTest {
         String transactionDetails,
         String transactionUserId,
         BigDecimal transactionAmount) {
-        return OperationByEnforcementDetailedReportTransactionRowDto.builder()
+        return DetailedReportTransactionRowDto.builder()
             .accountNo(accountNo)
             .consolidatedAccountNo(consolidatedAccountNo)
             .transactionDate(transactionDate)

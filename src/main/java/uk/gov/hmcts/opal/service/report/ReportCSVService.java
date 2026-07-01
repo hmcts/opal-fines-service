@@ -25,16 +25,13 @@ public class ReportCSVService {
      * @return the CSV byte array
      */
     public <T extends ReportDataInterface> byte[] convertReportDtoToCSV(T reportDataInterface) {
-        //do like mapper to string then bytes from string?
-
-        //pick from the reportToCSVStringMapperMap using the class of the input reportDataInterface
-        //mapper makes csv string, this converts it to the byte[] specified in the ticket
         @SuppressWarnings("unchecked")
         ReportCSVMapper<T> reportCSVMapper = (ReportCSVMapper<T>) reportCSVMapperRegistry
             .get(reportDataInterface.getClass());
         if (reportCSVMapper == null) {
             throw new UnprocessableException("Report cannot be converted to CSV format.");
         }
-        return reportCSVMapper.reportToCSVString(reportDataInterface).getBytes();
+        String csv = reportCSVMapper.reportToCSVString(reportDataInterface);
+        return csv.getBytes();
     }
 }

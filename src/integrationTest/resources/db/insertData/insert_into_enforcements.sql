@@ -463,11 +463,11 @@ INSERT INTO defendant_transactions (
     transaction_amount,
     payment_reference,
     text,
+    status,
     status_date,
     write_off_code,
     associated_record_type,
     associated_record_id,
-    status,
     payment_method
 )
 VALUES
@@ -480,11 +480,11 @@ VALUES
         123.45,
         NULL,
         NULL,
+        'P',
         TIMESTAMP '2026-05-14 10:00:00',
         NULL,
         'defendant_accounts',
         '78',
-        'P',
         NULL
     ),
     (
@@ -496,10 +496,11 @@ VALUES
         50.00,
         NULL,
         NULL,
+        'P',
         TIMESTAMP '2026-05-14 10:05:00',
+        NULL,
         'defendant_accounts',
         NULL,
-        'P',
         'CT'
     ),
     (
@@ -509,16 +510,17 @@ VALUES
         'enforcement.test',
         'PAYMNT',
         50.00,
+        NULL,
+        NULL,
+        'C',
         TIMESTAMP '2026-05-14 10:05:00',
+        NULL,
         'defendant_accounts',
-        NULL,
-        'C'
-        NULL,
         NULL,
         'CT'
     ),
     (
-        100003,
+        110003,
         77,
         DATE '2026-05-14',
         'enforcement.test',

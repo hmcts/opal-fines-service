@@ -159,29 +159,11 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
             () -> assertThat(account.getParentOrGuardian()).isEqualTo("N")
         );
 
-        Assertions.assertThat(report.getTransactionRows()).containsExactly(
-            DetailedReportTransactionRowDto.builder()
-                .accountNo("177A")
-                .consolidatedAccountNo("ConsolidatedAcc")
-                .transactionDate(LocalDate.of(2026, 5, 14))
-                .transactionType(DefendantTransactionType.CONSOL.getLabel())
-                .transactionUserId("enforcement.test")
-                .transactionAmount(new BigDecimal("123.45"))
-                .build(),
-            DetailedReportTransactionRowDto.builder()
-                .accountNo("177A")
-                .consolidatedAccountNo(null)
-                .transactionDate(LocalDate.of(2026, 5, 14))
-                .transactionType(DefendantTransactionType.PAYMNT.getLabel())
-                .transactionUserId("enforcement.test")
-                .transactionAmount(new BigDecimal("50.00"))
-                .build()
-        );
         Assertions.assertThat(report.getTransactionRows())
             .hasSize(21)
             .extracting(
-                OperationByEnforcementDetailedReportTransactionRowDto::getTransactionType,
-                OperationByEnforcementDetailedReportTransactionRowDto::getTransactionDetails
+                DetailedReportTransactionRowDto::getTransactionType,
+                DetailedReportTransactionRowDto::getTransactionDetails
             )
             .containsExactlyInAnyOrder(
                 tuple(

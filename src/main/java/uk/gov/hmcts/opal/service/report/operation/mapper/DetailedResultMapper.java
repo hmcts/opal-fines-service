@@ -16,7 +16,6 @@ import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
 import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
 import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
 import uk.gov.hmcts.opal.repository.ImpositionRepository;
-import uk.gov.hmcts.opal.service.report.operationbyenforcement.OperationByEnforcementDetailedReport;
 import uk.gov.hmcts.opal.service.report.ReportMetaData;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 import uk.gov.hmcts.opal.service.report.operation.OperationDetailedReport;
@@ -66,14 +65,11 @@ public abstract class DetailedResultMapper
                     .stream().collect(Collectors.toMap(
                         imposition -> imposition.getImpositionId().toString(),
                         imposition -> imposition));
-                List<OperationByEnforcementDetailedReportTransactionRowDto> transactionRows = transactionEntities
-
-                List<DetailedReportTransactionRowDto> transactionRows =
-                    transactionEntities.findByDefendantAccountId(account.getDefendantAccountId())
-                        .stream()
-                        .map(transaction -> transactionRowMapper.map(transaction, account,
-                            impositionsForTransactions.get(transaction.getAssociatedRecordId()), context))
-                        .toList();
+                List<DetailedReportTransactionRowDto> transactionRows = transactionEntities
+                    .stream()
+                    .map(transaction -> transactionRowMapper.map(transaction, account,
+                        impositionsForTransactions.get(transaction.getAssociatedRecordId()), context))
+                    .toList();
 
                 return DetailedAccountReportDto.builder()
                     .accountRow(accountRow)

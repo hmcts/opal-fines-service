@@ -24,7 +24,6 @@ import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
 import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
 import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
 import uk.gov.hmcts.opal.repository.ImpositionRepository;
-import uk.gov.hmcts.opal.service.report.operationbyenforcement.OperationByEnforcementDetailedReport;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 import uk.gov.hmcts.opal.service.report.operation.OperationDetailedReport;
 
@@ -88,13 +87,6 @@ class DetailedResultMapperTest {
 
         when(impositionRepository.findAllById(any())).thenReturn(List.of(imposition1, imposition2));
 
-
-        OperationByEnforcementDetailedReportTransactionRowDto transactionRow1 =
-            mock(OperationByEnforcementDetailedReportTransactionRowDto.class);
-        OperationByEnforcementDetailedReportTransactionRowDto transactionRow2 =
-            mock(OperationByEnforcementDetailedReportTransactionRowDto.class);
-        OperationByEnforcementDetailedReportTransactionRowDto transactionRow3 =
-            mock(OperationByEnforcementDetailedReportTransactionRowDto.class);
 
         when(transactionRowMapper
             .map(eq(transaction1), eq(account1), eq(imposition1), any(ReportMetadataContext.class)))

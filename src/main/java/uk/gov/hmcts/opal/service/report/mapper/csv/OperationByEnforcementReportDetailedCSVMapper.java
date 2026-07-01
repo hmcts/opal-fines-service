@@ -2,10 +2,10 @@ package uk.gov.hmcts.opal.service.report.mapper.csv;
 
 import java.util.List;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationByEnforcementDetailedAccountReportDto;
-import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationByEnforcementDetailedReportAccountRowDto;
-import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationByEnforcementDetailedReportTransactionRowDto;
-import uk.gov.hmcts.opal.service.report.operationbyenforcement.OperationByEnforcementDetailedReport;
+import uk.gov.hmcts.opal.dto.report.operation.DetailedAccountReportDto;
+import uk.gov.hmcts.opal.dto.report.operation.DetailedOperationReportAccountRowDto;
+import uk.gov.hmcts.opal.dto.report.operation.DetailedReportTransactionRowDto;
+import uk.gov.hmcts.opal.service.report.operation.OperationDetailedReport;
 
 /**
  * Generate a CSV String for Operation By Enforcement and by payment Detailed Reports.
@@ -18,11 +18,11 @@ import uk.gov.hmcts.opal.service.report.operationbyenforcement.OperationByEnforc
  */
 @Component
 public class OperationByEnforcementReportDetailedCSVMapper
-    implements ReportCSVMapper<OperationByEnforcementDetailedReport> {
+    implements ReportCSVMapper<OperationDetailedReport> {
 
     @Override
-    public Class<OperationByEnforcementDetailedReport> getReportDataType() {
-        return OperationByEnforcementDetailedReport.class;
+    public Class<OperationDetailedReport> getReportDataType() {
+        return OperationDetailedReport.class;
     }
 
     private List<String> header1Row() {
@@ -77,7 +77,7 @@ public class OperationByEnforcementReportDetailedCSVMapper
         );
     }
 
-    private List<String> accountRow(OperationByEnforcementDetailedReportAccountRowDto accountRow) {
+    private List<String> accountRow(DetailedOperationReportAccountRowDto accountRow) {
         return List.of(
             getDataValue(accountRow.getHeader1()),
             getDataValue(accountRow.getCompany()),
@@ -116,7 +116,7 @@ public class OperationByEnforcementReportDetailedCSVMapper
         );
     }
 
-    private List<String> transactionRow(OperationByEnforcementDetailedReportTransactionRowDto transactionRow) {
+    private List<String> transactionRow(DetailedReportTransactionRowDto transactionRow) {
         return List.of(
             "TRANSACTION",
             getDataValue(transactionRow.getAccountNo()),
@@ -131,13 +131,13 @@ public class OperationByEnforcementReportDetailedCSVMapper
 
 
     @Override
-    public String reportToCSVString(OperationByEnforcementDetailedReport operationByEnforcementDetailedReport) {
+    public String reportToCSVString(OperationDetailedReport operationDetailedReport) {
         StringBuilder sb = new StringBuilder();
         sb.append(dataListToFullCSVRow(header1Row())).append(dataListToFullCSVRow(header2Row()));
-        for (OperationByEnforcementDetailedAccountReportDto dto :
-            operationByEnforcementDetailedReport.getEnforcementReport().getAccountTransactionReports()) {
+        for (DetailedAccountReportDto dto :
+            operationDetailedReport.getDetailedReport().getAccountTransactionReports()) {
             sb.append(dataListToFullCSVRow(accountRow(dto.getAccountRow())));
-            for (OperationByEnforcementDetailedReportTransactionRowDto transactionRow : dto.getTransactionRows()) {
+            for (DetailedReportTransactionRowDto transactionRow : dto.getTransactionRows()) {
                 sb.append(dataListToFullCSVRow(transactionRow(transactionRow)));
             }
         }

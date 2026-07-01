@@ -11,12 +11,12 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationByEnforcementDetailedAccountReportDto;
-import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationByEnforcementDetailedReportAccountRowDto;
-import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationByEnforcementDetailedReportDto;
-import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationByEnforcementDetailedReportTransactionRowDto;
+import uk.gov.hmcts.opal.dto.report.operation.DetailedAccountReportDto;
+import uk.gov.hmcts.opal.dto.report.operation.DetailedOperationReportAccountRowDto;
+import uk.gov.hmcts.opal.dto.report.operation.DetailedReportDto;
+import uk.gov.hmcts.opal.dto.report.operation.DetailedReportTransactionRowDto;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
-import uk.gov.hmcts.opal.service.report.operationbyenforcement.OperationByEnforcementDetailedReport;
+import uk.gov.hmcts.opal.service.report.operation.OperationDetailedReport;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -73,7 +73,7 @@ class ReportCSVServiceIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-2283")
     @JiraEpic("PO-2248")
     void convertReportDtoToCSV_happyPath_usesOperationByEnforcementDetailedReportMapper() {
-        OperationByEnforcementDetailedReport report = report();
+        OperationDetailedReport report = report();
 
         byte[] result = reportCSVService.convertReportDtoToCSV(report);
 
@@ -90,9 +90,9 @@ class ReportCSVServiceIntegrationTest extends AbstractIntegrationTest {
         assertEquals("Report cannot be converted to CSV format.", exception.getDetailedReason());
     }
 
-    private OperationByEnforcementDetailedReport report() {
-        OperationByEnforcementDetailedReportAccountRowDto accountRow =
-            OperationByEnforcementDetailedReportAccountRowDto.builder()
+    private OperationDetailedReport report() {
+        DetailedOperationReportAccountRowDto accountRow =
+            DetailedOperationReportAccountRowDto.builder()
                 .header1(DETAIL)
                 .company(COMPANY)
                 .accountNo(ACCOUNT_NO)
@@ -129,8 +129,8 @@ class ReportCSVServiceIntegrationTest extends AbstractIntegrationTest {
                 .prosecutorCaseReference(PROSECUTOR_CASE_REFERENCE)
                 .build();
 
-        OperationByEnforcementDetailedReportTransactionRowDto transactionRow =
-            OperationByEnforcementDetailedReportTransactionRowDto.builder()
+        DetailedReportTransactionRowDto transactionRow =
+            DetailedReportTransactionRowDto.builder()
                 .accountNo(TXN_ACCOUNT_NO)
                 .consolidatedAccountNo(TXN_CONSOLIDATED_ACCOUNT_NO)
                 .transactionDate(TXN_DATE)
@@ -139,18 +139,18 @@ class ReportCSVServiceIntegrationTest extends AbstractIntegrationTest {
                 .transactionAmount(TXN_AMOUNT)
                 .build();
 
-        OperationByEnforcementDetailedAccountReportDto accountReport =
-            OperationByEnforcementDetailedAccountReportDto.builder()
+        DetailedAccountReportDto accountReport =
+            DetailedAccountReportDto.builder()
                 .accountRow(accountRow)
                 .transactionRows(List.of(transactionRow))
                 .build();
 
-        OperationByEnforcementDetailedReportDto reportDto = OperationByEnforcementDetailedReportDto.builder()
+        DetailedReportDto reportDto = DetailedReportDto.builder()
             .accountTransactionReports(List.of(accountReport))
             .build();
 
-        OperationByEnforcementDetailedReport report = new OperationByEnforcementDetailedReport();
-        report.setEnforcementReport(reportDto);
+        OperationDetailedReport report = new OperationDetailedReport();
+        report.setDetailedReport(reportDto);
         return report;
     }
 
