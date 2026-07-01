@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
@@ -66,7 +67,7 @@ public class EnforcementAccountTypesServiceTest {
 
             service.updateEnforcementAccountType(request);
 
-            verify(mapper).toDtos(any());
+            verify(mapper).toDtos(List.of(mockEntity));
         }
     }
 
@@ -76,10 +77,10 @@ public class EnforcementAccountTypesServiceTest {
             when(authToken.hasPermission(FinesPermission.AUTO_ENFORCEMENT)).thenReturn(true);
             securityUtil.when(SecurityUtil::getOpalJwtAuthenticationTokenForCurrentUser).thenReturn(authToken);
             List<PatchEnforcementAccountTypeRequestInner> request = List.of(
-                mock(PatchEnforcementAccountTypeRequestInner.class)
+                PatchEnforcementAccountTypeRequestInner.builder().id(1).build()
             );
 
-            when(repository.findById(any())).thenReturn(Optional.ofNullable(null));
+            when(repository.findById(eq(1L))).thenReturn(Optional.ofNullable(null));
 
             assertThrows(EntityNotFoundException.class, () -> service.updateEnforcementAccountType(request));
             verifyNoInteractions(mapper);
@@ -115,7 +116,7 @@ public class EnforcementAccountTypesServiceTest {
                     .build()
             );
 
-            when(repository.findById(any())).thenReturn(Optional.of(
+            when(repository.findById(eq(1L))).thenReturn(Optional.of(
                 EnforcementAccountTypeEntity.builder()
                     .enforcementAccountTypeId(1L)
                     .enforcementAccountType(EnforcementAccountType.AH)
@@ -143,7 +144,7 @@ public class EnforcementAccountTypesServiceTest {
                     .build()
             );
 
-            when(repository.findById(any())).thenReturn(Optional.of(
+            when(repository.findById(eq(1L))).thenReturn(Optional.of(
                 EnforcementAccountTypeEntity.builder()
                     .enforcementAccountTypeId(1L)
                     .enforcementAccountType(EnforcementAccountType.AH)
@@ -172,7 +173,7 @@ public class EnforcementAccountTypesServiceTest {
                     .build()
             );
 
-            when(repository.findById(any())).thenReturn(Optional.of(
+            when(repository.findById(eq(1L))).thenReturn(Optional.of(
                 EnforcementAccountTypeEntity.builder()
                     .enforcementAccountTypeId(1L)
                     .enforcementAccountType(EnforcementAccountType.AH)

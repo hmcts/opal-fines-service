@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 
 import java.math.BigDecimal;
@@ -32,7 +31,6 @@ public class EnforcementAccountTypesService {
 
     private final EnforcementAccountTypeRepository enforcementAccountTypeRepository;
     private final EnforcementAccountTypeMapper enforcementAccountTypeMapper;
-    private final EntityManager entityManager;
 
     @Transactional
     public List<EnforcementAccountTypeCommon> updateEnforcementAccountType(
