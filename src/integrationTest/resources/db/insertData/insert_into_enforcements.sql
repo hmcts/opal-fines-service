@@ -629,11 +629,15 @@ VALUES
         NULL,
         NULL,
         NULL,
+        'C',
+        TIMESTAMP '2026-05-14 10:05:00',
+        NULL,
+        'defendant_accounts',
         NULL,
         'CT'
     ),
     (
-        100003,
+        110003,
         77,
         DATE '2026-05-14',
         'enforcement.test',
