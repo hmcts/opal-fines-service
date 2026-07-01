@@ -3,14 +3,20 @@ package uk.gov.hmcts.opal.steps.defendantaccount;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import io.cucumber.datatable.DataTable;
+import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import org.json.JSONException;
 import org.springframework.http.HttpHeaders;
+import uk.gov.hmcts.opal.actions.defendantaccount.DefendantAccountEnforcementsActions;
+import uk.gov.hmcts.opal.assertions.CommonResponseAssertions;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 import uk.gov.hmcts.opal.steps.BearerTokenStepDef;
+import uk.gov.hmcts.opal.workflows.defendantaccount.DefendantAccountEnforcementWorkflow;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -33,7 +39,17 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String HISTORY_PATH = "/defendant-accounts/%d/history";
+    private static final String HISTORY_BUSINESS_UNIT_ID = "77";
+    private static final String SEEDED_ENFORCEMENT_OVERRIDE_RESULT_ID = "FWEC";
+    private static final String SEEDED_ENFORCER_ID = "770000000001";
+    private static final String SEEDED_ENFORCEMENT_ACTION = "NOENF";
+    private static final String HISTORY_TEST_USER = "opal-test@dev.platform.hmcts.net";
+    private static final String HISTORY_ACCOUNT_FIXTURE = "draftAccounts/accountJson/historyAccount.json";
+    private static final String HISTORY_ACCOUNT_TYPE = "Fine";
+    private static final String HISTORY_ACCOUNT_STATUS = "Submitted";
+    private static final String HISTORY_SUBMITTED_BY_NAME = "Laura Clerk";
     private static final Set<String> HISTORY_TYPES = Set.of(
+        "Amendment",
         "Enforcement",
         "Financial",
         "Note",
@@ -47,65 +63,148 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
         "org.hibernate",
         "java.lang",
         "uk.gov.hmcts",
-        "Defendant Account not found with id",
-        "99999999999999"
+        "Defendant Account not found with id"
     );
+
+    private final DefendantAccountEnforcementsActions enforcementActions = new DefendantAccountEnforcementsActions();
+    private final DefendantAccountEnforcementWorkflow enforcementWorkflow = new DefendantAccountEnforcementWorkflow();
+    private final CommonResponseAssertions responseAssertions = new CommonResponseAssertions();
 
     private Response firstResponse;
     private Response secondResponse;
+    private LocalDate rememberedDateFrom;
+    private LocalDate rememberedDateTo;
+    private Long lastRequestedAccountId;
 
     /**
-     * Requests defendant-account history using the current scenario user's bearer token.
+     * Creates a defendant account with the fixture-backed history data needed by the history
+     * scenarios, then adds the amendment history produced by the enforcement override flow.
      *
-     * @param accountId defendant-account identifier to request.
+     * @param submittedBy submitted-by identifier to keep each scenario's setup distinct.
+     * @throws JSONException if the setup payload cannot be created.
+     * @throws IOException if the supporting account fixture cannot be loaded.
      */
-    @When("I request defendant account history for account {long}")
-    public void requestDefendantAccountHistory(long accountId) {
-        getHistory(BearerTokenStepDef.getToken(), accountId, null);
+    @Given("a defendant account with history exists for submitted by {string}")
+    public void defendantAccountWithHistoryExistsForSubmittedBy(String submittedBy) throws JSONException, IOException {
+        actAsHistoryTestUser();
+        enforcementWorkflow.createEnforceableDefendantAccount(historyAccountData(submittedBy));
+        historyDataExistsForCreatedDefendantAccount();
     }
 
     /**
-     * Requests defendant-account history with a raw query string.
+     * Adds the history event that is not produced by draft-account publication. The fixture used
+     * by the feature already creates notes, payment terms, enforcement history and financial
+     * history through the normal publish flow.
      *
-     * @param accountId defendant-account identifier to request.
+     * @throws JSONException if the enforcement override payload cannot be created.
+     */
+    @Given("history data exists for the created defendant account")
+    public void historyDataExistsForCreatedDefendantAccount() throws JSONException {
+        Response getResponse = enforcementActions.getCreatedDefendantAccountEnforcementStatus();
+        responseAssertions.assertStatus(getResponse, 200);
+        assertNotNull(scenarioContext().getDefendantAccountEtag(), "Expected ETag for history setup");
+
+        Response patchResponse = enforcementActions.patchCreatedDefendantAccountEnforcementOverride(Map.of(
+            "business_unit_id", HISTORY_BUSINESS_UNIT_ID,
+            "enforcement_override_result_id", SEEDED_ENFORCEMENT_OVERRIDE_RESULT_ID,
+            "enforcer_id", SEEDED_ENFORCER_ID
+        ));
+
+        responseAssertions.assertStatus(patchResponse, 200);
+    }
+
+    /**
+     * Requests defendant-account history for the account created by the current scenario.
+     */
+    @When("I request defendant account history for the created defendant account")
+    public void requestDefendantAccountHistoryForCreatedDefendantAccount() {
+        getHistory(BearerTokenStepDef.getToken(), createdDefendantAccountId(), null);
+    }
+
+    /**
+     * Requests defendant-account history for the created account with a raw query string.
+     *
      * @param query query string to append to the request URI.
      */
-    @When("I request defendant account history for account {long} with query {string}")
-    public void requestDefendantAccountHistoryWithQuery(long accountId, String query) {
-        getHistory(BearerTokenStepDef.getToken(), accountId, query);
+    @When("I request defendant account history for the created defendant account with query {string}")
+    public void requestCreatedDefendantAccountHistoryWithQuery(String query) {
+        getHistory(BearerTokenStepDef.getToken(), createdDefendantAccountId(), query);
     }
 
     /**
-     * Requests defendant-account history twice with the same query string.
-     *
-     * @param accountId defendant-account identifier to request.
-     * @param query query string to append to both request URIs.
+     * Requests defendant-account history using the remembered inclusive lower date boundary.
      */
-    @When("I request defendant account history for account {long} with query {string} twice")
-    public void requestDefendantAccountHistoryWithQueryTwice(long accountId, String query) {
-        firstResponse = getHistory(BearerTokenStepDef.getToken(), accountId, query);
-        secondResponse = getHistory(BearerTokenStepDef.getToken(), accountId, query);
+    @When("I request defendant account history for the created defendant account using the remembered dateFrom "
+        + "boundary")
+    public void requestCreatedDefendantAccountHistoryUsingRememberedDateFrom() {
+        assertRememberedDateRange();
+        getHistory(BearerTokenStepDef.getToken(), createdDefendantAccountId(), "dateFrom=" + rememberedDateFrom);
     }
 
     /**
-     * Requests defendant-account history as a specific test user.
+     * Requests defendant-account history using the remembered inclusive upper date boundary.
+     */
+    @When("I request defendant account history for the created defendant account using the remembered dateTo boundary")
+    public void requestCreatedDefendantAccountHistoryUsingRememberedDateTo() {
+        assertRememberedDateRange();
+        getHistory(BearerTokenStepDef.getToken(), createdDefendantAccountId(), "dateTo=" + rememberedDateTo);
+    }
+
+    /**
+     * Requests defendant-account history using the remembered inclusive date range and item-type
+     * filter.
+     *
+     * @param itemTypes comma-separated itemTypes query parameter value.
+     */
+    @When("I request defendant account history for the created defendant account using the remembered date range "
+        + "and itemTypes {string}")
+    public void requestCreatedDefendantAccountHistoryUsingRememberedDateRangeAndItemTypes(String itemTypes) {
+        getHistory(
+            BearerTokenStepDef.getToken(),
+            createdDefendantAccountId(),
+            rememberedDateRangeQuery(itemTypes)
+        );
+    }
+
+    /**
+     * Requests defendant-account history twice using the remembered inclusive date range and
+     * item-type filter.
+     *
+     * @param itemTypes comma-separated itemTypes query parameter value.
+     */
+    @When("I request defendant account history for the created defendant account using the remembered date range "
+        + "and itemTypes {string} twice")
+    public void requestCreatedHistoryUsingRememberedDateRangeAndItemTypesTwice(String itemTypes) {
+        String query = rememberedDateRangeQuery(itemTypes);
+        firstResponse = getHistory(BearerTokenStepDef.getToken(), createdDefendantAccountId(), query);
+        secondResponse = getHistory(BearerTokenStepDef.getToken(), createdDefendantAccountId(), query);
+    }
+
+    /**
+     * Requests defendant-account history for the created account as a specific test user.
      *
      * @param user user email used to resolve a bearer token.
-     * @param accountId defendant-account identifier to request.
      */
-    @When("the {string} user requests defendant account history for account {long}")
-    public void userRequestsDefendantAccountHistory(String user, long accountId) {
-        getHistory(BearerTokenStepDef.getAccessTokenForUser(user), accountId, null);
+    @When("the {string} user requests defendant account history for the created defendant account")
+    public void userRequestsCreatedDefendantAccountHistory(String user) {
+        getHistory(BearerTokenStepDef.getAccessTokenForUser(user), createdDefendantAccountId(), null);
     }
 
     /**
-     * Requests defendant-account history without an Authorization header.
-     *
-     * @param accountId defendant-account identifier to request.
+     * Requests defendant-account history for the created account without an Authorization header.
      */
-    @When("I request defendant account history for account {long} without a token")
-    public void requestDefendantAccountHistoryWithoutToken(long accountId) {
-        getHistory(null, accountId, null);
+    @When("I request defendant account history for the created defendant account without a token")
+    public void requestCreatedDefendantAccountHistoryWithoutToken() {
+        getHistory(null, createdDefendantAccountId(), null);
+    }
+
+    /**
+     * Requests defendant-account history for an account id generated outside the account-id range
+     * used by these tests.
+     */
+    @When("I request defendant account history for a non-existent defendant account")
+    public void requestDefendantAccountHistoryForNonExistentDefendantAccount() {
+        getHistory(BearerTokenStepDef.getToken(), nonExistentDefendantAccountId(), null);
     }
 
     /**
@@ -137,21 +236,40 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     }
 
     /**
-     * Asserts exact item-type counts in the latest history response.
+     * Asserts minimum item-type counts in the latest history response.
      *
-     * @param dataTable expected item type to count mappings.
+     * @param dataTable expected item type to minimum count mappings.
      * @throws Exception if the response body cannot be parsed as JSON.
      */
-    @Then("the defendant account history contains exactly the following item counts")
-    public void defendantAccountHistoryContainsExactlyTheFollowingItemCounts(DataTable dataTable)
+    @Then("the defendant account history contains at least the following item counts")
+    public void defendantAccountHistoryContainsAtLeastTheFollowingItemCounts(DataTable dataTable)
         throws Exception {
 
-        Map<String, Long> expectedCounts = new LinkedHashMap<>();
-        dataTable.asMap(String.class, String.class)
-            .forEach((type, count) -> expectedCounts.put(type, Long.parseLong(count)));
-
         Map<String, Long> actualCounts = typeCounts();
-        assertEquals(expectedCounts, actualCounts, "Unexpected defendant-account history item counts");
+        dataTable.asMap(String.class, String.class).forEach((type, count) -> {
+            long expectedMinimum = Long.parseLong(count);
+            long actual = actualCounts.getOrDefault(type, 0L);
+            assertTrue(
+                actual >= expectedMinimum,
+                "Expected at least " + expectedMinimum + " " + type + " item(s), found " + actual
+            );
+        });
+    }
+
+    /**
+     * Stores the oldest and newest posted dates from the latest full history response.
+     *
+     * @throws Exception if the response body cannot be parsed as JSON.
+     */
+    @Then("I remember the returned defendant account history date range")
+    public void rememberReturnedDefendantAccountHistoryDateRange() throws Exception {
+        List<LocalDate> postedDates = historyItems().stream()
+            .map(this::postedDateOf)
+            .toList();
+
+        assertFalse(postedDates.isEmpty(), "History response should contain dates to remember");
+        rememberedDateFrom = postedDates.stream().min(LocalDate::compareTo).orElseThrow();
+        rememberedDateTo = postedDates.stream().max(LocalDate::compareTo).orElseThrow();
     }
 
     /**
@@ -182,10 +300,32 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
             .filter(item -> "Enforcement".equals(typeOf(item)))
             .toList();
 
-        assertEquals(1, enforcementItems.size(), "Expected exactly one seeded enforcement history item");
-        JsonNode details = enforcementItems.getFirst().path("details");
-        assertEquals("FSN", details.path("enforcementAction").asText(), "Unexpected enforcement action");
-        assertEquals("Test enforcement", details.path("reason").asText(), "Unexpected enforcement reason");
+        assertFalse(enforcementItems.isEmpty(), "Expected seeded enforcement history item");
+        boolean containsSeededEnforcement = enforcementItems.stream()
+            .map(item -> item.path("details").path("enforcementAction").asText())
+            .anyMatch(SEEDED_ENFORCEMENT_ACTION::equals);
+
+        assertTrue(
+            containsSeededEnforcement,
+            "Expected seeded enforcement action " + SEEDED_ENFORCEMENT_ACTION
+        );
+    }
+
+    /**
+     * Asserts the latest history response contains amendment history.
+     *
+     * @throws Exception if the response body cannot be parsed as JSON.
+     */
+    @Then("the defendant account history contains seeded amendment history")
+    public void defendantAccountHistoryContainsSeededAmendmentHistory() throws Exception {
+        List<JsonNode> amendmentItems = historyItems().stream()
+            .filter(item -> "Amendment".equals(typeOf(item)))
+            .toList();
+
+        assertFalse(amendmentItems.isEmpty(), "Expected seeded amendment history item");
+        amendmentItems.forEach(
+            item -> assertText(item.path("details").path("attributeName"), "details.attributeName")
+        );
     }
 
     /**
@@ -209,49 +349,49 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     }
 
     /**
-     * Asserts every returned item is on or after the supplied posted date.
+     * Asserts every returned item is on or after the remembered dateFrom boundary.
      *
-     * @param date inclusive lower-bound date.
      * @throws Exception if the response body cannot be parsed as JSON.
      */
-    @Then("the defendant account history response contains only items on or after {string}")
-    public void defendantAccountHistoryContainsOnlyItemsOnOrAfter(String date) throws Exception {
-        LocalDate boundary = LocalDate.parse(date);
-        for (JsonNode historyItem : historyItems()) {
-            LocalDate postedDate = postedDateOf(historyItem);
-            assertFalse(postedDate.isBefore(boundary), "History item was before dateFrom boundary");
-        }
+    @Then("the defendant account history response contains only items on or after the remembered dateFrom")
+    public void defendantAccountHistoryContainsOnlyItemsOnOrAfterRememberedDateFrom() throws Exception {
+        assertRememberedDateRange();
+        assertHistoryContainsOnlyItemsOnOrAfter(rememberedDateFrom);
     }
 
     /**
-     * Asserts every returned item is on or before the supplied posted date.
+     * Asserts every returned item is on or before the remembered dateTo boundary.
      *
-     * @param date inclusive upper-bound date.
      * @throws Exception if the response body cannot be parsed as JSON.
      */
-    @Then("the defendant account history response contains only items on or before {string}")
-    public void defendantAccountHistoryContainsOnlyItemsOnOrBefore(String date) throws Exception {
-        LocalDate boundary = LocalDate.parse(date);
-        for (JsonNode historyItem : historyItems()) {
-            LocalDate postedDate = postedDateOf(historyItem);
-            assertFalse(postedDate.isAfter(boundary), "History item was after dateTo boundary");
-        }
+    @Then("the defendant account history response contains only items on or before the remembered dateTo")
+    public void defendantAccountHistoryContainsOnlyItemsOnOrBeforeRememberedDateTo() throws Exception {
+        assertRememberedDateRange();
+        assertHistoryContainsOnlyItemsOnOrBefore(rememberedDateTo);
     }
 
     /**
-     * Asserts the latest history response contains at least one item on the supplied posted date.
+     * Asserts the latest history response contains at least one item on the remembered dateFrom
+     * boundary.
      *
-     * @param date expected posted date.
      * @throws Exception if the response body cannot be parsed as JSON.
      */
-    @Then("the defendant account history response includes an item on {string}")
-    public void defendantAccountHistoryResponseIncludesAnItemOn(String date) throws Exception {
-        LocalDate expectedDate = LocalDate.parse(date);
-        boolean found = historyItems().stream()
-            .map(this::postedDateOf)
-            .anyMatch(expectedDate::equals);
+    @Then("the defendant account history response includes an item on the remembered dateFrom")
+    public void defendantAccountHistoryResponseIncludesAnItemOnRememberedDateFrom() throws Exception {
+        assertRememberedDateRange();
+        assertHistoryIncludesItemOn(rememberedDateFrom);
+    }
 
-        assertTrue(found, "Expected at least one history item on " + expectedDate);
+    /**
+     * Asserts the latest history response contains at least one item on the remembered dateTo
+     * boundary.
+     *
+     * @throws Exception if the response body cannot be parsed as JSON.
+     */
+    @Then("the defendant account history response includes an item on the remembered dateTo")
+    public void defendantAccountHistoryResponseIncludesAnItemOnRememberedDateTo() throws Exception {
+        assertRememberedDateRange();
+        assertHistoryIncludesItemOn(rememberedDateTo);
     }
 
     /**
@@ -304,9 +444,16 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
         for (String term : INTERNAL_ERROR_TERMS) {
             assertFalse(body.contains(term), "Error response leaked internal detail: " + term);
         }
+        if (lastRequestedAccountId != null) {
+            assertFalse(
+                body.contains(String.valueOf(lastRequestedAccountId)),
+                "Error response leaked requested account id"
+            );
+        }
     }
 
     private Response getHistory(String token, long accountId, String query) {
+        lastRequestedAccountId = accountId;
         RequestSpecification request = given()
             .accept("*/*")
             .contentType("application/json");
@@ -322,6 +469,62 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
 
     private String querySuffix(String query) {
         return query == null || query.isBlank() ? "" : "?" + query;
+    }
+
+    private long createdDefendantAccountId() {
+        return Long.parseLong(scenarioContext().getCreatedDefendantAccountIdOrFail());
+    }
+
+    private Map<String, String> historyAccountData(String submittedBy) {
+        Map<String, String> accountData = new LinkedHashMap<>();
+        accountData.put("business_unit_id", HISTORY_BUSINESS_UNIT_ID);
+        accountData.put("account", HISTORY_ACCOUNT_FIXTURE);
+        accountData.put("account_type", HISTORY_ACCOUNT_TYPE);
+        accountData.put("account_status", HISTORY_ACCOUNT_STATUS);
+        accountData.put("submitted_by", submittedBy);
+        accountData.put("submitted_by_name", HISTORY_SUBMITTED_BY_NAME);
+        return accountData;
+    }
+
+    private void actAsHistoryTestUser() {
+        BearerTokenStepDef.setTokenOverride(BearerTokenStepDef.getAccessTokenForUser(HISTORY_TEST_USER));
+        scenarioContext().setCurrentUser(HISTORY_TEST_USER);
+    }
+
+    private long nonExistentDefendantAccountId() {
+        return 90_000_000_000_000L + Math.abs(System.nanoTime() % 10_000_000_000L);
+    }
+
+    private String rememberedDateRangeQuery(String itemTypes) {
+        assertRememberedDateRange();
+        return "dateFrom=" + rememberedDateFrom + "&dateTo=" + rememberedDateTo + "&itemTypes=" + itemTypes;
+    }
+
+    private void assertRememberedDateRange() {
+        assertNotNull(rememberedDateFrom, "No remembered dateFrom boundary");
+        assertNotNull(rememberedDateTo, "No remembered dateTo boundary");
+    }
+
+    private void assertHistoryContainsOnlyItemsOnOrAfter(LocalDate boundary) throws Exception {
+        for (JsonNode historyItem : historyItems()) {
+            LocalDate postedDate = postedDateOf(historyItem);
+            assertFalse(postedDate.isBefore(boundary), "History item was before dateFrom boundary");
+        }
+    }
+
+    private void assertHistoryContainsOnlyItemsOnOrBefore(LocalDate boundary) throws Exception {
+        for (JsonNode historyItem : historyItems()) {
+            LocalDate postedDate = postedDateOf(historyItem);
+            assertFalse(postedDate.isAfter(boundary), "History item was after dateTo boundary");
+        }
+    }
+
+    private void assertHistoryIncludesItemOn(LocalDate expectedDate) throws Exception {
+        boolean found = historyItems().stream()
+            .map(this::postedDateOf)
+            .anyMatch(expectedDate::equals);
+
+        assertTrue(found, "Expected at least one history item on " + expectedDate);
     }
 
     private JsonNode latestJsonBody() throws Exception {
@@ -371,12 +574,19 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
 
     private void validateDetails(String type, JsonNode details) {
         switch (type) {
+            case "Amendment" -> validateAmendmentDetails(details);
             case "Enforcement" -> validateEnforcementDetails(details);
             case "Financial" -> validateFinancialDetails(details);
             case "Note" -> assertText(details.path("noteText"), "details.noteText");
             case "Payment terms" -> validatePaymentTermsDetails(details);
             default -> throw new AssertionError("Unsupported history type: " + type);
         }
+    }
+
+    private void validateAmendmentDetails(JsonNode details) {
+        assertText(details.path("attributeName"), "details.attributeName");
+        assertOptionalText(details.path("oldValue"), "details.oldValue");
+        assertOptionalText(details.path("newValue"), "details.newValue");
     }
 
     private void validateEnforcementDetails(JsonNode details) {

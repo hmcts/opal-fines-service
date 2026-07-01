@@ -72,10 +72,10 @@ public class PaymentInEntity {
     @Column(name = "additional_information", length = 500)
     private String additionalInformation;
 
-    @Column(name = "receipt")
+    @Column(name = "receipt", nullable = false)
     private boolean receipt;
 
-    @Column(name = "allocated")
+    @Column(name = "allocated", nullable = false)
     private boolean allocated;
 
     @Column(name = "auto_payment")

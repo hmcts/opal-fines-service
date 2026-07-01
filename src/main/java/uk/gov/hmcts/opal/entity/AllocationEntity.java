@@ -1,5 +1,8 @@
 package uk.gov.hmcts.opal.entity;
 
+import jakarta.persistence.Convert;
+import org.hibernate.annotations.ColumnTransformer;
+import uk.gov.hmcts.opal.entity.converter.TransactionTypeConverter;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
 import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
 
@@ -39,8 +42,11 @@ public class AllocationEntity {
     @Column(name = "allocated_amount", nullable = false, precision = 18, scale = 2)
     private BigDecimal allocatedAmount;
 
-    @Column(name = "transaction_type", nullable = false, length = 10)
-    private String transactionType;
+    @Convert(converter = TransactionTypeConverter.class)
+    @ColumnTransformer(write = "?::t_allocation_transaction_type_enum")
+    @Column(name = "transaction_type", nullable = false, length = 10,
+        columnDefinition = "t_allocation_transaction_type_enum")
+    private TransactionType transactionType;
 
     @Column(name = "allocation_function", nullable = false, length = 30)
     private String allocationFunction;

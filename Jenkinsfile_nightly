@@ -217,6 +217,7 @@ def runFunctionalStage = { stageName, shouldRunWithZephyr, reportNameSuffix ->
         steps.echo "${stageName} failed. Marking build as FAILURE. Error: " + error.message
       } finally {
         try {
+          builder.gradle('syncFunctionalArtifactsFromExistingResults')
           publishFunctionalResults(
             'functional-output',
             'functional-test-report',
@@ -273,6 +274,7 @@ def runTaggedFunctionalStage = { enabled, stageName, shouldRunWithZephyr, report
         steps.echo "${stageName} failed. Marking build as FAILURE. Error: " + error.message
       } finally {
         try {
+          builder.gradle('syncTaggedFunctionalArtifactsFromExistingResults')
           publishFunctionalResults(
             reportDirectory,
             'functional-test-report-demo',

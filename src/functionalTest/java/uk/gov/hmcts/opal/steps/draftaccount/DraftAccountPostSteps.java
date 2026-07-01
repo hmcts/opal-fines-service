@@ -118,13 +118,7 @@ public class DraftAccountPostSteps extends BaseStepDef {
      */
     @Then("The draft account response contains the following data")
     public void draftAccountResponseContains(DataTable data) {
-        Map<String, String> expectedData = data.asMap(String.class, String.class);
-
-        for (String key : expectedData.keySet()) {
-            String expected = expectedData.get(key);
-            String actual = then().extract().body().jsonPath().getString(key);
-            assertEquals(expected, actual, "Values are not equal for field '" + key + "'");
-        }
+        responseAssertions.assertResponseContains(then().extract().response(), data.asMap(String.class, String.class));
     }
 
     /**

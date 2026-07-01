@@ -1,0 +1,15 @@
+package uk.gov.hmcts.opal.service.report.operation.mapper;
+
+import org.mapstruct.DecoratedWith;
+import org.mapstruct.Mapper;
+import org.mapstruct.ReportingPolicy;
+
+@Mapper(
+    componentModel = "spring",
+    unmappedTargetPolicy = ReportingPolicy.IGNORE
+)
+@DecoratedWith(DetailedRowDtoMapperDecorator.class)
+public interface DetailedRowDtoMapper
+    extends DetailedRowDtoCoreMapper {
+
+}

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -16,10 +17,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnTransformer;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import uk.gov.hmcts.opal.entity.converter.BacsStatusTypeConverter;
 
 @Entity
 @Table(name = "bacs_payments")
@@ -56,7 +59,9 @@ public class BacsPaymentEntity {
     @Column(name = "amount", precision = 18, scale = 2, nullable = false)
     private BigDecimal amount;
 
-    @Column(name = "status", length = 10, nullable = false)
-    private String status;
+    @Convert(converter = BacsStatusTypeConverter.class)
+    @ColumnTransformer(write = "?::t_bacs_status_enum")
+    @Column(name = "status", length = 10, nullable = false, columnDefinition = "t_bacs_status_enum")
+    private BacsStatusType status;
 
 }
