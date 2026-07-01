@@ -255,7 +255,8 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractOpalEnforc
 
         res.andExpect(status().is(409))
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail").value("Version numbers do not match"))
+            .andExpect(jsonPath("$.detail").value(":updateEnforcementAccountType: Versions do"
+                + " not match for: EnforcementAccountTypeEntity '1'; DB version: 1, supplied update version: 0"))
             .andExpect(jsonPath("$.title").value("Conflict"))
             .andExpect(jsonPath("$.retriable").value("false"))
             .andExpect(jsonPath("$.type")
@@ -448,7 +449,8 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractOpalEnforc
 
         res.andExpect(status().is(409))
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail").value("Version numbers do not match"))
+            .andExpect(jsonPath("$.detail").value(":updateEnforcementAccountType: Versions do"
+                + " not match for: EnforcementAccountTypeEntity '2'; DB version: 1, supplied update version: 5"))
             .andExpect(jsonPath("$.title").value("Conflict"))
             .andExpect(jsonPath("$.retriable").value("false"))
             .andExpect(jsonPath("$.type")

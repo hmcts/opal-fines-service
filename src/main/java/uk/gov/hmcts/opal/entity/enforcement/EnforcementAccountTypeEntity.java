@@ -6,6 +6,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Optional;
@@ -57,6 +58,7 @@ public class EnforcementAccountTypeEntity implements Versioned {
     private BigDecimal minimumBalance;
 
     @Column
+    @Version
     private Long versionNumber;
 
     @Override

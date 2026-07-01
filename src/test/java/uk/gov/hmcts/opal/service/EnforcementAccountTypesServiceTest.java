@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -58,8 +59,10 @@ public class EnforcementAccountTypesServiceTest {
             List<PatchEnforcementAccountTypeRequestInner> request = List.of(
                 mock(PatchEnforcementAccountTypeRequestInner.class)
             );
+            EnforcementAccountTypeEntity mockEntity = mock(EnforcementAccountTypeEntity.class);
+            when(mockEntity.getVersion()).thenReturn(BigInteger.ZERO);
 
-            when(repository.findById(any())).thenReturn(Optional.of(mock(EnforcementAccountTypeEntity.class)));
+            when(repository.findById(any())).thenReturn(Optional.of(mockEntity));
 
             service.updateEnforcementAccountType(request);
 
