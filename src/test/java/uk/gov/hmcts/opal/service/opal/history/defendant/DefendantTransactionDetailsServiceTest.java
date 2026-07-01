@@ -214,7 +214,7 @@ class DefendantTransactionDetailsServiceTest {
     }
 
     @Test
-    void generateTransactionDetails_xfer_fromSuspense_returnsSuspenseReason() {
+    void generateTransactionDetails_transferToSuspense_fromSuspense_returnsSuspenseReason() {
         DefendantTransactionEntity transaction = transaction(DefendantTransactionType.XFER);
         transaction.setAssociatedRecordType(AssociatedRecordType.SUSPENSE_TRANSACTIONS);
 
@@ -223,7 +223,7 @@ class DefendantTransactionDetailsServiceTest {
     }
 
     @Test
-    void generateTransactionDetails_xfer_fromCreditorTransactions_returnsCentralFundReason() {
+    void generateTransactionDetails_transferToSuspense_fromCreditorTransactions_returnsCentralFundReason() {
         DefendantTransactionEntity transaction = transaction(DefendantTransactionType.XFER);
         transaction.setAssociatedRecordType(AssociatedRecordType.CREDITOR_TRANSACTIONS);
 
@@ -232,7 +232,7 @@ class DefendantTransactionDetailsServiceTest {
     }
 
     @Test
-    void generateTransactionDetails_xfer_withOtherRecordType_returnsEmptyReason() {
+    void generateTransactionDetails_transferToSuspense_withOtherRecordType_returnsEmptyReason() {
         DefendantTransactionEntity transaction = transaction(DefendantTransactionType.XFER);
         transaction.setAssociatedRecordType(AssociatedRecordType.ENFORCEMENTS);
 

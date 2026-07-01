@@ -19,6 +19,12 @@ import uk.gov.hmcts.opal.service.report.operationbyenforcement.OperationByEnforc
 @Component
 public class OperationByEnforcementReportDetailedCSVMapper
     implements ReportCSVMapper<OperationByEnforcementDetailedReport> {
+
+    @Override
+    public Class<OperationByEnforcementDetailedReport> getReportDataType() {
+        return OperationByEnforcementDetailedReport.class;
+    }
+
     private List<String> header1Row() {
         return new java.util.ArrayList<>(List.of(
             "HEADER1",

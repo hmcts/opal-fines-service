@@ -3,15 +3,14 @@ package uk.gov.hmcts.opal.service.report;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,21 +26,16 @@ class ReportCSVServiceTest {
     @Mock
     ReportCSVMapper<ReportDataInterface> reportCSVMapper;
 
-    private Map<Class<? extends ReportDataInterface>, ReportCSVMapper<? extends ReportDataInterface>>
-        reportToCSVStringMapperMap;
+    @Mock
+    ReportCSVMapperRegistry reportCSVMapperRegistry;
 
+    @InjectMocks
     private ReportCSVService reportCSVService;
-
-    @BeforeEach
-    void setUp() {
-        reportToCSVStringMapperMap = new HashMap<>();
-        reportCSVService = new ReportCSVService(reportToCSVStringMapperMap);
-    }
 
     @Test
     void convertReportDtoToCSV_returnsCsvBytesWhenMapperExists() {
         String csv = "HEADER1,HEADER2\n";
-        reportToCSVStringMapperMap.put(reportDataInterface.getClass(), reportCSVMapper);
+        doReturn(reportCSVMapper).when(reportCSVMapperRegistry).get(reportDataInterface.getClass());
         when(reportCSVMapper.reportToCSVString(reportDataInterface)).thenReturn(csv);
 
         byte[] result = reportCSVService.convertReportDtoToCSV(reportDataInterface);

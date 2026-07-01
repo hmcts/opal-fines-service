@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.report;
 
-import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,8 +14,7 @@ import uk.gov.hmcts.opal.service.report.mapper.csv.ReportCSVMapper;
 @AllArgsConstructor
 @Slf4j(topic = "opal.ReportCSVService")
 public class ReportCSVService {
-    private Map<Class<? extends ReportDataInterface>, ReportCSVMapper<? extends ReportDataInterface>>
-        reportToCSVStringMapperMap;
+    private final ReportCSVMapperRegistry reportCSVMapperRegistry;
 
     /**
      * Creates a Comma Separated Values (CSV) for the given data. The reportDataInterface will have a specific
@@ -32,7 +30,7 @@ public class ReportCSVService {
         //pick from the reportToCSVStringMapperMap using the class of the input reportDataInterface
         //mapper makes csv string, this converts it to the byte[] specified in the ticket
         @SuppressWarnings("unchecked")
-        ReportCSVMapper<T> reportCSVMapper = (ReportCSVMapper<T>) reportToCSVStringMapperMap
+        ReportCSVMapper<T> reportCSVMapper = (ReportCSVMapper<T>) reportCSVMapperRegistry
             .get(reportDataInterface.getClass());
         if (reportCSVMapper == null) {
             throw new UnprocessableException("Report cannot be converted to CSV format.");

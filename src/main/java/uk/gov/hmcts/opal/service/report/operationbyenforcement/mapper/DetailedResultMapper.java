@@ -45,7 +45,6 @@ public abstract class DetailedResultMapper
 
     @Override
     public OperationByEnforcementDetailedReport map(List<DefendantAccountEntity> accounts) {
-        //todo mapping starts here
         ReportMetadataContext context = new ReportMetadataContext();
         List<OperationByEnforcementDetailedAccountReportDto> accountTransactionReports = accounts.stream()
             .map(account -> {

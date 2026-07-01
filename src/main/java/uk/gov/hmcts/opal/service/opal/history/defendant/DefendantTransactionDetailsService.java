@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.service.opal.history.defendant;
 
+import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.SPACED_PIPE;
+
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
@@ -39,13 +41,13 @@ public class DefendantTransactionDetailsService {
                 .formatted(transaction.getText(), account.getOriginatorName());
             case TFO_IN -> "TFO in | Received from: " + account.getOriginatorName();
             case WRTOFF -> writeOff(transaction, imposition);
-            case XFER -> xfer(transaction);
+            case XFER -> transferToSuspense(transaction);
         };
     }
 
     private String chequeData(String prefix, DefendantTransactionEntity transaction) {
         String status = switch (transaction.getStatus()) {
-            case D, X -> " | " + transaction.getStatus().getDisplayName() + " "
+            case D, X -> SPACED_PIPE + transaction.getStatus().getDisplayName() + " "
                 + transaction.getStatusDate();
             default -> "";
         };
@@ -57,19 +59,19 @@ public class DefendantTransactionDetailsService {
 
     private String payment(DefendantTransactionEntity transaction) {
         return "Payment received | " + transaction.getPaymentMethod().getDisplayName()
-            + conditionalValue(" | ", transaction.getText())
-            + conditionalValue(" | ", transaction.getPaymentReference());
+            + conditionalValue(SPACED_PIPE, transaction.getText())
+            + conditionalValue(SPACED_PIPE, transaction.getPaymentReference());
     }
 
     private String writeOff(DefendantTransactionEntity transaction, ImpositionEntity imposition) {
-        String writeOffDesc = conditionalValue(" | ", transaction.getWriteOffCode().getDisplayName());
+        String writeOffDesc = conditionalValue(SPACED_PIPE, transaction.getWriteOffCode().getDisplayName());
         String details = switch (transaction.getAssociatedRecordType()) {
             case IMPOSITIONS ->  " | %s | %s%s".formatted(imposition.getImposedDate().toString(),
                 imposition(imposition), writeOffDesc);
             case DEFENDANT_ACCOUNTS -> writeOffDesc + " - " + transaction.getDefendantAccountId();
-            default -> " | ";
+            default -> SPACED_PIPE;
         };
-        return "Write-off" + details + conditionalValue(" | ", transaction.getText());
+        return "Write-off" + details + conditionalValue(SPACED_PIPE, transaction.getText());
     }
 
     private String imposition(ImpositionEntity imposition) {
@@ -78,7 +80,7 @@ public class DefendantTransactionDetailsService {
             imposition.getImpositionId());
     }
 
-    private String xfer(DefendantTransactionEntity transaction) {
+    private String transferToSuspense(DefendantTransactionEntity transaction) {
         String reason = switch (transaction.getAssociatedRecordType()) {
             case SUSPENSE_TRANSACTIONS -> "Cheque cancelled to suspense";
             case CREDITOR_TRANSACTIONS -> "Cheque cancelled to Central Fund";

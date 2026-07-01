@@ -24,12 +24,6 @@ public interface CommonMappingHelper {
             : value;
     }
 
-    default String truncate(String value, int length) {
-        return value != null && value.length() > length
-            ? value.substring(0, length)
-            : value;
-    }
-
     @Named("booleanToYesNo")
     default String booleanToYesNo(Boolean value) {
         return value == null
