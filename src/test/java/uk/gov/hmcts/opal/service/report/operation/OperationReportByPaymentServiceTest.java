@@ -31,7 +31,6 @@ import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.service.report.FileType;
-import uk.gov.hmcts.opal.service.report.ReportDataInterface;
 import uk.gov.hmcts.opal.service.report.ReportId;
 import uk.gov.hmcts.opal.service.report.operation.mapper.DetailedResultMapper;
 
@@ -68,6 +67,12 @@ class OperationReportByPaymentServiceTest {
     @Test
     void getReportId_returnsOpEnforcement() {
         assertThat(service.getReportId()).isEqualTo(ReportId.OP_PAYMENT);
+    }
+
+    @Test
+    void getStoredReportDataClass_returnsDetailedClass() {
+        assertThat(service.getStoredReportDataClass(new ReportInstanceEntity())).isEqualTo(
+            OperationDetailedReport.class);
     }
 
     @Test
@@ -118,7 +123,7 @@ class OperationReportByPaymentServiceTest {
         )).thenReturn(accounts);
         when(detailedResultMapper.map(accounts)).thenReturn(mappedDetailedReport);
 
-        ReportDataInterface result = service.generateReportData(reportInstance);
+        OperationDetailedReport result = service.generateReportData(reportInstance);
 
         assertThat(result).isSameAs(mappedDetailedReport);
         Mockito.verify(defendantAccountRepository).findAll(
@@ -146,7 +151,7 @@ class OperationReportByPaymentServiceTest {
             accounts);
         when(detailedResultMapper.map(any())).thenReturn(mappedDetailedReport);
 
-        ReportDataInterface result = service.generateReportData(reportInstance);
+        OperationDetailedReport result = service.generateReportData(reportInstance);
 
         assertThat(result).isSameAs(mappedDetailedReport);
         Mockito.verify(defendantAccountRepository).findAll(
@@ -176,7 +181,7 @@ class OperationReportByPaymentServiceTest {
             true)).thenReturn(accounts);
         when(detailedResultMapper.map(any())).thenReturn(mappedDetailedReport);
 
-        ReportDataInterface result = service.generateReportData(reportInstance);
+        OperationDetailedReport result = service.generateReportData(reportInstance);
 
         assertThat(result).isSameAs(mappedDetailedReport);
         Mockito.verify(defendantAccountRepository).findAll(

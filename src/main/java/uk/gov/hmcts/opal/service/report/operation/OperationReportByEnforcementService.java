@@ -29,10 +29,11 @@ import uk.gov.hmcts.opal.service.report.ReportDataInterface;
 import uk.gov.hmcts.opal.service.report.ReportEnforcementMode;
 import uk.gov.hmcts.opal.service.report.ReportId;
 import uk.gov.hmcts.opal.service.report.ReportInterface;
+import uk.gov.hmcts.opal.service.report.ReportType;
 
 @Service
 @RequiredArgsConstructor
-public class OperationReportByEnforcementService implements ReportInterface {
+public class OperationReportByEnforcementService implements ReportInterface<ReportDataInterface> {
 
     private final DefendantAccountRepository defendantAccountRepository;
     private final EnforcementRepository enforcementRepository;
@@ -73,6 +74,14 @@ public class OperationReportByEnforcementService implements ReportInterface {
                 Sort.by(DefendantAccountEntity_.ACCOUNT_NUMBER));
         }
         return resultMapper.map(accounts);
+    }
+
+    @Override
+    public Class<? extends ReportDataInterface> getStoredReportDataClass(ReportInstanceEntity reportInstance) {
+        OperationReportByEnforcementFiltersDto filters = readFilters(reportInstance);
+        return filters.getReportType() == ReportType.SUMMARY
+            ? OperationByEnforcementSummaryReport.class
+            : OperationDetailedReport.class;
     }
 
     private static boolean isNotFilteringOnEnforcementData(OperationReportByEnforcementFiltersDto filters) {
