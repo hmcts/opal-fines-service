@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.controllers;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 import static uk.gov.hmcts.opal.util.VersionUtils.createETag;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -16,10 +17,12 @@ import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceDataResults;
+import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.generated.http.api.MajorCreditorApi;
 import uk.gov.hmcts.opal.generated.model.GetCentralFundResponse;
 import uk.gov.hmcts.opal.generated.model.GetMajorCreditorAccountAtAGlance200Response;
 import uk.gov.hmcts.opal.generated.model.GetMajorCreditorAccountHeaderSummary200Response;
+import uk.gov.hmcts.opal.generated.model.GetMajorCreditorHistory200Response;
 import uk.gov.hmcts.opal.generated.model.GetMajorCreditorRefData200Response;
 import uk.gov.hmcts.opal.service.CentralFundService;
 import uk.gov.hmcts.opal.service.MajorCreditorAccountService;
@@ -81,6 +84,27 @@ public class MajorCreditorApiController implements MajorCreditorApi {
             majorCreditorAccountService.getAtAGlance(id);
 
         return buildResponse(response);
+    }
+
+    @Override
+    @FeatureToggle(
+        feature = FeatureFlags.RELEASE_1B,
+        defaultValueProperty = FeatureFlags.RELEASE_1B_ENABLED_PROPERTY
+    )
+    public ResponseEntity<GetMajorCreditorHistory200Response> getMajorCreditorHistory(
+        Long id,
+        LocalDate dateFrom,
+        LocalDate dateTo,
+        List<String> itemTypes) {
+
+        log.debug(":GET:getMajorCreditorHistory: id={}", id);
+
+        GetMajorCreditorHistoryResponse response =
+            majorCreditorAccountService.getHistory(id, dateFrom, dateTo, itemTypes);
+
+        return ResponseEntity.ok()
+            .eTag(createETag(response))
+            .body(response.getPayload());
     }
 
     @Override

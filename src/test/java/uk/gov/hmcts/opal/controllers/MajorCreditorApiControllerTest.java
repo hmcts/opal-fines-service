@@ -6,6 +6,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,11 +18,13 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.CentralFundResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
 import uk.gov.hmcts.opal.generated.model.GetCentralFundResponse;
-import uk.gov.hmcts.opal.generated.model.GetMajorCreditorAccountAtAGlance200Response;
 import uk.gov.hmcts.opal.generated.model.GetCentralFundResponseMajorCreditor;
+import uk.gov.hmcts.opal.generated.model.GetMajorCreditorAccountAtAGlance200Response;
 import uk.gov.hmcts.opal.generated.model.GetMajorCreditorAccountHeaderSummary200Response;
+import uk.gov.hmcts.opal.generated.model.GetMajorCreditorHistory200Response;
 import uk.gov.hmcts.opal.service.CentralFundService;
 import uk.gov.hmcts.opal.service.MajorCreditorAccountService;
 
@@ -86,6 +90,28 @@ class MajorCreditorApiControllerTest {
         assertEquals(response, result.getBody());
         assertEquals("\"8\"", result.getHeaders().getETag());
         verify(majorCreditorAccountService).getAtAGlance(123L);
+    }
+
+    @Test
+    void getMajorCreditorHistory_success() {
+        LocalDate dateFrom = LocalDate.of(2026, 1, 1);
+        LocalDate dateTo = LocalDate.of(2026, 1, 31);
+        List<String> itemTypes = List.of("financial");
+        GetMajorCreditorHistory200Response payload = new GetMajorCreditorHistory200Response().historyItems(List.of());
+        GetMajorCreditorHistoryResponse response = GetMajorCreditorHistoryResponse.builder()
+            .payload(payload)
+            .version(BigInteger.valueOf(9))
+            .build();
+
+        when(majorCreditorAccountService.getHistory(123L, dateFrom, dateTo, itemTypes)).thenReturn(response);
+
+        ResponseEntity<GetMajorCreditorHistory200Response> result =
+            controller.getMajorCreditorHistory(123L, dateFrom, dateTo, itemTypes);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals(payload, result.getBody());
+        assertEquals("\"9\"", result.getHeaders().getETag());
+        verify(majorCreditorAccountService).getHistory(123L, dateFrom, dateTo, itemTypes);
     }
 
     private GetCentralFundResponse centralFundPayload() {

@@ -68,6 +68,7 @@ class Release1bFeatureToggleAnnotationTest {
             "MajorCreditorApiController#getCentralFundByBusinessUnit",
             "MajorCreditorApiController#getMajorCreditorAccountAtAGlance",
             "MajorCreditorApiController#getMajorCreditorAccountHeaderSummary",
+            "MajorCreditorApiController#getMajorCreditorHistory",
             "MinorCreditorApiController#getMinorCreditorAccount",
             "MinorCreditorApiController#getMinorCreditorHistory",
             "MinorCreditorApiController#patchMinorCreditorAccount",
