@@ -26,7 +26,6 @@ class Release1bFeatureToggleDisabledIntegrationTest extends AbstractIntegrationT
     @MethodSource("uk.gov.hmcts.opal.controllers.util.Release1bFeatureToggleRequestUtil#gatedRequests")
     @JiraStory("PO-3762")
     @JiraEpic("PO-3685")
-    @JiraTestKey("PO-7663")
     @JiraTestKey(value = "PO-8518", name = "\"Search Defendant Accounts\"")
     @JiraTestKey(value = "PO-8519", name = "\"Get Defendant Account Header Summary\"")
     @JiraTestKey(value = "PO-8520", name = "\"Get Defendant Account Party\"")
