@@ -9,6 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ClassPathResource;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
@@ -201,6 +202,75 @@ class JsonSchemaValidationServiceTest {
         Mockito.when(jsonNode.toString()).thenThrow(new RuntimeException("Cannot serialise node"));
 
         assertFalse(jsonSchemaValidationService.isValid(jsonNode, "testSchema.json"));
+    }
+
+    @Test
+    void testDefendantAccountsSearchRequest_withConsolidationSearch_shouldPass() {
+        String validJson = """
+            {
+              "active_accounts_only": true,
+              "business_unit_ids": [77],
+              "reference_number": {
+                "organisation": false,
+                "account_number": "12345678A",
+                "prosecutor_case_reference": null
+              },
+              "defendant": null,
+              "consolidation_search": true
+            }
+            """;
+
+        assertTrue(jsonSchemaValidationService.isValid(validJson, SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_REQUEST));
+    }
+
+    @Test
+    void testDefendantAccountsSearchResponse_withConsolidationFields_shouldPass() {
+        String validJson = """
+            {
+              "count": 1,
+              "defendant_accounts": [
+                {
+                  "defendant_account_id": "99000000000001",
+                  "account_number": "12345678A",
+                  "organisation": false,
+                  "aliases": [],
+                  "address_line_1": "",
+                  "postcode": null,
+                  "business_unit_name": "Business Unit",
+                  "business_unit_id": "77",
+                  "prosecutor_case_reference": "PCR123",
+                  "last_enforcement_action": null,
+                  "account_balance": 100.00,
+                  "organisation_name": null,
+                  "defendant_title": "Mr",
+                  "defendant_firstnames": "John",
+                  "defendant_surname": "Smith",
+                  "birth_date": "1980-01-01",
+                  "national_insurance_number": null,
+                  "parent_guardian_surname": null,
+                  "parent_guardian_firstnames": null,
+                  "has_collection_order": true,
+                  "account_version": 3,
+                  "checks": {
+                    "warnings": [
+                      {
+                        "reference": "CON.WN.1",
+                        "message": "Warning message"
+                      }
+                    ],
+                    "errors": [
+                      {
+                        "reference": "CON.ER.1",
+                        "message": "Error message"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+            """;
+
+        assertTrue(jsonSchemaValidationService.isValid(validJson, SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_RESPONSE));
     }
 
 }

@@ -30,7 +30,11 @@ import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
+import uk.gov.hmcts.opal.mapper.request.DefendantAccountSearchRequestMapper;
+import uk.gov.hmcts.opal.mapper.response.DefendantAccountSearchResponseMapper;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
@@ -42,6 +46,12 @@ public class DefendantAccountService {
     private final DefendantAccountServiceProxy defendantAccountServiceProxy;
 
     private final UserStateService userStateService;
+
+    private final DefendantAccountSearchRequestMapper defendantAccountSearchRequestMapper;
+
+    private final DefendantAccountSearchResponseMapper defendantAccountSearchResponseMapper;
+
+    private final DefendantAccountSearchRequestValidator defendantAccountSearchRequestValidator;
 
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
         log.debug(":getHeaderSummary:");
@@ -76,13 +86,15 @@ public class DefendantAccountService {
         return defendantAccountServiceProxy.getHistory(defendantAccountId, filter);
     }
 
-    private List<HistoryItemType> toHistoryItemTypes(List<String> itemTypes) {
-        return itemTypes == null ? List.of() : itemTypes.stream()
-            .flatMap(itemType -> Arrays.stream(itemType.split(",")))
-            .map(String::trim)
-            .filter(itemType -> !itemType.isEmpty())
-            .map(HistoryItemType::fromValue)
-            .toList();
+    public PostDefendantAccountSearchResponseDefendantAccount searchDefendantAccounts(
+        PostDefendantAccountSearchRequestDefendantAccount request
+    ) {
+        defendantAccountSearchRequestValidator.validateAndCheckFeature(request);
+
+        AccountSearchDto accountSearchDto = defendantAccountSearchRequestMapper.toAccountSearchDto(request);
+        DefendantAccountSearchResultsDto results = searchDefendantAccounts(accountSearchDto);
+
+        return defendantAccountSearchResponseMapper.toResponse(results);
     }
 
     public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
@@ -96,6 +108,15 @@ public class DefendantAccountService {
         } else {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }
+    }
+
+    private List<HistoryItemType> toHistoryItemTypes(List<String> itemTypes) {
+        return itemTypes == null ? List.of() : itemTypes.stream()
+            .flatMap(itemType -> Arrays.stream(itemType.split(",")))
+            .map(String::trim)
+            .filter(itemType -> !itemType.isEmpty())
+            .map(HistoryItemType::fromValue)
+            .toList();
     }
 
     public GetDefendantAccountPartyResponse getDefendantAccountParty(

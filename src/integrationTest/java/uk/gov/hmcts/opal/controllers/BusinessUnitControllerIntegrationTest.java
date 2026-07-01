@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -31,6 +32,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.BusinessUnitControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_business_units.sql", executionPhase = BEFORE_TEST_CLASS)
+@Sql(scripts = "classpath:db/deleteData/delete_from_business_units.sql", executionPhase = AFTER_TEST_CLASS)
 @DisplayName("Business Unit Controller Integration Tests")
 class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
 

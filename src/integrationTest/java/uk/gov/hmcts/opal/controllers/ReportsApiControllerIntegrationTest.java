@@ -235,7 +235,8 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Get report by ID - null permission returns forbidden [@PO-2250]")
         @JiraStory("PO-2250")
         @JiraEpic("PO-2248")
-        @JiraTestKey("PO-7767")
+        @JiraTestKey(value = "PO-8604", name = "[1] reportId = \"operational_report_enforcement\"")
+        @JiraTestKey(value = "PO-8605", name = "[2] reportId = \"operational_report_payment\"")
         void getReportById_whenReportPermissionIsNull_returns403(String reportId) throws Exception {
             mockMvc.perform(get(URL_BASE + "/" + reportId))
                 .andExpect(status().isForbidden())

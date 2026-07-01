@@ -1,0 +1,21 @@
+meta {
+  name: Get Report Instance
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/report-instances/{{reportInstanceId}}
+  body: none
+  auth: inherit
+}
+
+vars:pre-request {
+  baseURL: http://localhost:4550
+  reportInstanceId: 99000000008000
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

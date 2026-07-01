@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyShort;
@@ -13,6 +14,9 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -26,17 +30,20 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
-import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItemType;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCreditorPayment;
-import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 
 @ExtendWith(MockitoExtension.class)
@@ -144,6 +151,110 @@ class MinorCreditorServiceTest {
             () -> minorCreditorService.getMinorCreditorAccount(123L)
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        verifyNoInteractions(minorCreditorSearchProxy);
+    }
+
+    @Test
+    void getMinorCreditorHistory_withPermission_delegatesToProxy() {
+        // Arrange
+        Long id = 123L;
+        LocalDate dateFrom = LocalDate.of(2026, 1, 1);
+        LocalDate dateTo = LocalDate.of(2026, 1, 31);
+        List<String> itemTypes = List.of("amendment", "note");
+        GetMinorCreditorHistoryResponse response = GetMinorCreditorHistoryResponse.builder()
+            .version(BigInteger.ONE)
+            .build();
+
+        when(userStateService.getUserStateV1FromSecurityContext())
+            .thenReturn(UserStateUtil.permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
+        when(minorCreditorSearchProxy.getMinorCreditorHistory(eq(id), any(MinorCreditorHistoryFilters.class)))
+            .thenReturn(response);
+
+        // Act
+        GetMinorCreditorHistoryResponse result =
+            minorCreditorService.getMinorCreditorHistory(id, dateFrom, dateTo, itemTypes);
+
+        // Assert
+        assertEquals(response, result);
+        ArgumentCaptor<MinorCreditorHistoryFilters> filtersCaptor =
+            ArgumentCaptor.forClass(MinorCreditorHistoryFilters.class);
+        verify(userStateService).getUserStateV1FromSecurityContext();
+        verify(minorCreditorSearchProxy).getMinorCreditorHistory(eq(id), filtersCaptor.capture());
+        assertEquals(LocalDateTime.of(2026, 1, 1, 0, 0), filtersCaptor.getValue().postedFromInclusive());
+        assertEquals(LocalDateTime.of(2026, 2, 1, 0, 0), filtersCaptor.getValue().postedToExclusive());
+        assertThat(filtersCaptor.getValue().itemTypes()).containsExactlyInAnyOrder(
+            MinorCreditorHistoryItemType.AMENDMENT,
+            MinorCreditorHistoryItemType.NOTE
+        );
+    }
+
+    @Test
+    void getMinorCreditorHistory_withoutPermission_throwsPermissionNotAllowed() {
+        // Arrange
+        UserState noPermissionUser = mock(UserState.class);
+        when(noPermissionUser.anyBusinessUnitUserHasPermission(
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(noPermissionUser);
+
+        // Act & Assert
+        PermissionNotAllowedException ex = Assertions.assertThrows(
+            PermissionNotAllowedException.class,
+            () -> minorCreditorService.getMinorCreditorHistory(
+                123L, LocalDate.of(2026, 1, 1), null, List.of("note"))
+        );
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        verifyNoInteractions(minorCreditorSearchProxy);
+    }
+
+    @Test
+    void getMinorCreditorHistory_authFailure_propagatesAndDoesNotDelegate() {
+        // Arrange
+        RuntimeException expected = new RuntimeException("auth failed");
+        when(userStateService.getUserStateV1FromSecurityContext()).thenThrow(expected);
+
+        // Act
+        RuntimeException result = assertThrows(
+            RuntimeException.class,
+            () -> minorCreditorService.getMinorCreditorHistory(123L, null, null, null)
+        );
+
+        // Assert
+        assertSame(expected, result);
+        verifyNoInteractions(minorCreditorSearchProxy);
+    }
+
+    @Test
+    void getMinorCreditorHistory_invalidItemType_throwsIllegalArgumentException() {
+        // Arrange
+        when(userStateService.getUserStateV1FromSecurityContext())
+            .thenReturn(UserStateUtil.permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
+
+        // Act & Assert
+        IllegalArgumentException result = assertThrows(
+            IllegalArgumentException.class,
+            () -> minorCreditorService.getMinorCreditorHistory(
+                123L, null, null, List.of("payment"))
+        );
+        assertEquals("itemTypes must contain only amendment, financial, note", result.getMessage());
+        verifyNoInteractions(minorCreditorSearchProxy);
+    }
+
+    @Test
+    void getMinorCreditorHistory_dateFromAfterDateTo_throwsIllegalArgumentException() {
+        // Arrange
+        when(userStateService.getUserStateV1FromSecurityContext())
+            .thenReturn(UserStateUtil.permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
+
+        // Act & Assert
+        IllegalArgumentException result = assertThrows(
+            IllegalArgumentException.class,
+            () -> minorCreditorService.getMinorCreditorHistory(
+                123L,
+                LocalDate.of(2026, 2, 1),
+                LocalDate.of(2026, 1, 31),
+                null)
+        );
+        assertEquals("dateFrom must be on or before dateTo", result.getMessage());
         verifyNoInteractions(minorCreditorSearchProxy);
     }
 

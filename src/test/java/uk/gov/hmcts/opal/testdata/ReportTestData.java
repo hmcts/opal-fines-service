@@ -45,7 +45,8 @@ public class ReportTestData {
             .reportId("test_report_full")
             .reportTitle("Full Test Report")
             .reportGroup("Test Reports")
-            .supportedFileTypes(Arrays.asList(SupportedFileType.CSV, SupportedFileType.PDF, SupportedFileType.XML))
+            .supportedFileTypes(Arrays.asList(SupportedFileType.CSV, SupportedFileType.PDF, SupportedFileType.XML,
+                SupportedFileType.JSON))
             .auditedReport(true)
             .reportParameters(List.of(parameter("date-param", ReportParameterType.DATE.getTypeName(), false,
                 "2026-01-01", "2026-04-24", null)))

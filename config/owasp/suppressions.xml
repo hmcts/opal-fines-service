@@ -28,15 +28,18 @@
     <cve>CVE-2025-7962</cve>
   </suppress>
 
-  <suppress until="2026-06-24Z">
+  <suppress until="2026-12-10Z">
     <notes><![CDATA[
-    Reviewed 2026-06-10.
+    Reviewed 2026-06-24.
     CVE-2025-15104 relates to nu.validator:validator, which is not present in this repo's runtime classpath.
     Keep this suppression only for Dependency-Check false positives where validator libraries are mapped to the
     generic CPE "validator:validator".
-    Runtime review found org.hibernate.validator:hibernate-validator:8.0.3.Final and
-    com.networknt:json-schema-validator:1.5.9, but no nu.validator:validator dependency.
+    Runtime review found org.hibernate.validator:hibernate-validator:9.1.0.Final and
+    com.networknt:json-schema-validator:1.5.9. Test runtime review also found
+    com.github.java-json-tools:json-schema-validator:2.2.14. No nu.validator:validator dependency is present.
+    Fluid Attacks still reports no patch available for the affected Nu Html Checker product.
     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/(org\.hibernate\.validator/hibernate-validator@9\.1\.0\.Final|com\.networknt/json-schema-validator@1\.5\.9|com\.github\.java-json-tools/json-schema-validator@2\.2\.14)$</packageUrl>
     <!-- Matches: cpe:2.3:a:validator:validator:<any>:*:*:*:*:*:*:* -->
     <cpe>cpe:2.3:a:validator:validator:*:*:*:*:*:*:*:*</cpe>
     <cve>CVE-2025-15104</cve>
@@ -85,6 +88,17 @@
     <cve>CVE-2026-41843</cve>
     <cve>CVE-2026-41850</cve>
     <cve>CVE-2026-41851</cve>
+  </suppress>
+  <suppress until="2026-09-15Z">
+    <notes><![CDATA[
+    CVE-2026-54515 is fixed in com.fasterxml.jackson.core:jackson-databind 2.21.5/2.22.1, but those patched
+    2.x artifacts are not currently resolvable from Maven Central. The vulnerable 2.x Jackson line is pulled in
+    transitively by springdoc-openapi/swagger, Azure SDK, and json-schema-validator while Spring Boot 4 also provides
+    the patched tools.jackson 3.1.4 line. Remove this suppression once springdoc/swagger, Azure SDK, json-schema-validator,
+    or a resolvable com.fasterxml.jackson patched version is available.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson\.core/jackson\-databind@.*$</packageUrl>
+    <cve>CVE-2026-54515</cve>
   </suppress>
   <!--End of Temporary suppression section -->
 

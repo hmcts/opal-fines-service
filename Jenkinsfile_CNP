@@ -137,6 +137,23 @@ def publishFunctionalResults(String reportNameSuffix = '') {
   ]
 }
 
+def publishIntegrationResults() {
+  ensureIntegrationReportOutputExists()
+
+  steps.junit allowEmptyResults: true, testResults: '**/test-results/integration/*.xml'
+  failBuildOnUnstableResults()
+  steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'integration-output/**/*'
+
+  publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "integration-output/report",
+      reportFiles          : "index.html",
+      reportName           : "Integration Tests Report"
+  ]
+}
+
 def publishSmokeResults(String reportNameSuffix = '') {
   ensureSmokeReportOutputExists()
 
@@ -155,7 +172,7 @@ def publishSmokeResults(String reportNameSuffix = '') {
 }
 
 withPipeline(type, product, component) {
-  env.FAIL_FAST = true
+  env.FAIL_FAST = false
   env.STAGING_DB_SCHEMA = 'public'
   env.OPAL_LEGACY_GATEWAY_URL = 'https://opal-legacy-db-stub-staging.platform.hmcts.net/opal'
   env.OPAL_LEGACY_STUB_IMAGE = 'hmctsprod.azurecr.io/opal/legacy-db-stub:latest'
@@ -175,10 +192,7 @@ withPipeline(type, product, component) {
   }
 
   afterAlways('test') {
-    steps.junit '**/test-results/integration/*.xml'
-    failBuildOnUnstableResults()
-    ensureIntegrationReportOutputExists()
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'integration-output/**/*'
+    publishIntegrationResults()
 
     publishHTML target: [
         allowMissing         : true,
