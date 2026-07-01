@@ -9,9 +9,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -34,12 +31,6 @@ class ReportCSVServiceTest {
 
     @InjectMocks
     private ReportCSVService reportCSVService;
-
-    @BeforeEach
-    void setUp() {
-        reportToCSVStringMapperMap = new HashMap<>();
-        reportCSVService = new ReportCSVService(reportToCSVStringMapperMap);
-    }
 
     @Test
     void convertReportDtoToCSV_returnsCsvBytesWhenMapperExists() {
