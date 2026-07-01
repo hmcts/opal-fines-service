@@ -59,7 +59,6 @@ class Release1bFeatureToggleLaunchDarklyEnabledFlagFalseIntegrationTest extends 
     @JiraTestKey(value = "PO-8562", name = "\"Get Defendant Account Fixed Penalty\"")
     @JiraTestKey(value = "PO-8563", name = "\"Get Central Fund\"")
     @JiraTestKey(value = "PO-8564", name = "\"Get Major Creditor Account Header Summary\"")
-    @JiraTestKey(value = "PO-8565", name = "\"Get Major Creditor Account At A Glance\"")
     @JiraTestKey(value = "PO-8566", name = "\"Search Minor Creditor Accounts\"")
     @JiraTestKey(value = "PO-8567", name = "\"Get Minor Creditor Account Header Summary\"")
     @JiraTestKey(value = "PO-8568", name = "\"Get Minor Creditor Account At A Glance\"")
