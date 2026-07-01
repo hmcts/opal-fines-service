@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.UnexpectedRollbackException;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
@@ -165,6 +166,7 @@ public class DraftAccountService {
             .toList();
     }
 
+    @Transactional
     public DraftAccountResponseDto submitDraftAccount(AddDraftAccountRequestDto dto) {
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
@@ -192,6 +194,7 @@ public class DraftAccountService {
 
     }
 
+    @Transactional
     public DraftAccountResponseDto replaceDraftAccount(Long draftAccountId, ReplaceDraftAccountRequestDto dto,
                                                        String ifMatch) {
 
