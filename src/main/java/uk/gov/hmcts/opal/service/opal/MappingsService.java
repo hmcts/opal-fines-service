@@ -8,9 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.dto.reference.MappingItem;
 import uk.gov.hmcts.opal.entity.MappingValue;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
+import uk.gov.hmcts.opal.generated.model.MappingItemMappings;
 
 @Service
 @Qualifier("mappingsService")
@@ -24,7 +24,7 @@ public class MappingsService {
     );
 
     @Transactional(readOnly = true)
-    public List<MappingItem> getMappings(String type) {
+    public List<MappingItemMappings> getMappings(String type) {
         EnumMappingSource<?> mappingSource = SUPPORTED_MAPPINGS.get(type);
 
         if (mappingSource == null) {
@@ -37,9 +37,12 @@ public class MappingsService {
 
     private record EnumMappingSource<T extends Enum<T> & MappingValue>(Class<T> enumClass) {
 
-        private List<MappingItem> getValues() {
+        private List<MappingItemMappings> getValues() {
             return Arrays.stream(enumClass.getEnumConstants())
-                .map(value -> new MappingItem(value.getCode(), value.getDisplayName()))
+                .map(value -> MappingItemMappings.builder()
+                    .code(value.getCode())
+                    .displayName(value.getDisplayName())
+                    .build())
                 .toList();
         }
     }
