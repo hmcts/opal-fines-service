@@ -93,7 +93,7 @@ class MinorCreditorApiControllerFeatureFlagLocalEnabledIntegrationTest
     @Test
     @JiraStory("PO-2642")
     @JiraEpic("PO-2653")
-    @JiraTestKey("PO-2642")
+    @JiraTestKey("PO-8664")
     void getMinorCreditorHistory_whenHistoryExists_returnsMergedHistoryItems() throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
@@ -134,7 +134,7 @@ class MinorCreditorApiControllerFeatureFlagLocalEnabledIntegrationTest
     @Test
     @JiraStory("PO-2642")
     @JiraEpic("PO-2653")
-    @JiraTestKey("PO-2642")
+    @JiraTestKey("PO-8666")
     void getMinorCreditorHistory_whenItemTypeInvalid_returns400ProblemResponse() throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
@@ -158,7 +158,7 @@ class MinorCreditorApiControllerFeatureFlagLocalEnabledIntegrationTest
     @Test
     @JiraStory("PO-2642")
     @JiraEpic("PO-2653")
-    @JiraTestKey("PO-2642")
+    @JiraTestKey("PO-8665")
     void getMinorCreditorHistory_whenDateFromAfterDateTo_returns400ProblemResponse() throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);

@@ -11,7 +11,8 @@
 * ----------    --------     -------     ---------------------------------------------------------------------------------------------------------
 * 01/05/2026    S WALL       1.0         PO2255 Insert test data for enforcements integration tests
 * 26/05/2026    S WALL       1.1         PO2255 Add impositions data for enforcement integration tests
-  30/06/2026    A REEVES     1.2         PO-2283 Adding more defendant_transactions data for integration tests
+* 16/06/2026    S WALL       1.2         PO2256 Amend enforcements data for integration tests
+  30/06/2026    A REEVES     1.3         PO-2283 Adding more defendant_transactions data for integration tests
 **/
 
 SET search_path TO public;
@@ -256,7 +257,7 @@ VALUES (
            '2024-01-04 18:06:11',
            '2024-01-02 17:08:09',
            '2024-01-03 12:00:12',
-           '10',
+           'ABDC',
            'Kingston-upon-Thames Mags Court',
            'N',
            'N',
@@ -299,7 +300,50 @@ VALUES (
            '2024-01-04',
            '2024-01-02',
            '2024-01-03',
-           '10',
+           'ABDC',
+           'Kingston-upon-Thames Mags Court',
+           true,
+           false,
+           14,
+           21,
+           'FWEC',
+           780000000021,
+           230,
+           'GB pound sterling',
+           700.00,
+           true,
+           '2023-12-18',
+           '2023-12-19',
+           'M',
+           true,
+           '2024-01-01',
+           '11111111A',
+           '090A',
+           'Fine',
+           'Text - Account Comment',
+           'free_text_note_1',
+           'free_text_note_2',
+           'free_text_note_3',
+           101,
+           'NEW'
+       ),
+       (
+           79,
+           0,
+           78,
+           'noPaymentsAfterEnf',
+           '2023-11-03',
+           1,
+           700.58,
+           200.00,
+           -500.58,
+           'L',
+           1,
+           1,
+           '2024-01-04',
+           '2024-01-02',
+           '2024-01-03',
+           'ABDC',
            'Kingston-upon-Thames Mags Court',
            true,
            false,
@@ -419,11 +463,11 @@ INSERT INTO defendant_transactions (
     transaction_amount,
     payment_reference,
     text,
-    status,
     status_date,
     write_off_code,
     associated_record_type,
     associated_record_id,
+    status,
     payment_method
 )
 VALUES
@@ -436,11 +480,11 @@ VALUES
         123.45,
         NULL,
         NULL,
-        NULL,
         TIMESTAMP '2026-05-14 10:00:00',
         NULL,
         'defendant_accounts',
         '78',
+        'P',
         NULL
     ),
     (
@@ -452,9 +496,23 @@ VALUES
         50.00,
         NULL,
         NULL,
-        NULL,
         TIMESTAMP '2026-05-14 10:05:00',
+        'defendant_accounts',
         NULL,
+        'P',
+        'CT'
+    ),
+    (
+        10003,
+        79,
+        DATE '2000-05-14',
+        'enforcement.test',
+        'PAYMNT',
+        50.00,
+        TIMESTAMP '2026-05-14 10:05:00',
+        'defendant_accounts',
+        NULL,
+        'C'
         NULL,
         NULL,
         'CT'
@@ -764,7 +822,7 @@ VALUES
         NULL
     )
     ON CONFLICT (defendant_transaction_id)
-DO UPDATE SET
+    DO UPDATE SET
     defendant_account_id   = EXCLUDED.defendant_account_id,
            posted_date            = EXCLUDED.posted_date,
            posted_by_name         = EXCLUDED.posted_by_name,
@@ -809,6 +867,39 @@ VALUES (
            TIMESTAMP '2000-01-02',
            'L080JG',
            'ABDC',
+           'Test enforcement',
+           '001/25/00001',
+           1,
+           'opal-test'
+       ),
+       (
+           3,
+           78,
+           TIMESTAMP '2000-01-02',
+           'L080JG',
+           'ABDC',
+           'Test enforcement',
+           '001/25/00001',
+           1,
+           'opal-test'
+       ),
+       (
+           4,
+           79,
+           TIMESTAMP '2010-01-02',
+           'L080JG',
+           'ABDC',
+           'Test enforcement',
+           '001/25/00001',
+           1,
+           'opal-test'
+       ),
+       (
+           5,
+           79,
+           TIMESTAMP '2010-01-02',
+           'L080JG',
+           'REGF',
            'Test enforcement',
            '001/25/00001',
            1,

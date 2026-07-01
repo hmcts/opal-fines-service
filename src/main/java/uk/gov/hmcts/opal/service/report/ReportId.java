@@ -12,7 +12,8 @@ public enum ReportId {
     CASH_LIST("cash_list"),
     CASH_TILL("cash_till"),
     FP_REGISTER("fp_register"),
-    OP_ENFORCEMENT("operational_report_enforcement");
+    OP_ENFORCEMENT("operational_report_enforcement"),
+    OP_PAYMENT("operational_report_payment");
 
     public final String reportId;
 
