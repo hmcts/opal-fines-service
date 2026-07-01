@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.List;
 import java.util.NoSuchElementException;
 import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.opal.dto.reference.MappingItem;
+import uk.gov.hmcts.opal.generated.model.MappingItemMappings;
 
 class MappingsServiceTest {
 
@@ -14,15 +14,15 @@ class MappingsServiceTest {
 
     @Test
     void getMappings_returnsSupportedDefendantAccountStatusMappings() {
-        List<MappingItem> mappings = mappingsService.getMappings("defendant-account-status");
+        List<MappingItemMappings> mappings = mappingsService.getMappings("defendant-account-status");
 
         assertEquals(List.of(
-            new MappingItem("CS", "Account consolidated"),
-            new MappingItem("L", "Live"),
-            new MappingItem("TA", "TFO acknowledged"),
-            new MappingItem("TO", "TFO to be acknowledged"),
-            new MappingItem("TS", "TFO to NI/Scotland to be acknowledged"),
-            new MappingItem("WO", "Account written off")
+            MappingItemMappings.builder().code("CS").displayName("Account consolidated").build(),
+            MappingItemMappings.builder().code("L").displayName("Live").build(),
+            MappingItemMappings.builder().code("TA").displayName("TFO acknowledged").build(),
+            MappingItemMappings.builder().code("TO").displayName("TFO to be acknowledged").build(),
+            MappingItemMappings.builder().code("TS").displayName("TFO to NI/Scotland to be acknowledged").build(),
+            MappingItemMappings.builder().code("WO").displayName("Account written off").build()
         ), mappings);
     }
 

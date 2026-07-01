@@ -1,8 +1,8 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -15,9 +15,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
-import uk.gov.hmcts.opal.dto.reference.MappingItem;
+import uk.gov.hmcts.opal.generated.http.api.MappingsApi;
+import uk.gov.hmcts.opal.generated.model.MappingItemMappings;
 import uk.gov.hmcts.opal.service.opal.MappingsService;
 import uk.gov.hmcts.opal.util.FeatureFlags;
 
@@ -32,10 +32,12 @@ class MappingsControllerTest {
 
     @Test
     void getMappings_returnsMappingsForType() {
-        List<MappingItem> mappings = List.of(new MappingItem("L", "Live"));
+        List<MappingItemMappings> mappings = List.of(
+            MappingItemMappings.builder().code("L").displayName("Live").build()
+        );
         when(mappingsService.getMappings("defendant-account-status")).thenReturn(mappings);
 
-        ResponseEntity<List<MappingItem>> response = mappingsController.getMappings("defendant-account-status");
+        ResponseEntity<List<MappingItemMappings>> response = mappingsController.getMappings("defendant-account-status");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(mappings, response.getBody());
@@ -43,16 +45,13 @@ class MappingsControllerTest {
     }
 
     @Test
-    void getMappings_hasRelease1bFeatureToggleAndPathMapping() throws NoSuchMethodException {
+    void getMappings_hasRelease1bFeatureToggleAndImplementsGeneratedApi() throws NoSuchMethodException {
         Method method = MappingsController.class.getMethod("getMappings", String.class);
 
         FeatureToggle featureToggle = method.getAnnotation(FeatureToggle.class);
         assertNotNull(featureToggle);
         assertEquals(FeatureFlags.RELEASE_1B, featureToggle.feature());
         assertEquals(FeatureFlags.RELEASE_1B_ENABLED_PROPERTY, featureToggle.defaultValueProperty());
-
-        GetMapping getMapping = method.getAnnotation(GetMapping.class);
-        assertNotNull(getMapping);
-        assertArrayEquals(new String[]{"/{type}"}, getMapping.value());
+        assertTrue(MappingsApi.class.isAssignableFrom(MappingsController.class));
     }
 }

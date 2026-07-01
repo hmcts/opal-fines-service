@@ -1,0 +1,86 @@
+openapi: 3.1.1
+
+servers:
+  - url: http://localhost:4550/
+
+info:
+  description: Opal Fines Service - Mappings
+  version: v0.0.1
+  title: Opal Fines Service
+
+paths:
+  /mappings/{type}:
+    get:
+      tags:
+        - Mappings
+      summary: Get supported mappings for a type
+      description: Returns the supported mappings for the requested type.
+      operationId: getMappings
+      parameters:
+        - $ref: '#/components/parameters/mappingType'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/mappingItem'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+components:
+  parameters:
+    mappingType:
+      in: path
+      name: type
+      description: Supported mapping type. Currently only `defendant-account-status`.
+      required: true
+      schema:
+        type: string
+        enum:
+          - defendant-account-status
+  schemas:
+    mappingItem:
+      title: Mapping Item
+      type: object
+      additionalProperties: false
+      required:
+        - code
+        - display_name
+      properties:
+        code:
+          type: string
+          description: The code value for the mapping entry.
+        display_name:
+          type: string
+          description: The display name for the mapping entry.
