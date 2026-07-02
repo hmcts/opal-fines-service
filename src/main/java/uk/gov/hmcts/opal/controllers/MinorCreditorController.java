@@ -27,7 +27,6 @@ import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.service.MinorCreditorService;
-import uk.gov.hmcts.opal.service.UserServiceFailureTrigger;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.OpalCreditorAccountService;
 
@@ -41,16 +40,13 @@ public class MinorCreditorController {
 
     // Only used for the 'DELETE' endpoint, used in testing
     private final OpalCreditorAccountService opalCreditorAccountService;
-    private final UserServiceFailureTrigger userServiceFailureTrigger;
     private final UserStateService userStateService;
 
     public MinorCreditorController(MinorCreditorService minorCreditorService,
                                    OpalCreditorAccountService opalCreditorAccountService,
-                                   UserServiceFailureTrigger userServiceFailureTrigger,
         UserStateService userStateService) {
         this.minorCreditorService = minorCreditorService;
         this.opalCreditorAccountService = opalCreditorAccountService;
-        this.userServiceFailureTrigger = userServiceFailureTrigger;
         this.userStateService = userStateService;
     }
 
@@ -59,7 +55,6 @@ public class MinorCreditorController {
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<PostMinorCreditorAccountsSearchResponse> postMinorCreditorsSearch(
         @RequestBody MinorCreditorSearch criteria) throws InterruptedException {
-        userServiceFailureTrigger.triggerUserStateCallWithFakeJwt();
 
         log.debug(":POST:postMinorCreditorsSearch: query: \n{}", criteria);
 
