@@ -217,7 +217,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
         uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails legacyInd =
             uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.builder()
                 .title("Mr")
-                .firstNames("John")
+                .forenames("John")
                 .surname("Smith")
                 .individualAliases(new uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.IndividualAlias[0])
                 .build();
@@ -405,7 +405,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
         uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails ind =
             uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.builder()
             .title("Mr")
-            .firstNames("John")
+            .forenames("John")
             .surname("Smith")
             .individualAliases(new uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.IndividualAlias[] {alias})
             .build();
