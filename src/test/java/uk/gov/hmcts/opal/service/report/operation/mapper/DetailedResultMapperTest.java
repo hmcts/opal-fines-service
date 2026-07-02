@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -17,9 +18,12 @@ import uk.gov.hmcts.opal.dto.report.operation.DetailedAccountReportDto;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedOperationReportAccountRowDto;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedReportDto;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedReportTransactionRowDto;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
+import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
 import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
+import uk.gov.hmcts.opal.repository.ImpositionRepository;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 import uk.gov.hmcts.opal.service.report.operation.OperationDetailedReport;
 
@@ -29,6 +33,7 @@ class DetailedResultMapperTest {
     private DetailedRowDtoCoreMapper rowMapper;
     private DetailedTransactionRowMapper transactionRowMapper;
     private DefendantTransactionRepository transactionRepository;
+    private ImpositionRepository impositionRepository;
 
     @BeforeEach
     void setUp() {
@@ -37,7 +42,8 @@ class DetailedResultMapperTest {
         rowMapper = mock(DetailedRowDtoCoreMapper.class);
         transactionRowMapper = mock(DetailedTransactionRowMapper.class);
         transactionRepository = mock(DefendantTransactionRepository.class);
-        mapper.setRowMapper(rowMapper, transactionRowMapper, transactionRepository);
+        impositionRepository = mock(ImpositionRepository.class);
+        mapper.setRowMapper(rowMapper, transactionRowMapper, transactionRepository, impositionRepository);
     }
 
     @Test
@@ -59,6 +65,11 @@ class DetailedResultMapperTest {
         DefendantTransactionEntity transaction2 = mock(DefendantTransactionEntity.class);
         DefendantTransactionEntity transaction3 = mock(DefendantTransactionEntity.class);
 
+        ImpositionEntity imposition1 = mock(ImpositionEntity.class);
+        when(imposition1.getImpositionId()).thenReturn(11L);
+        ImpositionEntity imposition2 = mock(ImpositionEntity.class);
+        when(imposition2.getImpositionId()).thenReturn(12L);
+
         when(transactionRepository.findByDefendantAccountId(101L)).thenReturn(List.of(transaction1, transaction2));
         when(transactionRepository.findByDefendantAccountId(202L)).thenReturn(List.of(transaction3));
 
@@ -68,12 +79,21 @@ class DetailedResultMapperTest {
             mock(DetailedReportTransactionRowDto.class);
         DetailedReportTransactionRowDto transactionRow3 =
             mock(DetailedReportTransactionRowDto.class);
+        when(transaction1.getAssociatedRecordType()).thenReturn(AssociatedRecordType.IMPOSITIONS);
+        when(transaction1.getAssociatedRecordId()).thenReturn("11");
 
-        when(transactionRowMapper.map(eq(transaction1), eq(account1), any(ReportMetadataContext.class)))
+        when(transaction3.getAssociatedRecordType()).thenReturn(AssociatedRecordType.IMPOSITIONS);
+        when(transaction3.getAssociatedRecordId()).thenReturn("12");
+
+        when(impositionRepository.findAllById(any())).thenReturn(List.of(imposition1, imposition2));
+
+
+        when(transactionRowMapper
+            .map(eq(transaction1), eq(account1), eq(imposition1), any(ReportMetadataContext.class)))
             .thenReturn(transactionRow1);
-        when(transactionRowMapper.map(eq(transaction2), eq(account1), any(ReportMetadataContext.class)))
+        when(transactionRowMapper.map(eq(transaction2), eq(account1), isNull(), any(ReportMetadataContext.class)))
             .thenReturn(transactionRow2);
-        when(transactionRowMapper.map(eq(transaction3), eq(account2), any(ReportMetadataContext.class)))
+        when(transactionRowMapper.map(eq(transaction3), eq(account2), eq(imposition2),any(ReportMetadataContext.class)))
             .thenReturn(transactionRow3);
 
         OperationDetailedReport result = mapper.map(List.of(account1, account2));
