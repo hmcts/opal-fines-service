@@ -891,3 +891,34 @@ Conclusion:
   allows more release-1b disabled tests to reuse existing contexts.
 - Full-suite context misses are now down from 55 to 40 while the integration
   suite remains green.
+
+### 2026-07-02: Removed two redundant profile-backed LaunchDarkly property sources
+
+Code changes:
+
+- Removed redundant inline `@TestPropertySource` from
+  `LegacyDefendantAccountHistoryIntegrationTest`.
+  - `launchdarkly.enabled=false` is already provided by the `legacy` profile.
+  - `launchdarkly.default-flag-values.release-1b=true` is already provided by
+    the `integration` profile.
+- Removed redundant inline `@TestPropertySource` from
+  `OpalMinorCreditorHistoryIntegrationTest`.
+  - `launchdarkly.enabled=false` is already provided by the `opal` profile.
+  - `launchdarkly.default-flag-values.release-1b=true` is already provided by
+    the `opal` profile.
+
+Expected impact:
+
+- Both classes no longer create distinct Spring context cache keys just to
+  repeat profile-backed LaunchDarkly defaults.
+- This should improve context reuse in the Legacy and Opal families without
+  changing the intended feature-flag state.
+
+Validation status:
+
+- Static diff check passed.
+- Local Gradle validation was attempted, but the wrapper could not download the
+  Gradle distribution in this session due to a network timeout. Re-run
+  `./gradlew checkstyleIntegrationTest --no-daemon` and the relevant integration
+  split tasks before relying on the measured miss-count impact of this final
+  cleanup.
