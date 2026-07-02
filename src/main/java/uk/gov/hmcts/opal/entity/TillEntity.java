@@ -24,7 +24,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -58,9 +57,10 @@ public class TillEntity {
     @Column(name = "owned_by", length = 20, nullable = false)
     private String ownedBy;
 
-    @ColumnTransformer(write = "?::t_interface_file_source_enum")
     @Column(name = "source", columnDefinition = "t_interface_file_source_enum")
-    private String source;
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    private InterfaceFileSourceEnum source;
 
     @Column(name = "status", columnDefinition = "t_till_status_enum")
     @Enumerated(EnumType.STRING)
