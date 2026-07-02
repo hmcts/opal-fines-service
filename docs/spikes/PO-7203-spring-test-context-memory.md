@@ -8,9 +8,10 @@ integration base starts the full application with MockMvc, Flyway, Postgres,
 Redis, legacy gateway wiring, LaunchDarkly, Jackson, cache infrastructure, and
 the application bean graph.
 
-The current mitigation is visible in Gradle:
+The current branch keeps the Jenkins heap mitigation but has moved the Spring
+test context cache to a measured moderate value:
 
-- `spring.test.context.cache.maxSize=4`
+- `spring.test.context.cache.maxSize=8`
 - integration test JVM heap `maxHeapSize = "2g"`
 - Gradle daemon heap `org.gradle.jvmargs=-Xmx2g`
 
@@ -25,7 +26,7 @@ not by a single obviously broken test class.
 Current memory/cache settings:
 
 - `build.gradle`: all `Test` tasks set `spring.test.context.cache.maxSize` to
-  `4` and `maxHeapSize` to `2g`.
+  `8` and `maxHeapSize` to `2g`.
 - `gradle.properties`: Gradle itself also runs with `-Xmx2g`.
 
 Shared integration base:
