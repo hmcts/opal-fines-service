@@ -84,7 +84,7 @@ class MinorCreditorApiControllerFeatureFlagIntegrationTest extends AbstractInteg
     @Test
     @JiraStory("PO-2642")
     @JiraEpic("PO-3685")
-    @JiraTestKey("PO-2642")
+    @JiraTestKey("PO-8672")
     void getMinorCreditorHistory_whenRelease1bDisabled_returns404AndDoesNotCallService() throws Exception {
         ResultActions result = mockMvc.perform(get("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID + "/history")
                                                    .header("Authorization", "Bearer some_value"));
