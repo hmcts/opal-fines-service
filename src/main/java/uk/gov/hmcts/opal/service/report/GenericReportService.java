@@ -22,8 +22,8 @@ import org.springframework.stereotype.Service;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -34,8 +34,8 @@ import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceRequestReports;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
-import uk.gov.hmcts.opal.mapper.ReportInstanceMapper;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceReports;
+import uk.gov.hmcts.opal.mapper.ReportInstanceMapper;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.ReportInstanceRepository;
 import uk.gov.hmcts.opal.repository.ReportRepository;
@@ -62,6 +62,7 @@ public class GenericReportService implements GenericReportServiceInterface {
     private final ObjectMapper mapper;
     private final BusinessUnitRepository businessUnitRepository;
     private final ReportInstanceSearchService reportInstanceSearchService;
+    private final GetReportInstanceContentService getReportInstanceContentService;
 
     private static void processError(ReportInstanceEntity instance, Exception exception) {
         instance.setGenerationStatus(ReportInstanceGenerationStatus.ERROR);
@@ -118,6 +119,11 @@ public class GenericReportService implements GenericReportServiceInterface {
             .findAllById(businessUnitIdsForReportInstance);
 
         return reportInstanceMapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntities);
+    }
+
+    @Override
+    public Object getReportInstanceContent(Long id, FileType fileType) {
+        return getReportInstanceContentService.getReportInstanceContent(id, fileType);
     }
 
     @Transactional

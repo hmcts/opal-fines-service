@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.ReportNotFoundException;
 
 @Component
@@ -22,8 +23,12 @@ public class ReportRegistry {
     }
 
     public ReportInterface<?> get(String reportId) {
-        return Optional.ofNullable(reports.get(ReportId.fromReportId(reportId)))
-            .orElseThrow(() -> new ReportNotFoundException("No implementation found for reportId: " + reportId));
+        try {
+            return Optional.ofNullable(reports.get(ReportId.fromReportId(reportId)))
+                .orElseThrow(() -> new MissingReportServiceException(reportId));
+        } catch (ReportNotFoundException reportNotFoundException) {
+            throw new MissingReportServiceException(reportId, reportNotFoundException);
+        }
 
     }
 

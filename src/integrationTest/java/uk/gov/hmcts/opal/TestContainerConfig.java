@@ -20,6 +20,11 @@ public class TestContainerConfig {
     private static final String LOCAL_LEGACY_GATEWAY_URL = "http://localhost:%d/opal".formatted(LEGACY_STUB_PORT);
     private static final String DEFAULT_LEGACY_STUB_IMAGE = "hmctsprod.azurecr.io/opal/legacy-db-stub:latest";
     private static final String DEFAULT_POSTGRES_IMAGE = "postgres:17.5";
+    private static final String AZURITE_IMAGE = "mcr.microsoft.com/azure-storage/azurite:3.35.0";
+    private static final int AZURITE_BLOB_PORT = 10000;
+    private static final String AZURITE_ACCOUNT_NAME = "devstoreaccount1";
+    private static final String AZURITE_ACCOUNT_KEY =
+        "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==";
     private static final String LEGACY_STUB_IMAGE =
         System.getenv().getOrDefault("OPAL_LEGACY_STUB_IMAGE", DEFAULT_LEGACY_STUB_IMAGE);
     private static final boolean ENABLE_LEGACY_STUB =
@@ -28,6 +33,7 @@ public class TestContainerConfig {
         System.getenv().getOrDefault("OPAL_POSTGRES_IMAGE", DEFAULT_POSTGRES_IMAGE);
     public static final PostgreSQLContainer POSTGRES_CONTAINER;
     public static final RedisContainer REDIS_CONTAINER;
+    public static final GenericContainer<?> AZURITE_CONTAINER;
 
     static {
         POSTGRES_CONTAINER = new PostgreSQLContainer(DockerImageName.parse(POSTGRES_IMAGE))
@@ -44,6 +50,12 @@ public class TestContainerConfig {
         REDIS_CONTAINER = new RedisContainer(DockerImageName.parse("redis:6.2.6"))
             .withExposedPorts(6379);
         REDIS_CONTAINER.start();
+
+        AZURITE_CONTAINER = new GenericContainer<>(DockerImageName.parse(AZURITE_IMAGE))
+            .withCommand(
+                "azurite-blob --blobHost 0.0.0.0 --blobPort " + AZURITE_BLOB_PORT + " --skipApiVersionCheck")
+            .withExposedPorts(AZURITE_BLOB_PORT);
+        AZURITE_CONTAINER.start();
 
         //Check if the port is available before starting the legacy stub container.
         //This allows a local version of the legacy stub to be used for testing.
@@ -70,5 +82,13 @@ public class TestContainerConfig {
         } catch (IOException e) {
             return false; // something else is using it
         }
+    }
+
+    public static String azuriteConnectionString() {
+        return "DefaultEndpointsProtocol=http;"
+            + "AccountName=" + AZURITE_ACCOUNT_NAME + ";"
+            + "AccountKey=" + AZURITE_ACCOUNT_KEY + ";"
+            + "BlobEndpoint=http://127.0.0.1:" + AZURITE_CONTAINER.getMappedPort(AZURITE_BLOB_PORT)
+            + "/" + AZURITE_ACCOUNT_NAME + ";";
     }
 }

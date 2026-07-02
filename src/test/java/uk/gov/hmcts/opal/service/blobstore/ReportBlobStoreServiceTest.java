@@ -1,9 +1,12 @@
 package uk.gov.hmcts.opal.service.blobstore;
 
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -11,9 +14,13 @@ import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -70,6 +77,50 @@ public class ReportBlobStoreServiceTest {
     public void storeReport_containerDoesNotExist_throwError() {
         when(container.exists()).thenReturn(false);
         assertThrows(IllegalArgumentException.class, () -> reportBlobStoreService.storeReport(message));
+    }
+
+    @Nested
+    class GetReport {
+
+        private static final String LOCATION = "report-location";
+
+        @Test
+        void whenBlobExists_returnsContent_happyPath() {
+            byte[] reportBytes = message.getBytes(StandardCharsets.UTF_8);
+            when(container.getBlobClient(LOCATION)).thenReturn(blob);
+            doAnswer(invocation -> {
+                OutputStream outputStream = invocation.getArgument(0);
+                outputStream.write(reportBytes);
+                return null;
+            }).when(blob).downloadStream(any(OutputStream.class));
+
+            String result = reportBlobStoreService.getReport(LOCATION);
+
+            assertAll(
+                () -> assertEquals(message, result),
+                () -> verify(container).getBlobClient(LOCATION),
+                () -> verify(blob).downloadStream(any(OutputStream.class))
+            );
+        }
+
+        @Test
+        void whenBlobDownloadFails_throwsUncheckedIoException_sadPath() {
+            IOException cause = new IOException("download failed");
+            when(container.getBlobClient(LOCATION)).thenReturn(blob);
+            doAnswer(invocation -> {
+                throw cause;
+            }).when(blob).downloadStream(any(OutputStream.class));
+
+            UncheckedIOException exception = assertThrows(
+                UncheckedIOException.class,
+                () -> reportBlobStoreService.getReport(LOCATION)
+            );
+
+            assertAll(
+                () -> assertEquals("Failed to read report from blob store at: " + LOCATION, exception.getMessage()),
+                () -> assertEquals(cause, exception.getCause())
+            );
+        }
     }
 
 }
