@@ -26,7 +26,6 @@ import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
-import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -66,17 +65,6 @@ public class DefendantAccountController {
         this.defendantAccountFixedPenaltyService = defendantAccountFixedPenaltyService;
         this.defendantAccountEnforcementService = defendantAccountEnforcementService;
         this.defendantAccountPartyService = defendantAccountPartyService;
-    }
-
-    @GetMapping(value = "/{defendantAccountId}/header-summary")
-    @Operation(summary = "Get defendant account details by providing the defendant account summary")
-    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<DefendantAccountHeaderSummary> getHeaderSummary(
-        @PathVariable Long defendantAccountId) {
-
-        log.debug(":GET:getHeaderSummary: for defendant id: {}", defendantAccountId);
-
-        return buildResponse(defendantAccountService.getHeaderSummary(defendantAccountId));
     }
 
     @GetMapping(value = "/{defendantAccountId}/defendant-account-parties/{defendantAccountPartyId}")
