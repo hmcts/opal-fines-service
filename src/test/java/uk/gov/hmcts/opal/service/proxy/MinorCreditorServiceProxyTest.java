@@ -100,7 +100,7 @@ class MinorCreditorServiceProxyTest extends ProxyTestsBase {
     @Test
     void getMinorCreditorHistory_shouldUseOpalServiceWhenModeIsNotLegacy() {
         // Given: app mode is set
-        setMode(OPAL);
+        setLegacyMode(false);
         // Then: the target service is called, but the other service is not
         testHistoryMode(opalService, legacyService);
     }
@@ -108,7 +108,7 @@ class MinorCreditorServiceProxyTest extends ProxyTestsBase {
     @Test
     void getMinorCreditorHistory_shouldUseLegacyServiceWhenModeIsLegacy() {
         // Given: app mode is set
-        setMode(LEGACY);
+        setLegacyMode(true);
         // Then: the target service is called, but the other service is not
         testHistoryMode(legacyService, opalService);
     }
