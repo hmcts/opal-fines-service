@@ -12,7 +12,7 @@ import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.OriginatorType;
-import uk.gov.hmcts.opal.service.DefendantAccountHeaderViewService;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountHeaderViewRepositoryService;
 import uk.gov.hmcts.opal.service.ImpositionService;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.PaymentTermsRepositoryService;
@@ -36,7 +36,7 @@ public class DetailedRowDtoMapperDecorator
     @Autowired
     private PaymentTermsRepositoryService paymentTermsService;
     @Autowired
-    private DefendantAccountHeaderViewService headerViewService;
+    private DefendantAccountHeaderViewRepositoryService headerViewService;
 
     @Override
     public DetailedOperationReportAccountRowDto map(DefendantAccountEntity entity,

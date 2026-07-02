@@ -20,4 +20,9 @@ public class NoteRepositoryService {
     public List<NoteEntity> findAll(Specification<NoteEntity> specification) {
         return noteRepository.findAll(specification);
     }
+
+    @Transactional
+    public NoteEntity save(NoteEntity noteEntity) {
+        return noteRepository.save(noteEntity);
+    }
 }

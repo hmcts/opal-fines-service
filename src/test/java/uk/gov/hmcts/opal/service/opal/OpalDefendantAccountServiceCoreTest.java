@@ -30,8 +30,6 @@ import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse.DefendantAccountTypeEnum;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
-import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
@@ -43,12 +41,6 @@ class OpalDefendantAccountServiceCoreTest {
 
     @Mock
     private DefendantAccountRepositoryService defendantAccountRepositoryService;
-
-    @Mock
-    private DefendantAccountRepository defendantAccountRepository;
-
-    @Mock
-    private DefendantAccountSummaryViewRepository dasvRepository;
 
     @Mock
     private FixedPenaltyOffenceRepositoryService fixedPenaltyOffenceRepositoryService;
@@ -75,7 +67,7 @@ class OpalDefendantAccountServiceCoreTest {
         long testId = 1L;
 
         DefendantAccountEntity entity = DefendantAccountEntity.builder().build();
-        when(defendantAccountRepository.findById(testId)).thenReturn(Optional.ofNullable(entity));
+        when(defendantAccountRepositoryService.findById(testId)).thenReturn(entity);
 
         DefendantAccountEntity result = service.getDefendantAccountById(testId);
         assertNotNull(result);
@@ -86,7 +78,7 @@ class OpalDefendantAccountServiceCoreTest {
         long testId = 1L;
 
         DefendantAccountSummaryViewEntity viewEntity = DefendantAccountSummaryViewEntity.builder().build();
-        when(dasvRepository.findById(testId)).thenReturn(java.util.Optional.of(viewEntity));
+        when(defendantAccountRepositoryService.findSummaryViewById(testId)).thenReturn(viewEntity);
 
         DefendantAccountSummaryViewEntity result = service.getDefendantAccountSummaryViewById(testId);
         assertNotNull(result);

@@ -20,7 +20,7 @@ import uk.gov.hmcts.opal.dto.report.operation.DetailedOperationReportAccountRowD
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.OriginatorType;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
-import uk.gov.hmcts.opal.service.DefendantAccountHeaderViewService;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountHeaderViewRepositoryService;
 import uk.gov.hmcts.opal.service.ImpositionService;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.PaymentTermsRepositoryService;
@@ -45,7 +45,7 @@ class DetailedRowDtoMapperDecoratorTest {
     private PaymentTermsRepositoryService paymentTermsService;
 
     @Mock
-    private DefendantAccountHeaderViewService headerViewService;
+    private DefendantAccountHeaderViewRepositoryService headerViewService;
 
     private DetailedRowDtoMapperDecorator decorator;
 

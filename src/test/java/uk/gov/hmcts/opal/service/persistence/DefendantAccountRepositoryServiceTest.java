@@ -16,13 +16,23 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
 
 @ExtendWith(MockitoExtension.class)
 class DefendantAccountRepositoryServiceTest {
 
     @Mock
     private DefendantAccountRepository defendantAccountRepository;
+
+    @Mock
+    private DefendantAccountHeaderViewRepository defendantAccountHeaderViewRepository;
+
+    @Mock
+    private DefendantAccountSummaryViewRepository defendantAccountSummaryViewRepository;
 
     @InjectMocks
     private DefendantAccountRepositoryService service;
@@ -60,6 +70,54 @@ class DefendantAccountRepositoryServiceTest {
             .hasMessage("Defendant Account not found with id: " + defendantAccountId);
 
         verify(defendantAccountRepository).findById(defendantAccountId);
+    }
+
+    @Test
+    void findByIdForUpdate_whenAccountExists_returnsAccount() {
+        long defendantAccountId = 2L;
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(defendantAccountId)
+            .build();
+
+        when(defendantAccountRepository.findByDefendantAccountIdForUpdate(defendantAccountId))
+            .thenReturn(Optional.of(account));
+
+        DefendantAccountEntity result = service.findByIdForUpdate(defendantAccountId);
+
+        assertThat(result).isEqualTo(account);
+        verify(defendantAccountRepository).findByDefendantAccountIdForUpdate(defendantAccountId);
+    }
+
+    @Test
+    void findHeaderViewById_whenViewExists_returnsView() {
+        long defendantAccountId = 3L;
+        DefendantAccountHeaderViewEntity view = DefendantAccountHeaderViewEntity.builder()
+            .defendantAccountId(defendantAccountId)
+            .build();
+
+        when(defendantAccountHeaderViewRepository.findById(defendantAccountId))
+            .thenReturn(Optional.of(view));
+
+        DefendantAccountHeaderViewEntity result = service.findHeaderViewById(defendantAccountId);
+
+        assertThat(result).isEqualTo(view);
+        verify(defendantAccountHeaderViewRepository).findById(defendantAccountId);
+    }
+
+    @Test
+    void findSummaryViewById_whenViewExists_returnsView() {
+        long defendantAccountId = 4L;
+        DefendantAccountSummaryViewEntity view = DefendantAccountSummaryViewEntity.builder()
+            .defendantAccountId(defendantAccountId)
+            .build();
+
+        when(defendantAccountSummaryViewRepository.findById(defendantAccountId))
+            .thenReturn(Optional.of(view));
+
+        DefendantAccountSummaryViewEntity result = service.findSummaryViewById(defendantAccountId);
+
+        assertThat(result).isEqualTo(view);
+        verify(defendantAccountSummaryViewRepository).findById(defendantAccountId);
     }
 
     @Test
