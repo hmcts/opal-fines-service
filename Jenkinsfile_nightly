@@ -187,10 +187,11 @@ def publishSmokeResults = { reportNameSuffix ->
 def authenticateHmctsProdAcr = {
   steps.sh '''
     set +x
-    export AZURE_CONFIG_DIR=/opt/jenkins/.azure-prod
+    export AZURE_CONFIG_DIR="${WORKSPACE}/.azure-hmctsprod"
 
-    echo "Checking Azure CLI login..."
-    az account show --output table
+    echo "Logging in to Azure with managed identity for hmctsprod ACR access..."
+    az login --identity --output none
+    az account set --subscription DCD-CNP-Prod
 
     echo "Checking hmctsprod ACR access..."
     az acr repository show-tags \
@@ -200,7 +201,7 @@ def authenticateHmctsProdAcr = {
       --output table
 
     echo "Authenticating Docker with hmctsprod ACR..."
-    az acr login --name hmctsprod --subscription DCD-CNP-Prod
+    az acr login --name hmctsprod
     docker pull hmctsprod.azurecr.io/opal/legacy-db-stub:latest
   '''
 }
