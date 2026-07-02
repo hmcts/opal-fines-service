@@ -1,5 +1,1 @@
 app-mode: opal
-launchdarkly:
-  enabled: false
-  default-flag-values:
-    release-1b: true
