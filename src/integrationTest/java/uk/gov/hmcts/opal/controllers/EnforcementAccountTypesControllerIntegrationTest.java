@@ -38,6 +38,7 @@ public class EnforcementAccountTypesControllerIntegrationTest extends AbstractIn
     class FeatureOn {
 
         @Test
+        @DisplayName("PO-2434 - INT.01 & INT.06 – Return all enforcement account types")
         @JiraStory("PO-2434")
         @JiraEpic("PO-2433")
         void returnsAllEnforcementAccountTypes_200() throws Exception {
@@ -74,6 +75,7 @@ public class EnforcementAccountTypesControllerIntegrationTest extends AbstractIn
         }
 
         @Test
+        @DisplayName("PO-2434 - INT.07 – Forbidden without Auto Enforcement permission")
         @JiraStory("PO-2434")
         @JiraEpic("PO-2433")
         void forbiddenWithoutAutoEnforcementPermission() throws Exception {
@@ -89,6 +91,7 @@ public class EnforcementAccountTypesControllerIntegrationTest extends AbstractIn
 
 
         @Test
+        @DisplayName("PO-2434 - INT.04 & INT.06 – Deterministic and idempotent GET")
         @JiraStory("PO-2434")
         @JiraEpic("PO-2433")
         void deterministicAndIdempotentGET() throws Exception {
@@ -121,6 +124,7 @@ public class EnforcementAccountTypesControllerIntegrationTest extends AbstractIn
     class FeatureOff {
 
         @Test
+        @DisplayName("PO-2434 - Feature flag off test")
         @JiraStory("PO-2434")
         @JiraEpic("PO-2433")
         void getAllEnforcementAccountTypes_FeatureOff_404() throws Exception {
