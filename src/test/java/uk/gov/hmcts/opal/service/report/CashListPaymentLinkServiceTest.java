@@ -21,6 +21,7 @@ import uk.gov.hmcts.opal.entity.SuspenseItemEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.SuspenseItemRepository;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 
 @ExtendWith(MockitoExtension.class)
 class CashListPaymentLinkServiceTest {
@@ -29,7 +30,7 @@ class CashListPaymentLinkServiceTest {
     private static final Long SUSPENSE_ITEM_ID = 99000000030000L;
 
     @Mock
-    private OpalDefendantAccountService defendantAccountService;
+    private DefendantAccountRepositoryService defendantAccountRepositoryService;
 
     @Mock
     private SuspenseItemRepository suspenseItemRepository;
@@ -38,7 +39,7 @@ class CashListPaymentLinkServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new CashListPaymentLinkService(defendantAccountService, suspenseItemRepository);
+        service = new CashListPaymentLinkService(suspenseItemRepository, defendantAccountRepositoryService);
     }
 
     @Test
@@ -47,7 +48,7 @@ class CashListPaymentLinkServiceTest {
         DefendantAccountEntity defendantAccount = DefendantAccountEntity.builder()
             .defendantAccountId(DEFENDANT_ACCOUNT_ID)
             .build();
-        when(defendantAccountService.getDefendantAccountById(DEFENDANT_ACCOUNT_ID))
+        when(defendantAccountRepositoryService.findById(DEFENDANT_ACCOUNT_ID))
             .thenReturn(defendantAccount);
 
         DefendantAccountEntity result = service.getDefendantAccount(payment);
@@ -77,7 +78,7 @@ class CashListPaymentLinkServiceTest {
         assertThatThrownBy(() -> service.getDefendantAccount(payment))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Payment 1 is missing associated_record_id for " + DEFENDANT_ACCOUNTS.getLabel());
-        verifyNoInteractions(defendantAccountService, suspenseItemRepository);
+        verifyNoInteractions(defendantAccountRepositoryService, suspenseItemRepository);
     }
 
     @Test
@@ -87,13 +88,13 @@ class CashListPaymentLinkServiceTest {
         assertThatThrownBy(() -> service.getSuspenseItem(payment))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Payment 1 has invalid associated_record_id: not-a-number");
-        verifyNoInteractions(defendantAccountService, suspenseItemRepository);
+        verifyNoInteractions(defendantAccountRepositoryService, suspenseItemRepository);
     }
 
     @Test
     void getDefendantAccount_throwsWhenDefendantAccountDoesNotExist() {
         PaymentInEntity payment = payment(1L, String.valueOf(DEFENDANT_ACCOUNT_ID));
-        when(defendantAccountService.getDefendantAccountById(DEFENDANT_ACCOUNT_ID))
+        when(defendantAccountRepositoryService.findById(DEFENDANT_ACCOUNT_ID))
             .thenThrow(new EntityNotFoundException("Defendant Account not found with id: " + DEFENDANT_ACCOUNT_ID));
 
         assertThatThrownBy(() -> service.getDefendantAccount(payment))

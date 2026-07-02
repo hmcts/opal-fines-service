@@ -63,17 +63,6 @@ class OpalDefendantAccountServiceCoreTest {
     private OpalDefendantAccountEnforcementService enforcementService;
 
     @Test
-    void testDefendantAccountById() {
-        long testId = 1L;
-
-        DefendantAccountEntity entity = DefendantAccountEntity.builder().build();
-        when(defendantAccountRepositoryService.findById(testId)).thenReturn(entity);
-
-        DefendantAccountEntity result = service.getDefendantAccountById(testId);
-        assertNotNull(result);
-    }
-
-    @Test
     void testGetDefendantAccountSummaryViewById() {
         long testId = 1L;
 

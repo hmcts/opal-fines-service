@@ -149,6 +149,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final DefendantAccountHistoryService defendantAccountHistoryService;
 
+    private final OpalDefendantAccountPaymentTermsService  defendantAccountPaymentTermsService;
+
     // Mappers
     private final DefendantAccountHeaderSummaryMapper defendantAccountHeaderSummaryMapper;
     private final EnforcerDefendantAccountMapper enforcerDefendantAccountMapper;
@@ -170,16 +172,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private final NoteRepositoryService noteRepositoryService;
     private final CourtService courtService;
     private final EnforcementRepositoryService enforcementRepositoryService;
-
-    //TODO - Remove once repository service is in use
-    public DefendantAccountEntity getDefendantAccountById(long defendantAccountId) {
-        return defendantAccountRepositoryService.findById(defendantAccountId);
-    }
-
-    //TODO - Remove once repository service is in use
-    public DefendantAccountEntity getDefendantAccountByIdForUpdate(long defendantAccountId) {
-        return defendantAccountRepositoryService.findByIdForUpdate(defendantAccountId);
-    }
 
     //TODO - Remove once repository service is in use
     @Override
@@ -311,7 +303,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(Long defendantAccountId) {
         log.debug(":getDefendantAccountFixedPenalty (Opal): id={}", defendantAccountId);
 
-        DefendantAccountEntity account = getDefendantAccountById(defendantAccountId);
+        DefendantAccountEntity account = defendantAccountRepositoryService.findById(defendantAccountId);
 
         FixedPenaltyOffenceEntity offence =
             fixedPenaltyOffenceRepositoryService.findByDefendantAccountId(defendantAccountId);
@@ -329,7 +321,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             defendantAccountPartyId);
 
         // Find the DefendantAccountEntity by ID
-        DefendantAccountEntity account = getDefendantAccountById(defendantAccountId);
+        DefendantAccountEntity account = defendantAccountRepositoryService.findById(defendantAccountId);
 
         // Find the DefendantAccountPartiesEntity by Party ID
         DefendantAccountPartiesEntity party = account.getParties().stream()
@@ -398,7 +390,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     ) {
         log.debug(":updateDefendantAccount (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
-        DefendantAccountEntity entity = getDefendantAccountById(defendantAccountId);
+        DefendantAccountEntity entity = defendantAccountRepositoryService.findById(defendantAccountId);
 
         if (entity.getBusinessUnit() == null
             || entity.getBusinessUnit().getBusinessUnitId() == null
@@ -494,7 +486,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     //TODO - Remove once OpalDefendantAccountPartyService is in use
     // TODO - Created PO-2452 to fix bumping the version with a more atomically correct method
     private DefendantAccountEntity bumpVersion(Long accountId) {
-        DefendantAccountEntity entity = getDefendantAccountById(accountId);
+        DefendantAccountEntity entity = defendantAccountRepositoryService.findById(accountId);
         entity.setVersionNumber(entity.getVersion().add(BigInteger.ONE).longValueExact());
         return defendantAccountRepositoryService.saveAndFlush(entity);
     }
@@ -517,7 +509,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         log.debug(":replaceDefendantAccountParty: accountId: {}, partyId: {}", accountId, dapId);
 
-        DefendantAccountEntity account = getDefendantAccountById(accountId);
+        DefendantAccountEntity account = defendantAccountRepositoryService.findById(accountId);
 
         if (account.getBusinessUnit() == null
             || account.getBusinessUnit().getBusinessUnitId() == null
@@ -651,7 +643,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         log.debug(":getEnforcementStatus: def acc: {}",  defendantAccountId);
 
-        DefendantAccountEntity defendantEntity = getDefendantAccountById(defendantAccountId);
+        DefendantAccountEntity defendantEntity = defendantAccountRepositoryService.findById(defendantAccountId);
         DefendantAccountPartiesEntity defendantParty = filterDefendantParty(defendantEntity);
         EnforcementEntity recentEnforcement = fetchEnforcementMostRecent(defendantEntity);
 
@@ -881,7 +873,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         log.debug(":addPaymentCardRequest (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
-        DefendantAccountEntity account = getDefendantAccountById(defendantAccountId);
+        DefendantAccountEntity account = defendantAccountRepositoryService.findById(defendantAccountId);
 
         amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
@@ -902,7 +894,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     //Deprecated - use DefendantAccountPaymentTermsService
     //TODO: Remove this method once OpalDefendantAccountPaymentTermsService is in use
     private DefendantAccountEntity loadAndValidateAccount(Long accountId, String buId) {
-        DefendantAccountEntity account = getDefendantAccountById(accountId);
+        DefendantAccountEntity account = defendantAccountRepositoryService.findById(accountId);
         validateBusinessUnitPresent(account, buId);
         return account;
     }
