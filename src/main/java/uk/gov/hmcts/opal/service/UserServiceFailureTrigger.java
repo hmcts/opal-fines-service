@@ -5,6 +5,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -30,6 +31,12 @@ public class UserServiceFailureTrigger {
             .build()
             .toUriString();
 
-        restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+        try {
+            restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+        } catch (RestClientResponseException ex) {
+            throw ex;
+        }
+
+        throw new IllegalStateException("Expected fake JWT user-service call to fail, but it succeeded");
     }
 }
