@@ -338,6 +338,13 @@ components:
           default: false
         report_parameters:
           type: object
+          description: >
+            Report-specific parameters and metadata. For `operational_report_enforcement`
+            and `operational_report_payment`, this includes
+            `business_unit_warning_threshold`, the centrally managed threshold used to
+            warn when too many business units are selected during report creation.
+          example:
+            business_unit_warning_threshold: 10
           additionalProperties: true
         supports_multiple_business_units:
           type: boolean
