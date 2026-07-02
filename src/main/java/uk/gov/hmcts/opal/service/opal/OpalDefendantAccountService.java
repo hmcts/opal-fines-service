@@ -2,17 +2,11 @@ package uk.gov.hmcts.opal.service.opal;
 
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildCollectionOrderCommon;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildCommentsAndNotes;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildContactDetails;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildCourtReference;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEmployerDetails;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementAction;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementOverrideResult;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementOverrideResultDefendantAccount;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementStatus;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildLanguagePreferences;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildPartyAddressDetails;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildPartyDetails;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildVehicleDetails;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.filterDefendantParty;
 
 import jakarta.persistence.EntityManager;
@@ -23,15 +17,10 @@ import java.math.BigInteger;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
@@ -55,22 +44,13 @@ import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
-import uk.gov.hmcts.opal.dto.common.EmployerDetails;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
-import uk.gov.hmcts.opal.dto.common.IndividualAlias;
-import uk.gov.hmcts.opal.dto.common.IndividualDetails;
-import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
-import uk.gov.hmcts.opal.dto.common.OrganisationAlias;
-import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
-import uk.gov.hmcts.opal.dto.common.PartyDetails;
-import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
-import uk.gov.hmcts.opal.entity.AliasEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
@@ -78,7 +58,6 @@ import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
-import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
@@ -137,9 +116,10 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final EntityManager em;
 
-    private final PartyRepositoryService partyRepositoryService;
-
     private final UserStateService userStateService;
+
+    private final OpalDefendantAccountPartyService defendantAccountPartyService;
+
     // Services
     private final DocumentService documentService;
 
@@ -148,8 +128,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private final ReportEntryServiceInterface reportEntryService;
 
     private final DefendantAccountHistoryService defendantAccountHistoryService;
-
-    private final OpalDefendantAccountPaymentTermsService  defendantAccountPaymentTermsService;
 
     // Mappers
     private final DefendantAccountHeaderSummaryMapper defendantAccountHeaderSummaryMapper;
@@ -164,7 +142,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private final PaymentTermsRepositoryService paymentTermsRepositoryService;
     private final FixedPenaltyOffenceRepositoryService fixedPenaltyOffenceRepositoryService;
     private final DebtorDetailRepositoryService debtorDetailRepositoryService;
-    private final AliasRepositoryService aliasRepositoryService;
     private final PaymentCardRequestRepositoryService paymentCardRequestRepositoryService;
     private final ResultRepositoryService resultRepositoryService;
     private final EnforcerRepositoryService enforcerRepositoryService;
@@ -311,59 +288,11 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return OpalDefendantAccountBuilders.toFixedPenaltyResponse(account, offence);
     }
 
-    //Deprecated - use OpalDefendantAccountPartyService
-    //TODO - Remove once OpalDefendantAccountPartyService is in use
     @Override
     @Transactional(readOnly = true)
     public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId) {
-        log.debug(":getDefendantAccountParty: Opal mode: accountId={}, partyId={}", defendantAccountId,
-            defendantAccountPartyId);
-
-        // Find the DefendantAccountEntity by ID
-        DefendantAccountEntity account = defendantAccountRepositoryService.findById(defendantAccountId);
-
-        // Find the DefendantAccountPartiesEntity by Party ID
-        DefendantAccountPartiesEntity party = account.getParties().stream()
-            .filter(p -> p.getDefendantAccountPartyId().equals(defendantAccountPartyId))
-            .findFirst()
-            .orElseThrow(() -> new EntityNotFoundException(
-                "Defendant Account Party not found for accountId=" + defendantAccountId
-                    + ", partyId=" + defendantAccountPartyId));
-
-        List<AliasEntity> aliasEntity = aliasRepositoryService.findByPartyId(party.getParty().getPartyId());
-
-        // Map entity to PartyDetails DTO
-        DefendantAccountParty defendantAccountParty = mapDefendantAccountParty(party, aliasEntity);
-
-        return GetDefendantAccountPartyResponse.builder()
-            .defendantAccountParty(defendantAccountParty)
-            .version(account.getVersion())
-            .build();
-
-    }
-
-    //Deprecated - use OpalDefendantAccountPartyService
-    // TODO - Remove once OpalDefendantAccountPartyService is in use
-    private DefendantAccountParty mapDefendantAccountParty(
-        DefendantAccountPartiesEntity partyEntity, List<AliasEntity> aliases) {
-
-        PartyEntity party = partyEntity.getParty();
-        DebtorDetailEntity debtorDetail = debtorDetailRepositoryService.findByPartyId(party.getPartyId())
-            .orElse(null);
-
-        return DefendantAccountParty.builder()
-            .defendantAccountPartyType(Optional.ofNullable(partyEntity.getAssociationType())
-                                           .map(AssociationType::getLabel)
-                                           .orElse(null))
-            .isDebtor(partyEntity.getDebtor())
-            .partyDetails(buildPartyDetails(party, aliases))
-            .address(buildPartyAddressDetails(party))
-            .contactDetails(buildContactDetails(party))
-            .vehicleDetails(buildVehicleDetails(debtorDetail))
-            .employerDetails(buildEmployerDetails(debtorDetail))
-            .languagePreferences(buildLanguagePreferences(debtorDetail))
-            .build();
+        return defendantAccountPartyService.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
     }
 
     //TODO - Remove this once repository service is in use
@@ -482,15 +411,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return new AddPaymentCardRequestResponse(defendantAccountId);
     }
 
-    //Deprecated - use OpalDefendantAccountPartyService
-    //TODO - Remove once OpalDefendantAccountPartyService is in use
-    // TODO - Created PO-2452 to fix bumping the version with a more atomically correct method
-    private DefendantAccountEntity bumpVersion(Long accountId) {
-        DefendantAccountEntity entity = defendantAccountRepositoryService.findById(accountId);
-        entity.setVersionNumber(entity.getVersion().add(BigInteger.ONE).longValueExact());
-        return defendantAccountRepositoryService.saveAndFlush(entity);
-    }
-
     //Deprecated - use OpalDefendantAccountEnforcementService
     //TODO - Remove once OpalDefendantAccountEnforcementService is in use
     @Override
@@ -499,95 +419,14 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return null;
     }
 
-    //Deprecated - use OpalDefendantAccountPartyService
-    // TODO - Remove once OpalDefendantAccountPartyService is in use
     @Override
     @Transactional
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(
         Long accountId, Long dapId, DefendantAccountParty request, String ifMatch, String businessUnitId,
         String postedBy, String postedByName, String businessUserId) {
 
-        log.debug(":replaceDefendantAccountParty: accountId: {}, partyId: {}", accountId, dapId);
-
-        DefendantAccountEntity account = defendantAccountRepositoryService.findById(accountId);
-
-        if (account.getBusinessUnit() == null
-            || account.getBusinessUnit().getBusinessUnitId() == null
-            || !String.valueOf(account.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
-            throw new EntityNotFoundException("Defendant Account not found in business unit " + businessUnitId);
-        }
-
-        VersionUtils.verifyIfMatch(account, ifMatch, accountId, "replaceDefendantAccountParty");
-        amendmentService.auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
-
-        DefendantAccountPartiesEntity dap = account.getParties().stream()
-            .filter(p -> p.getDefendantAccountPartyId().equals(dapId))
-            .findFirst()
-            .orElseThrow(() -> new EntityNotFoundException(
-                "Defendant Account Party not found for accountId=" + accountId + ", partyId=" + dapId));
-
-        PartyEntity party = dap.getParty();
-
-        Long requestedPartyId = OpalDefendantAccountBuilders.safeParseLong(
-            request != null && request.getPartyDetails() != null ? request.getPartyDetails().getPartyId() : null);
-
-        if (party == null) {
-            if (requestedPartyId == null) {
-                throw new IllegalArgumentException("party_id is required");
-            }
-            party = partyRepositoryService.findById(requestedPartyId);   // loads & manages the entity
-            dap.setParty(party);
-        } else {
-            if (requestedPartyId != null && !Objects.equals(party.getPartyId(), requestedPartyId)) {
-                throw new IllegalArgumentException("Switching party is not allowed");
-            }
-
-            party = partyRepositoryService.findById(party.getPartyId());
-            dap.setParty(party);
-        }
-
-        if (request == null) {
-            throw new IllegalArgumentException("Request body is required");
-        }
-
-        Optional.ofNullable(request.getDefendantAccountPartyType())
-            .map(AssociationType::getByLabel)
-            .ifPresent(dap::setAssociationType);
-        dap.setDebtor(request.getIsDebtor());
-
-        OpalDefendantAccountBuilders.applyPartyCoreReplace(party, request.getPartyDetails());
-        OpalDefendantAccountBuilders.applyPartyAddressReplace(party, request.getAddress());
-        OpalDefendantAccountBuilders.applyPartyContactReplace(party, request.getContactDetails());
-
-        boolean isDebtor = Boolean.TRUE.equals(request.getIsDebtor());
-        replaceDebtorDetail(
-            party.getPartyId(),
-            request.getVehicleDetails(),
-            request.getEmployerDetails(),
-            request.getLanguagePreferences(),
-            isDebtor
-        );
-
-        replaceAliasesForParty(party.getPartyId(), request.getPartyDetails());
-
-        amendmentService.auditFinaliseStoredProc(
-            account.getDefendantAccountId(),
-            RecordType.DEFENDANT_ACCOUNTS,
-            Short.parseShort(businessUnitId),
-            postedBy,
-            postedByName,
-            account.getProsecutorCaseReference(),
-            "ACCOUNT_ENQUIRY"
-        );
-
-        List<AliasEntity> aliasEntity = party.getPartyId() == null
-            ? java.util.Collections.emptyList()
-            : aliasRepositoryService.findByPartyId(party.getPartyId());
-
-        return GetDefendantAccountPartyResponse.builder()
-            .defendantAccountParty(mapDefendantAccountParty(dap, aliasEntity))
-            .version(bumpVersion(accountId).getVersion())
-            .build();
+        return defendantAccountPartyService.replaceDefendantAccountParty(accountId, dapId, request, ifMatch, postedBy,
+            postedByName, businessUserId);
     }
 
     //Deprecated - use OpalDefendantAccountEnforcementService
@@ -698,168 +537,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         entity.setEnforcingCourt(court);
         log.debug(":applyEnforcementCourt: accountId={}, courtId={}",
             entity.getDefendantAccountId(), court.getCourtId());
-    }
-
-    //Deprecated - use OpalDefendantAccountPartyService
-    //TODO: Remove this method once OpalDefendantAccountPartyService is in use
-    private void replaceAliasesForParty(Long partyId, PartyDetails pd) {
-        if (partyId == null || pd == null || pd.getOrganisationFlag() == null) {
-            return;
-        }
-
-        PartyEntity party = partyRepositoryService.findById(partyId);
-
-        List<AliasEntity> existing = aliasRepositoryService.findByPartyId(partyId);
-
-        Map<Long, AliasEntity> byId = new HashMap<>();
-        for (AliasEntity e : existing) {
-            if (e.getAliasId() != null) {
-                byId.put(e.getAliasId(), e);
-            }
-        }
-
-        List<AliasEntity> toPersist = new ArrayList<>();
-        Set<Long> keepIds = new HashSet<>();
-
-        if (Boolean.TRUE.equals(pd.getOrganisationFlag())) {
-            List<OrganisationAlias> orgAliases = Optional.ofNullable(pd.getOrganisationDetails())
-                .map(OrganisationDetails::getOrganisationAliases)
-                .orElse(Collections.emptyList());
-
-            for (OrganisationAlias a : orgAliases) {
-                if (a == null) {
-                    continue;
-                }
-
-                String idStr = a.getAliasId();
-                Long id = (idStr == null || idStr.trim().isEmpty()) ? null : Long.valueOf(idStr.trim());
-
-                AliasEntity row = upsertAlias(
-                    byId, party,
-                    id, a.getSequenceNumber(),
-                    a.getOrganisationName(),
-                    null, null,
-                    true
-                );
-                toPersist.add(row);
-                if (row.getAliasId() != null) {
-                    keepIds.add(row.getAliasId());
-                }
-            }
-
-        } else {
-            List<IndividualAlias> indAliases = Optional.ofNullable(pd.getIndividualDetails())
-                .map(IndividualDetails::getIndividualAliases)
-                .orElse(Collections.emptyList());
-
-            for (IndividualAlias a : indAliases) {
-                if (a == null) {
-                    continue;
-                }
-
-                String idStr = a.getAliasId();
-                Long id = (idStr == null || idStr.trim().isEmpty()) ? null : Long.valueOf(idStr.trim());
-
-                AliasEntity row = upsertAlias(
-                    byId, party,
-                    id, a.getSequenceNumber(),
-                    null,
-                    a.getForenames(), a.getSurname(),
-                    false
-                );
-                toPersist.add(row);
-                if (row.getAliasId() != null) {
-                    keepIds.add(row.getAliasId());
-                }
-            }
-        }
-
-        if (!toPersist.isEmpty()) {
-            List<AliasEntity> persisted = aliasRepositoryService.saveAll(toPersist);
-            for (AliasEntity p : persisted) {
-                if (p.getAliasId() != null) {
-                    keepIds.add(p.getAliasId());
-                }
-            }
-        }
-
-        deletePartyAliasesNotIn(partyId, keepIds);
-        aliasRepositoryService.flush();
-    }
-
-    /**
-     * Upsert a single alias: - if aliasId present, updates the existing row (must belong to this party) - if aliasId
-     * null, creates a new row (insert) Also normalizes org/individual fields.
-     */
-    //Deprecated - use OpalDefendantAccountPartyService
-    //TODO: Remove this method once OpalDefendantAccountPartyService is in use
-    private AliasEntity upsertAlias(
-        Map<Long, AliasEntity> byId,
-        PartyEntity party,
-        Long aliasId,
-        Integer sequenceNumber,
-        String orgName,
-        String forenames,
-        String surname,
-        boolean isOrg
-    ) {
-
-        AliasEntity row;
-        if (aliasId != null) {
-            row = byId.get(aliasId);
-            if (row == null) {
-                throw new EntityNotFoundException(
-                    "Alias not found for partyId=" + party.getPartyId() + ", aliasId=" + aliasId);
-            }
-        } else {
-            row = new AliasEntity();
-        }
-
-        row.setParty(party);
-        row.setSequenceNumber(sequenceNumber);
-
-        if (isOrg) {
-            row.setOrganisationName(orgName);
-            row.setForenames(null);
-            row.setSurname(null);
-        } else {
-            row.setOrganisationName(null);
-            row.setForenames(forenames);
-            row.setSurname(surname);
-        }
-        return row;
-    }
-
-    //Deprecated - use OpalDefendantAccountPartyService
-    //TODO: Remove this method once OpalDefendantAccountPartyService is in use
-    private void deletePartyAliasesNotIn(Long partyId, Set<Long> keepIds) {
-        if (keepIds == null || keepIds.isEmpty()) {
-            aliasRepositoryService.deleteByPartyId(partyId);
-        } else {
-            aliasRepositoryService.deleteByPartyIdNotIn(partyId, keepIds);
-        }
-    }
-
-    //Deprecated - use OpalDefendantAccountPartyService
-    //TODO: Remove this method once OpalDefendantAccountPartyService is in use
-    private void replaceDebtorDetail(Long partyId,
-        VehicleDetails vehicle,
-        EmployerDetails employer,
-        LanguagePreferences language,
-        boolean isDebtor) {
-
-        if (partyId == null) {
-            return;
-        }
-
-        if (!isDebtor) {
-            return;
-        }
-
-        DebtorDetailEntity debtor = debtorDetailRepositoryService.findById(partyId)
-            .orElseThrow(() -> new EntityNotFoundException("debtor_detail not found with id: " + partyId));
-
-        debtorDetailRepositoryService.updateDebtorDetail(debtor, vehicle, employer, language);
     }
 
     //Deprecated - use DefendantAccountPaymentTermsService
