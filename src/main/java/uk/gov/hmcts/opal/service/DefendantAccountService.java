@@ -91,6 +91,7 @@ public class DefendantAccountService {
     ) {
         defendantAccountSearchRequestValidator.validateAndCheckFeature(request);
 
+        log.debug(":searchDefendantAccounts:After Validation.");
         AccountSearchDto accountSearchDto = defendantAccountSearchRequestMapper.toAccountSearchDto(request);
         DefendantAccountSearchResultsDto results = searchDefendantAccounts(accountSearchDto);
 

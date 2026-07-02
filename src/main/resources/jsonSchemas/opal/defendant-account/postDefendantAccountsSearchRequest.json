@@ -213,6 +213,19 @@
               "surname": { "type": "string" }
             }
           }
+        },
+        {
+          "if": {
+            "required": ["postcode"],
+            "properties": {
+              "postcode": { "type": "string" }
+            },
+            "then": {
+              "properties": {
+                "organisation": { "type": "null" }
+              }
+            }
+          }
         }
       ]
     }

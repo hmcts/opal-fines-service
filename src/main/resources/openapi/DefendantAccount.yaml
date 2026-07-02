@@ -703,7 +703,7 @@ components:
         address_line_1 and postcode can be used without surname or organisation_name.
       required:
         - include_aliases
-        - organisation
+#        - organisation
       properties:
         include_aliases:
           type: boolean
