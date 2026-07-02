@@ -29,11 +29,9 @@ import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.mapper.request.PaymentTermsMapper;
-import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
-import uk.gov.hmcts.opal.repository.EnforcementRepository;
-import uk.gov.hmcts.opal.repository.ReportEntryRepository;
-import uk.gov.hmcts.opal.repository.ResultRepository;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.ResultRepositoryService;
 import uk.gov.hmcts.opal.service.UserStateService;
 
 @ExtendWith(MockitoExtension.class)
@@ -41,19 +39,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
     private static final LocalDateTime TEST_POSTED_DATE = LocalDateTime.of(2026, Month.JUNE, 11, 10, 0);
 
     @Mock
-    private DefendantAccountPaymentTermsRepository paymentTermsRepository;
-
-    @Mock
-    private DefendantAccountRepository defendantAccountRepository;
-
-    @Mock
-    private EnforcementRepository enforcementRepository;
-
-    @Mock
-    private ResultRepository resultRepository;
-
-    @Mock
-    private ReportEntryRepository reportEntryRepository;
+    private DefendantAccountRepositoryService defendantAccountRepositoryService;
 
     // other dependencies the service needs (audit, userState, mappers etc.)
     @Mock
@@ -61,7 +47,9 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
     @Mock
     private PaymentTermsService paymentTermsService;
     @Mock
-    private ResultService resultService;
+    private ResultRepositoryService resultRepositoryService;
+    @Mock
+    private EnforcementRepositoryService enforcementRepositoryService;
     @Mock
     private ReportEntryService reportEntryService;
     @Mock
@@ -109,8 +97,8 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
         request.setPaymentTerms(paymentTermsDto);
 
         // Mock account lookup
-        when(defendantAccountRepository.findByDefendantAccountIdForUpdate(defendantAccountId))
-            .thenReturn(Optional.of(account));
+        when(defendantAccountRepositoryService.findByIdForUpdate(defendantAccountId))
+            .thenReturn(account);
 
         PaymentTermsEntity paymentTermsReturned = PaymentTermsEntity.builder()
             .paymentTermsId(200L)
@@ -138,15 +126,13 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
         enforcementLite.setPostedBy("enf_tester");
         enforcementLite.setResultId("55");
 
-        when(enforcementRepository.findFirstByDefendantAccountIdAndResultIdOrderByPostedDateDesc(any(Long.class),
-            any(String.class))).thenReturn(Optional.of(enforcementLite));
+        when(enforcementRepositoryService.getEnforcementMostRecent(any(Long.class), any(String.class)))
+            .thenReturn(Optional.of(enforcementLite));
 
         ResultEntity resultEntityLite = new ResultEntity();
         resultEntityLite.setResultId(String.valueOf(55L));
         resultEntityLite.setExtendTtpPreserveLastEnf(Boolean.FALSE);
-        //when(resultRepository.findById(Long.valueOf("55"))).thenReturn(Optional.of(resultEntityLite));
-
-        when(resultService.getResultById("55")).thenReturn(resultEntityLite);
+        when(resultRepositoryService.getResultById("55")).thenReturn(Optional.of(resultEntityLite));
 
         // Act
         defendantAccountService.addPaymentTerms(defendantAccountId, businessUnitId, "tester",
@@ -156,7 +142,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
         // 1) Verify PaymentTermsService.addPaymentTerm was called
         verify(paymentTermsService).addPaymentTerm(any(PaymentTermsEntity.class));
         // 2) Verify that defendantAccountRepository.save was called to update lastEnforcement
-        verify(defendantAccountRepository).save(accountCaptor.capture());
+        verify(defendantAccountRepositoryService).save(accountCaptor.capture());
         DefendantAccountEntity savedAccount = accountCaptor.getValue();
         assertNotNull(savedAccount);
         assertNull(savedAccount.getLastEnforcement(), "Expected lastEnforcement to be cleared to null");
@@ -182,8 +168,8 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
             .versionNumber(1L)
             .build();
 
-        when(defendantAccountRepository.findByDefendantAccountIdForUpdate(defendantAccountId))
-            .thenReturn(Optional.of(account));
+        when(defendantAccountRepositoryService.findByIdForUpdate(defendantAccountId))
+            .thenReturn(account);
 
         PaymentTerms paymentTermsDto = new PaymentTerms();
         AddDefendantAccountPaymentTermsRequest request = new AddDefendantAccountPaymentTermsRequest();
@@ -206,6 +192,8 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
             .build();
 
         when(paymentTermsService.addPaymentTerm(any(PaymentTermsEntity.class))).thenReturn(savedPaymentTermsEntity);
+        when(enforcementRepositoryService.getEnforcementMostRecent(defendantAccountId, null))
+            .thenReturn(Optional.empty());
 
         // Act
         defendantAccountService.addPaymentTerms(
@@ -239,8 +227,8 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
         AddDefendantAccountPaymentTermsRequest request = new AddDefendantAccountPaymentTermsRequest();
         request.setPaymentTerms(paymentTermsDto);
 
-        when(defendantAccountRepository.findByDefendantAccountIdForUpdate(defendantAccountId))
-            .thenReturn(Optional.of(account));
+        when(defendantAccountRepositoryService.findByIdForUpdate(defendantAccountId))
+            .thenReturn(account);
 
         PaymentTermsEntity paymentTerms = PaymentTermsEntity.builder()
             .active(Boolean.TRUE)
@@ -269,7 +257,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
             request
         );
 
-        verify(defendantAccountRepository).save(accountCaptor.capture());
+        verify(defendantAccountRepositoryService).save(accountCaptor.capture());
         DefendantAccountEntity savedAccount = accountCaptor.getValue();
         assertNotNull(savedAccount);
         assertEquals("55", savedAccount.getLastEnforcement(),

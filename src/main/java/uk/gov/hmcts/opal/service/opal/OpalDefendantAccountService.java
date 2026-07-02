@@ -383,7 +383,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     public DefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId) {
         log.debug(":getAtAGlance (Opal): id: {}.", defendantAccountId);
         return OpalDefendantAccountBuilders
-            .buildAtAGlanceResponse(defendantAccountSummaryViewRepositoryService.getSummaryViewById(defendantAccountId));
+            .buildAtAGlanceResponse(
+                defendantAccountSummaryViewRepositoryService.getSummaryViewById(defendantAccountId));
     }
 
     @Override

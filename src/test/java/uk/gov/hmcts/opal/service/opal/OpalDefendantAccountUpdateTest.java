@@ -48,30 +48,29 @@ import uk.gov.hmcts.opal.generated.model.EnforcerDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.LocalJusticeAreaDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.mapper.common.EnforcerDefendantAccountMapper;
-import uk.gov.hmcts.opal.repository.CourtLiteRepository;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
-import uk.gov.hmcts.opal.repository.EnforcerRepository;
-import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
-import uk.gov.hmcts.opal.repository.NoteRepository;
-import uk.gov.hmcts.opal.repository.ResultRepository;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.EnforcerRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.LocalJusticeAreaRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.NoteRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.ResultRepositoryService;
 
 @ExtendWith(MockitoExtension.class)
 class OpalDefendantAccountUpdateTest {
 
     @Mock
-    private DefendantAccountRepository defendantAccountRepository;
+    private DefendantAccountRepositoryService defendantAccountRepositoryService;
 
     @Mock
-    private NoteRepository noteRepository;
+    private NoteRepositoryService noteRepositoryService;
 
     @Mock
-    private CourtLiteRepository courtLiteRepo;
+    private CourtService courtService;
 
     @Mock
-    private LocalJusticeAreaRepository ljaRepo;
+    private LocalJusticeAreaRepositoryService localJusticeAreaRepositoryService;
 
     @Mock
-    private EnforcerRepository enforcerRepo;
+    private EnforcerRepositoryService enforcerRepositoryService;
 
     @Mock
     private AmendmentService amendmentService;
@@ -80,7 +79,7 @@ class OpalDefendantAccountUpdateTest {
     private EntityManager entityManager;
 
     @Mock
-    private ResultRepository resultRepo;
+    private ResultRepositoryService resultRepositoryService;
 
     @Mock
     private EnforcerDefendantAccountMapper enforcerDefendantAccountMapper;
@@ -110,33 +109,33 @@ class OpalDefendantAccountUpdateTest {
         entity.setVersionNumber(1L);
 
         // Stubs
-        when(defendantAccountRepository.findById(id)).thenReturn(Optional.of(entity));
+        when(defendantAccountRepositoryService.findById(id)).thenReturn(entity);
         // Echo the saved entity (so assertions see updated values)
-        when(defendantAccountRepository.save(any(DefendantAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(defendantAccountRepositoryService.save(any(DefendantAccountEntity.class)))
+            .thenAnswer(inv -> inv.getArgument(0));
 
         CourtEntity court = CourtEntity.builder()
             .courtId(100L)
             .name("Central Magistrates")
             .build();
 
-        when(courtLiteRepo.findById(100L)).thenReturn(Optional.of(court));
+        when(courtService.getCourtById(100L)).thenReturn(court);
 
         // Reference entities: stub getters so the service can copy IDs onto the account
         ResultEntity eor = mock(ResultEntity.class);
         when(eor.getResultId()).thenReturn("EO-1");
-        when(resultRepo.findById("EO-1")).thenReturn(Optional.of(eor));
+        when(resultRepositoryService.getResultById("EO-1")).thenReturn(Optional.of(eor));
 
         EnforcerEntity enforcer = mock(EnforcerEntity.class);
-        when(enforcer.getEnforcerId()).thenReturn(22L);
-        when(enforcerRepo.findById(22L)).thenReturn(Optional.of(enforcer));
+        when(enforcerRepositoryService.findById(22L)).thenReturn(Optional.of(enforcer));
         when(enforcerDefendantAccountMapper.toDto(enforcer)).thenReturn(EnforcerDefendantAccount.builder()
             .enforcerId(22L)
             .build());
 
         LocalJusticeAreaEntity lja = mock(LocalJusticeAreaEntity.class);
         when(lja.getLocalJusticeAreaId()).thenReturn((short) 33);
-        when(ljaRepo.findById((short) 33)).thenReturn(Optional.of(lja));
-        when(noteRepository.save(any())).thenReturn(null);
+        when(localJusticeAreaRepositoryService.getLjaById((short) 33)).thenReturn(Optional.of(lja));
+        when(noteRepositoryService.save(any())).thenReturn(null);
         doNothing().when(entityManager).lock(any(), any());
 
         // Request DTO
@@ -177,7 +176,7 @@ class OpalDefendantAccountUpdateTest {
         var resp = service.updateDefendantAccount(id, buHeader, req, "tester");
 
         // ---------- Assert ----------
-        verify(defendantAccountRepository).save(entity);
+        verify(defendantAccountRepositoryService).save(entity);
         assertEquals(id, resp.getPayload().getId());
 
         assertNotNull(resp.getPayload().getCommentAndNotes());
@@ -211,7 +210,7 @@ class OpalDefendantAccountUpdateTest {
         assertEquals(Short.valueOf((short) 33), entity.getEnforcementOverrideTfoLjaId());
 
         ArgumentCaptor<NoteEntity> noteCaptor = ArgumentCaptor.forClass(NoteEntity.class);
-        verify(noteRepository).save(noteCaptor.capture());
+        verify(noteRepositoryService).save(noteCaptor.capture());
         assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), noteCaptor.getValue().getPostedDate());
     }
 
@@ -229,7 +228,7 @@ class OpalDefendantAccountUpdateTest {
             .versionNumber(1L)
             .build();
 
-        when(defendantAccountRepository.findById(id)).thenReturn(Optional.of(entity));
+        when(defendantAccountRepositoryService.findById(id)).thenReturn(entity);
 
         UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
             .payload(UpdateDefendantAccountRequestPayload.builder()
@@ -241,12 +240,13 @@ class OpalDefendantAccountUpdateTest {
         assertThrows(EntityNotFoundException.class, () ->
             service.updateDefendantAccount(id, buHeader, req, "tester")
         );
-        verify(defendantAccountRepository, never()).save(any());
+        verify(defendantAccountRepositoryService, never()).save(any());
     }
 
     @Test
     void updateDefendantAccount_throwsWhenEntityNotFound() {
-        when(defendantAccountRepository.findById(99L)).thenReturn(Optional.empty());
+        when(defendantAccountRepositoryService.findById(99L))
+            .thenThrow(new EntityNotFoundException("Defendant Account not found with id: 99"));
 
         UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
             .payload(UpdateDefendantAccountRequestPayload.builder()
@@ -260,7 +260,7 @@ class OpalDefendantAccountUpdateTest {
         assertThrows(EntityNotFoundException.class, () ->
             service.updateDefendantAccount(99L, "10", req, "tester")
         );
-        verify(defendantAccountRepository, never()).save(any());
+        verify(defendantAccountRepositoryService, never()).save(any());
     }
 
     @Test
@@ -275,7 +275,7 @@ class OpalDefendantAccountUpdateTest {
             .versionNumber(5L)
             .build();
 
-        when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
+        when(defendantAccountRepositoryService.findById(77L)).thenReturn(entity);
 
         var req = UpdateDefendantAccountRequest.builder()
             .payload(UpdateDefendantAccountRequestPayload.builder()
@@ -288,7 +288,7 @@ class OpalDefendantAccountUpdateTest {
 
         assertThrows(ObjectOptimisticLockingFailureException.class,
             () -> service.updateDefendantAccount(77L, "78", req, "tester"));
-        verify(defendantAccountRepository, never()).save(any());
+        verify(defendantAccountRepositoryService, never()).save(any());
     }
 
     @Test
@@ -303,8 +303,8 @@ class OpalDefendantAccountUpdateTest {
             .versionNumber(0L)
             .build();
 
-        when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
-        when(noteRepository.save(any())).thenReturn(null);
+        when(defendantAccountRepositoryService.findById(77L)).thenReturn(entity);
+        when(noteRepositoryService.save(any())).thenReturn(null);
         doNothing().when(entityManager).lock(any(), any());
 
         var req = UpdateDefendantAccountRequest.builder()
@@ -336,7 +336,7 @@ class OpalDefendantAccountUpdateTest {
             .versionNumber(0L)
             .build();
 
-        when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
+        when(defendantAccountRepositoryService.findById(77L)).thenReturn(entity);
         doNothing().when(entityManager).lock(any(), any());
 
         var req = UpdateDefendantAccountRequest.builder()
@@ -371,8 +371,9 @@ class OpalDefendantAccountUpdateTest {
             .versionNumber(0L)
             .build();
 
-        when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
-        when(defendantAccountRepository.save(any(DefendantAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(defendantAccountRepositoryService.findById(77L)).thenReturn(entity);
+        when(defendantAccountRepositoryService.save(any(DefendantAccountEntity.class)))
+            .thenAnswer(inv -> inv.getArgument(0));
         doNothing().when(entityManager).lock(any(), any());
 
         var req = UpdateDefendantAccountRequest.builder()
@@ -406,7 +407,7 @@ class OpalDefendantAccountUpdateTest {
         entity.setEnforcementOverrideEnforcerId(21L);
         entity.setEnforcementOverrideTfoLjaId((short) 240);
 
-        when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
+        when(defendantAccountRepositoryService.findById(77L)).thenReturn(entity);
         doNothing().when(entityManager).lock(any(), any());
 
         var req = UpdateDefendantAccountRequest.builder()
@@ -439,8 +440,9 @@ class OpalDefendantAccountUpdateTest {
             .versionNumber(0L)
             .build();
 
-        when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
-        when(defendantAccountRepository.save(any(DefendantAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(defendantAccountRepositoryService.findById(77L)).thenReturn(entity);
+        when(defendantAccountRepositoryService.save(any(DefendantAccountEntity.class)))
+            .thenAnswer(inv -> inv.getArgument(0));
         doNothing().when(entityManager).lock(any(), any());
 
         var req = UpdateDefendantAccountRequest.builder()
@@ -472,8 +474,9 @@ class OpalDefendantAccountUpdateTest {
             .versionNumber(0L)
             .build();
 
-        when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
-        when(defendantAccountRepository.save(any(DefendantAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(defendantAccountRepositoryService.findById(77L)).thenReturn(entity);
+        when(defendantAccountRepositoryService.save(any(DefendantAccountEntity.class)))
+            .thenAnswer(inv -> inv.getArgument(0));
         doNothing().when(entityManager).lock(any(), any());
 
         long courtId = 780000000185L;
@@ -481,7 +484,7 @@ class OpalDefendantAccountUpdateTest {
             .courtId(courtId)
             .name("Test Court")
             .build();
-        when(courtLiteRepo.findById(courtId)).thenReturn(Optional.of(court));
+        when(courtService.getCourtById(courtId)).thenReturn(court);
 
         var req = UpdateDefendantAccountRequest.builder()
             .payload(UpdateDefendantAccountRequestPayload.builder()
