@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.controllers.util.DefendantAccountVersionUtil;
@@ -16,7 +16,7 @@ abstract class AbstractLegacyDefendantsIntegrationTest extends AbstractIntegrati
     protected static final String REMOVE_DEFENDANT_PARTY_RESPONSE_SCHEMA = SchemaPaths.DEFENDANT_ACCOUNT
         + "/removeDefendantAccountPartyResponse.json";
 
-    @MockitoSpyBean
+    @Autowired
     protected JsonSchemaValidationService jsonSchemaValidationService;
 
 

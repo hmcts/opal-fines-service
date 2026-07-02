@@ -57,15 +57,6 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     UserStateService userStateService;
 
     @MockitoBean
-    private UserState userState;
-
-    @MockitoBean
-    private BusinessUnitUser businessUnitUser1;
-
-    @MockitoBean
-    private BusinessUnitUser businessUnitUser2;
-
-    @MockitoBean
     private ReportQueuePublisherImpl reportQueuePublisher;
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -78,11 +69,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-7742")
     void createReportInstance_singleBU() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
-        when(userState.getUserId()).thenReturn(USER_ID);
-        when(userState.getUserName()).thenReturn(USER_NAME);
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+        givenUserStateForBusinessUnits((short)1);
         Map<String, Object> parameterMap = Map.of(
             "date-param", "2026-05-26",
             "decimal-param", 5.0,
@@ -143,12 +130,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-7744")
     void createReportInstance_multiBUs() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
-        when(userState.getUserId()).thenReturn(USER_ID);
-        when(userState.getUserName()).thenReturn(USER_NAME);
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
-        when(businessUnitUser2.getBusinessUnitId()).thenReturn((short)2);
+        givenUserStateForBusinessUnits((short)1, (short)2);
 
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_2BUs_ID)
@@ -176,10 +158,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-7746")
     void createReportInstance_singleBU_fail2BUs_422() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
-        when(businessUnitUser2.getBusinessUnitId()).thenReturn((short)2);
+        givenUserStateForBusinessUnits((short)1, (short)2);
 
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_1BU_ID)
@@ -202,9 +181,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-7750")
     void createReportInstance_cannotManuallyCreate_422() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+        givenUserStateForBusinessUnits((short)1);
 
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_NO_MANUAL_CREATION)
@@ -227,9 +204,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-7743")
     void createReportInstance_wrongBU_403() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+        givenUserStateForBusinessUnits((short)1);
 
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_1BU_ID)
@@ -251,9 +226,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-7752")
     void createReportInstance_notAllBUs_403() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+        givenUserStateForBusinessUnits((short)1);
 
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_2BUs_ID)
@@ -364,11 +337,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
         doThrow(new IllegalArgumentException("Unable to publish report queue message"))
             .when(reportQueuePublisher).publish(anyLong());
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
-        when(userState.getUserId()).thenReturn(USER_ID);
-        when(userState.getUserName()).thenReturn(USER_NAME);
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+        givenUserStateForBusinessUnits((short)1);
 
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_1BU_ID)
@@ -410,11 +379,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-7741")
     void createReportInstance_reportParameterValidation_mandatoryFieldsNotSuppliedFail() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
-        when(userState.getUserId()).thenReturn(USER_ID);
-        when(userState.getUserName()).thenReturn(USER_NAME);
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+        givenUserStateForBusinessUnits((short)1);
 
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_1BU_ID)
@@ -442,11 +407,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-7751")
     void createReportInstance_reportParameterValidation_unknownParameterFail() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
-        when(userState.getUserId()).thenReturn(USER_ID);
-        when(userState.getUserName()).thenReturn(USER_NAME);
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+        givenUserStateForBusinessUnits((short)1);
 
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_1BU_ID)
@@ -484,11 +445,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-7754")
     void createReportInstance_reportParameterValidation_parameterTypeMismatchFail() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
-        when(userState.getUserId()).thenReturn(USER_ID);
-        when(userState.getUserName()).thenReturn(USER_NAME);
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+        givenUserStateForBusinessUnits((short)1);
 
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_1BU_ID)
@@ -526,11 +483,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-7753")
     void createReportInstance_repeatSuccess() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
-        when(userState.getUserId()).thenReturn(USER_ID);
-        when(userState.getUserName()).thenReturn(USER_NAME);
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+        givenUserStateForBusinessUnits((short)1);
 
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_1BU_ID)
@@ -573,5 +526,18 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
         CreateReportInstanceResponseReports dto2 = objectMapper
             .readValue(body2, CreateReportInstanceResponseReports.class);
         assertNotEquals(dto1.getReportInstanceId(), dto2.getReportInstanceId());
+    }
+
+    private void givenUserStateForBusinessUnits(short... businessUnitIds) {
+        Set<BusinessUnitUser> businessUnitUsers = new java.util.HashSet<>();
+        for (short businessUnitId : businessUnitIds) {
+            businessUnitUsers.add(BusinessUnitUser.builder().businessUnitId(businessUnitId).build());
+        }
+
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserState.builder()
+            .userId(USER_ID)
+            .userName(USER_NAME)
+            .businessUnitUser(businessUnitUsers)
+            .build());
     }
 }

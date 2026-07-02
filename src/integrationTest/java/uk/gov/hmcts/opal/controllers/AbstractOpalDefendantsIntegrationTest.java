@@ -4,9 +4,9 @@ import java.time.LocalDate;
 import java.time.Period;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
@@ -35,7 +35,7 @@ abstract class AbstractOpalDefendantsIntegrationTest extends AbstractIntegration
         SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountFixedPenaltyResponse.json";
     protected static final LocalDate ACCOUNT_77_BIRTH_DATE = LocalDate.of(1980, 2, 3);
 
-    @MockitoSpyBean
+    @Autowired
     protected JsonSchemaValidationService jsonSchemaValidationService;
 
 

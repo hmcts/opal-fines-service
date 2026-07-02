@@ -14,24 +14,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
-import uk.gov.hmcts.opal.util.FeatureFlags;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Slf4j(topic = "opal.JwtControllerIntegrationTest")
-@TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1a=true"
-})
 @DisplayName("JWT Controller Integration Tests")
-@TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    FeatureFlags.RELEASE_1A_ENABLED_PROPERTY + "=true"
-})
 class JwtControllerIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
     private static final String URL = "/business-units/5";

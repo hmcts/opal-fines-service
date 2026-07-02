@@ -23,7 +23,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import tools.jackson.databind.JsonNode;
@@ -34,10 +33,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
-@TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1b=true"
-})
 @Sql(scripts = "classpath:db/insertData/insert_into_central_funds.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_central_funds.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.CentralFundControllerIntegrationTest")

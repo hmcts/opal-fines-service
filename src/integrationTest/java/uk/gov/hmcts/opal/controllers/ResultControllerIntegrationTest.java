@@ -11,10 +11,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
@@ -26,11 +25,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
-@TestPropertySource(properties = {
-    "launchdarkly.default-flag-values.release-1a=true",
-    "launchdarkly.default-flag-values.release-1b=true",
-    "launchdarkly.enabled=false"
-})
 @Slf4j(topic = "opal.ResultControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_results.sql", executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("ResultController Integration Test")
@@ -40,7 +34,7 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String GET_RESULTS_REF_DATA_RESPONSE =
         SchemaPaths.REFERENCE_DATA + "/getResultsRefDataResponse.json";
 
-    @MockitoSpyBean
+    @Autowired
     private JsonSchemaValidationService jsonSchemaValidationService;
 
     @Test

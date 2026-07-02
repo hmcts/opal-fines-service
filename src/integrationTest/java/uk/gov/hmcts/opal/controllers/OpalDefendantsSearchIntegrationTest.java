@@ -18,16 +18,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
-import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -35,10 +32,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "opal"})
-@TestPropertySource(properties = {
-    "launchdarkly.default-flag-values.release-1b=true",
-    "launchdarkly.default-flag-values.release-1c=true"
-})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.OpalDefendantsIntegrationTest01")
@@ -48,11 +41,8 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     private static final String DEFENDANTS_SEARCH_RESP_SCHEMA = SchemaPaths.DEFENDANT_ACCOUNT
         + "/postDefendantAccountsSearchResponse.json";
 
-    @MockitoSpyBean
+    @Autowired
     JsonSchemaValidationService jsonSchemaValidationService;
-
-    @MockitoBean
-    private AccessTokenService accessTokenService;
 
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = {false, true})

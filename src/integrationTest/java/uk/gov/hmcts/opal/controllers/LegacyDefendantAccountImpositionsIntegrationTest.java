@@ -22,19 +22,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
-import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCourtReferenceCommon;
@@ -55,10 +53,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
 @DisplayName("Legacy Defendant Account Impositions Integration Tests")
-@TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1b=true"
-})
 class LegacyDefendantAccountImpositionsIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/defendant-accounts";
@@ -68,15 +62,12 @@ class LegacyDefendantAccountImpositionsIntegrationTest extends AbstractIntegrati
     private UserStateService userStateService;
 
     @MockitoBean
-    private AccessTokenService accessTokenService;
-
-    @MockitoBean
     private UserStateClientService userStateClientService;
 
     @MockitoBean
     private GatewayService gatewayService;
 
-    @MockitoSpyBean
+    @Autowired
     private JsonSchemaValidationService jsonSchemaValidationService;
 
     @BeforeEach

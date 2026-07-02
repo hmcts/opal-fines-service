@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -11,9 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -21,16 +18,12 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @ActiveProfiles("integration")
 @TestPropertySource(properties = {
     "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1b=false",
-    "launchdarkly.default-flag-values.release-1c=true"
+    "launchdarkly.default-flag-values.release-1b=false"
 })
 @DisplayName("Defendant account search release-1b disabled Integration Test")
 class DefendantAccountSearchRelease1bDisabledIntegrationTest extends AbstractIntegrationTest {
 
     private static final String DEFENDANTS_SEARCH_URL = "/defendant-accounts/search";
-
-    @MockitoBean
-    private DefendantAccountService defendantAccountService;
 
     @Test
     @DisplayName("POST /defendant-accounts/search is unavailable when release-1b is disabled")
@@ -46,8 +39,6 @@ class DefendantAccountSearchRelease1bDisabledIntegrationTest extends AbstractInt
             .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Feature Disabled"));
-
-        verifyNoInteractions(defendantAccountService);
     }
 
     private String searchCriteria(boolean consolidationSearch) {

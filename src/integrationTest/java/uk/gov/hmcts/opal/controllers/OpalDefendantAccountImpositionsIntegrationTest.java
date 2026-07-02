@@ -14,9 +14,9 @@ import static uk.gov.hmcts.opal.SchemaPaths.GET_DEFENDANT_ACCOUNT_IMPOSITIONS_RE
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
@@ -41,7 +41,7 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
     private static final String URL_BASE = "/defendant-accounts";
 
 
-    @MockitoSpyBean
+    @Autowired
     private JsonSchemaValidationService jsonSchemaValidationService;
 
     @Test
