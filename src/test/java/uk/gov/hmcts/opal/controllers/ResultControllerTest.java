@@ -66,7 +66,7 @@ class ResultControllerTest {
             .resultId("ABC")
             .resultTitle("Some Title")
             .resultTitleCy("Welsh Title")
-            .resultType("TYPE1")
+            .resultType("Action")
             .active(true)
             .allowAdditionalAction(true)
             .allowPaymentTerms(false)
@@ -85,7 +85,7 @@ class ResultControllerTest {
         assertEquals("ABC", response.getBody().getResultId());
         assertEquals("Some Title", response.getBody().getResultTitle());
         assertEquals("Welsh Title", response.getBody().getResultTitleCy());
-        assertEquals("TYPE1", response.getBody().getResultType());
+        assertEquals("Action", response.getBody().getResultType());
         assertEquals(true, response.getBody().isActive());
         assertEquals(true, response.getBody().getAllowAdditionalAction());
         assertEquals(false, response.getBody().getAllowPaymentTerms());
