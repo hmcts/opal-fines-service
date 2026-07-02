@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -20,6 +21,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
@@ -41,6 +43,7 @@ import uk.gov.hmcts.opal.dto.legacy.common.LegacyCreditorAccountPaymentDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsResponse;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
@@ -79,6 +82,21 @@ class LegacyMinorCreditorServiceTest {
 
     @InjectMocks
     private LegacyMinorCreditorService legacyMinorCreditorService;
+
+    @Test
+    void getMinorCreditorHistory_throwsNotImplemented() {
+        // Act
+        ResponseStatusException result = assertThrows(
+            ResponseStatusException.class,
+            () -> legacyMinorCreditorService.getMinorCreditorHistory(
+                101L, MinorCreditorHistoryFilters.from(null, null, null))
+        );
+
+        // Assert
+        assertEquals(HttpStatus.NOT_IMPLEMENTED, result.getStatusCode());
+        assertEquals("Not yet implemented", result.getReason());
+        verifyNoMoreInteractions(gatewayService);
+    }
 
     @Test
     void searchMinorCreditors_shouldMapLegacyResponseToDto() {

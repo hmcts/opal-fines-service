@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.service;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +15,8 @@ import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
@@ -50,6 +54,24 @@ public class MinorCreditorService {
         MinorCreditorAccountResponse response =
             minorCreditorSearchProxy.getMinorCreditorAccount(minorCreditorAccountId);
         return redactBacsDetailsWhenNotPermitted(minorCreditorAccountId, response, userState);
+    }
+
+    public GetMinorCreditorHistoryResponse getMinorCreditorHistory(
+        Long minorCreditorAccountId,
+        LocalDate dateFrom,
+        LocalDate dateTo,
+        List<String> itemTypes) {
+        log.debug(":getMinorCreditorHistory: id={}", minorCreditorAccountId);
+
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+
+        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
+            MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(dateFrom, dateTo, itemTypes);
+            return minorCreditorSearchProxy.getMinorCreditorHistory(
+                minorCreditorAccountId, filters);
+        } else {
+            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        }
     }
 
     public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId) {

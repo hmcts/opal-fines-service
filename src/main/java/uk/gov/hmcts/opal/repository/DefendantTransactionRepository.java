@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.repository;
 
+import java.time.LocalDate;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -21,4 +22,5 @@ public interface DefendantTransactionRepository extends JpaRepository<DefendantT
 
     List<DefendantTransactionEntity> findByDefendantAccountId(long defendantAccountId);
 
+    boolean existsByDefendantAccountIdAndPostedDateGreaterThanEqual(long defendantAccountId, LocalDate postedDate);
 }

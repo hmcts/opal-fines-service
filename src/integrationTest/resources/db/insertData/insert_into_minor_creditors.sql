@@ -187,7 +187,28 @@ VALUES
    'BACS', 'C', '2025-04-17', NULL, NULL),
   (90003, 606, '2025-05-16', 102, 'B. Admin',
    'PAYMNT', 350.00, NULL, FALSE,
-   'BACS', 'C', '2025-05-17', NULL, NULL);
+   'BACS', 'C', '2025-05-17', NULL, NULL),
+  (90004, 607, '2026-01-29 08:00:00', 'PAYUSR', 'Payment User',
+   'PAYMNT', 42.00, NULL, TRUE,
+   'PMT001', 'C', '2026-01-29 08:30:00', 'defendant_accounts', '70000000000000');
+
+INSERT INTO public.notes (
+  note_id, note_type, associated_record_type, associated_record_id,
+  note_text, posted_date, posted_by, posted_by_name
+)
+VALUES
+  (90004, 'AA', 'creditor_accounts', '607',
+   'Review creditor', '2026-01-30 09:00:00', 'NOTEUSR', 'Note User');
+
+INSERT INTO public.amendments (
+  amendment_id, business_unit_id, associated_record_type, associated_record_id,
+  amended_date, amended_by, amended_by_name, field_code, old_value, new_value,
+  case_reference, function_code
+)
+VALUES
+  (90004, 10, 'creditor_accounts', '607',
+   '2026-01-31 10:00:00', 'AMENDUSR', 'Amend User', 41, 'false', 'true',
+   NULL, 'minor-creditor-history');
 
    -- Need to insert a defendant for an imposition --
 INSERT INTO public.defendant_accounts (

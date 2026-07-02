@@ -1062,7 +1062,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         String businessUnitUserId,
         String ifMatch,
         AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
-
         log.debug(":addPaymentTerms (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
         // Look up the defendant account
@@ -1099,7 +1098,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         // Update defendant account with any payment term related attributes
         addPaymentTerm(defAccount, addPaymentTermsRequest);
 
-        // Clear last_enforcement on the defendant account, if applicable
         clearLastEnforcementAction(defAccount);
 
         defendantAccountRepository.save(defAccount);
@@ -1127,6 +1125,78 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             defAccount.getBusinessUnit().getBusinessUnitId());
 
         log.debug(":addPaymentTerms: saved payment terms id={} for account {}",
+            savedPaymentTerms.getPaymentTermsId(), defAccount.getDefendantAccountId());
+
+        amendmentService.auditFinaliseStoredProc(
+            defAccount.getDefendantAccountId(),
+            RecordType.DEFENDANT_ACCOUNTS,
+            Short.parseShort(businessUnitId),
+            businessUnitUserId,
+            savedPaymentTerms.getPostedByUsername(),
+            defAccount.getProsecutorCaseReference(),
+            "ACCOUNT_ENQUIRY"
+        );
+
+        return OpalDefendantAccountBuilders.buildPaymentTermsResponse(savedPaymentTerms);
+    }
+
+    @Transactional
+    public GetDefendantAccountPaymentTermsResponse addPaymentTermsPreservingLastEnforcement(Long defendantAccountId,
+        String businessUnitId,
+        String businessUnitUserId,
+        String ifMatch,
+        String authHeader,
+        AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
+
+        log.debug(":addPaymentTermsPreservingLastEnforcement (Opal): accountId={}, bu={}",
+            defendantAccountId, businessUnitId);
+
+        DefendantAccountEntity defAccount = getDefendantAccountByIdForUpdate(defendantAccountId);
+
+        if (defAccount.getBusinessUnit() == null
+            || defAccount.getBusinessUnit().getBusinessUnitId() == null
+            || !String.valueOf(defAccount.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
+            throw new EntityNotFoundException("Defendant Account not found in business unit " + businessUnitId);
+        }
+
+        VersionUtils.verifyIfMatch(defAccount, ifMatch, defendantAccountId, "addPaymentTerms");
+
+        amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
+
+        paymentTermsService.deactivateExistingActivePaymentTerms(defAccount.getDefendantAccountId());
+
+        PaymentTermsEntity paymentTermsEntity = paymentTermsMapper.toEntity(addPaymentTermsRequest.getPaymentTerms());
+        paymentTermsEntity.setDefendantAccount(defAccount);
+        if (paymentTermsEntity.getPostedByUsername() == null) {
+            paymentTermsEntity.setPostedByUsername(businessUnitUserId);
+        }
+        if (paymentTermsEntity.getPostedBy() == null) {
+            paymentTermsEntity.setPostedBy(businessUnitUserId);
+        }
+
+        final PaymentTermsEntity savedPaymentTerms = paymentTermsService.addPaymentTerm(paymentTermsEntity);
+
+        addPaymentTerm(defAccount, addPaymentTermsRequest);
+        defendantAccountRepository.save(defAccount);
+
+        if (Boolean.TRUE.equals(addPaymentTermsRequest.getRequestPaymentCard())) {
+            log.debug(":addPaymentTermsPreservingLastEnforcement: Request Payment Card flag is TRUE for account {}",
+                defAccount.getDefendantAccountId());
+            addPaymentCard(defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, authHeader);
+        }
+
+        if (Boolean.TRUE.equals(addPaymentTermsRequest.getGeneratePaymentTermsChangeLetter())) {
+            log.debug(":addPaymentTermsPreservingLastEnforcement: Generate Payment Terms Change Letter flag is TRUE "
+                    + "for account {}",
+                defAccount.getDefendantAccountId());
+            documentService.createDocumentInstance(defendantAccountId,
+                defAccount.getBusinessUnit().getBusinessUnitId());
+        }
+
+        reportEntryService.createExtendTtpReportEntry(savedPaymentTerms.getPaymentTermsId(),
+            defAccount.getBusinessUnit().getBusinessUnitId());
+
+        log.debug(":addPaymentTermsPreservingLastEnforcement: saved payment terms id={} for account {}",
             savedPaymentTerms.getPaymentTermsId(), defAccount.getDefendantAccountId());
 
         amendmentService.auditFinaliseStoredProc(

@@ -16,9 +16,6 @@ import uk.gov.hmcts.opal.entity.projection.DefendantAccountVersionData;
 public interface DefendantAccountRepository extends JpaRepository<DefendantAccountEntity, Long>,
         JpaSpecificationExecutor<DefendantAccountEntity> {
 
-    DefendantAccountEntity findByBusinessUnit_BusinessUnitIdAndAccountNumber(Short businessUnitId,
-                                                                               String accountNumber);
-
     List<DefendantAccountEntity> findAllByBusinessUnit_BusinessUnitId(Short businessUnitId);
 
     Optional<DefendantAccountEntity> findByDefendantAccountId(Long defendantAccountId);
@@ -38,4 +35,53 @@ public interface DefendantAccountRepository extends JpaRepository<DefendantAccou
     @Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
     @Query("select d from DefendantAccountEntity d where d.defendantAccountId = :id")
     Optional<DefendantAccountEntity> findByDefendantAccountIdForUpdate(@Param("id") Long defendantAccountId);
+
+    @Query(value = """
+        select da.*
+        from defendant_accounts da
+        join (
+            select e.defendant_account_id, min(e.posted_date) as cutoff_date
+            from enforcements e
+            where e.result_id = 'REGF'
+            group by e.defendant_account_id
+        ) cutoff on cutoff.defendant_account_id = da.defendant_account_id
+        where (:paymentMade = exists (
+            select 1
+            from defendant_transactions dt
+            where dt.defendant_account_id = da.defendant_account_id
+              and dt.posted_date >= cutoff.cutoff_date::date
+              and dt.transaction_type::text in ('PAYMNT', 'CHEQUE')
+              and dt.status::text in ('C', 'P')
+              and dt.associated_record_type::text = 'defendant_accounts'
+        ))
+        order by da.account_number
+        """, nativeQuery = true)
+    List<DefendantAccountEntity> findAccountsWithPaymentMadeAfterFirstRegfEnforcement(
+        @Param("paymentMade") boolean paymentMade
+    );
+
+    @Query(value = """
+        select da.*
+        from defendant_accounts da
+        join (
+            select e.defendant_account_id, max(e.posted_date) as cutoff_date
+            from enforcements e
+            where e.result_id = :enforcementResultId
+            group by e.defendant_account_id
+        ) cutoff on cutoff.defendant_account_id = da.defendant_account_id
+        where (:paymentMade = exists (
+            select 1
+            from defendant_transactions dt
+            where dt.defendant_account_id = da.defendant_account_id
+              and dt.posted_date >= cutoff.cutoff_date::date
+              and dt.transaction_type::text in ('PAYMNT', 'CHEQUE')
+              and dt.status::text in ('C', 'P')
+              and dt.associated_record_type::text = 'defendant_accounts'
+        ))
+        order by da.account_number
+        """, nativeQuery = true)
+    List<DefendantAccountEntity> findAccountsWithPaymentMadeAfterLastEnforcementAction(
+        @Param("enforcementResultId") String enforcementResultId,
+        @Param("paymentMade") boolean paymentMade
+    );
 }

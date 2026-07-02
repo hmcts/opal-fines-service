@@ -23,6 +23,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnTransformer;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.converter.AssociatedRecordTypeConverter;
 import uk.gov.hmcts.opal.entity.converter.DefendantTransactionTypeConverter;
@@ -59,6 +61,7 @@ public class DefendantTransactionEntity {
     private String postedBy;
 
     @Column(name = "transaction_type", length = 100)
+    @ColumnTransformer(read = "transaction_type::text", write = "?::t_defendant_transaction_type_enum")
     @Convert(converter = DefendantTransactionTypeConverter.class)
     private DefendantTransactionType transactionType;
 
@@ -77,6 +80,7 @@ public class DefendantTransactionEntity {
 
     @Column(name = "status", length = 1)
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private DefendantTransactionStatus status;
 
     @Column(name = "status_date", nullable = false)
@@ -91,7 +95,7 @@ public class DefendantTransactionEntity {
     private DefendantTransactionWriteOffCode writeOffCode;
 
     @Convert(converter = AssociatedRecordTypeConverter.class)
-    @ColumnTransformer(write = "?::t_associated_record_type_enum")
+    @ColumnTransformer(read = "associated_record_type::text", write = "?::t_associated_record_type_enum")
     @Column(name = "associated_record_type", length = 30, columnDefinition = "t_associated_record_type_enum")
     private AssociatedRecordType associatedRecordType;
 

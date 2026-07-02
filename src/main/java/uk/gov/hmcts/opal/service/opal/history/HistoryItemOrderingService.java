@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.opal.history;
 import java.util.Comparator;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryItem;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItem;
 
 @Service
@@ -21,5 +22,20 @@ public class HistoryItemOrderingService {
             )
             .thenComparing(AccountHistoryItem::getType, Comparator.nullsLast(Comparator.naturalOrder()))
             .thenComparing(AccountHistoryItem::getSourceId, Comparator.nullsLast(Comparator.naturalOrder()));
+    }
+
+    public Comparator<DefendantAccountHistoryItem> newestFirstDefendantHistoryComparator() {
+        return Comparator.comparing(
+                DefendantAccountHistoryItem::getEventDateTime,
+                Comparator.nullsLast(Comparator.reverseOrder())
+            )
+            .thenComparing(
+                DefendantAccountHistoryItem::getType,
+                Comparator.nullsLast(Comparator.naturalOrder())
+            )
+            .thenComparing(
+                DefendantAccountHistoryItem::getSourceId,
+                Comparator.nullsLast(Comparator.naturalOrder())
+            );
     }
 }

@@ -23,8 +23,10 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus;
 import uk.gov.hmcts.opal.exception.EntityNotSavedException;
 import uk.gov.hmcts.opal.exception.ReportGenerationException;
@@ -33,6 +35,8 @@ import uk.gov.hmcts.opal.generated.model.CreateReportInstanceRequestReports;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
 import uk.gov.hmcts.opal.mapper.ReportInstanceMapper;
+import uk.gov.hmcts.opal.generated.model.ReportInstanceReports;
+import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.ReportInstanceRepository;
 import uk.gov.hmcts.opal.repository.ReportRepository;
 import uk.gov.hmcts.opal.repository.jpa.ReportInstanceSpecs;
@@ -56,6 +60,7 @@ public class GenericReportService implements GenericReportServiceInterface {
     private final ReportBlobStore blobStore;
     private final Clock clock;
     private final ObjectMapper mapper;
+    private final BusinessUnitRepository businessUnitRepository;
     private final ReportInstanceSearchService reportInstanceSearchService;
 
     private static void processError(ReportInstanceEntity instance, Exception exception) {
@@ -95,6 +100,24 @@ public class GenericReportService implements GenericReportServiceInterface {
             saveReportInstance(instance);
             throw new ReportGenerationException("Error generating report instance", e);
         }
+    }
+
+    public ReportInstanceReports getReportInstance(Long reportInstanceId) {
+        ReportInstanceEntity reportInstanceEntity = reportInstanceRepository.findById(reportInstanceId)
+            .orElseThrow(() -> new EntityNotFoundException("Report instance not found with id: " + reportInstanceId));
+
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+
+        List<Short> businessUnitIdsForReportInstance = reportInstanceEntity.getBusinessUnit().stream()
+            .map(Integer::shortValue).toList();
+        if (!userState.getBusinessUnitUser().stream().map(BusinessUnitUser::getBusinessUnitId)
+            .collect(Collectors.toSet()).containsAll(businessUnitIdsForReportInstance)) {
+            throw new AccessDeniedException("You cannot request report instances associated with other business units");
+        }
+        List<BusinessUnitEntity> businessUnitEntities = businessUnitRepository
+            .findAllById(businessUnitIdsForReportInstance);
+
+        return reportInstanceMapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntities);
     }
 
     @Transactional

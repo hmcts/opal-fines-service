@@ -15,7 +15,13 @@
 
 -- Delete test creditor transactions first (FK references creditor_accounts)
 DELETE FROM public.creditor_transactions
-WHERE creditor_account_id IN (104, 606);
+WHERE creditor_account_id IN (104, 606, 607);
+
+DELETE FROM public.notes
+WHERE note_id = 90004;
+
+DELETE FROM public.amendments
+WHERE amendment_id = 90004;
 
 -- Delete test impositions first (FK references creditor_accounts, defendant_accounts)
 DELETE FROM public.impositions

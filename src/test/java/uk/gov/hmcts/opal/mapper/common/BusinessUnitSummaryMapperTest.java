@@ -3,10 +3,13 @@ package uk.gov.hmcts.opal.mapper.common;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
+import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
 
 class BusinessUnitSummaryMapperTest {
 
@@ -50,5 +53,33 @@ class BusinessUnitSummaryMapperTest {
         assertEquals("10", mapped.getBusinessUnitId());
         assertEquals("Derbyshire", mapped.getBusinessUnitName());
         assertEquals("N", mapped.getWelshSpeaking());
+    }
+
+    @Test
+    void toBusinessUnitSummaryCommonList() {
+        List<BusinessUnitEntity> bus = List.of(
+            BusinessUnitEntity.builder()
+                .businessUnitId((short) 13)
+                .businessUnitName("BU_13")
+                .welshLanguage(true)
+                .build(),
+            BusinessUnitEntity.builder()
+                .businessUnitId((short) 41)
+                .businessUnitName("BU_41")
+                .welshLanguage(false)
+                .build());
+
+        List<BusinessUnitSummaryCommon> businessUnitSummaryCommonList = mapper.toBusinessUnitSummaryCommonList(bus);
+
+        assertNotNull(businessUnitSummaryCommonList);
+        assertEquals(2, businessUnitSummaryCommonList.size());
+
+        assertEquals("13", businessUnitSummaryCommonList.getFirst().getBusinessUnitId());
+        assertEquals("BU_13", businessUnitSummaryCommonList.getFirst().getBusinessUnitName());
+        assertEquals("Y", businessUnitSummaryCommonList.getFirst().getWelshSpeaking());
+
+        assertEquals("41", businessUnitSummaryCommonList.get(1).getBusinessUnitId());
+        assertEquals("BU_41", businessUnitSummaryCommonList.get(1).getBusinessUnitName());
+        assertEquals("N", businessUnitSummaryCommonList.get(1).getWelshSpeaking());
     }
 }

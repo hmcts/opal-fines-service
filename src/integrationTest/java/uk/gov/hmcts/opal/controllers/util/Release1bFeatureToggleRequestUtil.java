@@ -38,7 +38,8 @@ public final class Release1bFeatureToggleRequestUtil {
                         "account_number": "12345678",
                         "prosecutor_case_reference": null
                       },
-                      "defendant": null
+                      "defendant": null,
+                      "consolidation_search": false
                     }
                     """)
             ),
@@ -285,6 +286,10 @@ public final class Release1bFeatureToggleRequestUtil {
             Arguments.of(
                 "Get Minor Creditor Account",
                 getWithAuthorization("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID)
+            ),
+            Arguments.of(
+                "Get Minor Creditor History",
+                getWithAuthorization("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID + "/history")
             ),
             Arguments.of(
                 "Patch Minor Creditor Account",

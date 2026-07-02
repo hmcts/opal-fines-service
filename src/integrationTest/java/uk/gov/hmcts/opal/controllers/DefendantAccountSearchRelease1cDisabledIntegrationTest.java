@@ -17,8 +17,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
+import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -44,11 +45,14 @@ class DefendantAccountSearchRelease1cDisabledIntegrationTest extends AbstractInt
     @JiraEpic("PO-3685")
     @JiraTestKey("PO-7573")
     void postDefendantAccountsSearch_returnsOkWithoutConsolidatedSearchWhenRelease1cDisabled() throws Exception {
-        DefendantAccountSearchResultsDto response = DefendantAccountSearchResultsDto.builder()
+        PostDefendantAccountSearchResponseDefendantAccount response =
+            PostDefendantAccountSearchResponseDefendantAccount.builder()
+            .count(0)
             .defendantAccounts(List.of())
             .build();
 
-        when(defendantAccountService.searchDefendantAccounts(any(AccountSearchDto.class)))
+        when(defendantAccountService.searchDefendantAccounts(
+            any(PostDefendantAccountSearchRequestDefendantAccount.class)))
             .thenReturn(response);
 
         mockMvc.perform(post(DEFENDANTS_SEARCH_URL)
@@ -60,7 +64,8 @@ class DefendantAccountSearchRelease1cDisabledIntegrationTest extends AbstractInt
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(0));
 
-        verify(defendantAccountService).searchDefendantAccounts(any(AccountSearchDto.class));
+        verify(defendantAccountService).searchDefendantAccounts(
+            any(PostDefendantAccountSearchRequestDefendantAccount.class));
         verifyNoMoreInteractions(defendantAccountService);
     }
 
@@ -71,6 +76,11 @@ class DefendantAccountSearchRelease1cDisabledIntegrationTest extends AbstractInt
     @JiraTestKey("PO-7574")
     void postDefendantAccountsSearch_returnsFeatureDisabledForConsolidatedSearchWhenRelease1cDisabled()
         throws Exception {
+        when(defendantAccountService.searchDefendantAccounts(
+            any(PostDefendantAccountSearchRequestDefendantAccount.class)))
+            .thenThrow(new FeatureDisabledException(
+                "Feature release-1c is not enabled for defendant account consolidated search"));
+
         mockMvc.perform(post(DEFENDANTS_SEARCH_URL)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("authorization", userStateStub.getBearerToken())
@@ -80,6 +90,8 @@ class DefendantAccountSearchRelease1cDisabledIntegrationTest extends AbstractInt
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Feature Disabled"));
 
+        verify(defendantAccountService).searchDefendantAccounts(
+            any(PostDefendantAccountSearchRequestDefendantAccount.class));
         verifyNoMoreInteractions(defendantAccountService);
     }
 

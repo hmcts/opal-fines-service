@@ -126,18 +126,18 @@ VALUES (9105, 1001, '2023-11-03 16:05:10', '01000000A', 'User9100',
 -- Insert allocations (Level 3 - references both imposition and defendant_transaction)
 INSERT INTO allocations (allocation_id, imposition_id, defendant_transaction_id,
                          allocated_date, allocated_amount, transaction_type, allocation_function)
-VALUES (9106, 9105, 9104, '2023-11-04 10:00:00', 100.00, 'Payment', 'Auto');
+VALUES (9106, 9105, 9104, '2023-11-04 10:00:00', 100.00, 'PAYMNT', 'Auto');
 
 -- Insert another allocation (Level 3 - only references imposition)
 INSERT INTO allocations (allocation_id, imposition_id, allocated_date, allocated_amount,
                          transaction_type, allocation_function)
-VALUES (9108, 9105, '2023-11-05 10:00:00', 50.00, 'Adjustment', 'Manual');
+VALUES (9108, 9105, '2023-11-05 10:00:00', 50.00, 'MADJ', 'Manual');
 
 -- Insert cheque (Level 3 - references defendant_transaction)
 INSERT INTO cheques (cheque_id, business_unit_id, cheque_number, issue_date,
                      defendant_transaction_id, amount, status)
 VALUES (9107, 78, 123456, '2023-11-04 10:00:00',
-        9104, 100.00, 'C');
+        9104, 100.00, 'P');
 
 INSERT INTO notes(note_id, note_type, associated_record_type,
                          associated_record_id, note_text, posted_date,
@@ -149,6 +149,6 @@ VALUES (1, 'AC', 'defendant_accounts', '1001',
 INSERT INTO amendments (amendment_id, business_unit_id, associated_record_type,
                         associated_record_id, amended_date, amended_by, field_code, old_value,
                         new_value, case_reference, function_code)
-VALUES (1, 78, 'DEF', 1001,
+VALUES (1, 78, 'defendant_accounts', 1001,
         '2025-10-27 15:50:42.498414+00', '01000000A', 1,
         'L', 'C', '11111111A', 'UPD');

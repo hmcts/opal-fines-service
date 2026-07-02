@@ -4,7 +4,7 @@ Feature: Defendant Account Search Feature Toggles
   Background:
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
-  @R1BOff @JIRA-STORY:PO-3768 @JIRA-STORY:PO-3762 @JIRA-EPIC:PO-3685
+  @R1BOff @JIRA-STORY:PO-3768 @JIRA-STORY:PO-3762 @JIRA-EPIC:PO-3685 @JIRA-TEST-KEY:PO-8368
   Scenario: Search endpoint is unavailable when release 1b is disabled
     When I search defendant accounts using prosecutor case reference "R1B-OFF-CHECK" without consolidation
     Then the request is rejected with status 404
