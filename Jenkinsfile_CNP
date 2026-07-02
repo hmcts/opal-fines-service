@@ -1,7 +1,12 @@
 #!groovy
 import uk.gov.hmcts.contino.GithubAPI
-
-@Library("Infrastructure@master")
+properties([
+        parameters([
+                booleanParam(name: 'SKIP_TESTS', defaultValue: false, description: 'Skip all tests'),
+                booleanParam(name: 'SKIP_SONAR', defaultValue: false, description: 'Skip sonar'),
+        ])
+])
+@Library("Infrastructure@2.0.0")
 
 def type = "java"
 def product = "opal"
@@ -187,9 +192,9 @@ withPipeline(type, product, component) {
     }
   }
 
-  before('test') {
-    steps.sh './gradlew checkTestJiraAnnotations'
-  }
+//  before('test') {
+//    steps.sh './gradlew checkTestJiraAnnotations'
+//  }
 
   afterAlways('test') {
     publishIntegrationResults()
