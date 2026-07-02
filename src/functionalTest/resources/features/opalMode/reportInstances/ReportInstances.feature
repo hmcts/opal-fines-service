@@ -92,10 +92,7 @@ Feature: Report Instances
     Then the request is rejected as not found
     And the latest get report instance error response matches the standard problem detail contract for status 404
 
-
    #    GET :/report-instances/{id}/content Test scenarios
-
-
 
   @JIRA-STORY:PO-2253 @JIRA-EPIC:PO-2248
   Scenario: Get report instance content with an unknown id is rejected as not found
