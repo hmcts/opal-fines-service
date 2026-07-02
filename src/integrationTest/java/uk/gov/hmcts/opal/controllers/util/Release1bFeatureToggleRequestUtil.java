@@ -59,6 +59,10 @@ public final class Release1bFeatureToggleRequestUtil {
                 getWithAuthorization("/defendant-accounts/" + DEFENDANT_ACCOUNT_ID + "/at-a-glance")
             ),
             Arguments.of(
+                "Get Defendant Account Impositions",
+                getWithAuthorization("/defendant-accounts/" + DEFENDANT_ACCOUNT_ID + "/impositions")
+            ),
+            Arguments.of(
                 "Get Major Creditor Account At A Glance",
                 getWithAuthorization("/major-creditor-accounts/" + MAJOR_CREDITOR_ACCOUNT_ID + "/at-a-glance")
             ),
@@ -313,6 +317,10 @@ public final class Release1bFeatureToggleRequestUtil {
                       }
                     }
                     """)
+            ),
+            Arguments.of(
+                "Get Mappings",
+                getWithAuthorization("/mappings/defendant-account-status")
             ),
             Arguments.of(
                 "Get Result By Id",

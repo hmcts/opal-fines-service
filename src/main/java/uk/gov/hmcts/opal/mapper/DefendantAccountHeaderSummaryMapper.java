@@ -45,7 +45,7 @@ public interface DefendantAccountHeaderSummaryMapper {
             return null;
         }
         return AccountStatusReference.builder()
-            .accountStatusCode(status.getLabel())
+            .accountStatusCode(status.getCode())
             .accountStatusDisplayName(status.getDisplayName())
             .build();
     }

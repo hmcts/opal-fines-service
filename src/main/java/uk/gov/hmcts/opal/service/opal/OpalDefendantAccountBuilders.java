@@ -197,7 +197,7 @@ public class OpalDefendantAccountBuilders {
             return null;
         }
         return AccountStatusReference.builder()
-            .accountStatusCode(status.getLabel())
+            .accountStatusCode(status.getCode())
             .accountStatusDisplayName(status.getDisplayName())
             .build();
     }
@@ -207,7 +207,7 @@ public class OpalDefendantAccountBuilders {
             return null;
         }
         return AccountStatusReferenceCommon.builder()
-            .accountStatusCode(AccountStatusCodeEnum.fromValue(status.getLabel()))
+            .accountStatusCode(AccountStatusCodeEnum.fromValue(status.getCode()))
             .accountStatusDisplayName(status.getDisplayName())
             .build();
     }
