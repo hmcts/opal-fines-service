@@ -14,6 +14,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -25,7 +27,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PrintJob {
+public class PrintJobEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "print_job_id_seq")
@@ -50,9 +52,11 @@ public class PrintJob {
     @Column(name = "doc_version", nullable = false, length = 20)
     private String docVersion;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private PrintStatus status;
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "status", nullable = false, columnDefinition = "t_print_job_status_enum")
+    private PrintStatus status = PrintStatus.PENDING;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
