@@ -73,6 +73,8 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
     private final DefendantAccountPartiesRepository defendantAccountPartiesRepository;
 
+    private final DefendantAccountControlValidator defendantAccountControlValidator;
+
     @Override
     @Transactional(readOnly = true)
     public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,
@@ -126,10 +128,10 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         log.debug(":addDefendantAccountParty: Opal mode: accountId={}, buId={}, postedBy={}, businessUserId={}",
             accountId, businessUnitId, postedBy, businessUserId);
 
-        // Verify the defendant account exists in the business unit.
-        defendantAccountRepositoryService.validateAccountExistsInBusinessUnit(account, businessUnitId);
+        validateAccountExistsInBusinessUnit(account, businessUnitId);
 
         VersionUtils.verifyIfMatch(account, ifMatch, accountId, "addDefendantAccountParty");
+        defendantAccountControlValidator.validateCanMutateParty(account);
         amendmentRepositoryService.auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
 
         // Save the party record
@@ -231,20 +233,21 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         log.debug(":replaceDefendantAccountParty: Opal mode: accountId={}, dapId={}, buId={}, postedBy={}, "
                 + "businessUserId={}", accountId, dapId, businessUnitId, postedBy, businessUserId);
 
-        if (account.getBusinessUnit() == null
-            || account.getBusinessUnit().getBusinessUnitId() == null
-            || !String.valueOf(account.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
-            throw new EntityNotFoundException("Defendant Account not found in business unit " + businessUnitId);
-        }
+        validateAccountExistsInBusinessUnit(account, businessUnitId);
 
         VersionUtils.verifyIfMatch(account, ifMatch, accountId, "replaceDefendantAccountParty");
-        amendmentRepositoryService.auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
 
         DefendantAccountPartiesEntity dap = account.getParties().stream()
             .filter(p -> p.getDefendantAccountPartyId().equals(dapId))
             .findFirst()
             .orElseThrow(() -> new EntityNotFoundException(
                 "Defendant Account Party not found for accountId=" + accountId + ", partyId=" + dapId));
+
+        if (isParentGuardianReplacement(dap)) {
+            defendantAccountControlValidator.validateCanMutateParty(account);
+        }
+
+        amendmentRepositoryService.auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
 
         PartyEntity party = dap.getParty();
 
@@ -346,15 +349,10 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         log.debug(":removeDefendantAccountParty: accountId={}, dapId={}, buId={}, postedBy={}",
             defendantAccountId, defendantAccountPartyId, businessUnitId, postedBy);
 
-        if (account.getBusinessUnit() == null
-            || account.getBusinessUnit().getBusinessUnitId() == null
-            || !Objects.equals(account.getBusinessUnit().getBusinessUnitId(), businessUnitId)) {
-            throw new EntityNotFoundException("Defendant Account not found in business unit."
-                + " Defendant Account: " + defendantAccountId
-                + " Business Unit: " + businessUnitId);
-        }
+        validateAccountExistsInBusinessUnit(account, String.valueOf(businessUnitId));
 
         VersionUtils.verifyIfMatch(account, ifMatch, defendantAccountId, "removeDefendantAccountParty");
+        defendantAccountControlValidator.validateCanMutateParty(account);
         amendmentRepositoryService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
         // Verify the DAP association is valid for this Defendant Account
@@ -391,6 +389,10 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             && Boolean.TRUE.equals(Optional.ofNullable(partyDetails)
                 .map(PartyDetails::getOrganisationFlag)
                 .orElse(null));
+    }
+
+    private boolean isParentGuardianReplacement(DefendantAccountPartiesEntity dap) {
+        return AssociationType.PARENT_GUARDIAN.equals(dap.getAssociationType());
     }
 
     private void removeParentGuardianParties(DefendantAccountEntity account, Long dapId) {
@@ -613,6 +615,12 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         log.debug("replaceDebtorDetail: post-change debtor: {}", debtor);
 
         debtorDetailRepositoryService.save(debtor);
+    }
+
+    private void validateAccountExistsInBusinessUnit(DefendantAccountEntity account, String businessUnitId) {
+        if (!account.isInBusinessUnit(businessUnitId)) {
+            throw new EntityNotFoundException("Defendant Account not found in business unit " + businessUnitId);
+        }
     }
 
 }

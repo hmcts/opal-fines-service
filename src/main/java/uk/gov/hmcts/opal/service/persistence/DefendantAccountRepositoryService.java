@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.persistence;
 
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
@@ -16,6 +17,8 @@ import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 public class DefendantAccountRepositoryService {
 
     private final DefendantAccountRepository defendantAccountRepository;
+
+    private final EntityManager entityManager;
 
     @Transactional(readOnly = true)
     public DefendantAccountEntity findById(long defendantAccountId) {
@@ -44,15 +47,7 @@ public class DefendantAccountRepositoryService {
         return defendantAccountRepository.save(defendantAccountEntity);
     }
 
-    /**
-     * Convenience method to validate that a given DefendantAccountEntity is associated with the specified
-     * business unit id.
-     */
-    public void validateAccountExistsInBusinessUnit(DefendantAccountEntity account, String buId) {
-        if (account.getBusinessUnit() == null
-            || account.getBusinessUnit().getBusinessUnitId() == null
-            || !String.valueOf(account.getBusinessUnit().getBusinessUnitId()).equals(buId)) {
-            throw new EntityNotFoundException("Defendant Account not found in business unit " + buId);
-        }
+    public void refresh(DefendantAccountEntity defendantAccountEntity) {
+        entityManager.refresh(defendantAccountEntity);
     }
 }

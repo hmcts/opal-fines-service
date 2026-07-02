@@ -226,3 +226,13 @@ DELETE FROM defendant_accounts
 WHERE defendant_account_id = 24010;
 
 -- END TEST DATA: PO-1896 - Seed data for add DAP Tests
+
+-- PO-5757 account controls multi-failure seed data
+DELETE FROM payment_terms
+WHERE defendant_account_id = 575700;
+
+DELETE FROM enforcements
+WHERE defendant_account_id = 575700;
+
+DELETE FROM defendant_accounts
+WHERE defendant_account_id = 575700;

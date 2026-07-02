@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -21,6 +22,139 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Slf4j(topic = "opal.OpalDefendantsPaymentTermsIntegrationTest")
 class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
+
+    @Test
+    @DisplayName("OPAL: Add Payment Terms - account controls return 422 for blocked last enforcement")
+    @JiraStory("PO-5757")
+    @JiraEpic("PO-2990")
+    void test_Opal_AddPaymentTerms_returns422_whenBlockedByAccountControls() throws Exception {
+        // Arrange
+        authorise((short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
+
+        long defendantAccountId = 78L;
+        Integer currentVersion = versionFor(defendantAccountId);
+        HttpHeaders headers = authorisedHeaders(userStateStub.getBearerToken(), "78", "\"" + currentVersion + "\"");
+
+        String requestJson = """
+            {
+              "payment_terms": {
+                "days_in_default": 30,
+                "date_days_in_default_imposed": "2025-11-05",
+                "extension": true,
+                "reason_for_extension": "extn reason text",
+                "effective_date": "2025-11-01",
+                "payment_terms_type": {
+                  "payment_terms_type_code": "B",
+                  "payment_terms_type_display_name": "By date"
+                },
+                "instalment_period": {
+                  "instalment_period_code": "W",
+                  "instalment_period_display_name": "Weekly"
+                },
+                "lump_sum_amount": 120.00,
+                "instalment_amount": 10.00,
+                "posted_details": {
+                  "posted_by": "clerk1",
+                  "posted_date": "2025-02-02T10:11:12",
+                  "posted_by_name": "aa"
+                }
+              },
+              "request_payment_card": false,
+              "generate_payment_terms_change_letter": false
+            }
+            """;
+
+        // Act
+        ResultActions result = mockMvc.perform(
+            post("/defendant-accounts/78/payment-terms")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson)
+        );
+
+        log.info(":opalAddPaymentTerms_accountControls response body:\n{}",
+                 ToJsonString.toPrettyJson(result.andReturn().getResponse().getContentAsString()));
+
+        // Assert
+        result.andExpect(status().isUnprocessableEntity())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Unprocessable Content"))
+            .andExpect(jsonPath("$.status").value(422))
+            .andExpect(jsonPath("$.detail").value(
+                "Defendant account update blocked: Payment terms last enforcement check failed because "
+                    + "last_enforcement is MPSO."))
+            .andExpect(jsonPath("$.retriable").value(false));
+
+        assertEquals(currentVersion, versionFor(defendantAccountId));
+    }
+
+    @Test
+    @DisplayName("OPAL: Add Payment Terms - account controls return 422 with all failed checks")
+    @JiraStory("PO-5757")
+    @JiraEpic("PO-2990")
+    void test_Opal_AddPaymentTerms_returns422_withAllAccountControlFailures() throws Exception {
+        // Arrange
+        authorise((short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
+
+        long defendantAccountId = 575700L;
+        Integer currentVersion = versionFor(defendantAccountId);
+        HttpHeaders headers = authorisedHeaders(userStateStub.getBearerToken(), "78", "\"" + currentVersion + "\"");
+
+        String requestJson = """
+            {
+              "payment_terms": {
+                "days_in_default": 30,
+                "date_days_in_default_imposed": "2025-11-05",
+                "extension": true,
+                "reason_for_extension": "extn reason text",
+                "effective_date": "2025-11-01",
+                "payment_terms_type": {
+                  "payment_terms_type_code": "B",
+                  "payment_terms_type_display_name": "By date"
+                },
+                "instalment_period": {
+                  "instalment_period_code": "W",
+                  "instalment_period_display_name": "Weekly"
+                },
+                "lump_sum_amount": 120.00,
+                "instalment_amount": 10.00,
+                "posted_details": {
+                  "posted_by": "clerk1",
+                  "posted_date": "2025-02-02T10:11:12",
+                  "posted_by_name": "aa"
+                }
+              },
+              "request_payment_card": false,
+              "generate_payment_terms_change_letter": false
+            }
+            """;
+
+        // Act
+        ResultActions result = mockMvc.perform(
+            post("/defendant-accounts/575700/payment-terms")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson)
+        );
+
+        log.info(":opalAddPaymentTerms_allAccountControlFailures response body:\n{}",
+                 ToJsonString.toPrettyJson(result.andReturn().getResponse().getContentAsString()));
+
+        // Assert
+        result.andExpect(status().isUnprocessableEntity())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Unprocessable Content"))
+            .andExpect(jsonPath("$.status").value(422))
+            .andExpect(jsonPath("$.detail").value(
+                "Defendant account update blocked: Account Status Check failed because account_status is CS; "
+                    + "Payment terms last enforcement check failed because last_enforcement is MPSO; "
+                    + "Zero balance check failed because account_balance is 0.00."))
+            .andExpect(jsonPath("$.retriable").value(false));
+
+        assertEquals(currentVersion, versionFor(defendantAccountId));
+    }
 
     @Test
     @DisplayName("OPAL: Add Payment Terms – Happy Path [@PO-1718]")

@@ -189,6 +189,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final Clock clock;
 
+    private final DefendantAccountControlValidator defendantAccountControlValidator;
+
     //TODO - Remove once repository service is in use
     public DefendantAccountEntity getDefendantAccountById(long defendantAccountId) {
         return defendantAccountRepository.findById(defendantAccountId)
@@ -437,6 +439,10 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         VersionUtils.verifyIfMatch(entity, request.getVersion(), defendantAccountId, "updateDefendantAccount");
 
+        if (defendantAccountControlValidator.isProtectedUpdate(request, entity)) {
+            defendantAccountControlValidator.validateCanUpdateProtectedFields(entity);
+        }
+
         amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
         if (request.getPayload().getCommentAndNotes() != null) {
@@ -501,12 +507,16 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         String businessUnitId,
         String businessUnitUserId,
         String ifMatch,
-        String displayName) {
+        String displayName,
+        boolean validatePaymentCardControls) {
 
         log.debug(":addPaymentCard (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
         DefendantAccountEntity account = loadAndValidateAccount(defendantAccountId, businessUnitId);
         VersionUtils.verifyIfMatch(account, ifMatch, account.getDefendantAccountId(), "addPaymentCard");
+        if (validatePaymentCardControls) {
+            defendantAccountControlValidator.validateCanAddPaymentCardRequest(account);
+        }
 
         ensureNoExistingPaymentCardRequest(defendantAccountId);
 
@@ -554,13 +564,18 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         }
 
         VersionUtils.verifyIfMatch(account, ifMatch, accountId, "replaceDefendantAccountParty");
-        amendmentService.auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
 
         DefendantAccountPartiesEntity dap = account.getParties().stream()
             .filter(p -> p.getDefendantAccountPartyId().equals(dapId))
             .findFirst()
             .orElseThrow(() -> new EntityNotFoundException(
                 "Defendant Account Party not found for accountId=" + accountId + ", partyId=" + dapId));
+
+        if (AssociationType.PARENT_GUARDIAN.equals(dap.getAssociationType())) {
+            defendantAccountControlValidator.validateCanMutateParty(account);
+        }
+
+        amendmentService.auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
 
         PartyEntity party = dap.getParty();
 
@@ -976,7 +991,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             businessUnitId,
             businessUnitUserId,
             ifMatch,
-            userStateService.getUserStateV1FromSecurityContext().getDisplayName()
+            userStateService.getUserStateV1FromSecurityContext().getDisplayName(),
+            true
         );
 
         auditComplete(defendantAccountId, account, businessUnitUserId,
@@ -1075,6 +1091,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         }
 
         VersionUtils.verifyIfMatch(defAccount, ifMatch, defendantAccountId, "addPaymentTerms");
+        defendantAccountControlValidator.validateCanAddPaymentTerms(defAccount);
 
         amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
@@ -1108,7 +1125,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             log.debug(":addPaymentTerms: Request Payment Card flag is TRUE for account {}",
                 defAccount.getDefendantAccountId());
             addPaymentCard(defendantAccountId, businessUnitId, businessUnitUserId, ifMatch,
-                userStateService.getUserStateV1FromSecurityContext().getDisplayName());
+                userStateService.getUserStateV1FromSecurityContext().getDisplayName(), false);
         }
 
         // if generate_payment_terms_change_letter is true
@@ -1160,6 +1177,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         }
 
         VersionUtils.verifyIfMatch(defAccount, ifMatch, defendantAccountId, "addPaymentTerms");
+        defendantAccountControlValidator.validateCanAddPaymentTerms(defAccount);
 
         amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
@@ -1182,7 +1200,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         if (Boolean.TRUE.equals(addPaymentTermsRequest.getRequestPaymentCard())) {
             log.debug(":addPaymentTermsPreservingLastEnforcement: Request Payment Card flag is TRUE for account {}",
                 defAccount.getDefendantAccountId());
-            addPaymentCard(defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, authHeader);
+            addPaymentCard(defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, authHeader, false);
         }
 
         if (Boolean.TRUE.equals(addPaymentTermsRequest.getGeneratePaymentTermsChangeLetter())) {

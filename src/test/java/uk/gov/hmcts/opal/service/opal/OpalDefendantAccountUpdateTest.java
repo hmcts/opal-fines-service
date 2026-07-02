@@ -6,8 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -39,6 +41,7 @@ import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.CollectionOrderCommon;
 import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementCourtDefendantAccount;
@@ -84,6 +87,9 @@ class OpalDefendantAccountUpdateTest {
 
     @Mock
     private EnforcerDefendantAccountMapper enforcerDefendantAccountMapper;
+
+    @Mock
+    private DefendantAccountControlValidator defendantAccountControlValidator;
 
     @Spy
     private Clock clock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
@@ -289,6 +295,105 @@ class OpalDefendantAccountUpdateTest {
         assertThrows(ObjectOptimisticLockingFailureException.class,
             () -> service.updateDefendantAccount(77L, "78", req, "tester"));
         verify(defendantAccountRepository, never()).save(any());
+    }
+
+    @Test
+    void updateDefendantAccount_whenProtectedUpdateAccountControlsFail_throwsBeforeMutation() {
+        var bu = BusinessUnitEntity.builder()
+            .businessUnitId((short) 78)
+            .build();
+
+        var entity = DefendantAccountEntity.builder()
+            .defendantAccountId(77L)
+            .businessUnit(bu)
+            .versionNumber(0L)
+            .build();
+        UnprocessableException exception = new UnprocessableException("blocked");
+
+        when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
+        doThrow(exception).when(defendantAccountControlValidator).validateCanUpdateProtectedFields(entity);
+
+        var req = UpdateDefendantAccountRequest.builder()
+            .payload(UpdateDefendantAccountRequestPayload.builder()
+                .collectionOrder(CollectionOrderCommon.builder()
+                    .collectionOrderFlag(true)
+                    .build())
+                .build())
+            .version(BigInteger.ZERO)
+            .build();
+        when(defendantAccountControlValidator.isProtectedUpdate(req, entity)).thenReturn(true);
+
+        UnprocessableException result = assertThrows(UnprocessableException.class,
+            () -> service.updateDefendantAccount(77L, "78", req, "tester"));
+
+        assertEquals(exception, result);
+        verify(defendantAccountControlValidator).validateCanUpdateProtectedFields(entity);
+        verify(amendmentService, never()).auditInitialiseStoredProc(anyLong(), any());
+        verify(defendantAccountRepository, never()).save(any());
+    }
+
+    @Test
+    void updateDefendantAccount_whenOnlyCommentsChanged_doesNotRunAccountControls() {
+        var bu = BusinessUnitEntity.builder()
+            .businessUnitId((short) 78)
+            .build();
+
+        var entity = DefendantAccountEntity.builder()
+            .defendantAccountId(77L)
+            .businessUnit(bu)
+            .versionNumber(0L)
+            .build();
+
+        when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
+        when(noteRepository.save(any())).thenReturn(null);
+        doNothing().when(entityManager).lock(any(), any());
+
+        var req = UpdateDefendantAccountRequest.builder()
+            .payload(UpdateDefendantAccountRequestPayload.builder()
+                .commentAndNotes(CommentsAndNotesCommon.builder()
+                    .accountComment("comment only")
+                    .build())
+                .build())
+            .version(BigInteger.ZERO)
+            .build();
+
+        service.updateDefendantAccount(77L, "78", req, "tester");
+
+        verify(defendantAccountControlValidator, never()).validateCanUpdateProtectedFields(any());
+        verify(defendantAccountRepository).save(entity);
+    }
+
+    @Test
+    void updateDefendantAccount_whenProtectedFieldsAreUnchanged_doesNotRunAccountControls() {
+        var bu = BusinessUnitEntity.builder()
+            .businessUnitId((short) 78)
+            .build();
+
+        var entity = DefendantAccountEntity.builder()
+            .defendantAccountId(77L)
+            .businessUnit(bu)
+            .collectionOrder(true)
+            .collectionOrderEffectiveDate(LocalDate.of(2025, 1, 1))
+            .versionNumber(0L)
+            .build();
+
+        when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
+        doNothing().when(entityManager).lock(any(), any());
+
+        var req = UpdateDefendantAccountRequest.builder()
+            .payload(UpdateDefendantAccountRequestPayload.builder()
+                .collectionOrder(CollectionOrderCommon.builder()
+                    .collectionOrderFlag(true)
+                    .collectionOrderDate(LocalDate.of(2025, 1, 1))
+                    .build())
+                .build())
+            .version(BigInteger.ZERO)
+            .build();
+
+        service.updateDefendantAccount(77L, "78", req, "tester");
+
+        verify(defendantAccountControlValidator, never()).validateCanUpdateProtectedFields(any());
+        verify(defendantAccountRepository).save(entity);
     }
 
     @Test
