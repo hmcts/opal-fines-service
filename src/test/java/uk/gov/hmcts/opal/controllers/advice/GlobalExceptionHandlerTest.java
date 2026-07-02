@@ -61,6 +61,7 @@ import uk.gov.hmcts.opal.common.user.authentication.exception.AuthenticationErro
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
+import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
@@ -372,6 +373,19 @@ class GlobalExceptionHandlerTest {
             .handleJsonSchemaValidationException(new JsonSchemaValidationException("bad schema"));
         assertEquals(HttpStatus.BAD_REQUEST, r.getStatusCode());
         assertEquals(false, r.getBody().getProperties().get("retriable"));
+    }
+
+    @Test
+    void handleInvalidReferenceValidation_false() {
+        InvalidReferenceValidationException ex = new InvalidReferenceValidationException("bad reference data");
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleInvalidReferenceValidationException(ex);
+
+        assertEquals(HttpStatus.BAD_REQUEST, r.getStatusCode());
+        ProblemDetail pd = r.getBody();
+        assertEquals("Bad Request", pd.getTitle());
+        assertEquals("bad reference data", pd.getDetail());
+        assertEquals(URI.create("https://hmcts.gov.uk/problems/invalid-reference-validation"), pd.getType());
+        assertEquals(false, pd.getProperties().get("retriable"));
     }
 
     @Test
