@@ -84,8 +84,6 @@ import uk.gov.hmcts.opal.service.persistence.DefendantAccountHeaderViewRepositor
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountSummaryViewRepositoryService;
 import uk.gov.hmcts.opal.service.opal.history.defendant.DefendantAccountHistoryService;
 import uk.gov.hmcts.opal.service.iface.ReportEntryServiceInterface;
-import uk.gov.hmcts.opal.service.persistence.PartyRepositoryService;
-import uk.gov.hmcts.opal.service.persistence.AliasRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;

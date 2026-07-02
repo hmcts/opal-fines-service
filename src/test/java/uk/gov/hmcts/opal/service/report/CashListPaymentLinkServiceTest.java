@@ -20,7 +20,6 @@ import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.entity.SuspenseItemEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.SuspenseItemRepository;
-import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 
 @ExtendWith(MockitoExtension.class)
