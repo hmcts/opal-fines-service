@@ -184,10 +184,33 @@ def publishSmokeResults = { reportNameSuffix ->
   }
 }
 
+def authenticateHmctsProdAcr = {
+  steps.sh '''
+    set +x
+    export AZURE_CONFIG_DIR=/opt/jenkins/.azure-prod
+
+    echo "Checking Azure CLI login..."
+    az account show --output table
+
+    echo "Checking hmctsprod ACR access..."
+    az acr repository show-tags \
+      --name hmctsprod \
+      --repository opal/legacy-db-stub \
+      --top 1 \
+      --output table
+
+    echo "Authenticating Docker with hmctsprod ACR..."
+    az acr login --name hmctsprod --subscription DCD-CNP-Prod
+    docker pull hmctsprod.azurecr.io/opal/legacy-db-stub:latest
+  '''
+}
+
 def runIntegrationStage = { stageName, shouldRunWithZephyr ->
   if (params.Integration) {
     stage(stageName) {
       try {
+        authenticateHmctsProdAcr()
+
         if (shouldRunWithZephyr) {
           builder.gradle('integrationTestWithZephyrExecution')
         } else {
