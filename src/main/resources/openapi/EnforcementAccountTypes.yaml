@@ -83,7 +83,6 @@ paths:
                 required:
                   - id
                   - version
-                  - minimum_balance
                 properties:
                   id:
                     type: integer
