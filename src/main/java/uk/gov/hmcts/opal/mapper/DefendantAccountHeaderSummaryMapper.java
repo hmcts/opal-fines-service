@@ -38,7 +38,19 @@ public interface DefendantAccountHeaderSummaryMapper {
     @Mapping(target = "imposedAmount", source = "imposed")
     @Mapping(target = "arrearsAmount", source = "arrears")
     @Mapping(target = "paidAmount", source = "paid")
+    @Mapping(target = "accountBalance", source = ".")
     PaymentStateSummary toPaymentStateSummary(DefendantAccountHeaderViewEntity entity);
+
+    default BigDecimal toBalance(DefendantAccountHeaderViewEntity entity) {
+        if (entity.getImposed() == null) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal paidAmount = toZeroIfNull(entity.getPaid());
+        if (entity.getImposed().compareTo(BigDecimal.ZERO) > 0) {
+            return entity.getImposed().subtract(paidAmount);
+        }
+        return entity.getImposed().add(paidAmount);
+    }
 
     default AccountStatusReference toAccountStatusReference(DefendantAccountStatus status) {
         if (status == null) {
@@ -59,22 +71,22 @@ public interface DefendantAccountHeaderSummaryMapper {
             .organisationDetails(
                 isOrganisation
                     ? OrganisationDetails.builder()
-                    .organisationName(entity.getOrganisationName())
-                    .organisationAliases(null)
-                    .build()
+                      .organisationName(entity.getOrganisationName())
+                      .organisationAliases(null)
+                      .build()
                     : null
             )
             .individualDetails(
                 !isOrganisation
                     ? IndividualDetails.builder()
-                    .title(entity.getTitle())
-                    .forenames(entity.getFirstnames())
-                    .surname(entity.getSurname())
-                    .dateOfBirth(entity.getBirthDate() != null ? entity.getBirthDate().toString() : null)
-                    .age(entity.getBirthDate() != null ? String.valueOf(calculateAge(entity.getBirthDate())) : null)
-                    .nationalInsuranceNumber(null)
-                    .individualAliases(null)
-                    .build()
+                      .title(entity.getTitle())
+                      .forenames(entity.getFirstnames())
+                      .surname(entity.getSurname())
+                      .dateOfBirth(entity.getBirthDate() != null ? entity.getBirthDate().toString() : null)
+                      .age(entity.getBirthDate() != null ? String.valueOf(calculateAge(entity.getBirthDate())) : null)
+                      .nationalInsuranceNumber(null)
+                      .individualAliases(null)
+                      .build()
                     : null
             )
             .build();
