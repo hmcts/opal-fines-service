@@ -89,7 +89,7 @@ spring:
             non_contextual_creation: true
   data:
     redis:
-        url: ${REDIS_CONNECTION_STRING:redis://redis:6379}
+      url: ${REDIS_CONNECTION_STRING:redis://redis:6379}
   flyway:
     url: ${spring.datasource.url}
     user: ${spring.datasource.username}
@@ -126,6 +126,7 @@ launchdarkly:
     release-1b: ${RELEASE_1B_ENABLED:false}
     release-1c: ${RELEASE_1C_ENABLED:false}
     release-1c-enforcement-operational-reporting: ${RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_ENABLED:true}
+    release-1c-auto-enforcement-config: ${RELEASE_1C_AUTO_ENFORCEMENT_CONFIG_ENABLED:false}
 
 opal:
   redis:

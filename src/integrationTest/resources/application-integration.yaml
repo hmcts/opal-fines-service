@@ -27,6 +27,7 @@ launchdarkly:
     release-1a: true
     release-1b: true
     release-1c-enforcement-operational-reporting: true
+    release-1c-auto-enforcement-config: false
 
 logging:
   level:
@@ -58,7 +59,7 @@ opal:
     consumer:
       enabled: false
   redis:
-      enabled: true
+    enabled: true
 user:
   service:
     url: http://localhost:4553/opal
