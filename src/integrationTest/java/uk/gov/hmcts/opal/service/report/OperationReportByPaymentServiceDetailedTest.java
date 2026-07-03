@@ -175,12 +175,28 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
         );
 
         Assertions.assertThat(report.getTransactionRows())
-            .hasSize(21)
+            .hasSize(25)
             .extracting(
                 DetailedReportTransactionRowDto::getTransactionType,
                 DetailedReportTransactionRowDto::getTransactionDetails
             )
             .containsExactlyInAnyOrder(
+                tuple(
+                    "TTPAY",
+                    "In full | 2025-10-12 | 120 days in default"
+                ),
+                tuple(
+                    "ENFT",
+                    "REGF | Warrant number: 001/25/00001 | Test enforcement"
+                ),
+                tuple(
+                    "ENFT",
+                    "ABDC | Warrant number: 001/25/00001 | Test enforcement"
+                ),
+                tuple(
+                    "NOTE",
+                    "Detailed report note"
+                ),
                 tuple(
                     DefendantTransactionType.CONSOL.getLabel(),
                     "Account consolidated | 77 | Amount credited to master account"
@@ -928,4 +944,3 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
         verifyMetadata(result);
     }
 }
-

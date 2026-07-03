@@ -414,15 +414,16 @@ ON CONFLICT (defendant_account_id) DO UPDATE
 
 INSERT INTO payment_terms
 ( payment_terms_id, defendant_account_id, posted_date, posted_by
-, terms_type_code, effective_date, instalment_period, instalment_amount, instalment_lump_sum
+, posted_by_name, terms_type_code, effective_date, instalment_period, instalment_amount, instalment_lump_sum
 , jail_days, extension, account_balance, active)
-VALUES ( 0077, 0077, '2023-11-03 16:05:10', '01000000A'
+VALUES ( 0077, 0077, '2023-11-03 16:05:10', '01000000A', 'Payment Report User'
        , 'B', '2025-10-12 00:00:00', 'W', NULL, NULL
        , 120, 'N', 700.58, true)
 ON CONFLICT (payment_terms_id) DO UPDATE
       SET defendant_account_id = EXCLUDED.defendant_account_id,
       posted_date = EXCLUDED.posted_date,
       posted_by = EXCLUDED.posted_by,
+      posted_by_name = EXCLUDED.posted_by_name,
       terms_type_code = EXCLUDED.terms_type_code,
       effective_date = EXCLUDED.effective_date,
       instalment_period = EXCLUDED.instalment_period,
@@ -432,6 +433,35 @@ ON CONFLICT (payment_terms_id) DO UPDATE
       extension = EXCLUDED.extension,
       account_balance = EXCLUDED.account_balance,
       active = EXCLUDED.active;
+
+INSERT INTO notes (
+    note_id,
+    note_type,
+    associated_record_type,
+    associated_record_id,
+    note_text,
+    posted_date,
+    posted_by,
+    posted_by_name
+)
+VALUES (
+    77001,
+    'AA',
+    'defendant_accounts',
+    '77',
+    'Detailed report note',
+    TIMESTAMP '2026-05-14 11:45:30',
+    '01000000A',
+    'Payment Report User'
+)
+ON CONFLICT (note_id) DO UPDATE
+    SET note_type = EXCLUDED.note_type,
+        associated_record_type = EXCLUDED.associated_record_type,
+        associated_record_id = EXCLUDED.associated_record_id,
+        note_text = EXCLUDED.note_text,
+        posted_date = EXCLUDED.posted_date,
+        posted_by = EXCLUDED.posted_by,
+        posted_by_name = EXCLUDED.posted_by_name;
 
 
 INSERT INTO defendant_account_parties (
