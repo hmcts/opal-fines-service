@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -47,9 +48,9 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
         final String payload = objectMapper.writeValueAsString(request);
         log.info(":testPostNotes payload: {}", payload);
 
-        // Read the current version immediately before use (avoids distance warning & stale reads)
-        final Integer currentVersion = DefendantAccountVersionUtil.getVersion(jdbcTemplate, 77L);
-
+        // Read the current version immediately before use
+        final Integer versionBefore = DefendantAccountVersionUtil.getVersion(jdbcTemplate, 77L);
+        assertThat(versionBefore).isNotNull();
         // Act
         ResultActions result =
             mockMvc.perform(
@@ -57,7 +58,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(payload)
                     .header("authorization", userStateStub.getBearerToken())
-                    .header(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"")
+                    .header(HttpHeaders.IF_MATCH, "\"" + versionBefore + "\"")
                     .header("Business_Unit_ID", "78")
                     .with(authentication(allFinesPermissionsToken()))
             );
@@ -66,6 +67,10 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
         String body = result.andReturn().getResponse().getContentAsString();
         log.info(":testPostNotes response:\n{}", ToJsonString.toPrettyJson(body));
         result.andExpect(status().isCreated());
+
+        // Assert defendantAccount version incremented
+        final Integer versionAfter = DefendantAccountVersionUtil.getVersion(jdbcTemplate, 77L);
+        assertThat(versionAfter).isEqualTo(versionBefore + 1);
     }
 
     @DisplayName("post notes for a defendant account ID that does not exist [PO-1566]")
@@ -74,7 +79,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
         Note note = new Note();
         note.setNoteText("test");
-        note.setRecordId("7A");
+        note.setRecordId("7");
         note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
         note.setNoteType("AA");
 
@@ -98,6 +103,34 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
         log.info(":testPostNotes: Response body:\n" + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isNotFound());
+    }
+
+    @DisplayName("post notes for an invalid defendant account ID [PO-1566]")
+    @JiraStory("PO-1566")
+    void postNotes_badRequest(Logger log) throws Exception {
+
+        Note note = new Note();
+        note.setRecordId("ABC1");
+        note.setRecordType(RecordType.CREDITOR_ACCOUNTS);
+
+        AddNoteRequest request = new AddNoteRequest();
+
+        request.setActivityNote(note);
+
+        ResultActions resultActions =
+            mockMvc.perform(
+                post(URL_BASE + "/add")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .header("authorization", userStateStub.getBearerToken())
+                    .header("If-Match", "1")
+                    .header("Business_Unit_ID", "78")
+                    .with(authentication(allFinesPermissionsToken()))
+            );
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostNotes: Response body:\n" + ToJsonString.toPrettyJson(body));
+        resultActions.andExpect(status().isBadRequest());
     }
 
     @DisplayName("post notes - user without permission [PO-1566]")

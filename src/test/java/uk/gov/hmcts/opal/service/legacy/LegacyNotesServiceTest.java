@@ -66,8 +66,8 @@ class LegacyNotesServiceTest {
         assertEquals("77", id);
 
         LegacyAddNoteRequest sent = reqCap.getValue();
-        assertEquals("1", sent.getBusinessUnitId());
-        assertEquals("999", sent.getBusinessUnitUserId());
+        assertEquals((short) 1, sent.getBusinessUnitId());
+        assertEquals(999, sent.getBusinessUnitUserId());
         assertEquals(1L, sent.getVersion());
 
         LegacyNote sentNote = sent.getActivityNote();

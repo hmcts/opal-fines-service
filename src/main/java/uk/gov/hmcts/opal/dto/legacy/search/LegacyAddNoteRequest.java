@@ -18,11 +18,11 @@ public class LegacyAddNoteRequest {
 
     @NotBlank
     @XmlElement(name = "business_unit_id", required = true)
-    private String businessUnitId;
+    private Short businessUnitId;
 
     @NotBlank
     @XmlElement(name = "business_unit_user_id", required = true)
-    private String businessUnitUserId;
+    private Long businessUnitUserId;
 
     @NotNull
     @XmlElement(name = "version", required = true)

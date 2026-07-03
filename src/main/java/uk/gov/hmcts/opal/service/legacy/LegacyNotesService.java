@@ -26,7 +26,7 @@ public class LegacyNotesService implements NotesServiceInterface {
         GatewayService.Response<LegacyAddNoteResponse> response = gatewayService.postToGateway(
             ADD_NOTE,
             LegacyAddNoteResponse.class,
-            createRequest(request, ifMatch, user, String.valueOf(businessUnitId)),
+            createRequest(request, ifMatch, user, businessUnitId),
             null
         );
 
@@ -48,13 +48,13 @@ public class LegacyNotesService implements NotesServiceInterface {
     }
 
     private LegacyAddNoteRequest createRequest(AddNoteRequest request, String version, UserState user,
-                                               String defendantBusinessUnitId) {
+                                               Short defendantBusinessUnitId) {
 
         LegacyNote note = LegacyNote.builder().noteText(request.getActivityNote().getNoteText())
             .noteType(request.getActivityNote().getNoteType()).recordType(request.getActivityNote().getRecordType())
             .recordId(request.getActivityNote().getRecordId()).build();
 
         return LegacyAddNoteRequest.builder().businessUnitId(defendantBusinessUnitId)
-            .businessUnitUserId(user.getUserId().toString()).version(Long.valueOf(version)).activityNote(note).build();
+            .businessUnitUserId(user.getUserId()).version(Long.valueOf(version)).activityNote(note).build();
     }
 }

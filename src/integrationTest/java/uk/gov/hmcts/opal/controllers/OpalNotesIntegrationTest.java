@@ -29,7 +29,7 @@ public class OpalNotesIntegrationTest extends NotesIntegrationTest {
     @JiraStory("PO-1566")
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6227")
-    void testOpalNotes_500Error() throws Exception {
+    void testOpalNotes_NotFound() throws Exception {
         super.postNotes_IDNotFoundError(log);
     }
 
@@ -39,5 +39,12 @@ public class OpalNotesIntegrationTest extends NotesIntegrationTest {
     @JiraTestKey("PO-6225")
     void testOpalNotes_Forbidden() throws Exception {
         super.postNotes_UserWithoutPermission(log);
+    }
+
+    @Test
+    @JiraStory("PO-1566")
+    @JiraEpic("PO-812")
+    void testOpalNotes_BadRequest() throws Exception {
+        super.postNotes_badRequest(log);
     }
 }
