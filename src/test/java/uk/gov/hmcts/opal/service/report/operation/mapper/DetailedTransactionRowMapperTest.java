@@ -204,6 +204,20 @@ class DetailedTransactionRowMapperTest {
     }
 
     @Test
+    void mapFromEnforcement_nullResultId_shouldStillMapOtherDetails() {
+        EnforcementEntity enforcement = new EnforcementEntity();
+        enforcement.setPostedDate(LocalDateTime.of(2024, 7, 8, 9, 10));
+        enforcement.setPostedByUsername("enforcement.user");
+        enforcement.setReason("reason only");
+
+        DetailedReportTransactionRowDto result =
+            mapper.mapFromEnforcement(enforcement, account, new ReportMetadataContext());
+
+        assertThat(result).isNotNull();
+        assertThat(result.getTransactionDetails()).isEqualTo("reason only");
+    }
+
+    @Test
     void mapFromNote_shouldMapNoteFieldsAndConsolidatedAccountNo() {
         DefendantAccountEntity consolidatedAccount = DefendantAccountEntity.builder()
             .accountNumber("CONSOLIDATED-12")
