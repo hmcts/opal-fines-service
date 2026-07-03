@@ -54,7 +54,6 @@ class OpalNotesServiceTest {
         // Arrange
         when(clock.instant()).thenReturn(Instant.parse("2026-07-03T10:15:30Z"));
         when(clock.getZone()).thenReturn(ZoneOffset.UTC);
-        AddNoteRequest req = buildRequest("77", RecordType.DEFENDANT_ACCOUNTS);
         DefendantAccountEntity managed = new DefendantAccountEntity();
         managed.setVersionNumber(12L);
         BusinessUnitEntity businessUnit = new BusinessUnitEntity();
@@ -66,6 +65,7 @@ class OpalNotesServiceTest {
             .thenReturn(managed);
         when(user.getDisplayName()).thenReturn("Test User");
         when(repository.save(any(NoteEntity.class))).thenReturn(saved);
+        AddNoteRequest req = buildRequest("77", RecordType.DEFENDANT_ACCOUNTS);
 
         // Act
         String result = service.addNote(req, "\"12\"", user, (short) 78);
