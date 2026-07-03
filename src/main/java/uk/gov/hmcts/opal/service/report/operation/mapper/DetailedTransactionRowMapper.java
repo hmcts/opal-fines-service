@@ -111,7 +111,8 @@ public abstract class DetailedTransactionRowMapper
     }
 
     protected String getEnforcementDetails(EnforcementEntity enforcement) {
-        StringBuilder sb = new StringBuilder(enforcement.getResultId());
+        StringBuilder sb = new StringBuilder();
+        sb.append(enforcement.getResultId());
         if (enforcement.getJailDays() != null) {
             sb.append(SPACED_PIPE).append(enforcement.getJailDays()).append(" days in default");
         }
