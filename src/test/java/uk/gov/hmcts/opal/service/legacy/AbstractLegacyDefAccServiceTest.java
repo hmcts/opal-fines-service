@@ -19,8 +19,6 @@ import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountHistoryLegacyResponseMapp
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 import uk.gov.hmcts.opal.service.UserStateService;
-import uk.gov.hmcts.opal.service.opal.CourtService;
-import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 import uk.gov.hmcts.opal.service.opal.history.HistoryItemOrderingService;
 
 @ExtendWith(MockitoExtension.class)
