@@ -337,7 +337,7 @@ tasks.register('functionalOpal', Test) {
   outputs.upToDateWhen { false }
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal"))
   testLogging.showStandardStreams = true
-  environment("DEFAULT_APP_MODE", "opal")
+  environment("IS_LEGACY_MODE", "false")
   include '**/OpalTestRunner.class'
 
   finalizedBy 'copyOpalCucumberJson'
@@ -351,7 +351,7 @@ tasks.register('functionalOpalTags', Test) {
   outputs.upToDateWhen { false }
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal-tags"))
   testLogging.showStandardStreams = true
-  environment("DEFAULT_APP_MODE", "opal")
+  environment("IS_LEGACY_MODE", "false")
 
   include '**/OpalTaggedTestRunner.class'
 
@@ -380,7 +380,7 @@ tasks.register('functionalLegacy', Test) {
   outputs.upToDateWhen { false }
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/legacy"))
   testLogging.showStandardStreams = true
-  environment("DEFAULT_APP_MODE", "legacy")
+  environment("IS_LEGACY_MODE", "true")
 
   include '**/LegacyTestRunner.class'
   finalizedBy 'copyLegacyCucumberJson'

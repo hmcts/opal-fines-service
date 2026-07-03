@@ -31,12 +31,14 @@ import tools.jackson.databind.cfg.DateTimeFeature;
 import tools.jackson.databind.json.JsonMapper;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
-import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
-import uk.gov.hmcts.opal.entity.PaymentInEntity;
-import uk.gov.hmcts.opal.entity.TillEntity;
+import uk.gov.hmcts.opal.entity.DestinationType;
 import uk.gov.hmcts.opal.entity.MiscellaneousAccountEntity;
+import uk.gov.hmcts.opal.entity.PaymentInEntity;
+import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
+import uk.gov.hmcts.opal.entity.TillEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.PaymentMethod;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.MiscellaneousAccountRepository;
@@ -209,6 +211,79 @@ class CashTillReportServiceTest {
         assertThatThrownBy(() -> service.generateReportData(reportInstance))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("Cash Till payment 1001 has invalid associated_record_id abc");
+    }
+
+    @Test
+    void generateReportData_whenPaymentMethodIsMissing_returnsRowWithNullPaymentMethod() {
+        TillEntity till = till();
+        PaymentInEntity payment = defendantPayment();
+        payment.setPaymentMethod(null);
+        ReportInstanceEntity reportInstance = reportInstance("""
+            {"till_id":321}
+            """);
+
+        when(tillRepository.findById(321L)).thenReturn(Optional.of(till));
+        when(paymentInRepository.findAll(anySpecification(), any(Sort.class))).thenReturn(List.of(payment));
+        when(defendantAccountRepository.findAllByDefendantAccountIdIn(List.of(11L)))
+            .thenReturn(List.of(defendantAccount()));
+
+        CashTillReportData reportData = service.generateReportData(reportInstance);
+
+        assertThat(reportData.getRows()).singleElement().satisfies(row ->
+            assertThat(row.getPaymentMethod()).isNull());
+    }
+
+    @Test
+    void generateReportData_whenDestinationTypeIsUnsupported_throwsException() {
+        TillEntity till = till();
+        PaymentInEntity payment = defendantPayment();
+        payment.setDestinationType(DestinationType.C);
+        ReportInstanceEntity reportInstance = reportInstance("""
+            {"till_id":321}
+            """);
+
+        when(tillRepository.findById(321L)).thenReturn(Optional.of(till));
+        when(paymentInRepository.findAll(anySpecification(), any(Sort.class))).thenReturn(List.of(payment));
+        when(defendantAccountRepository.findAllByDefendantAccountIdIn(List.of(11L)))
+            .thenReturn(List.of(defendantAccount()));
+
+        assertThatThrownBy(() -> service.generateReportData(reportInstance))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Unsupported Cash Till destination type: C");
+    }
+
+    @Test
+    void generateReportData_whenAssociatedRecordTypeIsMissing_throwsException() {
+        TillEntity till = till();
+        PaymentInEntity payment = defendantPayment();
+        payment.setAssociatedRecordType(null);
+        ReportInstanceEntity reportInstance = reportInstance("""
+            {"till_id":321}
+            """);
+
+        when(tillRepository.findById(321L)).thenReturn(Optional.of(till));
+        when(paymentInRepository.findAll(anySpecification(), any(Sort.class))).thenReturn(List.of(payment));
+
+        assertThatThrownBy(() -> service.generateReportData(reportInstance))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Cash Till payment 1001 is missing associated_record_type");
+    }
+
+    @Test
+    void generateReportData_whenAssociatedRecordTypeIsUnsupported_throwsException() {
+        TillEntity till = till();
+        PaymentInEntity payment = defendantPayment();
+        payment.setAssociatedRecordType(AssociatedRecordType.SUSPENSE_ITEMS);
+        ReportInstanceEntity reportInstance = reportInstance("""
+            {"till_id":321}
+            """);
+
+        when(tillRepository.findById(321L)).thenReturn(Optional.of(till));
+        when(paymentInRepository.findAll(anySpecification(), any(Sort.class))).thenReturn(List.of(payment));
+
+        assertThatThrownBy(() -> service.generateReportData(reportInstance))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Cash Till payment 1001 has unsupported associated_record_type suspense_items");
     }
 
     @Test
@@ -471,9 +546,9 @@ class CashTillReportServiceTest {
             .paymentInId(1001L)
             .paymentDate(LocalDateTime.of(2026, 5, 3, 10, 15))
             .paymentAmount(money("12.30"))
-            .paymentMethod("NC")
-            .destinationType("F")
-            .associatedRecordType(AssociatedRecordType.DEFENDANT_ACCOUNTS.getLabel())
+            .paymentMethod(PaymentMethod.NC)
+            .destinationType(DestinationType.F)
+            .associatedRecordType(AssociatedRecordType.DEFENDANT_ACCOUNTS)
             .associatedRecordId("11")
             .receipt(true)
             .autoPayment(false)
@@ -486,9 +561,9 @@ class CashTillReportServiceTest {
             .paymentInId(1002L)
             .paymentDate(LocalDateTime.of(2026, 5, 2, 9, 5))
             .paymentAmount(money("8.40"))
-            .paymentMethod("CQ")
-            .destinationType("S")
-            .associatedRecordType(AssociatedRecordType.MISCELLANEOUS_ACCOUNTS.getLabel())
+            .paymentMethod(PaymentMethod.CQ)
+            .destinationType(DestinationType.S)
+            .associatedRecordType(AssociatedRecordType.MISCELLANEOUS_ACCOUNTS)
             .associatedRecordId("22")
             .receipt(false)
             .autoPayment(true)
