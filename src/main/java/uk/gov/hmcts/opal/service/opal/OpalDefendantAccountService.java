@@ -48,6 +48,7 @@ import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.Checks;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.DefendantAccountSummaryDtoBuilder;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.WarnError;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -92,7 +93,7 @@ import uk.gov.hmcts.opal.entity.search.SearchConsolidatedEntity;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
-import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountConsolidatedAccountsResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementCourtDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
@@ -224,13 +225,20 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     @Override
     @Transactional(readOnly = true)
-    public List<ConsolidatedAccountDefendantAccount> getConsolidatedAccounts(Long defendantAccountId) {
+    public GetDefendantAccountConsolidatedAccountsResult getConsolidatedAccounts(Long defendantAccountId) {
         log.debug(":getConsolidatedAccounts: Opal mode - ID: {}", defendantAccountId);
 
-        getDefendantAccountById(defendantAccountId);
+        DefendantAccountEntity masterAccount = getDefendantAccountById(defendantAccountId);
 
-        return consolidatedAccountMapper.toResponse(
-            consolidatedAccountRepository.findByMasterAccountId(defendantAccountId));
+        GetDefendantAccountConsolidatedAccountsResponseDefendantAccount payload =
+            new GetDefendantAccountConsolidatedAccountsResponseDefendantAccount()
+                .consolidatedAccounts(consolidatedAccountMapper.toResponse(
+                    consolidatedAccountRepository.findByMasterAccountId(defendantAccountId)));
+
+        return GetDefendantAccountConsolidatedAccountsResult.builder()
+            .payload(payload)
+            .version(masterAccount.getVersion())
+            .build();
     }
 
     @Override

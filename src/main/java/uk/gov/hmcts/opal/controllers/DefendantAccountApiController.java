@@ -12,12 +12,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.http.api.DefendantAccountApi;
-import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountConsolidatedAccountsResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
@@ -61,10 +62,14 @@ public class DefendantAccountApiController implements DefendantAccountApi {
 
     @Override
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<List<ConsolidatedAccountDefendantAccount>> getConsolidatedAccounts(Long id) {
+    public ResponseEntity<GetDefendantAccountConsolidatedAccountsResponseDefendantAccount> getConsolidatedAccounts(
+        Long id) {
         log.debug(":GET:getConsolidatedAccounts: for defendant account id: {}", id);
 
-        return ResponseEntity.ok(defendantAccountService.getConsolidatedAccounts(id));
+        GetDefendantAccountConsolidatedAccountsResult response =
+            defendantAccountService.getConsolidatedAccounts(id);
+
+        return ResponseEntity.ok().eTag(VersionUtils.createETag(response)).body(response.getPayload());
     }
 
     @Override

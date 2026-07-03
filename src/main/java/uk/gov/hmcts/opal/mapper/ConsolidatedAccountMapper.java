@@ -17,7 +17,7 @@ public interface ConsolidatedAccountMapper {
     @Mapping(target = "firstName", source = "childFirstName")
     @Mapping(target = "lastName", source = "childLastName")
     @Mapping(target = "dateImposed", source = "childDateImposed")
-    @Mapping(target = "imposedBy", source = "childImposedBy")
+    @Mapping(target = "impostedBy", source = "childImposedBy")
     @Mapping(target = "reference", source = "childReference")
     ConsolidatedAccountDefendantAccount toResponse(ConsolidatedAccountEntity entity);
 }

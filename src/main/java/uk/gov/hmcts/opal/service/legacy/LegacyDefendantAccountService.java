@@ -23,6 +23,7 @@ import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -171,6 +172,11 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             log.error(":getHeaderSummary:", e);
             throw e;
         }
+    }
+
+    @Override
+    public GetDefendantAccountConsolidatedAccountsResult getConsolidatedAccounts(Long defendantAccountId) {
+        throw new UnsupportedOperationException("Legacy GetDefendantAccountConsolidatedAccounts not implemented yet");
     }
 
     @Override
