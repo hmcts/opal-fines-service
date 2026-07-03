@@ -99,7 +99,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private final NoteRepositoryService noteRepositoryService;
     private final CourtService courtService;
 
-    //TODO - Remove once repository service is in use
     @Override
     @Transactional(readOnly = true)
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
