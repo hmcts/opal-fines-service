@@ -105,46 +105,15 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
         AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
         log.debug(":addPaymentTerms (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
-        // Look up the defendant account
-        DefendantAccountEntity defAccount = defendantAccountRepositoryService.findByIdForUpdate(defendantAccountId);
+        DefendantAccountEntity defAccount = prepareDefendantAccountForPaymentTerms(
+            defendantAccountId, businessUnitId, ifMatch);
+        final PaymentTermsEntity savedPaymentTerms = persistPaymentTerms(defAccount, businessUnitUserId,
+            addPaymentTermsRequest);
 
-        // Validate BU
-        if (defAccount.getBusinessUnit() == null
-            || defAccount.getBusinessUnit().getBusinessUnitId() == null
-            || !String.valueOf(defAccount.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
-            throw new EntityNotFoundException("Defendant Account not found in business unit " + businessUnitId);
-        }
-
-        VersionUtils.verifyIfMatch(defAccount, ifMatch, defendantAccountId, "addPaymentTerms");
-
-        amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
-
-        // Toggle any existing active payment term(s) for the defendant account to inactive
-        paymentTermsService.deactivateExistingActivePaymentTerms(defAccount.getDefendantAccountId());
-
-        // Map request -> Payment Terms Entity using MapStruct
-        PaymentTermsEntity paymentTermsEntity
-            = paymentTermsMapper.toEntity(addPaymentTermsRequest.getPaymentTerms());
-        paymentTermsEntity.setDefendantAccount(defAccount);
-        // If not included in the request, infer these from the token/user context
-        if (paymentTermsEntity.getPostedByUsername() == null) {
-            paymentTermsEntity.setPostedByUsername(businessUnitUserId);
-        }
-        if (paymentTermsEntity.getPostedBy() == null) {
-            paymentTermsEntity.setPostedBy(businessUnitUserId);
-        }
-        // Persist the new (active) PaymentTermsEntity
-        final PaymentTermsEntity savedPaymentTerms = paymentTermsService.addPaymentTerm(paymentTermsEntity);
-
-        // Update defendant account with any payment term related attributes
         addPaymentTerm(defAccount, addPaymentTermsRequest);
-
         clearLastEnforcementAction(defAccount);
-
         defendantAccountRepositoryService.save(defAccount);
 
-        // If requestPaymentCardFlag is true: create a PaymentCardRequest row (if not already present)
-        //  and update the defendant account PCR-related attributes (requested flag/date/by/byName).
         if (Boolean.TRUE.equals(addPaymentTermsRequest.getRequestPaymentCard())) {
             log.debug(":addPaymentTerms: Request Payment Card flag is TRUE for account {}",
                 defAccount.getDefendantAccountId());
@@ -192,30 +161,10 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
         log.debug(":addPaymentTermsPreservingLastEnforcement (Opal): accountId={}, bu={}",
             defendantAccountId, businessUnitId);
 
-        DefendantAccountEntity defAccount = defendantAccountRepositoryService.findByIdForUpdate(defendantAccountId);
-
-        if (defAccount.getBusinessUnit() == null
-            || defAccount.getBusinessUnit().getBusinessUnitId() == null
-            || !String.valueOf(defAccount.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
-            throw new EntityNotFoundException("Defendant Account not found in business unit " + businessUnitId);
-        }
-
-        VersionUtils.verifyIfMatch(defAccount, ifMatch, defendantAccountId, "addPaymentTerms");
-
-        amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
-
-        paymentTermsService.deactivateExistingActivePaymentTerms(defAccount.getDefendantAccountId());
-
-        PaymentTermsEntity paymentTermsEntity = paymentTermsMapper.toEntity(addPaymentTermsRequest.getPaymentTerms());
-        paymentTermsEntity.setDefendantAccount(defAccount);
-        if (paymentTermsEntity.getPostedByUsername() == null) {
-            paymentTermsEntity.setPostedByUsername(businessUnitUserId);
-        }
-        if (paymentTermsEntity.getPostedBy() == null) {
-            paymentTermsEntity.setPostedBy(businessUnitUserId);
-        }
-
-        final PaymentTermsEntity savedPaymentTerms = paymentTermsService.addPaymentTerm(paymentTermsEntity);
+        DefendantAccountEntity defAccount = prepareDefendantAccountForPaymentTerms(
+            defendantAccountId, businessUnitId, ifMatch);
+        final PaymentTermsEntity savedPaymentTerms = persistPaymentTerms(defAccount, businessUnitUserId,
+            addPaymentTermsRequest);
 
         addPaymentTerm(defAccount, addPaymentTermsRequest);
         defendantAccountRepositoryService.save(defAccount);
@@ -251,6 +200,42 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
         );
 
         return OpalDefendantAccountBuilders.buildPaymentTermsResponse(savedPaymentTerms);
+    }
+
+    private DefendantAccountEntity prepareDefendantAccountForPaymentTerms(Long defendantAccountId,
+        String businessUnitId,
+        String ifMatch) {
+
+        DefendantAccountEntity defAccount = defendantAccountRepositoryService.findByIdForUpdate(defendantAccountId);
+        validateBusinessUnit(defAccount, businessUnitId);
+        VersionUtils.verifyIfMatch(defAccount, ifMatch, defendantAccountId, "addPaymentTerms");
+        amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
+        paymentTermsService.deactivateExistingActivePaymentTerms(defAccount.getDefendantAccountId());
+        return defAccount;
+    }
+
+    private PaymentTermsEntity persistPaymentTerms(DefendantAccountEntity defAccount,
+        String businessUnitUserId,
+        AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
+
+        PaymentTermsEntity paymentTermsEntity = paymentTermsMapper.toEntity(addPaymentTermsRequest.getPaymentTerms());
+        paymentTermsEntity.setDefendantAccount(defAccount);
+        if (paymentTermsEntity.getPostedByUsername() == null) {
+            paymentTermsEntity.setPostedByUsername(businessUnitUserId);
+        }
+        if (paymentTermsEntity.getPostedBy() == null) {
+            paymentTermsEntity.setPostedBy(businessUnitUserId);
+        }
+
+        return paymentTermsService.addPaymentTerm(paymentTermsEntity);
+    }
+
+    private void validateBusinessUnit(DefendantAccountEntity defAccount, String businessUnitId) {
+        if (defAccount.getBusinessUnit() == null
+            || defAccount.getBusinessUnit().getBusinessUnitId() == null
+            || !String.valueOf(defAccount.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
+            throw new EntityNotFoundException("Defendant Account not found in business unit " + businessUnitId);
+        }
     }
 
     /**
