@@ -334,6 +334,80 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 
+  /defendant-accounts/{id}/consolidated-accounts:
+    get:
+      tags:
+        - Defendant Account
+      summary: Get Defendant Account Consolidated Accounts
+      description: Returns the accounts that were consolidated into a selected master defendant account.
+      operationId: getConsolidatedAccounts
+      security:
+        - permissions:
+            - Search and View Accounts (in at least one business unit)
+      parameters:
+        - in: path
+          name: id
+          description: DB Mapping - v_consolidated_accounts.master_account_id
+          schema:
+            type: integer
+            format: int64
+          required: true
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag:
+              description: Version of the master defendant account. DB Mapping - defendant_accounts.version_number.
+              schema:
+                $ref: "./types.yaml#/components/schemas/BigInt"
+              required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getDefendantAccountConsolidatedAccountsResponse'
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: Not Found
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        408:
+          description: Request timeout
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
   /defendant-accounts/search:
     post:
       tags:
@@ -628,6 +702,53 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    getDefendantAccountConsolidatedAccountsResponse:
+      title: Get Defendant Account Consolidated Accounts Response
+      type: object
+      additionalProperties: false
+      properties:
+        consolidated_accounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/consolidatedAccountDefendantAccount'
+      required:
+        - consolidated_accounts
+    consolidatedAccountDefendantAccount:
+      title: Consolidated Account
+      type: object
+      additionalProperties: false
+      properties:
+        account_id:
+          type: integer
+          format: int64
+          description: DB Mapping - v_consolidated_accounts.child_account_id
+        account_number:
+          type: string
+          maxLength: 20
+          description: DB Mapping - v_consolidated_accounts.child_account_number
+        first_name:
+          type: string
+          maxLength: 50
+          description: DB Mapping - v_consolidated_accounts.child_first_name
+        last_name:
+          type: string
+          maxLength: 50
+          description: DB Mapping - v_consolidated_accounts.child_last_name
+        date_imposed:
+          type: string
+          format: date
+          description: DB Mapping - v_consolidated_accounts.child_date_imposed
+        imposted_by:
+          type: string
+          maxLength: 100
+          description: DB Mapping - v_consolidated_accounts.child_imposed_by
+        reference:
+          type: string
+          maxLength: 40
+          description: DB Mapping - v_consolidated_accounts.child_reference
+      required:
+        - account_id
+        - account_number
     postDefendantAccountSearchRequest:
       title: Post Defendant Account Search Request
       type: object
