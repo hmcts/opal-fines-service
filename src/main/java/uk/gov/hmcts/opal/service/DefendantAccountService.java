@@ -211,19 +211,6 @@ public class DefendantAccountService {
         }
     }
 
-    public EnforcementStatus getEnforcementStatus(Long defendantAccountId) {
-
-        log.debug(":getEnforcementStatus:");
-
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
-
-        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
-            return defendantAccountServiceProxy.getEnforcementStatus(defendantAccountId);
-        } else {
-            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        }
-    }
-
     public AddPaymentCardRequestResponse addPaymentCardRequest(
         Long defendantAccountId,
         String businessUnitId,
@@ -243,29 +230,6 @@ public class DefendantAccountService {
             );
         } else {
             throw new PermissionNotAllowedException(FinesPermission.AMEND_PAYMENT_TERMS);
-        }
-    }
-
-    public AddEnforcementResponse addEnforcement(Long defendantAccountId,
-        String businessUnitId,
-        String ifMatch,
-        AddDefendantAccountEnforcementRequest request) {
-
-        log.debug(":addEnforcement:");
-
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
-
-        String businessUnitUserId = userState.getBusinessUnitUserForBusinessUnit(Short.parseShort(businessUnitId))
-            .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
-            .filter(id -> !id.isBlank())
-            .orElse(null);
-
-        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT)) {
-            return defendantAccountServiceProxy.addEnforcement(
-                defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, request
-            );
-        } else {
-            throw new PermissionNotAllowedException(FinesPermission.ENTER_ENFORCEMENT);
         }
     }
 

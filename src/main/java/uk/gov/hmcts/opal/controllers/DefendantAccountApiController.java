@@ -25,6 +25,7 @@ import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefen
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
+import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.ImpositionService;
 import uk.gov.hmcts.opal.util.VersionUtils;
@@ -35,6 +36,7 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 public class DefendantAccountApiController implements DefendantAccountApi {
 
     private final DefendantAccountService defendantAccountService;
+    private final DefendantAccountEnforcementService defendantAccountEnforcementServiceService;
     private final DefendantAccountHistoryResponseMapper defendantAccountHistoryResponseMapper;
     private final ImpositionService impositionService;
 
@@ -63,7 +65,7 @@ public class DefendantAccountApiController implements DefendantAccountApi {
     public ResponseEntity<GetEnforcementStatusResponse> getEnforcementStatus(Long id) {
         log.debug(":GET:getDefendantAccountEnforcementStatus: for defendant id: {}", id);
 
-        return buildResponse(defendantAccountService.getEnforcementStatus(id));
+        return buildResponse(defendantAccountEnforcementServiceService.getEnforcementStatus(id));
     }
 
     @Override

@@ -49,12 +49,6 @@ public interface DefendantAccountServiceInterface {
         String businessUnitUserId,
         String ifMatch);
 
-    AddEnforcementResponse addEnforcement(Long defendantAccountId, String businessUnitId, String businessUnitUserId,
-        String ifMatch, AddDefendantAccountEnforcementRequest request);
-
-    EnforcementStatus getEnforcementStatus(Long defendantAccountId);
-
-
     GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
                                             String businessUnitId,
                                             String businessUnitUserId,

@@ -3,11 +3,8 @@ package uk.gov.hmcts.opal.service.opal;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildCollectionOrderCommon;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildCommentsAndNotes;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildCourtReference;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementAction;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementOverrideResult;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementOverrideResultDefendantAccount;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementStatus;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.filterDefendantParty;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
@@ -28,22 +25,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler.PaymentCardRequestAlreadyExistsException;
-import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
-import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.Checks;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.DefendantAccountSummaryDtoBuilder;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.WarnError;
-import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
@@ -60,7 +52,6 @@ import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
@@ -402,14 +393,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     //Deprecated - use OpalDefendantAccountEnforcementService
     //TODO - Remove once OpalDefendantAccountEnforcementService is in use
-    @Override
-    public AddEnforcementResponse addEnforcement(Long defendantAccountId, String businessUnitId,
-        String businessUnitUserId, String ifMatch, AddDefendantAccountEnforcementRequest request) {
-        return null;
-    }
-
-    //Deprecated - use OpalDefendantAccountEnforcementService
-    //TODO - Remove once OpalDefendantAccountEnforcementService is in use
     EnforcementOverride buildEnforcementOverride(DefendantAccountEntity entity) {
         if (entity.getEnforcementOverrideResultId() == null
             && entity.getEnforcementOverrideEnforcerId() == null
@@ -451,30 +434,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private EnforcementEntity fetchEnforcementMostRecent(DefendantAccountEntity entity) {
         return enforcementRepositoryService.getEnforcementMostRecent(
             entity.getDefendantAccountId(), entity.getLastEnforcement()).orElse(null);
-    }
-
-    //Deprecated - use OpalDefendantAccountEnforcementService
-    //TODO - Remove once OpalDefendantAccountEnforcementService is in use
-    @Override
-    @Transactional(readOnly = true)
-    public EnforcementStatus getEnforcementStatus(Long defendantAccountId) {
-
-        log.debug(":getEnforcementStatus: def acc: {}",  defendantAccountId);
-
-        DefendantAccountEntity defendantEntity = defendantAccountRepositoryService.findById(defendantAccountId);
-        DefendantAccountPartiesEntity defendantParty = filterDefendantParty(defendantEntity);
-        EnforcementEntity recentEnforcement = fetchEnforcementMostRecent(defendantEntity);
-
-        return buildEnforcementStatus(
-            defendantEntity,
-            defendantParty,
-            fetchDebtorDetails(defendantParty.getParty()),
-            recentEnforcement != null ? recentEnforcement.getResult() : null,
-            buildEnforcementOverride(defendantEntity),
-            buildEnforcementAction(recentEnforcement,
-                recentEnforcement != null
-                    ? enforcerRepositoryService.findById(recentEnforcement.getEnforcerId()).orElse(null)
-                    : null));
     }
 
     private void applyCommentAndNotes(DefendantAccountEntity managed, CommentsAndNotesCommon notes, String postedBy) {

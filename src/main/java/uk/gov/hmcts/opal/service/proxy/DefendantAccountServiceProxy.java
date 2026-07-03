@@ -79,27 +79,12 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
     }
 
     @Override
-    public EnforcementStatus getEnforcementStatus(Long defendantAccountId) {
-        return getCurrentModeService().getEnforcementStatus(defendantAccountId);
-    }
-
-    @Override
     public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
         String ifMatch) {
         return getCurrentModeService().addPaymentCardRequest(defendantAccountId, businessUnitId,
             businessUnitUserId, ifMatch);
-    }
-
-    @Override
-    public AddEnforcementResponse addEnforcement(Long defendantAccountId,
-        String businessUnitId,
-        String businessUnitUserId,
-        String ifMatch,
-        AddDefendantAccountEnforcementRequest request) {
-        return getCurrentModeService().addEnforcement(defendantAccountId, businessUnitId, businessUnitUserId,
-            ifMatch, request);
     }
 
     @Override

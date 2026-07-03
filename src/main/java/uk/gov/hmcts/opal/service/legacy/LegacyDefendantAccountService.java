@@ -962,51 +962,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .build();
     }
 
-    @Override
-    //TODO: Remove method, duplicated in refactored class
-    public AddEnforcementResponse addEnforcement(Long defendantAccountId, String businessUnitId,
-        String businessUnitUserId, String ifMatch, AddDefendantAccountEnforcementRequest request) {
-
-        // build legacy request object
-        AddDefendantAccountEnforcementLegacyRequest legacyRequest =
-            AddDefendantAccountEnforcementLegacyRequest.builder()
-                .defendantAccountId(String.valueOf(defendantAccountId))
-                .businessUnitId(businessUnitId)
-                .businessUnitUserId(businessUnitUserId)
-                .version(VersionUtils.extractBigInteger(ifMatch).intValue())
-                .resultId(request != null && request.getResultId() != null ? request.getResultId().value() : null)
-                .enforcementResultResponses(
-                    mapResultResponses(request != null ? request.getEnforcementResultResponses() : null))
-                .paymentTerms(mapPaymentTerms(request != null ? request.getPaymentTerms() : null))
-                .build();
-
-        Response<AddDefendantAccountEnforcementLegacyResponse> response = gatewayService.postToGateway(
-            ADD_ENFORCEMENT, AddDefendantAccountEnforcementLegacyResponse.class,
-            legacyRequest, null);
-
-        checkResponseForError(response, "AddEnforcement");
-
-        AddDefendantAccountEnforcementLegacyResponse enforcementResponse = response.responseEntity;
-
-        return AddEnforcementResponse.builder().enforcementId(enforcementResponse.getEnforcementId())
-            .defendantAccountId(enforcementResponse.getDefendantAccountId()).version(enforcementResponse.getVersion())
-            .build();
-
-    }
-    
-    private List<ResultResponsesLegacy> mapResultResponses(List<ResultResponse> responses) {
-        if (responses == null || responses.isEmpty()) {
-            return Collections.emptyList();
-        }
-        return responses.stream()
-            .filter(Objects::nonNull)
-            .map(r -> ResultResponsesLegacy.builder()
-                .parameterName(r.getParameterName())
-                .response(r.getResponse())
-                .build())
-            .collect(Collectors.toList());
-    }
-
     private LegacyPaymentTerms mapPaymentTerms(PaymentTerms pt) {
         if (pt == null) {
             return null;
@@ -1079,52 +1034,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             case "F" -> LegacyInstalmentPeriod.InstalmentPeriodCode.F;
             default -> throw new IllegalArgumentException("Unknown InstalmentPeriod code: " + code);
         };
-    }
-
-
-    @Override
-    //TODO: Remove method, duplicated in refactored class
-    public EnforcementStatus getEnforcementStatus(Long defendantAccountId) {
-        log.debug(":getEnforcementStatus: id: {}", defendantAccountId);
-
-        try {
-
-            Response<LegacyGetDefendantAccountEnforcementStatusResponse> response = gatewayService.postToGateway(
-                GET_ENFORCEMENT_STATUS, LegacyGetDefendantAccountEnforcementStatusResponse.class,
-                createGetDefendantAccountRequest(defendantAccountId.toString()), null);
-
-            checkResponseForError(response, "getEnforcementStatus");
-
-            LegacyGetDefendantAccountEnforcementStatusResponse enforcementStatus = response.responseEntity;
-            populateCourtCode(enforcementStatus);
-            populateLjaCode(enforcementStatus);
-            return toEnforcementStatusResponse(enforcementStatus);
-
-        } catch (RuntimeException e) {
-            log.error(":getEnforcementStatus: problem with call to Legacy: {}", e.getClass().getName());
-            log.error(":getEnforcementStatus:", e);
-            throw e;
-        }
-    }
-
-    private void populateCourtCode(LegacyGetDefendantAccountEnforcementStatusResponse enforcementStatus) {
-        Optional.ofNullable(enforcementStatus)
-            .map(es -> es.getEnforcementOverview())
-            .map(eo -> eo.getEnforcementCourt()).ifPresent(this::populateCourtCode);
-    }
-
-    private void populateCourtCode(CourtReference courtRef) {
-        courtRef.setCourtCode(courtService.getCourtById(courtRef.getCourtId()).getCourtCode());
-    }
-
-    private void populateLjaCode(LegacyGetDefendantAccountEnforcementStatusResponse enforcementStatus) {
-        Optional.ofNullable(enforcementStatus)
-            .map(es -> es.getEnforcementOverride())
-            .map(eo -> eo.getLja()).ifPresent(this::populateLjaCode);
-    }
-
-    private void populateLjaCode(LjaReference ljaRef) {
-        ljaRef.setLjaCode(ljaService.getLocalJusticeAreaById(ljaRef.getLjaId()).getLjaCode());
     }
 
     @Override
