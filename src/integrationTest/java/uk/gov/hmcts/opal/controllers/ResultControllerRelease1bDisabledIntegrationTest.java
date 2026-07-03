@@ -59,7 +59,11 @@ class ResultControllerRelease1bDisabledIntegrationTest extends AbstractIntegrati
     @DisplayName("GET /results rejects filtering parameters when release-1b is disabled")
     @JiraStory("PO-3765")
     @JiraEpic("PO-3685")
-    @JiraTestKey("PO-7772")
+    @JiraTestKey(value = "PO-8606", name = "[1] parameter = \"active\"")
+    @JiraTestKey(value = "PO-8607", name = "[2] parameter = \"manual_enforcement_only\"")
+    @JiraTestKey(value = "PO-8608", name = "[3] parameter = \"generates_hearing\"")
+    @JiraTestKey(value = "PO-8609", name = "[4] parameter = \"enforcement\"")
+    @JiraTestKey(value = "PO-8610", name = "[5] parameter = \"enforcement_override\"")
     void getResultsWithFilteringParameter_returnsFeatureDisabledWhenRelease1bDisabled(String parameter)
         throws Exception {
         mockMvc.perform(get("/results?" + parameter + "=true"))

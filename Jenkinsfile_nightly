@@ -184,10 +184,34 @@ def publishSmokeResults = { reportNameSuffix ->
   }
 }
 
+def authenticateHmctsProdAcr = {
+  steps.sh '''
+    set +x
+    export AZURE_CONFIG_DIR="${WORKSPACE}/.azure-hmctsprod"
+
+    echo "Logging in to Azure with managed identity for hmctsprod ACR access..."
+    az login --identity --output none
+    az account set --subscription DCD-CNP-Prod
+
+    echo "Checking hmctsprod ACR access..."
+    az acr repository show-tags \
+      --name hmctsprod \
+      --repository opal/legacy-db-stub \
+      --top 1 \
+      --output table
+
+    echo "Authenticating Docker with hmctsprod ACR..."
+    az acr login --name hmctsprod
+    docker pull hmctsprod.azurecr.io/opal/legacy-db-stub:latest
+  '''
+}
+
 def runIntegrationStage = { stageName, shouldRunWithZephyr ->
   if (params.Integration) {
     stage(stageName) {
       try {
+        authenticateHmctsProdAcr()
+
         if (shouldRunWithZephyr) {
           builder.gradle('integrationTestWithZephyrExecution')
         } else {
@@ -217,6 +241,7 @@ def runFunctionalStage = { stageName, shouldRunWithZephyr, reportNameSuffix ->
         steps.echo "${stageName} failed. Marking build as FAILURE. Error: " + error.message
       } finally {
         try {
+          builder.gradle('syncFunctionalArtifactsFromExistingResults')
           publishFunctionalResults(
             'functional-output',
             'functional-test-report',
@@ -273,6 +298,7 @@ def runTaggedFunctionalStage = { enabled, stageName, shouldRunWithZephyr, report
         steps.echo "${stageName} failed. Marking build as FAILURE. Error: " + error.message
       } finally {
         try {
+          builder.gradle('syncTaggedFunctionalArtifactsFromExistingResults')
           publishFunctionalResults(
             reportDirectory,
             'functional-test-report-demo',

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
 import uk.gov.hmcts.opal.entity.auditamendmentfield.AuditAmendmentFieldEntity;
 import uk.gov.hmcts.opal.mapper.history.AmendmentEntityHistoryMapper;
@@ -36,7 +37,7 @@ class AmendmentHistorySourceTest {
         AmendmentEntity amendment = AmendmentEntity.builder()
             .amendmentId(123L)
             .businessUnitId((short) 78)
-            .associatedRecordType("DEFENDANT_ACCOUNTS")
+            .associatedRecordType(AssociatedRecordType.DEFENDANT_ACCOUNTS)
             .associatedRecordId("262200")
             .amendedDate(LocalDateTime.of(2026, 1, 1, 10, 15))
             .amendedBy("opal-user")

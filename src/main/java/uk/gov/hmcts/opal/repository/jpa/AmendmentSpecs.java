@@ -1,9 +1,11 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
+import org.hibernate.query.criteria.JpaExpression;
+import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.AmendmentSearchDto;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
 import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity_;
-import org.springframework.data.jpa.domain.Specification;
 
 public class AmendmentSpecs extends EntitySpecs<AmendmentEntity> {
 
@@ -11,7 +13,9 @@ public class AmendmentSpecs extends EntitySpecs<AmendmentEntity> {
         return Specification.allOf(specificationList(
             numericLong(criteria.getAmendmentId()).map(AmendmentSpecs::equalsAmendmentId),
             numericShort(criteria.getBusinessUnitId()).map(AmendmentSpecs::equalsBusinessUnitId),
-            notBlank(criteria.getAssociatedRecordType()).map(AmendmentSpecs::equalsAssociatedRecordType),
+            notBlank(criteria.getAssociatedRecordType())
+                .map(AssociatedRecordType::getByLabel)
+                .map(AmendmentSpecs::equalsAssociatedRecordType),
             notBlank(criteria.getAssociatedRecordId()).map(AmendmentSpecs::equalsAssociatedRecordId),
             notBlank(criteria.getAmendedBy()).map(AmendmentSpecs::equalsAmendedBy),
             numericShort(criteria.getFieldCode()).map(AmendmentSpecs::equalsFieldCode),
@@ -26,9 +30,11 @@ public class AmendmentSpecs extends EntitySpecs<AmendmentEntity> {
         return (root, query, builder) -> builder.equal(root.get(AmendmentEntity_.amendmentId), amendmentId);
     }
 
-    public static Specification<AmendmentEntity> equalsAssociatedRecordType(String associatedRecordType) {
+    public static Specification<AmendmentEntity> equalsAssociatedRecordType(
+        AssociatedRecordType associatedRecordType) {
         return (root, query, builder) -> builder.equal(
-            root.get(AmendmentEntity_.associatedRecordType), associatedRecordType);
+            ((JpaExpression<?>) root.get(AmendmentEntity_.associatedRecordType)).cast(String.class),
+            associatedRecordType.getLabel());
     }
 
     public static Specification<AmendmentEntity> equalsAssociatedRecordId(String associatedRecordId) {
