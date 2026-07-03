@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
-import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -42,8 +41,6 @@ import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
-import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyRequest;
-import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddPaymentTermsLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.AddPaymentTermsLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
@@ -672,80 +669,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         checkResponseForError(gwResponse, "updateDefendantAccount");
 
         return legacyUpdateDefendantAccountResponseMapper.toUpdateDefendantAccountResponse(gwResponse.responseEntity);
-    }
-
-    @Override
-    //TODO: Remove method, duplicated in refactored class
-    public AddPaymentCardRequestResponse addPaymentCardRequest(
-        Long defendantAccountId,
-        String businessUnitId,
-        String businessUnitUserId,
-        String ifMatch
-    ) {
-        log.info(":addPaymentCardRequest (Legacy): accountId={}, bu={}", defendantAccountId, businessUnitId);
-
-        BigInteger version = VersionUtils.extractBigInteger(ifMatch);
-        AddPaymentCardLegacyRequest request = buildLegacyRequest(
-            defendantAccountId, businessUnitId,
-            businessUnitUserId, version.toString()
-        );
-
-        AddPaymentCardLegacyResponse response = callGateway(request);
-        Long id = Long.valueOf(response.getDefendantAccountId());
-
-        return new AddPaymentCardRequestResponse(id);
-    }
-
-    private AddPaymentCardLegacyRequest buildLegacyRequest(
-        Long defendantAccountId,
-        String businessUnitId,
-        String businessUnitUserId,
-        String version
-    ) {
-        return AddPaymentCardLegacyRequest.builder()
-            .defendantAccountId(String.valueOf(defendantAccountId))
-            .businessUnitId(businessUnitId)
-            .businessUnitUserId(businessUnitUserId)
-            .version(version)
-            .build();
-    }
-
-    private AddPaymentCardLegacyResponse callGateway(AddPaymentCardLegacyRequest request) {
-
-        Response<AddPaymentCardLegacyResponse> gw =
-            gatewayService.postToGateway(
-                ADD_PAYMENT_CARD_REQUEST,
-                AddPaymentCardLegacyResponse.class,
-                request,
-                null
-            );
-
-        if (gw.isError()) {
-            handleGatewayError(gw);
-        }
-
-        if (gw.responseEntity == null) {
-            throw new IllegalArgumentException("Legacy response missing");
-        }
-
-        return gw.responseEntity;
-    }
-
-    private void handleGatewayError(Response<?> gw) {
-
-        log.error(":addPaymentCardRequest: Legacy Gateway error {}", gw.code);
-
-        if (gw.isException()) {
-            log.error(":addPaymentCardRequest: exception", gw.exception);
-            throw new IllegalArgumentException("Legacy gateway exception", gw.exception);
-        }
-
-        if (gw.isLegacyFailure()) {
-            log.error(":addPaymentCardRequest: legacy failure:\n{}", gw.body);
-            throw new IllegalArgumentException("Legacy gateway returned failure");
-        }
-
-        throw new IllegalArgumentException("Legacy gateway error: " + gw.code);
     }
 
     public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,

@@ -76,6 +76,8 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
         return new AddPaymentCardRequestResponse(defendantAccountId);
     }
 
+
+
     private DefendantAccountEntity loadAndValidateAccount(Long accountId, String buId) {
         DefendantAccountEntity account = defendantAccountRepositoryService.findById(accountId);
         validateBusinessUnitPresent(account, buId);

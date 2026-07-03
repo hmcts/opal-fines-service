@@ -33,11 +33,6 @@ public interface DefendantAccountServiceInterface {
                                                     String postedBy) {
         return updateDefendantAccount(defendantAccountId, businessUnitId, request, postedBy, postedBy);
     }
-                                                   
-
-    AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId, String businessUnitId,
-        String businessUnitUserId,
-        String ifMatch);
 
     GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
                                             String businessUnitId,

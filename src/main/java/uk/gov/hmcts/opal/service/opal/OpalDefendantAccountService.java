@@ -411,35 +411,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     //Deprecated - use DefendantAccountPaymentTermsService
     //TODO: Remove this method once OpalDefendantAccountPaymentTermsService is in use
-    @Override
-    @Transactional
-    public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
-        String businessUnitId,
-        String businessUnitUserId,
-        String ifMatch) {
-
-        log.debug(":addPaymentCardRequest (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
-
-        DefendantAccountEntity account = defendantAccountRepositoryService.findById(defendantAccountId);
-
-        amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
-
-        AddPaymentCardRequestResponse paymentCardResponse = addPaymentCard(
-            defendantAccountId,
-            businessUnitId,
-            businessUnitUserId,
-            ifMatch,
-            userStateService.getUserStateV1FromSecurityContext().getDisplayName()
-        );
-
-        auditComplete(defendantAccountId, account, businessUnitUserId,
-            userStateService.getUserStateV1FromSecurityContext().getDisplayName());
-
-        return paymentCardResponse;
-    }
-
-    //Deprecated - use DefendantAccountPaymentTermsService
-    //TODO: Remove this method once OpalDefendantAccountPaymentTermsService is in use
     private DefendantAccountEntity loadAndValidateAccount(Long accountId, String buId) {
         DefendantAccountEntity account = defendantAccountRepositoryService.findById(accountId);
         validateBusinessUnitPresent(account, buId);
@@ -487,24 +458,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         account.setPaymentCardRequestedByName(displayName);
 
         defendantAccountRepositoryService.save(account);
-    }
-
-    private void auditComplete(Long accountId,
-        DefendantAccountEntity account,
-        String businessUnitUserId,
-        String postedByName) {
-
-        Short buId = account.getBusinessUnit().getBusinessUnitId();
-
-        amendmentService.auditFinaliseStoredProc(
-            accountId,
-            RecordType.DEFENDANT_ACCOUNTS,
-            buId,
-            businessUnitUserId,
-            postedByName,
-            account.getProsecutorCaseReference(),
-            "ACCOUNT_ENQUIRY"
-        );
     }
 
     @Override

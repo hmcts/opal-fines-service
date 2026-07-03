@@ -186,28 +186,6 @@ public class DefendantAccountService {
         }
     }
 
-    public AddPaymentCardRequestResponse addPaymentCardRequest(
-        Long defendantAccountId,
-        String businessUnitId,
-        String businessUnitUserId,
-        String ifMatch
-    ) {
-        log.debug(":addPaymentCardRequest:");
-
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
-
-        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS)) {
-            return defendantAccountServiceProxy.addPaymentCardRequest(
-                defendantAccountId,
-                businessUnitId,
-                businessUnitUserId,
-                ifMatch
-            );
-        } else {
-            throw new PermissionNotAllowedException(FinesPermission.AMEND_PAYMENT_TERMS);
-        }
-    }
-
     public GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
         String businessUnitId,
         String ifMatch,
