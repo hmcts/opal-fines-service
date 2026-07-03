@@ -119,22 +119,6 @@ public class DefendantAccountService {
             .toList();
     }
 
-    public GetDefendantAccountPartyResponse getDefendantAccountParty(
-        Long defendantAccountId,
-        Long defendantAccountPartyId) {
-
-        log.debug(":getDefendantAccountParty:");
-
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
-
-        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
-
-            return defendantAccountServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
-        } else {
-            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        }
-    }
-
     public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
 
         log.debug(":getPaymentTerms:");
