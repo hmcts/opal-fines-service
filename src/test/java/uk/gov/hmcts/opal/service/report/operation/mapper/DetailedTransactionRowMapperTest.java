@@ -52,7 +52,7 @@ class DetailedTransactionRowMapperTest {
     }
 
     @Test
-    void map_allFieldsIncludingConsolidatedAccountNo() {
+    void map_FromTransaction_allFieldsIncludingConsolidatedAccountNo() {
         DefendantTransactionEntity transaction = new DefendantTransactionEntity();
         transaction.setPostedDate(LocalDate.of(2024, 1, 15));
         transaction.setTransactionType(DefendantTransactionType.CONSOL);
@@ -66,7 +66,7 @@ class DetailedTransactionRowMapperTest {
             .thenReturn("txn details");
 
         DetailedReportTransactionRowDto result =
-            mapper.map(transaction, account, imposition, new ReportMetadataContext());
+            mapper.mapFromTransaction(transaction, account, imposition, new ReportMetadataContext());
 
         assertThat(result).isNotNull();
         assertThat(result.getAccountNo()).isEqualTo("ACCOUNT");
@@ -86,28 +86,28 @@ class DetailedTransactionRowMapperTest {
 
     @ParameterizedTest
     @EnumSource(value = DefendantTransactionType.class, names = {"CONSOL"}, mode = Mode.EXCLUDE)
-    void map_transactionTypeNotConsol_returnNull(DefendantTransactionType transactionType) {
+    void map_FromTransaction_transactionTypeNotConsol_returnNull(DefendantTransactionType transactionType) {
         DefendantTransactionEntity entity = new DefendantTransactionEntity();
         entity.setTransactionType(transactionType);
         entity.setAssociatedRecordType(AssociatedRecordType.DEFENDANT_ACCOUNTS);
         entity.setAssociatedRecordId("12");
 
         DetailedReportTransactionRowDto result =
-            mapper.map(entity, account, imposition, new ReportMetadataContext());
+            mapper.mapFromTransaction(entity, account, imposition, new ReportMetadataContext());
 
         assertThat(result.getConsolidatedAccountNo()).isNull();
     }
 
     @ParameterizedTest
     @EnumSource(value = AssociatedRecordType.class, names = {"DEFENDANT_ACCOUNTS"}, mode = Mode.EXCLUDE)
-    void map_associatedRecordTypeNotDefendantAccounts_returnNull() {
+    void map_FromTransaction_associatedRecordTypeNotDefendantAccounts_returnNull() {
         DefendantTransactionEntity entity = new DefendantTransactionEntity();
         entity.setTransactionType(DefendantTransactionType.CONSOL);
         entity.setAssociatedRecordType(AssociatedRecordType.IMPOSITIONS);
         entity.setAssociatedRecordId("12");
 
         DetailedReportTransactionRowDto result =
-            mapper.map(entity, account, imposition, new ReportMetadataContext());
+            mapper.mapFromTransaction(entity, account, imposition, new ReportMetadataContext());
 
         assertThat(result.getConsolidatedAccountNo()).isNull();
     }
