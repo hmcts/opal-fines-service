@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.service.opal;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildCollectionOrderCommon;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildCommentsAndNotes;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildCourtReference;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementOverrideResult;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementOverrideResultDefendantAccount;
 
 import jakarta.persistence.EntityManager;
@@ -36,7 +35,6 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
-import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
@@ -46,10 +44,8 @@ import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
-import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
@@ -75,7 +71,6 @@ import uk.gov.hmcts.opal.service.persistence.DefendantAccountHeaderViewRepositor
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountSummaryViewRepositoryService;
 import uk.gov.hmcts.opal.service.opal.history.defendant.DefendantAccountHistoryService;
 import uk.gov.hmcts.opal.service.iface.ReportEntryServiceInterface;
-import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcerRepositoryService;
@@ -128,7 +123,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private final DefendantAccountSummaryViewRepositoryService defendantAccountSummaryViewRepositoryService;
     private final PaymentTermsRepositoryService paymentTermsRepositoryService;
     private final FixedPenaltyOffenceRepositoryService fixedPenaltyOffenceRepositoryService;
-    private final DebtorDetailRepositoryService debtorDetailRepositoryService;
     private final PaymentCardRequestRepositoryService paymentCardRequestRepositoryService;
     private final ResultRepositoryService resultRepositoryService;
     private final EnforcerRepositoryService enforcerRepositoryService;
@@ -391,23 +385,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return new AddPaymentCardRequestResponse(defendantAccountId);
     }
 
-    //Deprecated - use OpalDefendantAccountEnforcementService
-    //TODO - Remove once OpalDefendantAccountEnforcementService is in use
-    EnforcementOverride buildEnforcementOverride(DefendantAccountEntity entity) {
-        if (entity.getEnforcementOverrideResultId() == null
-            && entity.getEnforcementOverrideEnforcerId() == null
-            && entity.getEnforcementOverrideTfoLjaId() == null) {
-            return null;
-        } else {
-            return EnforcementOverride.builder()
-                .enforcementOverrideResult(buildEnforcementOverrideResult(fetchResultEntity(
-                    entity.getEnforcementOverrideResultId())))
-                .enforcer(OpalDefendantAccountBuilders.buildEnforcer(fetchEnforcerEntity(entity)))
-                .lja(OpalDefendantAccountBuilders.buildLja(fetchLja(entity)))
-                .build();
-        }
-    }
-
     EnforcementOverrideDefendantAccount buildEnforcementOverrideDefendantAccount(DefendantAccountEntity entity) {
         if (entity.getEnforcementOverrideResultId() == null
             && entity.getEnforcementOverrideEnforcerId() == null
@@ -424,12 +401,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     }
 
     // These 'DB' methods are focused purely on fetching relevant entities from the DB without any mapping.
-
-    //Deprecated - use OpalDefendantAccountEnforcementService
-    //TODO - Remove once OpalDefendantAccountEnforcementService is in use
-    private DebtorDetailEntity fetchDebtorDetails(PartyEntity party) {
-        return debtorDetailRepositoryService.findByPartyId(party.getPartyId()).orElse(null);
-    }
 
     private EnforcementEntity fetchEnforcementMostRecent(DefendantAccountEntity entity) {
         return enforcementRepositoryService.getEnforcementMostRecent(
