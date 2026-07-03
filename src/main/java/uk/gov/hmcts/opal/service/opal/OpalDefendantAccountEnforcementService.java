@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import java.util.Optional;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import java.time.Clock;
@@ -264,7 +265,9 @@ public class OpalDefendantAccountEnforcementService
                 .enforcer(OpalDefendantAccountBuilders.buildEnforcer(
                     enforcerRepositoryService.findById(entity.getEnforcementOverrideEnforcerId()).orElse(null)))
                 .lja(OpalDefendantAccountBuilders.buildLja(
-                    localJusticeAreaRepositoryService.getLjaById(entity.getEnforcementOverrideTfoLjaId()).orElse(null)))
+                    Optional.ofNullable(entity.getEnforcementOverrideTfoLjaId())
+                        .map(id -> localJusticeAreaRepositoryService.getLjaById(id).orElse(null))
+                        .orElse(null)))
                 .build();
         }
     }

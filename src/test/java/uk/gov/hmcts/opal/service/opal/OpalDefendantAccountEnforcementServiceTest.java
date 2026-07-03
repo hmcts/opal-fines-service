@@ -183,6 +183,35 @@ public class OpalDefendantAccountEnforcementServiceTest {
     }
 
     @Test
+    void buildEnforcementOverride_whenLjaMissing_buildsOverrideWithoutLja() {
+        DefendantAccountEntity entity = DefendantAccountEntity.builder()
+            .enforcementOverrideResultId("FWEC")
+            .enforcementOverrideEnforcerId(55L)
+            .build();
+
+        ResultEntity result = ResultEntity.builder()
+            .resultId("FWEC")
+            .resultTitle("Witness Expenses")
+            .build();
+
+        EnforcerEntity enforcer = EnforcerEntity.builder()
+            .enforcerId(55L)
+            .name("North East Enforcement")
+            .build();
+
+        when(resultRepositoryService.getResultById("FWEC")).thenReturn(java.util.Optional.of(result));
+        when(enforcerRepositoryService.findById(55L)).thenReturn(java.util.Optional.of(enforcer));
+
+        EnforcementOverride override = service.buildEnforcementOverride(entity);
+
+        assertNotNull(override);
+        assertNotNull(override.getEnforcementOverrideResult());
+        assertNotNull(override.getEnforcer());
+        assertNull(override.getLja());
+        verifyNoInteractions(localJusticeAreaRepositoryService);
+    }
+
+    @Test
     void buildEnforcementOverride_whenAllOverrideIdsNull_returnsNull() {
         DefendantAccountEntity entity = DefendantAccountEntity.builder().build();
 
