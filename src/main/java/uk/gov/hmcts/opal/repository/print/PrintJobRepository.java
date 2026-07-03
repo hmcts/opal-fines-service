@@ -8,17 +8,17 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import uk.gov.hmcts.opal.entity.print.PrintJob;
+import uk.gov.hmcts.opal.entity.print.PrintJobEntity;
 import uk.gov.hmcts.opal.entity.print.PrintStatus;
 
 import java.time.LocalDateTime;
 
 @Repository
-public interface PrintJobRepository extends JpaRepository<PrintJob, Long> {
+public interface PrintJobRepository extends JpaRepository<PrintJobEntity, Long> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT p FROM PrintJob p WHERE p.status = :status AND p.createdAt <= :cutoffDate")
-    public Page<PrintJob> findPendingJobsForUpdate(@Param("status") PrintStatus status,
+    @Query("SELECT p FROM PrintJobEntity p WHERE p.status = :status AND p.createdAt <= :cutoffDate")
+    public Page<PrintJobEntity> findPendingJobsForUpdate(@Param("status") PrintStatus status,
                                             @Param("cutoffDate") LocalDateTime cutoffDate,
                                             Pageable pageable);
 }
