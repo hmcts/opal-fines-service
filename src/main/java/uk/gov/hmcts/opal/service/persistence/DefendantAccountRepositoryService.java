@@ -19,6 +19,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEnti
 @RequiredArgsConstructor
 public class DefendantAccountRepositoryService {
 
+    public static final String NOT_FOUND_WITH_ID = "Defendant Account not found with id: ";
     private final DefendantAccountRepository defendantAccountRepository;
     private final DefendantAccountHeaderViewRepository defendantAccountHeaderViewRepository;
     private final DefendantAccountSummaryViewRepository defendantAccountSummaryViewRepository;
@@ -27,14 +28,14 @@ public class DefendantAccountRepositoryService {
     public DefendantAccountEntity findById(long defendantAccountId) {
         return defendantAccountRepository.findById(defendantAccountId)
             .orElseThrow(
-                () -> new EntityNotFoundException("Defendant Account not found with id: " + defendantAccountId));
+                () -> new EntityNotFoundException(NOT_FOUND_WITH_ID + defendantAccountId));
     }
 
     @Transactional(readOnly = true)
     public DefendantAccountEntity findByIdForUpdate(long defendantAccountId) {
         return defendantAccountRepository.findByDefendantAccountIdForUpdate(defendantAccountId)
             .orElseThrow(
-                () -> new EntityNotFoundException("Defendant Account not found with id: " + defendantAccountId));
+                () -> new EntityNotFoundException(NOT_FOUND_WITH_ID + defendantAccountId));
     }
 
     @Transactional(readOnly = true)
@@ -51,14 +52,14 @@ public class DefendantAccountRepositoryService {
     public DefendantAccountHeaderViewEntity findHeaderViewById(long defendantAccountId) {
         return defendantAccountHeaderViewRepository.findById(defendantAccountId)
             .orElseThrow(
-                () -> new EntityNotFoundException("Defendant Account not found with id: " + defendantAccountId));
+                () -> new EntityNotFoundException(NOT_FOUND_WITH_ID + defendantAccountId));
     }
 
     @Transactional(readOnly = true)
     public DefendantAccountSummaryViewEntity findSummaryViewById(long defendantAccountId) {
         return defendantAccountSummaryViewRepository.findById(defendantAccountId)
             .orElseThrow(
-                () -> new EntityNotFoundException("Defendant Account not found with id: " + defendantAccountId));
+                () -> new EntityNotFoundException(NOT_FOUND_WITH_ID + defendantAccountId));
     }
 
     @Transactional

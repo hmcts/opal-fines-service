@@ -36,7 +36,7 @@ import uk.gov.hmcts.opal.service.persistence.PaymentTermsRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.ResultRepositoryService;
 
 @ExtendWith(MockitoExtension.class)
-public class OpalDefendantAccountServicePaymentTermsAddPaymentTermsTest {
+class OpalDefendantAccountServicePaymentTermsAddPaymentTermsTest {
     private static final LocalDateTime TEST_POSTED_DATE = LocalDateTime.of(2026, Month.JUNE, 11, 10, 0);
 
     @Mock

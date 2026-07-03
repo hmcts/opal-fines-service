@@ -34,6 +34,7 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class OpalDefendantAccountPaymentTermsService implements DefendantAccountPaymentTermsServiceInterface {
 
+    public static final String ACCOUNT_ENQUIRY = "ACCOUNT_ENQUIRY";
     private final DefendantAccountRepositoryService defendantAccountRepositoryService;
 
     private final PaymentTermsRepositoryService paymentTermsRepositoryService;
@@ -174,7 +175,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
             businessUnitUserId,
             savedPaymentTerms.getPostedByUsername(),
             defAccount.getProsecutorCaseReference(),
-            "ACCOUNT_ENQUIRY"
+            ACCOUNT_ENQUIRY
         );
 
         return OpalDefendantAccountBuilders.buildPaymentTermsResponse(savedPaymentTerms);
@@ -246,7 +247,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
             businessUnitUserId,
             savedPaymentTerms.getPostedByUsername(),
             defAccount.getProsecutorCaseReference(),
-            "ACCOUNT_ENQUIRY"
+            ACCOUNT_ENQUIRY
         );
 
         return OpalDefendantAccountBuilders.buildPaymentTermsResponse(savedPaymentTerms);
@@ -380,7 +381,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
             businessUnitUserId,
             postedByName,
             account.getProsecutorCaseReference(),
-            "ACCOUNT_ENQUIRY"
+            ACCOUNT_ENQUIRY
         );
     }
 }
