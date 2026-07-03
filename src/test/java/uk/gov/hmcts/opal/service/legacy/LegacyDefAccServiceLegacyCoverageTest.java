@@ -136,26 +136,4 @@ class LegacyDefAccServiceLegacyCoverageTest extends AbstractLegacyDefAccServiceT
 
         assertEquals("1990-01-01", out.getResponse().getPartyDetails().getIndividualDetails().getDateOfBirth());
     }
-
-    @Test
-    void legacyPaymentTerms_nonNullEnums_areConverted() {
-        LegacyGetDefendantAccountPaymentTermsResponse legacy = LegacyGetDefendantAccountPaymentTermsResponse.builder()
-            .version(1L)
-            .paymentTerms(
-                LegacyPaymentTerms.builder()
-                    .paymentTermsType(new LegacyPaymentTermsType(LegacyPaymentTermsType.PaymentTermsTypeCode.B))
-                    .instalmentPeriod(new LegacyInstalmentPeriod(LegacyInstalmentPeriod.InstalmentPeriodCode.W))
-                    .build()
-            )
-            .build();
-
-        doReturn(new GatewayService.Response<>(HttpStatus.OK, legacy, null, null))
-            .when(gatewayService).postToGateway(eq(LegacyDefendantAccountService.GET_PAYMENT_TERMS),
-                eq(LegacyGetDefendantAccountPaymentTermsResponse.class), any(), any());
-
-        GetDefendantAccountPaymentTermsResponse out = legacyDefendantAccountService.getPaymentTerms(123L);
-
-        assertNotNull(out.getPaymentTerms().getPaymentTermsType());
-        assertNotNull(out.getPaymentTerms().getInstalmentPeriod());
-    }
 }

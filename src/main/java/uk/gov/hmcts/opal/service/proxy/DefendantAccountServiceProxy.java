@@ -55,11 +55,6 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
     }
 
     @Override
-    public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
-        return getCurrentModeService().getPaymentTerms(defendantAccountId);
-    }
-
-    @Override
     public DefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId) {
         return getCurrentModeService().getAtAGlance(defendantAccountId);
     }

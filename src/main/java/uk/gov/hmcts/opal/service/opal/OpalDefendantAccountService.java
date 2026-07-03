@@ -238,18 +238,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .aliases(OpalDefendantAccountBuilders.buildSearchAliases(account));
     }
 
-    //Deprecated - use OpalDefendantAccountPaymentTermsService
-    //TODO - Remove once OpalDefendantAccountPaymentTermsService is in use
-    @Override
-    @Transactional(readOnly = true)
-    public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
-        log.debug(":getPaymentTerms (Opal): criteria: {}", defendantAccountId);
-
-        PaymentTermsEntity entity = paymentTermsRepositoryService.findLatestByDefendantAccountId(defendantAccountId);
-
-        return OpalDefendantAccountBuilders.buildPaymentTermsResponse(entity);
-    }
-
     //TODO - Remove this once repository service is in use
     public DefendantAccountSummaryViewEntity getDefendantAccountSummaryViewById(long defendantAccountId) {
         return defendantAccountRepositoryService.findSummaryViewById(defendantAccountId);

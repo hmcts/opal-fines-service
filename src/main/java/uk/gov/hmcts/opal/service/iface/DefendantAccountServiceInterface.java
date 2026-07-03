@@ -19,8 +19,6 @@ public interface DefendantAccountServiceInterface {
 
     DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto);
 
-    GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId);
-
     DefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId);
 
     UpdateDefendantAccountResponse updateDefendantAccount(Long defendantAccountId,

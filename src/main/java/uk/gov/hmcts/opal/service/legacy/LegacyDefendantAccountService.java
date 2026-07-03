@@ -191,20 +191,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
     }
 
-    @Override
-    //TODO: Remove method, duplicated in refactored class
-    public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
-
-        Response<LegacyGetDefendantAccountPaymentTermsResponse> response = gatewayService.postToGateway(
-            GET_PAYMENT_TERMS, LegacyGetDefendantAccountPaymentTermsResponse.class,
-            createGetDefendantAccountRequest(defendantAccountId.toString()), null
-        );
-
-        checkResponseForError(response, "getPaymentTerms");
-
-        return toPaymentTermsResponse(response.responseEntity);
-    }
-
     /* This is probably common code that will be needed across multiple Legacy requests to get
     Defendant Account details. */
     public static LegacyGetDefendantAccountRequest createGetDefendantAccountRequest(String defendantAccountId) {
