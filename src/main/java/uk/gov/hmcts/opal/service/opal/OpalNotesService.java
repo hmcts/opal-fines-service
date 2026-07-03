@@ -38,6 +38,8 @@ public class OpalNotesService implements NotesServiceInterface {
 
         String accountId = req.getActivityNote().getRecordId();
         validateAccountId(req, accountId);
+        //Use getDefendantAccountByIdForUpdate() as this ensures the account version is increased with
+        // OPTIMISTIC_FORCE_INCREMENT locking
         DefendantAccountEntity managed =
             defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(Long.parseLong(accountId));
 
