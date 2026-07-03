@@ -25,9 +25,6 @@ public interface DefendantAccountServiceInterface {
 
     DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto);
 
-    GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId, Long defendantAccountPartyId);
-
-
     GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId);
 
     DefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId);
@@ -54,27 +51,6 @@ public interface DefendantAccountServiceInterface {
 
     AddEnforcementResponse addEnforcement(Long defendantAccountId, String businessUnitId, String businessUnitUserId,
         String ifMatch, AddDefendantAccountEnforcementRequest request);
-
-
-    GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
-                                           Long defendantAccountPartyId,
-                                           DefendantAccountParty defendantAccountParty,
-                                           String ifMatch,
-                                           String businessUnitId,
-                                           String postedBy,
-                                           String postedByName,
-                                           String businessUserId);
-
-    default GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
-                                           Long defendantAccountPartyId,
-                                           DefendantAccountParty defendantAccountParty,
-                                           String ifMatch,
-                                           String businessUnitId,
-                                           String postedBy,
-                                           String businessUserId) {
-        return replaceDefendantAccountParty(defendantAccountId, defendantAccountPartyId, defendantAccountParty,
-                                            ifMatch, businessUnitId, postedBy, postedBy, businessUserId);
-    }
 
     EnforcementStatus getEnforcementStatus(Long defendantAccountId);
 

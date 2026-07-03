@@ -116,8 +116,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final UserStateService userStateService;
 
-    private final OpalDefendantAccountPartyService defendantAccountPartyService;
-
     // Services
     private final DocumentService documentService;
 
@@ -286,13 +284,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return OpalDefendantAccountBuilders.toFixedPenaltyResponse(account, offence);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,
-        Long defendantAccountPartyId) {
-        return defendantAccountPartyService.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
-    }
-
     //TODO - Remove this once repository service is in use
     public DefendantAccountSummaryViewEntity getDefendantAccountSummaryViewById(long defendantAccountId) {
         return defendantAccountRepositoryService.findSummaryViewById(defendantAccountId);
@@ -415,16 +406,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     public AddEnforcementResponse addEnforcement(Long defendantAccountId, String businessUnitId,
         String businessUnitUserId, String ifMatch, AddDefendantAccountEnforcementRequest request) {
         return null;
-    }
-
-    @Override
-    @Transactional
-    public GetDefendantAccountPartyResponse replaceDefendantAccountParty(
-        Long accountId, Long dapId, DefendantAccountParty request, String ifMatch, String businessUnitId,
-        String postedBy, String postedByName, String businessUserId) {
-
-        return defendantAccountPartyService.replaceDefendantAccountParty(accountId, dapId, request, ifMatch, postedBy,
-            postedByName, businessUserId);
     }
 
     //Deprecated - use OpalDefendantAccountEnforcementService

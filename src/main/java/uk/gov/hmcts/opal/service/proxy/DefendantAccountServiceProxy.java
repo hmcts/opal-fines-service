@@ -55,12 +55,6 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
     }
 
     @Override
-    public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,
-                                                                     Long defendantAccountPartyId) {
-        return getCurrentModeService().getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
-    }
-
-    @Override
     public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
         return getCurrentModeService().getPaymentTerms(defendantAccountId);
     }
@@ -87,17 +81,6 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
     @Override
     public EnforcementStatus getEnforcementStatus(Long defendantAccountId) {
         return getCurrentModeService().getEnforcementStatus(defendantAccountId);
-    }
-
-    @Override
-    public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
-        Long defendantAccountPartyId,
-        DefendantAccountParty defendantAccountParty, String ifMatch, String businessUnitId, String postedBy,
-        String postedByName, String businessUserId) {
-
-        return getCurrentModeService().replaceDefendantAccountParty(defendantAccountId, defendantAccountPartyId,
-            defendantAccountParty, ifMatch, businessUnitId, postedBy, postedByName, businessUserId);
-
     }
 
     @Override

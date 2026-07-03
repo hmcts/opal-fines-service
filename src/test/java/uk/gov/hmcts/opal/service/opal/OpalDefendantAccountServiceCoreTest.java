@@ -81,54 +81,6 @@ class OpalDefendantAccountServiceCoreTest {
     }
 
     @Test
-    void getDefendantAccountParty_delegatesToPartyService() {
-        long defendantAccountId = 11L;
-        long defendantAccountPartyId = 22L;
-        GetDefendantAccountPartyResponse expected = GetDefendantAccountPartyResponse.builder().build();
-
-        when(defendantAccountPartyService.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId))
-            .thenReturn(expected);
-
-        GetDefendantAccountPartyResponse result = service.getDefendantAccountParty(
-            defendantAccountId, defendantAccountPartyId);
-
-        assertEquals(expected, result);
-        verify(defendantAccountPartyService).getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
-    }
-
-    @Test
-    void replaceDefendantAccountParty_delegatesToPartyService() {
-        long accountId = 11L;
-        long dapId = 22L;
-        DefendantAccountParty request = DefendantAccountParty.builder().build();
-        GetDefendantAccountPartyResponse expected = GetDefendantAccountPartyResponse.builder().build();
-
-        when(defendantAccountPartyService.replaceDefendantAccountParty(
-            eq(accountId),
-            eq(dapId),
-            eq(request),
-            eq("\"1\""),
-            eq("tester"),
-            eq("Tester Name"),
-            eq("business-user-1")
-        )).thenReturn(expected);
-
-        GetDefendantAccountPartyResponse result = service.replaceDefendantAccountParty(
-            accountId,
-            dapId,
-            request,
-            "\"1\"",
-            "10",
-            "tester",
-            "Tester Name",
-            "business-user-1");
-
-        assertEquals(expected, result);
-        verify(defendantAccountPartyService).replaceDefendantAccountParty(
-            accountId, dapId, request, "\"1\"", "tester", "Tester Name", "business-user-1");
-    }
-
-    @Test
     void vehicleFixedPenaltyFlag_shouldBeFalse_whenVehicleRegistrationIsNullAndFlagFalse() {
         Long defendantAccountId = 201L;
         DefendantAccountEntity account = buildMockAccount(defendantAccountId);

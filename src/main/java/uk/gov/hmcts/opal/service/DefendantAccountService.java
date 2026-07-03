@@ -224,38 +224,6 @@ public class DefendantAccountService {
         }
     }
 
-    public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
-        Long defendantAccountPartyId,
-        String ifMatch, String businessUnitId, DefendantAccountParty request) {
-        log.debug(":replaceDefendantAccountParty");
-
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
-
-        short buId = Short.parseShort(businessUnitId);
-
-        String postedBy = userState.getBusinessUnitUserForBusinessUnit(buId)
-            .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
-            .filter(id -> !id.isBlank())
-            .orElse(userState.getUserName());
-
-        if (userState.hasBusinessUnitUserWithPermission(buId,
-                FinesPermission.ACCOUNT_MAINTENANCE)) {
-            return defendantAccountServiceProxy.replaceDefendantAccountParty(defendantAccountId,
-                defendantAccountPartyId, request, ifMatch, businessUnitId, postedBy, userState.getUserName(),
-                getBusinessUnitUserIdForBusinessUnit(userState, buId));
-        } else {
-            throw new PermissionNotAllowedException(buId, FinesPermission.ACCOUNT_MAINTENANCE);
-        }
-    }
-
-    private String getBusinessUnitUserIdForBusinessUnit(UserState userState, short buId) {
-        return userState.getBusinessUnitUserForBusinessUnit(buId)
-            .map(BusinessUnitUser::getBusinessUnitUserId)
-            .filter(id -> !id.isBlank())
-            .orElse("");
-    }
-
-
     public AddPaymentCardRequestResponse addPaymentCardRequest(
         Long defendantAccountId,
         String businessUnitId,
