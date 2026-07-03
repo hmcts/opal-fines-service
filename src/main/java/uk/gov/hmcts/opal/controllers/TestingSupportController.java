@@ -18,7 +18,6 @@ import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 
@@ -39,10 +38,10 @@ public class TestingSupportController {
     private final UserStateClientService userStateClientService;
     private final UserStateMapper userStateMapper;
 
-    @GetMapping("/app-mode")
-    @Operation(summary = "Retrieves the value for app mode.")
-    public ResponseEntity<AppMode> getAppMode() {
-        return ResponseEntity.ok(dynamicConfigService.getAppMode());
+    @GetMapping("/is-legacy-mode")
+    @Operation(summary = "Retrieves whether legacy mode is enabled.")
+    public ResponseEntity<Boolean> isLegacyMode() {
+        return ResponseEntity.ok(dynamicConfigService.isLegacyMode());
     }
 
     @GetMapping("/launchdarkly/bool/{featureKey}")
