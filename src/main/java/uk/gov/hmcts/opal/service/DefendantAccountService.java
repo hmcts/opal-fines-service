@@ -144,18 +144,6 @@ public class DefendantAccountService {
         }
     }
 
-    public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(
-        Long defendantAccountId) {
-
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
-
-        if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
-            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        }
-
-        return defendantAccountServiceProxy.getDefendantAccountFixedPenalty(defendantAccountId);
-    }
-
     public UpdateDefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
                                                            String businessUnitId,
                                                            UpdateDefendantAccountRequestPayload request,

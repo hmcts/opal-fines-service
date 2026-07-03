@@ -30,7 +30,6 @@ import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.Checks;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.DefendantAccountSummaryDtoBuilder;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.WarnError;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
@@ -42,7 +41,6 @@ import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
-import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
@@ -74,7 +72,6 @@ import uk.gov.hmcts.opal.service.iface.ReportEntryServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcerRepositoryService;
-import uk.gov.hmcts.opal.service.persistence.FixedPenaltyOffenceRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.LocalJusticeAreaRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.NoteRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.PaymentCardRequestRepositoryService;
@@ -122,7 +119,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private final DefendantAccountHeaderViewRepositoryService defendantAccountHeaderViewRepositoryService;
     private final DefendantAccountSummaryViewRepositoryService defendantAccountSummaryViewRepositoryService;
     private final PaymentTermsRepositoryService paymentTermsRepositoryService;
-    private final FixedPenaltyOffenceRepositoryService fixedPenaltyOffenceRepositoryService;
     private final PaymentCardRequestRepositoryService paymentCardRequestRepositoryService;
     private final ResultRepositoryService resultRepositoryService;
     private final EnforcerRepositoryService enforcerRepositoryService;
@@ -252,21 +248,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         PaymentTermsEntity entity = paymentTermsRepositoryService.findLatestByDefendantAccountId(defendantAccountId);
 
         return OpalDefendantAccountBuilders.buildPaymentTermsResponse(entity);
-    }
-
-    //Deprecated - use OpalDefendantAccountFixedPenaltyService
-    //TODO - Remove once OpalDefendantAccountFixedPenaltyService is in use
-    @Override
-    @Transactional(readOnly = true)
-    public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(Long defendantAccountId) {
-        log.debug(":getDefendantAccountFixedPenalty (Opal): id={}", defendantAccountId);
-
-        DefendantAccountEntity account = defendantAccountRepositoryService.findById(defendantAccountId);
-
-        FixedPenaltyOffenceEntity offence =
-            fixedPenaltyOffenceRepositoryService.findByDefendantAccountId(defendantAccountId);
-
-        return OpalDefendantAccountBuilders.toFixedPenaltyResponse(account, offence);
     }
 
     //TODO - Remove this once repository service is in use
