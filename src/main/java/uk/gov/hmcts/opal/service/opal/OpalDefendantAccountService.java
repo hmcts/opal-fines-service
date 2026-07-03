@@ -46,7 +46,6 @@ import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
@@ -75,7 +74,6 @@ import uk.gov.hmcts.opal.service.persistence.EnforcerRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.LocalJusticeAreaRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.NoteRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.PaymentCardRequestRepositoryService;
-import uk.gov.hmcts.opal.service.persistence.PaymentTermsRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.ResultRepositoryService;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.util.VersionUtils;
@@ -118,7 +116,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private final DefendantAccountRepositoryService defendantAccountRepositoryService;
     private final DefendantAccountHeaderViewRepositoryService defendantAccountHeaderViewRepositoryService;
     private final DefendantAccountSummaryViewRepositoryService defendantAccountSummaryViewRepositoryService;
-    private final PaymentTermsRepositoryService paymentTermsRepositoryService;
     private final PaymentCardRequestRepositoryService paymentCardRequestRepositoryService;
     private final ResultRepositoryService resultRepositoryService;
     private final EnforcerRepositoryService enforcerRepositoryService;
@@ -236,11 +233,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .accountBalance(account.getDefendantAccountBalance())
             .birthDate(account.getBirthDate() != null ? account.getBirthDate().toString() : null)
             .aliases(OpalDefendantAccountBuilders.buildSearchAliases(account));
-    }
-
-    //TODO - Remove this once repository service is in use
-    public DefendantAccountSummaryViewEntity getDefendantAccountSummaryViewById(long defendantAccountId) {
-        return defendantAccountRepositoryService.findSummaryViewById(defendantAccountId);
     }
 
     @Transactional(readOnly = true)

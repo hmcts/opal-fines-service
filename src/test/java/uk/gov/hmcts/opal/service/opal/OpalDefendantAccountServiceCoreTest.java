@@ -70,17 +70,6 @@ class OpalDefendantAccountServiceCoreTest {
     private OpalDefendantAccountEnforcementService enforcementService;
 
     @Test
-    void testGetDefendantAccountSummaryViewById() {
-        long testId = 1L;
-
-        DefendantAccountSummaryViewEntity viewEntity = DefendantAccountSummaryViewEntity.builder().build();
-        when(defendantAccountRepositoryService.findSummaryViewById(testId)).thenReturn(viewEntity);
-
-        DefendantAccountSummaryViewEntity result = service.getDefendantAccountSummaryViewById(testId);
-        assertNotNull(result);
-    }
-
-    @Test
     void vehicleFixedPenaltyFlag_shouldBeFalse_whenVehicleRegistrationIsNullAndFlagFalse() {
         Long defendantAccountId = 201L;
         DefendantAccountEntity account = buildMockAccount(defendantAccountId);
