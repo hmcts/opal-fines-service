@@ -806,7 +806,7 @@ dependencies {
 
   testImplementation "net.serenity-bdd:serenity-cucumber:${serenityVersion}"
   testImplementation "net.serenity-bdd:serenity-ensure:${serenityVersion}"
-  testImplementation 'com.azure:azure-messaging-servicebus:7.17.18'
+  testImplementation 'com.azure:azure-messaging-servicebus:7.17.19'
 
   implementation('uk.gov.hmcts:opal-logging-service-integration-lib:0.0.10') {
     exclude group: 'com.microsoft.azure', module: 'applicationinsights-spring-boot-starter'
