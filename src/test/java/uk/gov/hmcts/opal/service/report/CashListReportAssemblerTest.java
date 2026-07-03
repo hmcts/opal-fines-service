@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
+import uk.gov.hmcts.opal.entity.DestinationType;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.entity.SuspenseAccountEntity;
@@ -24,6 +26,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountType;
+import uk.gov.hmcts.opal.entity.PaymentMethod;
 
 @ExtendWith(MockitoExtension.class)
 class CashListReportAssemblerTest {
@@ -59,9 +62,12 @@ class CashListReportAssemblerTest {
     void toReportData_buildsTillPaymentAccountDefendantAndSuspenseDetails() {
         // Arrange
         PaymentInEntity accountPayment = payment(
-            1L, "F", "defendant_accounts", String.valueOf(DEFENDANT_ACCOUNT_ID), "Account payment");
+            1L, DestinationType.F, AssociatedRecordType.DEFENDANT_ACCOUNTS,
+            String.valueOf(DEFENDANT_ACCOUNT_ID),
+            "Account payment");
         PaymentInEntity suspensePayment = payment(
-            2L, "S", "suspense_items", String.valueOf(SUSPENSE_ITEM_ID), "Suspense payment");
+            2L, DestinationType.S, AssociatedRecordType.SUSPENSE_ITEMS,
+            String.valueOf(SUSPENSE_ITEM_ID), "Suspense payment");
 
         // Act
         when(cashListPaymentLinkService.getDefendantAccount(accountPayment)).thenReturn(defendantAccount());
@@ -83,7 +89,7 @@ class CashListReportAssemblerTest {
         assertThat(firstEntry.getAccountNumber()).isEqualTo("ACC123");
         assertThat(firstEntry.getName()).isEqualTo("SMITH John");
         assertThat(firstEntry.getNameAdditionalInformation()).isNull();
-        assertThat(firstEntry.getPaymentMethod()).isEqualTo("CA");
+        assertThat(firstEntry.getPaymentMethod()).isEqualTo("NC");
         assertThat(firstEntry.getAmount()).isEqualByComparingTo("125.50");
 
         CashListReportData.CashListEntry secondEntry = data.getEntries().getLast();
@@ -93,14 +99,16 @@ class CashListReportAssemblerTest {
         assertThat(secondEntry.getAccountNumber()).isEqualTo("Suspense Ref");
         assertThat(secondEntry.getName()).isEqualTo("1");
         assertThat(secondEntry.getNameAdditionalInformation()).isEqualTo("Manual - Suspense payment");
-        assertThat(secondEntry.getPaymentMethod()).isEqualTo("CA");
+        assertThat(secondEntry.getPaymentMethod()).isEqualTo("NC");
         assertThat(secondEntry.getAmount()).isEqualByComparingTo("125.50");
     }
 
     @Test
     void toReportData_throwsWhenDefendantAccountDoesNotExist() {
         PaymentInEntity payment = payment(
-            1L, "F", "defendant_accounts", String.valueOf(DEFENDANT_ACCOUNT_ID), "Account payment");
+            1L, DestinationType.F, AssociatedRecordType.DEFENDANT_ACCOUNTS,
+            String.valueOf(DEFENDANT_ACCOUNT_ID),
+            "Account payment");
         when(cashListPaymentLinkService.getDefendantAccount(payment))
             .thenThrow(new EntityNotFoundException(
                 "Defendant account not found for associated_record_id: " + DEFENDANT_ACCOUNT_ID));
@@ -113,7 +121,8 @@ class CashListReportAssemblerTest {
     @Test
     void toReportData_throwsWhenSuspenseItemDoesNotExist() {
         PaymentInEntity payment = payment(
-            1L, "S", "suspense_items", String.valueOf(SUSPENSE_ITEM_ID), "Suspense payment");
+            1L, DestinationType.S, AssociatedRecordType.SUSPENSE_ITEMS,
+            String.valueOf(SUSPENSE_ITEM_ID), "Suspense payment");
         when(cashListPaymentLinkService.getSuspenseItem(payment))
             .thenThrow(new EntityNotFoundException(
                 "Suspense item not found for associated_record_id: " + SUSPENSE_ITEM_ID));
@@ -126,7 +135,9 @@ class CashListReportAssemblerTest {
     @Test
     void toReportData_usesDebtorPartyWhenDefendantAssociationIsMissing() {
         PaymentInEntity payment = payment(
-            1L, "F", "defendant_accounts", String.valueOf(DEFENDANT_ACCOUNT_ID), "Account payment");
+            1L, DestinationType.F, AssociatedRecordType.DEFENDANT_ACCOUNTS,
+            String.valueOf(DEFENDANT_ACCOUNT_ID),
+            "Account payment");
         DefendantAccountEntity defendantAccount = defendantAccountWithParties(
             List.of(
                 accountParty(party(1L, "First"), null, false),
@@ -143,7 +154,9 @@ class CashListReportAssemblerTest {
     @Test
     void toReportData_usesFirstPartyWhenDefendantAssociationAndDebtorAreMissing() {
         PaymentInEntity payment = payment(
-            1L, "F", "defendant_accounts", String.valueOf(DEFENDANT_ACCOUNT_ID), "Account payment");
+            1L, DestinationType.F, AssociatedRecordType.DEFENDANT_ACCOUNTS,
+            String.valueOf(DEFENDANT_ACCOUNT_ID),
+            "Account payment");
         DefendantAccountEntity defendantAccount = defendantAccountWithParties(
             List.of(
                 accountParty(party(1L, "First"), null, false),
@@ -160,7 +173,9 @@ class CashListReportAssemblerTest {
     @Test
     void toReportData_throwsWhenDestinationTypeIsUnsupported() {
         PaymentInEntity payment = payment(
-            1L, "C", "defendant_accounts", String.valueOf(DEFENDANT_ACCOUNT_ID), "Court fee payment");
+            1L, DestinationType.C, AssociatedRecordType.DEFENDANT_ACCOUNTS,
+            String.valueOf(DEFENDANT_ACCOUNT_ID),
+            "Court fee payment");
 
         assertThatThrownBy(() -> assembler.toReportData(till, businessUnit, List.of(payment)))
             .isInstanceOf(IllegalArgumentException.class)
@@ -170,7 +185,9 @@ class CashListReportAssemblerTest {
     @Test
     void toReportData_throwsWhenDefendantPartyDoesNotExist() {
         PaymentInEntity payment = payment(
-            1L, "F", "defendant_accounts", String.valueOf(DEFENDANT_ACCOUNT_ID), "Account payment");
+            1L, DestinationType.F, AssociatedRecordType.DEFENDANT_ACCOUNTS,
+            String.valueOf(DEFENDANT_ACCOUNT_ID),
+            "Account payment");
         DefendantAccountEntity defendantAccount = defendantAccountWithParties(List.of());
         when(cashListPaymentLinkService.getDefendantAccount(payment)).thenReturn(defendantAccount);
 
@@ -179,15 +196,31 @@ class CashListReportAssemblerTest {
             .hasMessage("Defendant party not found for defendant_account_id: " + DEFENDANT_ACCOUNT_ID);
     }
 
+    @Test
+    void toReportData_setsNullPaymentMethodWhenPaymentMethodIsMissing() {
+        PaymentInEntity payment = payment(
+            1L, DestinationType.F, AssociatedRecordType.DEFENDANT_ACCOUNTS,
+            String.valueOf(DEFENDANT_ACCOUNT_ID),
+            "Account payment");
+        payment.setPaymentMethod(null);
+        when(cashListPaymentLinkService.getDefendantAccount(payment)).thenReturn(defendantAccount());
+
+        CashListReportData data = assembler.toReportData(till, businessUnit, List.of(payment));
+
+        assertThat(data.getEntries()).singleElement().satisfies(entry ->
+            assertThat(entry.getPaymentMethod()).isNull());
+    }
+
     private PaymentInEntity payment(
-        Long paymentInId, String destinationType, String associatedRecordType, String associatedRecordId,
+        Long paymentInId, DestinationType destinationType, AssociatedRecordType associatedRecordType,
+        String associatedRecordId,
         String additionalInformation) {
         return PaymentInEntity.builder()
             .paymentInId(paymentInId)
             .tillEntity(till)
             .paymentAmount(new BigDecimal("125.50"))
             .paymentDate(LocalDateTime.of(2026, 5, 26, 14, 30))
-            .paymentMethod("CA")
+            .paymentMethod(PaymentMethod.NC)
             .destinationType(destinationType)
             .allocationType("FULL")
             .associatedRecordType(associatedRecordType)
