@@ -46,16 +46,16 @@ class ImpositionServiceProxyTest extends ProxyTestsBase {
 
     @Test
     void shouldUseOpalServiceWhenModeIsNotLegacy() {
-        // Given: app mode is set
-        setMode(OPAL);
+        // Given: legacy mode flag is not set
+        setLegacyMode(false);
         // Then: the target service is called, but the other service is not
         testMode(opalService, legacyService);
     }
 
     @Test
     void shouldUseLegacyServiceWhenModeIsLegacy() {
-        // Given: app mode is set
-        setMode(LEGACY);
+        // Given: legacy mode flag is set
+        setLegacyMode(true);
         // Then: the target service is called, but the other service is not
         testMode(legacyService, opalService);
     }

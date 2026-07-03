@@ -25,11 +25,11 @@ def determineDevEnvironmentDeployment() {
   env.DEV_OPAL_LOGGING_SERVICE_IMAGE_SUFFIX = "latest"
 
 
-  env.APP_MODE = "opal"
+  env.IS_LEGACY_MODE = "false"
 
   def githubApi = new GithubAPI(this)
-  if (githubApi.checkForLabel(env.BRANCH_NAME, "app_mode_legacy")) {
-    env.APP_MODE = "legacy"
+  if (githubApi.checkForLabel(env.BRANCH_NAME, "legacy_mode")) {
+    env.IS_LEGACY_MODE = "true"
   }
   //Enable logging service and service bus by default to allow for functional tests to run with azure service bus connectivity
   env.DEV_ENABLE_OPAL_LOGGING_SERVICE = true
