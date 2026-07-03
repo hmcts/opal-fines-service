@@ -3,9 +3,11 @@ package uk.gov.hmcts.opal.controllers;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionsToken;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionsToken;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.slf4j.Logger;
 import org.springframework.http.HttpHeaders;
@@ -23,11 +25,15 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/notes";
 
+    @BeforeEach
+    void setUp() {
+        userStateStub.addPermissions((short) 78, ADD_ACCOUNT_ACTIVITY_NOTES);
+    }
+
 
     @DisplayName("OPAL: POST /notes/add creates note for defendant account [PO-1566]")
     @JiraStory("PO-1566")
     void postNotesImpl(Logger log) throws Exception {
-
         // Arrange
         Note note = new Note();
         note.setNoteText("test");
@@ -52,6 +58,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                     .content(payload)
                     .header("authorization", userStateStub.getBearerToken())
                     .header(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"")
+                    .header("Business_Unit_ID", "78")
                     .with(authentication(allFinesPermissionsToken()))
             );
 
@@ -67,7 +74,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
         Note note = new Note();
         note.setNoteText("test");
-        note.setRecordId("122");
+        note.setRecordId("7A");
         note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
         note.setNoteType("AA");
 
@@ -82,6 +89,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                     .content(objectMapper.writeValueAsString(request))
                     .header("authorization", userStateStub.getBearerToken())
                     .header("If-Match", "1")
+                    .header("Business_Unit_ID", "78")
                     .with(authentication(allFinesPermissionsToken()))
             );
 
@@ -112,6 +120,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("authorization", userStateStub.getBearerToken())
                 .header("If-Match", "1")
+                .header("Business_Unit_ID", "78")
                 .with(authentication(noFinesPermissionsToken()))
         );
 
@@ -121,6 +130,8 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("post notes for a defendant account in legacy [PO-1975]")
     @JiraStory("PO-1975")
     void legacyTestAddNoteSuccess(Logger log) throws Exception {
+
+        userStateStub.addPermissions((short) 78, ADD_ACCOUNT_ACTIVITY_NOTES);
 
         Note note = new Note();
         note.setNoteText("test");
@@ -139,6 +150,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                     .content(objectMapper.writeValueAsString(request))
                     .header("authorization", userStateStub.getBearerToken())
                     .header("If-Match", "1")
+                    .header("Business_Unit_ID", 78)
                     .with(authentication(allFinesPermissionsToken()))
             );
 
@@ -152,6 +164,8 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("post notes for a defendant account ID that does not exist in legacy [PO-1975]")
     @JiraStory("PO-1975")
     void legacyTestAddNote500Error(Logger log) throws Exception {
+
+        userStateStub.addPermissions((short) 78, ADD_ACCOUNT_ACTIVITY_NOTES);
 
         Note note = new Note();
         note.setNoteText("FAIL");
@@ -170,6 +184,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                     .content(objectMapper.writeValueAsString(request))
                     .header("authorization", userStateStub.getBearerToken())
                     .header("If-Match", "5")
+                    .header("Business_Unit_ID", "78")
                     .with(authentication(allFinesPermissionsToken()))
             );
 

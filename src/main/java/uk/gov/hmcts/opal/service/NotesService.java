@@ -2,15 +2,11 @@ package uk.gov.hmcts.opal.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.service.proxy.NotesProxy;
 
 @Service
@@ -20,27 +16,15 @@ public class NotesService {
 
     private final NotesProxy notesProxy;
     private final UserStateService userStateService;
-    private final DefendantAccountRepository defendantAccountRepository;
 
-
-    public String addNote(AddNoteRequest request, String ifMatch) {
+    public String addNote(AddNoteRequest request, String ifMatch, Short businessUnitId) {
         log.debug(":addNote:");
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
-
-        DefendantAccountEntity account =
-            defendantAccountRepository
-                .findById(Long.valueOf(request.getActivityNote().getRecordId()))
-                .orElseThrow(() -> new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "Account %s not found".formatted(request.getActivityNote().getRecordId())
-                ));
-
-        Short businessUnitId = account.getBusinessUnit().getBusinessUnitId();
         if (!userState.hasBusinessUnitUserWithPermission(
-            businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE)) {
+            businessUnitId, FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES)) {
             throw new PermissionNotAllowedException(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE);
         }
-
-        return notesProxy.addNote(request, ifMatch, userState, account);
+        return notesProxy.addNote(request, ifMatch, userState, businessUnitId);
     }
 }

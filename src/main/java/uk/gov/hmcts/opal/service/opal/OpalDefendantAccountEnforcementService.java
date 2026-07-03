@@ -220,7 +220,7 @@ public class OpalDefendantAccountEnforcementService
             buildRemoveEnforcementHoldNoteRequest(defendantAccountId, request),
             VersionUtils.createETag(savedEntity),
             userState,
-            savedEntity
+            businessUnitId
         );
 
         amendmentService.auditFinaliseStoredProc(
