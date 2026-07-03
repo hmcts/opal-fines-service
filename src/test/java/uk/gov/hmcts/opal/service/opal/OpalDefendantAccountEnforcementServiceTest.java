@@ -126,6 +126,9 @@ public class OpalDefendantAccountEnforcementServiceTest {
     private DefendantAccountRepositoryService defendantAccountRepositoryService;
 
     @Mock
+    OpalDefendantAccountPaymentTermsService  defendantAccountPaymentTermsService;
+
+    @Mock
     private OpalDefendantAccountService opalDefendantAccountService;
 
     @Spy
@@ -645,7 +648,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
 
         assertCommonResponse(response);
 
-        verify(opalDefendantAccountService).addPaymentTermsPreservingLastEnforcement(
+        verify(defendantAccountPaymentTermsService).addPaymentTermsPreservingLastEnforcement(
             eq(DEFENDANT_ACCOUNT_ID),
             eq(BUSINESS_UNIT_ID.toString()),
             eq(BUSINESS_UNIT_USER_ID),

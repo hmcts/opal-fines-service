@@ -4,11 +4,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
@@ -16,11 +22,24 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 
-class LegacyDefAccServiceMappingHelperTest extends AbstractLegacyDefAccServiceTest {
+@ExtendWith(MockitoExtension.class)
+class LegacyDefAccServiceMappingHelperTest {
+
+    LegacyDefendantAccountPaymentTermsService legacyDefendantAccountPaymentTermsService;
+
+    @Mock
+    GatewayService gatewayService;
+
+    @BeforeEach
+    void openMocks() {
+        legacyDefendantAccountPaymentTermsService = new LegacyDefendantAccountPaymentTermsService(
+            gatewayService
+        );
+    }
 
     @Test
     void mapLegacyPostedDetails_null_returnsNull() {
-        Object result = legacyDefendantAccountService.mapLegacyPostedDetails(null);
+        Object result = legacyDefendantAccountPaymentTermsService.mapLegacyPostedDetails(null);
 
         assertNull(result);
     }
@@ -32,7 +51,7 @@ class LegacyDefAccServiceMappingHelperTest extends AbstractLegacyDefAccServiceTe
         pd.setPostedByName("Test User");
         pd.setPostedDate(LocalDateTime.of(2024, 1, 1, 10, 31, 45));
 
-        LegacyPostedDetails out = legacyDefendantAccountService.mapLegacyPostedDetails(pd);
+        LegacyPostedDetails out = legacyDefendantAccountPaymentTermsService.mapLegacyPostedDetails(pd);
 
         assertNotNull(out);
         assertEquals(pd.getPostedBy(), out.getPostedBy());
@@ -42,11 +61,11 @@ class LegacyDefAccServiceMappingHelperTest extends AbstractLegacyDefAccServiceTe
 
     @Test
     void mapLegacyPaymentTermsType_nullOrMissingCode_returnsNull() {
-        assertNull(legacyDefendantAccountService.mapLegacyPaymentTermsType(null));
+        assertNull(legacyDefendantAccountPaymentTermsService.mapLegacyPaymentTermsType(null));
 
         PaymentTermsType pt = mock(PaymentTermsType.class);
         when(pt.getPaymentTermsTypeCode()).thenReturn(null);
-        assertNull(legacyDefendantAccountService.mapLegacyPaymentTermsType(pt));
+        assertNull(legacyDefendantAccountPaymentTermsService.mapLegacyPaymentTermsType(pt));
     }
 
     @Test
@@ -54,7 +73,7 @@ class LegacyDefAccServiceMappingHelperTest extends AbstractLegacyDefAccServiceTe
         PaymentTermsType pt = mock(PaymentTermsType.class);
         when(pt.getPaymentTermsTypeCode()).thenReturn(PaymentTermsType.PaymentTermsTypeCode.B);
 
-        LegacyPaymentTermsType out = legacyDefendantAccountService.mapLegacyPaymentTermsType(pt);
+        LegacyPaymentTermsType out = legacyDefendantAccountPaymentTermsService.mapLegacyPaymentTermsType(pt);
 
         assertNotNull(out);
         assertEquals(LegacyPaymentTermsType.PaymentTermsTypeCode.B, out.getPaymentTermsTypeCode());
@@ -62,11 +81,11 @@ class LegacyDefAccServiceMappingHelperTest extends AbstractLegacyDefAccServiceTe
 
     @Test
     void mapLegacyInstalmentPeriod_nullOrMissingCode_returnsNull() {
-        assertNull(legacyDefendantAccountService.mapLegacyInstalmentPeriod(null));
+        assertNull(legacyDefendantAccountPaymentTermsService.mapLegacyInstalmentPeriod(null));
 
         InstalmentPeriod ip = mock(InstalmentPeriod.class);
         when(ip.getInstalmentPeriodCode()).thenReturn(null);
-        assertNull(legacyDefendantAccountService.mapLegacyInstalmentPeriod(ip));
+        assertNull(legacyDefendantAccountPaymentTermsService.mapLegacyInstalmentPeriod(ip));
     }
 
     @Test
@@ -74,7 +93,7 @@ class LegacyDefAccServiceMappingHelperTest extends AbstractLegacyDefAccServiceTe
         InstalmentPeriod ip = mock(InstalmentPeriod.class);
         when(ip.getInstalmentPeriodCode()).thenReturn(InstalmentPeriod.InstalmentPeriodCode.W);
 
-        LegacyInstalmentPeriod out = legacyDefendantAccountService.mapLegacyInstalmentPeriod(ip);
+        LegacyInstalmentPeriod out = legacyDefendantAccountPaymentTermsService.mapLegacyInstalmentPeriod(ip);
 
         assertNotNull(out);
         assertEquals(LegacyInstalmentPeriod.InstalmentPeriodCode.W, out.getInstalmentPeriodCode());
@@ -83,24 +102,24 @@ class LegacyDefAccServiceMappingHelperTest extends AbstractLegacyDefAccServiceTe
     @Test
     void mapPaymentTermsTypeCodeEnum_validAndInvalid() {
         assertEquals(LegacyPaymentTermsType.PaymentTermsTypeCode.B,
-            legacyDefendantAccountService.mapPaymentTermsTypeCodeEnum("B"));
+            legacyDefendantAccountPaymentTermsService.mapPaymentTermsTypeCodeEnum("B"));
         assertEquals(LegacyPaymentTermsType.PaymentTermsTypeCode.P,
-            legacyDefendantAccountService.mapPaymentTermsTypeCodeEnum("p"));
-        assertNull(legacyDefendantAccountService.mapPaymentTermsTypeCodeEnum(null));
+            legacyDefendantAccountPaymentTermsService.mapPaymentTermsTypeCodeEnum("p"));
+        assertNull(legacyDefendantAccountPaymentTermsService.mapPaymentTermsTypeCodeEnum(null));
 
         assertThrows(IllegalArgumentException.class,
-            () -> legacyDefendantAccountService.mapPaymentTermsTypeCodeEnum("X"));
+            () -> legacyDefendantAccountPaymentTermsService.mapPaymentTermsTypeCodeEnum("X"));
     }
 
     @Test
     void mapInstalmentPeriodCodeEnum_validAndInvalid() {
         assertEquals(LegacyInstalmentPeriod.InstalmentPeriodCode.W,
-            legacyDefendantAccountService.mapInstalmentPeriodCodeEnum("W"));
+            legacyDefendantAccountPaymentTermsService.mapInstalmentPeriodCodeEnum("W"));
         assertEquals(LegacyInstalmentPeriod.InstalmentPeriodCode.M,
-            legacyDefendantAccountService.mapInstalmentPeriodCodeEnum("m"));
-        assertNull(legacyDefendantAccountService.mapInstalmentPeriodCodeEnum(null));
+            legacyDefendantAccountPaymentTermsService.mapInstalmentPeriodCodeEnum("m"));
+        assertNull(legacyDefendantAccountPaymentTermsService.mapInstalmentPeriodCodeEnum(null));
 
         assertThrows(IllegalArgumentException.class,
-            () -> legacyDefendantAccountService.mapInstalmentPeriodCodeEnum("Z"));
+            () -> legacyDefendantAccountPaymentTermsService.mapInstalmentPeriodCodeEnum("Z"));
     }
 }

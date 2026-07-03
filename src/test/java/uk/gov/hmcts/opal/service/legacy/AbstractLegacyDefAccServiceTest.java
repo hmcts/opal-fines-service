@@ -32,12 +32,6 @@ abstract class AbstractLegacyDefAccServiceTest extends LegacyTestsBase {
     @Mock
     protected LegacyGatewayProperties gatewayProperties;
 
-    @Mock
-    protected CourtService courtService;
-
-    @Mock
-    protected LocalJusticeAreaService ljaService;
-
     protected GatewayService gatewayService;
     protected HistoryItemOrderingService historyItemOrderingService = new HistoryItemOrderingService();
     protected DefendantAccountHistoryLegacyResponseMapper legacyDefendantAccountHistoryResponseMapper =
@@ -57,8 +51,6 @@ abstract class AbstractLegacyDefAccServiceTest extends LegacyTestsBase {
         legacyDefendantAccountService = new LegacyDefendantAccountService(
             gatewayService,
             gatewayProperties,
-            courtService,
-            ljaService,
             historyItemOrderingService,
             legacyDefendantAccountHistoryResponseMapper,
             updateDefendantAccountRequestMapper,

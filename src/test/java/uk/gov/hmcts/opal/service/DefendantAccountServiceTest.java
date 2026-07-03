@@ -249,51 +249,6 @@ class DefendantAccountServiceTest {
     }
 
     @Test
-    void addPaymentTerms_overwritesPostedDetailsFromUserState() {
-        Long defendantAccountId = 77L;
-        String businessUnitId = "78";
-        String ifMatch = "\"1\"";
-
-        UserState userWithPerm = UserStateUtil.permissionUser((short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userWithPerm);
-
-        AddDefendantAccountPaymentTermsRequest request = AddDefendantAccountPaymentTermsRequest.builder()
-            .paymentTerms(PaymentTerms.builder()
-                .postedDetails(PostedDetails.builder()
-                    .postedBy("FE_USER")
-                    .postedByName("FE_NAME")
-                    .build())
-                .build())
-            .build();
-
-        GetDefendantAccountPaymentTermsResponse proxyResponse = new GetDefendantAccountPaymentTermsResponse();
-        when(defendantAccountServiceProxy.addPaymentTerms(eq(defendantAccountId),
-            eq(businessUnitId),
-            eq("USER01"),
-            eq(ifMatch),
-            any(AddDefendantAccountPaymentTermsRequest.class)))
-            .thenReturn(proxyResponse);
-
-        GetDefendantAccountPaymentTermsResponse result = defendantAccountService.addPaymentTerms(
-            defendantAccountId, businessUnitId, ifMatch, request);
-
-        assertSame(proxyResponse, result);
-
-        ArgumentCaptor<AddDefendantAccountPaymentTermsRequest> captor =
-            ArgumentCaptor.forClass(AddDefendantAccountPaymentTermsRequest.class);
-        verify(defendantAccountServiceProxy).addPaymentTerms(eq(defendantAccountId),
-            eq(businessUnitId),
-            eq("USER01"),
-            eq(ifMatch),
-            captor.capture());
-
-        PostedDetails postedDetails = captor.getValue().getPaymentTerms().getPostedDetails();
-        assertNotNull(postedDetails);
-        assertEquals("USER01", postedDetails.getPostedBy());
-        assertEquals("Normal User", postedDetails.getPostedByName());
-    }
-
-    @Test
     void getAtAGlance_whenUserHasPermission_returnsProxyResult() {
         // arrange
         Long defendantAccountId = 77L;

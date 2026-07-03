@@ -8,7 +8,6 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import jakarta.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.Optional;
@@ -19,8 +18,6 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
@@ -29,49 +26,60 @@ import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.mapper.request.PaymentTermsMapper;
+import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.service.iface.ReportEntryServiceInterface;
+import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.PaymentCardRequestRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.PaymentTermsRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.ResultRepositoryService;
-import uk.gov.hmcts.opal.service.UserStateService;
 
 @ExtendWith(MockitoExtension.class)
-public class OpalDefendantAccountServiceAddPaymentTermsTest {
+public class OpalDefendantAccountServicePaymentTermsAddPaymentTermsTest {
     private static final LocalDateTime TEST_POSTED_DATE = LocalDateTime.of(2026, Month.JUNE, 11, 10, 0);
 
     @Mock
-    private DefendantAccountRepositoryService defendantAccountRepositoryService;
-
-    // other dependencies the service needs (audit, userState, mappers etc.)
-    @Mock
-    private AmendmentService amendmentService;
-    @Mock
-    private PaymentTermsService paymentTermsService;
-    @Mock
-    private ResultRepositoryService resultRepositoryService;
-    @Mock
-    private EnforcementRepositoryService enforcementRepositoryService;
-    @Mock
-    private ReportEntryService reportEntryService;
-    @Mock
-    private UserStateService userStateService;
+    DefendantAccountRepositoryService defendantAccountRepositoryService;
 
     @Mock
-    private EntityManager entityManager;
+    PaymentTermsRepositoryService paymentTermsRepositoryService;
+
+    @Mock
+    AmendmentRepositoryService amendmentRepositoryService;
+
+    @Mock
+    PaymentCardRequestRepositoryService paymentCardRequestRepositoryService;
+
+    @Mock
+    UserStateService userStateService;
+
+    @Mock
+    AmendmentService amendmentService;
+
+    @Mock
+    DocumentService documentService;
+
+    @Mock
+    PaymentTermsService paymentTermsService;
+
+    @Mock
+    ReportEntryServiceInterface reportEntryService;
+
+    @Mock
+    PaymentTermsMapper paymentTermsMapper;
+
+    @Mock
+    ResultRepositoryService resultRepositoryService;
+
+    @Mock
+    EnforcementRepositoryService enforcementRepositoryService;
 
     @InjectMocks
-    private OpalDefendantAccountService defendantAccountService;
+    private OpalDefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
 
     @Captor
     private ArgumentCaptor<DefendantAccountEntity> accountCaptor;
-
-    @Mock
-    private BusinessUnitUser buUser;
-
-    @Mock
-    private UserState userState;
-
-    @Mock
-    private PaymentTermsMapper paymentTermsMapper;
 
     @Test
     void testAddPaymentTerms_clearsLastEnforcementAndCreatesReportEntry_Happy() {
@@ -135,7 +143,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
         when(resultRepositoryService.getResultById("55")).thenReturn(Optional.of(resultEntityLite));
 
         // Act
-        defendantAccountService.addPaymentTerms(defendantAccountId, businessUnitId, "tester",
+        defendantAccountPaymentTermsService.addPaymentTerms(defendantAccountId, businessUnitId, "tester",
             ifMatch, request);
 
         // Assert
@@ -196,7 +204,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
             .thenReturn(Optional.empty());
 
         // Act
-        defendantAccountService.addPaymentTerms(
+        defendantAccountPaymentTermsService.addPaymentTerms(
             defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, request);
 
         // Assert
@@ -248,7 +256,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
 
         when(paymentTermsService.addPaymentTerm(any(PaymentTermsEntity.class))).thenReturn(savedPaymentTermsEntity);
 
-        defendantAccountService.addPaymentTermsPreservingLastEnforcement(
+        defendantAccountPaymentTermsService.addPaymentTermsPreservingLastEnforcement(
             defendantAccountId,
             businessUnitId,
             businessUnitUserId,

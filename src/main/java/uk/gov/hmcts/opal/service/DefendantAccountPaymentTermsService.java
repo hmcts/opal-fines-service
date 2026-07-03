@@ -8,6 +8,8 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.dto.PostedDetails;
+import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountPaymentTermsServiceProxy;
 
 @Service
@@ -52,6 +54,40 @@ public class DefendantAccountPaymentTermsService {
             );
         } else {
             throw new PermissionNotAllowedException(FinesPermission.AMEND_PAYMENT_TERMS);
+        }
+    }
+
+    public GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
+        String businessUnitId,
+        String ifMatch,
+        AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
+
+        log.debug(":addPaymentTerms:");
+
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+
+        short buId = Short.parseShort(businessUnitId);
+        String businessUnitUserId = userState.getBusinessUnitUserForBusinessUnit(buId)
+            .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
+            .filter(id -> !id.isBlank())
+            .orElse(userState.getUserName());
+
+        if (addPaymentTermsRequest != null && addPaymentTermsRequest.getPaymentTerms() != null) {
+            addPaymentTermsRequest.getPaymentTerms().setPostedDetails(PostedDetails.builder()
+                .postedBy(businessUnitUserId)
+                .postedByName(userState.getDisplayName())
+                .build());
+        }
+
+        if (userState.hasBusinessUnitUserWithPermission(buId,
+            FinesPermission.AMEND_PAYMENT_TERMS)) {
+            return defendantAccountPaymentTermsServiceProxy.addPaymentTerms(defendantAccountId,
+                businessUnitId,
+                businessUnitUserId,
+                ifMatch,
+                addPaymentTermsRequest);
+        } else {
+            throw new PermissionNotAllowedException(buId, FinesPermission.AMEND_PAYMENT_TERMS);
         }
     }
 }

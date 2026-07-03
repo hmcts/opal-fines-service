@@ -185,38 +185,4 @@ public class DefendantAccountService {
             throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
         }
     }
-
-    public GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
-        String businessUnitId,
-        String ifMatch,
-        AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
-
-        log.debug(":addPaymentTerms:");
-
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
-
-        short buId = Short.parseShort(businessUnitId);
-        String businessUnitUserId = userState.getBusinessUnitUserForBusinessUnit(buId)
-            .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
-            .filter(id -> !id.isBlank())
-            .orElse(userState.getUserName());
-
-        if (addPaymentTermsRequest != null && addPaymentTermsRequest.getPaymentTerms() != null) {
-            addPaymentTermsRequest.getPaymentTerms().setPostedDetails(PostedDetails.builder()
-                .postedBy(businessUnitUserId)
-                .postedByName(userState.getDisplayName())
-                .build());
-        }
-
-        if (userState.hasBusinessUnitUserWithPermission(buId,
-            FinesPermission.AMEND_PAYMENT_TERMS)) {
-            return defendantAccountServiceProxy.addPaymentTerms(defendantAccountId,
-                businessUnitId,
-                businessUnitUserId,
-                ifMatch,
-                addPaymentTermsRequest);
-        } else {
-            throw new PermissionNotAllowedException(buId, FinesPermission.AMEND_PAYMENT_TERMS);
-        }
-    }
 }

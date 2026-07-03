@@ -16,17 +16,11 @@ import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
-import uk.gov.hmcts.opal.dto.common.ContactDetails;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
-import uk.gov.hmcts.opal.dto.common.EmployerDetails;
 import uk.gov.hmcts.opal.dto.common.EnforcementStatusSummary;
 import uk.gov.hmcts.opal.dto.common.IndividualAlias;
 import uk.gov.hmcts.opal.dto.common.IndividualDetails;
@@ -37,39 +31,25 @@ import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsSummary;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
-import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
-import uk.gov.hmcts.opal.dto.legacy.AddPaymentTermsLegacyRequest;
-import uk.gov.hmcts.opal.dto.legacy.AddPaymentTermsLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
-import uk.gov.hmcts.opal.dto.legacy.ContactDetailsLegacy;
-import uk.gov.hmcts.opal.dto.legacy.DefendantAccountPartyLegacy;
-import uk.gov.hmcts.opal.dto.legacy.EmployerDetailsLegacy;
-import uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy;
-import uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountSearchCriteria;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
-import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
-import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountResponse;
-import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyResponse;
-import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
-import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
@@ -92,8 +72,6 @@ import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMappe
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 import uk.gov.hmcts.opal.repository.jpa.SpecificationUtils;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
-import uk.gov.hmcts.opal.service.opal.CourtService;
-import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 import uk.gov.hmcts.opal.service.opal.history.HistoryItemOrderingService;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
@@ -106,7 +84,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public static final String GET_DEFENDANT_ACCOUNT_HISTORY = "LIBRA.get_defendant_account_history";
     public static final String SEARCH_DEFENDANT_ACCOUNTS = "searchDefendantAccounts";
     public static final String GET_PAYMENT_TERMS = "LIBRA.get_payment_terms";
-    public static final String ADD_PAYMENT_TERMS = "LIBRA.add_payment_terms";
     public static final String GET_DEFENDANT_AT_A_GLANCE = "LIBRA.getDefendantAtAGlance";
     public static final String ADD_ENFORCEMENT = "LIBRA.addEnforcement";
 
@@ -115,14 +92,11 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public static final String REPLACE_DEFENDANT_ACCOUNT_PARTY = "LIBRA.replace_defendant_account_party";
     public static final String REMOVE_DEFENDANT_ACCOUNT_PARTY = "LIBRA.remove_defendant_account_party";
     public static final String PATCH_DEFENDANT_ACCOUNT = "LIBRA.patchDefendantAccount";
-    public static final String GET_ENFORCEMENT_STATUS = "LIBRA.of_get_defendant_account_enf_status";
 
     public static final String ADD_PAYMENT_CARD_REQUEST = "LIBRA.of_add_defendant_account_pcr";
 
     private final GatewayService gatewayService;
     private final LegacyGatewayProperties legacyGatewayProperties;
-    private final CourtService courtService;
-    private final LocalJusticeAreaService ljaService;
     private final HistoryItemOrderingService historyItemOrderingService;
 
     /* ---- Mappers ---- */
@@ -356,41 +330,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         return BigDecimal.ZERO;
     }
 
-    private GetDefendantAccountPaymentTermsResponse toPaymentTermsResponse(
-        LegacyGetDefendantAccountPaymentTermsResponse legacy) {
-
-        if (legacy == null) {
-            return null;
-        }
-
-        return GetDefendantAccountPaymentTermsResponse.builder()
-            .version(Optional.ofNullable(legacy.getVersion())
-                         .map(v -> BigInteger.valueOf(v.longValue()))
-                         .orElse(BigInteger.ONE))
-            .paymentTerms(toPaymentTerms(legacy.getPaymentTerms()))
-            .paymentCardLastRequested(legacy.getPaymentCardLastRequested())
-            .lastEnforcement(legacy.getLastEnforcement())
-            .build();
-    }
-
-    private static PaymentTerms toPaymentTerms(LegacyPaymentTerms legacy) {
-        if (legacy == null) {
-            return null;
-        }
-        return PaymentTerms.builder()
-            .daysInDefault(legacy.getDaysInDefault())
-            .dateDaysInDefaultImposed(legacy.getDateDaysInDefaultImposed())
-            .extension(legacy.isExtension())
-            .reasonForExtension(legacy.getReasonForExtension())
-            .paymentTermsType(toPaymentTermsType(legacy.getPaymentTermsType()))
-            .effectiveDate(legacy.getEffectiveDate())
-            .instalmentPeriod(toInstalmentPeriod(legacy.getInstalmentPeriod()))
-            .lumpSumAmount(legacy.getLumpSumAmount())
-            .instalmentAmount(legacy.getInstalmentAmount())
-            .postedDetails(toPostedDetails(legacy.getPostedDetails()))
-            .build();
-    }
-
     static PaymentTermsType toPaymentTermsType(LegacyPaymentTermsType legacy) {
         if (legacy == null) {
             return null;
@@ -422,18 +361,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         return InstalmentPeriod.builder()
             .instalmentPeriodCode(code)
-            .build();
-    }
-
-    private static PostedDetails toPostedDetails(LegacyPostedDetails legacy) {
-        if (legacy == null) {
-            return null;
-        }
-
-        return PostedDetails.builder()
-            .postedDate(legacy.getPostedDate())
-            .postedBy(legacy.getPostedBy())
-            .postedByName(legacy.getPostedByName())
             .build();
     }
 
@@ -712,267 +639,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         return response;
     }
 
-    private GetDefendantAccountPartyResponse fromReplaceDefendantAccountPartyLegacy(
-        LegacyReplaceDefendantAccountPartyResponse legacy) {
 
-        if (legacy == null) {
-            return null;
-        }
-
-        DefendantAccountPartyLegacy legacyDefendantAccountParty = legacy.getDefendantAccountParty();
-
-        PartyDetails party = null;
-        if (legacyDefendantAccountParty != null && legacyDefendantAccountParty.getPartyDetails() != null) {
-            PartyDetailsLegacy partyDetailsLegacy = legacyDefendantAccountParty.getPartyDetails();
-
-            OrganisationDetails org = null;
-            if (partyDetailsLegacy.getOrganisationDetails() != null) {
-                org = OrganisationDetails.builder()
-                    .organisationName(partyDetailsLegacy.getOrganisationDetails().getOrganisationName())
-                    .build();
-            }
-
-            IndividualDetails ind = null;
-            if (partyDetailsLegacy.getIndividualDetails() != null) {
-                IndividualDetailsLegacy individualDetailsLegacy = partyDetailsLegacy.getIndividualDetails();
-                ind = IndividualDetails.builder()
-                    .title(individualDetailsLegacy.getTitle())
-                    .forenames(individualDetailsLegacy.getForenames())
-                    .surname(individualDetailsLegacy.getSurname())
-                    .dateOfBirth(individualDetailsLegacy.getDateOfBirth())
-                    .age(individualDetailsLegacy.getAge())
-                    .nationalInsuranceNumber(individualDetailsLegacy.getNationalInsuranceNumber())
-                    .build();
-            }
-
-            party = PartyDetails.builder()
-                .partyId(partyDetailsLegacy.getPartyId())
-                .organisationFlag(partyDetailsLegacy.getOrganisationFlag())
-                .organisationDetails(org)
-                .individualDetails(ind)
-                .build();
-        }
-
-        // Map Address
-        AddressDetails address = null;
-        if (legacyDefendantAccountParty != null && legacyDefendantAccountParty.getAddress() != null) {
-            AddressDetailsLegacy addressDetailsLegacy = legacyDefendantAccountParty.getAddress();
-            address = AddressDetails.builder()
-                .addressLine1(addressDetailsLegacy.getAddressLine1())
-                .addressLine2(addressDetailsLegacy.getAddressLine2())
-                .addressLine3(addressDetailsLegacy.getAddressLine3())
-                .addressLine4(addressDetailsLegacy.getAddressLine4())
-                .addressLine5(addressDetailsLegacy.getAddressLine5())
-                .postcode(addressDetailsLegacy.getPostcode())
-                .build();
-        }
-
-        // Map Contact
-        ContactDetails contact = null;
-        if (legacyDefendantAccountParty != null && legacyDefendantAccountParty.getContactDetails() != null) {
-            ContactDetailsLegacy contactDetailsLegacy = legacyDefendantAccountParty.getContactDetails();
-            contact = ContactDetails.builder()
-                .primaryEmailAddress(contactDetailsLegacy.getPrimaryEmailAddress())
-                .secondaryEmailAddress(contactDetailsLegacy.getSecondaryEmailAddress())
-                .mobileTelephoneNumber(contactDetailsLegacy.getMobileTelephoneNumber())
-                .homeTelephoneNumber(contactDetailsLegacy.getHomeTelephoneNumber())
-                .workTelephoneNumber(contactDetailsLegacy.getWorkTelephoneNumber())
-                .build();
-        }
-
-        // Map Vehicle
-        VehicleDetails vehicle = null;
-        if (legacyDefendantAccountParty != null && legacyDefendantAccountParty.getVehicleDetails() != null) {
-            VehicleDetailsLegacy vehicleDetailsLegacy = legacyDefendantAccountParty.getVehicleDetails();
-            vehicle = VehicleDetails.builder()
-                .vehicleMakeAndModel(vehicleDetailsLegacy.getVehicleMakeAndModel())
-                .vehicleRegistration(vehicleDetailsLegacy.getVehicleRegistration())
-                .build();
-        }
-
-        // Map Employer
-        EmployerDetails employer = null;
-        if (legacyDefendantAccountParty != null && legacyDefendantAccountParty.getEmployerDetails() != null) {
-            EmployerDetailsLegacy employerDetailsLegacy = legacyDefendantAccountParty.getEmployerDetails();
-            AddressDetails employerAddr = null;
-            if (employerDetailsLegacy.getEmployerAddress() != null) {
-                employerAddr = AddressDetails.builder()
-                    .addressLine1(employerDetailsLegacy.getEmployerAddress().getAddressLine1())
-                    .addressLine2(employerDetailsLegacy.getEmployerAddress().getAddressLine2())
-                    .addressLine3(employerDetailsLegacy.getEmployerAddress().getAddressLine3())
-                    .addressLine4(employerDetailsLegacy.getEmployerAddress().getAddressLine4())
-                    .addressLine5(employerDetailsLegacy.getEmployerAddress().getAddressLine5())
-                    .postcode(employerDetailsLegacy.getEmployerAddress().getPostcode())
-                    .build();
-            }
-            employer = EmployerDetails.builder()
-                .employerName(employerDetailsLegacy.getEmployerName())
-                .employerReference(employerDetailsLegacy.getEmployerReference())
-                .employerEmailAddress(employerDetailsLegacy.getEmployerEmailAddress())
-                .employerTelephoneNumber(employerDetailsLegacy.getEmployerTelephoneNumber())
-                .employerAddress(employerAddr)
-                .build();
-        }
-
-        // Map Language Preferences (use codes; never toString)
-        LanguagePreferences languages = null;
-        if (legacyDefendantAccountParty != null && legacyDefendantAccountParty.getLanguagePreferences() != null) {
-            LanguagePreferencesLegacy legacyLanguagePreference = legacyDefendantAccountParty.getLanguagePreferences();
-            String docCode = legacyLanguagePreference.getDocumentLanguagePreference() == null
-                ? null : legacyLanguagePreference.getDocumentLanguagePreference().getLanguageCode();
-            String hearCode = legacyLanguagePreference.getHearingLanguagePreference() == null
-                ? null : legacyLanguagePreference.getHearingLanguagePreference().getLanguageCode();
-            languages = LanguagePreferences.ofCodes(docCode, hearCode);
-        }
-
-        // Assemble modern DefendantAccountParty
-        DefendantAccountParty modernParty = null;
-        if (legacyDefendantAccountParty != null) {
-            modernParty = DefendantAccountParty.builder()
-                .defendantAccountPartyType(legacyDefendantAccountParty.getDefendantAccountPartyType())
-                .isDebtor(legacyDefendantAccountParty.getIsDebtor())
-                .partyDetails(party)
-                .address(address)
-                .contactDetails(contact)
-                .vehicleDetails(vehicle)
-                .employerDetails(employer)
-                .languagePreferences(languages)
-                .build();
-        }
-
-        return GetDefendantAccountPartyResponse.builder()
-            .version(legacy.getVersion() == null ? null : BigInteger.valueOf(legacy.getVersion()))
-            .defendantAccountParty(modernParty)
-            .build();
-    }
-
-    private LegacyPaymentTerms mapPaymentTerms(PaymentTerms pt) {
-        if (pt == null) {
-            return null;
-        }
-
-        return LegacyPaymentTerms.builder()
-            .daysInDefault(pt.getDaysInDefault())
-            .dateDaysInDefaultImposed(pt.getDateDaysInDefaultImposed())
-            .extension(pt.isExtension())
-            .reasonForExtension(pt.getReasonForExtension())
-            .paymentTermsType(mapLegacyPaymentTermsType(pt.getPaymentTermsType()))
-            .effectiveDate(pt.getEffectiveDate())
-            .instalmentPeriod(mapLegacyInstalmentPeriod(pt.getInstalmentPeriod()))
-            .lumpSumAmount(pt.getLumpSumAmount())
-            .instalmentAmount(pt.getInstalmentAmount())
-            .postedDetails(mapLegacyPostedDetails(pt.getPostedDetails()))
-            .build();
-    }
-
-    LegacyPostedDetails mapLegacyPostedDetails(PostedDetails pd) {
-        if (pd == null) {
-            return null;
-        }
-        LegacyPostedDetails lpd = new LegacyPostedDetails();
-        lpd.setPostedDate(pd.getPostedDate());
-        lpd.setPostedBy(pd.getPostedBy());
-        lpd.setPostedByName(pd.getPostedByName());
-        return lpd;
-    }
-
-    LegacyPaymentTermsType mapLegacyPaymentTermsType(PaymentTermsType modern) {
-        if (modern == null || modern.getPaymentTermsTypeCode() == null) {
-            return null;
-        }
-        String code = modern.getPaymentTermsTypeCode().name();
-        LegacyPaymentTermsType lpt = new LegacyPaymentTermsType();
-        lpt.setPaymentTermsTypeCode(mapPaymentTermsTypeCodeEnum(code));
-        return lpt;
-    }
-
-    LegacyInstalmentPeriod mapLegacyInstalmentPeriod(InstalmentPeriod modern) {
-        if (modern == null || modern.getInstalmentPeriodCode() == null) {
-            return null;
-        }
-        String code = modern.getInstalmentPeriodCode().name();
-        LegacyInstalmentPeriod lip = new LegacyInstalmentPeriod();
-        lip.setInstalmentPeriodCode(mapInstalmentPeriodCodeEnum(code));
-        return lip;
-    }
-
-    LegacyPaymentTermsType.PaymentTermsTypeCode mapPaymentTermsTypeCodeEnum(String code) {
-        if (code == null) {
-            return null;
-        }
-        return switch (code.toUpperCase()) {
-            case "B" -> LegacyPaymentTermsType.PaymentTermsTypeCode.B;
-            case "P" -> LegacyPaymentTermsType.PaymentTermsTypeCode.P;
-            case "I" -> LegacyPaymentTermsType.PaymentTermsTypeCode.I;
-            default -> throw new IllegalArgumentException("Unknown PaymentTermsType code: " + code);
-        };
-    }
-
-    LegacyInstalmentPeriod.InstalmentPeriodCode mapInstalmentPeriodCodeEnum(String code) {
-        if (code == null) {
-            return null;
-        }
-        return switch (code.toUpperCase()) {
-            case "W" -> LegacyInstalmentPeriod.InstalmentPeriodCode.W;
-            case "M" -> LegacyInstalmentPeriod.InstalmentPeriodCode.M;
-            case "F" -> LegacyInstalmentPeriod.InstalmentPeriodCode.F;
-            default -> throw new IllegalArgumentException("Unknown InstalmentPeriod code: " + code);
-        };
-    }
-
-    @Override
-    public GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
-        String businessUnitId,
-        String businessUnitUserId,
-        String ifMatch,
-        AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
-
-        var legacyRequest = createAddPaymentTermsLegacyRequest(
-            defendantAccountId, businessUnitId, businessUnitUserId,
-            ifMatch, addPaymentTermsRequest
-        );
-
-        var response = gatewayService.postToGateway(
-            ADD_PAYMENT_TERMS, AddPaymentTermsLegacyResponse.class,
-            legacyRequest, null
-        );
-
-        checkResponseForError(response, "addPaymentTerms");
-
-        return createGetDefendantAccountPaymentTermsResponse(response.responseEntity);
-    }
-
-    private AddPaymentTermsLegacyRequest createAddPaymentTermsLegacyRequest(Long defendantAccountId,
-        String businessUnitId,
-        String businessUnitUserId,
-        String ifMatch,
-        AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
-
-        return AddPaymentTermsLegacyRequest.builder()
-            .defendantAccountId(String.valueOf(defendantAccountId))
-            .businessUnitId(businessUnitId)
-            .businessUnitUserId(businessUnitUserId)
-            .version(VersionUtils.extractBigInteger(ifMatch))
-            .paymentTerms(mapPaymentTerms(addPaymentTermsRequest != null
-                                              ? addPaymentTermsRequest.getPaymentTerms() : null))
-            .requestPaymentCard(addPaymentTermsRequest != null ? addPaymentTermsRequest.getRequestPaymentCard() : null)
-            .generatePaymentTermsChangeLetter(addPaymentTermsRequest != null
-                                                  ? addPaymentTermsRequest.getGeneratePaymentTermsChangeLetter() : null)
-            .build();
-    }
-
-    private static GetDefendantAccountPaymentTermsResponse createGetDefendantAccountPaymentTermsResponse(
-        AddPaymentTermsLegacyResponse addPaymentTermsResponse) {
-
-        return GetDefendantAccountPaymentTermsResponse.builder()
-            .version(Optional.ofNullable(addPaymentTermsResponse.getVersion())
-                         .map(v -> BigInteger.valueOf(v.longValue()))
-                         .orElse(BigInteger.ONE))
-            .paymentTerms(toPaymentTerms(addPaymentTermsResponse.getPaymentTerms()))
-            .paymentCardLastRequested(addPaymentTermsResponse.getPaymentCardLastRequested())
-            .lastEnforcement(addPaymentTermsResponse.getLastEnforcement())
-            .build();
-    }
 
     private static <T> void checkResponseForError(Response<T> response, String method) {
         if (response.isError()) {

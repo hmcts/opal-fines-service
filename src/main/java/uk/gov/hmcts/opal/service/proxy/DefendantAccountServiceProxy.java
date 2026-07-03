@@ -67,17 +67,4 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
         return getCurrentModeService().updateDefendantAccount(defendantAccountId, businessUnitId, request, postedBy,
                                                               postedByName);
     }
-
-    @Override
-    public GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
-        String businessUnitId,
-        String businessUnitUserId,
-        String ifMatch,
-        AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
-        return getCurrentModeService().addPaymentTerms(defendantAccountId,
-            businessUnitId,
-            businessUnitUserId,
-            ifMatch,
-            addPaymentTermsRequest);
-    }
 }
