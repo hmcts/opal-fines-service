@@ -52,8 +52,8 @@ public abstract class DetailedTransactionRowMapper
     @Mapping(target = "transactionDate", source = "paymentTerms.postedDate")
     @Mapping(target = "transactionType", constant = PAYMENT_TERMS_TYPE)
     @Mapping(target = "transactionUserId", source = "paymentTerms.postedByUsername")
-    @Mapping(target = "consolidatedAccountNo", expression = "java(getConsolidatedAccountNo("
-        + "paymentsTerms.getAssociatedRecordType(), paymentsTerms.getAssociatedRecordId(), context))")
+    @Mapping(target = "transactionAmount", ignore = true)
+    @Mapping(target = "consolidatedAccountNo", ignore = true)
     @Mapping(target = "transactionDetails", expression = "java(getPaymentTermsDetails(paymentTerms))")
     public abstract DetailedReportTransactionRowDto mapFromPaymentTerms(PaymentTermsEntity paymentTerms,
         DefendantAccountEntity account,
@@ -63,8 +63,8 @@ public abstract class DetailedTransactionRowMapper
     @Mapping(target = "transactionDate", source = "enforcement.postedDate")
     @Mapping(target = "transactionType", constant = ENFORCEMENT_TYPE)
     @Mapping(target = "transactionUserId", source = "enforcement.postedByUsername")
-    @Mapping(target = "consolidatedAccountNo", expression = "java(getConsolidatedAccountNo("
-        + "enforcement.getAssociatedRecordType(), enforcement.getAssociatedRecordId(), context))")
+    @Mapping(target = "transactionAmount", ignore = true)
+    @Mapping(target = "consolidatedAccountNo", ignore = true)
     @Mapping(target = "transactionDetails", expression = "java(getEnforcementDetails(enforcement))")
     public abstract DetailedReportTransactionRowDto mapFromEnforcement(EnforcementEntity enforcement,
         DefendantAccountEntity account,
@@ -73,8 +73,8 @@ public abstract class DetailedTransactionRowMapper
     @Mapping(target = "accountNo", source = "account.accountNumber")
     @Mapping(target = "transactionDate", source = "note.postedDate")
     @Mapping(target = "transactionType", constant = NOTE_TYPE)
-    @Mapping(target = "transactionUserId", source = "transaction.postedByUsername")
-    @Mapping(target = "transactionAmount", source = "transaction.transactionAmount")
+    @Mapping(target = "transactionUserId", source = "note.postedByUsername")
+    @Mapping(target = "transactionAmount", ignore = true)
     @Mapping(target = "consolidatedAccountNo", expression = "java(getConsolidatedAccountNo("
         + "note.getAssociatedRecordType(), note.getAssociatedRecordId(), context))")
     @Mapping(target = "transactionDetails", source = "note.noteText")

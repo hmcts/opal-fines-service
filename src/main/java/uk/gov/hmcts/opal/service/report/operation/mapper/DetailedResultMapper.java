@@ -49,11 +49,17 @@ public abstract class DetailedResultMapper
     public void setRowMapper(DetailedRowDtoCoreMapper rowMapper,
         DetailedTransactionRowMapper transactionRowMapper,
         DefendantTransactionRepository transactionRepository,
-        ImpositionRepository impositionRepository) {
+        ImpositionRepository impositionRepository,
+        PaymentTermsRepository paymentTermsRepository,
+        EnforcementRepository enforcementRepository,
+        NoteRepository noteRepository) {
         this.rowMapper = rowMapper;
         this.transactionRowMapper = transactionRowMapper;
         this.transactionRepository = transactionRepository;
         this.impositionRepository = impositionRepository;
+        this.paymentTermsRepository = paymentTermsRepository;
+        this.enforcementRepository = enforcementRepository;
+        this.noteRepository = noteRepository;
     }
 
     @Override
@@ -61,7 +67,7 @@ public abstract class DetailedResultMapper
         ReportMetadataContext context = new ReportMetadataContext();
         List<DetailedAccountReportDto> accountTransactionReports = accounts.stream()
             .map(account -> {
-                DetailedOperationReportAccountRowDto accountRow =
+                final DetailedOperationReportAccountRowDto accountRow =
                     rowMapper.map(account, context);
                 //TTPAY
                 List<PaymentTermsEntity> paymentTermsEntities = paymentTermsRepository
@@ -107,9 +113,12 @@ public abstract class DetailedResultMapper
                         .mapFromEnforcement(enforcement, account, context))
                     .toList());
                 //transactions
-                transactionRows.addAll(transactionEntities.stream().map(transaction -> transactionRowMapper
-                        .mapFromTransaction(transaction, account, impositionsForTransactions.get(transaction.getAssociatedRecordId()),
-                            context))
+                transactionRows.addAll(transactionEntities.stream()
+                    .map(transaction -> transactionRowMapper.mapFromTransaction(
+                        transaction,
+                        account,
+                        impositionsForTransactions.get(transaction.getAssociatedRecordId()),
+                        context))
                     .toList());
                 //NOTE
                 transactionRows.addAll(noteEntities.stream().map(note -> transactionRowMapper
