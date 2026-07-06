@@ -91,9 +91,9 @@ import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.search.SearchConsolidatedEntity;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
+import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
-import uk.gov.hmcts.opal.generated.model.GetDefendantAccountConsolidatedAccountsResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementCourtDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
@@ -228,15 +228,12 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     public GetDefendantAccountConsolidatedAccountsResult getConsolidatedAccounts(Long defendantAccountId) {
         log.debug(":getConsolidatedAccounts: Opal mode - ID: {}", defendantAccountId);
 
-        DefendantAccountEntity masterAccount = getDefendantAccountById(defendantAccountId);
-
-        GetDefendantAccountConsolidatedAccountsResponseDefendantAccount payload =
-            new GetDefendantAccountConsolidatedAccountsResponseDefendantAccount()
-                .consolidatedAccounts(consolidatedAccountMapper.toResponse(
-                    consolidatedAccountRepository.findByMasterAccountId(defendantAccountId)));
+        DefendantAccountEntity masterAccount = defendantAccountRepository.findById(defendantAccountId)
+            .orElseThrow(() -> new DefendantAccountNotFoundException(defendantAccountId));
 
         return GetDefendantAccountConsolidatedAccountsResult.builder()
-            .payload(payload)
+            .payload(consolidatedAccountMapper.toResponse(
+                consolidatedAccountRepository.findByMasterAccountId(defendantAccountId)))
             .version(masterAccount.getVersion())
             .build();
     }
