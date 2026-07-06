@@ -553,6 +553,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         @DisplayName("OPAL: PUT Replace DAP – Single name change creates one amendment.")
         @JiraStory("PO-2471")
         @JiraEpic("PO-1970")
+        @JiraTestKey("PO-8770")
         void put_singleNameChangeCreatesOneAmendment() throws Exception {
             userStateStub.addPermissions((short) 78, FinesPermission.values());
 
@@ -620,6 +621,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         @DisplayName("OPAL: PUT Replace DAP – Company name change creates one amendment.")
         @JiraStory("PO-2471")
         @JiraEpic("PO-1970")
+        @JiraTestKey("PO-8773")
         void put_companyNameChangeCreatesOneAmendment() throws Exception {
             userStateStub.addPermissions((short) 78, FinesPermission.values());
 
@@ -680,6 +682,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         @DisplayName("OPAL: PUT Replace DAP – Company name and address changes creates multiple amendments.")
         @JiraStory("PO-2471")
         @JiraEpic("PO-1970")
+        @JiraTestKey("PO-8774")
         void put_companyNameAddressChangeCreatesManyAmendments() throws Exception {
             userStateStub.addPermissions((short) 78, FinesPermission.values());
 
@@ -744,6 +747,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         @DisplayName("OPAL: PUT Replace DAP – Multiple alias changes creates multiple amendments.")
         @JiraStory("PO-2471")
         @JiraEpic("PO-1970")
+        @JiraTestKey("PO-8775")
         void put_manyAliasChangesCreatesManyAmendments() throws Exception {
             userStateStub.addPermissions((short) 78, FinesPermission.values());
 
@@ -813,6 +817,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         @DisplayName("OPAL: PUT Replace DAP – multiple address changes creates multiple amendments.")
         @JiraStory("PO-2471")
         @JiraEpic("PO-1970")
+        @JiraTestKey("PO-8772")
         void put_manyAddressChangesCreatesManyAmendments() throws Exception {
             userStateStub.addPermissions((short) 78, FinesPermission.values());
 
@@ -883,6 +888,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         @DisplayName("OPAL: PUT Replace DAP – Postcode changes creates single amendment.")
         @JiraStory("PO-2471")
         @JiraEpic("PO-1970")
+        @JiraTestKey("PO-8776")
         void put_postcodeChangeCreatesSingleAmendment() throws Exception {
             userStateStub.addPermissions((short) 78, FinesPermission.values());
 
@@ -950,6 +956,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         @DisplayName("OPAL: PUT Replace DAP – Date of birth change creates single amendment.")
         @JiraStory("PO-2471")
         @JiraEpic("PO-1970")
+        @JiraTestKey("PO-8767")
         void put_dobChangeCreatesSingleAmendment() throws Exception {
             userStateStub.addPermissions((short) 78, FinesPermission.values());
 
@@ -1017,6 +1024,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         @DisplayName("OPAL: PUT Replace DAP – Name and date of birth change creates two amendments.")
         @JiraStory("PO-2471")
         @JiraEpic("PO-1970")
+        @JiraTestKey("PO-8771")
         void put_nameAndDOBChangeCreatesTwoAmendments() throws Exception {
             userStateStub.addPermissions((short) 78, FinesPermission.values());
 
@@ -1086,6 +1094,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         @DisplayName("OPAL: PUT Replace DAP – Name plus alias changes creates multiple amendments.")
         @JiraStory("PO-2471")
         @JiraEpic("PO-1970")
+        @JiraTestKey("PO-8769")
         void put_nameAndAliasChangeCreatesManyAmendments() throws Exception {
             userStateStub.addPermissions((short) 78, FinesPermission.values());
 
@@ -1157,6 +1166,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         @DisplayName("OPAL: PUT Replace DAP – Name and address changes creates multiple amendments.")
         @JiraStory("PO-2471")
         @JiraEpic("PO-1970")
+        @JiraTestKey("PO-8768")
         void put_nameAddressChangeCreatesManyAmendments() throws Exception {
             userStateStub.addPermissions((short) 78, FinesPermission.values());
 
@@ -1228,6 +1238,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
         @DisplayName("OPAL: PUT Replace DAP – No field changes creates no amendments")
         @JiraStory("PO-2471")
         @JiraEpic("PO-1970")
+        @JiraTestKey("PO-8766")
         void put_noChangeCreatesNoAmendment() throws Exception {
             userStateStub.addPermissions((short) 78, FinesPermission.values());
 

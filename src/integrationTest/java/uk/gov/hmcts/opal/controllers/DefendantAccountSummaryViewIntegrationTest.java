@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @DisplayName("Defendant Account Summary View Integration Tests")
 class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
@@ -19,6 +20,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
     @JiraEpic("PO-2332")
     @JiraStory("PO-2334")
     @DisplayName("PO-2334 INT.01 - Get header summary returns has consolidated accounts true")
+    @JiraTestKey("PO-8761")
     void int01_getHeaderSummary_returnsHasConsolidatedAccountsTrue() throws Exception {
 
         ResultActions resultActions = mockMvc.perform(
@@ -49,6 +51,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
     @JiraEpic("PO-2332")
     @JiraStory("PO-2334")
     @DisplayName("PO-2334 INT.02 - Get header summary returns has consolidated accounts false")
+    @JiraTestKey("PO-8763")
     void int02_getHeaderSummary_returnsHasConsolidatedAccountsFalse() throws Exception {
 
         ResultActions resultActions = mockMvc.perform(
@@ -81,6 +84,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
     @JiraEpic("PO-2332")
     @JiraStory("PO-2334")
     @DisplayName("PO-2629 INT.08 - Get defendant account header summary returns forbidden response")
+    @JiraTestKey("PO-8762")
     void int08_getDefendantAccountHeaderSummary_returnsForbiddenResponse() throws Exception {
 
         ResultActions resultActions = mockMvc.perform(

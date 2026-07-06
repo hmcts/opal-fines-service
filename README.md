@@ -332,6 +332,7 @@ Zephyr tasks require `JIRA_AUTH_TOKEN` to be exported before the upload task run
 
 The create and update tasks process an existing test report; they do not run the tests.
 Run the matching functional or integration suite first if the report is not already present.
+For local tagged runs, make sure the local fines service is already configured with the intended feature-flag state before executing the test command (and LAUNCH_DARKLY_ENABLED=false)
 
 Examples:
 
@@ -340,8 +341,29 @@ Examples:
 ./gradlew createJiraTicketsFromIntegrationReport
 ./gradlew updateJiraTicketsFromIntegrationReport
 ./gradlew createJiraExecutionFromIntegrationReport
+
 ./gradlew functional
+./gradlew -PzephyrFunctionalStage=functional createJiraTicketsFromFunctionalReport
+./gradlew -PzephyrFunctionalStage=functional updateJiraTicketsFromFunctionalReport
 ./gradlew -PzephyrFunctionalStage=functional createJiraExecutionFromFunctionalReport
+
+./gradlew smoke
+./gradlew -PzephyrFunctionalStage=smoke createJiraTicketsFromFunctionalReport
+./gradlew -PzephyrFunctionalStage=smoke updateJiraTicketsFromFunctionalReport
+./gradlew -PzephyrFunctionalStage=smoke createJiraExecutionFromFunctionalReport
+
+optional:
+export TEST_URL=https://opal-fines-service.demo.platform.hmcts.net
+export OPAL_USER_SERVICE_API_URL=https://opal-user-service.demo.platform.hmcts.net
+export OPAL_LOGGING_SERVICE_API_URL=https://opal-logging-service.demo.platform.hmcts.net
+
+TAGS='(@JIRA-LABEL:manual-account-creation or (@Opal and @FeatureToggle and @R1BOff)) and not @Smoke and not @Ignore and not (@R1AOff or @R1B or @R1COff or @R1C or @R1CFinance or @R1CWriteOff or @R1CWriteOffOff or @R1CEnforcementOperationalReporting or @R1CEnforcementOperationalReportingOff or @R1CAdministration)' ./gradlew functionalOpalTags
+./gradlew -PzephyrFunctionalStage=runR1AOnly createJiraExecutionFromFunctionalReport
+
+TAGS='@R1AOff and not @Ignore' ./gradlew functionalOpalTags
+./gradlew -PzephyrFunctionalStage=runR1AOff createJiraTicketsFromFunctionalReport
+./gradlew -PzephyrFunctionalStage=runR1AOff updateJiraTicketsFromFunctionalReport
+./gradlew -PzephyrFunctionalStage=runR1AOff createJiraExecutionFromFunctionalReport
 ```
 
 | Task | Purpose |

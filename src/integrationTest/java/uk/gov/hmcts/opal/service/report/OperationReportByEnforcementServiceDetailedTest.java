@@ -96,6 +96,8 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
     @JiraTestKey("PO-7815")
     @JiraTestKey(value = "PO-8655", name = "[1] json = \"{\\\"reportType\\\": \\\"DETAILED\\\"}\"")
     @JiraTestKey(value = "PO-8656", name = "[2] json = \"{}\"")
+    @JiraTestKey(value = "PO-8816", name = "[1] json = \"{\\\"reportType\\\": \\\"DETAILED\\\", \\\"businessUnitIds\\\": [77, 78]}\"")
+    @JiraTestKey(value = "PO-8817", name = "[2] json = \"{\\\"businessUnitIds\\\": [77, 78]}\"")
     void generateReportData_filterDetailedReportType_returnSortedResultsOfDetailedReportType(String json) {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
