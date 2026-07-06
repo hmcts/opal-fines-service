@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.entity.defendantaccount;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
@@ -13,6 +14,7 @@ import org.hibernate.annotations.Immutable;
 
 @Entity
 @Table(name = "v_consolidated_accounts")
+@IdClass(ConsolidatedAccountEntityId.class)
 @Immutable
 @Data
 @Builder
@@ -20,6 +22,7 @@ import org.hibernate.annotations.Immutable;
 @AllArgsConstructor
 public class ConsolidatedAccountEntity {
 
+    @Id
     @Column(name = "master_account_id")
     private Long masterAccountId;
 

@@ -113,7 +113,7 @@ class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOp
             .andExpect(jsonPath("$[0].first_name").value("Alex"))
             .andExpect(jsonPath("$[0].last_name").value("Jones"))
             .andExpect(jsonPath("$[0].date_imposed").value("2026-01-21"))
-            .andExpect(jsonPath("$[0].imposted_by").value("Child Court"))
+            .andExpect(jsonPath("$[0].imposed_by").value("Child Court"))
             .andExpect(jsonPath("$[0].reference").value("CHILD-REF"));
     }
 
@@ -132,7 +132,7 @@ class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOp
             .get(0);
 
         assertEquals(
-            Set.of("account_id", "account_number", "first_name", "last_name", "date_imposed", "imposted_by",
+            Set.of("account_id", "account_number", "first_name", "last_name", "date_imposed", "imposed_by",
                    "reference"),
             child.properties().stream()
                 .map(Map.Entry::getKey)
@@ -251,6 +251,9 @@ class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOp
                 .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$", hasSize(21)))
+            .andExpect(jsonPath("$[0].account_id").value(233301))
+            .andExpect(jsonPath("$[1].account_id").value(233400))
+            .andExpect(jsonPath("$[20].account_id").value(233419))
             .andExpect(jsonPath("$[*].account_id", containsInAnyOrder(
                 233301,
                 233400, 233401, 233402, 233403, 233404, 233405, 233406, 233407, 233408, 233409,
