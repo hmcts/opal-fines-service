@@ -55,4 +55,10 @@ public class DefendantAccountRepositoryService {
             throw new EntityNotFoundException("Defendant Account not found in business unit " + buId);
         }
     }
+
+    public DefendantAccountEntity getDefendantAccountByIdForUpdate(long defendantAccountId) {
+        return defendantAccountRepository.findByDefendantAccountIdForUpdate(defendantAccountId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Defendant Account not found with id: " + defendantAccountId));
+    }
 }
