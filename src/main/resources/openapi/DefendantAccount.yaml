@@ -334,7 +334,7 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 
-  /defendant-accounts/{id}/consolidated-accounts:
+  /defendant-accounts/{defendantAccountId}/consolidated-accounts:
     get:
       tags:
         - Defendant Account
@@ -346,7 +346,7 @@ paths:
             - Search and View Accounts (in at least one business unit)
       parameters:
         - in: path
-          name: id
+          name: defendantAccountId
           description: DB Mapping - v_consolidated_accounts.master_account_id
           schema:
             type: integer
@@ -364,7 +364,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/getDefendantAccountConsolidatedAccountsResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/consolidatedAccountDefendantAccount'
         400:
           description: Bad request
           content:
@@ -702,17 +704,6 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
-    getDefendantAccountConsolidatedAccountsResponse:
-      title: Get Defendant Account Consolidated Accounts Response
-      type: object
-      additionalProperties: false
-      properties:
-        consolidated_accounts:
-          type: array
-          items:
-            $ref: '#/components/schemas/consolidatedAccountDefendantAccount'
-      required:
-        - consolidated_accounts
     consolidatedAccountDefendantAccount:
       title: Consolidated Account
       type: object

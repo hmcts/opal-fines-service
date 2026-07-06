@@ -17,8 +17,8 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.http.api.DefendantAccountApi;
+import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
-import uk.gov.hmcts.opal.generated.model.GetDefendantAccountConsolidatedAccountsResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
@@ -62,12 +62,12 @@ public class DefendantAccountApiController implements DefendantAccountApi {
 
     @Override
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<GetDefendantAccountConsolidatedAccountsResponseDefendantAccount> getConsolidatedAccounts(
-        Long id) {
-        log.debug(":GET:getConsolidatedAccounts: for defendant account id: {}", id);
+    public ResponseEntity<List<ConsolidatedAccountDefendantAccount>> getConsolidatedAccounts(
+        Long defendantAccountId) {
+        log.debug(":GET:getConsolidatedAccounts: for defendant account id: {}", defendantAccountId);
 
         GetDefendantAccountConsolidatedAccountsResult response =
-            defendantAccountService.getConsolidatedAccounts(id);
+            defendantAccountService.getConsolidatedAccounts(defendantAccountId);
 
         return ResponseEntity.ok().eTag(VersionUtils.createETag(response)).body(response.getPayload());
     }

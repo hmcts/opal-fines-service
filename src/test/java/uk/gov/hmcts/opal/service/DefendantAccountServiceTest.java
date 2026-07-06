@@ -51,6 +51,7 @@ import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefen
 import uk.gov.hmcts.opal.mapper.request.DefendantAccountSearchRequestMapper;
 import uk.gov.hmcts.opal.mapper.response.DefendantAccountSearchResponseMapper;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
+import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
@@ -487,14 +488,14 @@ class DefendantAccountServiceTest {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
 
-        PermissionNotAllowedException exception = assertThrows(
-            PermissionNotAllowedException.class,
+        RequiredPermissionException exception = assertThrows(
+            RequiredPermissionException.class,
             () -> defendantAccountService.getConsolidatedAccounts(defendantAccountId)
         );
 
         assertTrue(
             exception.getMessage() == null
-                || exception.getMessage().contains(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.name()),
+                || exception.getMessage().contains(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.getDescription()),
             "Exception should mention the denied permission"
         );
         verify(userStateService).getUserStateV1FromSecurityContext();

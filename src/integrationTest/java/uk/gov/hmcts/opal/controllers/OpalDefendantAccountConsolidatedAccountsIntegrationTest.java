@@ -70,6 +70,7 @@ class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOp
         jdbcTemplate.update("""
             DELETE FROM defendant_transactions
             WHERE defendant_transaction_id IN (23330001, 23330002)
+               OR defendant_transaction_id BETWEEN 23340000 AND 23340019
             """);
         jdbcTemplate.update("""
             DELETE FROM defendant_account_parties
@@ -82,6 +83,7 @@ class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOp
         jdbcTemplate.update("""
             DELETE FROM defendant_accounts
             WHERE defendant_account_id IN (233300, 233301, 233302, 233303, 233304)
+               OR defendant_account_id BETWEEN 233400 AND 233419
             """);
         jdbcTemplate.update("DELETE FROM business_units WHERE business_unit_id = 79");
     }
@@ -97,14 +99,14 @@ class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOp
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(header().string(HttpHeaders.ETAG, "\"12\""))
-            .andExpect(jsonPath("$.consolidated_accounts", hasSize(1)))
-            .andExpect(jsonPath("$.consolidated_accounts[0].account_id").value(CHILD_ACCOUNT_ID))
-            .andExpect(jsonPath("$.consolidated_accounts[0].account_number").value("233301C"))
-            .andExpect(jsonPath("$.consolidated_accounts[0].first_name").value("Alex"))
-            .andExpect(jsonPath("$.consolidated_accounts[0].last_name").value("Jones"))
-            .andExpect(jsonPath("$.consolidated_accounts[0].date_imposed").value("2026-01-21"))
-            .andExpect(jsonPath("$.consolidated_accounts[0].imposted_by").value("Child Court"))
-            .andExpect(jsonPath("$.consolidated_accounts[0].reference").value("CHILD-REF"));
+            .andExpect(jsonPath("$", hasSize(1)))
+            .andExpect(jsonPath("$[0].account_id").value(CHILD_ACCOUNT_ID))
+            .andExpect(jsonPath("$[0].account_number").value("233301C"))
+            .andExpect(jsonPath("$[0].first_name").value("Alex"))
+            .andExpect(jsonPath("$[0].last_name").value("Jones"))
+            .andExpect(jsonPath("$[0].date_imposed").value("2026-01-21"))
+            .andExpect(jsonPath("$[0].imposted_by").value("Child Court"))
+            .andExpect(jsonPath("$[0].reference").value("CHILD-REF"));
     }
 
     @Test
@@ -119,7 +121,6 @@ class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOp
             .andReturn();
 
         JsonNode child = objectMapper.readTree(result.getResponse().getContentAsString())
-            .get("consolidated_accounts")
             .get(0);
 
         assertEquals(
@@ -140,8 +141,8 @@ class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOp
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.consolidated_accounts[*].account_id", containsInAnyOrder((int) CHILD_ACCOUNT_ID)))
-            .andExpect(jsonPath("$.consolidated_accounts[?(@.account_id == %d)]".formatted(OTHER_CHILD_ACCOUNT_ID))
+            .andExpect(jsonPath("$[*].account_id", containsInAnyOrder((int) CHILD_ACCOUNT_ID)))
+            .andExpect(jsonPath("$[?(@.account_id == %d)]".formatted(OTHER_CHILD_ACCOUNT_ID))
                 .doesNotExist());
     }
 
@@ -155,7 +156,7 @@ class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOp
                 .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
             .andExpect(status().isOk())
             .andExpect(header().string(HttpHeaders.ETAG, "\"6\""))
-            .andExpect(jsonPath("$.consolidated_accounts", hasSize(0)));
+            .andExpect(jsonPath("$", hasSize(0)));
     }
 
     @Test
@@ -169,7 +170,9 @@ class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOp
             .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.status").value(404))
-            .andExpect(jsonPath("$.retriable").value(false));
+            .andExpect(jsonPath("$.retriable").value(false))
+            .andExpect(jsonPath("$.title").value("Defendant Account Not Found"))
+            .andExpect(jsonPath("$.detail").value("Defendant account not found with id: 999999999"));
     }
 
     @Test
@@ -183,7 +186,7 @@ class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOp
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.consolidated_accounts", hasSize(1)));
+            .andExpect(jsonPath("$", hasSize(1)));
     }
 
     @Test
@@ -199,7 +202,46 @@ class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOp
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.retriable").value(false))
+            .andExpect(jsonPath("$.title").value("Forbidden"))
+            .andExpect(jsonPath("$.detail").value("User requires permission: Search and View Accounts"));
+    }
+
+    @Test
+    @DisplayName("PO-2333: INT.10 returns 403 in local integration profile when credentials are missing")
+    @JiraStory("PO-2333")
+    @JiraEpic("PO-1286")
+    void getConsolidatedAccounts_whenCredentialsMissing_returnsForbidden() throws Exception {
+        mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID)))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.status").value(403))
             .andExpect(jsonPath("$.retriable").value(false));
+    }
+
+    @Test
+    @DisplayName("PO-2333: INT.12 returns all consolidated accounts without pagination")
+    @JiraStory("PO-2333")
+    @JiraEpic("PO-1286")
+    void getConsolidatedAccounts_whenManyChildrenExist_returnsFullArray() throws Exception {
+        for (int i = 0; i < 20; i++) {
+            long childAccountId = 233400L + i;
+            insertDefendantAccount(childAccountId, 79, "2334%02dC".formatted(i), i + 20L,
+                                   "Bulk Child Court", "BULK-%02d".formatted(i));
+            insertConsolidationTransaction(23340000L + i, MASTER_ACCOUNT_ID, childAccountId);
+        }
+
+        mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(21)))
+            .andExpect(jsonPath("$[*].account_id", containsInAnyOrder(
+                233301,
+                233400, 233401, 233402, 233403, 233404, 233405, 233406, 233407, 233408, 233409,
+                233410, 233411, 233412, 233413, 233414, 233415, 233416, 233417, 233418, 233419
+            )))
+            .andExpect(jsonPath("$[?(@.account_id == 233419)]", hasSize(1)));
     }
 
     @Test

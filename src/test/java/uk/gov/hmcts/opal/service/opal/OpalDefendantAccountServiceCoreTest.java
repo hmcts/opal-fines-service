@@ -126,7 +126,7 @@ class OpalDefendantAccountServiceCoreTest {
             service.getConsolidatedAccounts(defendantAccountId);
 
         assertEquals(masterAccount.getVersion(), result.getVersion());
-        assertEquals(List.of(mappedAccount), result.getPayload().getConsolidatedAccounts());
+        assertEquals(List.of(mappedAccount), result.getPayload());
     }
 
     @Test
