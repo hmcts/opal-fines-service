@@ -379,7 +379,8 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
                 "INSERT INTO configuration_items "
                     + "(configuration_item_id, item_name, business_unit_id, item_value, item_values) "
                     + "VALUES (60000000000014, 'OPERATIONAL_REPORT_BU_WARNING_THRESHOLD', NULL, '10', NULL)",
-                "UPDATE reports SET permission = NULL WHERE report_id = 'operational_report_enforcement'"
+                "UPDATE reports SET permission = 'SEARCH_AND_VIEW_ACCOUNTS' "
+                    + "WHERE report_id = 'operational_report_enforcement'"
             },
             executionPhase = AFTER_TEST_METHOD
         )
@@ -400,37 +401,28 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
             name = "Get report by ID - invalid BU warning threshold ''{0}'' returns 500 [@PO-7225]"
         )
         @MethodSource("uk.gov.hmcts.opal.controllers.ReportsApiControllerIntegrationTest#invalidThresholdValues")
+        @Sql(
+            statements = "UPDATE configuration_items SET item_value = '10' "
+                + "WHERE item_name = 'OPERATIONAL_REPORT_BU_WARNING_THRESHOLD' AND business_unit_id IS NULL",
+            executionPhase = AFTER_TEST_METHOD
+        )
         @JiraStory("PO-7225")
         @JiraEpic("PO-2248")
         void getReportById_whenThresholdConfigInvalid_returns500(String invalidThresholdValue) throws Exception {
             jdbcTemplate.update(
-                "UPDATE reports SET permission = 'SEARCH_AND_VIEW_ACCOUNTS' "
-                    + "WHERE report_id = 'operational_report_enforcement'"
+                "UPDATE configuration_items SET item_value = ? "
+                    + "WHERE item_name = 'OPERATIONAL_REPORT_BU_WARNING_THRESHOLD' AND business_unit_id IS NULL",
+                invalidThresholdValue
             );
-            try {
-                jdbcTemplate.update(
-                    "UPDATE configuration_items SET item_value = ? "
-                        + "WHERE item_name = 'OPERATIONAL_REPORT_BU_WARNING_THRESHOLD' AND business_unit_id IS NULL",
-                    invalidThresholdValue
-                );
 
-                mockMvc.perform(get(URL_BASE + "/operational_report_enforcement")
-                        .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
-                    .andExpect(status().isInternalServerError())
-                    .andExpect(jsonPath("$.title").value("Internal Server Error"))
-                    .andExpect(jsonPath("$.detail")
-                        .value("Invalid positive integer configuration item: OPERATIONAL_REPORT_BU_WARNING_THRESHOLD"))
-                    .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/internal-server-error"))
-                    .andExpect(jsonPath("$.retriable").value(false));
-            } finally {
-                jdbcTemplate.update(
-                    "UPDATE configuration_items SET item_value = '10' "
-                        + "WHERE item_name = 'OPERATIONAL_REPORT_BU_WARNING_THRESHOLD' AND business_unit_id IS NULL"
-                );
-                jdbcTemplate.update(
-                    "UPDATE reports SET permission = NULL WHERE report_id = 'operational_report_enforcement'"
-                );
-            }
+            mockMvc.perform(get(URL_BASE + "/operational_report_enforcement")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.title").value("Internal Server Error"))
+                .andExpect(jsonPath("$.detail")
+                    .value("Invalid positive integer configuration item: OPERATIONAL_REPORT_BU_WARNING_THRESHOLD"))
+                .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/internal-server-error"))
+                .andExpect(jsonPath("$.retriable").value(false));
         }
     }
 
