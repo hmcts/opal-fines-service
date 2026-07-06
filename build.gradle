@@ -37,7 +37,7 @@ plugins {
 }
 
 ext {
-  log4JVersion = "2.26.0"
+  log4JVersion = "2.26.1"
   serenityVersion = "5.3.10"
   cucumberVersion = "7.23.0" // Keep the forced Cucumber version stable while aligning Serenity with the Gradle plugin
 }
