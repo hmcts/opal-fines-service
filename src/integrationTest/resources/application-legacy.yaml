@@ -1,3 +1,4 @@
-app-mode: legacy
 launchdarkly:
   enabled: false
+  default-flag-values:
+    is-legacy-mode: true
