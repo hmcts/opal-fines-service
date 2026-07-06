@@ -3,6 +3,9 @@ package uk.gov.hmcts.opal.controllers;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -20,9 +23,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
+import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -39,24 +46,26 @@ class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOp
     private static final long OTHER_MASTER_ACCOUNT_ID = 233302L;
     private static final long OTHER_CHILD_ACCOUNT_ID = 233303L;
     private static final long EMPTY_MASTER_ACCOUNT_ID = 233304L;
+    private static final short BUSINESS_UNIT_ID = 78;
+    private static final short DIFFERENT_BUSINESS_UNIT_ID = 77;
     private static final String URL = URL_BASE + "/%d/consolidated-accounts";
+
+    @MockitoBean
+    private UserStateService userStateService;
 
     @BeforeEach
     void setupConsolidatedAccountsData() {
-        authorise((short) 79, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        authorise(BUSINESS_UNIT_ID, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        mockUserWithPermission(BUSINESS_UNIT_ID);
 
-        jdbcTemplate.update("""
-            INSERT INTO business_units (business_unit_id, business_unit_name, business_unit_code, business_unit_type,
-                                        welsh_language)
-            VALUES (79, 'PO-2333 Business Unit', 'P3', 'Area', FALSE)
-            ON CONFLICT (business_unit_id) DO NOTHING
-            """);
-
-        insertDefendantAccount(MASTER_ACCOUNT_ID, 79, "233300M", 12, "Master Court", "MASTER-REF");
-        insertDefendantAccount(CHILD_ACCOUNT_ID, 79, "233301C", 3, "Child Court", "CHILD-REF");
-        insertDefendantAccount(OTHER_MASTER_ACCOUNT_ID, 79, "233302M", 4, "Other Master Court", "OTHER-MASTER");
-        insertDefendantAccount(OTHER_CHILD_ACCOUNT_ID, 79, "233303C", 5, "Other Child Court", "OTHER-REF");
-        insertDefendantAccount(EMPTY_MASTER_ACCOUNT_ID, 79, "233304M", 6, "Empty Master Court", "EMPTY-REF");
+        insertDefendantAccount(MASTER_ACCOUNT_ID, BUSINESS_UNIT_ID, "233300M", 12, "Master Court", "MASTER-REF");
+        insertDefendantAccount(CHILD_ACCOUNT_ID, BUSINESS_UNIT_ID, "233301C", 3, "Child Court", "CHILD-REF");
+        insertDefendantAccount(OTHER_MASTER_ACCOUNT_ID, BUSINESS_UNIT_ID, "233302M", 4, "Other Master Court",
+                               "OTHER-MASTER");
+        insertDefendantAccount(OTHER_CHILD_ACCOUNT_ID, BUSINESS_UNIT_ID, "233303C", 5, "Other Child Court",
+                               "OTHER-REF");
+        insertDefendantAccount(EMPTY_MASTER_ACCOUNT_ID, BUSINESS_UNIT_ID, "233304M", 6, "Empty Master Court",
+                               "EMPTY-REF");
 
         insertDefendantParty(CHILD_ACCOUNT_ID, "Alex", "Jones");
         insertDefendantParty(OTHER_CHILD_ACCOUNT_ID, "Casey", "Smith");
@@ -85,7 +94,6 @@ class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOp
             WHERE defendant_account_id IN (233300, 233301, 233302, 233303, 233304)
                OR defendant_account_id BETWEEN 233400 AND 233419
             """);
-        jdbcTemplate.update("DELETE FROM business_units WHERE business_unit_id = 79");
     }
 
     @Test
@@ -180,7 +188,8 @@ class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOp
     @JiraStory("PO-2333")
     @JiraEpic("PO-1286")
     void getConsolidatedAccounts_whenPermissionInDifferentBusinessUnit_returnsOk() throws Exception {
-        authorise((short) 78, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        authorise(DIFFERENT_BUSINESS_UNIT_ID, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        mockUserWithPermission(DIFFERENT_BUSINESS_UNIT_ID);
 
         mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID))
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -195,6 +204,8 @@ class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOp
     @JiraEpic("PO-1286")
     void getConsolidatedAccounts_whenMissingPermission_returnsForbidden() throws Exception {
         userStateStub.setupWithNoPermissions();
+        doReturn(UserStateUtil.noPermissionsUser())
+            .when(userStateService).getUserStateV1FromSecurityContext();
 
         mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID))
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -208,14 +219,18 @@ class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOp
     }
 
     @Test
-    @DisplayName("PO-2333: INT.10 returns 403 in local integration profile when credentials are missing")
+    @DisplayName("PO-2333: INT.10 returns 401 when credentials are missing")
     @JiraStory("PO-2333")
     @JiraEpic("PO-1286")
-    void getConsolidatedAccounts_whenCredentialsMissing_returnsForbidden() throws Exception {
+    void getConsolidatedAccounts_whenCredentialsMissing_returnsUnauthorized() throws Exception {
+        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
+            .when(userStateService).getUserStateV1FromSecurityContext();
+
         mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID)))
-            .andExpect(status().isForbidden())
+            .andExpect(status().isUnauthorized())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.status").value(401))
+            .andExpect(jsonPath("$.detail").value("Unauthorized"))
             .andExpect(jsonPath("$.retriable").value(false));
     }
 
@@ -226,7 +241,7 @@ class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOp
     void getConsolidatedAccounts_whenManyChildrenExist_returnsFullArray() throws Exception {
         for (int i = 0; i < 20; i++) {
             long childAccountId = 233400L + i;
-            insertDefendantAccount(childAccountId, 79, "2334%02dC".formatted(i), i + 20L,
+            insertDefendantAccount(childAccountId, BUSINESS_UNIT_ID, "2334%02dC".formatted(i), i + 20L,
                                    "Bulk Child Court", "BULK-%02d".formatted(i));
             insertConsolidationTransaction(23340000L + i, MASTER_ACCOUNT_ID, childAccountId);
         }
@@ -296,5 +311,10 @@ class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOp
             ) VALUES (?, ?, TIMESTAMP '2026-01-21 12:00:00', 'po2333', 'CONSOL', 0.00,
                 TIMESTAMP '2026-01-21 12:00:00', 'defendant_accounts', ?, 'P', 'PO-2333 User')
             """, transactionId, masterAccountId, String.valueOf(childAccountId));
+    }
+
+    private void mockUserWithPermission(short businessUnitId) {
+        doReturn(UserStateUtil.permissionUser(businessUnitId, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
+            .when(userStateService).getUserStateV1FromSecurityContext();
     }
 }
