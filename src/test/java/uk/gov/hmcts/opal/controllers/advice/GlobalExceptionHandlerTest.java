@@ -63,6 +63,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 
@@ -372,6 +373,20 @@ class GlobalExceptionHandlerTest {
             .handleJsonSchemaValidationException(new JsonSchemaValidationException("bad schema"));
         assertEquals(HttpStatus.BAD_REQUEST, r.getStatusCode());
         assertEquals(false, r.getBody().getProperties().get("retriable"));
+    }
+
+    @Test
+    void handleSchemaConfiguration_false() {
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler
+            .handleSchemaConfigurationException(new SchemaConfigurationException("missing config"));
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, r.getStatusCode());
+        ProblemDetail pd = r.getBody();
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), pd.getStatus());
+        assertEquals("Internal Server Error", pd.getTitle());
+        assertEquals("missing config", pd.getDetail());
+        assertEquals(URI.create("https://hmcts.gov.uk/problems/internal-server-error"), pd.getType());
+        assertEquals(false, pd.getProperties().get("retriable"));
     }
 
     @Test
