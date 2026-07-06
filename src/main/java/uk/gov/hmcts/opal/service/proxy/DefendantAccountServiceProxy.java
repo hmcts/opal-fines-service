@@ -47,7 +47,7 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
 
     @Override
     public GetDefendantAccountConsolidatedAccountsResult getConsolidatedAccounts(Long defendantAccountId) {
-        return getCurrentModeService().getConsolidatedAccounts(defendantAccountId);
+        return draftAccountPromotion.getConsolidatedAccounts(defendantAccountId);
     }
 
     @Override
