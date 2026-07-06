@@ -22,7 +22,9 @@ import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 public interface DefendantAccountServiceInterface {
     DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId);
 
-    GetDefendantAccountConsolidatedAccountsResult getConsolidatedAccounts(Long defendantAccountId);
+    default GetDefendantAccountConsolidatedAccountsResult getConsolidatedAccounts(Long defendantAccountId) {
+        throw new UnsupportedOperationException("GetDefendantAccountConsolidatedAccounts is only supported in OPAL");
+    }
 
     DefendantAccountHistoryResponse getHistory(Long defendantAccountId, DefendantAccountHistoryFilter filter);
 
