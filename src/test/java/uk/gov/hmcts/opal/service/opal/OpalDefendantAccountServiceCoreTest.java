@@ -25,15 +25,15 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse.DefendantAccountTypeEnum;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountHeaderViewRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountSummaryViewRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcerRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.FixedPenaltyOffenceRepositoryService;
@@ -45,7 +45,8 @@ class OpalDefendantAccountServiceCoreTest {
     private DefendantAccountRepositoryService defendantAccountRepositoryService;
 
     @Mock
-    private DefendantAccountRepository defendantAccountRepository;
+    private DefendantAccountSummaryViewRepositoryService defendantAccountSummaryViewRepositoryService;
+    private DefendantAccountHeaderViewRepositoryService defendantAccountHeaderViewRepositoryService;
 
     @Mock
     private DefendantAccountSummaryViewRepository dasvRepository;
@@ -69,17 +70,6 @@ class OpalDefendantAccountServiceCoreTest {
     private OpalDefendantAccountFixedPenaltyService fpService;
     @InjectMocks
     private OpalDefendantAccountEnforcementService enforcementService;
-
-    @Test
-    void testGetDefendantAccountSummaryViewById() {
-        long testId = 1L;
-
-        DefendantAccountSummaryViewEntity viewEntity = DefendantAccountSummaryViewEntity.builder().build();
-        when(dasvRepository.findById(testId)).thenReturn(java.util.Optional.of(viewEntity));
-
-        DefendantAccountSummaryViewEntity result = service.getDefendantAccountSummaryViewById(testId);
-        assertNotNull(result);
-    }
 
     @Test
     void vehicleFixedPenaltyFlag_shouldBeFalse_whenVehicleRegistrationIsNullAndFlagFalse() {

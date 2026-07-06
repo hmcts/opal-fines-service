@@ -84,7 +84,6 @@ import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
@@ -104,7 +103,6 @@ import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
-import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.FixedPenaltyOffenceRepository;
@@ -119,7 +117,9 @@ import uk.gov.hmcts.opal.repository.jpa.SearchConsolidatedEntitySpecs;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.opal.history.defendant.DefendantAccountHistoryService;
 import uk.gov.hmcts.opal.service.iface.ReportEntryServiceInterface;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountHeaderViewRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountSummaryViewRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.PartyRepositoryService;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.util.VersionUtils;
@@ -143,7 +143,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final DefendantAccountPaymentTermsRepository defendantAccountPaymentTermsRepository;
 
-    private final DefendantAccountSummaryViewRepository defendantAccountSummaryViewRepository;
+    private final DefendantAccountSummaryViewRepositoryService defendantAccountSummaryViewRepositoryService;
+    private final DefendantAccountHeaderViewRepositoryService defendantAccountHeaderViewRepositoryService;
 
     private final CourtLiteRepository courtLiteRepository;
     private final AmendmentService amendmentService;
@@ -192,15 +193,13 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final Clock clock;
 
-    //TODO - Remove once repository service is in use
     @Override
     @Transactional(readOnly = true)
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
         log.debug(":getHeaderSummary: Opal mode - ID: {}", defendantAccountId);
 
-        DefendantAccountHeaderViewEntity entity = repository.findById(defendantAccountId)
-            .orElseThrow(() -> new EntityNotFoundException("Defendant Account not found with id: "
-                + defendantAccountId));
+        DefendantAccountHeaderViewEntity entity = defendantAccountHeaderViewRepositoryService
+            .getHeaderViewById(defendantAccountId);
 
         return defendantAccountHeaderSummaryMapper.toDto(entity);
     }
@@ -390,18 +389,12 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build();
     }
 
-    //TODO - Remove this once repository service is in use
-    public DefendantAccountSummaryViewEntity getDefendantAccountSummaryViewById(long defendantAccountId) {
-        return defendantAccountSummaryViewRepository.findById(defendantAccountId)
-            .orElseThrow(() -> new EntityNotFoundException(
-                "Defendant Account Summary View not found with id: " + defendantAccountId));
-    }
-
     @Transactional(readOnly = true)
     public DefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId) {
         log.debug(":getAtAGlance (Opal): id: {}.", defendantAccountId);
         return OpalDefendantAccountBuilders
-            .buildAtAGlanceResponse(getDefendantAccountSummaryViewById(defendantAccountId));
+            .buildAtAGlanceResponse(
+                defendantAccountSummaryViewRepositoryService.getSummaryViewById(defendantAccountId));
     }
 
     @Override
