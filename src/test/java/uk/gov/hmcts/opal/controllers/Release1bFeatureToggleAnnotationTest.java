@@ -53,6 +53,7 @@ class Release1bFeatureToggleAnnotationTest {
             "DefendantAccountController#replaceDefendantAccountParty",
             "DefendantAccountController#removeEnforcementHold",
             "DefendantAccountApiController#updateDefendantAccount",
+            "DefendantAccountApiController#getConsolidatedAccounts",
             "MinorCreditorController#getMinorCreditorAccountHeaderSummary",
             "ResultController#getResultById",
             "DefendantAccountApiController#postDefendantAccountSearch",
