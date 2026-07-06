@@ -729,7 +729,7 @@ components:
           type: string
           format: date
           description: DB Mapping - v_consolidated_accounts.child_date_imposed
-        imposted_by:
+        imposed_by:
           type: string
           maxLength: 100
           description: DB Mapping - v_consolidated_accounts.child_imposed_by

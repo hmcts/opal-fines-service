@@ -4,10 +4,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
@@ -31,8 +33,9 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEnti
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
-import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse.DefendantAccountTypeEnum;
+import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse.DefendantAccountTypeEnum;
 import uk.gov.hmcts.opal.mapper.ConsolidatedAccountMapper;
 import uk.gov.hmcts.opal.repository.ConsolidatedAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
@@ -118,7 +121,7 @@ class OpalDefendantAccountServiceCoreTest {
             .accountNumber("ACC456");
 
         when(defendantAccountRepository.findById(defendantAccountId)).thenReturn(Optional.of(masterAccount));
-        when(consolidatedAccountRepository.findByMasterAccountId(defendantAccountId))
+        when(consolidatedAccountRepository.findByMasterAccountIdOrderByChildAccountIdAsc(defendantAccountId))
             .thenReturn(List.of(consolidatedAccount));
         when(consolidatedAccountMapper.toResponse(List.of(consolidatedAccount))).thenReturn(List.of(mappedAccount));
 
@@ -127,6 +130,20 @@ class OpalDefendantAccountServiceCoreTest {
 
         assertEquals(masterAccount.getVersion(), result.getVersion());
         assertEquals(List.of(mappedAccount), result.getPayload());
+    }
+
+    @Test
+    void getConsolidatedAccounts_whenMasterDoesNotExist_throwsDefendantAccountNotFoundException() {
+        Long defendantAccountId = 123L;
+        when(defendantAccountRepository.findById(defendantAccountId)).thenReturn(Optional.empty());
+
+        DefendantAccountNotFoundException exception = assertThrows(
+            DefendantAccountNotFoundException.class,
+            () -> service.getConsolidatedAccounts(defendantAccountId)
+        );
+
+        assertEquals(defendantAccountId, exception.getDefendantAccountId());
+        verifyNoInteractions(consolidatedAccountRepository, consolidatedAccountMapper);
     }
 
     @Test

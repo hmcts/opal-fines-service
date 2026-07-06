@@ -233,7 +233,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         return GetDefendantAccountConsolidatedAccountsResult.builder()
             .payload(consolidatedAccountMapper.toResponse(
-                consolidatedAccountRepository.findByMasterAccountId(defendantAccountId)))
+                consolidatedAccountRepository.findByMasterAccountIdOrderByChildAccountIdAsc(defendantAccountId)))
             .version(masterAccount.getVersion())
             .build();
     }

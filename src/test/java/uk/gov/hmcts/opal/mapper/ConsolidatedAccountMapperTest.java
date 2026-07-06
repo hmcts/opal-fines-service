@@ -32,7 +32,7 @@ class ConsolidatedAccountMapperTest {
         assertEquals("Alex", result.getFirstName());
         assertEquals("Jones", result.getLastName());
         assertEquals(dateImposed, result.getDateImposed());
-        assertEquals("Court A", result.getImpostedBy());
+        assertEquals("Court A", result.getImposedBy());
         assertEquals("REF123", result.getReference());
     }
 }
