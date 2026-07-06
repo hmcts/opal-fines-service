@@ -17,7 +17,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity_;
 import uk.gov.hmcts.opal.service.report.ReportEnforcementMode;
-import uk.gov.hmcts.opal.dto.report.operationbyenforcement.OperationReportByEnforcementFiltersDto;
+import uk.gov.hmcts.opal.dto.report.operation.OperationReportByEnforcementFiltersDto;
 
 public class EnforcementReportSpecs {
 
@@ -97,7 +97,7 @@ public class EnforcementReportSpecs {
                     return cb.disjunction();
                 }
             }
-            preds.add(ReportSpecs.accountFilters(account, query, cb, filters));
+            preds.add(OperationReportSpecs.accountFiltersByEnforcement(account, query, cb, filters));
             return cb.and(preds.toArray(new Predicate[0]));
         };
     }

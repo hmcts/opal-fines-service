@@ -48,8 +48,13 @@ public class CashListReportService implements ReportInterface<CashListReportData
     }
 
     @Override
+    public Class<? extends CashListReportData> getStoredReportDataClass(ReportInstanceEntity reportInstance) {
+        return CashListReportData.class;
+    }
+
+    @Override
     public byte[] convertReportDataToFileType(ReportInstanceEntity reportInstance, CashListReportData reportData,
-                                              FileType fileType) {
+        FileType fileType) {
         return new byte[0];
     }
 
@@ -98,5 +103,6 @@ public class CashListReportService implements ReportInterface<CashListReportData
     }
 
     private record CashListReportParameters(@JsonProperty(TILL_ID) String tillId) {
+
     }
 }

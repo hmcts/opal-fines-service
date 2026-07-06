@@ -23,7 +23,7 @@ Feature: Report Definition Reference Data
 
   @JIRA-STORY:PO-2250 @JIRA-EPIC:PO-2248 @JIRA-TEST-KEY:PO-7861
   Scenario: Seeded report definition forbidden responses match the standard error contract
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+    Given I am testing as the "opal-test-2@dev.platform.hmcts.net" user
     When I make a request to the seeded report definition api
     Then the request is rejected as forbidden
     And the latest report definition error response matches the standard problem detail contract for status 403

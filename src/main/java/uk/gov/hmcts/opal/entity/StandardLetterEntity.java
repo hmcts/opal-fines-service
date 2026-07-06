@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -17,6 +18,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.converter.AssociatedRecordTypeConverter;
 
 @Entity
 @Table(name = "standard_letters")
@@ -45,8 +47,10 @@ public class StandardLetterEntity {
     @Column(name = "standard_letter_name", length = 50, nullable = false)
     private String standardLetterName;
 
-    @Column(name = "associated_record_type", length = 30, nullable = false)
-    private String associatedRecordType;
+    @Convert(converter = AssociatedRecordTypeConverter.class)
+    @Column(name = "associated_record_type", length = 30, nullable = false,
+        columnDefinition = "t_associated_record_type_enum")
+    private AssociatedRecordType associatedRecordType;
 
     @Column(name = "user_entries")
     private String userEntries;

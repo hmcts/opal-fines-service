@@ -17,7 +17,6 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
-import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 
@@ -64,14 +63,13 @@ class TestingSupportControllerTest {
     private UserStateMapper userStateMapper;
 
     @Test
-    void getAppMode() {
-        AppMode mode = AppMode.builder().mode("opal").build();
-        when(configService.getAppMode()).thenReturn(mode);
+    void isLegacyMode() {
+        when(configService.isLegacyMode()).thenReturn(false);
 
-        ResponseEntity<AppMode> response = controller.getAppMode();
+        ResponseEntity<Boolean> response = controller.isLegacyMode();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("opal", response.getBody().getMode());
+        assertFalse(response.getBody().booleanValue());
     }
 
     @Test

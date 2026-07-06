@@ -39,7 +39,7 @@ public class IndividualDetails {
         @XmlElement(name = "first_names")
     })
     @JsonProperty("forenames")
-    private String firstNames;
+    private String forenames;
 
     @XmlElement(name = "surname")
     private String surname;
