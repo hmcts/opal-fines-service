@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.opal;
 
-
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -9,7 +8,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.disco.BusinessUnitServiceInterface;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -25,7 +23,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Qualifier("businessUnitService")
-public class BusinessUnitService implements BusinessUnitServiceInterface {
+public class BusinessUnitService {
 
     private final BusinessUnitRepository businessUnitRepository;
 
@@ -33,13 +31,11 @@ public class BusinessUnitService implements BusinessUnitServiceInterface {
 
     private final BusinessUnitSpecs specs = new BusinessUnitSpecs();
 
-    @Override
     public BusinessUnitEntity getBusinessUnit(short businessUnitId) {
         return businessUnitRepository.findById(businessUnitId)
             .orElseThrow(() -> new EntityNotFoundException("Business Unit not found with id: " + businessUnitId));
     }
 
-    @Override
     public List<BusinessUnitEntity> searchBusinessUnits(BusinessUnitSearchDto criteria) {
 
         Page<BusinessUnitEntity> page = businessUnitRepository
