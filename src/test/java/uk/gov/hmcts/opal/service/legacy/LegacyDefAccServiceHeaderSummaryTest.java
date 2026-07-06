@@ -1,9 +1,11 @@
 package uk.gov.hmcts.opal.service.legacy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
@@ -432,6 +434,36 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
         DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(1L);
         assertNotNull(out.getResponse().getPartyDetails().getIndividualDetails().getIndividualAliases());
         assertEquals(1, out.getResponse().getPartyDetails().getIndividualDetails().getIndividualAliases().size());
+    }
+
+    @Test
+    void getHeaderSummary_returns_true_for_hasConsolidatedAccounts() {
+        LegacyGetDefendantAccountHeaderSummaryResponse resp = createHeaderSummaryResponse();
+        resp.setHasConsolidatedAccounts(Boolean.TRUE);
+
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(resp);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
+
+        DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(1L);
+        assertTrue(out.getResponse().getHasConsolidatedAccounts());
+    }
+
+    @Test
+    void getHeaderSummary_returns_false_for_hasConsolidatedAccounts() {
+        LegacyGetDefendantAccountHeaderSummaryResponse resp = createHeaderSummaryResponse();
+        resp.setHasConsolidatedAccounts(Boolean.FALSE);
+
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(resp);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
+
+        DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(1L);
+        assertFalse(out.getResponse().getHasConsolidatedAccounts());
     }
 
     private LegacyGetDefendantAccountHeaderSummaryResponse createHeaderSummaryResponse() {
