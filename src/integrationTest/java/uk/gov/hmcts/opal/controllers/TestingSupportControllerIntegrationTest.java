@@ -29,7 +29,6 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
-import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -61,15 +60,13 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-256")
     @JiraEpic("PO-2233")
     @JiraTestKey("PO-6279")
-    void testGetAppMode() throws Exception {
-        AppMode appMode = AppMode.builder().mode("test").build();
+    void testIsLegacyMode() throws Exception {
+        when(dynamicConfigService.isLegacyMode()).thenReturn(true);
 
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-
-        mockMvc.perform(get("/testing-support/app-mode"))
+        mockMvc.perform(get("/testing-support/is-legacy-mode"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.mode").value("test"));
+            .andExpect(jsonPath("$").value(true));
     }
 
     @Test

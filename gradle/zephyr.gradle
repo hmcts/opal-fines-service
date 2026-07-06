@@ -210,6 +210,7 @@ tasks.register('createJiraTicketsFromJUnit5ReportIntegrationTest', JavaExec) {
     description = "Processes Junit5Report-IntegrationTest.json to create and link Jira tickets to each test"
     def junit5ReportJson = file("integration-output/zephyr/Junit5Report-IntegrationTest.json")
 
+    dependsOn('copyIntegrationJunit5Report')
     inputs.file(junit5ReportJson)
 
     classpath = configurations.zephyrCucumberReportProcessor
@@ -223,6 +224,7 @@ tasks.register('updateJiraTicketsFromJUnit5ReportIntegrationTest', JavaExec) {
     description = "Processes Junit5Report-IntegrationTest.json to update Jira tickets"
     def junit5ReportJson = file("integration-output/zephyr/Junit5Report-IntegrationTest.json")
 
+    dependsOn('copyIntegrationJunit5Report')
     inputs.file(junit5ReportJson)
 
     classpath = configurations.zephyrCucumberReportProcessor
@@ -236,6 +238,7 @@ tasks.register('createJiraExecutionFromJUnit5ReportIntegrationTest', JavaExec) {
     description = "Processes Junit5Report-IntegrationTest.json to create Zephyr executions"
     def junit5ReportJson = file("integration-output/zephyr/Junit5Report-IntegrationTest.json")
 
+    dependsOn('copyIntegrationJunit5Report')
     inputs.file(junit5ReportJson)
 
     classpath = configurations.zephyrCucumberReportProcessor
