@@ -175,7 +175,7 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
         );
 
         Assertions.assertThat(report.getTransactionRows())
-            .hasSize(25)
+            .hasSize(26)
             .extracting(
                 DetailedReportTransactionRowDto::getTransactionType,
                 DetailedReportTransactionRowDto::getTransactionDetails
@@ -192,6 +192,13 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
                 tuple(
                     "ENFT",
                     "ABDC | Warrant number: 001/25/00001 | Test enforcement"
+                ),
+                tuple(
+                    "ENFT",
+                    "ABDC | 10 days in default | Warrant number: 001/25/00001"
+                        + " | Earliest date of release: 2026-05-14T09:00"
+                        + " | Hearing: 2026-05-14T10:00 - AAA Test Court - Case: CASE-77"
+                        + " | Test enforcement"
                 ),
                 tuple(
                     "NOTE",

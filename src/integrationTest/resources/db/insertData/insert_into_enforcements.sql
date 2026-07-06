@@ -997,6 +997,10 @@ INSERT INTO enforcements (
     result_id,
     reason,
     warrant_reference,
+    jail_days,
+    earliest_release_date,
+    hearing_date,
+    case_reference,
     hearing_court_id,
     posted_by_name
 )
@@ -1008,6 +1012,10 @@ VALUES (
            'REGF',
            'Test enforcement',
            '001/25/00001',
+           NULL,
+           NULL,
+           NULL,
+           NULL,
            1,
            'opal-test'
        ),
@@ -1019,6 +1027,10 @@ VALUES (
            'ABDC',
            'Test enforcement',
            '001/25/00001',
+           NULL,
+           NULL,
+           NULL,
+           NULL,
            1,
            'opal-test'
        ),
@@ -1030,6 +1042,10 @@ VALUES (
            'ABDC',
            'Test enforcement',
            '001/25/00001',
+           NULL,
+           NULL,
+           NULL,
+           NULL,
            1,
            'opal-test'
        ),
@@ -1041,6 +1057,10 @@ VALUES (
            'ABDC',
            'Test enforcement',
            '001/25/00001',
+           NULL,
+           NULL,
+           NULL,
+           NULL,
            1,
            'opal-test'
        ),
@@ -1052,6 +1072,25 @@ VALUES (
            'REGF',
            'Test enforcement',
            '001/25/00001',
+           NULL,
+           NULL,
+           NULL,
+           NULL,
+           1,
+           'opal-test'
+       ),
+       (
+           6,
+           77,
+           TIMESTAMP '2026-05-14 10:30:30',
+           'L080JG',
+           'ABDC',
+           'Test enforcement',
+           '001/25/00001',
+           10,
+           TIMESTAMP '2026-05-14 09:00:00',
+           TIMESTAMP '2026-05-14 10:00:00',
+           'CASE-77',
            1,
            'opal-test'
        )
@@ -1062,6 +1101,10 @@ ON CONFLICT (enforcement_id) DO UPDATE
         result_id = EXCLUDED.result_id,
         reason = EXCLUDED.reason,
         warrant_reference = EXCLUDED.warrant_reference,
+        jail_days = EXCLUDED.jail_days,
+        earliest_release_date = EXCLUDED.earliest_release_date,
+        hearing_date = EXCLUDED.hearing_date,
+        case_reference = EXCLUDED.case_reference,
         hearing_court_id = EXCLUDED.hearing_court_id,
         posted_by_name = EXCLUDED.posted_by_name;
 

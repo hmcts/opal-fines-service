@@ -98,10 +98,12 @@ class DetailedResultMapperTest {
         ImpositionEntity imposition1 = mock(ImpositionEntity.class);
         when(imposition1.getImpositionId()).thenReturn(11L);
 
-        when(paymentTermsRepository.findByDefendantAccount_DefendantAccountIdAndEffectiveDateIsNotNullOrderByEffectiveDateAsc(
-            101L)).thenReturn(List.of(paymentTerms1));
-        when(paymentTermsRepository.findByDefendantAccount_DefendantAccountIdAndEffectiveDateIsNotNullOrderByEffectiveDateAsc(
-            202L)).thenReturn(List.of());
+        when(paymentTermsRepository
+            .findByDefendantAccount_DefendantAccountIdAndEffectiveDateIsNotNullOrderByEffectiveDateAsc(101L))
+            .thenReturn(List.of(paymentTerms1));
+        when(paymentTermsRepository
+            .findByDefendantAccount_DefendantAccountIdAndEffectiveDateIsNotNullOrderByEffectiveDateAsc(202L))
+            .thenReturn(List.of());
 
         when(enforcementRepository.findHistoryRowsByDefendantAccountId(101L)).thenReturn(List.of(enforcement1));
         when(enforcementRepository.findHistoryRowsByDefendantAccountId(202L)).thenReturn(List.of());
@@ -145,7 +147,8 @@ class DetailedResultMapperTest {
                 .transactionType("TRANSACTION-2")
                 .build();
 
-        when(transactionRowMapper.mapFromPaymentTerms(eq(paymentTerms1), eq(account1), any(ReportMetadataContext.class)))
+        when(transactionRowMapper
+            .mapFromPaymentTerms(eq(paymentTerms1), eq(account1), any(ReportMetadataContext.class)))
             .thenReturn(paymentTermsRow);
         when(transactionRowMapper.mapFromEnforcement(eq(enforcement1), eq(account1), any(ReportMetadataContext.class)))
             .thenReturn(enforcementRow);
@@ -185,16 +188,17 @@ class DetailedResultMapperTest {
 
         verify(rowMapper).map(eq(account1), any(ReportMetadataContext.class));
         verify(rowMapper).map(eq(account2), any(ReportMetadataContext.class));
-        verify(paymentTermsRepository).findByDefendantAccount_DefendantAccountIdAndEffectiveDateIsNotNullOrderByEffectiveDateAsc(
-            101L);
-        verify(paymentTermsRepository).findByDefendantAccount_DefendantAccountIdAndEffectiveDateIsNotNullOrderByEffectiveDateAsc(
-            202L);
+        verify(paymentTermsRepository)
+            .findByDefendantAccount_DefendantAccountIdAndEffectiveDateIsNotNullOrderByEffectiveDateAsc(101L);
+        verify(paymentTermsRepository)
+            .findByDefendantAccount_DefendantAccountIdAndEffectiveDateIsNotNullOrderByEffectiveDateAsc(202L);
         verify(enforcementRepository).findHistoryRowsByDefendantAccountId(101L);
         verify(enforcementRepository).findHistoryRowsByDefendantAccountId(202L);
         verify(transactionRepository).findByDefendantAccountId(101L);
         verify(transactionRepository).findByDefendantAccountId(202L);
         verify(impositionRepository).findAllById(List.of(11L));
-        verify(noteRepository, times(2)).findAll(ArgumentMatchers.<Specification<NoteEntity>>any());
+        verify(noteRepository, times(2))
+            .findAll(ArgumentMatchers.<Specification<NoteEntity>>any());
     }
 
     @Test
