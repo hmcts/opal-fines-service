@@ -333,6 +333,17 @@ Zephyr tasks require `JIRA_AUTH_TOKEN` to be exported before the upload task run
 The create and update tasks process an existing test report; they do not run the tests.
 Run the matching functional or integration suite first if the report is not already present.
 
+Examples:
+
+```bash
+./gradlew integration
+./gradlew createJiraTicketsFromIntegrationReport
+./gradlew updateJiraTicketsFromIntegrationReport
+./gradlew createJiraExecutionFromIntegrationReport
+./gradlew functional
+./gradlew -PzephyrFunctionalStage=functional createJiraExecutionFromFunctionalReport
+```
+
 | Task | Purpose |
 | --- | --- |
 | `createJiraTicketsFromFunctionalReport` | Creates and links Jira test tickets from the selected functional-family Zephyr report. Requires `-PzephyrFunctionalStage=functional|smoke|runR1AOnly|runR1AOff`. |
