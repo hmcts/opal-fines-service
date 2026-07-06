@@ -226,3 +226,24 @@ DELETE FROM defendant_accounts
 WHERE defendant_account_id = 24010;
 
 -- END TEST DATA: PO-1896 - Seed data for add DAP Tests
+
+-- PO-2334 - Test data teardown
+DELETE
+FROM defendant_transactions
+WHERE defendant_transaction_id = 990001;
+
+DELETE
+FROM fixed_penalty_offences
+WHERE defendant_account_id = 990001;
+
+DELETE
+FROM defendant_account_parties
+WHERE defendant_account_id = 990001;
+
+DELETE
+FROM parties
+WHERE party_id IN (990001, 990002);
+
+DELETE
+FROM defendant_accounts
+WHERE defendant_account_id = 990001;

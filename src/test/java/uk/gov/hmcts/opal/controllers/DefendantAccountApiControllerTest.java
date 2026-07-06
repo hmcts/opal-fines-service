@@ -21,8 +21,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
+import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchReferenceNumberDefendantAccount;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
@@ -162,6 +164,24 @@ class DefendantAccountApiControllerTest {
 
         verify(defendantAccountService).getHistory(eq(defendantId), eq(dateFrom), eq(dateTo), eq(itemTypes));
         verify(defendantAccountHistoryResponseMapper).toGeneratedResponse(historyResponse);
+    }
+
+    @Test
+    void given_validRequest_when_getDefendantAccountHeaderSummary_then_returnsOkResponse() {
+        Long defendantId = 1L;
+        GetDefendantAccountHeaderSummary200Response summaryResponse =
+            GetDefendantAccountHeaderSummary200Response.builder().build();
+        DefendantAccountHeaderSummary summary =
+            DefendantAccountHeaderSummary.builder().version(BigInteger.ONE).response(summaryResponse).build();
+        when(defendantAccountService.getHeaderSummary(defendantId)).thenReturn(summary);
+
+        ResponseEntity<GetDefendantAccountHeaderSummary200Response> response =
+            defendantAccountApiController.getDefendantAccountHeaderSummary(defendantId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("\"1\"", response.getHeaders().getETag());
+        assertSame(summaryResponse, response.getBody());
+        verify(defendantAccountService).getHeaderSummary(defendantId);
     }
 
 }
