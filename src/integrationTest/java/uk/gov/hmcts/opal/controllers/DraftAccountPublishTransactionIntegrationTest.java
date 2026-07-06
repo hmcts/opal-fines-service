@@ -26,6 +26,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.DraftAccountPublishTransactionIntegrationTest")
@@ -40,6 +41,7 @@ class DraftAccountPublishTransactionIntegrationTest extends AbstractIntegrationT
     @JiraEpic("PO-973")
     @Test
     @DraftAccountPublishDbUpdateFailureFixture
+    @JiraTestKey("PO-8764")
     void publishDraftAccount_publishesButFailsToUpdateStatus_leavesDraftPublishableForRetry() throws Exception {
         // Arrange
         String etag = getDraftEtag();
@@ -87,6 +89,7 @@ class DraftAccountPublishTransactionIntegrationTest extends AbstractIntegrationT
     @JiraEpic("PO-973")
     @Test
     @DraftAccountPublishSpFailureFixture
+    @JiraTestKey("PO-8765")
     void publishDraftAccount_storedProcFailure_PersistsPublishingFailedStatusAndTimelineData() throws Exception {
         mockMvc.perform(patch(DRAFT_ACCOUNTS_URL_BASE + "/" + DRAFT_ACCOUNT_ID)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
