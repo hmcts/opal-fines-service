@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.math.BigInteger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -68,7 +69,7 @@ class LegacyNotesServiceTest {
         LegacyAddNoteRequest sent = reqCap.getValue();
         assertEquals((short) 1, sent.getBusinessUnitId());
         assertEquals(999, sent.getBusinessUnitUserId());
-        assertEquals(1L, sent.getVersion());
+        assertEquals(BigInteger.valueOf(1L), sent.getVersion());
 
         LegacyNote sentNote = sent.getActivityNote();
         assertNotNull(sentNote);
