@@ -5,9 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -32,7 +34,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.databind.JsonNode;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
@@ -117,6 +121,34 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
     }
 
     @Test
+    @DisplayName("PO-2333 Legacy: INT.05 permits user with Search and View Accounts in the same business unit")
+    @JiraStory("PO-2333")
+    @JiraEpic("PO-1286")
+    void getConsolidatedAccounts_whenPermissionInSameBusinessUnit_returnsOk() throws Exception {
+        when(userStateService.getUserStateV1FromSecurityContext())
+            .thenReturn(UserStateUtil.permissionUser((short) 78, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
+        mockLegacyResponse();
+
+        performGetConsolidatedAccounts(233300L)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(2)));
+    }
+
+    @Test
+    @DisplayName("PO-2333 Legacy: INT.06 permits user with Search and View Accounts in a different business unit")
+    @JiraStory("PO-2333")
+    @JiraEpic("PO-1286")
+    void getConsolidatedAccounts_whenPermissionInDifferentBusinessUnit_returnsOk() throws Exception {
+        when(userStateService.getUserStateV1FromSecurityContext())
+            .thenReturn(UserStateUtil.permissionUser((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
+        mockLegacyResponse();
+
+        performGetConsolidatedAccounts(233300L)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(2)));
+    }
+
+    @Test
     @DisplayName("PO-2333 Legacy: INT.03 returns empty array when legacy has no child accounts")
     @JiraStory("PO-2333")
     @JiraEpic("PO-1286")
@@ -158,7 +190,10 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
         performGetConsolidatedAccounts(999999999L)
             .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.status").value(404));
+            .andExpect(jsonPath("$.status").value(404))
+            .andExpect(jsonPath("$.retriable").value(false))
+            .andExpect(jsonPath("$.title").value("Not Found"))
+            .andExpect(jsonPath("$.detail").value("Not Found"));
     }
 
     @Test
@@ -175,6 +210,24 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
             .andExpect(jsonPath("$.retriable").value(false))
             .andExpect(jsonPath("$.title").value("Forbidden"))
             .andExpect(jsonPath("$.detail").value("User requires permission: Search and View Accounts"));
+
+        verifyNoInteractions(gatewayService);
+    }
+
+    @Test
+    @DisplayName("PO-2333 Legacy: INT.08 returns 401 when credentials are missing")
+    @JiraStory("PO-2333")
+    @JiraEpic("PO-1286")
+    void getConsolidatedAccounts_whenCredentialsMissing_returnsUnauthorized() throws Exception {
+        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
+            .when(userStateService).getUserStateV1FromSecurityContext();
+
+        mockMvc.perform(get(URL_BASE + "/233300/consolidated-accounts"))
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.status").value(401))
+            .andExpect(jsonPath("$.detail").value("Unauthorized"))
+            .andExpect(jsonPath("$.retriable").value(false));
 
         verifyNoInteractions(gatewayService);
     }
@@ -211,6 +264,15 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
         return mockMvc.perform(get(URL_BASE + "/" + defendantAccountId + "/consolidated-accounts")
                                    .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER)
                                    .accept(MediaType.APPLICATION_JSON));
+    }
+
+    private void mockLegacyResponse() {
+        when(gatewayService.postToGateway(
+            eq(LegacyDefendantAccountService.GET_CONSOLIDATED_ACCOUNTS),
+            eq(LegacyGetDefendantAccountConsolidatedAccountsResponse.class),
+            any(),
+            isNull()
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse(), null, null));
     }
 
     private LegacyGetDefendantAccountConsolidatedAccountsResponse legacyResponse() {
