@@ -15,7 +15,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,6 +23,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.databind.JsonNode;
@@ -38,6 +38,18 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
     "launchdarkly.enabled=false",
     "launchdarkly.default-flag-values.release-1b=true"
 })
+@Sql(
+    scripts = "classpath:db/deleteData/delete_from_consolidated_accounts.sql",
+    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+)
+@Sql(
+    scripts = "classpath:db/insertData/insert_into_consolidated_accounts.sql",
+    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+)
+@Sql(
+    scripts = "classpath:db/deleteData/delete_from_consolidated_accounts.sql",
+    executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD
+)
 @DisplayName("Defendant Account Consolidated Accounts Controller Integration Tests")
 class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
 
@@ -57,43 +69,6 @@ class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOp
     void setupConsolidatedAccountsData() {
         authorise(BUSINESS_UNIT_ID, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         mockUserWithPermission(BUSINESS_UNIT_ID);
-
-        insertDefendantAccount(MASTER_ACCOUNT_ID, BUSINESS_UNIT_ID, "233300M", 12, "Master Court", "MASTER-REF");
-        insertDefendantAccount(CHILD_ACCOUNT_ID, BUSINESS_UNIT_ID, "233301C", 3, "Child Court", "CHILD-REF");
-        insertDefendantAccount(OTHER_MASTER_ACCOUNT_ID, BUSINESS_UNIT_ID, "233302M", 4, "Other Master Court",
-                               "OTHER-MASTER");
-        insertDefendantAccount(OTHER_CHILD_ACCOUNT_ID, BUSINESS_UNIT_ID, "233303C", 5, "Other Child Court",
-                               "OTHER-REF");
-        insertDefendantAccount(EMPTY_MASTER_ACCOUNT_ID, BUSINESS_UNIT_ID, "233304M", 6, "Empty Master Court",
-                               "EMPTY-REF");
-
-        insertDefendantParty(CHILD_ACCOUNT_ID, "Alex", "Jones");
-        insertDefendantParty(OTHER_CHILD_ACCOUNT_ID, "Casey", "Smith");
-
-        insertConsolidationTransaction(23330001L, MASTER_ACCOUNT_ID, CHILD_ACCOUNT_ID);
-        insertConsolidationTransaction(23330002L, OTHER_MASTER_ACCOUNT_ID, OTHER_CHILD_ACCOUNT_ID);
-    }
-
-    @AfterEach
-    void deleteConsolidatedAccountsData() {
-        jdbcTemplate.update("""
-            DELETE FROM defendant_transactions
-            WHERE defendant_transaction_id IN (23330001, 23330002)
-               OR defendant_transaction_id BETWEEN 23340000 AND 23340019
-            """);
-        jdbcTemplate.update("""
-            DELETE FROM defendant_account_parties
-            WHERE defendant_account_party_id IN (233301, 233303)
-            """);
-        jdbcTemplate.update("""
-            DELETE FROM parties
-            WHERE party_id IN (233301, 233303)
-            """);
-        jdbcTemplate.update("""
-            DELETE FROM defendant_accounts
-            WHERE defendant_account_id IN (233300, 233301, 233302, 233303, 233304)
-               OR defendant_account_id BETWEEN 233400 AND 233419
-            """);
     }
 
     @Test
@@ -292,18 +267,6 @@ class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOp
             ) VALUES (?, ?, ?, ?, TIMESTAMP '2026-01-21 10:15:00', 0.00, 100.00, 100.00, 'L', 'N', 'N',
                 'Fine', 'N', 'N', 'PO-2333 Court', ?, ?)
             """, accountId, version, businessUnitId, accountNumber, imposedByName, reference);
-    }
-
-    private void insertDefendantParty(long defendantAccountId, String firstName, String lastName) {
-        jdbcTemplate.update("""
-            INSERT INTO parties (party_id, organisation, forenames, surname)
-            VALUES (?, FALSE, ?, ?)
-            """, defendantAccountId, firstName, lastName);
-        jdbcTemplate.update("""
-            INSERT INTO defendant_account_parties (
-                defendant_account_party_id, defendant_account_id, party_id, association_type, debtor
-            ) VALUES (?, ?, ?, 'Defendant', TRUE)
-            """, defendantAccountId, defendantAccountId, defendantAccountId);
     }
 
     private void insertConsolidationTransaction(long transactionId, long masterAccountId, long childAccountId) {
