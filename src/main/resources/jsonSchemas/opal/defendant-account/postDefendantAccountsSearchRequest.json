@@ -9,43 +9,15 @@
     "defendant"
   ],
   "properties": {
-    "active_accounts_only": {
-      "type": "boolean"
-    },
-    "business_unit_ids": {
-      "type": ["array", "null"],
-      "items": { "type": "integer" }
-    },
+    "active_accounts_only": { "type": "boolean" },
+    "business_unit_ids": { "type": ["array", "null"], "items": { "type": "integer" } },
     "reference_number": {
       "oneOf": [
         { "type": "null" },
         { "$ref": "#/$defs/reference_number" }
       ]
-    },
-    "defendant": {
-      "oneOf": [
-        { "type": "null" },
-        { "$ref": "#/$defs/defendant" }
-      ]
-    },
-    "consolidation_search": {
-      "type": ["boolean", "null"]
     }
   },
-  "oneOf": [
-    {
-      "properties": {
-        "reference_number": { "type": "object" },
-        "defendant": { "const": null }
-      }
-    },
-    {
-      "properties": {
-        "reference_number": { "const": null },
-        "defendant": { "type": "object" }
-      }
-    }
-  ],
   "$defs": {
     "reference_number": {
       "type": "object",
@@ -91,8 +63,8 @@
         "national_insurance_number"
       ],
       "properties": {
-        "include_aliases": { "type": "boolean" },
-        "organisation": { "type": "boolean" },
+        "include_aliases": { "type": ["boolean", "null"] },
+        "organisation": { "type": ["boolean", "null"] },
         "address_line_1": { "type": ["string", "null"] },
         "postcode": { "type": ["string", "null"] },
         "organisation_name": { "type": ["string", "null"] },
@@ -105,128 +77,7 @@
         "national_insurance_number": { "type": ["string", "null"] }
       },
       "oneOf": [
-        {
-          "properties": {
-            "organisation": { "const": true },
-            "organisation_name": { "type": ["string", "null"] },
-            "surname": { "const": null },
-            "exact_match_surname": { "const": null },
-            "forenames": { "const": null },
-            "exact_match_forenames": { "const": null },
-            "birth_date": { "const": null },
-            "national_insurance_number": { "const": null }
-          },
-          "anyOf": [
-            {
-              "properties": {
-                "organisation_name": { "type": "string" }
-              }
-            },
-            {
-              "properties": {
-                "address_line_1": { "type": "string" }
-              }
-            },
-            {
-              "properties": {
-                "postcode": { "type": "string" }
-              }
-            }
-          ]
-        },
-        {
-          "properties": {
-            "organisation": { "const": false },
-            "organisation_name": { "const": null },
-            "exact_match_organisation_name": { "const": null },
-            "national_insurance_number": { "type": ["string", "null"] }
-          },
-          "anyOf": [
-            {
-              "properties": {
-                "national_insurance_number": { "type": "string" }
-              }
-            },
-            {
-              "properties": {
-                "surname": { "type": "string" }
-              }
-            },
-            {
-              "properties": {
-                "address_line_1": { "type": "string" }
-              }
-            },
-            {
-              "properties": {
-                "postcode": { "type": "string" }
-              }
-            }
-          ]
-        }
-      ],
-      "allOf": [
-        {
-          "if": {
-            "required": ["national_insurance_number"],
-            "properties": {
-              "national_insurance_number": { "type": "string" }
-            }
-          },
-          "then": {
-            "properties": {
-              "organisation": { "const": false },
-              "address_line_1": { "const": null },
-              "postcode": { "const": null },
-              "organisation_name": { "const": null },
-              "exact_match_organisation_name": { "const": null },
-              "surname": { "const": null },
-              "exact_match_surname": { "const": null },
-              "forenames": { "const": null },
-              "exact_match_forenames": { "const": null },
-              "birth_date": { "const": null }
-            }
-          }
-        },
-        {
-          "if": {
-            "required": ["forenames"],
-            "properties": {
-              "forenames": { "type": "string" }
-            }
-          },
-          "then": {
-            "properties": {
-              "surname": { "type": "string" }
-            }
-          }
-        },
-        {
-          "if": {
-            "required": ["birth_date"],
-            "properties": {
-              "birth_date": { "type": "string" }
-            }
-          },
-          "then": {
-            "properties": {
-              "surname": { "type": "string" }
-            }
-          }
-        },
-        {
-          "if": {
-            "required": ["postcode"],
-            "properties": {
-              "postcode": { "type": "string" }
-            },
-            "then": {
-              "properties": {
-                "organisation": { "type": "null" }
-              }
-            }
-          }
-        }
+        { "required": [ "national_insurance_number"], "not": { "required": ["organisation"]} }
       ]
     }
   }

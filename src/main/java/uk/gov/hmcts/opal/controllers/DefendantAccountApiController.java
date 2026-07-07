@@ -60,6 +60,9 @@ public class DefendantAccountApiController implements DefendantAccountApi {
         PostDefendantAccountSearchRequestDefendantAccount request) {
         log.debug(":POST:postDefendantAccountSearch");
 
+        if (request.getDefendant() != null && request.getDefendant().getOrganisation() == null) {
+            log.debug(":POST:postDefendantAccountSearch: defendant organisation is null");
+        }
         return buildResponse(defendantAccountService.searchDefendantAccounts(request));
     }
 
