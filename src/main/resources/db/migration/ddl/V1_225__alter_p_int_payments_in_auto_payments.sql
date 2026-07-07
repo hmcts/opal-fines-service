@@ -99,27 +99,29 @@ BEGIN
     WHERE  interface_job_id = pi_interface_job_id;
 
     IF NOT FOUND THEN
-        RAISE EXCEPTION 'Interface job % not found', pi_interface_job_id
-            USING ERRCODE = 'P3201';
+        RAISE EXCEPTION 'Interface job not found.'
+            USING ERRCODE = 'P3201'
+                , DETAIL = 'p_int_payments_in: Interface job ' || pi_interface_job_id || ' not found';
     END IF;
 
     IF v_job_business_unit_id IS NULL THEN
-        RAISE EXCEPTION 'Interface job % has no business unit id', pi_interface_job_id
-            USING ERRCODE = 'P3202';
+        RAISE EXCEPTION 'Interface job not linked to any BU.'
+            USING ERRCODE = 'P3202'
+                , DETAIL = 'p_int_payments_in: Interface job ' || pi_interface_job_id || ' has no business unit id';
     END IF;
 
     IF pi_business_unit_id IS NULL THEN
-        RAISE EXCEPTION 'Business unit id must be provided for interface job %', pi_interface_job_id
-            USING ERRCODE = 'P3203';
+        RAISE EXCEPTION 'BU parameter pi_business_unit_id is NULL.'
+            USING ERRCODE = 'P3203'
+                , DETAIL = 'p_int_payments_in: Business unit id must be provided for interface job ' || pi_interface_job_id;
     END IF;
 
     IF pi_business_unit_id <> v_job_business_unit_id THEN
-        RAISE EXCEPTION
-            'Interface job % belongs to business unit %, not %',
-            pi_interface_job_id,
-            v_job_business_unit_id,
-            pi_business_unit_id
-            USING ERRCODE = 'P3204';
+        RAISE EXCEPTION 'BU parameter not matching the BU linked to the interface job.'
+            USING ERRCODE = 'P3204'
+                , DETAIL = 'p_int_payments_in: Interface job ' || pi_interface_job_id
+                    || ' belongs to business unit ' || v_job_business_unit_id
+                    || ', not ' || pi_business_unit_id;
     END IF;
 
     po_till_id := NULL;
