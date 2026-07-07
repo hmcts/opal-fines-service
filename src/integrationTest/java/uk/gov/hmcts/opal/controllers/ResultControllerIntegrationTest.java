@@ -96,6 +96,28 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("PO-2985 Get result by ID duplicates Welsh result parameters when requested")
+    @JiraStory("PO-2985")
+    @JiraEpic("PO-2630")
+    void getResultById_whenIncludeWelshTrue_returnsWelshResultParameters() throws Exception {
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "/DDDDDD?include_welsh=true"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":getResultById_whenIncludeWelshTrue_returnsWelshResultParameters: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.result_id").value("DDDDDD"))
+            .andExpect(jsonPath("$.result_parameters").value(
+                "[{\"name\":\"sample_name\",\"type\":\"text\",\"hint\":\"some hint\",\"language_dependent\":true},"
+                    + "{\"name\":\"cy_sample_name\",\"type\":\"text\","
+                    + "\"hint\":\"Provide a welsh version for the defendant\",\"language_dependent\":true},"
+                    + "{\"name\":\"sample_name_2\",\"type\":\"text\",\"hint\":\"some hint 2\","
+                    + "\"language_dependent\":false}]"));
+    }
+
+    @Test
     @DisplayName("No results returned when result does not exist [@PO-703, PO-304]")
     @JiraStory("PO-703")
     @JiraStory("PO-304")
