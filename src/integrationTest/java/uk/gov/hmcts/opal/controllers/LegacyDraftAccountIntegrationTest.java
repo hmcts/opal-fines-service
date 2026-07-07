@@ -23,7 +23,8 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @DisplayName("DraftAccountController Integration Tests (LEGACY)")
 @TestPropertySource(properties = {
     "launchdarkly.enabled=true",
-    "launchdarkly.default-flag-values.release-1a=true"
+    "launchdarkly.default-flag-values.release-1a=true",
+    "launchdarkly.default-flag-values.is-legacy-mode=true"
 })
 public class LegacyDraftAccountIntegrationTest extends CommonDraftAccountControllerIntegrationTest {
 

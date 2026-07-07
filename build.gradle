@@ -37,7 +37,7 @@ plugins {
 }
 
 ext {
-  log4JVersion = "2.26.0"
+  log4JVersion = "2.26.1"
   serenityVersion = "5.3.10"
   cucumberVersion = "7.23.0" // Keep the forced Cucumber version stable while aligning Serenity with the Gradle plugin
 }
@@ -140,23 +140,17 @@ def logPublishedHtmlReport = { String label, String reportDirectory ->
 }
 
 def syncFunctionalArtifacts = { String reportLabel, String rawReportDirectory, String outputDirectory, String cucumberJsonFileName ->
-  delete(rawReportDirectory)
   delete("${outputDirectory}/report")
+  delete("${outputDirectory}/zephyr")
 
-  if (file("${rootDir}/target/site/serenity").exists()) {
+  if (file(rawReportDirectory).exists()) {
     copy {
-      from("${rootDir}/target/site/serenity")
-      into(rawReportDirectory)
-    }
-    copy {
-      from("${rootDir}/target/site/serenity")
+      from(rawReportDirectory)
       into("${outputDirectory}/report")
     }
   }
 
   if (cucumberJsonFileName != null) {
-    delete("${outputDirectory}/zephyr/${cucumberJsonFileName}")
-
     def cucumberJsonFile = file("${rootDir}/target/zephyr-reports/${cucumberJsonFileName}")
     if (cucumberJsonFile.exists()) {
       copy {
@@ -337,10 +331,18 @@ tasks.register('functionalOpal', Test) {
   outputs.upToDateWhen { false }
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal"))
   testLogging.showStandardStreams = true
-  environment("DEFAULT_APP_MODE", "opal")
+  environment("IS_LEGACY_MODE", "false")
+  systemProperty 'serenity.outputDirectory', "${rootDir}/functional-test-report"
+  systemProperty 'cucumber.plugin', "json:${rootDir}/target/zephyr-reports/cucumber-opal.json"
   include '**/OpalTestRunner.class'
 
   finalizedBy 'copyOpalCucumberJson'
+}
+
+tasks.register('copyOpalCucumberJson', Copy) {
+  from("${rootDir}/target/zephyr-reports/cucumber-opal.json")
+  into("${rootDir}/functional-output/zephyr")
+  outputs.upToDateWhen { false }
 }
 
 tasks.register('functionalOpalTags', Test) {
@@ -351,7 +353,9 @@ tasks.register('functionalOpalTags', Test) {
   outputs.upToDateWhen { false }
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal-tags"))
   testLogging.showStandardStreams = true
-  environment("DEFAULT_APP_MODE", "opal")
+  environment("IS_LEGACY_MODE", "false")
+  systemProperty 'serenity.outputDirectory', "${rootDir}/functional-test-report-demo"
+  systemProperty 'cucumber.plugin', "json:${rootDir}/target/zephyr-reports/cucumber-opal-tags.json"
 
   include '**/OpalTaggedTestRunner.class'
 
@@ -372,6 +376,12 @@ tasks.register('functionalOpalTags', Test) {
   finalizedBy 'copyOpalTagsCucumberJson'
 }
 
+tasks.register('copyOpalTagsCucumberJson', Copy) {
+  from("${rootDir}/target/zephyr-reports/cucumber-opal-tags.json")
+  into("${rootDir}/functional-output-demo/zephyr")
+  outputs.upToDateWhen { false }
+}
+
 tasks.register('functionalLegacy', Test) {
   description = "Runs functional tests against Legacy mode"
   group = "Verification"
@@ -380,11 +390,20 @@ tasks.register('functionalLegacy', Test) {
   outputs.upToDateWhen { false }
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/legacy"))
   testLogging.showStandardStreams = true
-  environment("DEFAULT_APP_MODE", "legacy")
+  environment("IS_LEGACY_MODE", "true")
+  systemProperty 'serenity.outputDirectory', "${rootDir}/functional-test-report-legacy"
+  systemProperty 'cucumber.plugin', "json:${rootDir}/target/zephyr-reports/cucumber-legacy.json"
 
   include '**/LegacyTestRunner.class'
   finalizedBy 'copyLegacyCucumberJson'
 }
+
+tasks.register('copyLegacyCucumberJson', Copy) {
+  from("${rootDir}/target/zephyr-reports/cucumber-legacy.json")
+  into("${rootDir}/functional-output-legacy/zephyr")
+  outputs.upToDateWhen { false }
+}
+
 tasks.register('copyFunctionalReport', Copy) {
   dependsOn 'aggregate'
   from("${rootDir}/target/site/serenity")
@@ -439,6 +458,16 @@ tasks.register('syncTaggedFunctionalArtifactsFromExistingResults') {
       "${rootDir}/functional-test-report-demo",
       "${rootDir}/functional-output-demo",
       'cucumber-opal-tags.json'
+    )
+  }
+}
+tasks.register('syncSmokeArtifactsFromExistingResults') {
+  doLast {
+    syncFunctionalArtifacts(
+      'Smoke Test Report',
+      "${rootDir}/smoke-test-report",
+      "${rootDir}/smoke-output",
+      'cucumber-smoke.json'
     )
   }
 }
@@ -505,6 +534,8 @@ tasks.register('smokeOpal', Test) {
   classpath = sourceSets.functionalTest.runtimeClasspath
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/smoke"))
   testLogging.showStandardStreams = true
+  systemProperty 'serenity.outputDirectory', "${rootDir}/smoke-test-report"
+  systemProperty 'cucumber.plugin', "json:${rootDir}/target/zephyr-reports/cucumber-smoke.json"
 
   include '**/SmokeTestRunner.class'
   finalizedBy 'copySmokeCucumberJson'
@@ -519,7 +550,7 @@ tasks.register('copySmokeReport', Copy) {
   }
 }
 tasks.register('copySmokeCucumberJson', Copy) {
-  from("target/cucumber.json")
+  from("${rootDir}/target/zephyr-reports/cucumber-smoke.json")
   into("${rootDir}/smoke-output/zephyr")
   rename { "cucumber-smoke.json" }
   outputs.upToDateWhen { false }
@@ -744,7 +775,7 @@ dependencies {
   implementation 'tools.jackson.core:jackson-databind'
   compileOnly 'org.projectlombok:lombok:1.18.46'
   annotationProcessor 'org.projectlombok:lombok:1.18.46'
-  annotationProcessor 'org.hibernate.orm:hibernate-processor:7.4.2.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-processor:7.4.4.Final'
 
   implementation('uk.gov.hmcts:spring-exception-handler:1.0.2') {
     exclude group: 'com.microsoft.azure', module: 'applicationinsights-spring-boot-starter'
@@ -806,7 +837,7 @@ dependencies {
 
   testImplementation "net.serenity-bdd:serenity-cucumber:${serenityVersion}"
   testImplementation "net.serenity-bdd:serenity-ensure:${serenityVersion}"
-  testImplementation 'com.azure:azure-messaging-servicebus:7.17.18'
+  testImplementation 'com.azure:azure-messaging-servicebus:7.17.19'
 
   implementation('uk.gov.hmcts:opal-logging-service-integration-lib:0.0.10') {
     exclude group: 'com.microsoft.azure', module: 'applicationinsights-spring-boot-starter'

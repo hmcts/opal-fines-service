@@ -279,11 +279,11 @@ Nightly stages:
 
 | Stage | Environment | Controlled by | Gradle task flow |
 |-------|-------------|---------------|------------------|
-| `Integration Tests` | `staging` | `Integration` | `Integration` or `integrationTestWithZephyrExecution` |
-| `Functional Tests` | `staging` | `Functional` | `functional` or `functionalWithZephyrExecution` |
-| `Smoke Tests` | `staging` | `Smoke` | `smoke` or `smokeWithZephyrExecution` |
-| `Demo R1A Functional Tests` | `demo` | `RunR1AOnly` | `functionalOpalTags` or `functionalOpalTagsWithZephyrExecution` with the R1A manual-account-creation tag filter |
-| `R1AOff Demo Functional Tests` | `demo` | `RunR1AOff` | `functionalOpalTags` or `functionalOpalTagsWithZephyrExecution` with `@R1AOff and not @Ignore` |
+| `Integration Tests` | `staging` | `Integration` | `integration`, then `createJiraExecutionFromIntegrationReport` if Zephyr is enabled |
+| `Functional Tests` | `staging` | `Functional` | `clearReports functionalOpal`, then `createJiraExecutionFromFunctionalReport -PzephyrFunctionalStage=functional` if Zephyr is enabled |
+| `Smoke Tests` | `staging` | `Smoke` | `clearReports smokeOpal`, then `createJiraExecutionFromFunctionalReport -PzephyrFunctionalStage=smoke` if Zephyr is enabled |
+| `Demo R1A Functional Tests` | `demo` | `RunR1AOnly` | `clearReports functionalOpalTags` with the R1A manual-account-creation tag filter, then `createJiraExecutionFromFunctionalReport -PzephyrFunctionalStage=runR1AOnly` if Zephyr is enabled |
+| `R1AOff Demo Functional Tests` | `demo` | `RunR1AOff` | `clearReports functionalOpalTags` with `@R1AOff and not @Ignore`, then `createJiraExecutionFromFunctionalReport -PzephyrFunctionalStage=runR1AOff` if Zephyr is enabled |
 
 The demo R1A stage is intentionally limited to manual-account-creation scenarios and
 excludes R1A-off, R1B, R1B-off, R1C, and R1C-off style release-tagged scenarios. It
@@ -298,7 +298,7 @@ Nightly reports and artifacts:
 - Demo R1AOff publishes `Serenity Functional Test Report (Demo R1AOff)`.
 - Archived output folders are `integration-output`, `functional-output`, `functional-output-r1a-only-demo`, `functional-output-r1a-off-demo`, and `smoke-output`.
 - Functional and smoke outputs are published from `*/report` with Zephyr payloads under `*/zephyr`. Integration publishes `integration-output/report` and archives `integration-output/zephyr` when the integration Zephyr JSON is generated.
-- When `ZephyrExecution=true` or the nightly run is on Friday, integration, functional, smoke, demo R1A, and demo R1AOff all use their Zephyr-enabled Gradle flows.
+- When `ZephyrExecution=true` or the nightly run is on Friday, the nightly pipeline runs the selected test stage first, publishes its artifacts, then invokes the matching generic Zephyr execution task.
 
 Failure handling:
 
@@ -332,37 +332,48 @@ Zephyr tasks require `JIRA_AUTH_TOKEN` to be exported before the upload task run
 
 The create and update tasks process an existing test report; they do not run the tests.
 Run the matching functional or integration suite first if the report is not already present.
+For local tagged runs, make sure the local fines service is already configured with the intended feature-flag state before executing the test command (and LAUNCH_DARKLY_ENABLED=false)
+
+Examples:
+
+```bash
+./gradlew integration
+./gradlew createJiraTicketsFromIntegrationReport
+./gradlew updateJiraTicketsFromIntegrationReport
+./gradlew createJiraExecutionFromIntegrationReport
+
+./gradlew functional
+./gradlew -PzephyrFunctionalStage=functional createJiraTicketsFromFunctionalReport
+./gradlew -PzephyrFunctionalStage=functional updateJiraTicketsFromFunctionalReport
+./gradlew -PzephyrFunctionalStage=functional createJiraExecutionFromFunctionalReport
+
+./gradlew smoke
+./gradlew -PzephyrFunctionalStage=smoke createJiraTicketsFromFunctionalReport
+./gradlew -PzephyrFunctionalStage=smoke updateJiraTicketsFromFunctionalReport
+./gradlew -PzephyrFunctionalStage=smoke createJiraExecutionFromFunctionalReport
+
+optional:
+export TEST_URL=https://opal-fines-service.demo.platform.hmcts.net
+export OPAL_USER_SERVICE_API_URL=https://opal-user-service.demo.platform.hmcts.net
+export OPAL_LOGGING_SERVICE_API_URL=https://opal-logging-service.demo.platform.hmcts.net
+
+TAGS='(@JIRA-LABEL:manual-account-creation or (@Opal and @FeatureToggle and @R1BOff)) and not @Smoke and not @Ignore and not (@R1AOff or @R1B or @R1COff or @R1C or @R1CFinance or @R1CWriteOff or @R1CWriteOffOff or @R1CEnforcementOperationalReporting or @R1CEnforcementOperationalReportingOff or @R1CAdministration)' ./gradlew functionalOpalTags
+./gradlew -PzephyrFunctionalStage=runR1AOnly createJiraExecutionFromFunctionalReport
+
+TAGS='@R1AOff and not @Ignore' ./gradlew functionalOpalTags
+./gradlew -PzephyrFunctionalStage=runR1AOff createJiraTicketsFromFunctionalReport
+./gradlew -PzephyrFunctionalStage=runR1AOff updateJiraTicketsFromFunctionalReport
+./gradlew -PzephyrFunctionalStage=runR1AOff createJiraExecutionFromFunctionalReport
+```
 
 | Task | Purpose |
 | --- | --- |
-| `functionalWithZephyrExecution` | Runs the default Opal functional suite, creates an Opal Cucumber report copy, and creates the Opal Zephyr execution. |
-| `functionalWithTagsWithZephyrExecution` | Runs the default Opal functional suite and the tagged Opal functional suite selected by `TAGS` or `-Ptags`, then creates Zephyr executions for both reports. |
-| `functionalOpalWithZephyrExecution` | Runs only `functionalOpal`, copies its Cucumber report to `functional-output/zephyr/cucumber-opal.json`, and creates the Opal Zephyr execution. |
-| `functionalOpalTagsWithZephyrExecution` | Runs only `functionalOpalTags`, copies its Cucumber report to `functional-output-demo/zephyr/cucumber-opal-tags.json`, and creates the tagged Opal Zephyr execution. |
-| `functionalLegacyWithZephyrExecution` | Runs only `functionalLegacy`, copies its Cucumber report to `functional-output/zephyr/cucumber-legacy.json`, and creates the Legacy Zephyr execution. |
-| `smokeWithZephyrExecution` | Runs `smokeOpal`, copies its Cucumber report to `smoke-output/zephyr/cucumber-smoke.json`, and creates the smoke Zephyr execution. |
-
-| `createJiraTicketsFromCucumberReport` | Creates and links Jira test tickets from `target/cucumber.json`. |
-| `updateJiraTicketsFromCucumberReport` | Updates Jira test tickets from `target/cucumber.json`. |
-| `createJiraTicketsFromOpalCucumberReport` | Creates and links Jira test tickets from `functional-output/zephyr/cucumber-opal.json`. |
-| `updateJiraTicketsFromOpalCucumberReport` | Updates Jira test tickets from `functional-output/zephyr/cucumber-opal.json`. |
-| `createJiraTicketsFromOpalTagsCucumberReport` | Creates and links Jira test tickets from `functional-output-demo/zephyr/cucumber-opal-tags.json`. |
-| `updateJiraTicketsFromOpalTagsCucumberReport` | Updates Jira test tickets from `functional-output-demo/zephyr/cucumber-opal-tags.json`. |
-| `createJiraTicketsFromLegacyCucumberReport` | Creates and links Jira test tickets from `functional-output/zephyr/cucumber-legacy.json`. |
-| `updateJiraTicketsFromLegacyCucumberReport` | Updates Jira test tickets from `functional-output/zephyr/cucumber-legacy.json`. |
-| `createJiraTicketsFromSmokeCucumberReport` | Creates and links Jira test tickets from `smoke-output/zephyr/cucumber-smoke.json`. |
-| `updateJiraTicketsFromSmokeCucumberReport` | Updates Jira test tickets from `smoke-output/zephyr/cucumber-smoke.json`. |
-
-| `createJiraExecutionFromCucumberReport` | Creates a Zephyr execution from `target/cucumber.json`. |
-| `createJiraExecutionFromOpalCucumberReport` | Creates a Zephyr execution from `functional-output/zephyr/cucumber-opal.json`. |
-| `createJiraExecutionFromOpalTagsCucumberReport` | Creates a Zephyr execution from `functional-output-demo/zephyr/cucumber-opal-tags.json`. |
-| `createJiraExecutionFromLegacyCucumberReport` | Creates a Zephyr execution from `functional-output/zephyr/cucumber-legacy.json`. |
-| `createJiraExecutionFromSmokeCucumberReport` | Creates a Zephyr execution from `smoke-output/zephyr/cucumber-smoke.json`. |
-
-| `integrationTestWithZephyrExecution` | Runs `integration`, then creates a Zephyr execution from the generated JUnit5 integration report. |
-| `createJiraTicketsFromJUnit5ReportIntegrationTest` | Creates and links Jira test tickets from `integration-output/zephyr/Junit5Report-IntegrationTest.json`. |
-| `updateJiraTicketsFromJUnit5ReportIntegrationTest` | Updates Jira test tickets from `integration-output/zephyr/Junit5Report-IntegrationTest.json`. |
-| `createJiraExecutionFromJUnit5ReportIntegrationTest` | Creates a Zephyr execution from `integration-output/zephyr/Junit5Report-IntegrationTest.json`. |
+| `createJiraTicketsFromFunctionalReport` | Creates and links Jira test tickets from the selected functional-family Zephyr report. Requires `-PzephyrFunctionalStage=functional|smoke|runR1AOnly|runR1AOff`. |
+| `updateJiraTicketsFromFunctionalReport` | Updates Jira test tickets from the selected functional-family Zephyr report. Requires `-PzephyrFunctionalStage=functional|smoke|runR1AOnly|runR1AOff`. |
+| `createJiraExecutionFromFunctionalReport` | Creates a Zephyr execution from the selected functional-family Zephyr report. Requires `-PzephyrFunctionalStage=functional|smoke|runR1AOnly|runR1AOff`. |
+| `createJiraTicketsFromIntegrationReport` | Creates and links Jira test tickets from `integration-output/zephyr/Junit5Report-IntegrationTest.json`. |
+| `updateJiraTicketsFromIntegrationReport` | Updates Jira test tickets from `integration-output/zephyr/Junit5Report-IntegrationTest.json`. |
+| `createJiraExecutionFromIntegrationReport` | Creates a Zephyr execution from `integration-output/zephyr/Junit5Report-IntegrationTest.json`. |
 
 ## Manual api testing (Postman)
 

@@ -91,3 +91,34 @@ Feature: Report Instances
     When I request report instance with id -1
     Then the request is rejected as not found
     And the latest get report instance error response matches the standard problem detail contract for status 404
+
+   #    GET :/report-instances/{id}/content Test scenarios
+
+  @JIRA-STORY:PO-2253 @JIRA-EPIC:PO-2248
+  Scenario: Get report instance content with an unknown id is rejected as not found
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+    When I request report instance content with id -1
+    Then the request is rejected as not found
+    And the latest get report instance content error response matches the standard problem detail contract for status 404
+
+  @JIRA-STORY:PO-2253 @JIRA-EPIC:PO-2248
+  Scenario: Get report instance content without a token is rejected by the security layer
+    When I call GET on the report instance content api for id 1 with "no token"
+    Then the request is rejected with status 401
+    And the latest get report instance content response is an unauthorized response
+
+  @JIRA-STORY:PO-2253 @JIRA-EPIC:PO-2248
+  Scenario: Get report instance content with an invalid token is rejected with standard error responses
+    When I call GET on the report instance content api for id 1 with "invalid token"
+    Then the request is rejected with status 401
+    And the latest get report instance content error response matches the standard problem detail contract for status 401
+
+  @JIRA-STORY:PO-2253 @JIRA-EPIC:PO-2248
+  Scenario: Get report instance content without permission in the requested business unit is rejected as forbidden
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+    When I create a report instance with report id "operational_report_enforcement" for business unit 73
+    Then I store the created report instance id
+    Given I am testing as the "opal-test-2@dev.platform.hmcts.net" user
+    When I request the created report instance content
+    Then the request is rejected as forbidden
+    And the latest get report instance content error response matches the standard problem detail contract for status 403

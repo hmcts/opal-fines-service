@@ -4,4 +4,6 @@ public interface ReportBlobStore {
 
     String storeReport(String jsonReport);
 
+    String getReport(String reportId);
+
 }

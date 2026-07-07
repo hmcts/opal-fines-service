@@ -70,6 +70,7 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
     @DisplayName("PO-2131 INT.05 - Opal repeated request returns consistent body and ETag")
     @JiraStory("PO-2131")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-8779")
     void getHeaderSummary_repeatedRequestReturnsConsistentResponse() throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions((short) 77, SEARCH_AND_VIEW_ACCOUNTS);
@@ -97,6 +98,7 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
     @DisplayName("PO-2131 INT.06 - Opal permission in matching business unit returns 200")
     @JiraStory("PO-2131")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-8778")
     void getHeaderSummary_permissionInMatchingBusinessUnitReturns200() throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions((short) 77, SEARCH_AND_VIEW_ACCOUNTS);
@@ -113,6 +115,7 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
     @DisplayName("PO-2131 INT.07 - Opal valid token without permission returns 403")
     @JiraStory("PO-2131")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-8777")
     void getHeaderSummary_withoutPermissionReturns403() throws Exception {
         userStateStub.setupWithNoPermissions();
 
@@ -127,6 +130,7 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
     @DisplayName("PO-2131 INT.07 - Opal permission in non-matching business unit returns 403")
     @JiraStory("PO-2131")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-8782")
     void getHeaderSummary_permissionInDifferentBusinessUnitReturns403() throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions((short) 10, SEARCH_AND_VIEW_ACCOUNTS);
@@ -174,6 +178,7 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
     @DisplayName("PO-2131 INT.08 - Opal missing token returns 403")
     @JiraStory("PO-2131")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-8780")
     void getHeaderSummary_missingTokenReturnsForbidden() throws Exception {
         userStateStub.setupWithNoPermissions();
 
@@ -190,6 +195,7 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
     @DisplayName("PO-2131 INT.08 - Opal invalid token returns 403")
     @JiraStory("PO-2131")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-8781")
     void getHeaderSummary_invalidTokenReturnsForbidden() throws Exception {
         mockMvc.perform(get(URL, 10770000000041L)
                 .accept(MediaType.APPLICATION_JSON)
