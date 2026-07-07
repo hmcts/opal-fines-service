@@ -23,7 +23,7 @@ public interface DefendantAccountServiceInterface {
     DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId);
 
     default GetDefendantAccountConsolidatedAccountsResult getConsolidatedAccounts(Long defendantAccountId) {
-        throw new UnsupportedOperationException("GetDefendantAccountConsolidatedAccounts is only supported in OPAL");
+        throw new UnsupportedOperationException("GetDefendantAccountConsolidatedAccounts is not supported");
     }
 
     DefendantAccountHistoryResponse getHistory(Long defendantAccountId, DefendantAccountHistoryFilter filter);

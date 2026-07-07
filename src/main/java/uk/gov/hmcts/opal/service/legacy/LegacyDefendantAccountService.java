@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountBuilders.toConsolidatedAccountsResponse;
 import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountBuilders.toEnforcementStatusResponse;
 
 import java.math.BigDecimal;
@@ -23,6 +24,7 @@ import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -68,6 +70,7 @@ import uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountSearchCriteria;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountConsolidatedAccountsResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyRequest;
@@ -131,6 +134,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public static final String ADD_PAYMENT_TERMS = "LIBRA.add_payment_terms";
     public static final String GET_DEFENDANT_AT_A_GLANCE = "LIBRA.getDefendantAtAGlance";
     public static final String ADD_ENFORCEMENT = "LIBRA.addEnforcement";
+    public static final String GET_CONSOLIDATED_ACCOUNTS = "LIBRA.get_consolidated_accounts";
 
     public static final String GET_DEFENDANT_ACCOUNT_PARTY = "LIBRA.get_defendant_account_party";
     public static final String ADD_DEFENDANT_ACCOUNT_PARTY = "LIBRA.add_defendant_account_party";
@@ -169,6 +173,28 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         } catch (RuntimeException e) {
             log.error(":getHeaderSummary: problem with call to Legacy: {}", e.getClass().getName());
             log.error(":getHeaderSummary:", e);
+            throw e;
+        }
+    }
+
+    @Override
+    public GetDefendantAccountConsolidatedAccountsResult getConsolidatedAccounts(Long defendantAccountId) {
+        log.debug(":getConsolidatedAccounts: id: {}", defendantAccountId);
+
+        try {
+            Response<LegacyGetDefendantAccountConsolidatedAccountsResponse> response = gatewayService.postToGateway(
+                GET_CONSOLIDATED_ACCOUNTS,
+                LegacyGetDefendantAccountConsolidatedAccountsResponse.class,
+                createGetDefendantAccountRequest(defendantAccountId.toString()),
+                null
+            );
+
+            checkResponseForError(response, "getConsolidatedAccounts");
+
+            return toConsolidatedAccountsResponse(response.responseEntity);
+        } catch (RuntimeException e) {
+            log.error(":getConsolidatedAccounts: problem with call to Legacy: {}", e.getClass().getName());
+            log.error(":getConsolidatedAccounts:", e);
             throw e;
         }
     }

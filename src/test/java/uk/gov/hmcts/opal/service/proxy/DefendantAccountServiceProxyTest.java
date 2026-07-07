@@ -125,8 +125,23 @@ class DefendantAccountServiceProxyTest extends ProxyTestsBase {
     }
 
     @Test
-    void shouldDelegateConsolidatedAccountsToOpalServiceBecauseEndpointIsOpalOnly() {
+    void shouldDelegateConsolidatedAccountsToLegacyServiceWhenInLegacyMode() {
         setLegacyMode(true);
+        GetDefendantAccountConsolidatedAccountsResult expected =
+            GetDefendantAccountConsolidatedAccountsResult.builder().build();
+
+        when(legacyService.getConsolidatedAccounts(1L)).thenReturn(expected);
+
+        GetDefendantAccountConsolidatedAccountsResult result = serviceProxy.getConsolidatedAccounts(1L);
+
+        verify(legacyService).getConsolidatedAccounts(1L);
+        verifyNoInteractions(opalService);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void shouldDelegateConsolidatedAccountsToOpalServiceWhenInOpalMode() {
+        setLegacyMode(false);
         GetDefendantAccountConsolidatedAccountsResult expected =
             GetDefendantAccountConsolidatedAccountsResult.builder().build();
 

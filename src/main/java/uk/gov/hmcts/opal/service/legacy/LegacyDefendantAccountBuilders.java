@@ -2,9 +2,15 @@ package uk.gov.hmcts.opal.service.legacy;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.dto.legacy.LegacyConsolidatedAccount;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountConsolidatedAccountsResponse;
+import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse.EnforcementAction;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse.EnforcementOverview;
@@ -52,6 +58,42 @@ public class LegacyDefendantAccountBuilders {
             .lastEnforcementAction(buildEnforcementActionDefendantAccount(legacy.getLastEnforcementAction()))
             .nextEnforcementActionData(null) // Not returned from Legacy
             .version(new BigInteger(legacy.getVersion()))
+            .build();
+    }
+
+    static GetDefendantAccountConsolidatedAccountsResult toConsolidatedAccountsResponse(
+        LegacyGetDefendantAccountConsolidatedAccountsResponse legacy) {
+
+        return Optional.ofNullable(legacy)
+            .map(response -> GetDefendantAccountConsolidatedAccountsResult.builder()
+                .version(BigInteger.valueOf(response.getVersion()))
+                .payload(toConsolidatedAccounts(response.getConsolidatedAccounts()))
+                .build())
+            .orElse(null);
+    }
+
+    private static List<ConsolidatedAccountDefendantAccount> toConsolidatedAccounts(
+        List<LegacyConsolidatedAccount> consolidatedAccounts) {
+
+        return Optional.ofNullable(consolidatedAccounts)
+            .orElse(Collections.emptyList())
+            .stream()
+            .filter(account -> account != null)
+            .map(LegacyDefendantAccountBuilders::toConsolidatedAccount)
+            .sorted(Comparator.comparing(ConsolidatedAccountDefendantAccount::getAccountId,
+                                         Comparator.nullsLast(Comparator.naturalOrder())))
+            .toList();
+    }
+
+    private static ConsolidatedAccountDefendantAccount toConsolidatedAccount(LegacyConsolidatedAccount account) {
+        return ConsolidatedAccountDefendantAccount.builder()
+            .accountId(account.getAccountId())
+            .accountNumber(account.getAccountNumber())
+            .firstName(account.getFirstName())
+            .lastName(account.getLastName())
+            .dateImposed(account.getDateImposed())
+            .imposedBy(account.getImposedBy())
+            .reference(account.getReference())
             .build();
     }
 
