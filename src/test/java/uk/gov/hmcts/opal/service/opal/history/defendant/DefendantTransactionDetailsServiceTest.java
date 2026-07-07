@@ -7,9 +7,9 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
+import uk.gov.hmcts.opal.entity.PaymentMethod;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
-import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionPaymentMethod;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionStatus;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionType;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionWriteOffCode;
@@ -108,7 +108,7 @@ class DefendantTransactionDetailsServiceTest {
     @Test
     void generateTransactionDetails_paymnt_withTextAndReference_returnsAllParts() {
         DefendantTransactionEntity transaction = transaction(DefendantTransactionType.PAYMNT);
-        transaction.setPaymentMethod(DefendantTransactionPaymentMethod.CT);
+        transaction.setPaymentMethod(PaymentMethod.CT);
         transaction.setText("Payment by credit transfer");
         transaction.setPaymentReference("PR1009");
 
@@ -119,7 +119,7 @@ class DefendantTransactionDetailsServiceTest {
     @Test
     void generateTransactionDetails_paymnt_withBlankTextAndNoReference_omitsOptionalParts() {
         DefendantTransactionEntity transaction = transaction(DefendantTransactionType.PAYMNT);
-        transaction.setPaymentMethod(DefendantTransactionPaymentMethod.CQ);
+        transaction.setPaymentMethod(PaymentMethod.CQ);
         transaction.setText(" ");
         transaction.setPaymentReference(null);
 
