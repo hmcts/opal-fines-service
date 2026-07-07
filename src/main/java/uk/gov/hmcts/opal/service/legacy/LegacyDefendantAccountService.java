@@ -15,7 +15,9 @@ import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
@@ -100,6 +102,7 @@ import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
@@ -192,6 +195,11 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             checkResponseForError(response, "getConsolidatedAccounts");
 
             return toConsolidatedAccountsResponse(response.responseEntity);
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode().isSameCodeAs(HttpStatus.NOT_FOUND)) {
+                throw new DefendantAccountNotFoundException(defendantAccountId);
+            }
+            throw e;
         } catch (RuntimeException e) {
             log.error(":getConsolidatedAccounts: problem with call to Legacy: {}", e.getClass().getName());
             log.error(":getConsolidatedAccounts:", e);
