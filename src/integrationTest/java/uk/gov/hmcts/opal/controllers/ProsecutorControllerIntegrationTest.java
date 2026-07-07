@@ -1,5 +1,8 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.clearInvocations;
+import static uk.gov.hmcts.opal.support.SpyInvocationSupport.countInvocationsByMethodName;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,6 +13,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.repository.ProsecutorRepository;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -32,6 +36,9 @@ class ProsecutorControllerIntegrationTest extends AbstractIntegrationTest {
 
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
+
+    @MockitoSpyBean
+    private ProsecutorRepository prosecutorRepository;
 
     @Test
     @DisplayName("Get Prosecutor By ID [@PO-1787]")
@@ -101,6 +108,31 @@ class ProsecutorControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.address_line_1").value(expected))
             .andExpect(jsonPath("$.address_line_2").value("Boundaryville"))
             .andExpect(jsonPath("$.address_line_3").value("Boundaryton"));
+    }
+
+    @Test
+    @DisplayName("Get Prosecutors as Reference Data uses cache on repeated identical request")
+    @JiraStory("PO-7248")
+    @JiraEpic("PO-8248")
+    void testGetProsecutorsRefData_usesCacheOnRepeatedRequest() throws Exception {
+        clearInvocations(prosecutorRepository);
+
+        String firstBody = mockMvc.perform(get(URL_BASE)
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        String secondBody = mockMvc.perform(get(URL_BASE)
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        assertEquals(firstBody, secondBody);
+        assertEquals(1, countInvocationsByMethodName(prosecutorRepository, "findBy"));
     }
 
 }

@@ -1,6 +1,9 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.hamcrest.Matchers.hasItem;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.clearInvocations;
+import static uk.gov.hmcts.opal.support.SpyInvocationSupport.countInvocationsByMethodName;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +16,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.repository.MajorCreditorRepository;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -39,6 +43,9 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
 
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
+
+    @MockitoSpyBean
+    private MajorCreditorRepository majorCreditorRepository;
 
     @Test
     @DisplayName("Get major creditor by ID [@PO-349, PO-304]")
@@ -138,6 +145,31 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
             .andReturn();
 
         jsonSchemaValidationService.validateOrError(body, GET_MAJOR_CREDS_REF_DATA_RESPONSE);
+    }
+
+    @Test
+    @DisplayName("Major creditor reference data uses cache on repeated identical request")
+    @JiraStory("PO-7248")
+    @JiraEpic("PO-8248")
+    void testGetMajorCreditorsRefData_usesCacheOnRepeatedRequest() throws Exception {
+        clearInvocations(majorCreditorRepository);
+
+        String firstBody = mockMvc.perform(get(URL_BASE)
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        String secondBody = mockMvc.perform(get(URL_BASE)
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        assertEquals(firstBody, secondBody);
+        assertEquals(1, countInvocationsByMethodName(majorCreditorRepository, "findBy"));
     }
 
 }

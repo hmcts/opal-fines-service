@@ -11,6 +11,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.repository.OffenceRepository;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -21,12 +22,15 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.clearInvocations;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.support.SpyInvocationSupport.countInvocationsByMethodName;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
@@ -43,6 +47,9 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
 
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
+
+    @MockitoSpyBean
+    private OffenceRepository offenceRepository;
 
     @Test
     @DisplayName("Get offence by ID [@PO-420, PO-272]")
@@ -332,6 +339,56 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
 
         jsonSchemaValidationService.validateOrError(body, POST_OFFENCES_SEARCH_RESPONSE);
 
+    }
+
+    @Test
+    @DisplayName("Get offence reference data uses cache on repeated identical request")
+    @JiraStory("PO-7248")
+    @JiraEpic("PO-8248")
+    void testGetOffenceReferenceData_usesCacheOnRepeatedRequest() throws Exception {
+        clearInvocations(offenceRepository);
+
+        String firstBody = mockMvc.perform(get(URL_BASE).param("cjs_code", "CW96023"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        String secondBody = mockMvc.perform(get(URL_BASE).param("cjs_code", "CW96023"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        assertEquals(firstBody, secondBody);
+        assertEquals(1, countInvocationsByMethodName(offenceRepository, "findBy"));
+    }
+
+    @Test
+    @DisplayName("Post offence search uses cache on repeated identical request")
+    @JiraStory("PO-7248")
+    @JiraEpic("PO-8248")
+    void testPostOffencesSearch_usesCacheOnRepeatedRequest() throws Exception {
+        clearInvocations(offenceRepository);
+
+        String firstBody = mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"cjs_code\":\"IC01001\"}"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        String secondBody = mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"cjs_code\":\"IC01001\"}"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        assertEquals(firstBody, secondBody);
+        assertEquals(1, countInvocationsByMethodName(offenceRepository, "findBy"));
     }
 
 }

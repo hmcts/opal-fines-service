@@ -1,11 +1,14 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.clearInvocations;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.support.SpyInvocationSupport.countInvocationsByMethodName;
 
 import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.core.IsNull;
@@ -19,6 +22,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.repository.CourtLiteRepository;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -39,6 +43,9 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
 
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
+
+    @MockitoSpyBean
+    private CourtLiteRepository courtLiteRepository;
 
     @Test
     @DisplayName("Get court by ID - When court does exist [@PO-272, @PO-424]")
@@ -161,5 +168,32 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[0].business_unit_id").value(99));
 
         jsonSchemaValidationService.validateOrError(body, GET_COURTS_REF_DATA_RESPONSE);
+    }
+
+    @Test
+    @DisplayName("Get court reference data uses cache on repeated identical request")
+    @JiraStory("PO-7248")
+    @JiraEpic("PO-8248")
+    void testGetCourtRefData_usesCacheOnRepeatedRequest() throws Exception {
+        clearInvocations(courtLiteRepository);
+
+        String firstBody = mockMvc.perform(get(URL_BASE)
+                .header("authorization", userStateStub.getBearerToken())
+                .param("business_unit", "99"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        String secondBody = mockMvc.perform(get(URL_BASE)
+                .header("authorization", userStateStub.getBearerToken())
+                .param("business_unit", "99"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        assertEquals(firstBody, secondBody);
+        assertEquals(1, countInvocationsByMethodName(courtLiteRepository, "findBy"));
     }
 }
