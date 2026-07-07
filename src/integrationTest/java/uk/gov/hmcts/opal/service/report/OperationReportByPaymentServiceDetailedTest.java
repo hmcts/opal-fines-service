@@ -37,7 +37,7 @@ import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
-import uk.gov.hmcts.opal.service.report.operation.OperationDetailedReport;
+import uk.gov.hmcts.opal.service.report.operation.OperationByPaymentDetailedReport;
 import uk.gov.hmcts.opal.service.report.operation.OperationReportByPaymentService;
 import uk.gov.hmcts.opal.util.AgeUtil;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -71,7 +71,7 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
             ));
     }
 
-    private static void verifyMetadata(OperationDetailedReport result) {
+    private static void verifyMetadata(OperationByPaymentDetailedReport result) {
         ReportMetaData reportMetadata = result.getReportMetaData();
         long numberOfRecords = result.getNumberOfRecords();
         assertThat(numberOfRecords).isEqualTo(result.getDetailedReport().getAccountTransactionReports().size());
@@ -96,8 +96,8 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
             }
             """);
         //Act
-        OperationDetailedReport result =
-            (OperationDetailedReport) service.generateReportData(reportInstance);
+        OperationByPaymentDetailedReport result =
+            (OperationByPaymentDetailedReport) service.generateReportData(reportInstance);
         //Assert
         List<DetailedAccountReportDto> reports =
             result.getDetailedReport().getAccountTransactionReports();
@@ -287,8 +287,8 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
             }
             """);
         //Act
-        OperationDetailedReport result =
-            (OperationDetailedReport) service.generateReportData(reportInstance);
+        OperationByPaymentDetailedReport result =
+            (OperationByPaymentDetailedReport) service.generateReportData(reportInstance);
         //Assert
         List<DetailedAccountReportDto> reports =
             result.getDetailedReport().getAccountTransactionReports();
@@ -320,8 +320,8 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
             }
             """);
         //Act
-        OperationDetailedReport result =
-            (OperationDetailedReport) service.generateReportData(reportInstance);
+        OperationByPaymentDetailedReport result =
+            (OperationByPaymentDetailedReport) service.generateReportData(reportInstance);
         //Assert
         List<DetailedAccountReportDto> reports =
             result.getDetailedReport().getAccountTransactionReports();
@@ -353,8 +353,8 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
             }
             """);
         //Act
-        OperationDetailedReport result =
-            (OperationDetailedReport) service.generateReportData(reportInstance);
+        OperationByPaymentDetailedReport result =
+            (OperationByPaymentDetailedReport) service.generateReportData(reportInstance);
         //Assert
         List<DetailedAccountReportDto> reports =
             result.getDetailedReport().getAccountTransactionReports();
@@ -385,8 +385,8 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
             }
             """);
         //Act
-        OperationDetailedReport result =
-            (OperationDetailedReport) service.generateReportData(reportInstance);
+        OperationByPaymentDetailedReport result =
+            (OperationByPaymentDetailedReport) service.generateReportData(reportInstance);
         //Assert
         List<DetailedAccountReportDto> reports =
             result.getDetailedReport().getAccountTransactionReports();
@@ -433,8 +433,8 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
             }
             """.formatted(collectionOrderChoice));
         // Act
-        OperationDetailedReport result =
-            (OperationDetailedReport) service.generateReportData(reportInstance);
+        OperationByPaymentDetailedReport result =
+            (OperationByPaymentDetailedReport) service.generateReportData(reportInstance);
         // Assert
         List<DetailedAccountReportDto> reports =
             result.getDetailedReport().getAccountTransactionReports();
@@ -463,8 +463,8 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
             }
             """);
         // Act
-        OperationDetailedReport result =
-            (OperationDetailedReport) service.generateReportData(reportInstance);
+        OperationByPaymentDetailedReport result =
+            (OperationByPaymentDetailedReport) service.generateReportData(reportInstance);
 
         // Assert
         List<DetailedAccountReportDto> reports =
@@ -502,8 +502,8 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
             }
             """);
         // Act
-        OperationDetailedReport result =
-            (OperationDetailedReport) service.generateReportData(reportInstance);
+        OperationByPaymentDetailedReport result =
+            (OperationByPaymentDetailedReport) service.generateReportData(reportInstance);
 
         // Assert
         List<DetailedAccountReportDto> accounts =
@@ -541,8 +541,8 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
             }
             """);
         //Act
-        OperationDetailedReport result =
-            (OperationDetailedReport) service.generateReportData(reportInstance);
+        OperationByPaymentDetailedReport result =
+            (OperationByPaymentDetailedReport) service.generateReportData(reportInstance);
         //Assert
         List<DetailedAccountReportDto> reports =
             result.getDetailedReport().getAccountTransactionReports();
@@ -586,8 +586,8 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
         paymentTermsRepository.saveAndFlush(paymentTermsForSeededData);
 
         //Act
-        OperationDetailedReport result =
-            (OperationDetailedReport) service.generateReportData(reportInstance);
+        OperationByPaymentDetailedReport result =
+            (OperationByPaymentDetailedReport) service.generateReportData(reportInstance);
         //Assert
         List<DetailedAccountReportDto> reports =
             result.getDetailedReport().getAccountTransactionReports();
@@ -628,8 +628,8 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
             }
             """);
         //Act
-        OperationDetailedReport result =
-            (OperationDetailedReport) service.generateReportData(reportInstance);
+        OperationByPaymentDetailedReport result =
+            (OperationByPaymentDetailedReport) service.generateReportData(reportInstance);
         //Assert
         List<DetailedAccountReportDto> reports =
             result.getDetailedReport().getAccountTransactionReports();
@@ -659,8 +659,8 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
         LocalDate sinceDate = LocalDate.parse("2026-05-14");
 
         // Act
-        OperationDetailedReport result =
-            (OperationDetailedReport) service.generateReportData(reportInstance);
+        OperationByPaymentDetailedReport result =
+            (OperationByPaymentDetailedReport) service.generateReportData(reportInstance);
 
         // Assert
         List<DetailedAccountReportDto> reports =
@@ -718,8 +718,8 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
             """);
         LocalDate sinceDate = LocalDate.parse("2026-05-14");
         // Act
-        OperationDetailedReport result =
-            (OperationDetailedReport) service.generateReportData(reportInstance);
+        OperationByPaymentDetailedReport result =
+            (OperationByPaymentDetailedReport) service.generateReportData(reportInstance);
         // Assert
         List<DetailedAccountReportDto> reports =
             result.getDetailedReport().getAccountTransactionReports();
@@ -760,8 +760,8 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
             }
             """);
         // Act
-        OperationDetailedReport result =
-            (OperationDetailedReport) service.generateReportData(reportInstance);
+        OperationByPaymentDetailedReport result =
+            (OperationByPaymentDetailedReport) service.generateReportData(reportInstance);
         // Assert
         //Seeded data contains AccountNo noPaymentsAfterEnf with payment before last enforcement and no payments after
         List<DetailedAccountReportDto> reports = result.getDetailedReport().getAccountTransactionReports();
@@ -784,8 +784,8 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
               "businessUnitIds": [77, 78]
             }
             """);
-        OperationDetailedReport result =
-            (OperationDetailedReport) service.generateReportData(reportInstance);
+        OperationByPaymentDetailedReport result =
+            (OperationByPaymentDetailedReport) service.generateReportData(reportInstance);
 
         List<DetailedAccountReportDto> reports = result.getDetailedReport().getAccountTransactionReports();
         Assertions.assertThat(reports)
@@ -808,8 +808,8 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
               "businessUnitIds": [77, 78]
             }
             """);
-        OperationDetailedReport result =
-            (OperationDetailedReport) service.generateReportData(reportInstance);
+        OperationByPaymentDetailedReport result =
+            (OperationByPaymentDetailedReport) service.generateReportData(reportInstance);
 
         List<DetailedAccountReportDto> reports = result.getDetailedReport().getAccountTransactionReports();
         Assertions.assertThat(reports)
@@ -834,8 +834,8 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
               "upperNameRange": "l"
             }
             """);
-        OperationDetailedReport result =
-            (OperationDetailedReport) service.generateReportData(reportInstance);
+        OperationByPaymentDetailedReport result =
+            (OperationByPaymentDetailedReport) service.generateReportData(reportInstance);
 
         List<DetailedAccountReportDto> reports = result.getDetailedReport().getAccountTransactionReports();
         Assertions.assertThat(reports)
@@ -859,8 +859,8 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
               "businessUnitIds": [77, 78]
             }
             """);
-        OperationDetailedReport result =
-            (OperationDetailedReport) service.generateReportData(reportInstance);
+        OperationByPaymentDetailedReport result =
+            (OperationByPaymentDetailedReport) service.generateReportData(reportInstance);
 
         List<DetailedAccountReportDto> reports = result.getDetailedReport().getAccountTransactionReports();
         Assertions.assertThat(reports)
@@ -888,8 +888,8 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
               "upperNameRange": "l"
             }
             """);
-        OperationDetailedReport result =
-            (OperationDetailedReport) service.generateReportData(reportInstance);
+        OperationByPaymentDetailedReport result =
+            (OperationByPaymentDetailedReport) service.generateReportData(reportInstance);
 
         List<DetailedAccountReportDto> reports = result.getDetailedReport().getAccountTransactionReports();
         Assertions.assertThat(reports)
@@ -915,8 +915,8 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
               "businessUnitIds": [77, 78]
             }
             """);
-        OperationDetailedReport result =
-            (OperationDetailedReport) service.generateReportData(reportInstance);
+        OperationByPaymentDetailedReport result =
+            (OperationByPaymentDetailedReport) service.generateReportData(reportInstance);
 
         List<DetailedAccountReportDto> reports = result.getDetailedReport().getAccountTransactionReports();
         Assertions.assertThat(reports)

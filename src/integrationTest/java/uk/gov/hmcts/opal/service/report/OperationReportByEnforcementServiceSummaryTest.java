@@ -835,5 +835,3 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
         verifyMetadata(result, transactions);
     }
 }
-
-

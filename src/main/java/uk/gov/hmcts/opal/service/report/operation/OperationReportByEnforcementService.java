@@ -17,7 +17,6 @@ import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
-import uk.gov.hmcts.opal.service.report.operation.mapper.CommonResultMapper;
 import uk.gov.hmcts.opal.service.report.operation.mapper.DetailedResultMapper;
 import uk.gov.hmcts.opal.service.report.operation.mapper.SummaryResultMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
@@ -54,10 +53,6 @@ public class OperationReportByEnforcementService implements ReportInterface<Repo
         validator.validate(filters);
         Specification<DefendantAccountEntity> accountSpec = OperationReportSpecs.accountFiltersSpec(filters);
         List<DefendantAccountEntity> accounts;
-        CommonResultMapper resultMapper =
-            filters.getReportType() == SUMMARY
-                ? summaryResultMapper
-                : detailedResultMapper;
 
         if (isNotFilteringOnEnforcementData(filters)) {
             accounts = defendantAccountRepository.findAll(accountSpec, Sort.by(ACCOUNT_NUMBER));
@@ -73,7 +68,9 @@ public class OperationReportByEnforcementService implements ReportInterface<Repo
                 accountSpec.and(OperationReportSpecs.defendantAccountIdsIn(accountIds)),
                 Sort.by(DefendantAccountEntity_.ACCOUNT_NUMBER));
         }
-        return resultMapper.map(accounts);
+        return filters.getReportType() == SUMMARY
+            ? summaryResultMapper.mapEnforcement(accounts)
+            : detailedResultMapper.mapEnforcement(accounts);
     }
 
     @Override
@@ -81,7 +78,7 @@ public class OperationReportByEnforcementService implements ReportInterface<Repo
         OperationReportByEnforcementFiltersDto filters = readFilters(reportInstance);
         return filters.getReportType() == ReportType.SUMMARY
             ? OperationByEnforcementSummaryReport.class
-            : OperationDetailedReport.class;
+            : OperationByEnforcementDetailedReport.class;
     }
 
     private static boolean isNotFilteringOnEnforcementData(OperationReportByEnforcementFiltersDto filters) {

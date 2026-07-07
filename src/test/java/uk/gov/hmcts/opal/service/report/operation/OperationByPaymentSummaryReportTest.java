@@ -14,34 +14,34 @@ import uk.gov.hmcts.opal.dto.report.operation.SummaryReportDto;
 import uk.gov.hmcts.opal.service.report.ReportMetaData;
 
 @ExtendWith(MockitoExtension.class)
-class OperationByEnforcementSummaryReportTest {
+class OperationByPaymentSummaryReportTest {
 
     @Mock
     ReportMetaData reportMetaData;
 
     @Mock
-    SummaryReportDto enforcementReport;
+    SummaryReportDto paymentReport;
 
     @InjectMocks
-    OperationByEnforcementSummaryReport operationByEnforcementSummaryReport;
+    OperationByPaymentSummaryReport operationByPaymentSummaryReport;
 
     @Test
     void getNumberOfRecords_2records_return2() {
         SummaryOperationReportRowDto row1 = SummaryOperationReportRowDto.builder().build();
         SummaryOperationReportRowDto row2 = SummaryOperationReportRowDto.builder().build();
-        when(enforcementReport.getReportSummaryRows()).thenReturn(List.of(row1, row2));
-        assertThat(operationByEnforcementSummaryReport.getNumberOfRecords()).isEqualTo(2);
+        when(paymentReport.getReportSummaryRows()).thenReturn(List.of(row1, row2));
+        assertThat(operationByPaymentSummaryReport.getNumberOfRecords()).isEqualTo(2);
     }
 
     @Test
     void getNumberOfRecords_noRecords_return0() {
-        when(enforcementReport.getReportSummaryRows()).thenReturn(null);
-        assertThat(operationByEnforcementSummaryReport.getNumberOfRecords()).isEqualTo(0);
+        when(paymentReport.getReportSummaryRows()).thenReturn(null);
+        assertThat(operationByPaymentSummaryReport.getNumberOfRecords()).isEqualTo(0);
     }
 
     @Test
     void getReportMetaData_returnMetadata() {
-        ReportMetaData actual = operationByEnforcementSummaryReport.getReportMetaData();
+        ReportMetaData actual = operationByPaymentSummaryReport.getReportMetaData();
         assertThat(actual).isEqualTo(reportMetaData);
     }
 }

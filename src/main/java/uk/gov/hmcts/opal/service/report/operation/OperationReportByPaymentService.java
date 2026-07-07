@@ -21,7 +21,6 @@ import uk.gov.hmcts.opal.service.report.FileType;
 import uk.gov.hmcts.opal.service.report.ReportDataInterface;
 import uk.gov.hmcts.opal.service.report.ReportId;
 import uk.gov.hmcts.opal.service.report.ReportInterface;
-import uk.gov.hmcts.opal.service.report.operation.mapper.CommonResultMapper;
 import uk.gov.hmcts.opal.service.report.operation.mapper.DetailedResultMapper;
 import uk.gov.hmcts.opal.service.report.operation.mapper.SummaryResultMapper;
 
@@ -44,10 +43,6 @@ public class OperationReportByPaymentService implements ReportInterface<ReportDa
     public ReportDataInterface generateReportData(ReportInstanceEntity reportInstance) {
         OperationReportByPaymentFiltersDto filters = readFilters(reportInstance);
         validator.validate(filters);
-        CommonResultMapper resultMapper =
-            filters.getReportType() == SUMMARY
-                ? summaryResultMapper
-                : detailedResultMapper;
         List<DefendantAccountEntity> baseAccounts = defendantAccountRepository.findAll(
             OperationReportSpecs.accountFiltersSpec(filters),
             Sort.by(ACCOUNT_NUMBER)
@@ -58,7 +53,8 @@ public class OperationReportByPaymentService implements ReportInterface<ReportDa
 
         PaymentReportMode reportMode = filters.getReportMode();
         return switch (reportMode) {
-            case SINCE_LAST_ENFORCEMENT -> resultMapper.map(
+            case SINCE_LAST_ENFORCEMENT -> mapReportData(
+                filters,
                 applyBaseFilter(
                     defendantAccountRepository.findAccountsWithPaymentMadeAfterLastEnforcementAction(
                         filters.getSinceLastEnforcementAction().name(),
@@ -67,7 +63,8 @@ public class OperationReportByPaymentService implements ReportInterface<ReportDa
                     baseAccountNumbers
                 )
             );
-            case WITH_REGF -> resultMapper.map(
+            case WITH_REGF -> mapReportData(
+                filters,
                 applyBaseFilter(
                     defendantAccountRepository.findAccountsWithPaymentMadeAfterFirstRegfEnforcement(
                         Boolean.TRUE.equals(filters.getIsPaymentMade())
@@ -75,13 +72,24 @@ public class OperationReportByPaymentService implements ReportInterface<ReportDa
                     baseAccountNumbers
                 )
             );
-            default -> resultMapper.map(baseAccounts);
+            default -> mapReportData(filters, baseAccounts);
         };
     }
 
     @Override
-    public Class<? extends OperationDetailedReport> getStoredReportDataClass(ReportInstanceEntity reportInstance) {
-        return OperationDetailedReport.class;
+    public Class<? extends ReportDataInterface> getStoredReportDataClass(ReportInstanceEntity reportInstance) {
+        OperationReportByPaymentFiltersDto filters = readFilters(reportInstance);
+        return filters.getReportType() == SUMMARY
+            ? OperationByPaymentSummaryReport.class
+            : OperationByPaymentDetailedReport.class;
+    }
+
+    private ReportDataInterface mapReportData(
+        OperationReportByPaymentFiltersDto filters,
+        List<DefendantAccountEntity> accounts) {
+        return filters.getReportType() == SUMMARY
+            ? summaryResultMapper.mapPayment(accounts)
+            : detailedResultMapper.mapPayment(accounts);
     }
 
     private List<DefendantAccountEntity> applyBaseFilter(

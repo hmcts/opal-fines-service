@@ -14,36 +14,34 @@ import uk.gov.hmcts.opal.dto.report.operation.DetailedReportDto;
 import uk.gov.hmcts.opal.service.report.ReportMetaData;
 
 @ExtendWith(MockitoExtension.class)
-class OperationDetailedReportTest {
+class OperationByPaymentDetailedReportTest {
 
     @Mock
     ReportMetaData reportMetaData;
 
     @Mock
-    DetailedReportDto enforcementReport;
+    DetailedReportDto detailedReport;
 
     @InjectMocks
-    OperationDetailedReport operationByEnforcementDetailedReport;
+    OperationByPaymentDetailedReport operationByPaymentDetailedReport;
 
     @Test
     void getNumberOfRecords_2records_return2() {
-        DetailedAccountReportDto row1 =
-            DetailedAccountReportDto.builder().build();
-        DetailedAccountReportDto row2 =
-            DetailedAccountReportDto.builder().build();
-        when(enforcementReport.getAccountTransactionReports()).thenReturn(List.of(row1, row2));
-        assertThat(operationByEnforcementDetailedReport.getNumberOfRecords()).isEqualTo(2);
+        DetailedAccountReportDto row1 = DetailedAccountReportDto.builder().build();
+        DetailedAccountReportDto row2 = DetailedAccountReportDto.builder().build();
+        when(detailedReport.getAccountTransactionReports()).thenReturn(List.of(row1, row2));
+        assertThat(operationByPaymentDetailedReport.getNumberOfRecords()).isEqualTo(2);
     }
 
     @Test
     void getNumberOfRecords_noRecords_return0() {
-        when(enforcementReport.getAccountTransactionReports()).thenReturn(null);
-        assertThat(operationByEnforcementDetailedReport.getNumberOfRecords()).isEqualTo(0);
+        when(detailedReport.getAccountTransactionReports()).thenReturn(null);
+        assertThat(operationByPaymentDetailedReport.getNumberOfRecords()).isEqualTo(0);
     }
 
     @Test
     void getReportMetaData_returnMetadata() {
-        ReportMetaData actual = operationByEnforcementDetailedReport.getReportMetaData();
+        ReportMetaData actual = operationByPaymentDetailedReport.getReportMetaData();
         assertThat(actual).isEqualTo(reportMetaData);
     }
 }

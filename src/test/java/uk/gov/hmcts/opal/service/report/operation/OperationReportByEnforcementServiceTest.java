@@ -46,7 +46,7 @@ class OperationReportByEnforcementServiceTest {
     private SummaryResultMapper summaryResultMapper;
 
     @Mock
-    private OperationDetailedReport mappedDetailedReport;
+    private OperationByEnforcementDetailedReport mappedDetailedReport;
 
     @Mock
     private DetailedResultMapper detailedResultMapper;
@@ -96,7 +96,8 @@ class OperationReportByEnforcementServiceTest {
         when(objectMapper.readValue(any(String.class), eq(OperationReportByEnforcementFiltersDto.class)))
             .thenReturn(filters);
 
-        assertThat(service.getStoredReportDataClass(reportInstance)).isEqualTo(OperationDetailedReport.class);
+        assertThat(service.getStoredReportDataClass(reportInstance)).isEqualTo(
+            OperationByEnforcementDetailedReport.class);
     }
 
     @Test
@@ -115,7 +116,7 @@ class OperationReportByEnforcementServiceTest {
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class)
         )).thenReturn(accounts);
-        when(detailedResultMapper.map(accounts)).thenReturn(mappedDetailedReport);
+        when(detailedResultMapper.mapEnforcement(accounts)).thenReturn(mappedDetailedReport);
 
         ReportDataInterface result = service.generateReportData(reportInstance);
 
@@ -125,7 +126,7 @@ class OperationReportByEnforcementServiceTest {
             any(Sort.class)
         );
         verifyNoInteractions(enforcementRepository);
-        verify(detailedResultMapper).map(accounts);
+        verify(detailedResultMapper).mapEnforcement(accounts);
     }
 
     @Test
@@ -143,7 +144,7 @@ class OperationReportByEnforcementServiceTest {
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class)
         )).thenReturn(accounts);
-        when(detailedResultMapper.map(accounts)).thenReturn(mappedDetailedReport);
+        when(detailedResultMapper.mapEnforcement(accounts)).thenReturn(mappedDetailedReport);
 
         ReportDataInterface result = service.generateReportData(reportInstance);
 
@@ -153,7 +154,7 @@ class OperationReportByEnforcementServiceTest {
             any(Sort.class)
         );
         verifyNoInteractions(enforcementRepository);
-        verify(detailedResultMapper).map(accounts);
+        verify(detailedResultMapper).mapEnforcement(accounts);
     }
 
     @Test
@@ -194,7 +195,7 @@ class OperationReportByEnforcementServiceTest {
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class)
         )).thenReturn(accounts);
-        when(detailedResultMapper.map(accounts)).thenReturn(mappedDetailedReport);
+        when(detailedResultMapper.mapEnforcement(accounts)).thenReturn(mappedDetailedReport);
 
         ReportDataInterface result = service.generateReportData(reportInstance);
 
@@ -206,7 +207,7 @@ class OperationReportByEnforcementServiceTest {
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class)
         );
-        verify(detailedResultMapper).map(accounts);
+        verify(detailedResultMapper).mapEnforcement(accounts);
     }
 
     @Test
@@ -248,7 +249,7 @@ class OperationReportByEnforcementServiceTest {
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class)
         )).thenReturn(accounts);
-        when(summaryResultMapper.map(accounts)).thenReturn(mappedSummaryReport);
+        when(summaryResultMapper.mapEnforcement(accounts)).thenReturn(mappedSummaryReport);
 
         ReportDataInterface result = service.generateReportData(reportInstance);
 
@@ -258,7 +259,7 @@ class OperationReportByEnforcementServiceTest {
             any(Sort.class)
         );
         verifyNoInteractions(enforcementRepository);
-        verify(summaryResultMapper).map(accounts);
+        verify(summaryResultMapper).mapEnforcement(accounts);
         verifyNoInteractions(detailedResultMapper);
     }
 

@@ -66,7 +66,7 @@ class SummaryResultMapperTest {
         }).when(rowMapper).map(eq(acc2), any());
         List<DefendantAccountEntity> accounts = List.of(acc1, acc2);
         // Act
-        OperationByEnforcementSummaryReport result = mapper.map(accounts);
+        OperationByEnforcementSummaryReport result = mapper.mapEnforcement(accounts);
         // Assert
         assertThat(result).isNotNull();
         Assertions.assertThat(result.getEnforcementReport().getReportSummaryRows())
@@ -91,7 +91,7 @@ class SummaryResultMapperTest {
     @Test
     void shouldHandleEmptyAccountList() {
         // Act
-        OperationByEnforcementSummaryReport result = mapper.map(List.of());
+        OperationByEnforcementSummaryReport result = mapper.mapEnforcement(List.of());
         // Assert
         Assertions.assertThat(result).isNotNull();
         Assertions.assertThat(result.getEnforcementReport().getReportSummaryRows()).isEmpty();
@@ -108,7 +108,7 @@ class SummaryResultMapperTest {
         when(rowMapper.map(eq(acc), any())).thenReturn(dto);
         // Act
         OperationByEnforcementSummaryReport result =
-            mapper.map(List.of(acc));
+            mapper.mapEnforcement(List.of(acc));
         // Assert
         Assertions.assertThat(result.getEnforcementReport().getReportSummaryRows()).containsExactly(dto);
         Assertions.assertThat(result.getReportMetaData().getPdpoPartyIds()).isEmpty();
@@ -125,7 +125,7 @@ class SummaryResultMapperTest {
         when(rowMapper.map(same(acc2), any())).thenReturn(row2);
         List<DefendantAccountEntity> accounts = List.of(acc1, acc2);
         // Act
-        OperationByEnforcementSummaryReport result = mapper.map(accounts);
+        OperationByEnforcementSummaryReport result = mapper.mapEnforcement(accounts);
         // Assert
         SummaryReportTotalsRowDto totals =
             result.getEnforcementReport().getTotals();
@@ -151,7 +151,7 @@ class SummaryResultMapperTest {
         when(rowMapper.map(same(acc2), any())).thenReturn(row2);
         // Act
         OperationByEnforcementSummaryReport result =
-            mapper.map(List.of(acc1, acc2));
+            mapper.mapEnforcement(List.of(acc1, acc2));
         // Assert
         SummaryReportTotalsRowDto totals =
             result.getEnforcementReport().getTotals();
@@ -167,7 +167,7 @@ class SummaryResultMapperTest {
     void shouldReturnsZeroTotalsForEmptyList() {
         // Act
         OperationByEnforcementSummaryReport result =
-            mapper.map(List.of());
+            mapper.mapEnforcement(List.of());
         // Assert
         SummaryReportTotalsRowDto totals =
             result.getEnforcementReport().getTotals();

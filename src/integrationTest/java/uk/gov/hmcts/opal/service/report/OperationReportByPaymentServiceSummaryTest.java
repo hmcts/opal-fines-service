@@ -22,7 +22,7 @@ import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.report.operation.SummaryOperationReportRowDto;
 import uk.gov.hmcts.opal.dto.report.operation.SummaryReportTotalsRowDto;
-import uk.gov.hmcts.opal.service.report.operation.OperationByEnforcementSummaryReport;
+import uk.gov.hmcts.opal.service.report.operation.OperationByPaymentSummaryReport;
 import uk.gov.hmcts.opal.service.report.operation.OperationReportByPaymentService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -44,16 +44,16 @@ class OperationReportByPaymentServiceSummaryTest extends AbstractIntegrationTest
         @JiraEpic("PO-2248")
         @Test
         void whenSummarySinceDate_thenReturnsSortedResultsAndTotals_happyPath() {
-            OperationByEnforcementSummaryReport result =
-                (OperationByEnforcementSummaryReport) service.generateReportData(
+            OperationByPaymentSummaryReport result =
+                (OperationByPaymentSummaryReport) service.generateReportData(
                     reportWithFilters(SUMMARY_SINCE_DATE_JSON));
 
-            List<SummaryOperationReportRowDto> rows = result.getEnforcementReport().getReportSummaryRows();
+            List<SummaryOperationReportRowDto> rows = result.getPaymentReport().getReportSummaryRows();
             Assertions.assertThat(rows)
                 .extracting(SummaryOperationReportRowDto::getAccountNo)
                 .isSorted();
 
-            SummaryReportTotalsRowDto totals = result.getEnforcementReport().getTotals();
+            SummaryReportTotalsRowDto totals = result.getPaymentReport().getTotals();
             SummaryReportTotalsRowDto expectedTotals = expectedSummaryTotals(rows);
 
             assertAll(
@@ -69,12 +69,12 @@ class OperationReportByPaymentServiceSummaryTest extends AbstractIntegrationTest
         @JiraEpic("PO-2248")
         @Test
         void whenSummaryWithRegfAndPaymentMade_thenReturnsExpectedResults_happyPath() {
-            OperationByEnforcementSummaryReport result =
-                (OperationByEnforcementSummaryReport) service.generateReportData(
+            OperationByPaymentSummaryReport result =
+                (OperationByPaymentSummaryReport) service.generateReportData(
                     reportWithFilters(SUMMARY_WITH_REGF_PAYMENT_MADE_JSON));
 
             assertAll(
-                () -> Assertions.assertThat(result.getEnforcementReport().getReportSummaryRows())
+                () -> Assertions.assertThat(result.getPaymentReport().getReportSummaryRows())
                     .extracting(SummaryOperationReportRowDto::getAccountNo)
                     .contains("177A")
                     .doesNotContain("noPaymentsAfterEnf")
@@ -86,12 +86,12 @@ class OperationReportByPaymentServiceSummaryTest extends AbstractIntegrationTest
         @JiraEpic("PO-2248")
         @Test
         void whenSummarySinceLastEnforcementAndPaymentNotMade_thenReturnsExpectedResults_happyPath() {
-            OperationByEnforcementSummaryReport result =
-                (OperationByEnforcementSummaryReport) service.generateReportData(
+            OperationByPaymentSummaryReport result =
+                (OperationByPaymentSummaryReport) service.generateReportData(
                     reportWithFilters(SUMMARY_SINCE_LAST_ENFORCEMENT_PAYMENT_NOT_MADE_JSON));
 
             assertAll(
-                () -> Assertions.assertThat(result.getEnforcementReport().getReportSummaryRows())
+                () -> Assertions.assertThat(result.getPaymentReport().getReportSummaryRows())
                     .extracting(SummaryOperationReportRowDto::getAccountNo)
                     .doesNotContain("177A")
                     .contains("ConsolidatedAcc")
@@ -101,7 +101,7 @@ class OperationReportByPaymentServiceSummaryTest extends AbstractIntegrationTest
     }
 
     private static void verifySummaryMetadata(
-        OperationByEnforcementSummaryReport result,
+        OperationByPaymentSummaryReport result,
         List<SummaryOperationReportRowDto> rows) {
         ReportMetaData reportMetadata = result.getReportMetaData();
         long numberOfRecords = result.getNumberOfRecords();
