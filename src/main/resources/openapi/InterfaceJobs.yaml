@@ -1,0 +1,169 @@
+openapi: 3.1.1
+info:
+  title: Opal Fines Service - Interface Jobs
+  version: 1.0.0
+  description: APIs for retrieving processed file summary information.
+paths:
+  /interface-jobs/summary:
+    get:
+      tags:
+        - interface_jobs
+      summary: Get interface jobs summary
+      description: >
+        Get processed file summary information filtered by business unit, status, completed
+        date range, and interface name. Results are filtered at query time to business units
+        where the user has the Process and Allocate Payments permission.
+      operationId: get_interface_jobs_summary
+      parameters:
+        - name: business_unit_ids
+          in: query
+          required: true
+          description: Comma-separated list of business unit IDs to search.
+          style: form
+          explode: false
+          schema:
+            type: array
+            minItems: 1
+            items:
+              type: integer
+              format: int32
+        - name: statuses
+          in: query
+          required: false
+          description: Optional comma-separated list of interface job statuses to search.
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - CREATED
+                - PROCESSED
+                - IGNORED
+                - FAILED
+                - COMPLETED
+        - name: completed_date_from
+          in: query
+          required: false
+          description: Optional lower bound for interface job completion date and time.
+          schema:
+            type: string
+            format: date-time
+        - name: completed_date_to
+          in: query
+          required: false
+          description: Optional upper bound for interface job completion date and time.
+          schema:
+            type: string
+            format: date-time
+        - name: interface_name
+          in: query
+          required: false
+          description: Optional interface name filter.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Interface job summary response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/interface_job_summary_response'
+        "400":
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "401":
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "403":
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "500":
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "503":
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+components:
+  schemas:
+    interface_job_summary_response:
+      type: object
+      additionalProperties: false
+      required:
+        - interface_jobs
+      properties:
+        interface_jobs:
+          type: array
+          items:
+            $ref: '#/components/schemas/interface_job_summary'
+
+    interface_job_summary:
+      type: object
+      additionalProperties: false
+      required:
+        - interface_job_id
+        - interface_file_id
+        - file_name
+        - source
+        - business_unit_name
+        - created_datetime
+        - status
+      properties:
+        interface_job_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+        interface_file_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+        file_name:
+          type: string
+        source:
+          $ref: '#/components/schemas/interface_file_source'
+        business_unit_name:
+          type: string
+        completed_datetime:
+          type: string
+          format: date-time
+        created_datetime:
+          type: string
+          format: date-time
+        status:
+          $ref: '#/components/schemas/interface_job_status'
+
+    interface_file_source:
+      type: string
+      enum:
+        - NATWEST
+        - ALLPAY
+        - ALLPAY_DD
+        - BARCLAYCARD
+        - BTECKOH
+        - DWP
+        - CDER
+        - JACOBS
+        - MARSTON
+        - OTHER
+
+    interface_job_status:
+      type: string
+      enum:
+        - CREATED
+        - PROCESSED
+        - IGNORED
+        - FAILED
+        - COMPLETED
