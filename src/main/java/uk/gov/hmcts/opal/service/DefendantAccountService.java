@@ -301,7 +301,7 @@ public class DefendantAccountService {
                 defendantAccountId,
                 businessUnitId,
                 businessUnitUserId,
-                userState.getDisplayName(),
+                userState.getUserName(),
                 ifMatch
             );
         } else {
@@ -346,7 +346,7 @@ public class DefendantAccountService {
             .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
             .filter(id -> !id.isBlank())
             .orElse(userState.getUserName());
-        String postedByName = userState.getDisplayName();
+        String postedByName = userState.getUserName();
 
         if (addPaymentTermsRequest != null && addPaymentTermsRequest.getPaymentTerms() != null) {
             addPaymentTermsRequest.getPaymentTerms().setPostedDetails(PostedDetails.builder()

@@ -50,7 +50,7 @@ public class DefendantAccountPaymentTermsService {
                 .map(BusinessUnitUser::getBusinessUnitUserId)
                 .filter(id -> !id.isBlank())
                 .orElse(userState.getUserName());
-            String postedByName = userState.getDisplayName();
+            String postedByName = userState.getUserName();
 
             return defendantAccountPaymentTermsServiceProxy.addPaymentCardRequest(
                 defendantAccountId,
