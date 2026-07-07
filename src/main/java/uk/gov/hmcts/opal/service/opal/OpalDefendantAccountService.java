@@ -100,7 +100,6 @@ import uk.gov.hmcts.opal.mapper.request.PaymentTermsMapper;
 import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.CourtLiteRepository;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
-import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
@@ -130,8 +129,6 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 public class OpalDefendantAccountService implements DefendantAccountServiceInterface {
 
     private static final int TOO_MANY_SEARCH_RESULTS = 100;
-
-    private final DefendantAccountHeaderViewRepository repository;
 
     private final DefendantAccountRepository defendantAccountRepository;
 
