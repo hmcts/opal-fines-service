@@ -56,12 +56,15 @@ import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.common.user.authentication.exception.AuthenticationError;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
+import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
+import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
@@ -109,6 +112,21 @@ class GlobalExceptionHandlerTest {
         ProblemDetail pd = r.getBody();
         assertEquals(HttpStatus.FORBIDDEN.value(), pd.getStatus());
         assertEquals("Forbidden", pd.getTitle());
+        assertEquals(false, pd.getProperties().get("retriable"));
+        assertEquals(MediaType.APPLICATION_PROBLEM_JSON, r.getHeaders().getContentType());
+    }
+
+    @Test
+    void handleRequiredPermission_false() {
+        RequiredPermissionException ex = new RequiredPermissionException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleRequiredPermissionException(ex);
+
+        assertEquals(HttpStatus.FORBIDDEN, r.getStatusCode());
+        ProblemDetail pd = r.getBody();
+        assertEquals(HttpStatus.FORBIDDEN.value(), pd.getStatus());
+        assertEquals("Forbidden", pd.getTitle());
+        assertEquals("User requires permission: Search and View Accounts", pd.getDetail());
         assertEquals(false, pd.getProperties().get("retriable"));
         assertEquals(MediaType.APPLICATION_PROBLEM_JSON, r.getHeaders().getContentType());
     }
@@ -192,6 +210,20 @@ class GlobalExceptionHandlerTest {
             .handleEntityNotFoundException(new EntityNotFoundException("nf"));
         assertEquals(HttpStatus.NOT_FOUND, r.getStatusCode());
         assertEquals(false, r.getBody().getProperties().get("retriable"));
+    }
+
+    @Test
+    void handleDefendantAccountNotFound_false() {
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler
+            .handleDefendantAccountNotFoundException(new DefendantAccountNotFoundException(999999999L));
+
+        assertEquals(HttpStatus.NOT_FOUND, r.getStatusCode());
+        ProblemDetail pd = r.getBody();
+        assertEquals(HttpStatus.NOT_FOUND.value(), pd.getStatus());
+        assertEquals("Defendant Account Not Found", pd.getTitle());
+        assertEquals("Defendant account not found with id: 999999999", pd.getDetail());
+        assertEquals(false, pd.getProperties().get("retriable"));
+        assertEquals(MediaType.APPLICATION_PROBLEM_JSON, r.getHeaders().getContentType());
     }
 
     @Test

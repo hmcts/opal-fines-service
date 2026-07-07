@@ -36,6 +36,7 @@ import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
@@ -50,6 +51,7 @@ import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefen
 import uk.gov.hmcts.opal.mapper.request.DefendantAccountSearchRequestMapper;
 import uk.gov.hmcts.opal.mapper.response.DefendantAccountSearchResponseMapper;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
+import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
@@ -456,6 +458,48 @@ class DefendantAccountServiceTest {
 
         verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT);
+        verifyNoInteractions(defendantAccountServiceProxy);
+    }
+
+    @Test
+    void getConsolidatedAccounts_whenUserHasSearchAndViewPermission_returnsProxyResult() {
+        Long defendantAccountId = 77L;
+        GetDefendantAccountConsolidatedAccountsResult proxyResponse =
+            GetDefendantAccountConsolidatedAccountsResult.builder()
+                .version(BigInteger.ONE)
+                .build();
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
+        when(defendantAccountServiceProxy.getConsolidatedAccounts(defendantAccountId)).thenReturn(proxyResponse);
+
+        GetDefendantAccountConsolidatedAccountsResult result =
+            defendantAccountService.getConsolidatedAccounts(defendantAccountId);
+
+        assertSame(proxyResponse, result);
+        verify(userStateService).getUserStateV1FromSecurityContext();
+        verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        verify(defendantAccountServiceProxy).getConsolidatedAccounts(defendantAccountId);
+        verifyNoMoreInteractions(userStateService, userState, defendantAccountServiceProxy);
+    }
+
+    @Test
+    void getConsolidatedAccounts_whenUserLacksSearchAndViewPermission_throwsPermissionNotAllowed() {
+        Long defendantAccountId = 77L;
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
+
+        RequiredPermissionException exception = assertThrows(
+            RequiredPermissionException.class,
+            () -> defendantAccountService.getConsolidatedAccounts(defendantAccountId)
+        );
+
+        assertTrue(
+            exception.getMessage() == null
+                || exception.getMessage().contains(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.getDescription()),
+            "Exception should mention the denied permission"
+        );
+        verify(userStateService).getUserStateV1FromSecurityContext();
+        verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verifyNoInteractions(defendantAccountServiceProxy);
     }
 

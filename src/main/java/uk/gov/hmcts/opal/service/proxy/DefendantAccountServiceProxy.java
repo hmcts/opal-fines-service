@@ -8,6 +8,7 @@ import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -42,6 +43,11 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
     @Override
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
         return getCurrentModeService().getHeaderSummary(defendantAccountId);
+    }
+
+    @Override
+    public GetDefendantAccountConsolidatedAccountsResult getConsolidatedAccounts(Long defendantAccountId) {
+        return draftAccountPromotion.getConsolidatedAccounts(defendantAccountId);
     }
 
     @Override
