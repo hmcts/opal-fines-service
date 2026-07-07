@@ -147,7 +147,7 @@ def publishIntegrationResults = {
   ]
 }
 
-def ensureIntegrationReportOutputExists() {
+def ensureIntegrationReportOutputExists = {
   ensureReportOutputExists(
     'Integration Tests Report',
     'integration-output',
