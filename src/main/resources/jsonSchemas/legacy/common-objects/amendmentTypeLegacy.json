@@ -3,17 +3,18 @@
   "$id": "https://example.com/schemas/amendmentType.json",
   "title": "amendmentType",
   "type": "object",
-  "required": ["attributeName", "oldValue", "newValue"],
+  "required": ["attribute_name", "old_value", "new_value"],
   "properties": {
-    "attributeName": {
+    "attribute_name": {
       "type": "string"
     },
-    "oldValue": {
+    "old_value": {
       "type": "string"
     },
-    "newValue": {
+    "new_value": {
       "type": "string"
     }
   },
   "additionalProperties": false
 }
+
