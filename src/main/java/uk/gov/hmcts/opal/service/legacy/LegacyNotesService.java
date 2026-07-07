@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import java.math.BigInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -55,6 +56,6 @@ public class LegacyNotesService implements NotesServiceInterface {
             .recordId(request.getActivityNote().getRecordId()).build();
 
         return LegacyAddNoteRequest.builder().businessUnitId(defendantBusinessUnitId)
-            .businessUnitUserId(user.getUserId()).version(Long.valueOf(version)).activityNote(note).build();
+            .businessUnitUserId(user.getUserId()).version(new BigInteger(version)).activityNote(note).build();
     }
 }

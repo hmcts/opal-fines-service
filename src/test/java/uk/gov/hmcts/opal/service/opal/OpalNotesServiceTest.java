@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service;
+package uk.gov.hmcts.opal.service.opal;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -27,7 +27,6 @@ import uk.gov.hmcts.opal.entity.NoteType;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.NoteRepository;
-import uk.gov.hmcts.opal.service.opal.OpalNotesService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 
 @ExtendWith(MockitoExtension.class)
