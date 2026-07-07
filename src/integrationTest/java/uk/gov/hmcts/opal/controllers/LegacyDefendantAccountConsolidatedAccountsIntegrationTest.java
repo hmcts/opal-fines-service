@@ -192,8 +192,8 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.status").value(404))
             .andExpect(jsonPath("$.retriable").value(false))
-            .andExpect(jsonPath("$.title").value("Not Found"))
-            .andExpect(jsonPath("$.detail").value("Not Found"));
+            .andExpect(jsonPath("$.title").value("Defendant Account Not Found"))
+            .andExpect(jsonPath("$.detail").value("Defendant account not found with id: 999999999"));
     }
 
     @Test
