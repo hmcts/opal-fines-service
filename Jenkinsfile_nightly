@@ -130,7 +130,11 @@ def ensureReportOutputExists = { reportLabel, targetDirectory, candidateDirector
 
 def publishIntegrationResults = {
   steps.junit allowEmptyResults: true, testResults: '**/test-results/integration/*.xml'
-  ensureIntegrationReportOutputExists()
+  ensureReportOutputExists(
+    'Integration Tests Report',
+    'integration-output',
+    ['build/reports/tests/integration']
+  )
 
   if (!steps.fileExists('integration-output/zephyr/Junit5Report-IntegrationTest.json')) {
     throw new RuntimeException('Integration Zephyr report was not generated at integration-output/zephyr/Junit5Report-IntegrationTest.json')
@@ -145,14 +149,6 @@ def publishIntegrationResults = {
     reportFiles          : 'index.html',
     reportName           : 'Integration Tests Report'
   ]
-}
-
-def ensureIntegrationReportOutputExists() {
-  ensureReportOutputExists(
-    'Integration Tests Report',
-    'integration-output',
-    ['build/reports/tests/integration']
-  )
 }
 
 def packageFunctionalReportOutput = { reportLabel, reportDirectory, sourceOutputDirectory, candidateReportDirectories ->

@@ -296,7 +296,7 @@ Nightly reports and artifacts:
 - Staging smoke publishes `Serenity Smoke Test Report`.
 - Demo R1A publishes `Serenity Functional Test Report (Demo R1AOn Only)`.
 - Demo R1AOff publishes `Serenity Functional Test Report (Demo R1AOff)`.
-- Archived output folders are `integration-output`, `functional-output`, `functional-output-r1a-only-demo`, `functional-output-r1a-off-demo`, and `smoke-output`.
+- Tagged demo runs archive to `functional-output-demo`; staging functional archives to `functional-output`, integration to `integration-output`, and smoke to `smoke-output`.
 - Functional and smoke outputs are published from `*/report` with Zephyr payloads under `*/zephyr`. Integration publishes `integration-output/report` and archives `integration-output/zephyr` when the integration Zephyr JSON is generated.
 - When `ZephyrExecution=true` or the nightly run is on Friday, the nightly pipeline runs the selected test stage first, publishes its artifacts, then invokes the matching generic Zephyr execution task.
 
@@ -334,6 +334,20 @@ The create and update tasks process an existing test report; they do not run the
 Run the matching functional or integration suite first if the report is not already present.
 For local tagged runs, make sure the local fines service is already configured with the intended feature-flag state before executing the test command (and LAUNCH_DARKLY_ENABLED=false)
 
+When reusing reports copied from Jenkins artifacts, place the raw Zephyr JSON in the source location that the
+Gradle sync task rebuilds from before the Jira task runs. Do not rely on copying only into the archived
+`*-output*/zephyr` folder, because the sync task will recreate that folder from the raw source path.
+
+Local report paths:
+
+| Flow | Gradle task | Raw JSON source path to populate locally | Rebuilt packaged path used by the Zephyr task |
+| --- | --- | --- | --- |
+| `integration` | `createJiraExecutionFromIntegrationReport` | `target/zephyr-reports/Junit5Report-IntegrationTest.json` | `integration-output/zephyr/Junit5Report-IntegrationTest.json` |
+| `functional` | `-PzephyrFunctionalStage=functional createJiraExecutionFromFunctionalReport` | `target/zephyr-reports/cucumber-opal.json` | `functional-output/zephyr/cucumber-opal.json` |
+| `smoke` | `-PzephyrFunctionalStage=smoke createJiraExecutionFromFunctionalReport` | `target/zephyr-reports/cucumber-smoke.json` | `smoke-output/zephyr/cucumber-smoke.json` |
+| `runR1AOnly` | `-PzephyrFunctionalStage=runR1AOnly createJiraExecutionFromFunctionalReport` | `target/zephyr-reports/cucumber-opal-tags.json` | `functional-output-demo/zephyr/cucumber-opal-tags.json` |
+| `runR1AOff` | `-PzephyrFunctionalStage=runR1AOff createJiraExecutionFromFunctionalReport` | `target/zephyr-reports/cucumber-opal-tags.json` | `functional-output-demo/zephyr/cucumber-opal-tags.json` |
+
 Examples:
 
 ```bash
@@ -365,6 +379,10 @@ TAGS='@R1AOff and not @Ignore' ./gradlew functionalOpalTags
 ./gradlew -PzephyrFunctionalStage=runR1AOff updateJiraTicketsFromFunctionalReport
 ./gradlew -PzephyrFunctionalStage=runR1AOff createJiraExecutionFromFunctionalReport
 ```
+
+Available Zephyr tasks:
+
+Use the task that matches the populated raw JSON source above.
 
 | Task | Purpose |
 | --- | --- |
