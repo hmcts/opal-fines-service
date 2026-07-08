@@ -2,7 +2,9 @@ package uk.gov.hmcts.opal.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
@@ -45,6 +47,8 @@ public class DefendantAccountPaymentTermsService {
         log.debug(":addPaymentCardRequest:");
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        short buId = Short.parseShort(businessUnitId);
+        String businessUnitUserId = getBusinessUnitUserIdForBusinessUnit(userState, buId);
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS)) {
             String derivedBusinessUnitUserId = userState.getBusinessUnitUserForBusinessUnit(
@@ -100,5 +104,15 @@ public class DefendantAccountPaymentTermsService {
         } else {
             throw new PermissionNotAllowedException(buId, FinesPermission.AMEND_PAYMENT_TERMS);
         }
+    }
+
+    private String getBusinessUnitUserIdForBusinessUnit(UserState userState, short businessUnitId) {
+        return userState.getBusinessUnitUserForBusinessUnit(businessUnitId)
+            .map(BusinessUnitUser::getBusinessUnitUserId)
+            .filter(id -> !id.isBlank())
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.UNAUTHORIZED,
+                "User does not have a business unit user for business unit: " + businessUnitId
+            ));
     }
 }
