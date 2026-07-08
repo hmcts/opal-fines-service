@@ -366,7 +366,7 @@ public class LegacyDefendantAccountEnforcementServiceTest {
         assertEquals(2L, override.getEnforcer().getEnforcerId());
         assertEquals("Arthur", override.getEnforcer().getEnforcerName());
         assertNotNull(override.getLja());
-        assertEquals(1, override.getLja().getLjaId());
+        assertEquals((short) 1, override.getLja().getLjaId());
         assertEquals("England", override.getLja().getLjaName());
 
         EnforcementActionDefendantAccount action = response.getLastEnforcementAction();
@@ -394,7 +394,7 @@ public class LegacyDefendantAccountEnforcementServiceTest {
         );
         assertNotNull(overview.getEnforcementCourt());
         assertEquals(3, overview.getEnforcementCourt().getCourtId());
-        assertEquals(123, overview.getEnforcementCourt().getCourtCode());
+        assertEquals((short) 123, overview.getEnforcementCourt().getCourtCode());
         assertEquals("Bath", overview.getEnforcementCourt().getCourtName());
 
         AccountStatusReferenceCommon statusRef = response.getAccountStatusReference();

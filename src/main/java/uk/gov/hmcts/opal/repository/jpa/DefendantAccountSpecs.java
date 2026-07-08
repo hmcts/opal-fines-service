@@ -139,7 +139,7 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
         return joinPartyOnAssociationType(root.join(DefendantAccountEntity_.parties), builder, DEFENDANT_ASSOC_TYPE);
     }
 
-    public Specification<DefendantAccountEntity> filterByBusinessUnits(List<Integer> businessUnitIds) {
+    public Specification<DefendantAccountEntity> filterByBusinessUnits(List<Short> businessUnitIds) {
         return (root, query, cb) ->
             Optional.ofNullable(businessUnitIds)
                 .filter(list -> !list.isEmpty())
@@ -149,7 +149,6 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
                     var inClause = cb.in(path);
                     list.stream()
                         .filter(Objects::nonNull)
-                        .map(Integer::shortValue)
                         .forEach(inClause::value);
                     return (Predicate) inClause;
                 })

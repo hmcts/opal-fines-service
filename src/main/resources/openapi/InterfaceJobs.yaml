@@ -26,7 +26,7 @@ paths:
             minItems: 1
             items:
               type: integer
-              format: int32
+              format: int16
         - name: statuses
           in: query
           required: false

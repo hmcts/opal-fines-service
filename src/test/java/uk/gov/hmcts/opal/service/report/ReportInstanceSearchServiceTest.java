@@ -181,9 +181,9 @@ class ReportInstanceSearchServiceTest {
                 businessUnitUserWithPermission("10", SEARCH_AND_VIEW_ACCOUNTS)
             );
 
-            List<Long> result = reportInstanceSearchService.validateBusinessUnitIds(null);
+            List<Short> result = reportInstanceSearchService.validateBusinessUnitIds(null);
 
-            assertThat(result).containsExactly(10L, 20L);
+            assertThat(result).containsExactly((short) 10, (short) 20);
         }
 
         @Test
@@ -194,9 +194,9 @@ class ReportInstanceSearchServiceTest {
                 businessUnitUserWithPermission("30", SEARCH_AND_VIEW_ACCOUNTS)
             );
 
-            List<Long> result = reportInstanceSearchService.validateBusinessUnitIds(List.of(10, 30));
+            List<Short> result = reportInstanceSearchService.validateBusinessUnitIds(List.of((short) 10, (short) 30));
 
-            assertThat(result).containsExactly(10L, 30L);
+            assertThat(result).containsExactly((short) 10, (short) 30);
         }
 
         @Test
@@ -207,7 +207,7 @@ class ReportInstanceSearchServiceTest {
 
             AccessDeniedException exception = assertThrows(
                 AccessDeniedException.class,
-                () -> reportInstanceSearchService.validateBusinessUnitIds(List.of(10, 20))
+                () -> reportInstanceSearchService.validateBusinessUnitIds(List.of((short) 10, (short) 20))
             );
 
             assertThat(exception.getMessage()).isEqualTo("User does not have permission for business unit: 20");
@@ -217,16 +217,16 @@ class ReportInstanceSearchServiceTest {
         @NullSource
         @EmptySource
         void whenRequestedBusinessUnitsAreMissing_returnsPermittedIds_happyPath(
-            List<Integer> requestedBusinessUnitIds
+            List<Short> requestedBusinessUnitIds
         ) {
             setBusinessUnitUsers(
                 businessUnitUserWithPermission("10", SEARCH_AND_VIEW_ACCOUNTS),
                 businessUnitUserWithPermission("20", SEARCH_AND_VIEW_ACCOUNTS)
             );
 
-            List<Long> result = reportInstanceSearchService.validateBusinessUnitIds(requestedBusinessUnitIds);
+            List<Short> result = reportInstanceSearchService.validateBusinessUnitIds(requestedBusinessUnitIds);
 
-            assertThat(result).containsExactly(10L, 20L);
+            assertThat(result).containsExactly((short) 10, (short) 20);
         }
     }
 
@@ -244,14 +244,14 @@ class ReportInstanceSearchServiceTest {
 
             setBusinessUnitUsers(buUser1, buUser2);
 
-            Map<String, List<Long>> result = reportInstanceSearchService.findPermittedReportForBusinessUnits(
+            Map<String, List<Short>> result = reportInstanceSearchService.findPermittedReportForBusinessUnits(
                 List.of(searchReport, maintenanceReport),
-                List.of(10L, 20L)
+                List.of((short) 10, (short) 20)
             );
 
             assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of(
-                "search", List.of(10L, 20L),
-                "maintain", List.of(10L)
+                "search", List.of((short) 10, (short) 20),
+                "maintain", List.of((short) 10)
             ));
         }
 
@@ -259,14 +259,14 @@ class ReportInstanceSearchServiceTest {
         @NullSource
         @EmptySource
         void whenReportsAreMissing_returnsEmptyMap_happyPath(List<ReportEntity> reports) {
-            assertThat(reportInstanceSearchService.findPermittedReportForBusinessUnits(reports, List.of(10L)))
+            assertThat(reportInstanceSearchService.findPermittedReportForBusinessUnits(reports, List.of((short) 10)))
                 .isEmpty();
         }
 
         @ParameterizedTest
         @NullSource
         @EmptySource
-        void whenBusinessUnitIdsAreMissing_returnsEmptyMap_happyPath(List<Long> businessUnitIds) {
+        void whenBusinessUnitIdsAreMissing_returnsEmptyMap_happyPath(List<Short> businessUnitIds) {
             ReportEntity report = report("search", SEARCH_AND_VIEW_ACCOUNTS);
 
             assertThat(reportInstanceSearchService.findPermittedReportForBusinessUnits(
@@ -281,7 +281,7 @@ class ReportInstanceSearchServiceTest {
 
             assertThat(reportInstanceSearchService.findPermittedReportForBusinessUnits(
                 List.of(report("search", SEARCH_AND_VIEW_ACCOUNTS)),
-                List.of(10L)
+                List.of((short) 10)
             )).isEmpty();
         }
     }

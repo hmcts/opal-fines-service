@@ -21,13 +21,7 @@ public interface DefendantAccountSearchRequestMapper {
 
     DefendantDto toDefendantDto(DefendantAccountSearchDefendantDefendantAccount defendant);
 
-    default List<Short> mapBusinessUnitIds(List<Integer> businessUnitIds) {
-        return businessUnitIds == null
-            ? null
-            : businessUnitIds.stream().map(this::toShort).toList();
-    }
-
-    default Short toShort(Integer value) {
-        return value == null ? null : value.shortValue();
+    default List<Short> mapBusinessUnitIds(List<Short> businessUnitIds) {
+        return businessUnitIds;
     }
 }

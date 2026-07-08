@@ -138,7 +138,7 @@ class OpalMinorCreditorServiceTest {
     @Test
     void searchMinorCreditors_twoResults_happyPath_mapsAllFields() {
         MinorCreditorSearch criteria = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .accountNumber("12345678A")
             .activeAccountsOnly(false)
             .build();
@@ -202,7 +202,7 @@ class OpalMinorCreditorServiceTest {
     @Test
     void searchMinorCreditors_emptyResult_returnsCountZeroAndEmptyList() {
         MinorCreditorSearch criteria = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .build();
 
         when(minorCreditorRepository.findAll(Mockito.<Specification<MinorCreditorEntity>>any()))
@@ -219,7 +219,7 @@ class OpalMinorCreditorServiceTest {
     @Test
     void searchMinorCreditors_repositoryThrows_exceptionPropagates() {
         MinorCreditorSearch criteria = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .accountNumber("boom")
             .build();
 
@@ -235,7 +235,7 @@ class OpalMinorCreditorServiceTest {
     @Test
     void searchMinorCreditors_minimalCriteria_buildsSpecAndMapsSingle() {
         MinorCreditorSearch criteria = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .build();
 
         when(minorCreditorRepository.findAll(Mockito.<Specification<MinorCreditorEntity>>any()))

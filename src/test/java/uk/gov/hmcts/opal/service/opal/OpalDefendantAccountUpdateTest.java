@@ -164,7 +164,7 @@ class OpalDefendantAccountUpdateTest {
                         .enforcerId(22L)
                         .build())
                     .lja(LocalJusticeAreaDefendantAccount.builder()
-                        .ljaId(33)
+                        .ljaId((short) 33)
                         .build())
                     .build())
                 .build())
@@ -200,7 +200,7 @@ class OpalDefendantAccountUpdateTest {
         assertNotNull(enforcementOverride.getEnforcer());
         assertEquals(22, enforcementOverride.getEnforcer().getEnforcerId());
         assertNotNull(enforcementOverride.getLja());
-        assertEquals(33, enforcementOverride.getLja().getLjaId());
+        assertEquals((short) 33, enforcementOverride.getLja().getLjaId());
 
         // Verify entity was updated as expected
         assertEquals(court, entity.getEnforcingCourt());
@@ -349,7 +349,7 @@ class OpalDefendantAccountUpdateTest {
                         .enforcerId(999999L)
                         .build())
                     .lja(LocalJusticeAreaDefendantAccount.builder()
-                        .ljaId(9999)
+                        .ljaId((short) 9999)
                         .build())
                     .build())
                 .build())
