@@ -16,6 +16,7 @@ import uk.gov.hmcts.opal.entity.offence.OffenceEntity_;
 import uk.gov.hmcts.opal.mapper.OffenceMapper;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
 import uk.gov.hmcts.opal.repository.jpa.OffenceSpecs;
+import uk.gov.hmcts.opal.util.SearchResultLimits;
 
 import java.util.Collections;
 import java.util.List;
@@ -26,8 +27,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Qualifier("offenceService")
 public class OffenceService {
-
-    private static final int NO_REQUESTED_LIMIT = 0;
 
     private final OffenceRepository offenceRepository;
 
@@ -42,7 +41,7 @@ public class OffenceService {
     @Cacheable(cacheNames = "offenceSearchDataCache", key = "#criteria")
     public List<OffenceSearchData> searchOffences(OffenceSearchDto criteria) {
         Sort codeSort = Sort.by(Sort.Direction.ASC, OffenceEntity_.CJS_CODE);
-        int limit = Optional.ofNullable(criteria.getMaxResults()).orElse(NO_REQUESTED_LIMIT);
+        int limit = SearchResultLimits.cappedLimit(criteria.getMaxResults());
 
         Page<OffenceEntity> page = offenceRepository
             .findBy(specs.findBySearchCriteria(criteria),

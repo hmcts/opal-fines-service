@@ -17,6 +17,7 @@ import uk.gov.hmcts.opal.dto.reference.CourtReferenceData;
 import uk.gov.hmcts.opal.mapper.CourtMapper;
 import uk.gov.hmcts.opal.repository.CourtLiteRepository;
 import uk.gov.hmcts.opal.repository.jpa.CourtSpecs;
+import uk.gov.hmcts.opal.util.SearchResultLimits;
 
 import java.util.List;
 import java.util.Optional;
@@ -47,7 +48,7 @@ public class CourtService {
             .findBy(specs.findBySearchCriteria(criteria),
                     ffq -> ffq
                         .sortBy(nameSort)
-                        .page(Pageable.unpaged()));
+                        .page(SearchResultLimits.defaultPage()));
 
         log.debug(":searchCourts: found count: {}", courtsPage.stream().count());
         return courtsPage.getContent();

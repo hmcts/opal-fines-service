@@ -40,6 +40,7 @@ import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
 import uk.gov.hmcts.opal.service.proxy.DraftAccountPublishProxy;
 import uk.gov.hmcts.opal.util.MapUtils;
+import uk.gov.hmcts.opal.util.SearchResultLimits;
 
 
 @Service
@@ -122,6 +123,7 @@ public class DraftAccountService {
             List<DraftAccountEntity> filtered = entities.stream()
                 .filter(e -> userState.hasBusinessUnitUserWithAnyPermission(
                     e.getBusinessUnit().getBusinessUnitId(), FinesPermission.DRAFT_ACCOUNT_PERMISSIONS))
+                .limit(SearchResultLimits.DEFAULT_SEARCH_RESULTS_LIMIT)
                 .toList();
 
             log.debug(":getDraftAccounts: filtered summaries count: {}", filtered.size());

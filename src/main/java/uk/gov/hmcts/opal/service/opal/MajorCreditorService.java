@@ -17,6 +17,7 @@ import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity_;
 import uk.gov.hmcts.opal.mapper.MajorCreditorMapper;
 import uk.gov.hmcts.opal.repository.MajorCreditorRepository;
 import uk.gov.hmcts.opal.repository.jpa.MajorCreditorSpecs;
+import uk.gov.hmcts.opal.util.SearchResultLimits;
 
 import java.util.List;
 import java.util.Optional;
@@ -46,7 +47,7 @@ public class MajorCreditorService {
             .findBy(specs.findBySearchCriteria(criteria),
                     ffq -> ffq
                         .sortBy(nameSort)
-                        .page(Pageable.unpaged()));
+                        .page(SearchResultLimits.defaultPage()));
 
         return page.getContent();
     }

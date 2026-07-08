@@ -52,6 +52,7 @@ import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.DraftAccountSpecs;
 import uk.gov.hmcts.opal.util.JsonPathUtil;
 import uk.gov.hmcts.opal.util.MapUtils;
+import uk.gov.hmcts.opal.util.SearchResultLimits;
 
 @Service
 @Slf4j(topic = "opal.DraftAccountService")
@@ -107,7 +108,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
     public List<DraftAccountEntity> searchDraftAccounts(DraftAccountSearchDto criteria) {
 
         Page<DraftAccountEntity> page = draftAccountRepository
-            .findBy(specs.findBySearchCriteria(criteria), ffq -> ffq.page(Pageable.unpaged()));
+            .findBy(specs.findBySearchCriteria(criteria), ffq -> ffq.page(SearchResultLimits.defaultPage()));
         return page.getContent();
     }
 

@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,6 +59,7 @@ import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService.Action;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
 import uk.gov.hmcts.opal.service.proxy.DraftAccountPublishProxy;
+import uk.gov.hmcts.opal.util.SearchResultLimits;
 
 @ExtendWith(MockitoExtension.class)
 class DraftAccountServiceTest {
@@ -143,6 +145,36 @@ class DraftAccountServiceTest {
         // Assert
         assertNotNull(result);
         verify(pdplLoggingService).logForMultipleGets(List.of(draftAccountEntity), Action.GET, userState);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void getDraftAccounts_limitsReturnedSummariesBeforePdplLogging() {
+        List<DraftAccountEntity> draftAccounts = IntStream.rangeClosed(1, 101)
+            .mapToObj(id -> DraftAccountEntity.builder()
+                .draftAccountId((long) id)
+                .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 77).build())
+                .build())
+            .toList();
+
+        when(draftAccountMapper.toDto(any(DraftAccountEntity.class))).thenAnswer(invocation -> {
+            DraftAccountEntity entity = invocation.getArgument(0);
+            return DraftAccountSummaryDto.builder().draftAccountId(entity.getDraftAccountId()).build();
+        });
+        when(draftAccountTransactional.getDraftAccounts(any(), any(), any(), any(), any(), any()))
+            .thenReturn(draftAccounts);
+        var userState = UserStateUtil.allPermissionsUser();
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+
+        DraftAccountsResponseDto result = draftAccountService.getDraftAccounts(
+            Optional.of(List.copyOf(Set.of((short) 77))), Optional.empty(), Optional.empty(), Optional.empty(),
+            Optional.empty(), Optional.empty());
+
+        ArgumentCaptor<List<DraftAccountEntity>> loggedAccountsCaptor = ArgumentCaptor.forClass(List.class);
+        verify(pdplLoggingService).logForMultipleGets(loggedAccountsCaptor.capture(), any(), any());
+
+        assertEquals(SearchResultLimits.DEFAULT_SEARCH_RESULTS_LIMIT, result.getSummaries().size());
+        assertEquals(SearchResultLimits.DEFAULT_SEARCH_RESULTS_LIMIT, loggedAccountsCaptor.getValue().size());
     }
 
     @SuppressWarnings("unchecked")

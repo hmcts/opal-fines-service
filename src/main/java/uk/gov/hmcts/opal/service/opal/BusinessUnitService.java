@@ -18,6 +18,7 @@ import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemEntity;
 import uk.gov.hmcts.opal.repository.BusinessUnitLiteRepository;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs;
+import uk.gov.hmcts.opal.util.SearchResultLimits;
 
 import java.util.List;
 import java.util.Optional;
@@ -44,7 +45,7 @@ public class BusinessUnitService implements BusinessUnitServiceInterface {
 
         Page<BusinessUnitEntity> page = businessUnitRepository
             .findBy(specs.findBySearchCriteria(criteria),
-                    ffq -> ffq.page(Pageable.unpaged()));
+                    ffq -> ffq.page(SearchResultLimits.defaultPage()));
 
         return page.getContent();
     }

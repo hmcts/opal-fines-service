@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler.PaymentCardRequestAlreadyExistsException;
@@ -121,6 +122,7 @@ import uk.gov.hmcts.opal.service.opal.history.defendant.DefendantAccountHistoryS
 import uk.gov.hmcts.opal.service.iface.ReportEntryServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.PartyRepositoryService;
 import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.util.SearchResultLimits;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
 @Service
@@ -241,7 +243,9 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private List<DefendantAccountSummaryDto> consolidatedSearch(AccountSearchDto accountSearchDto) {
         List<DefendantAccountSummaryDto> results = searchConsolidatedRepository
-            .findAll(searchConsolidatedEntitySpecs.findBySearch(accountSearchDto))
+            .findBy(searchConsolidatedEntitySpecs.findBySearch(accountSearchDto),
+                    ffq -> ffq.page(PageRequest.of(0, TOO_MANY_SEARCH_RESULTS + 1)))
+            .getContent()
             .stream()
             .map(this::toSummaryDto)
             .filter(this::hasNonZeroBalance)
@@ -257,7 +261,9 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private List<DefendantAccountSummaryDto> basicSearch(AccountSearchDto accountSearchDto) {
         return searchDefendantBasicRepository
-            .findAll(searchBasicEntitySpecs.findBySearch(accountSearchDto))
+            .findBy(searchBasicEntitySpecs.findBySearch(accountSearchDto),
+                    ffq -> ffq.page(SearchResultLimits.defaultPage()))
+            .getContent()
             .stream()
             .map(this::toSummaryDto)
             .toList();

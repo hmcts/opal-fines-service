@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +49,7 @@ import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PartyRepository;
 import uk.gov.hmcts.opal.repository.jpa.MinorCreditorSpecs;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
+import uk.gov.hmcts.opal.util.SearchResultLimits;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
 @Service
@@ -78,8 +80,9 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
     @Override
     public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch criteria) {
         Specification<MinorCreditorEntity> spec = specs.findBySearchCriteria(criteria);
-        List<MinorCreditorEntity> results = minorCreditorRepository.findAll(spec);
-        return toResponse(results);
+        Page<MinorCreditorEntity> results = minorCreditorRepository.findBy(
+            spec, ffq -> ffq.page(SearchResultLimits.defaultPage()));
+        return toResponse(results.getContent());
     }
 
     @Override

@@ -19,6 +19,7 @@ import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity_;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.jpa.LocalJusticeAreaSpecs;
+import uk.gov.hmcts.opal.util.SearchResultLimits;
 
 @Service
 @RequiredArgsConstructor
@@ -44,7 +45,7 @@ public class LocalJusticeAreaService {
             .findBy(specs.findBySearchCriteria(criteria),
                 ffq -> ffq
                     .sortBy(nameSort)
-                    .page(Pageable.unpaged()));
+                    .page(SearchResultLimits.defaultPage()));
 
         return page.getContent();
     }

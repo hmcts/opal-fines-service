@@ -18,6 +18,7 @@ import uk.gov.hmcts.opal.entity.offence.OffenceEntity;
 import uk.gov.hmcts.opal.mapper.OffenceMapper;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
 import uk.gov.hmcts.opal.service.opal.OffenceService;
+import uk.gov.hmcts.opal.util.SearchResultLimits;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -83,6 +84,7 @@ class OffenceServiceTest {
         // Assert
         assertEquals(List.of(mappedSearchData), result);
         verify(offenceRepository).findBy(any(Specification.class), any());
+        verify(sfq).limit(SearchResultLimits.DEFAULT_SEARCH_RESULTS_LIMIT);
         verify(offenceRepository, never()).findById(anyLong());
     }
 

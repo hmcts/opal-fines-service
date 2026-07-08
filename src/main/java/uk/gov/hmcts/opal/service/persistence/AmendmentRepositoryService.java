@@ -5,7 +5,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -15,6 +14,7 @@ import uk.gov.hmcts.opal.dto.search.AmendmentSearchDto;
 import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.repository.jpa.AmendmentSpecs;
+import uk.gov.hmcts.opal.util.SearchResultLimits;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +42,7 @@ public class AmendmentRepositoryService {
             .findBy(specs.findBySearchCriteria(criteria),
                     ffq -> ffq
                         .sortBy(dateSort)
-                        .page(Pageable.unpaged()));
+                        .page(SearchResultLimits.defaultPage()));
     }
 
     @Transactional

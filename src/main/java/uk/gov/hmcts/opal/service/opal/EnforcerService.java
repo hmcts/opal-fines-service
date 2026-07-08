@@ -17,6 +17,7 @@ import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity_;
 import uk.gov.hmcts.opal.entity.projection.EnforcerReferenceData;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.jpa.EnforcerSpecs;
+import uk.gov.hmcts.opal.util.SearchResultLimits;
 
 import java.util.List;
 import java.util.Optional;
@@ -45,7 +46,7 @@ public class EnforcerService {
             .findBy(specs.findBySearchCriteria(criteria),
                     ffq -> ffq
                         .sortBy(nameSort)
-                        .page(Pageable.unpaged()));
+                        .page(SearchResultLimits.defaultPage()));
 
         return page.getContent();
     }

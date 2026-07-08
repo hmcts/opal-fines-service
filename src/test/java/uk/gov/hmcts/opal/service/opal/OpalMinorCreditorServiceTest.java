@@ -11,7 +11,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import jakarta.persistence.EntityNotFoundException;
 import uk.gov.hmcts.opal.dto.CreditorAccountDto;
 import uk.gov.hmcts.opal.dto.DefendantDto;
@@ -47,7 +50,9 @@ import uk.gov.hmcts.opal.repository.MinorCreditorRepository;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 import uk.gov.hmcts.opal.repository.PartyRepository;
+import uk.gov.hmcts.opal.util.SearchResultLimits;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -143,12 +148,11 @@ class OpalMinorCreditorServiceTest {
             .activeAccountsOnly(false)
             .build();
 
-        when(minorCreditorRepository.findAll(Mockito.<Specification<MinorCreditorEntity>>any()))
-            .thenReturn(List.of(entityOrgFalseWithDefendant, entityOrgTrueNoDefendant));
+        givenMinorCreditorSearchResults(List.of(entityOrgFalseWithDefendant, entityOrgTrueNoDefendant));
 
         PostMinorCreditorAccountsSearchResponse response = service.searchMinorCreditors(criteria);
 
-        verify(minorCreditorRepository, times(1)).findAll(specCaptor.capture());
+        verify(minorCreditorRepository, times(1)).findBy(specCaptor.capture(), Mockito.any());
         Specification<MinorCreditorEntity> passedSpec = specCaptor.getValue();
         assertNotNull(passedSpec);
 
@@ -205,13 +209,12 @@ class OpalMinorCreditorServiceTest {
             .businessUnitIds(List.of(10))
             .build();
 
-        when(minorCreditorRepository.findAll(Mockito.<Specification<MinorCreditorEntity>>any()))
-            .thenReturn(Collections.emptyList());
+        givenMinorCreditorSearchResults(Collections.emptyList());
 
         PostMinorCreditorAccountsSearchResponse response = service.searchMinorCreditors(criteria);
 
         verify(minorCreditorRepository, times(1))
-            .findAll(Mockito.<Specification<MinorCreditorEntity>>any());
+            .findBy(Mockito.<Specification<MinorCreditorEntity>>any(), Mockito.any());
         assertEquals(0, response.getCount());
         assertNull(response.getCreditorAccounts());
     }
@@ -224,7 +227,7 @@ class OpalMinorCreditorServiceTest {
             .build();
 
         RuntimeException failure = new RuntimeException("DB failure");
-        when(minorCreditorRepository.findAll(Mockito.<Specification<MinorCreditorEntity>>any()))
+        when(minorCreditorRepository.findBy(Mockito.<Specification<MinorCreditorEntity>>any(), Mockito.any()))
             .thenThrow(failure);
 
         RuntimeException ex = assertThrows(RuntimeException.class,
@@ -238,17 +241,29 @@ class OpalMinorCreditorServiceTest {
             .businessUnitIds(List.of(10))
             .build();
 
-        when(minorCreditorRepository.findAll(Mockito.<Specification<MinorCreditorEntity>>any()))
-            .thenReturn(List.of(entityOrgFalseWithDefendant));
+        givenMinorCreditorSearchResults(List.of(entityOrgFalseWithDefendant));
 
         PostMinorCreditorAccountsSearchResponse response = service.searchMinorCreditors(criteria);
 
-        verify(minorCreditorRepository).findAll(specCaptor.capture());
+        verify(minorCreditorRepository).findBy(specCaptor.capture(), Mockito.any());
         Specification<MinorCreditorEntity> spec = specCaptor.getValue();
         assertNotNull(spec);
 
         assertEquals(1, response.getCount());
         assertEquals("104", response.getCreditorAccounts().getFirst().getCreditorAccountId());
+    }
+
+    @SuppressWarnings("unchecked")
+    private void givenMinorCreditorSearchResults(List<MinorCreditorEntity> results) {
+        SpecificationFluentQuery<MinorCreditorEntity> sfq = Mockito.mock(SpecificationFluentQuery.class);
+        Page<MinorCreditorEntity> page = new PageImpl<>(results, SearchResultLimits.defaultPage(), results.size());
+        when(sfq.page(SearchResultLimits.defaultPage())).thenReturn(page);
+        when(minorCreditorRepository.findBy(Mockito.<Specification<MinorCreditorEntity>>any(), Mockito.any()))
+            .thenAnswer(invocation -> {
+                Function<SpecificationFluentQuery<MinorCreditorEntity>, Page<MinorCreditorEntity>> function =
+                    invocation.getArgument(1);
+                return function.apply(sfq);
+            });
     }
 
     @Test
