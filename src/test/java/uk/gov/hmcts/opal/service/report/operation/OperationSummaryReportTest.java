@@ -14,7 +14,7 @@ import uk.gov.hmcts.opal.dto.report.operation.SummaryReportDto;
 import uk.gov.hmcts.opal.service.report.ReportMetaData;
 
 @ExtendWith(MockitoExtension.class)
-class OperationByPaymentSummaryReportTest {
+class OperationSummaryReportTest {
 
     @Mock
     ReportMetaData reportMetaData;

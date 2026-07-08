@@ -25,7 +25,6 @@ import uk.gov.hmcts.opal.service.report.FileType;
 import uk.gov.hmcts.opal.service.report.ReportEnforcementMode;
 import uk.gov.hmcts.opal.service.report.ReportId;
 import uk.gov.hmcts.opal.service.report.ReportInterface;
-import uk.gov.hmcts.opal.service.report.ReportType;
 import uk.gov.hmcts.opal.service.report.operation.mapper.DetailedResultMapper;
 import uk.gov.hmcts.opal.service.report.operation.mapper.SummaryResultMapper;
 
@@ -76,7 +75,7 @@ public class OperationReportByEnforcementService implements ReportInterface<Oper
     public Class<? extends OperationReportDataInterface> getStoredReportDataClass(
         ReportInstanceEntity reportInstance) {
         OperationReportByEnforcementFiltersDto filters = readFilters(reportInstance);
-        return filters.getReportType() == ReportType.SUMMARY
+        return filters.getReportType() == SUMMARY
             ? OperationSummaryReport.class
             : OperationDetailedReport.class;
     }
