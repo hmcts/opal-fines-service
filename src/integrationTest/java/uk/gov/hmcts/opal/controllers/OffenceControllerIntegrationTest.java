@@ -348,17 +348,8 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     void testGetOffenceReferenceData_usesCacheOnRepeatedRequest() throws Exception {
         clearInvocations(offenceRepository);
 
-        String firstBody = mockMvc.perform(get(URL_BASE).param("cjs_code", "CW96023"))
-            .andExpect(status().isOk())
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
-
-        String secondBody = mockMvc.perform(get(URL_BASE).param("cjs_code", "CW96023"))
-            .andExpect(status().isOk())
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
+        String firstBody = performOffenceRefDataRequest();
+        String secondBody = performOffenceRefDataRequest();
 
         assertEquals(firstBody, secondBody);
         assertEquals(1, countInvocationsByMethodName(offenceRepository, "findBy"));
@@ -371,24 +362,29 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     void testPostOffencesSearch_usesCacheOnRepeatedRequest() throws Exception {
         clearInvocations(offenceRepository);
 
-        String firstBody = mockMvc.perform(post(URL_BASE + "/search")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"cjs_code\":\"IC01001\"}"))
-            .andExpect(status().isOk())
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
-
-        String secondBody = mockMvc.perform(post(URL_BASE + "/search")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"cjs_code\":\"IC01001\"}"))
-            .andExpect(status().isOk())
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
+        String firstBody = performOffenceSearchRequest();
+        String secondBody = performOffenceSearchRequest();
 
         assertEquals(firstBody, secondBody);
         assertEquals(1, countInvocationsByMethodName(offenceRepository, "findBy"));
+    }
+
+    private String performOffenceRefDataRequest() throws Exception {
+        return mockMvc.perform(get(URL_BASE).param("cjs_code", "CW96023"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    }
+
+    private String performOffenceSearchRequest() throws Exception {
+        return mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"cjs_code\":\"IC01001\"}"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
     }
 
 }

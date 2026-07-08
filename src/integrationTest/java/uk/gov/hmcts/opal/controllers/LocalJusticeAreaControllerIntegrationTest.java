@@ -294,20 +294,19 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     void testGetLocalJusticeAreasRefData_usesCacheOnRepeatedRequest() throws Exception {
         clearInvocations(localJusticeAreaRepository);
 
-        String body1 = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "CRWCRT", "SJCRT"))
-            .andExpect(status().isOk())
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
+        String firstBody = performRequest();
+        String secondBody = performRequest();
 
-        String body2 = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "CRWCRT", "SJCRT"))
-            .andExpect(status().isOk())
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
-
-        assertEquals(body1, body2);
+        assertEquals(firstBody, secondBody);
         assertEquals(1, countInvocationsByMethodName(localJusticeAreaRepository, "findBy"));
+    }
+
+    private String performRequest() throws Exception {
+        return mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "CRWCRT", "SJCRT"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
     }
 
     private @NonNull String getResponseBody(ResultActions actions, String methodName)

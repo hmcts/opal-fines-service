@@ -586,20 +586,19 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
     void testGetResultById_usesCacheOnRepeatedRequest() throws Exception {
         clearInvocations(resultRepository);
 
-        String firstBody = mockMvc.perform(get(URL_BASE + "/BBBBBB"))
-            .andExpect(status().isOk())
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
-
-        String secondBody = mockMvc.perform(get(URL_BASE + "/BBBBBB"))
-            .andExpect(status().isOk())
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
+        String firstBody = performRequest();
+        String secondBody = performRequest();
 
         assertEquals(firstBody, secondBody);
         verify(resultRepository, times(1)).findById("BBBBBB");
+    }
+
+    private String performRequest() throws Exception {
+        return mockMvc.perform(get(URL_BASE + "/BBBBBB"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
     }
 
 }

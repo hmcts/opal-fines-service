@@ -177,23 +177,20 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
     void testGetCourtRefData_usesCacheOnRepeatedRequest() throws Exception {
         clearInvocations(courtLiteRepository);
 
-        String firstBody = mockMvc.perform(get(URL_BASE)
-                .header("authorization", userStateStub.getBearerToken())
-                .param("business_unit", "99"))
-            .andExpect(status().isOk())
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
-
-        String secondBody = mockMvc.perform(get(URL_BASE)
-                .header("authorization", userStateStub.getBearerToken())
-                .param("business_unit", "99"))
-            .andExpect(status().isOk())
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
+        String firstBody = performRequest();
+        String secondBody = performRequest();
 
         assertEquals(firstBody, secondBody);
         assertEquals(1, countInvocationsByMethodName(courtLiteRepository, "findBy"));
+    }
+
+    private String performRequest() throws Exception {
+        return mockMvc.perform(get(URL_BASE)
+                .header("authorization", userStateStub.getBearerToken())
+                .param("business_unit", "99"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
     }
 }

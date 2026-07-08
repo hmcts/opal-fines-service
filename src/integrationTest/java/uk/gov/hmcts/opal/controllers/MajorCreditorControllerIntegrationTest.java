@@ -4,7 +4,6 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.clearInvocations;
 import static uk.gov.hmcts.opal.support.SpyInvocationSupport.countInvocationsByMethodName;
-
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,7 +26,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
@@ -154,22 +152,20 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
     void testGetMajorCreditorsRefData_usesCacheOnRepeatedRequest() throws Exception {
         clearInvocations(majorCreditorRepository);
 
-        String firstBody = mockMvc.perform(get(URL_BASE)
-                .header("authorization", userStateStub.getBearerToken()))
-            .andExpect(status().isOk())
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
-
-        String secondBody = mockMvc.perform(get(URL_BASE)
-                .header("authorization", userStateStub.getBearerToken()))
-            .andExpect(status().isOk())
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
+        String firstBody = performRequest();
+        String secondBody = performRequest();
 
         assertEquals(firstBody, secondBody);
         assertEquals(1, countInvocationsByMethodName(majorCreditorRepository, "findBy"));
+    }
+
+    private String performRequest() throws Exception {
+        return mockMvc.perform(get(URL_BASE)
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
     }
 
 }

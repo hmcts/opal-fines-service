@@ -202,21 +202,20 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
     void testGetBusinessUnitsRefData_usesCacheOnRepeatedRequest() throws Exception {
         clearInvocations(businessUnitLiteRepository);
 
-        String firstBody = mockMvc.perform(get(URL_BASE)
-                .header("authorization", userStateStub.getBearerToken()))
-            .andExpect(status().isOk())
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
-
-        String secondBody = mockMvc.perform(get(URL_BASE)
-                .header("authorization", userStateStub.getBearerToken()))
-            .andExpect(status().isOk())
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
+        String firstBody = performRequest();
+        String secondBody = performRequest();
 
         assertEquals(firstBody, secondBody);
         assertEquals(1, countInvocationsByMethodName(businessUnitLiteRepository, "findBy"));
     }
+
+    private String performRequest() throws Exception {
+        return mockMvc.perform(get(URL_BASE)
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    }
+
 }
