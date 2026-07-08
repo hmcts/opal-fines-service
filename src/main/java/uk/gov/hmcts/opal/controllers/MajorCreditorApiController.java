@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
-import static uk.gov.hmcts.opal.util.VersionUtils.createETag;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -50,9 +49,7 @@ public class MajorCreditorApiController implements MajorCreditorApi {
 
         CentralFundResponse response = centralFundService.getCentralFundByBusinessUnit(id);
 
-        return ResponseEntity.ok()
-            .eTag(createETag(response))
-            .body(response.getPayload());
+        return buildResponse(response, response.getPayload());
     }
 
     @Override
@@ -102,9 +99,7 @@ public class MajorCreditorApiController implements MajorCreditorApi {
         GetMajorCreditorHistoryResponse response =
             majorCreditorAccountService.getHistory(id, dateFrom, dateTo, itemTypes);
 
-        return ResponseEntity.ok()
-            .eTag(createETag(response))
-            .body(response.getPayload());
+        return buildResponse(response, response.getPayload());
     }
 
     @Override

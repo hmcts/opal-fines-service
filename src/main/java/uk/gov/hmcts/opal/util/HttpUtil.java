@@ -57,6 +57,12 @@ public class HttpUtil {
         return builder.body(contents);
     }
 
+    public static <T> ResponseEntity<T> buildResponse(Versioned versioned, T payload) {
+        return ResponseEntity.ok()
+            .eTag(createETag(versioned))
+            .body(payload);
+    }
+
     /* Create a response with a HTTP Status of 'CREATED'. */
     public static <T> ResponseEntity<T> buildCreatedResponse(T contents) {
         return buildResponse(contents, HttpStatus.CREATED);
