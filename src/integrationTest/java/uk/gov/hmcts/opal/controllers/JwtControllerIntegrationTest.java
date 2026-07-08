@@ -125,4 +125,24 @@ class JwtControllerIntegrationTest extends AbstractIntegrationWithSecurityTest {
                 .header(AUTHORIZATION, "Bearer "))
             .andExpect(status().isUnauthorized());
     }
+
+    @Test
+    @DisplayName("Returns 401 when User Service rejects the token")
+    @JiraStory("PO-3956")
+    @JiraEpic("PO-2485")
+    void testUserServiceReturns401DuringAuthentication() throws Exception {
+        StubMapping unauthorizedUserStateStub = stubFor(get("/opal/v2/users/0/state")
+            .withHeader("Authorization", equalTo("Bearer " + validToken))
+            .atPriority(1)
+            .willReturn(aResponse().withStatus(401)));
+
+        try {
+            mockMvc.perform(MockMvcRequestBuilders.get(URL)
+                    .header(AUTHORIZATION, "Bearer " + validToken))
+                .andExpect(status().isUnauthorized());
+        } finally {
+            WireMock.removeStub(unauthorizedUserStateStub);
+        }
+    }
+
 }
