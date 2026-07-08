@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
@@ -134,7 +135,7 @@ class JwtControllerIntegrationTest extends AbstractIntegrationWithSecurityTest {
         StubMapping unauthorizedUserStateStub = stubFor(get("/opal/v2/users/0/state")
             .withHeader("Authorization", equalTo("Bearer " + validToken))
             .atPriority(1)
-            .willReturn(aResponse().withStatus(401)));
+            .willReturn(aResponse().withStatus(HttpStatus.UNAUTHORIZED.value())));
 
         try {
             mockMvc.perform(MockMvcRequestBuilders.get(URL)
