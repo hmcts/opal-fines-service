@@ -1,0 +1,24 @@
+meta {
+  name: Enforcement Accounts Types
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/enforcement-accounts-types/
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{BEARER_TOKEN}}
+}
+
+vars:pre-request {
+  baseURL: http://localhost:4550
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
