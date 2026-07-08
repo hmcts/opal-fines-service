@@ -4,7 +4,7 @@
   "defendant_type": "DEFENDANT",
   "originator_name": "Humber Magistrates' Court",
   "originator_id": 1980,
-  "enforcement_court_id": 101,
+  "enforcement_court_id": 260000000048,
   "collection_order_made": true,
   "collection_order_made_today": false,
   "payment_card_request": true,
@@ -17,10 +17,10 @@
   "offences": [
     {
       "date_of_sentence": "2023-01-01",
-      "offence_id": 1234,
+      "offence_id": 35014,
       "impositions": [
         {
-          "result_id": "1234",
+          "result_id": "FO",
           "amount_imposed": 500.0,
           "amount_paid": 200.0
         }
