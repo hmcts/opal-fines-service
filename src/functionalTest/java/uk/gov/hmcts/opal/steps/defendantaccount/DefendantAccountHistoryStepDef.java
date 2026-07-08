@@ -329,6 +329,33 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     }
 
     /**
+     * Asserts the seeded amendment history rows expose the expected audit identity.
+     *
+     * @param expectedPostedBy expected posted_by value.
+     * @param expectedPostedByName expected posted_by_name value.
+     * @throws Exception if the response body cannot be parsed as JSON.
+     */
+    @Then("the defendant account history contains seeded amendment history posted by {string} and posted by name {string}")
+    public void defendantAccountHistoryContainsSeededAmendmentHistoryPostedByAndName(
+        String expectedPostedBy,
+        String expectedPostedByName
+    ) throws Exception {
+        List<JsonNode> amendmentItems = historyItems().stream()
+            .filter(item -> "Amendment".equals(typeOf(item)))
+            .toList();
+
+        assertFalse(amendmentItems.isEmpty(), "Expected seeded amendment history item");
+        for (JsonNode amendmentItem : amendmentItems) {
+            JsonNode postedDetails = amendmentItem.path("postedDetails");
+            assertEquals(expectedPostedBy, assertText(postedDetails.path("posted_by"), "postedDetails.posted_by"));
+            assertEquals(
+                expectedPostedByName,
+                assertText(postedDetails.path("posted_by_name"), "postedDetails.posted_by_name")
+            );
+        }
+    }
+
+    /**
      * Asserts the latest history response is ordered newest first by posted date.
      *
      * @throws Exception if the response body cannot be parsed as JSON.
