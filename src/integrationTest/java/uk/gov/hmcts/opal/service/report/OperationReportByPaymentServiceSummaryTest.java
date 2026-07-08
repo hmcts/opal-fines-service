@@ -9,9 +9,7 @@ import static uk.gov.hmcts.opal.testdata.OperationReportByPaymentFiltersIntegrat
 import static uk.gov.hmcts.opal.testdata.OperationReportByPaymentFiltersIntegrationTestData.SUMMARY_WITH_REGF_PAYMENT_MADE_JSON;
 import static uk.gov.hmcts.opal.testdata.OperationReportByPaymentFiltersIntegrationTestData.reportWithFilters;
 
-import java.math.BigDecimal;
 import java.util.List;
-import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -22,8 +20,8 @@ import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.report.operation.SummaryOperationReportRowDto;
 import uk.gov.hmcts.opal.dto.report.operation.SummaryReportTotalsRowDto;
-import uk.gov.hmcts.opal.service.report.operation.OperationByPaymentSummaryReport;
 import uk.gov.hmcts.opal.service.report.operation.OperationReportByPaymentService;
+import uk.gov.hmcts.opal.service.report.operation.OperationSummaryReport;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -44,23 +42,22 @@ class OperationReportByPaymentServiceSummaryTest extends AbstractIntegrationTest
         @JiraEpic("PO-2248")
         @Test
         void whenSummarySinceDate_thenReturnsSortedResultsAndTotals_happyPath() {
-            OperationByPaymentSummaryReport result =
-                (OperationByPaymentSummaryReport) service.generateReportData(
+            OperationSummaryReport result =
+                (OperationSummaryReport) service.generateReportData(
                     reportWithFilters(SUMMARY_SINCE_DATE_JSON));
 
-            List<SummaryOperationReportRowDto> rows = result.getPaymentReport().getReportSummaryRows();
+            List<SummaryOperationReportRowDto> rows = result.getSummaryReport().getReportSummaryRows();
             Assertions.assertThat(rows)
                 .extracting(SummaryOperationReportRowDto::getAccountNo)
-                .isSorted();
+                .containsExactly("177A");
 
-            SummaryReportTotalsRowDto totals = result.getPaymentReport().getTotals();
-            SummaryReportTotalsRowDto expectedTotals = expectedSummaryTotals(rows);
+            SummaryReportTotalsRowDto totals = result.getSummaryReport().getTotals();
 
             assertAll(
-                () -> assertThat(totals.getAccountsReported()).isEqualTo(rows.size()),
-                () -> assertThat(totals.getTotalBalance()).isEqualByComparingTo(expectedTotals.getTotalBalance()),
-                () -> assertThat(totals.getTotalImposed()).isEqualByComparingTo(expectedTotals.getTotalImposed()),
-                () -> assertThat(totals.getTotalPaid()).isEqualByComparingTo(expectedTotals.getTotalPaid()),
+                () -> assertThat(totals.getAccountsReported()).isEqualTo(1),
+                () -> assertThat(totals.getTotalBalance()).isEqualByComparingTo("-500.58"),
+                () -> assertThat(totals.getTotalImposed()).isEqualByComparingTo("700.58"),
+                () -> assertThat(totals.getTotalPaid()).isEqualByComparingTo("200.00"),
                 () -> verifySummaryMetadata(result, rows)
             );
         }
@@ -69,12 +66,12 @@ class OperationReportByPaymentServiceSummaryTest extends AbstractIntegrationTest
         @JiraEpic("PO-2248")
         @Test
         void whenSummaryWithRegfAndPaymentMade_thenReturnsExpectedResults_happyPath() {
-            OperationByPaymentSummaryReport result =
-                (OperationByPaymentSummaryReport) service.generateReportData(
+            OperationSummaryReport result =
+                (OperationSummaryReport) service.generateReportData(
                     reportWithFilters(SUMMARY_WITH_REGF_PAYMENT_MADE_JSON));
 
             assertAll(
-                () -> Assertions.assertThat(result.getPaymentReport().getReportSummaryRows())
+                () -> Assertions.assertThat(result.getSummaryReport().getReportSummaryRows())
                     .extracting(SummaryOperationReportRowDto::getAccountNo)
                     .contains("177A")
                     .doesNotContain("noPaymentsAfterEnf")
@@ -86,12 +83,12 @@ class OperationReportByPaymentServiceSummaryTest extends AbstractIntegrationTest
         @JiraEpic("PO-2248")
         @Test
         void whenSummarySinceLastEnforcementAndPaymentNotMade_thenReturnsExpectedResults_happyPath() {
-            OperationByPaymentSummaryReport result =
-                (OperationByPaymentSummaryReport) service.generateReportData(
+            OperationSummaryReport result =
+                (OperationSummaryReport) service.generateReportData(
                     reportWithFilters(SUMMARY_SINCE_LAST_ENFORCEMENT_PAYMENT_NOT_MADE_JSON));
 
             assertAll(
-                () -> Assertions.assertThat(result.getPaymentReport().getReportSummaryRows())
+                () -> Assertions.assertThat(result.getSummaryReport().getReportSummaryRows())
                     .extracting(SummaryOperationReportRowDto::getAccountNo)
                     .doesNotContain("177A")
                     .contains("ConsolidatedAcc")
@@ -101,7 +98,7 @@ class OperationReportByPaymentServiceSummaryTest extends AbstractIntegrationTest
     }
 
     private static void verifySummaryMetadata(
-        OperationByPaymentSummaryReport result,
+        OperationSummaryReport result,
         List<SummaryOperationReportRowDto> rows) {
         ReportMetaData reportMetadata = result.getReportMetaData();
         long numberOfRecords = result.getNumberOfRecords();
@@ -110,27 +107,5 @@ class OperationReportByPaymentServiceSummaryTest extends AbstractIntegrationTest
             () -> assertThat((long) reportMetadata.getPdpoPartyIds().size()).isGreaterThanOrEqualTo(numberOfRecords),
             () -> Assertions.assertThat(reportMetadata.getPdpoPartyIds()).doesNotHaveDuplicates()
         );
-    }
-
-    private static SummaryReportTotalsRowDto expectedSummaryTotals(List<SummaryOperationReportRowDto> rows) {
-        BigDecimal expectedTotalBalance = rows.stream()
-            .map(SummaryOperationReportRowDto::getBalance)
-            .filter(Objects::nonNull)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal expectedTotalImposed = rows.stream()
-            .map(SummaryOperationReportRowDto::getAmountImposed)
-            .filter(Objects::nonNull)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal expectedTotalPaid = rows.stream()
-            .map(SummaryOperationReportRowDto::getAmountPaid)
-            .filter(Objects::nonNull)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        return SummaryReportTotalsRowDto.builder()
-            .accountsReported(rows.size())
-            .totalBalance(expectedTotalBalance)
-            .totalImposed(expectedTotalImposed)
-            .totalPaid(expectedTotalPaid)
-            .build();
     }
 }

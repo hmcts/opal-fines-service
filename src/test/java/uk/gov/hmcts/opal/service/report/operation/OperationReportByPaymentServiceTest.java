@@ -31,6 +31,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.dto.ResultId;
+import uk.gov.hmcts.opal.dto.report.operation.DetailedReportDto;
 import uk.gov.hmcts.opal.dto.report.operation.OperationReportByPaymentFiltersDto;
 import uk.gov.hmcts.opal.dto.report.operation.PaymentReportMode;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
@@ -41,6 +42,7 @@ import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.service.report.FileType;
 import uk.gov.hmcts.opal.service.report.ReportDataInterface;
 import uk.gov.hmcts.opal.service.report.ReportId;
+import uk.gov.hmcts.opal.service.report.ReportMetaData;
 import uk.gov.hmcts.opal.service.report.operation.mapper.DetailedResultMapper;
 import uk.gov.hmcts.opal.service.report.operation.mapper.SummaryResultMapper;
 
@@ -69,10 +71,10 @@ class OperationReportByPaymentServiceTest {
     OperationReportByPaymentValidator validator;
 
     @Mock
-    private OperationByPaymentDetailedReport mappedDetailedReport;
+    private OperationDetailedReport mappedDetailedReport;
 
     @Mock
-    private OperationByPaymentSummaryReport mappedSummaryReport;
+    private OperationSummaryReport mappedSummaryReport;
 
     @Mock
     private DefendantAccountEntity account;
@@ -97,8 +99,7 @@ class OperationReportByPaymentServiceTest {
         when(objectMapper.readValue(any(String.class), eq(OperationReportByPaymentFiltersDto.class)))
             .thenReturn(filters);
 
-        assertThat(service.getStoredReportDataClass(reportInstance)).isEqualTo(
-            OperationByPaymentSummaryReport.class);
+        assertThat(service.getStoredReportDataClass(reportInstance)).isEqualTo(OperationSummaryReport.class);
     }
 
     @Test
@@ -113,8 +114,7 @@ class OperationReportByPaymentServiceTest {
         when(objectMapper.readValue(any(String.class), eq(OperationReportByPaymentFiltersDto.class)))
             .thenReturn(filters);
 
-        assertThat(service.getStoredReportDataClass(reportInstance)).isEqualTo(
-            OperationByPaymentDetailedReport.class);
+        assertThat(service.getStoredReportDataClass(reportInstance)).isEqualTo(OperationDetailedReport.class);
     }
 
     @Test
@@ -163,7 +163,7 @@ class OperationReportByPaymentServiceTest {
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class)
         )).thenReturn(accounts);
-        when(detailedResultMapper.mapPayment(accounts)).thenReturn(mappedDetailedReport);
+        when(detailedResultMapper.map(accounts)).thenReturn(mappedDetailedReport);
 
         ReportDataInterface result = service.generateReportData(reportInstance);
 
@@ -172,7 +172,7 @@ class OperationReportByPaymentServiceTest {
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class)
         );
-        Mockito.verify(detailedResultMapper).mapPayment(accounts);
+        Mockito.verify(detailedResultMapper).map(accounts);
     }
 
     @Test
@@ -191,7 +191,7 @@ class OperationReportByPaymentServiceTest {
         )).thenReturn(accounts);
         when(defendantAccountRepository.findAccountsWithPaymentMadeAfterFirstRegfEnforcement(true)).thenReturn(
             accounts);
-        when(detailedResultMapper.mapPayment(any())).thenReturn(mappedDetailedReport);
+        when(detailedResultMapper.map(any())).thenReturn(mappedDetailedReport);
 
         ReportDataInterface result = service.generateReportData(reportInstance);
 
@@ -201,7 +201,7 @@ class OperationReportByPaymentServiceTest {
             any(Sort.class)
         );
         Mockito.verify(defendantAccountRepository).findAccountsWithPaymentMadeAfterFirstRegfEnforcement(true);
-        Mockito.verify(detailedResultMapper).mapPayment(eq(accounts));
+        Mockito.verify(detailedResultMapper).map(eq(accounts));
     }
 
     @Test
@@ -221,7 +221,7 @@ class OperationReportByPaymentServiceTest {
         )).thenReturn(accounts);
         when(defendantAccountRepository.findAccountsWithPaymentMadeAfterLastEnforcementAction(ABDC.name(),
             true)).thenReturn(accounts);
-        when(detailedResultMapper.mapPayment(any())).thenReturn(mappedDetailedReport);
+        when(detailedResultMapper.map(any())).thenReturn(mappedDetailedReport);
 
         ReportDataInterface result = service.generateReportData(reportInstance);
 
@@ -230,14 +230,14 @@ class OperationReportByPaymentServiceTest {
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(), any(Sort.class));
         Mockito.verify(defendantAccountRepository)
             .findAccountsWithPaymentMadeAfterLastEnforcementAction(ResultId.ABDC.name(), true);
-        Mockito.verify(detailedResultMapper).mapPayment(eq(accounts));
+        Mockito.verify(detailedResultMapper).map(eq(accounts));
     }
 
     @Test
     void convertReportDataToFileType() {
         assertThrows(UnsupportedOperationException.class,
             () -> service.convertReportDataToFileType(new ReportInstanceEntity(),
-                new OperationByPaymentDetailedReport(), FileType.CSV));
+                new OperationDetailedReport(DetailedReportDto.builder().build(), new ReportMetaData()), FileType.CSV));
     }
 
     @Nested
@@ -255,7 +255,7 @@ class OperationReportByPaymentServiceTest {
 
             assertAll(
                 () -> assertThat(result).isSameAs(mappedSummaryReport),
-                () -> Mockito.verify(summaryResultMapper).mapPayment(accounts),
+                () -> Mockito.verify(summaryResultMapper).map(accounts),
                 () -> verifyNoInteractions(detailedResultMapper)
             );
         }
@@ -275,7 +275,7 @@ class OperationReportByPaymentServiceTest {
                 () -> assertThat(result).isSameAs(mappedSummaryReport),
                 () -> Mockito.verify(defendantAccountRepository).findAccountsWithPaymentMadeAfterFirstRegfEnforcement(
                     true),
-                () -> Mockito.verify(summaryResultMapper).mapPayment(eq(accounts)),
+                () -> Mockito.verify(summaryResultMapper).map(eq(accounts)),
                 () -> verifyNoInteractions(detailedResultMapper)
             );
         }
@@ -295,7 +295,7 @@ class OperationReportByPaymentServiceTest {
                 () -> assertThat(result).isSameAs(mappedSummaryReport),
                 () -> Mockito.verify(defendantAccountRepository)
                     .findAccountsWithPaymentMadeAfterLastEnforcementAction(ResultId.ABDC.name(), true),
-                () -> Mockito.verify(summaryResultMapper).mapPayment(eq(accounts)),
+                () -> Mockito.verify(summaryResultMapper).map(eq(accounts)),
                 () -> verifyNoInteractions(detailedResultMapper)
             );
         }
@@ -315,6 +315,6 @@ class OperationReportByPaymentServiceTest {
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class)
         )).thenReturn(accounts);
-        when(summaryResultMapper.mapPayment(accounts)).thenReturn(mappedSummaryReport);
+        when(summaryResultMapper.map(accounts)).thenReturn(mappedSummaryReport);
     }
 }

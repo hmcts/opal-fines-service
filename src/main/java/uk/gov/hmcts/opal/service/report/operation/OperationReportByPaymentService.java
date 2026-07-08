@@ -18,7 +18,6 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.OperationReportSpecs;
 import uk.gov.hmcts.opal.service.report.FileType;
-import uk.gov.hmcts.opal.service.report.ReportDataInterface;
 import uk.gov.hmcts.opal.service.report.ReportId;
 import uk.gov.hmcts.opal.service.report.ReportInterface;
 import uk.gov.hmcts.opal.service.report.operation.mapper.DetailedResultMapper;
@@ -26,7 +25,7 @@ import uk.gov.hmcts.opal.service.report.operation.mapper.SummaryResultMapper;
 
 @Service
 @RequiredArgsConstructor
-public class OperationReportByPaymentService implements ReportInterface<ReportDataInterface> {
+public class OperationReportByPaymentService implements ReportInterface<OperationReportDataInterface> {
 
     private final DefendantAccountRepository defendantAccountRepository;
     private final SummaryResultMapper summaryResultMapper;
@@ -40,7 +39,7 @@ public class OperationReportByPaymentService implements ReportInterface<ReportDa
     }
 
     @Override
-    public ReportDataInterface generateReportData(ReportInstanceEntity reportInstance) {
+    public OperationReportDataInterface generateReportData(ReportInstanceEntity reportInstance) {
         OperationReportByPaymentFiltersDto filters = readFilters(reportInstance);
         validator.validate(filters);
         List<DefendantAccountEntity> baseAccounts = defendantAccountRepository.findAll(
@@ -77,19 +76,20 @@ public class OperationReportByPaymentService implements ReportInterface<ReportDa
     }
 
     @Override
-    public Class<? extends ReportDataInterface> getStoredReportDataClass(ReportInstanceEntity reportInstance) {
+    public Class<? extends OperationReportDataInterface> getStoredReportDataClass(
+        ReportInstanceEntity reportInstance) {
         OperationReportByPaymentFiltersDto filters = readFilters(reportInstance);
         return filters.getReportType() == SUMMARY
-            ? OperationByPaymentSummaryReport.class
-            : OperationByPaymentDetailedReport.class;
+            ? OperationSummaryReport.class
+            : OperationDetailedReport.class;
     }
 
-    private ReportDataInterface mapReportData(
+    private OperationReportDataInterface mapReportData(
         OperationReportByPaymentFiltersDto filters,
         List<DefendantAccountEntity> accounts) {
         return filters.getReportType() == SUMMARY
-            ? summaryResultMapper.mapPayment(accounts)
-            : detailedResultMapper.mapPayment(accounts);
+            ? summaryResultMapper.map(accounts)
+            : detailedResultMapper.map(accounts);
     }
 
     private List<DefendantAccountEntity> applyBaseFilter(
@@ -115,9 +115,8 @@ public class OperationReportByPaymentService implements ReportInterface<ReportDa
     @Override
     public byte[] convertReportDataToFileType(
         ReportInstanceEntity reportInstance,
-        ReportDataInterface reportData,
-        FileType fileType
-    ) {
+        OperationReportDataInterface reportData,
+        FileType fileType) {
         throw new UnsupportedOperationException();
     }
 }

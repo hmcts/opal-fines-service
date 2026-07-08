@@ -23,25 +23,25 @@ class OperationByPaymentDetailedReportTest {
     DetailedReportDto detailedReport;
 
     @InjectMocks
-    OperationByPaymentDetailedReport operationByPaymentDetailedReport;
+    OperationDetailedReport operationDetailedReport;
 
     @Test
     void getNumberOfRecords_2records_return2() {
         DetailedAccountReportDto row1 = DetailedAccountReportDto.builder().build();
         DetailedAccountReportDto row2 = DetailedAccountReportDto.builder().build();
         when(detailedReport.getAccountTransactionReports()).thenReturn(List.of(row1, row2));
-        assertThat(operationByPaymentDetailedReport.getNumberOfRecords()).isEqualTo(2);
+        assertThat(operationDetailedReport.getNumberOfRecords()).isEqualTo(2);
     }
 
     @Test
     void getNumberOfRecords_noRecords_return0() {
         when(detailedReport.getAccountTransactionReports()).thenReturn(null);
-        assertThat(operationByPaymentDetailedReport.getNumberOfRecords()).isEqualTo(0);
+        assertThat(operationDetailedReport.getNumberOfRecords()).isEqualTo(0);
     }
 
     @Test
     void getReportMetaData_returnMetadata() {
-        ReportMetaData actual = operationByPaymentDetailedReport.getReportMetaData();
+        ReportMetaData actual = operationDetailedReport.getReportMetaData();
         assertThat(actual).isEqualTo(reportMetaData);
     }
 }

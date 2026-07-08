@@ -10,10 +10,9 @@ import uk.gov.hmcts.opal.dto.report.operation.SummaryOperationReportRowDto;
 import uk.gov.hmcts.opal.dto.report.operation.SummaryReportDto;
 import uk.gov.hmcts.opal.dto.report.operation.SummaryReportTotalsRowDto;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 import uk.gov.hmcts.opal.service.report.ReportMetaData;
-import uk.gov.hmcts.opal.service.report.operation.OperationByEnforcementSummaryReport;
-import uk.gov.hmcts.opal.service.report.operation.OperationByPaymentSummaryReport;
+import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
+import uk.gov.hmcts.opal.service.report.operation.OperationSummaryReport;
 
 
 @Mapper(componentModel = "spring", uses = {
@@ -28,22 +27,13 @@ public abstract class SummaryResultMapper {
         this.rowMapper = rowMapper;
     }
 
-    public OperationByEnforcementSummaryReport mapEnforcement(
+    public OperationSummaryReport map(
         List<DefendantAccountEntity> accounts) {
         SummaryReportMappingResult mappingResult = mapSummaryReport(accounts);
-        OperationByEnforcementSummaryReport report = new OperationByEnforcementSummaryReport();
-        report.setEnforcementReport(mappingResult.reportDto());
-        report.setReportMetaData(mappingResult.reportMetaData());
-        return report;
-    }
-
-    public OperationByPaymentSummaryReport mapPayment(
-        List<DefendantAccountEntity> accounts) {
-        SummaryReportMappingResult mappingResult = mapSummaryReport(accounts);
-        OperationByPaymentSummaryReport report = new OperationByPaymentSummaryReport();
-        report.setPaymentReport(mappingResult.reportDto());
-        report.setReportMetaData(mappingResult.reportMetaData());
-        return report;
+        return OperationSummaryReport.builder()
+            .summaryReport(mappingResult.reportDto())
+            .reportMetaData(mappingResult.reportMetaData())
+            .build();
     }
 
     private SummaryReportMappingResult mapSummaryReport(
@@ -89,5 +79,6 @@ public abstract class SummaryResultMapper {
         SummaryReportDto reportDto,
         ReportMetaData reportMetaData
     ) {
+
     }
 }

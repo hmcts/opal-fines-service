@@ -23,7 +23,7 @@ class OperationByEnforcementSummaryReportTest {
     SummaryReportDto enforcementReport;
 
     @InjectMocks
-    OperationByEnforcementSummaryReport operationByEnforcementSummaryReport;
+    OperationSummaryReport operationByEnforcementSummaryReport;
 
     @Test
     void getNumberOfRecords_2records_return2() {

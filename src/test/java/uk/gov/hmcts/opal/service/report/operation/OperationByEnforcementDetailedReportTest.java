@@ -23,7 +23,7 @@ class OperationByEnforcementDetailedReportTest {
     DetailedReportDto enforcementReport;
 
     @InjectMocks
-    OperationByEnforcementDetailedReport operationByEnforcementDetailedReport;
+    OperationDetailedReport operationByEnforcementDetailedReport;
 
     @Test
     void getNumberOfRecords_2records_return2() {

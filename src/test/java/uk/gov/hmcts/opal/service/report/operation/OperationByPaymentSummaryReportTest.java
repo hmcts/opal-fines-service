@@ -23,25 +23,25 @@ class OperationByPaymentSummaryReportTest {
     SummaryReportDto paymentReport;
 
     @InjectMocks
-    OperationByPaymentSummaryReport operationByPaymentSummaryReport;
+    OperationSummaryReport operationSummaryReport;
 
     @Test
     void getNumberOfRecords_2records_return2() {
         SummaryOperationReportRowDto row1 = SummaryOperationReportRowDto.builder().build();
         SummaryOperationReportRowDto row2 = SummaryOperationReportRowDto.builder().build();
         when(paymentReport.getReportSummaryRows()).thenReturn(List.of(row1, row2));
-        assertThat(operationByPaymentSummaryReport.getNumberOfRecords()).isEqualTo(2);
+        assertThat(operationSummaryReport.getNumberOfRecords()).isEqualTo(2);
     }
 
     @Test
     void getNumberOfRecords_noRecords_return0() {
         when(paymentReport.getReportSummaryRows()).thenReturn(null);
-        assertThat(operationByPaymentSummaryReport.getNumberOfRecords()).isEqualTo(0);
+        assertThat(operationSummaryReport.getNumberOfRecords()).isEqualTo(0);
     }
 
     @Test
     void getReportMetaData_returnMetadata() {
-        ReportMetaData actual = operationByPaymentSummaryReport.getReportMetaData();
+        ReportMetaData actual = operationSummaryReport.getReportMetaData();
         assertThat(actual).isEqualTo(reportMetaData);
     }
 }

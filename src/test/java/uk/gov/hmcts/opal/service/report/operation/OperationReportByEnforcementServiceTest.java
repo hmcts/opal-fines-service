@@ -46,13 +46,14 @@ class OperationReportByEnforcementServiceTest {
     private SummaryResultMapper summaryResultMapper;
 
     @Mock
-    private OperationByEnforcementDetailedReport mappedDetailedReport;
-
-    @Mock
     private DetailedResultMapper detailedResultMapper;
 
     @Mock
-    private OperationByEnforcementSummaryReport mappedSummaryReport;
+    private OperationDetailedReport mappedDetailedReport;
+
+
+    @Mock
+    private OperationSummaryReport mappedSummaryReport;
 
     @Mock
     private ObjectMapper objectMapper;
@@ -81,7 +82,7 @@ class OperationReportByEnforcementServiceTest {
             .thenReturn(filters);
 
         assertThat(service.getStoredReportDataClass(reportInstance)).isEqualTo(
-            OperationByEnforcementSummaryReport.class);
+            OperationSummaryReport.class);
     }
 
     @Test
@@ -97,7 +98,7 @@ class OperationReportByEnforcementServiceTest {
             .thenReturn(filters);
 
         assertThat(service.getStoredReportDataClass(reportInstance)).isEqualTo(
-            OperationByEnforcementDetailedReport.class);
+            OperationDetailedReport.class);
     }
 
     @Test
@@ -116,7 +117,7 @@ class OperationReportByEnforcementServiceTest {
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class)
         )).thenReturn(accounts);
-        when(detailedResultMapper.mapEnforcement(accounts)).thenReturn(mappedDetailedReport);
+        when(detailedResultMapper.map(accounts)).thenReturn(mappedDetailedReport);
 
         ReportDataInterface result = service.generateReportData(reportInstance);
 
@@ -126,7 +127,7 @@ class OperationReportByEnforcementServiceTest {
             any(Sort.class)
         );
         verifyNoInteractions(enforcementRepository);
-        verify(detailedResultMapper).mapEnforcement(accounts);
+        verify(detailedResultMapper).map(accounts);
     }
 
     @Test
@@ -144,7 +145,7 @@ class OperationReportByEnforcementServiceTest {
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class)
         )).thenReturn(accounts);
-        when(detailedResultMapper.mapEnforcement(accounts)).thenReturn(mappedDetailedReport);
+        when(detailedResultMapper.map(accounts)).thenReturn(mappedDetailedReport);
 
         ReportDataInterface result = service.generateReportData(reportInstance);
 
@@ -154,7 +155,7 @@ class OperationReportByEnforcementServiceTest {
             any(Sort.class)
         );
         verifyNoInteractions(enforcementRepository);
-        verify(detailedResultMapper).mapEnforcement(accounts);
+        verify(detailedResultMapper).map(accounts);
     }
 
     @Test
@@ -195,7 +196,7 @@ class OperationReportByEnforcementServiceTest {
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class)
         )).thenReturn(accounts);
-        when(detailedResultMapper.mapEnforcement(accounts)).thenReturn(mappedDetailedReport);
+        when(detailedResultMapper.map(accounts)).thenReturn(mappedDetailedReport);
 
         ReportDataInterface result = service.generateReportData(reportInstance);
 
@@ -207,7 +208,7 @@ class OperationReportByEnforcementServiceTest {
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class)
         );
-        verify(detailedResultMapper).mapEnforcement(accounts);
+        verify(detailedResultMapper).map(accounts);
     }
 
     @Test
@@ -249,7 +250,7 @@ class OperationReportByEnforcementServiceTest {
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class)
         )).thenReturn(accounts);
-        when(summaryResultMapper.mapEnforcement(accounts)).thenReturn(mappedSummaryReport);
+        when(summaryResultMapper.map(accounts)).thenReturn(mappedSummaryReport);
 
         ReportDataInterface result = service.generateReportData(reportInstance);
 
@@ -259,7 +260,7 @@ class OperationReportByEnforcementServiceTest {
             any(Sort.class)
         );
         verifyNoInteractions(enforcementRepository);
-        verify(summaryResultMapper).mapEnforcement(accounts);
+        verify(summaryResultMapper).map(accounts);
         verifyNoInteractions(detailedResultMapper);
     }
 
