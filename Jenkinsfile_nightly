@@ -280,7 +280,6 @@ def runFunctionalStage = { stageName, shouldRunWithZephyr, reportNameSuffix ->
     stage(stageName) {
       deleteStageOutputs([
         'functional-output',
-        'functional-test-report',
         'build/reports/tests/functionalOpal',
         'build/test-results/functional',
         'target/zephyr-reports/cucumber-opal.json',
@@ -299,7 +298,7 @@ def runFunctionalStage = { stageName, shouldRunWithZephyr, reportNameSuffix ->
             'Functional Tests Report',
             'functional-output',
             'functional-output',
-            ['functional-test-report', 'build/reports/tests/functionalOpal'],
+            ['functional-output/report', 'build/reports/tests/functionalOpal'],
             reportNameSuffix,
             'build/test-results/functional/opal/*.xml',
             'functional-output/zephyr/cucumber-opal.json'
@@ -353,9 +352,9 @@ def runTaggedFunctionalStage = { enabled, stageName, shouldRunWithZephyr, report
       deleteStageOutputs([
         reportDirectory,
         'functional-output-demo',
-        'functional-test-report-demo',
         'build/reports/tests/functionalOpalTags',
         'build/test-results/functional',
+        'build/serenity-functional-demo',
         'target/zephyr-reports/cucumber-opal-tags.json',
         'target/site/serenity',
         'target/cucumber.json',
@@ -374,7 +373,7 @@ def runTaggedFunctionalStage = { enabled, stageName, shouldRunWithZephyr, report
             "${stageName} Report",
             reportDirectory,
             'functional-output-demo',
-            ['functional-test-report-demo', 'build/reports/tests/functionalOpalTags'],
+            ['functional-output-demo/report', 'build/reports/tests/functionalOpalTags'],
             reportNameSuffix,
             'build/test-results/functional/opal-tags/*.xml',
             "${reportDirectory}/zephyr/cucumber-opal-tags.json"
