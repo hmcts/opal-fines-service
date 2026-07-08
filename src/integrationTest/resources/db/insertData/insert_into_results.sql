@@ -135,7 +135,7 @@ VALUES
         FALSE,
         FALSE,
         FALSE,
-        '{"warrantDate":"2023-08-15","issuedBy":"Court A"}',
+        '[{"name":"sample_name","type":"text","hint":"some hint","language_dependent":true},{"name":"sample_name_2","type":"text","hint":"some hint 2","language_dependent":false}]',
         NULL,    -- allow_payment_terms
         FALSE,
         NULL,    -- allow_additional_action

@@ -3,14 +3,17 @@ package uk.gov.hmcts.opal.steps;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import io.restassured.path.json.JsonPath;
 import io.restassured.specification.RequestSpecification;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.hmcts.opal.config.Constants.RESULTS_URI;
 
 /**
@@ -83,6 +86,20 @@ public class GetResultsStepDef extends BaseStepDef {
     }
 
     /**
+     * Requests the single-result endpoint for the supplied result identifier with Welsh result
+     * parameters requested.
+     *
+     * @param resultId result identifier to request.
+     */
+    @When("I request result with identifier {string} including Welsh parameters")
+    public void getResultByIdIncludingWelshParameters(String resultId) {
+        authorisedJsonRequest()
+            .param("include_welsh", true)
+            .when()
+            .get(getTestUrl() + RESULTS_URI + "/" + resultId);
+    }
+
+    /**
      * Asserts that the results response contains the expected number of records.
      *
      * @param count expected number of matching records.
@@ -126,6 +143,25 @@ public class GetResultsStepDef extends BaseStepDef {
     }
 
     /**
+     * Asserts that result_parameters contains a contiguous sequence of parameter entries.
+     *
+     * @param data Cucumber table containing expected parameter field values.
+     */
+    @Then("the result parameters contain the following entries in order")
+    public void resultParametersContainEntriesInOrder(DataTable data) {
+        List<Map<String, String>> expectedParameters = data.asMaps(String.class, String.class);
+        then().assertThat().statusCode(200);
+
+        String resultParameters = then().extract().body().jsonPath().getString("result_parameters");
+        List<Map<String, Object>> actualParameters = JsonPath.from(resultParameters).getList("$");
+
+        assertTrue(
+            containsExpectedSequence(actualParameters, expectedParameters),
+            "Expected result parameter sequence was not found"
+        );
+    }
+
+    /**
      * Executes the shared GET /results request using the supplied identifiers and optional
      * query parameters.
      *
@@ -144,6 +180,41 @@ public class GetResultsStepDef extends BaseStepDef {
         request
             .when()
             .get(getTestUrl() + RESULTS_URI);
+    }
+
+    private boolean containsExpectedSequence(
+        List<Map<String, Object>> actualParameters,
+        List<Map<String, String>> expectedParameters) {
+
+        for (int startIndex = 0; startIndex <= actualParameters.size() - expectedParameters.size(); startIndex++) {
+            if (sequenceMatches(actualParameters, expectedParameters, startIndex)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean sequenceMatches(
+        List<Map<String, Object>> actualParameters,
+        List<Map<String, String>> expectedParameters,
+        int startIndex) {
+
+        for (int offset = 0; offset < expectedParameters.size(); offset++) {
+            if (!parameterMatches(actualParameters.get(startIndex + offset), expectedParameters.get(offset))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean parameterMatches(Map<String, Object> actualParameter, Map<String, String> expectedParameter) {
+        for (Map.Entry<String, String> entry : expectedParameter.entrySet()) {
+            if (dataExists(entry.getValue())
+                && !entry.getValue().equals(String.valueOf(actualParameter.get(entry.getKey())))) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }
