@@ -90,6 +90,7 @@ DECLARE
     v_total_accepted numeric(18,2) := 0;
     v_total_fines numeric(18,2) := 0;
     v_total_suspense numeric(18,2) := 0;
+    v_till_number tills.till_number%TYPE;
 BEGIN
     SELECT business_unit_id,
            interface_name
@@ -380,26 +381,15 @@ BEGIN
             v_total_rejected := v_total_rejected + r_payment.amount_pence;
         ELSE
             IF po_till_id IS NULL THEN
-                INSERT INTO tills (
-                    till_id,
-                    business_unit_id,
-                    till_number,
-                    source,
-                    interface_file_id,
-                    owned_by,
-                    owned_by_name,
-                    auto_payment)
-                VALUES (
-                    nextval('till_id_seq'),
-                    r_payment.business_unit_id,
-                    nextval(('till_number_' || r_payment.business_unit_id::text || '_seq')::regclass),
-                    r_payment.source,
-                    r_payment.interface_file_id,
-                    pi_posted_by,
-                    pi_posted_by_name,
-                    true)
-                RETURNING till_id
-                INTO      po_till_id;
+                CALL p_insert_till(
+                    pio_till_id := po_till_id,
+                    pio_till_number := v_till_number,
+                    pi_business_unit_id := r_payment.business_unit_id,
+                    pi_source := r_payment.source,
+                    pi_interface_file_id := r_payment.interface_file_id,
+                    pi_posted_by := pi_posted_by,
+                    pi_posted_by_name := pi_posted_by_name
+                );
             END IF;
 
             CALL p_insert_payment_in(
