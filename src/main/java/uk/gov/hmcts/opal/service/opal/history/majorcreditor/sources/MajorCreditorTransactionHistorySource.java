@@ -25,12 +25,8 @@ import uk.gov.hmcts.opal.service.persistence.CreditorTransactionRepositoryServic
 @Slf4j(topic = "opal.MajorCreditorTransactionHistorySource")
 public class MajorCreditorTransactionHistorySource implements AccountHistorySource {
 
-    private static final LocalDateTime MIN_HISTORY_POSTED_DATE = LocalDateTime.of(1, 1, 1, 0, 0);
-    private static final LocalDateTime MAX_HISTORY_POSTED_DATE = LocalDateTime.of(9999, 12, 31, 23, 59, 59);
-
     private final CreditorTransactionRepositoryService creditorTransactionRepositoryService;
 
-    @Transactional(readOnly = true)
     @Override
     public boolean supports(AccountHistoryContext context) {
         return AccountHistoryType.MAJOR_CREDITOR == context.getAccountType();
@@ -42,6 +38,7 @@ public class MajorCreditorTransactionHistorySource implements AccountHistorySour
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<AccountHistoryItem> fetch(AccountHistoryContext context, AccountHistoryFilter filter) {
         return creditorTransactionRepositoryService.findAll(allOf(
                 transactionForCreditorAccount(context.getAccountId()),
@@ -66,12 +63,18 @@ public class MajorCreditorTransactionHistorySource implements AccountHistorySour
     }
 
     private Specification<CreditorTransactionEntity> transactionDateFrom(LocalDate dateFrom) {
-        LocalDateTime postedFromInclusive = dateFrom == null ? MIN_HISTORY_POSTED_DATE : dateFrom.atStartOfDay();
+        if (dateFrom == null) {
+            return null;
+        }
+        LocalDateTime postedFromInclusive = dateFrom.atStartOfDay();
         return (root, query, builder) -> builder.greaterThanOrEqualTo(root.get("postedDate"), postedFromInclusive);
     }
 
     private Specification<CreditorTransactionEntity> transactionDateTo(LocalDate dateTo) {
-        LocalDateTime postedToExclusive = dateTo == null ? MAX_HISTORY_POSTED_DATE : dateTo.plusDays(1).atStartOfDay();
+        if (dateTo == null) {
+            return null;
+        }
+        LocalDateTime postedToExclusive = dateTo.plusDays(1).atStartOfDay();
         return (root, query, builder) -> builder.lessThan(root.get("postedDate"), postedToExclusive);
     }
 }

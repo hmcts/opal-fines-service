@@ -66,13 +66,8 @@ public class MajorCreditorHistoryService extends AbstractAccountHistoryService {
     @Override
     protected AccountHistoryContext ensureAccountExists(AccountHistoryContext context) {
         CreditorAccountEntity creditorAccount = creditorAccountRepository.findById(context.getAccountId())
-            .orElseThrow(() -> new EntityNotFoundException(
-                MAJOR_CREDITOR_ACCOUNT_NOT_FOUND + context.getAccountId()
-            ));
-
-        if (!isMajorCreditorAccount(creditorAccount.getCreditorAccountType())) {
-            throw new EntityNotFoundException(MAJOR_CREDITOR_ACCOUNT_NOT_FOUND + context.getAccountId());
-        }
+            .filter(account -> isMajorCreditorAccount(account.getCreditorAccountType()))
+            .orElseThrow(() -> new EntityNotFoundException(MAJOR_CREDITOR_ACCOUNT_NOT_FOUND + context.getAccountId()));
 
         return context.withVersion(creditorAccount.getVersion());
     }
