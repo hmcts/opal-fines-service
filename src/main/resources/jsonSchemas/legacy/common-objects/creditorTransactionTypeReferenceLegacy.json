@@ -3,9 +3,9 @@
   "$id": "https://example.com/schemas/creditorTransactionTypeReference.json",
   "title": "creditorTransactionTypeReference",
   "type": "object",
-  "required": ["transactionType", "transactionTypeDisplayName"],
+  "required": ["transaction_type", "transaction_type_display_name"],
   "properties": {
-    "transactionType": {
+    "transaction_type": {
       "type": "string",
       "enum": [
         "BACS", "CANCHQ", "CFEES", "CHEQUE", "FCC", "FCMP", "FCOMP",
@@ -17,7 +17,7 @@
         "RTBACS", "WO611B", "XFER"
       ]
     },
-    "transactionTypeDisplayName": {
+    "transaction_type_display_name": {
       "type": "string"
     }
   },

@@ -4,15 +4,15 @@
   "title": "defendantTransactionStatusReference",
   "type": "object",
   "required": [
-    "defendantTransactionStatus",
-    "defendantTransactionStatusDisplayName"
+    "defendant_transaction_status",
+    "defendant_transaction_status_display_name"
   ],
   "properties": {
-    "defendantTransactionStatus": {
+    "defendant_transaction_status": {
       "type": "string",
       "enum": ["PND", "COMP", "CAN"]
     },
-    "defendantTransactionStatusDisplayName": {
+    "defendant_transaction_status_display_name": {
       "type": "string"
     }
   },

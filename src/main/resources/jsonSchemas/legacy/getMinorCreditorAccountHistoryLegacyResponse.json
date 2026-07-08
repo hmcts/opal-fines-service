@@ -4,7 +4,7 @@
   "title": "Get Minor Creditor Account History Legacy Response",
   "type": "object",
   "properties": {
-    "historyItems": {
+    "history_items": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/minorCreditorHistoryItem"
@@ -15,9 +15,9 @@
     "minorCreditorHistoryItem": {
       "title": "historyItem",
       "type": "object",
-      "required": ["postedDetails", "type", "details"],
+      "required": ["posted_details", "type", "details"],
       "properties": {
-        "postedDetails": {
+        "posted_details": {
           "$ref": "./common-objects/postedDetailsLegacy.json"
         },
         "type": {
@@ -46,9 +46,9 @@
     },
     "noteDetails": {
       "type": "object",
-      "required": ["noteText"],
+      "required": ["note_text"],
       "properties": {
-        "noteText": {
+        "note_text": {
           "type": "string"
         }
       }
@@ -56,34 +56,34 @@
     "creditorTransactionDetails": {
       "title": "transactionDetails",
       "type": "object",
-      "required": ["transactionType"],
+      "required": ["transaction_type"],
       "properties": {
-        "transactionType": {
+        "transaction_type": {
           "$ref": "./common-objects/creditorTransactionTypeReferenceLegacy.json"
         },
-        "paymentReference": {
+        "payment_reference": {
           "type": "string"
         },
         "status": {
           "$ref": "./common-objects/creditorTransactionStatusReferenceLegacy.json"
         },
-        "statusDate": {
+        "status_date": {
           "type": "string",
           "format": "date-time"
         },
-        "associatedRecordType": {
+        "associated_record_type": {
           "type": "string"
         },
-        "associatedRecordId": {
+        "associated_record_id": {
           "type": "string"
         },
-        "accountNumber": {
+        "account_number": {
           "type": "string"
         },
-        "defendantAccountNumber": {
+        "defendant_account_number": {
           "type": "string"
         },
-        "defendantAccountId": {
+        "defendant_account_id": {
           "type": "integer"
         }
       }

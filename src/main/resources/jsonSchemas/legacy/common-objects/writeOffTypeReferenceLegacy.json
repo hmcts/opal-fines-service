@@ -3,13 +3,13 @@
   "$id": "https://example.com/schemas/writeOffTypeReference.json",
   "title": "writeOffTypeReference",
   "type": "object",
-  "required": ["writeOffType", "writeOffTypeDisplayName"],
+  "required": ["write_off_type", "write_off_type_display_name"],
   "properties": {
-    "writeOffType": {
+    "write_off_type": {
       "type": "string",
       "enum": ["JCAM-A", "TRNOUT"]
     },
-    "writeOffTypeDisplayName": {
+    "write_off_type_display_name": {
       "type": "string"
     }
   },
