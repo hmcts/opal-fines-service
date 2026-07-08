@@ -16,6 +16,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,6 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler.PaymentCardRequestAlreadyExistsException;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
@@ -223,20 +225,26 @@ class OpalDefendantAccountServicePaymentCardTest {
 
     @Test
     void addPaymentCardRequest_permissionDenied_throws403() {
+        //Arrange
         DefendantAccountPaymentTermsServiceProxy proxy = mock(DefendantAccountPaymentTermsServiceProxy.class);
 
         UserState userState = mock(UserState.class);
         when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(userState);
-        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS))
+        when(userState.getBusinessUnitUserForBusinessUnit((short) 10))
+            .thenReturn(Optional.of(BusinessUnitUser.builder().businessUnitUserId("USR").build()));
+        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.AMEND_PAYMENT_TERMS))
             .thenReturn(false);
 
         var svc = new DefendantAccountPaymentTermsService(proxy, userStateService);
 
+        //Act
         PermissionNotAllowedException ex = assertThrows(
             PermissionNotAllowedException.class,
-            () -> svc.addPaymentCardRequest(1L, "10", "USR", "\"1\"")
+            () -> svc.addPaymentCardRequest(1L, "10", "\"1\"")
         );
+
+        //Assert
         assertThat(ex.getPermission()).containsExactly(FinesPermission.AMEND_PAYMENT_TERMS);
 
         verifyNoInteractions(proxy);
