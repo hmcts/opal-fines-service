@@ -116,7 +116,6 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
             .get(getTestUrl() + "/defendant-accounts/" + createdDefendantAccountId() + "/header-summary");
 
         assertEquals(200, headerSummary.statusCode(), "Expected header-summary request to succeed");
-        String ifMatch = headerSummary.getHeader("ETag");
         String defendantAccountPartyId = headerSummary.jsonPath().getString("defendant_account_party_id");
 
         Response partyResponse = authorisedJsonRequest()
@@ -136,6 +135,7 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
         JsonNode individualDetails = requestParty.path("party_details").path("individual_details");
         assertTrue(individualDetails.isObject(), "Expected individual_details object on defendant party");
         ((ObjectNode) individualDetails).put("forenames", REPLACED_FORENAMES);
+        String ifMatch = headerSummary.getHeader("ETag");
 
         authorisedJsonRequest()
             .header("Business-Unit-Id", BUSINESS_UNIT_ID)

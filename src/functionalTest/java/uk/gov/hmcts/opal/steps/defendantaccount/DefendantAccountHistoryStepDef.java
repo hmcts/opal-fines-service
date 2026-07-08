@@ -335,7 +335,10 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
      * @param expectedPostedByName expected posted_by_name value.
      * @throws Exception if the response body cannot be parsed as JSON.
      */
-    @Then("the defendant account history contains seeded amendment history posted by {string} and posted by name {string}")
+    @Then(
+        "the defendant account history contains seeded amendment history posted by {string} "
+            + "and posted by name {string}"
+    )
     public void defendantAccountHistoryContainsSeededAmendmentHistoryPostedByAndName(
         String expectedPostedBy,
         String expectedPostedByName
