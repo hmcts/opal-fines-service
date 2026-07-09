@@ -69,7 +69,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
             .createdTimestamp(LocalDateTime.of(2026, 1, 1, 11, 0))
             .requestedBy(42L)
             .requestedByName("John Doe")
-            .businessUnit(List.of(10, 20))
+            .businessUnit(List.of((short) 10, (short) 20))
             .generationStatus(ReportInstanceGenerationStatus.READY)
             .noOfRecords(100L)
             .build();
@@ -95,11 +95,11 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
                 () -> assertEquals(instance.getCreatedTimestamp(), result.getGeneratedAt()),
                 () -> assertEquals(100, result.getNumberOfRecords()),
                 () -> assertNotNull(result.getRequestedBy()),
-                () -> assertEquals("42", result.getRequestedBy().getUserId()),
+                () -> assertEquals(42L, result.getRequestedBy().getUserId()),
                 () -> assertEquals("John Doe", result.getRequestedBy().getName()),
                 () -> assertEquals(2, result.getBusinessUnits().size()),
-                () -> assertEquals("10", result.getBusinessUnits().get(0).getBusinessUnitId()),
-                () -> assertEquals("20", result.getBusinessUnits().get(1).getBusinessUnitId()),
+                () -> assertEquals((short) 10, result.getBusinessUnits().get(0).getBusinessUnitId()),
+                () -> assertEquals((short) 20, result.getBusinessUnits().get(1).getBusinessUnitId()),
                 () -> assertEquals(StatusReports.CodeEnum.READY, result.getStatus().getCode()),
                 () -> assertEquals("Ready", result.getStatus().getDisplayName()),
                 () -> assertTrue(result.getIsDownloadable()),
@@ -160,7 +160,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
                         SupportedFileType.XML, SupportedFileType.CSV, SupportedFileType.PDF, SupportedFileType.JSON))
                     .build())
                 .reportName(null)
-                .businessUnit(List.of(1, 2))
+                .businessUnit(List.of((short) 1, (short) 2))
                 .generationStatus(ReportInstanceGenerationStatus.READY)
                 .noOfRecords(NO_OF_RECORDS)
                 .errors(null)
@@ -189,11 +189,11 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
             MatcherAssert.assertThat(response.getBusinessUnits(), Matchers.containsInAnyOrder(
                     Matchers.allOf(
                         Matchers.hasProperty("businessUnitName", Matchers.is("BU_1")),
-                        Matchers.hasProperty("businessUnitId", Matchers.is("1")),
+                        Matchers.hasProperty("businessUnitId", Matchers.is((short) 1)),
                         Matchers.hasProperty("welshSpeaking", Matchers.is("Y"))),
                     Matchers.allOf(
                         Matchers.hasProperty("businessUnitName", Matchers.is("BU_2")),
-                        Matchers.hasProperty("businessUnitId", Matchers.is("2")),
+                        Matchers.hasProperty("businessUnitId", Matchers.is((short) 2)),
                         Matchers.hasProperty("welshSpeaking", Matchers.is("N")))
                 )
             );
@@ -233,7 +233,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
                     .supportedFileTypes(List.of(SupportedFileType.XML, SupportedFileType.CSV))
                     .build())
                 .reportName("Custom Name")
-                .businessUnit(List.of(1, 2))
+                .businessUnit(List.of((short) 1, (short) 2))
                 .generationStatus(ReportInstanceGenerationStatus.READY)
                 .noOfRecords(NO_OF_RECORDS)
                 .errors(null)
@@ -267,7 +267,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
                     .supportedFileTypes(List.of(SupportedFileType.XML, SupportedFileType.CSV))
                     .build())
                 .reportName(null)
-                .businessUnit(List.of(1, 2))
+                .businessUnit(List.of((short) 1, (short) 2))
                 .generationStatus(ReportInstanceGenerationStatus.ERROR)
                 .noOfRecords(NO_OF_RECORDS)
                 .errors(ReportError.builder().operationId("ERROR-ID").error("Unit test error").build())
@@ -310,7 +310,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
                 .supportedFileTypes(null)
                 .build())
                 .reportName(null)
-                .businessUnit(List.of(1, 2))
+                .businessUnit(List.of((short) 1, (short) 2))
                 .generationStatus(ReportInstanceGenerationStatus.READY)
                 .noOfRecords(NO_OF_RECORDS)
                 .errors(ReportError.builder().operationId("ERROR-ID").error("Unit test error").build())
@@ -344,7 +344,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
                 .supportedFileTypes(Collections.emptyList())
                 .build())
                 .reportName(null)
-                .businessUnit(List.of(1, 2))
+                .businessUnit(List.of((short) 1, (short) 2))
                 .generationStatus(ReportInstanceGenerationStatus.READY)
                 .noOfRecords(NO_OF_RECORDS)
                 .errors(ReportError.builder().operationId("ERROR-ID").error("Unit test error").build())
@@ -531,7 +531,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
             UserByNameDetailsCommon result = mapper.mapRequestedBy(instance);
 
             assertAll(
-                () -> assertEquals("42", result.getUserId()),
+                () -> assertEquals(42L, result.getUserId()),
                 () -> assertEquals("Jane Doe", result.getName())
             );
         }
@@ -566,12 +566,12 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
         @Test
         @DisplayName("Should map business unit IDs to BusinessUnitSummaryCommon")
         void shouldMapBusinessUnitIdsCorrectly() {
-            var result = mapper.mapBusinessUnits(List.of(10, 20));
+            var result = mapper.mapBusinessUnits(List.of((short) 10, (short) 20));
 
             assertAll(
                 () -> assertEquals(2, result.size()),
-                () -> assertEquals("10", result.get(0).getBusinessUnitId()),
-                () -> assertEquals("20", result.get(1).getBusinessUnitId())
+                () -> assertEquals((short) 10, result.get(0).getBusinessUnitId()),
+                () -> assertEquals((short) 20, result.get(1).getBusinessUnitId())
             );
         }
 

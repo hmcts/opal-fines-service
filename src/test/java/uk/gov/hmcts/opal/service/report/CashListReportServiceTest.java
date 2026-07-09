@@ -20,10 +20,12 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import tools.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.opal.entity.DestinationType;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.TillEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.PaymentMethod;
 import uk.gov.hmcts.opal.repository.PaymentInRepository;
 import uk.gov.hmcts.opal.repository.TillRepository;
 
@@ -151,8 +153,8 @@ class CashListReportServiceTest {
             .paymentInId(paymentInId)
             .tillEntity(till)
             .paymentDate(LocalDateTime.of(2026, 5, 26, 14, 30))
-            .paymentMethod("CA")
-            .destinationType("F")
+            .paymentMethod(PaymentMethod.NC)
+            .destinationType(DestinationType.F)
             .build();
     }
 }

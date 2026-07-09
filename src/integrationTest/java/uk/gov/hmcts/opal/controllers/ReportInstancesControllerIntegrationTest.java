@@ -96,7 +96,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
                 .reportId(REPORT_1BU_ID)
                 .reportName(null)
-                .businessUnitIds(List.of(1))
+                .businessUnitIds(List.of((short) 1))
                 .reportParameters(parameterMap)
                 .build();
 
@@ -120,7 +120,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
         ReportInstanceEntity reportInstanceEntity = reportInstanceRepository
             .findById(dto.getReportInstanceId()).orElseThrow();
         assertEquals(REPORT_1BU_ID, reportInstanceEntity.getReport().getReportId());
-        assertEquals(List.of(1), reportInstanceEntity.getBusinessUnit());
+        assertEquals(List.of((short) 1), reportInstanceEntity.getBusinessUnit());
         assertEquals(USER_ID, reportInstanceEntity.getRequestedBy());
         assertEquals(USER_NAME, reportInstanceEntity.getRequestedByName());
         assertEquals(REQUESTED, reportInstanceEntity.getGenerationStatus());
@@ -153,7 +153,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_2BUs_ID)
             .reportName(null)
-            .businessUnitIds(List.of(1, 2))
+            .businessUnitIds(List.of((short) 1, (short) 2))
             .reportParameters(new HashMap<>())
             .build();
 
@@ -184,7 +184,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_1BU_ID)
             .reportName(null)
-            .businessUnitIds(List.of(1, 2))
+            .businessUnitIds(List.of((short) 1, (short) 2))
             .reportParameters(new HashMap<>())
             .build();
 
@@ -209,7 +209,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_NO_MANUAL_CREATION)
             .reportName(null)
-            .businessUnitIds(List.of(1))
+            .businessUnitIds(List.of((short) 1))
             .reportParameters(new HashMap<>())
             .build();
 
@@ -234,7 +234,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_1BU_ID)
             .reportName(null)
-            .businessUnitIds(List.of(2))
+            .businessUnitIds(List.of((short) 2))
             .reportParameters(new HashMap<>())
             .build();
 
@@ -258,7 +258,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_2BUs_ID)
             .reportName(null)
-            .businessUnitIds(List.of(1, 2))
+            .businessUnitIds(List.of((short) 1, (short) 2))
             .reportParameters(new HashMap<>())
             .build();
 
@@ -278,7 +278,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId("unknown-report-id")
             .reportName(null)
-            .businessUnitIds(List.of(1))
+            .businessUnitIds(List.of((short) 1))
             .reportParameters(new HashMap<>())
             .build();
 
@@ -373,7 +373,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_1BU_ID)
             .reportName(null)
-            .businessUnitIds(List.of(1))
+            .businessUnitIds(List.of((short) 1))
             .reportParameters(Map.of(
                 "date-param", "2026-05-26",
                 "decimal-param", 5.0,
@@ -419,7 +419,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_1BU_ID)
             .reportName(null)
-            .businessUnitIds(List.of(1))
+            .businessUnitIds(List.of((short) 1))
             .reportParameters(null)
             .build();
 
@@ -451,7 +451,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_1BU_ID)
             .reportName(null)
-            .businessUnitIds(List.of(1))
+            .businessUnitIds(List.of((short) 1))
             .reportParameters(Map.of(
                 "NOT A PARAMETER", "NOT A VALUE!",
                 "decimal-param", 5.0,
@@ -493,7 +493,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_1BU_ID)
             .reportName(null)
-            .businessUnitIds(List.of(1))
+            .businessUnitIds(List.of((short) 1))
             .reportParameters(Map.of(
                 "date-param", "NOT A DATE!",
                 "decimal-param", 5.0,
@@ -535,7 +535,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId(REPORT_1BU_ID)
             .reportName(null)
-            .businessUnitIds(List.of(1))
+            .businessUnitIds(List.of((short) 1))
             .reportParameters(Map.of(
                 "date-param", "2026-05-26",
                 "decimal-param", 5.0,

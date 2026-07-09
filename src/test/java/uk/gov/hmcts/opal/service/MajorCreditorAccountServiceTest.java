@@ -68,7 +68,7 @@ class MajorCreditorAccountServiceTest {
     @Test
     void getHeaderSummary_authorisedUserDelegatesToProxy() {
         UserState userState = mock(UserState.class);
-        GetMajorCreditorAccountHeaderSummaryResponse response = responseWithBusinessUnit("77");
+        GetMajorCreditorAccountHeaderSummaryResponse response = responseWithBusinessUnit((short) 77);
 
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
@@ -104,7 +104,7 @@ class MajorCreditorAccountServiceTest {
     @Test
     void getHeaderSummary_permissionInDifferentBusinessUnitThrowsForbidden() {
         UserState userState = mock(UserState.class);
-        GetMajorCreditorAccountHeaderSummaryResponse response = responseWithBusinessUnit("77");
+        GetMajorCreditorAccountHeaderSummaryResponse response = responseWithBusinessUnit((short) 77);
 
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
@@ -122,7 +122,7 @@ class MajorCreditorAccountServiceTest {
         verify(majorCreditorAccountProxy).getHeaderSummary(123L);
     }
 
-    private GetMajorCreditorAccountHeaderSummaryResponse responseWithBusinessUnit(String businessUnitId) {
+    private GetMajorCreditorAccountHeaderSummaryResponse responseWithBusinessUnit(Short businessUnitId) {
         GetMajorCreditorAccountHeaderSummaryResponse response =
             new GetMajorCreditorAccountHeaderSummaryResponse();
         response.setBusinessUnitDetails(new BusinessUnitSummaryCommon().businessUnitId(businessUnitId));

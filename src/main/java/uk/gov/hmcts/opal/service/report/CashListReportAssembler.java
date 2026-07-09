@@ -24,8 +24,6 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 @RequiredArgsConstructor
 public class CashListReportAssembler {
 
-    private static final String FINE_DESTINATION_TYPE = "F";
-    private static final String SUSPENSE_DESTINATION_TYPE = "S";
     private static final String FINE_REPORT_TYPE = "FA";
     private static final String SUSPENSE_REPORT_TYPE = "SA";
     private static final String SUSPENSE_ACCOUNT_NUMBER = "Suspense Ref";
@@ -60,8 +58,8 @@ public class CashListReportAssembler {
 
     private CashListReportData.CashListEntry toEntry(int entryNumber, PaymentInEntity payment) {
         return switch (payment.getDestinationType()) {
-            case FINE_DESTINATION_TYPE -> toFineEntry(entryNumber, payment);
-            case SUSPENSE_DESTINATION_TYPE -> toSuspenseEntry(entryNumber, payment);
+            case F -> toFineEntry(entryNumber, payment);
+            case S -> toSuspenseEntry(entryNumber, payment);
             default -> throw new IllegalArgumentException(
                 "Payment " + payment.getPaymentInId() + " has unsupported destination_type: "
                     + payment.getDestinationType());
@@ -87,7 +85,7 @@ public class CashListReportAssembler {
 
         return baseEntry(entryNumber, payment)
             .type(SUSPENSE_REPORT_TYPE)
-            .suspense(suspenseItem.getSuspenseItemType())
+            .suspense(suspenseItem.getSuspenseItemType().name())
             .accountNumber(SUSPENSE_ACCOUNT_NUMBER)
             .name(String.valueOf(suspenseItem.getSuspenseItemNumber()))
             .nameAdditionalInformation(toAdditionalInformation(payment))
@@ -98,7 +96,7 @@ public class CashListReportAssembler {
                                                                                    PaymentInEntity payment) {
         return CashListReportData.CashListEntry.builder()
             .entry(entryNumber)
-            .paymentMethod(payment.getPaymentMethod())
+            .paymentMethod(payment.getPaymentMethod() == null ? null : payment.getPaymentMethod().name())
             .amount(payment.getPaymentAmount());
     }
 

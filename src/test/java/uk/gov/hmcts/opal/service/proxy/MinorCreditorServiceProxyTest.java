@@ -1,5 +1,12 @@
 package uk.gov.hmcts.opal.service.proxy;
 
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -7,16 +14,13 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
+import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyMinorCreditorService;
 import uk.gov.hmcts.opal.service.opal.OpalMinorCreditorService;
-
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
 class MinorCreditorServiceProxyTest extends ProxyTestsBase {
 
@@ -45,6 +49,22 @@ class MinorCreditorServiceProxyTest extends ProxyTestsBase {
         testPostSearchMinorCreditors(targetService, otherService);
     }
 
+    void testHistoryMode(MinorCreditorServiceInterface targetService, MinorCreditorServiceInterface otherService) {
+        Long id = 123L;
+        LocalDate dateFrom = LocalDate.of(2026, 1, 1);
+        LocalDate dateTo = LocalDate.of(2026, 1, 31);
+        MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(
+            dateFrom, dateTo, List.of("amendment"));
+        GetMinorCreditorHistoryResponse response = GetMinorCreditorHistoryResponse.builder().build();
+        when(targetService.getMinorCreditorHistory(id, filters)).thenReturn(response);
+
+        GetMinorCreditorHistoryResponse result = serviceProxy.getMinorCreditorHistory(id, filters);
+
+        verify(targetService).getMinorCreditorHistory(id, filters);
+        verifyNoInteractions(otherService);
+        Assertions.assertEquals(response, result);
+    }
+
     void testPostSearchMinorCreditors(MinorCreditorServiceInterface targetService,
                                       MinorCreditorServiceInterface otherService) {
 
@@ -63,18 +83,34 @@ class MinorCreditorServiceProxyTest extends ProxyTestsBase {
 
     @Test
     void shouldUseOpalServiceWhenModeIsNotLegacy() {
-        // Given: app mode is set
-        setMode(OPAL);
+        // Given: legacy mode flag is set
+        setLegacyMode(false);
         // Then: the target service is called, but the other service is not
         testMode(opalService, legacyService);
     }
 
     @Test
     void shouldUseLegacyServiceWhenModeIsLegacy() {
-        // Given: app mode is set
-        setMode(LEGACY);
+        // Given: legacy mode flag is set
+        setLegacyMode(true);
         // Then: the target service is called, but the other service is not
         testMode(legacyService, opalService);
+    }
+
+    @Test
+    void getMinorCreditorHistory_shouldUseOpalServiceWhenModeIsNotLegacy() {
+        // Given: app mode is set
+        setLegacyMode(false);
+        // Then: the target service is called, but the other service is not
+        testHistoryMode(opalService, legacyService);
+    }
+
+    @Test
+    void getMinorCreditorHistory_shouldUseLegacyServiceWhenModeIsLegacy() {
+        // Given: app mode is set
+        setLegacyMode(true);
+        // Then: the target service is called, but the other service is not
+        testHistoryMode(legacyService, opalService);
     }
 
 }

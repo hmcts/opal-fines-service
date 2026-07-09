@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.server.ResponseStatusException;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
@@ -66,6 +67,7 @@ public class ReportInstancesApiControllerGETByIdIntegrationTest extends Abstract
     @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-8275")
     void getReportInstance_success_singleBUInstance() throws Exception {
         Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
@@ -106,6 +108,7 @@ public class ReportInstancesApiControllerGETByIdIntegrationTest extends Abstract
     @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-8280")
     void getReportInstance_success_multiBUInstance() throws Exception {
         Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1, buUser2));
@@ -137,6 +140,7 @@ public class ReportInstancesApiControllerGETByIdIntegrationTest extends Abstract
     @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-8279")
     void getReportInstance_success_useReportInstanceNameOverride() throws Exception {
         Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1, buUser2));
@@ -161,6 +165,7 @@ public class ReportInstancesApiControllerGETByIdIntegrationTest extends Abstract
     @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-8272")
     void getReportInstance_success_butReportInstanceDataHasErrors() throws Exception {
         Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
@@ -188,6 +193,7 @@ public class ReportInstancesApiControllerGETByIdIntegrationTest extends Abstract
     @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-8273")
     void getReportInstance_success_allSupportedTypes() throws Exception {
         Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
@@ -211,6 +217,7 @@ public class ReportInstancesApiControllerGETByIdIntegrationTest extends Abstract
     @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-8276")
     void getReportInstance_success_reportParameters() throws Exception {
         Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
@@ -233,6 +240,7 @@ public class ReportInstancesApiControllerGETByIdIntegrationTest extends Abstract
     @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-8281")
     void getReportInstance_success_notReady_notDownloadable() throws Exception {
         Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
@@ -259,6 +267,7 @@ public class ReportInstancesApiControllerGETByIdIntegrationTest extends Abstract
     @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-8277")
     void getReportInstance_success_readyNoTypes_notDownloadable() throws Exception {
         Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
@@ -284,6 +293,7 @@ public class ReportInstancesApiControllerGETByIdIntegrationTest extends Abstract
     @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-8270")
     void getReportInstance_401_noToken() throws Exception {
         Mockito.doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
             .when(userStateService).getUserStateV1FromSecurityContext();
@@ -298,6 +308,7 @@ public class ReportInstancesApiControllerGETByIdIntegrationTest extends Abstract
     @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-8274")
     void getReportInstance_403_incorrectBUs() throws Exception {
         Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
@@ -320,6 +331,7 @@ public class ReportInstancesApiControllerGETByIdIntegrationTest extends Abstract
     @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-8271")
     void getReportInstance_404_reportInstanceNotFound() throws Exception {
         Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
@@ -342,6 +354,7 @@ public class ReportInstancesApiControllerGETByIdIntegrationTest extends Abstract
     @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
+    @JiraTestKey("PO-8278")
     void getReportInstance_attempt406() throws Exception {
         ResultActions result = mockMvc.perform(
             get(REPORT_INSTANCE_URL_BASE + "/" + "NOT_A_NUMBER")

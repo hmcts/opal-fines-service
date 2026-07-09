@@ -1,17 +1,16 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
 
-import jakarta.servlet.ServletException;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -19,12 +18,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
 import uk.gov.hmcts.opal.service.report.GenericReportService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Sql(scripts = "classpath:db/insertData/insert_into_report_instances.sql", executionPhase = BEFORE_TEST_METHOD)
 @Sql(scripts = "classpath:db/deleteData/delete_from_report_instances.sql", executionPhase = AFTER_TEST_METHOD)
@@ -56,13 +55,13 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         dto.setName("My Report");
         dto.setRequestedAt(java.time.LocalDateTime.of(2026, 1, 1, 10, 0));
         dto.setGeneratedAt(java.time.LocalDateTime.of(2026, 1, 1, 11, 0));
-        dto.setNumberOfRecords(100);
+        dto.setNumberOfRecords(100L);
         dto.setRequestedBy(new uk.gov.hmcts.opal.generated.model.UserByNameDetailsCommon()
-            .userId("42")
+            .userId(42L)
             .name("John Doe"));
         dto.setBusinessUnits(List.of(
-            new uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon().businessUnitId("10"),
-            new uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon().businessUnitId("20")
+            new uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon().businessUnitId((short) 10),
+            new uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon().businessUnitId((short) 20)
         ));
         dto.setStatus(new uk.gov.hmcts.opal.generated.model.StatusReports()
             .code(uk.gov.hmcts.opal.generated.model.StatusReports.CodeEnum.READY)
@@ -82,10 +81,10 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         dto.setRequestedAt(java.time.LocalDateTime.of(2026, 2, 1, 10, 0));
         dto.setGeneratedAt(java.time.LocalDateTime.of(2026, 2, 1, 11, 0));
         dto.setRequestedBy(new uk.gov.hmcts.opal.generated.model.UserByNameDetailsCommon()
-            .userId("43")
+            .userId(43L)
             .name("Jane Doe"));
         dto.setBusinessUnits(List.of(
-            new uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon().businessUnitId("10")
+            new uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon().businessUnitId((short) 10)
         ));
         dto.setStatus(new uk.gov.hmcts.opal.generated.model.StatusReports()
             .code(uk.gov.hmcts.opal.generated.model.StatusReports.CodeEnum.IN_PROGRESS)
@@ -101,20 +100,23 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
-        void whenNoTokenPresent_unauthorizedIsReturned_sadPath() {
-            ServletException exception = assertThrows(
-                ServletException.class,
-                () -> mockMvc.perform(get(URL_BASE).param("report_id", REPORT_ID))
-            );
-
-            assertThat(exception.getCause())
-                .isInstanceOf(UnauthorizedException.class)
-                .hasMessage("Current user is not authenticated with OpalJwtAuthenticationToken");
+        @JiraTestKey("PO-8292")
+        void whenNoTokenPresent_unauthorizedIsReturned_sadPath() throws Exception {
+            mockMvc.perform(get(URL_BASE).param("report_id", REPORT_ID))
+                .andExpectAll(
+                    status().isUnauthorized(),
+                    content().contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON),
+                    jsonPath("$.title").value("Unauthorized"),
+                    jsonPath("$.detail").value("Missing or invalid access token"),
+                    jsonPath("$.status").value(401),
+                    jsonPath("$.retriable").value(false)
+                );
         }
 
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-8293")
         void whenRequestNotAcceptable_notAcceptableIsReturned_sadPath() throws Exception {
             mockMvc.perform(get(URL_BASE)
                     .param("report_id", REPORT_ID)
@@ -125,6 +127,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-8291")
         void whenUserLacksReportPermission_forbiddenIsReturned_sadPath() throws Exception {
             userStateStub.setupWithNoPermissions();
             doThrow(new org.springframework.security.access.AccessDeniedException(
@@ -146,10 +149,11 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-8294")
         void whenUserLacksBusinessUnitPermission_forbiddenIsReturned_sadPath() throws Exception {
             doThrow(new org.springframework.security.access.AccessDeniedException(
                 "User does not have permission for one or more specified business units"
-            )).when(genericReportService).searchReportInstances(null, null, List.of(30), null, REPORT_ID);
+            )).when(genericReportService).searchReportInstances(null, null, List.of((short) 30), null, REPORT_ID);
 
             mockMvc.perform(authorisedGet()
                     .param("report_id", REPORT_ID)
@@ -171,6 +175,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-8286")
         void whenNoFilters_allInstancesAreReturned_happyPath() throws Exception {
             doReturn(List.of(readyDto(), inProgressDto(), readyDto()))
                 .when(genericReportService).searchReportInstances(null, null, null, null, REPORT_ID);
@@ -188,6 +193,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-8290")
         void whenFilteredByReportId_matchingInstancesAreReturned_happyPath() throws Exception {
             doReturn(List.of(readyDto(), inProgressDto(), readyDto()))
                 .when(genericReportService).searchReportInstances(null, null, null, null, REPORT_ID);
@@ -205,6 +211,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-8282")
         void whenFilteredByDateRange_matchingInstancesAreReturned_happyPath() throws Exception {
             doReturn(List.of(readyDto())).when(genericReportService).searchReportInstances(
                 java.time.LocalDate.of(2026, 1, 1),
@@ -229,12 +236,13 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-8289")
         void whenFilteredByUserId_matchingInstancesAreReturned_happyPath() throws Exception {
             doReturn(List.of(readyDto(), readyDto())).when(genericReportService).searchReportInstances(
                 null,
                 null,
                 null,
-                42,
+                42L,
                 REPORT_ID
             );
 
@@ -252,11 +260,12 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-8287")
         void whenFilteredByBusinessUnit_matchingInstancesAreReturned_happyPath() throws Exception {
             doReturn(List.of(readyDto(), readyDto())).when(genericReportService).searchReportInstances(
                 null,
                 null,
-                List.of(20),
+                List.of((short) 20),
                 null,
                 REPORT_ID
             );
@@ -275,6 +284,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-8288")
         void whenReadyInstanceReturned_allFieldsAreMapped_happyPath() throws Exception {
             doReturn(List.of(readyDto())).when(genericReportService).searchReportInstances(
                 java.time.LocalDate.of(2026, 1, 1),
@@ -310,6 +320,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-8283")
         void whenInProgressInstanceReturned_isNotDownloadable_happyPath() throws Exception {
             doReturn(List.of(inProgressDto())).when(genericReportService).searchReportInstances(
                 java.time.LocalDate.of(2026, 2, 1),
@@ -335,6 +346,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-8285")
         void whenInstanceNameNull_reportTitleIsUsed_happyPath() throws Exception {
             doReturn(List.of(inProgressDto())).when(genericReportService).searchReportInstances(
                 java.time.LocalDate.of(2026, 2, 1),
@@ -358,6 +370,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-8284")
         void whenNoMatchingInstances_emptyArrayReturned_happyPath() throws Exception {
             doReturn(List.of()).when(genericReportService).searchReportInstances(
                 java.time.LocalDate.of(2020, 2, 1),

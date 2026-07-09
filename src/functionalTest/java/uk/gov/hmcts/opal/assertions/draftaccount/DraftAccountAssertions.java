@@ -4,7 +4,6 @@ import io.restassured.response.Response;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Map;
-import net.serenitybdd.core.Serenity;
 import net.serenitybdd.rest.SerenityRest;
 import uk.gov.hmcts.opal.assertions.CommonResponseAssertions;
 
@@ -59,9 +58,6 @@ public class DraftAccountAssertions {
         String actual = String.valueOf(apiCreatedAt.truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
         String expected = String.valueOf(originalCreatedAt.truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
 
-        Serenity.recordReportData().withTitle("Times").andContents(
-            "Created at time: " + expected + "\nResponse created at time: " + actual);
-
         assertEquals(expected, actual, "Created at time has changed");
     }
 
@@ -77,9 +73,6 @@ public class DraftAccountAssertions {
 
         String original = String.valueOf(originalAccountStatusDate.truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
         String current = String.valueOf(apiAccountStatusDate.truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
-
-        Serenity.recordReportData().withTitle("Times").andContents(
-            "Initial account status date: " + original + "\nResponse account status date: " + current);
 
         assertTrue(
             apiAccountStatusDate.isAfter(originalAccountStatusDate),

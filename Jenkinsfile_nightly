@@ -55,6 +55,8 @@ def secrets = [
     ],
 ]
 
+def stageFailures = []
+
 static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
   [$class     : 'AzureKeyVaultSecret',
    secretType : 'Secret',
@@ -84,12 +86,60 @@ def configureZephyrExecution = { testEnvironment ->
           "Description: ${env.EXECUTION_CYCLE_DESCRIPTION}"
 }
 
-def publishIntegrationResults = {
-  steps.junit '**/test-results/integration/*.xml'
-  if (currentBuild.result == 'UNSTABLE') {
-    currentBuild.result = 'FAILURE'
+def recordStageFailure = { stageName, reason ->
+  def message = "${stageName}: ${reason}"
+  stageFailures << message
+  steps.echo message
+}
+
+def deleteStageOutputs = { List<String> paths ->
+  if (paths == null || paths.isEmpty()) {
+    return
   }
-  ensureIntegrationReportOutputExists()
+
+  def script = paths.collect { "rm -rf '${it}'" }.join('\n')
+  steps.sh script
+}
+
+def copyReportOutputIfPresent = { targetDirectory, sourceDirectory ->
+  steps.sh """
+    mkdir -p ${targetDirectory}
+    rm -rf ${targetDirectory}/report
+    cp -R ${sourceDirectory} ${targetDirectory}/report
+  """
+}
+
+def ensureReportOutputExists = { reportLabel, targetDirectory, candidateDirectories ->
+  if (steps.fileExists("${targetDirectory}/report/index.html")
+    || steps.fileExists("${targetDirectory}/report/htmlReport/test-summary.html")) {
+    return
+  }
+
+  for (String candidateDirectory : candidateDirectories) {
+    if (steps.fileExists("${candidateDirectory}/index.html")
+      || steps.fileExists("${candidateDirectory}/htmlReport/test-summary.html")) {
+      copyReportOutputIfPresent(targetDirectory, candidateDirectory)
+      return
+    }
+  }
+
+  throw new RuntimeException(
+    "${reportLabel} was not generated in any expected report location: ${candidateDirectories.join(', ')}"
+  )
+}
+
+def publishIntegrationResults = {
+  steps.junit allowEmptyResults: true, testResults: '**/test-results/integration/*.xml'
+  ensureReportOutputExists(
+    'Integration Tests Report',
+    'integration-output',
+    ['build/reports/tests/integration']
+  )
+
+  if (!steps.fileExists('integration-output/zephyr/Junit5Report-IntegrationTest.json')) {
+    throw new RuntimeException('Integration Zephyr report was not generated at integration-output/zephyr/Junit5Report-IntegrationTest.json')
+  }
+
   steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'integration-output/**/*'
   publishHTML target: [
     allowMissing         : true,
@@ -101,57 +151,27 @@ def publishIntegrationResults = {
   ]
 }
 
-def ensureIntegrationReportOutputExists() {
-  if (steps.fileExists('integration-output/report/index.html')) {
-    return
-  }
+def packageFunctionalReportOutput = { reportLabel, reportDirectory, sourceOutputDirectory, candidateReportDirectories ->
+  ensureReportOutputExists(reportLabel, reportDirectory, candidateReportDirectories)
 
-  if (steps.fileExists('build/reports/tests/integration/index.html')) {
-    steps.sh '''
-      mkdir -p integration-output
-      rm -rf integration-output/report
-      cp -R build/reports/tests/integration integration-output/report
-    '''
-  }
-}
-
-def ensureFunctionalReportOutputExists = { reportDirectory, rawReportDirectory ->
-  if (steps.fileExists("${reportDirectory}/report/index.html")
-    || steps.fileExists("${reportDirectory}/report/htmlReport/test-summary.html")) {
-    return
-  }
-
-  if (steps.fileExists("${rawReportDirectory}/index.html")
-    || steps.fileExists("${rawReportDirectory}/htmlReport/test-summary.html")) {
+  if (reportDirectory != sourceOutputDirectory) {
     steps.sh """
       mkdir -p ${reportDirectory}
-      rm -rf ${reportDirectory}/report
-      cp -R ${rawReportDirectory} ${reportDirectory}/report
+      rm -rf ${reportDirectory}/zephyr
+      if [ -d "${sourceOutputDirectory}/zephyr" ]; then
+        cp -R ${sourceOutputDirectory}/zephyr ${reportDirectory}/zephyr
+      fi
     """
   }
 }
 
-def packageFunctionalReportOutput = { reportDirectory, rawReportDirectory, sourceOutputDirectory ->
-  if (reportDirectory == sourceOutputDirectory) {
-    ensureFunctionalReportOutputExists(reportDirectory, rawReportDirectory)
-    return
+def publishFunctionalResults = { reportLabel, reportDirectory, sourceOutputDirectory, candidateReportDirectories, reportNameSuffix, junitPattern,
+  zephyrReportPath ->
+  packageFunctionalReportOutput(reportLabel, reportDirectory, sourceOutputDirectory, candidateReportDirectories)
+
+  if (!steps.fileExists(zephyrReportPath)) {
+    throw new RuntimeException("${reportLabel} Zephyr report was not generated at ${zephyrReportPath}")
   }
-
-  steps.sh """
-    mkdir -p ${reportDirectory}
-    rm -rf ${reportDirectory}/report
-    rm -rf ${reportDirectory}/zephyr
-    if [ -d "${rawReportDirectory}" ]; then
-      cp -R ${rawReportDirectory} ${reportDirectory}/report
-    fi
-    if [ -d "${sourceOutputDirectory}/zephyr" ]; then
-      cp -R ${sourceOutputDirectory}/zephyr ${reportDirectory}/zephyr
-    fi
-  """
-}
-
-def publishFunctionalResults = { reportDirectory, rawReportDirectory, sourceOutputDirectory, reportNameSuffix, junitPattern ->
-  packageFunctionalReportOutput(reportDirectory, rawReportDirectory, sourceOutputDirectory)
 
   steps.archiveArtifacts allowEmptyArchive: true, artifacts: "${reportDirectory}/**/*"
   publishHTML target: [
@@ -163,12 +183,19 @@ def publishFunctionalResults = { reportDirectory, rawReportDirectory, sourceOutp
     reportName           : "Serenity Functional Test Report${reportNameSuffix}"
   ]
   steps.junit allowEmptyResults: true, testResults: junitPattern
-  if (currentBuild.result == 'UNSTABLE') {
-    currentBuild.result = 'FAILURE'
-  }
 }
 
 def publishSmokeResults = { reportNameSuffix ->
+  ensureReportOutputExists(
+    "Serenity Smoke Test Report${reportNameSuffix}",
+    'smoke-output',
+    ['smoke-test-report', 'build/reports/tests/smokeOpal']
+  )
+
+  if (!steps.fileExists('smoke-output/zephyr/cucumber-smoke.json')) {
+    throw new RuntimeException('Smoke Zephyr report was not generated at smoke-output/zephyr/cucumber-smoke.json')
+  }
+
   steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'smoke-output/**/*'
   publishHTML target: [
     allowMissing         : true,
@@ -179,25 +206,70 @@ def publishSmokeResults = { reportNameSuffix ->
     reportName           : "Serenity Smoke Test Report${reportNameSuffix}"
   ]
   steps.junit allowEmptyResults: true, testResults: '**/test-results/smoke/*.xml'
-  if (currentBuild.result == 'UNSTABLE') {
-    currentBuild.result = 'FAILURE'
+}
+
+def runFunctionalZephyrExecution = { stageName, stageKey ->
+  try {
+    builder.gradle("-PzephyrFunctionalStage=${stageKey} createJiraExecutionFromFunctionalReport")
+  } catch (error) {
+    recordStageFailure(stageName, "Zephyr execution failed. Error: ${error.message}")
   }
+}
+
+def runIntegrationZephyrExecution = { stageName ->
+  try {
+    builder.gradle('createJiraExecutionFromIntegrationReport')
+  } catch (error) {
+    recordStageFailure(stageName, "Zephyr execution failed. Error: ${error.message}")
+  }
+}
+
+def authenticateHmctsProdAcr = {
+  steps.sh '''
+    set +x
+    export AZURE_CONFIG_DIR="${WORKSPACE}/.azure-hmctsprod"
+
+    echo "Logging in to Azure with managed identity for hmctsprod ACR access..."
+    az login --identity --output none
+    az account set --subscription DCD-CNP-Prod
+
+    echo "Checking hmctsprod ACR access..."
+    az acr repository show-tags \
+      --name hmctsprod \
+      --repository opal/legacy-db-stub \
+      --top 1 \
+      --output table
+
+    echo "Authenticating Docker with hmctsprod ACR..."
+    az acr login --name hmctsprod
+    docker pull hmctsprod.azurecr.io/opal/legacy-db-stub:latest
+  '''
 }
 
 def runIntegrationStage = { stageName, shouldRunWithZephyr ->
   if (params.Integration) {
     stage(stageName) {
+      deleteStageOutputs([
+        'integration-output',
+        'build/reports/tests/integration',
+        'build/test-results/integration',
+        'target/zephyr-reports/Junit5Report-IntegrationTest.json',
+      ])
+
       try {
-        if (shouldRunWithZephyr) {
-          builder.gradle('integrationTestWithZephyrExecution')
-        } else {
-          builder.gradle('Integration')
-        }
+        authenticateHmctsProdAcr()
+        builder.gradle('integration')
       } catch (error) {
-        currentBuild.result = 'FAILURE'
-        steps.echo "${stageName} failed. Marking build as FAILURE. Error: " + error.message
+        recordStageFailure(stageName, "failed. Error: ${error.message}")
       } finally {
-        publishIntegrationResults()
+        try {
+          publishIntegrationResults()
+        } catch (publishError) {
+          recordStageFailure(stageName, "result publication failed. Error: ${publishError.message}")
+        }
+        if (shouldRunWithZephyr) {
+          runIntegrationZephyrExecution(stageName)
+        }
       }
     }
   }
@@ -206,27 +278,36 @@ def runIntegrationStage = { stageName, shouldRunWithZephyr ->
 def runFunctionalStage = { stageName, shouldRunWithZephyr, reportNameSuffix ->
   if (params.Functional) {
     stage(stageName) {
+      deleteStageOutputs([
+        'functional-output',
+        'build/reports/tests/functionalOpal',
+        'build/test-results/functional',
+        'target/zephyr-reports/cucumber-opal.json',
+        'target/site/serenity',
+        'target/cucumber.json',
+      ])
+
       try {
-        if (shouldRunWithZephyr) {
-          builder.gradle('functionalWithZephyrExecution')
-        } else {
-          builder.gradle('functional')
-        }
+        builder.gradle('clearReports functionalOpal')
       } catch (error) {
-        currentBuild.result = 'FAILURE'
-        steps.echo "${stageName} failed. Marking build as FAILURE. Error: " + error.message
+        recordStageFailure(stageName, "failed. Error: ${error.message}")
       } finally {
         try {
+          builder.gradle('syncFunctionalArtifactsFromExistingResults')
           publishFunctionalResults(
+            'Functional Tests Report',
             'functional-output',
-            'functional-test-report',
             'functional-output',
+            ['functional-output/report', 'build/reports/tests/functionalOpal'],
             reportNameSuffix,
-            'build/test-results/functional/*.xml'
+            'build/test-results/functional/opal/*.xml',
+            'functional-output/zephyr/cucumber-opal.json'
           )
         } catch (publishError) {
-          currentBuild.result = 'FAILURE'
-          steps.echo "${stageName} result publication failed. Marking build as FAILURE. Error: " + publishError.message
+          recordStageFailure(stageName, "result publication failed. Error: ${publishError.message}")
+        }
+        if (shouldRunWithZephyr) {
+          runFunctionalZephyrExecution(stageName, 'functional')
         }
       }
     }
@@ -236,21 +317,29 @@ def runFunctionalStage = { stageName, shouldRunWithZephyr, reportNameSuffix ->
 def runSmokeStage = { stageName, shouldRunWithZephyr, reportNameSuffix ->
   if (params.Smoke) {
     stage(stageName) {
+      deleteStageOutputs([
+        'smoke-output',
+        'smoke-test-report',
+        'build/reports/tests/smokeOpal',
+        'build/test-results/smoke',
+        'target/zephyr-reports/cucumber-smoke.json',
+        'target/site/serenity',
+        'target/cucumber.json',
+      ])
+
       try {
-        if (shouldRunWithZephyr) {
-          builder.gradle('smokeWithZephyrExecution')
-        } else {
-          builder.gradle('smoke')
-        }
+        builder.gradle('clearReports smokeOpal')
       } catch (error) {
-        currentBuild.result = 'FAILURE'
-        steps.echo "${stageName} failed. Marking build as FAILURE. Error: " + error.message
+        recordStageFailure(stageName, "failed. Error: ${error.message}")
       } finally {
         try {
+          builder.gradle('syncSmokeArtifactsFromExistingResults')
           publishSmokeResults(reportNameSuffix)
         } catch (publishError) {
-          currentBuild.result = 'FAILURE'
-          steps.echo "${stageName} result publication failed. Marking build as FAILURE. Error: " + publishError.message
+          recordStageFailure(stageName, "result publication failed. Error: ${publishError.message}")
+        }
+        if (shouldRunWithZephyr) {
+          runFunctionalZephyrExecution(stageName, 'smoke')
         }
       }
     }
@@ -260,29 +349,41 @@ def runSmokeStage = { stageName, shouldRunWithZephyr, reportNameSuffix ->
 def runTaggedFunctionalStage = { enabled, stageName, shouldRunWithZephyr, reportDirectory, reportNameSuffix, tagFilter ->
   if (enabled) {
     stage(stageName) {
+      deleteStageOutputs([
+        reportDirectory,
+        'functional-output-demo',
+        'build/reports/tests/functionalOpalTags',
+        'build/test-results/functional',
+        'build/serenity-functional-demo',
+        'target/zephyr-reports/cucumber-opal-tags.json',
+        'target/site/serenity',
+        'target/cucumber.json',
+      ])
+
       try {
         withEnv(["TAGS=${tagFilter}"]) {
-          if (shouldRunWithZephyr) {
-            builder.gradle('clearReports functionalOpalTagsWithZephyrExecution')
-          } else {
-            builder.gradle('clearReports functionalOpalTags aggregate copyDemoFunctionalReport copyOpalTagsCucumberJson packageTaggedDemoFunctionalOutput')
-          }
+          builder.gradle('clearReports functionalOpalTags')
         }
       } catch (error) {
-        currentBuild.result = 'FAILURE'
-        steps.echo "${stageName} failed. Marking build as FAILURE. Error: " + error.message
+        recordStageFailure(stageName, "failed. Error: ${error.message}")
       } finally {
         try {
+          builder.gradle('syncTaggedFunctionalArtifactsFromExistingResults')
           publishFunctionalResults(
+            "${stageName} Report",
             reportDirectory,
-            'functional-test-report-demo',
             'functional-output-demo',
+            ['functional-output-demo/report', 'build/reports/tests/functionalOpalTags'],
             reportNameSuffix,
-            'build/test-results/functional/opal-tags/*.xml'
+            'build/test-results/functional/opal-tags/*.xml',
+            "${reportDirectory}/zephyr/cucumber-opal-tags.json"
           )
         } catch (publishError) {
-          currentBuild.result = 'FAILURE'
-          steps.echo "${stageName} result publication failed. Marking build as FAILURE. Error: " + publishError.message
+          recordStageFailure(stageName, "result publication failed. Error: ${publishError.message}")
+        }
+        if (shouldRunWithZephyr) {
+          def zephyrStageKey = reportDirectory == 'functional-output-r1a-only-demo' ? 'runR1AOnly' : 'runR1AOff'
+          runFunctionalZephyrExecution(stageName, zephyrStageKey)
         }
       }
     }
@@ -340,6 +441,11 @@ withNightlyPipeline(type, product, component) {
         ' (Demo R1AOff)',
         r1AOffTagFilter
       )
+    }
+
+    if (!stageFailures.isEmpty()) {
+      currentBuild.result = 'FAILURE'
+      error("One or more selected test stages failed:\n - ${stageFailures.join('\n - ')}")
     }
   }
 }

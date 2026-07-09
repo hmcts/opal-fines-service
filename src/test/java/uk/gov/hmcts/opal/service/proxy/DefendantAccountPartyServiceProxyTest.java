@@ -48,7 +48,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
             .defendantAccountParty(request)
             .build();
 
-        setMode(OPAL);
+        setLegacyMode(false);
         when(opalDefendantAccountPartyService.replaceDefendantAccountParty(
             accountId, dapId, request, ifMatch, businessUnitId, postedBy, postedByName, businessUserId))
             .thenReturn(expectedResponse);
@@ -81,7 +81,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
             .defendantAccountParty(request)
             .build();
 
-        setMode(LEGACY);
+        setLegacyMode(true);
         when(legacyDefendantAccountPartyService.replaceDefendantAccountParty(
             accountId, dapId, request, ifMatch, businessUnitId, postedBy, postedByName, businessUserId))
             .thenReturn(expectedResponse);
@@ -106,7 +106,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
             .version(BigInteger.valueOf(1L))
             .build();
 
-        setMode(OPAL);
+        setLegacyMode(false);
         when(opalDefendantAccountPartyService.getDefendantAccountParty(accountId, dapId))
             .thenReturn(expectedResponse);
 
@@ -128,7 +128,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
             .version(BigInteger.valueOf(2L))
             .build();
 
-        setMode(LEGACY);
+        setLegacyMode(true);
         when(legacyDefendantAccountPartyService.getDefendantAccountParty(accountId, dapId))
             .thenReturn(expectedResponse);
 
@@ -157,7 +157,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
             .version(BigInteger.valueOf(2L))
             .build();
 
-        setMode(OPAL);
+        setLegacyMode(false);
         when(opalDefendantAccountPartyService.removeDefendantAccountParty(
             accountId, dapId, businessUnitId, businessUserId, postedBy, postedByName, ifMatch, request))
             .thenReturn(expectedResponse);
@@ -189,7 +189,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
             .version(BigInteger.valueOf(3L))
             .build();
 
-        setMode(LEGACY);
+        setLegacyMode(true);
         when(legacyDefendantAccountPartyService.removeDefendantAccountParty(
             accountId, dapId, businessUnitId, businessUserId, postedBy, postedByName, ifMatch, request))
             .thenReturn(expectedResponse);

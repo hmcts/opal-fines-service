@@ -125,10 +125,12 @@ paths:
             type: array
             items:
               type: integer
+              format: int16
         - name: user_id
           in: query
           schema:
             type: integer
+            format: int64
         - name: report_id
           in: query
           schema:
@@ -299,6 +301,7 @@ components:
           minItems: 1
           items:
             type: integer
+            format: int16
         report_parameters:
           type: object
           additionalProperties: true
@@ -387,6 +390,7 @@ components:
           $ref: '#/components/schemas/status'
         number_of_records:
           type: integer
+          format: int64
         is_downloadable:
           type: boolean
         errors:
@@ -441,6 +445,7 @@ components:
             $ref: '#/components/schemas/status'
           number_of_records:
             type: integer
+            format: int64
           is_downloadable:
             type: boolean
           supported_file_types:

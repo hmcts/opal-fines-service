@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -42,6 +43,7 @@ import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchReferenceNumberDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
@@ -81,7 +83,14 @@ class DefendantAccountServiceTest {
     @Test
     void testGetHeaderSummary() {
         // Arrange
-        DefendantAccountHeaderSummary headerSummary = DefendantAccountHeaderSummary.builder().build();
+        GetDefendantAccountHeaderSummary200Response response = GetDefendantAccountHeaderSummary200Response.builder()
+            .accountNumber("X123")
+            .hasConsolidatedAccounts(Boolean.FALSE)
+            .build();
+        DefendantAccountHeaderSummary headerSummary = DefendantAccountHeaderSummary.builder()
+            .version(BigInteger.ZERO)
+            .response(response)
+            .build();
 
         when(defendantAccountServiceProxy.getHeaderSummary(anyLong())).thenReturn(headerSummary);
 
@@ -91,6 +100,8 @@ class DefendantAccountServiceTest {
 
         // Assert
         assertNotNull(result);
+        assertEquals("X123", result.getResponse().getAccountNumber());
+        assertFalse(result.getResponse().getHasConsolidatedAccounts());
     }
 
 
@@ -178,7 +189,14 @@ class DefendantAccountServiceTest {
             ))
             .build();
 
-        DefendantAccountHeaderSummary expected = DefendantAccountHeaderSummary.builder().accountNumber("X123").build();
+        GetDefendantAccountHeaderSummary200Response response = GetDefendantAccountHeaderSummary200Response.builder()
+            .accountNumber("X123")
+            .hasConsolidatedAccounts(Boolean.TRUE)
+            .build();
+        DefendantAccountHeaderSummary expected = DefendantAccountHeaderSummary.builder()
+            .version(BigInteger.ZERO)
+            .response(response)
+            .build();
 
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userWithPerm);
         when(defendantAccountServiceProxy.getHeaderSummary(anyLong())).thenReturn(expected);
@@ -186,7 +204,8 @@ class DefendantAccountServiceTest {
         DefendantAccountHeaderSummary result = defendantAccountService.getHeaderSummary(1L);
 
         assertNotNull(result);
-        assertEquals("X123", result.getAccountNumber());
+        assertEquals("X123", result.getResponse().getAccountNumber());
+        assertTrue(result.getResponse().getHasConsolidatedAccounts());
         verify(defendantAccountServiceProxy).getHeaderSummary(1L);
     }
 
@@ -248,7 +267,7 @@ class DefendantAccountServiceTest {
         PostDefendantAccountSearchRequestDefendantAccount request =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
                 .activeAccountsOnly(true)
-                .businessUnitIds(List.of(77))
+                .businessUnitIds(List.of((short) 77))
                 .referenceNumber(new DefendantAccountSearchReferenceNumberDefendantAccount()
                     .organisation(false)
                     .accountNumber("A123"))

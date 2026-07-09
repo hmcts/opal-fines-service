@@ -3,9 +3,9 @@
   "$id": "https://example.com/schemas/defendantTransactionTypeReference.json",
   "title": "defendantTransactionTypeReference",
   "type": "object",
-  "required": ["transactionType", "transactionTypeDisplayName"],
+  "required": ["transaction_type", "transaction_type_display_name"],
   "properties": {
-    "transactionType": {
+    "transaction_type": {
       "type": "string",
       "enum": [
         "CANCHQ", "CHEQUE", "CONSOL", "DISHCQ", "FR-SUS", "MADJ",
@@ -13,7 +13,7 @@
         "TFOIN", "WRTOFF", "XFER"
       ]
     },
-    "transactionTypeDisplayName": {
+    "transaction_type_display_name": {
       "type": "string"
     }
   },

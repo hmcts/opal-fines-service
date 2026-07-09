@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
 
 class AmendmentEntityHistoryMapperTest {
@@ -17,7 +18,7 @@ class AmendmentEntityHistoryMapperTest {
         AmendmentEntity entity = AmendmentEntity.builder()
             .amendmentId(123L)
             .businessUnitId((short) 78)
-            .associatedRecordType("DEFENDANT_ACCOUNTS")
+            .associatedRecordType(AssociatedRecordType.DEFENDANT_ACCOUNTS)
             .associatedRecordId("262200")
             .amendedDate(LocalDateTime.of(2026, 1, 1, 10, 15))
             .amendedBy("opal-user")

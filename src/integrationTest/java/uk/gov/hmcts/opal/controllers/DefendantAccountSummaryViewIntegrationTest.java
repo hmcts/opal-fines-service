@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -14,56 +13,90 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
-@DisplayName("Defendant Account At A Glance Payment Terms Integration Tests")
+@DisplayName("Defendant Account Summary View Integration Tests")
 class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
 
-    private static final long ACCOUNT_MULTI_TERMS_ONE_ACTIVE = 262901L;
-    private static final long ACCOUNT_NO_ACTIVE_TERMS = 262902L;
-
     @Test
-    @DisplayName("PO-2629 INT.01 - At a glance returns the active payment terms summary")
-    @JiraStory("PO-2629")
-    @JiraEpic("PO-812")
-    @JiraTestKey("PO-5811")
-    void int01_getAtAGlance_returnsActivePaymentTermsSummary() throws Exception {
+    @JiraEpic("PO-2332")
+    @JiraStory("PO-2334")
+    @DisplayName("PO-2334 INT.01 - Get header summary returns has consolidated accounts true")
+    @JiraTestKey("PO-8761")
+    void int01_getHeaderSummary_returnsHasConsolidatedAccountsTrue() throws Exception {
 
         ResultActions resultActions = mockMvc.perform(
-            get(URL_BASE + "/{defendantAccountId}/at-a-glance", ACCOUNT_MULTI_TERMS_ONE_ACTIVE)
+            get("/defendant-accounts/990001/header-summary")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("authorization", userStateStub.getBearerToken())
         );
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(APPLICATION_JSON))
-            .andExpect(jsonPath("$.defendant_account_id").value(String.valueOf(ACCOUNT_MULTI_TERMS_ONE_ACTIVE)))
-            .andExpect(jsonPath("$.account_number").value("262901A"))
-            .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_code").value("B"))
-            .andExpect(jsonPath("$.payment_terms.effective_date").value("2025-10-12"))
-            .andExpect(jsonPath("$.payment_terms.instalment_period.instalment_period_code").value("W"))
-            .andExpect(jsonPath("$.payment_terms.instalment_period.instalment_period_display_name").value("Weekly"))
-            .andExpect(jsonPath("$.payment_terms.instalment_amount").doesNotExist())
-            .andExpect(jsonPath("$.payment_terms.lump_sum_amount").doesNotExist());
+            .andExpect(jsonPath("$.defendant_account_id").value("990001"))
+            .andExpect(jsonPath("$.account_number").value("990001A"))
+            .andExpect(jsonPath("$.account_status_reference").exists())
+            .andExpect(jsonPath("$.account_type").value("Fine"))
+            .andExpect(jsonPath("$.business_unit_summary").exists())
+            .andExpect(jsonPath("$.defendant_account_party_id").value("990001"))
+            .andExpect(jsonPath("$.is_youth").value(false))
+            .andExpect(jsonPath("$.has_consolidated_accounts").value(true))
+            .andExpect(jsonPath("$.debtor_type").value("Defendant"))
+            .andExpect(jsonPath("$.payment_state_summary").exists())
+            .andExpect(jsonPath("$.party_details").exists())
+            .andExpect(jsonPath("$.parent_guardian_party_id").value("990002"))
+            .andExpect(jsonPath("$.fixed_penalty_ticket_number").value("FPN990001"))
+            .andExpect(jsonPath("$.prosecutor_case_reference").value("PCR990001"));
     }
 
     @Test
-    @DisplayName("PO-2629 INT.02 - At a glance returns not found when no active payment terms exist")
-    @JiraStory("PO-2629")
-    @JiraEpic("PO-812")
-    @JiraTestKey("PO-5810")
-    void int02_getAtAGlance_returnsNotFound_whenNoActivePaymentTermsExist() throws Exception {
+    @JiraEpic("PO-2332")
+    @JiraStory("PO-2334")
+    @DisplayName("PO-2334 INT.02 - Get header summary returns has consolidated accounts false")
+    @JiraTestKey("PO-8763")
+    void int02_getHeaderSummary_returnsHasConsolidatedAccountsFalse() throws Exception {
 
         ResultActions resultActions = mockMvc.perform(
-            get(URL_BASE + "/{defendantAccountId}/at-a-glance", ACCOUNT_NO_ACTIVE_TERMS)
+            get("/defendant-accounts/77/header-summary")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("authorization", userStateStub.getBearerToken())
-                .accept(APPLICATION_PROBLEM_JSON)
         );
 
-        resultActions.andExpect(status().isNotFound())
-            .andExpect(content().contentType(APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
-            .andExpect(jsonPath("$.title").value("Entity Not Found"))
-            .andExpect(jsonPath("$.status").value(404))
-            .andExpect(jsonPath("$.detail").value("The requested entity could not be found"));
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_id").value("77"))
+            .andExpect(jsonPath("$.account_number").value("177A"))
+            .andExpect(jsonPath("$.account_status_reference").exists())
+            .andExpect(jsonPath("$.account_type").value("Fine"))
+            .andExpect(jsonPath("$.payment_state_summary").exists())
+            .andExpect(jsonPath("$.party_details").exists())
+            .andExpect(jsonPath("$.business_unit_summary").exists())
+            .andExpect(jsonPath("$.defendant_account_party_id").value("77"))
+            .andExpect(jsonPath("$.is_youth").value(false))
+            .andExpect(jsonPath("$.has_consolidated_accounts").value(false))
+            .andExpect(jsonPath("$.debtor_type").value("Defendant"))
+            .andExpect(jsonPath("$.payment_state_summary").exists())
+            .andExpect(jsonPath("$.party_details").exists())
+            .andExpect(jsonPath("$.parent_guardian_party_id").isEmpty())
+            .andExpect(jsonPath("$.fixed_penalty_ticket_number").value("888"))
+            .andExpect(jsonPath("$.prosecutor_case_reference").value("090A"));
+    }
+
+    @Test
+    @JiraEpic("PO-2332")
+    @JiraStory("PO-2334")
+    @DisplayName("PO-2629 INT.08 - Get defendant account header summary returns forbidden response")
+    @JiraTestKey("PO-8762")
+    void int08_getDefendantAccountHeaderSummary_returnsForbiddenResponse() throws Exception {
+
+        ResultActions resultActions = mockMvc.perform(
+            get("/defendant-accounts/77/header-summary")
+                .with(userStateStub.getInvalidAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+        );
+
+        resultActions.andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"))
+            .andExpect(jsonPath("$.title").value("Forbidden"))
+            .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"));
     }
 }

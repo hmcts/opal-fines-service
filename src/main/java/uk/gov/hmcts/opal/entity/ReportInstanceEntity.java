@@ -49,7 +49,7 @@ public class ReportInstanceEntity {
     private ReportEntity report;
 
     @Column(name = "business_unit_id")
-    private List<Integer> businessUnit;
+    private List<Short> businessUnit;
 
     @Column(name = "audit_sequence", nullable = false)
     private Long auditSequence;

@@ -22,7 +22,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -48,15 +47,15 @@ class ResultControllerTest {
             .resultTitleCy("Result AAA-BBB CY")
             .build();
 
-        when(resultService.getResult(anyString())).thenReturn(dto);
+        when(resultService.getResult("ABC", false)).thenReturn(dto);
 
         // Act
-        ResponseEntity<ResultDto> response = resultController.getResultById("ABC");
+        ResponseEntity<ResultDto> response = resultController.getResultById("ABC", false);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(dto, response.getBody());
-        verify(resultService).getResult("ABC");
+        verify(resultService).getResult("ABC", false);
     }
 
     @Test
@@ -75,10 +74,10 @@ class ResultControllerTest {
             .manualEnforcement(true)
             .build();
 
-        when(resultService.getResult("ABC")).thenReturn(dto);
+        when(resultService.getResult("ABC", false)).thenReturn(dto);
 
         // Act
-        ResponseEntity<ResultDto> response = resultController.getResultById("ABC");
+        ResponseEntity<ResultDto> response = resultController.getResultById("ABC", false);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -92,6 +91,24 @@ class ResultControllerTest {
         assertEquals(true, response.getBody().isGeneratesWarrant());
         assertEquals(false, response.getBody().getRequiresLja());
         assertEquals(true, response.getBody().isManualEnforcement());
+    }
+
+    @Test
+    void getResultById_whenIncludeWelshTrue_passesFlagToService() {
+        // Arrange
+        ResultDto dto = ResultDto.builder()
+            .resultId("ABC")
+            .build();
+
+        when(resultService.getResult("ABC", true)).thenReturn(dto);
+
+        // Act
+        ResponseEntity<ResultDto> response = resultController.getResultById("ABC", true);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(dto, response.getBody());
+        verify(resultService).getResult("ABC", true);
     }
 
     @Test
