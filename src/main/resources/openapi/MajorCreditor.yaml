@@ -24,6 +24,7 @@ paths:
           description: Business Unit ID. DB Mapping - configuration_items.business_unit_id
           schema:
             type: integer
+            format: int16
           required: true
       responses:
         '200':
@@ -373,7 +374,7 @@ paths:
           description: Optional business unit identifier
           schema:
             type: integer
-            format: int32
+            format: int16
             minimum: -32768
             maximum: 32767
           required: false

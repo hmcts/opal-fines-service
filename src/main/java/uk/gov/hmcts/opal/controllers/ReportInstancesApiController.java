@@ -42,12 +42,12 @@ public class ReportInstancesApiController implements ReportInstancesApi {
         defaultValueProperty = FeatureFlags.RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_ENABLED_PROPERTY
     )
     public ResponseEntity<List<ReportInstanceListReportsInner>> getReportInstances(
-        LocalDate fromDate, LocalDate toDate, List<Integer> businessUnits, Integer userId, String reportId) {
+        LocalDate fromDate, LocalDate toDate, List<Short> businessUnits, Long userId, String reportId) {
         log.debug(":GET:getReportInstances: fromDate={}, toDate={}, businessUnits={}, userId={}, reportId={}",
             fromDate, toDate, businessUnits, userId, reportId);
 
-        return buildResponse(genericReportService.searchReportInstances(fromDate, toDate, businessUnits,
-            userId, reportId));
+        return buildResponse(genericReportService.searchReportInstances(fromDate, toDate, businessUnits, userId,
+            reportId));
     }
 
     @Override

@@ -22,7 +22,7 @@ class DefendantAccountSearchRequestMapperTest {
         PostDefendantAccountSearchRequestDefendantAccount request =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
                 .activeAccountsOnly(true)
-                .businessUnitIds(List.of(78, 101))
+                .businessUnitIds(List.of((short) 78, (short) 101))
                 .consolidationSearch(true)
                 .referenceNumber(new DefendantAccountSearchReferenceNumberDefendantAccount()
                     .organisation(false)
@@ -73,9 +73,4 @@ class DefendantAccountSearchRequestMapperTest {
         assertNull(mapper.mapBusinessUnitIds(null));
     }
 
-    @Test
-    void toShort_returnsNullWhenInputNull() {
-        // Arrange / Act / Assert
-        assertNull(mapper.toShort(null));
-    }
 }

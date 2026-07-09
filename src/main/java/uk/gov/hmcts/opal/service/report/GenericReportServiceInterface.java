@@ -19,8 +19,8 @@ public interface GenericReportServiceInterface {
     List<ReportInstanceListReportsInner> searchReportInstances(
         LocalDate fromDate,
         LocalDate toDate,
-        List<Integer> businessUnits,
-        Integer userId,
+        List<Short> businessUnits,
+        Long userId,
         String reportId
     );
 

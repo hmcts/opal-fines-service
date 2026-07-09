@@ -96,7 +96,7 @@ class LegacyImpositionServiceTest {
         assertEquals("Test Offence 6", imposition.getOffence().getTitle());
 
         assertEquals(101L, imposition.getImposedBy().getCourtId());
-        assertEquals(102, imposition.getImposedBy().getCourtCode());
+        assertEquals((short) 102, imposition.getImposedBy().getCourtCode());
         assertEquals("Legacy Court", imposition.getImposedBy().getCourtName());
     }
 

@@ -47,7 +47,7 @@ public class PreAllocatedCashTillService {
 
         ReportInstanceEntity reportInstance = ReportInstanceEntity.builder()
             .report(report)
-            .businessUnit(List.of((int) getBusinessUnit(till, tillId).getBusinessUnitId()))
+            .businessUnit(List.of(getBusinessUnit(till, tillId).getBusinessUnitId()))
             .requestedBy(userState.getUserId())
             .requestedByName(userState.getUserName())
             .reportParameters(toReportParameters(tillId))

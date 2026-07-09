@@ -87,7 +87,7 @@ class GetReportInstanceContentServiceTest {
         reportInstance = createReportInstanceEntity(
             REPORT_ID,
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
-            List.of(77)
+            List.of((short) 77)
         );
         reportData = createTestReportData();
         storedReportContent = createStoredReportContent(Map.of("rows", 2));
@@ -194,7 +194,7 @@ class GetReportInstanceContentServiceTest {
 
         @ParameterizedTest
         @MethodSource("uk.gov.hmcts.opal.service.report.GetReportInstanceContentServiceTest#missingBusinessUnits")
-        void whenBusinessUnitsMissing_throwsPermissionNotAllowedException_sadPath(List<Integer> businessUnits) {
+        void whenBusinessUnitsMissing_throwsPermissionNotAllowedException_sadPath(List<Short> businessUnits) {
             reportInstance.setBusinessUnit(businessUnits);
             mock_reportInstanceAtLocation(LOCATION);
             when(authToken.hasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
