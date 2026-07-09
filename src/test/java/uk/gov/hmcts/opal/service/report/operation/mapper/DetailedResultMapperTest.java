@@ -20,7 +20,6 @@ import uk.gov.hmcts.opal.dto.report.operation.DetailedOperationReportAccountRowD
 import uk.gov.hmcts.opal.dto.report.operation.DetailedReportDto;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedReportTransactionRowDto;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
-import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
@@ -30,7 +29,6 @@ import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
 import uk.gov.hmcts.opal.repository.ImpositionRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
-import uk.gov.hmcts.opal.repository.ImpositionRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;

@@ -19,8 +19,6 @@ public interface ReportCSVMapper<RDIT extends ReportDataInterface> {
 
     Class<RDIT> getReportDataType();
 
-    Class<RDIT> getReportDataType();
-
     String reportToCSVString(RDIT rdi);
 
     default String dataListToFullCSVRow(List<String> dataRow) {

@@ -23,10 +23,6 @@ public class ReportCSVService {
      * @param reportDataInterface the report data to be used to generate the CSV, this will likely be retrieved from
      *                            the (azure) report blob store, so will have been already generated
      * @return the CSV byte array
-     * @param <T> The implementation of the reportDataInterface
-     * @param reportDataInterface the report data to be used to generate the CSV, this will likely be retrieved from
-     *                            the (azure) report blob store, so will have been already generated
-     * @return the CSV byte array
      */
     public <T extends ReportDataInterface> byte[] convertReportDtoToCSV(T reportDataInterface) {
         @SuppressWarnings("unchecked")
