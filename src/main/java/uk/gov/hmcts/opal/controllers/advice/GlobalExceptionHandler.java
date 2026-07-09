@@ -53,6 +53,7 @@ import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.exception.UnsupportedContentTypeException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
@@ -515,6 +516,19 @@ public class GlobalExceptionHandler {
             e
         );
         return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
+    }
+
+    @ExceptionHandler(SchemaConfigurationException.class)
+    public ResponseEntity<ProblemDetail> handleSchemaConfigurationException(SchemaConfigurationException e) {
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Internal Server Error",
+            e.getMessage(),
+            "internal-server-error",
+            false,
+            e
+        );
+        return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
     @ExceptionHandler(InvalidReferenceValidationException.class)

@@ -1,6 +1,9 @@
 package uk.gov.hmcts.opal.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -8,16 +11,31 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.common.service.AbstractPermissionService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.entity.ReportEntity;
+import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemEntity;
+import uk.gov.hmcts.opal.exception.ReportNotFoundException;
+import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 import uk.gov.hmcts.opal.generated.model.ReportReports;
 import uk.gov.hmcts.opal.mapper.ReportEntityMapper;
+import uk.gov.hmcts.opal.repository.ConfigurationItemRepository;
 import uk.gov.hmcts.opal.repository.ReportRepository;
+import uk.gov.hmcts.opal.service.report.ReportId;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "opal.ReportService")
 public class ReportService extends AbstractPermissionService {
 
+    private static final String OPERATIONAL_REPORT_BU_WARNING_THRESHOLD = "OPERATIONAL_REPORT_BU_WARNING_THRESHOLD";
+    private static final String BUSINESS_UNIT_WARNING_THRESHOLD = "business_unit_warning_threshold";
+    private static final String INVALID_BU_WARNING_THRESHOLD_MESSAGE =
+        "Invalid positive integer configuration item: " + OPERATIONAL_REPORT_BU_WARNING_THRESHOLD;
+    private static final Set<ReportId> REPORTS_WITH_BU_WARNING_THRESHOLD = Set.of(
+        ReportId.OP_ENFORCEMENT,
+        ReportId.OP_PAYMENT
+    );
+
     private final ReportRepository reportRepository;
+    private final ConfigurationItemRepository configurationItemRepository;
     private final ReportEntityMapper reportMapper;
     private final UserStateService userStateService;
 
@@ -30,6 +48,45 @@ public class ReportService extends AbstractPermissionService {
             .orElseThrow(() -> new EntityNotFoundException("Report not found with id: " + reportId));
         checkPermission(userState, entity.getPermission());
 
-        return reportMapper.toDto(entity);
+        ReportReports report = reportMapper.toDto(entity);
+
+        if (hasBuWarningThreshold(reportId)) {
+            report.setReportParameters(getReportParametersWithBuWarningThreshold(report.getReportParameters()));
+        }
+
+        return report;
+    }
+
+    private boolean hasBuWarningThreshold(String reportId) {
+        try {
+            return REPORTS_WITH_BU_WARNING_THRESHOLD.contains(ReportId.fromReportId(reportId));
+        } catch (ReportNotFoundException e) {
+            return false;
+        }
+    }
+
+    private Map<String, Object> getReportParametersWithBuWarningThreshold(Map<String, Object> reportParameters) {
+        Map<String, Object> enrichedParameters = new HashMap<>();
+        if (reportParameters != null) {
+            enrichedParameters.putAll(reportParameters);
+        }
+
+        ConfigurationItemEntity configurationItem = configurationItemRepository
+            .findByItemNameAndBusinessUnitIdIsNull(OPERATIONAL_REPORT_BU_WARNING_THRESHOLD)
+            .orElseThrow(() -> new SchemaConfigurationException(
+                "Missing configuration item: " + OPERATIONAL_REPORT_BU_WARNING_THRESHOLD
+            ));
+
+        try {
+            int threshold = Integer.parseInt(configurationItem.getItemValue());
+            if (threshold < 1) {
+                throw new SchemaConfigurationException(INVALID_BU_WARNING_THRESHOLD_MESSAGE);
+            }
+            enrichedParameters.put(BUSINESS_UNIT_WARNING_THRESHOLD, threshold);
+        } catch (NumberFormatException e) {
+            throw new SchemaConfigurationException(INVALID_BU_WARNING_THRESHOLD_MESSAGE);
+        }
+
+        return enrichedParameters;
     }
 }
