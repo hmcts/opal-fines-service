@@ -36,14 +36,14 @@ Map<String, Map<String, Object>> functionalZephyrTargets = [
                 syncTask  : "syncSmokeArtifactsFromExistingResults",
         ],
         runR1AOnly: [
-                reportPath: "functional-output-demo/zephyr/cucumber-opal-tags.json",
+                reportPath: "functional-output-r1a-only-demo/zephyr/cucumber-opal-tags.json",
                 testFolder: "functionalTest/resources",
-                syncTask  : "syncTaggedFunctionalArtifactsFromExistingResults",
+                syncTask  : "syncR1AOnlyTaggedFunctionalArtifactsFromExistingResults",
         ],
         runR1AOff: [
-                reportPath: "functional-output-demo/zephyr/cucumber-opal-tags.json",
+                reportPath: "functional-output-r1a-off-demo/zephyr/cucumber-opal-tags.json",
                 testFolder: "functionalTest/resources",
-                syncTask  : "syncTaggedFunctionalArtifactsFromExistingResults",
+                syncTask  : "syncR1AOffTaggedFunctionalArtifactsFromExistingResults",
         ],
 ]
 

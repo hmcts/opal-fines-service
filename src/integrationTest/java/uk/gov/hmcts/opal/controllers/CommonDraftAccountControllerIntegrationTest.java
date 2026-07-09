@@ -11,6 +11,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -18,7 +19,9 @@ import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
+import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 @ActiveProfiles({"integration"})
@@ -55,6 +58,9 @@ class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTes
 
     @MockitoBean
     Clock clock;
+
+    @Autowired
+    protected DraftAccountRepository draftAccountRepository;
 
     @BeforeEach
     void setupClock() {
@@ -107,6 +113,10 @@ class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTes
             .andReturn()
             .getResponse()
             .getHeader("ETag");
+    }
+
+    protected DraftAccountEntity getDraftAccount(long draftAccountId) {
+        return draftAccountRepository.findById(draftAccountId).orElseThrow();
     }
 
 }

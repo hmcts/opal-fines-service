@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.UnexpectedRollbackException;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
@@ -61,6 +62,8 @@ public class DraftAccountService {
     private final UserStateService userStateService;
 
     private final JsonSchemaValidationService jsonSchemaValidationService;
+
+    private final DraftAccountReferenceValidationService referenceValidationService;
 
     private final DraftAccountMapper draftAccountMapper;
 
@@ -163,6 +166,7 @@ public class DraftAccountService {
             .toList();
     }
 
+    @Transactional
     public DraftAccountResponseDto submitDraftAccount(AddDraftAccountRequestDto dto) {
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
@@ -174,6 +178,7 @@ public class DraftAccountService {
             applySubmittedBy(dto, userState, unitUser);
 
             jsonSchemaValidationService.validateOrError(dto.toJson(), ADD_DRAFT_ACCOUNT_REQUEST_JSON);
+            referenceValidationService.validateReferences(dto.getAccount());
             DraftAccountEntity entity = draftAccountTransactional.submitDraftAccount(dto);
             log.debug(":submitDraftAccount: created in DB: {}", entity);
 
@@ -189,6 +194,7 @@ public class DraftAccountService {
 
     }
 
+    @Transactional
     public DraftAccountResponseDto replaceDraftAccount(Long draftAccountId, ReplaceDraftAccountRequestDto dto,
                                                        String ifMatch) {
 
@@ -199,7 +205,7 @@ public class DraftAccountService {
             BusinessUnitUser unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());
             applySubmittedBy(dto, userState, unitUser);
             jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
-
+            referenceValidationService.validateReferences(dto.getAccount());
             DraftAccountEntity replacedEntity = draftAccountTransactional
                 .replaceDraftAccount(draftAccountId, dto, draftAccountTransactional, ifMatch);
             verifyUpdated(replacedEntity, dto, draftAccountId, "replaceDraftAccount");
@@ -227,9 +233,7 @@ public class DraftAccountService {
                 applyValidatedBy(dto, userState, unitUser.orElseThrow());
             }
             jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
-
             BigInteger updateVersion = extractBigInteger(ifMatch);
-
             DraftAccountEntity updatedEntity = draftAccountTransactional.updateDraftAccount(draftAccountId, dto,
                 draftAccountTransactional, updateVersion, userState);
             verifyUpdated(updatedEntity, updateVersion, draftAccountId, "updateDraftAccount");
