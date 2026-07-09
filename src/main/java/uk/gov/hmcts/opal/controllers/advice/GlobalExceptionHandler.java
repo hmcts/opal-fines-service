@@ -48,6 +48,7 @@ import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.exception.BusinessUnitUserNotFoundException;
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
@@ -57,8 +58,8 @@ import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
-import uk.gov.hmcts.opal.exception.UnsupportedContentTypeException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
+import uk.gov.hmcts.opal.exception.UnsupportedContentTypeException;
 import uk.gov.hmcts.opal.util.Versioned;
 
 @Slf4j(topic = "opal.GlobalExceptionHandler")
@@ -84,6 +85,23 @@ public class GlobalExceptionHandler {
             ex
         );
         return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
+    }
+
+    @ExceptionHandler(BusinessUnitUserNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleBusinessUnitUserNotFoundException(
+        BusinessUnitUserNotFoundException ex) {
+
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.UNAUTHORIZED,
+            "Unauthorized",
+            ex.getMessage(),
+            "unauthorized",
+            false,
+            ex
+        );
+        problemDetail.setProperty("businessUnitId", ex.getBusinessUnitId());
+
+        return responseWithProblemDetail(HttpStatus.UNAUTHORIZED, problemDetail);
     }
 
     @ExceptionHandler(AccessDeniedException.class)

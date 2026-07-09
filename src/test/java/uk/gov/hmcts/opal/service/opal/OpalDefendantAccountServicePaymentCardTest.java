@@ -32,6 +32,7 @@ import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.exception.BusinessUnitUserNotFoundException;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
@@ -216,7 +217,7 @@ class OpalDefendantAccountServicePaymentCardTest {
             .thenReturn(userState);
         when(userState.getBusinessUnitUserForBusinessUnit((short) 10))
             .thenReturn(Optional.of(BusinessUnitUser.builder().businessUnitUserId("USR").build()));
-        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.AMEND_PAYMENT_TERMS))
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS))
             .thenReturn(false);
 
         var svc = new DefendantAccountPaymentTermsService(proxy, userStateService);
@@ -230,6 +231,28 @@ class OpalDefendantAccountServicePaymentCardTest {
         //Assert
         assertThat(ex.getPermission()).containsExactly(FinesPermission.AMEND_PAYMENT_TERMS);
 
+        verifyNoInteractions(proxy);
+    }
+
+    @Test
+    void addPaymentCardRequest_missingBusinessUnitUser_throws401Exception() {
+        //Arrange
+        DefendantAccountPaymentTermsServiceProxy proxy = mock(DefendantAccountPaymentTermsServiceProxy.class);
+
+        UserState userState = mock(UserState.class);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userState.getBusinessUnitUserForBusinessUnit((short) 10)).thenReturn(Optional.empty());
+
+        var svc = new DefendantAccountPaymentTermsService(proxy, userStateService);
+
+        //Act
+        BusinessUnitUserNotFoundException ex = assertThrows(
+            BusinessUnitUserNotFoundException.class,
+            () -> svc.addPaymentCardRequest(1L, "10", "\"1\"")
+        );
+
+        //Assert
+        assertThat(ex.getBusinessUnitId()).isEqualTo((short) 10);
         verifyNoInteractions(proxy);
     }
 }
