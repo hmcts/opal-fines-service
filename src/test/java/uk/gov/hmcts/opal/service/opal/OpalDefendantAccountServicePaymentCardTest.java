@@ -1,10 +1,8 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
@@ -18,6 +16,9 @@ import jakarta.persistence.EntityNotFoundException;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -102,7 +103,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(paymentCardRequestRepositoryService.existsByDefendantAccountId(1L)).thenReturn(true);
 
         assertThrows(PaymentCardRequestAlreadyExistsException.class, () ->
-            service.addPaymentCardRequest(1L, "10", null, "\"1\"")
+            service.addPaymentCardRequest(1L, "10", "L080JG", "\"1\"")
         );
     }
 
@@ -116,30 +117,30 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
         assertThrows(EntityNotFoundException.class, () ->
-            service.addPaymentCardRequest(1L, "10", null, "\"1\"")
+            service.addPaymentCardRequest(1L, "10", "L080JG", "\"1\"")
         );
     }
 
-    @Test
-    void addPaymentCardRequest_allowsNullBusinessUnitUserId_whenUserNotInBusinessUnit() {
-        DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 10).build())
-            .versionNumber(1L)
-            .build();
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = " ")
+    void addPaymentCardRequest_missingBusinessUnitUserId_throws401BeforePersistence(String businessUnitUserId) {
+        // Arrange
 
-        when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
-        when(paymentCardRequestRepositoryService.existsByDefendantAccountId(1L)).thenReturn(false);
-        when(defendantAccountRepositoryService.save(any())).thenAnswer(inv -> inv.getArgument(0));
-        UserState userState = mock(UserState.class);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getDisplayName()).thenReturn("John Smith");
-
-        assertDoesNotThrow(() ->
-            service.addPaymentCardRequest(1L, "10", null, "\"1\"")
+        // Act
+        BusinessUnitUserNotFoundException ex = assertThrows(
+            BusinessUnitUserNotFoundException.class,
+            () -> service.addPaymentCardRequest(1L, "10", businessUnitUserId, "\"1\"")
         );
 
-        assertTrue(account.getPaymentCardRequested());
-        assertNull(account.getPaymentCardRequestedBy());
+        // Assert
+        assertThat(ex.getBusinessUnitId()).isEqualTo((short) 10);
+        verifyNoInteractions(
+            defendantAccountRepositoryService,
+            paymentCardRequestRepositoryService,
+            amendmentRepositoryService,
+            userStateService
+        );
     }
 
     @Test
@@ -152,7 +153,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
         assertThrows(ObjectOptimisticLockingFailureException.class, () ->
-            service.addPaymentCardRequest(1L, "10", null, "\"0\"")
+            service.addPaymentCardRequest(1L, "10", "L080JG", "\"0\"")
         );
     }
 
