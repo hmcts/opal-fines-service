@@ -534,7 +534,7 @@ VALUES
         'CT'
     ),
     (
-        10003,
+        100003,
         79,
         DATE '2000-05-14',
         'enforcement.test',
@@ -851,7 +851,7 @@ VALUES
         NULL,
         'defendant_transactions',
         'X-4',
-        NULL
+        'CT'
     )
     ON CONFLICT (defendant_transaction_id)
     DO UPDATE SET
