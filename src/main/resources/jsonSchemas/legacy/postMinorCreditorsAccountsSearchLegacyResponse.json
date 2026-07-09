@@ -46,8 +46,7 @@
         "business_unit_name",
         "business_unit_id",
         "defendant_account_id",
-        "account_balance",
-        "defendant"
+        "account_balance"
       ],
       "oneOf": [
         {
