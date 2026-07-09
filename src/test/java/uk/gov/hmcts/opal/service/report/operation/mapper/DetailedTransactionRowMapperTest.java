@@ -208,13 +208,14 @@ class DetailedTransactionRowMapperTest {
         EnforcementEntity enforcement = new EnforcementEntity();
         enforcement.setPostedDate(LocalDateTime.of(2024, 7, 8, 9, 10));
         enforcement.setPostedByUsername("enforcement.user");
+        enforcement.setResultId("RESULT_ID");
         enforcement.setReason("reason only");
 
         DetailedReportTransactionRowDto result =
             mapper.mapFromEnforcement(enforcement, account, new ReportMetadataContext());
 
         assertThat(result).isNotNull();
-        assertThat(result.getTransactionDetails()).isEqualTo("reason only");
+        assertThat(result.getTransactionDetails()).isEqualTo("RESULT_ID | reason only");
     }
 
     @Test
