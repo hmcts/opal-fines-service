@@ -23,7 +23,7 @@ public class CentralFundService {
     private final CentralFundMapper centralFundMapper;
 
     @Transactional(readOnly = true)
-    public CentralFundResponse getCentralFundByBusinessUnit(int businessUnitId) {
+    public CentralFundResponse getCentralFundByBusinessUnit(Short businessUnitId) {
         log.debug(":getCentralFundByBusinessUnit: businessUnitId={}", businessUnitId);
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
@@ -31,21 +31,13 @@ public class CentralFundService {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }
 
-        Short shortBusinessUnitId = toBusinessUnitId(businessUnitId);
         CentralFundProjection centralFund = creditorAccountRepository
-            .findCentralFundByBusinessUnitId(shortBusinessUnitId)
+            .findCentralFundByBusinessUnitId(businessUnitId)
             .orElseThrow(() -> new EntityNotFoundException(
                 "Central fund not found for business unit: " + businessUnitId
             ));
 
         return centralFundMapper.toCentralFundResponse(centralFund);
-    }
-
-    private Short toBusinessUnitId(int businessUnitId) {
-        if (businessUnitId < Short.MIN_VALUE || businessUnitId > Short.MAX_VALUE) {
-            throw new IllegalArgumentException("Business unit id is out of range: " + businessUnitId);
-        }
-        return (short) businessUnitId;
     }
 
 }

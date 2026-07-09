@@ -55,7 +55,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
                                         .accountStatusDisplayName(null)
                                         .build())
             .businessUnitSummary(BusinessUnitSummaryCommon.builder()
-                                     .businessUnitId("1")
+                                     .businessUnitId((short) 1)
                                      .businessUnitName("Test BU")
                                      .welshSpeaking("N")
                                      .build())
@@ -136,7 +136,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
         assertEquals(AccountStatusCodeEnum.L,
             published.getResponse().getAccountStatusReference().getAccountStatusCode());
         assertEquals("Live", published.getResponse().getAccountStatusReference().getAccountStatusDisplayName());
-        assertEquals("78", published.getResponse().getBusinessUnitSummary().getBusinessUnitId());
+        assertEquals((short) 78, published.getResponse().getBusinessUnitSummary().getBusinessUnitId());
         assertEquals("Test BU", published.getResponse().getBusinessUnitSummary().getBusinessUnitName());
         assertEquals(new BigDecimal("700.58"), published.getResponse().getPaymentStateSummary().getImposedAmount());
         assertEquals(BigDecimal.ZERO, published.getResponse().getPaymentStateSummary().getArrearsAmount());

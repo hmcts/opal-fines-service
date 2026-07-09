@@ -131,7 +131,7 @@ public class MajorCreditorAccountHeaderSummaryStepDef extends BaseStepDef {
             .body("major_creditor.name", equalTo("TFL2 ATCM Testing"))
             .body("major_creditor.account_reference.account_type", equalTo("MJ"))
             .body("major_creditor.account_reference.display_name", equalTo("Major Creditor"))
-            .body("business_unit_details.business_unit_id", equalTo("77"))
+            .body("business_unit_details.business_unit_id", equalTo(77))
             .body("business_unit_details.business_unit_name", equalTo("Camberwell Green"))
             .body("business_unit_details.welsh_speaking", equalTo("N"));
 

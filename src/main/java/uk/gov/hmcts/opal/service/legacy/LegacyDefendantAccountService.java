@@ -315,7 +315,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         BusinessUnitSummaryCommon bu = response.getBusinessUnitSummary() == null ? null
             : BusinessUnitSummaryCommon.builder()
-              .businessUnitId(response.getBusinessUnitSummary().getBusinessUnitId())
+              .businessUnitId(Short.valueOf(response.getBusinessUnitSummary().getBusinessUnitId()))
               .businessUnitName(response.getBusinessUnitSummary().getBusinessUnitName())
               .welshSpeaking("N")
               .build();

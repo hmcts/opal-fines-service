@@ -32,12 +32,12 @@ public class ReportInstanceTestData {
     public static final String DEFAULT_REQUESTED_BY_NAME = "John Doe";
     public static final LocalDateTime DEFAULT_REQUESTED_AT = LocalDateTime.of(2026, 1, 1, 10, 0);
     public static final LocalDateTime DEFAULT_CREATED_TIMESTAMP = LocalDateTime.of(2026, 1, 1, 11, 0);
-    public static final List<Integer> DEFAULT_BUSINESS_UNITS = List.of(10, 20);
+    public static final List<Short> DEFAULT_BUSINESS_UNITS = List.of((short) 10, (short) 20);
     public static final long DEFAULT_NO_OF_RECORDS = 100;
     public static final LocalDate FROM_DATE = LocalDate.of(2026, 1, 1);
     public static final LocalDate TO_DATE = LocalDate.of(2026, 12, 31);
-    public static final List<Integer> BUSINESS_UNITS = List.of(10, 20);
-    public static final Integer USER_ID = 42;
+    public static final List<Short> BUSINESS_UNITS = List.of((short) 10, (short) 20);
+    public static final Long USER_ID = 42L;
 
     private ReportInstanceTestData() {
         // utility class
@@ -196,7 +196,7 @@ public class ReportInstanceTestData {
         dto.setName(DEFAULT_REPORT_NAME);
         dto.setRequestedAt(DEFAULT_REQUESTED_AT);
         dto.setGeneratedAt(DEFAULT_CREATED_TIMESTAMP);
-        dto.setNumberOfRecords((int) DEFAULT_NO_OF_RECORDS);
+        dto.setNumberOfRecords(DEFAULT_NO_OF_RECORDS);
         dto.setRequestedBy(createDefaultRequestedByDto());
         dto.setBusinessUnits(createDefaultBusinessUnitDtos());
         dto.setStatus(createStatusDto(ReportInstanceGenerationStatus.READY));
@@ -223,7 +223,7 @@ public class ReportInstanceTestData {
      */
     public static UserByNameDetailsCommon createDefaultRequestedByDto() {
         UserByNameDetailsCommon user = new UserByNameDetailsCommon();
-        user.setUserId(String.valueOf(DEFAULT_REQUESTED_BY));
+        user.setUserId(DEFAULT_REQUESTED_BY);
         user.setName(DEFAULT_REQUESTED_BY_NAME);
         return user;
     }
@@ -234,7 +234,7 @@ public class ReportInstanceTestData {
     public static List<BusinessUnitSummaryCommon> createDefaultBusinessUnitDtos() {
         return DEFAULT_BUSINESS_UNITS.stream().map(id -> {
             BusinessUnitSummaryCommon bu = new BusinessUnitSummaryCommon();
-            bu.setBusinessUnitId(String.valueOf(id));
+            bu.setBusinessUnitId(id);
             return bu;
         }).toList();
     }

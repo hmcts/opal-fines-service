@@ -55,13 +55,13 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         dto.setName("My Report");
         dto.setRequestedAt(java.time.LocalDateTime.of(2026, 1, 1, 10, 0));
         dto.setGeneratedAt(java.time.LocalDateTime.of(2026, 1, 1, 11, 0));
-        dto.setNumberOfRecords(100);
+        dto.setNumberOfRecords(100L);
         dto.setRequestedBy(new uk.gov.hmcts.opal.generated.model.UserByNameDetailsCommon()
-            .userId("42")
+            .userId(42L)
             .name("John Doe"));
         dto.setBusinessUnits(List.of(
-            new uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon().businessUnitId("10"),
-            new uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon().businessUnitId("20")
+            new uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon().businessUnitId((short) 10),
+            new uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon().businessUnitId((short) 20)
         ));
         dto.setStatus(new uk.gov.hmcts.opal.generated.model.StatusReports()
             .code(uk.gov.hmcts.opal.generated.model.StatusReports.CodeEnum.READY)
@@ -81,10 +81,10 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         dto.setRequestedAt(java.time.LocalDateTime.of(2026, 2, 1, 10, 0));
         dto.setGeneratedAt(java.time.LocalDateTime.of(2026, 2, 1, 11, 0));
         dto.setRequestedBy(new uk.gov.hmcts.opal.generated.model.UserByNameDetailsCommon()
-            .userId("43")
+            .userId(43L)
             .name("Jane Doe"));
         dto.setBusinessUnits(List.of(
-            new uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon().businessUnitId("10")
+            new uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon().businessUnitId((short) 10)
         ));
         dto.setStatus(new uk.gov.hmcts.opal.generated.model.StatusReports()
             .code(uk.gov.hmcts.opal.generated.model.StatusReports.CodeEnum.IN_PROGRESS)
@@ -153,7 +153,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         void whenUserLacksBusinessUnitPermission_forbiddenIsReturned_sadPath() throws Exception {
             doThrow(new org.springframework.security.access.AccessDeniedException(
                 "User does not have permission for one or more specified business units"
-            )).when(genericReportService).searchReportInstances(null, null, List.of(30), null, REPORT_ID);
+            )).when(genericReportService).searchReportInstances(null, null, List.of((short) 30), null, REPORT_ID);
 
             mockMvc.perform(authorisedGet()
                     .param("report_id", REPORT_ID)
@@ -242,7 +242,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
                 null,
                 null,
                 null,
-                42,
+                42L,
                 REPORT_ID
             );
 
@@ -265,7 +265,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
             doReturn(List.of(readyDto(), readyDto())).when(genericReportService).searchReportInstances(
                 null,
                 null,
-                List.of(20),
+                List.of((short) 20),
                 null,
                 REPORT_ID
             );

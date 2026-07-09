@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 public class CourtReferenceDto implements ToJsonString {
 
     @JsonProperty("court_id")
-    private Integer courtId;
+    private Long courtId;
 
     @JsonProperty("court_name")
     private String courtName;

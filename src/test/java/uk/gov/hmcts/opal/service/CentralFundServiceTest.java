@@ -55,7 +55,7 @@ class CentralFundServiceTest {
             .thenReturn(Optional.of(centralFund));
         when(centralFundMapper.toCentralFundResponse(centralFund)).thenReturn(mappedResponse);
 
-        CentralFundResponse response = centralFundService.getCentralFundByBusinessUnit(70);
+        CentralFundResponse response = centralFundService.getCentralFundByBusinessUnit((short) 70);
 
         assertSame(mappedResponse, response);
         verify(userStateService).getUserStateV1FromSecurityContext();
@@ -70,7 +70,7 @@ class CentralFundServiceTest {
 
         PermissionNotAllowedException exception = assertThrows(
             PermissionNotAllowedException.class,
-            () -> centralFundService.getCentralFundByBusinessUnit(70)
+            () -> centralFundService.getCentralFundByBusinessUnit((short) 70)
         );
 
         assertThat(exception.getPermission()).containsExactly(SEARCH_AND_VIEW_ACCOUNTS);
@@ -85,25 +85,11 @@ class CentralFundServiceTest {
 
         EntityNotFoundException exception = assertThrows(
             EntityNotFoundException.class,
-            () -> centralFundService.getCentralFundByBusinessUnit(70)
+            () -> centralFundService.getCentralFundByBusinessUnit((short) 70)
         );
 
         assertEquals("Central fund not found for business unit: 70", exception.getMessage());
         verifyNoInteractions(centralFundMapper);
-    }
-
-    @Test
-    void getCentralFundByBusinessUnit_whenBusinessUnitIdOutOfRange_throwsIllegalArgumentException() {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.anyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
-
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> centralFundService.getCentralFundByBusinessUnit(Short.MAX_VALUE + 1)
-        );
-
-        assertEquals("Business unit id is out of range: 32768", exception.getMessage());
-        verifyNoInteractions(creditorAccountRepository, centralFundMapper);
     }
 
     private CentralFundProjection centralFundProjection() {
