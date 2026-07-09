@@ -78,6 +78,9 @@ class DraftAccountServiceTest {
     private DraftAccountTransactional draftAccountTransactional;
 
     @Mock
+    private DraftAccountReferenceValidationService referenceValidationService;
+
+    @Mock
     private DraftAccountMapper draftAccountMapper;
 
     @Mock
@@ -186,6 +189,7 @@ class DraftAccountServiceTest {
 
         // Assert
         assertEquals(draftAccountEntity.getAccount(), result.getAccount());
+        verify(referenceValidationService).validateReferences(addDraftAccountDto.getAccount());
         ArgumentCaptor<AddDraftAccountRequestDto> captor = ArgumentCaptor.forClass(AddDraftAccountRequestDto.class);
         verify(draftAccountTransactional, times(1)).submitDraftAccount(captor.capture());
         assertEquals("USER01", captor.getValue().getSubmittedBy());
@@ -313,6 +317,7 @@ class DraftAccountServiceTest {
         assertEquals(DraftAccountType.FINE, result.getAccountType());
         assertEquals(DraftAccountStatus.RESUBMITTED, result.getAccountStatus());
         assertEquals(createTimelineDataString(), result.getTimelineData());
+        verify(referenceValidationService).validateReferences(replaceDto.getAccount());
 
         ArgumentCaptor<ReplaceDraftAccountRequestDto> captor =
             ArgumentCaptor.forClass(ReplaceDraftAccountRequestDto.class);

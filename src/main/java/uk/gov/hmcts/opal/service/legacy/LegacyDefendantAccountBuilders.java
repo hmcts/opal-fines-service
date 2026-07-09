@@ -66,7 +66,7 @@ public class LegacyDefendantAccountBuilders {
 
     static LjaReferenceCommon buildLja(LjaReference lja) {
         return LjaReferenceCommon.builder()
-            .ljaId(lja.getLjaId().intValue())
+            .ljaId(lja.getLjaId())
             .ljaCode(lja.getLjaCode())
             .ljaName(lja.getLjaName())
             .build();
@@ -99,7 +99,7 @@ public class LegacyDefendantAccountBuilders {
     static CourtReferenceCommon buildCourtReference(CourtReference courtRef) {
         return CourtReferenceCommon.builder()
             .courtId(courtRef.getCourtId())
-            .courtCode(Optional.ofNullable(courtRef.getCourtCode()).map(Short::intValue).orElse(null))
+            .courtCode(courtRef.getCourtCode())
             .courtName(courtRef.getCourtName())
             .build();
     }

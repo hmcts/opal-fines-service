@@ -56,7 +56,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     void postSearchMinorCreditorImpl_Success(Logger log) throws Exception {
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .activeAccountsOnly(false)
             .accountNumber("12345678A")
             .build();
@@ -122,7 +122,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     void legacyPostSearchMinorCreditorImpl_500Error(Logger log) throws Exception {
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(101))
+            .businessUnitIds(List.of((short) 101))
             .activeAccountsOnly(false)
             .accountNumber("FAIL")
             .build();
@@ -144,7 +144,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     void search_checkLetter_returnsBoth(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .activeAccountsOnly(false)
             .accountNumber("12345678A").build(); // 9-char input        .build();
 
@@ -160,7 +160,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     void search_noCheckLetter_returnsBoth(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .activeAccountsOnly(false)
             .accountNumber("12345678").build(); // 8-digit input        .build();
 
@@ -176,7 +176,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     void search_noResultsForUnknownBusinessUnit_returnsEmpty(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(999))
+            .businessUnitIds(List.of((short) 999))
             .activeAccountsOnly(false)
             .build();
 
@@ -195,7 +195,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     void search_orgNamePrefix_normalizedMatches(Logger log) throws Exception {
         // "Acme Supplies Ltd" normalized; mixed case + spaces + punctuation
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .organisationName(" ac-me  SUPPLIES, ltd. ")
                 .build())
@@ -215,7 +215,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     void search_accountNumber_withWildcardChars_treatedLiterally(Logger log) throws Exception {
         // Your helper escapes user input then appends %; verify no matches for literal wildcards
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .accountNumber("1234567_") // underscore should be escaped -> literal underscore
             .build();
 
@@ -230,7 +230,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     void postSearch_missingAuthHeader_returns403() throws Exception {
         userStateStub.setupWithNoPermissions();
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(java.util.List.of(10))
+            .businessUnitIds(java.util.List.of((short) 10))
             .activeAccountsOnly(false)
             .accountNumber("12345678")
             .build();
@@ -249,7 +249,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         userStateStub.setupWithNoPermissions();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(java.util.List.of(10))
+            .businessUnitIds(java.util.List.of((short) 10))
             .activeAccountsOnly(false)
             .accountNumber("12345678")
             .build();
@@ -269,7 +269,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         userStateStub.setupWithNoPermissions();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(java.util.List.of(10))
+            .businessUnitIds(java.util.List.of((short) 10))
             .activeAccountsOnly(false)
             .accountNumber("12345678")
             .build();
@@ -875,7 +875,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC1b: Test that both active and inactive accounts are returned regardless of activeAccountsOnly value
     void testAC1b_ActiveAccountsOnlyTrue(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .activeAccountsOnly(true)
             .accountNumber("12345678")
             .build();
@@ -893,7 +893,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     void testAC1b_ActiveAccountsOnlyFalse(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .activeAccountsOnly(false)
             .accountNumber("12345678")
             .build();
@@ -912,7 +912,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC1a: Test multiple search parameters - creditor personal details + business unit
     void testAC1a_MultiParam_ForenamesAndSurname(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .forenames("John")
                 .surname("Smith")
@@ -937,7 +937,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC1a: Test multiple search parameters - postcode + business unit + account number
     void testAC1a_MultiParam_PostcodeAndAccountNumber(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .accountNumber("12345678")
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .postcode("MA4 1AL")
@@ -960,7 +960,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC1a: Test multiple search parameters - organisation details + business unit + address
     void testAC1a_MultiParam_OrganisationAndAddress(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .organisationName("Acme")
                 .addressLine1("Acme House")
@@ -981,7 +981,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC1ai: Test that accounts from different business units are not returned
     void testAC1ai_BusinessUnitFiltering(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10, 11)) // Multiple business units
+            .businessUnitIds(List.of((short) 10, (short) 11)) // Multiple business units
             .activeAccountsOnly(false)
             .build();
 
@@ -1003,7 +1003,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC2a: Test exact match surname functionality - exact match enabled
     void testAC2a_ExactMatchSurnameEnabled(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .surname("Smith")
                 .exactMatchSurname(true) // Exact match enabled
@@ -1026,7 +1026,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC2ai: Test exact match surname functionality - exact match disabled (starts with)
     void testAC2ai_ExactMatchSurnameDisabled(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .surname("Smith")
                 .exactMatchSurname(false) // Exact match disabled - should do "starts with"
@@ -1047,7 +1047,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC2b: Test exact match forenames functionality - exact match enabled
     void testAC2b_ExactMatchForenamesEnabled(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .forenames("John")
                 .exactMatchForenames(true) // Exact match enabled
@@ -1070,7 +1070,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC2bi: Test exact match forenames functionality - exact match disabled (starts with)
     void testAC2bi_ExactMatchForenamesDisabled(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .forenames("John")
                 .exactMatchForenames(false) // Exact match disabled - should do "starts with"
@@ -1091,7 +1091,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC2c: Test "starts with" behavior for Address Line 1
     void testAC2c_AddressLine1StartsWith(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .addressLine1("123") // Should match addresses starting with "123"
                 .build())
@@ -1111,7 +1111,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC2c: Test "starts with" behavior for Postcode
     void testAC2c_PostcodeStartsWith(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .postcode("TS") // Should match postcodes starting with "TS"
                 .build())
@@ -1131,7 +1131,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC3a: Test exact match for Company name
     void testAC3a_CompanyNameExactMatch(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .organisationName("Tech Solutions")
                 .exactMatchOrganisationName(true)
@@ -1154,7 +1154,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC3ai: Test "starts with" behavior for Company name when exact match is not selected
     void testAC3ai_CompanyNameStartsWith(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .organisationName("Tech")
                 .exactMatchOrganisationName(false)
@@ -1177,7 +1177,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC3ai: Test "starts with" behavior with partial Company name
     void testAC3ai_CompanyNameStartsWithPartial(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .organisationName("Technology")
                 .exactMatchOrganisationName(false)
@@ -1200,7 +1200,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC3b: Test "starts with" behavior for Company Address Line 1
     void testAC3b_CompanyAddressLine1StartsWith(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .addressLine1("Tech") // Should match company addresses starting with "Tech"
                 .organisation(true)
@@ -1221,7 +1221,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC3b: Test "starts with" behavior for Company Postcode
     void testAC3b_CompanyPostcodeStartsWith(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .postcode("TP") // Match company postcodes starting with "T"
                 .organisation(true)
@@ -1242,7 +1242,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC3b: Test combined Address Line 1 and Postcode search for companies
     void testAC3b_CompanyAddressAndPostcodeCombined(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .addressLine1("Tech House") // Specific address
                 .postcode("TH1") // Specific postcode prefix

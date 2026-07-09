@@ -34,7 +34,7 @@ public class MajorCreditorAccountHeaderEntityMapper {
 
     private BusinessUnitSummaryCommon toBusinessUnitDetails(MajorCreditorAccountHeaderEntity entity) {
         BusinessUnitSummaryCommon businessUnitDetails = new BusinessUnitSummaryCommon();
-        businessUnitDetails.setBusinessUnitId(String.valueOf(entity.getBusinessUnitId()));
+        businessUnitDetails.setBusinessUnitId(entity.getBusinessUnitId());
         businessUnitDetails.setBusinessUnitName(entity.getBusinessUnitName());
         businessUnitDetails.setWelshSpeaking("N");
         return businessUnitDetails;

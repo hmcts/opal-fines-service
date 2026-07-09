@@ -28,7 +28,7 @@ public final class GetReportInstanceContentTestData {
     public static ReportInstanceEntity createReportInstanceEntity(
         String reportId,
         FinesPermission permission,
-        List<Integer> businessUnits
+        List<Short> businessUnits
     ) {
         ReportInstanceEntity reportInstance = new ReportInstanceEntity();
         reportInstance.setReport(createReportEntity(reportId, permission));

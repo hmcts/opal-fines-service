@@ -45,9 +45,9 @@ public class ReportInstanceSearchService {
         return null;
     }
 
-    public List<Long> validateBusinessUnitIds(List<Integer> requestedBusinessUnitIds) {
-        List<Long> permittedBusinessUnitIds = getBusinessUnitUsers().stream()
-            .map(buUser -> buUser.getBusinessUnitId().longValue())
+    public List<Short> validateBusinessUnitIds(List<Short> requestedBusinessUnitIds) {
+        List<Short> permittedBusinessUnitIds = getBusinessUnitUsers().stream()
+            .map(BusinessUnitUser::getBusinessUnitId)
             .distinct()
             .toList();
 
@@ -55,13 +55,12 @@ public class ReportInstanceSearchService {
             return permittedBusinessUnitIds;
         }
 
-        List<Long> requestedIds = requestedBusinessUnitIds.stream()
+        List<Short> requestedIds = requestedBusinessUnitIds.stream()
             .filter(Objects::nonNull)
-            .map(Integer::longValue)
             .distinct()
             .toList();
 
-        for (Long requestedId : requestedIds) {
+        for (Short requestedId : requestedIds) {
             if (!permittedBusinessUnitIds.contains(requestedId)) {
                 throw new AccessDeniedException(
                     "User does not have permission for business unit: " + requestedId
@@ -72,15 +71,15 @@ public class ReportInstanceSearchService {
         return requestedIds;
     }
 
-    public Map<String, List<Long>> findPermittedReportForBusinessUnits(
+    public Map<String, List<Short>> findPermittedReportForBusinessUnits(
         List<ReportEntity> reports,
-        List<Long> businessUnitIds) {
+        List<Short> businessUnitIds) {
         if (reports == null || reports.isEmpty() || businessUnitIds == null || businessUnitIds.isEmpty()) {
             return Map.of();
         }
 
         List<BusinessUnitUser> businessUnitUsers = getBusinessUnitUsers().stream()
-            .filter(buUser -> businessUnitIds.contains(buUser.getBusinessUnitId().longValue()))
+            .filter(buUser -> businessUnitIds.contains(buUser.getBusinessUnitId()))
             .toList();
 
         return businessUnitUsers.stream()
@@ -88,7 +87,7 @@ public class ReportInstanceSearchService {
                 reports.stream()
                     .filter(report -> buUser.getPermissions().stream()
                         .anyMatch(permission -> permission.getPermissionId() == report.getPermission().getId()))
-                    .map(report -> Map.entry(report.getReportId(), buUser.getBusinessUnitId().longValue())))
+                    .map(report -> Map.entry(report.getReportId(), buUser.getBusinessUnitId())))
             .collect(Collectors.groupingBy(
                 Map.Entry::getKey,
                 Collectors.mapping(Map.Entry::getValue, Collectors.toList())

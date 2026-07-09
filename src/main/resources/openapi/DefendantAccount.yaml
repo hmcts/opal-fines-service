@@ -642,7 +642,7 @@ components:
           type: array
           items:
             type: integer
-            format: int32
+            format: int16
         reference_number:
           $ref: '#/components/schemas/defendantAccountSearchReferenceNumber'
         defendant:
@@ -872,6 +872,7 @@ components:
       properties:
         lja_id:
           type: integer
+          format: int16
       required:
         - lja_id
     enforcementAction:

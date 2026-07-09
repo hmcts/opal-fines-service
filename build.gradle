@@ -244,7 +244,11 @@ openApiGenerate {
   apiPackage = "uk.gov.hmcts.opal.generated.".toString() + "http.api"
   modelPackage = "uk.gov.hmcts.opal.generated.".toString() + "model"
   importMappings = [
-    Nullable: "org.jspecify.annotations.Nullable"
+    Nullable: "org.jspecify.annotations.Nullable",
+    Short: "java.lang.Short"
+  ]
+  typeMappings = [
+    "integer+int16": "short"
   ]
   // Point to your customized mustache templates
   templateDir = "$rootDir/openapi/templates".toString()
@@ -332,11 +336,11 @@ tasks.register('functionalOpal', Test) {
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal"))
   testLogging.showStandardStreams = true
   environment("IS_LEGACY_MODE", "false")
-  systemProperty 'serenity.outputDirectory', "${rootDir}/functional-test-report"
-  systemProperty 'cucumber.plugin', "json:${rootDir}/target/zephyr-reports/cucumber-opal.json"
+  systemProperty 'cucumber.plugin',
+    "net.serenitybdd.cucumber.core.plugin.SerenityReporterParallel,pretty,json:${rootDir}/target/zephyr-reports/cucumber-opal.json,timeline:${rootDir}/target/test-results/timeline"
   include '**/OpalTestRunner.class'
 
-  finalizedBy 'copyOpalCucumberJson'
+  finalizedBy 'copyOpalCucumberJson', 'mergeFunctionalResults', 'aggregate', 'copyFunctionalReport'
 }
 
 tasks.register('copyOpalCucumberJson', Copy) {
@@ -354,8 +358,8 @@ tasks.register('functionalOpalTags', Test) {
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal-tags"))
   testLogging.showStandardStreams = true
   environment("IS_LEGACY_MODE", "false")
-  systemProperty 'serenity.outputDirectory', "${rootDir}/functional-test-report-demo"
-  systemProperty 'cucumber.plugin', "json:${rootDir}/target/zephyr-reports/cucumber-opal-tags.json"
+  systemProperty 'cucumber.plugin',
+    "net.serenitybdd.cucumber.core.plugin.SerenityReporterParallel,pretty,json:${rootDir}/target/zephyr-reports/cucumber-opal-tags.json,timeline:${rootDir}/target/test-results/timeline"
 
   include '**/OpalTaggedTestRunner.class'
 
@@ -373,12 +377,67 @@ tasks.register('functionalOpalTags', Test) {
     systemProperty 'cucumber.filter.tags', cucumberTags.toString()
   }
 
-  finalizedBy 'copyOpalTagsCucumberJson'
+  finalizedBy 'copyOpalTagsCucumberJson', 'mergeFunctionalOpalTagsResults', 'aggregate', 'copyDemoFunctionalReport',
+    'packageTaggedDemoFunctionalOutput'
+}
+
+tasks.register('functionalOpalTagsR1AOnly', Test) {
+  description = "Runs the demo R1A-only tagged Opal functional tests"
+  group = "Verification"
+  testClassesDirs = sourceSets.functionalTest.output.classesDirs
+  classpath = sourceSets.functionalTest.runtimeClasspath
+  outputs.upToDateWhen { false }
+  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal-tags-r1a-only"))
+  testLogging.showStandardStreams = true
+  environment("IS_LEGACY_MODE", "false")
+  systemProperty 'cucumber.plugin',
+    "net.serenitybdd.cucumber.core.plugin.SerenityReporterParallel,pretty,json:${rootDir}/target/zephyr-reports/cucumber-opal-tags.json,timeline:${rootDir}/target/test-results/timeline"
+
+  include '**/OpalTaggedTestRunner.class'
+
+  doFirst {
+    systemProperty 'cucumber.filter.tags', '@JIRA-LABEL:manual-account-creation and not @Ignore'
+  }
+
+  finalizedBy 'copyR1AOnlyDemoCucumberJson', 'mergeFunctionalOpalTagsR1AOnlyResults', 'aggregate', 'copyR1AOnlyDemoFunctionalReport'
+}
+
+tasks.register('functionalOpalTagsR1AOff', Test) {
+  description = "Runs the demo R1A-off tagged Opal functional tests"
+  group = "Verification"
+  testClassesDirs = sourceSets.functionalTest.output.classesDirs
+  classpath = sourceSets.functionalTest.runtimeClasspath
+  outputs.upToDateWhen { false }
+  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal-tags-r1a-off"))
+  testLogging.showStandardStreams = true
+  environment("IS_LEGACY_MODE", "false")
+  systemProperty 'cucumber.plugin',
+    "net.serenitybdd.cucumber.core.plugin.SerenityReporterParallel,pretty,json:${rootDir}/target/zephyr-reports/cucumber-opal-tags.json,timeline:${rootDir}/target/test-results/timeline"
+
+  include '**/OpalTaggedTestRunner.class'
+
+  doFirst {
+    systemProperty 'cucumber.filter.tags', '@R1AOff and not @Ignore'
+  }
+
+  finalizedBy 'copyR1AOffDemoCucumberJson', 'mergeFunctionalOpalTagsR1AOffResults', 'aggregate', 'copyR1AOffDemoFunctionalReport'
 }
 
 tasks.register('copyOpalTagsCucumberJson', Copy) {
   from("${rootDir}/target/zephyr-reports/cucumber-opal-tags.json")
   into("${rootDir}/functional-output-demo/zephyr")
+  outputs.upToDateWhen { false }
+}
+
+tasks.register('copyR1AOnlyDemoCucumberJson', Copy) {
+  from("${rootDir}/target/zephyr-reports/cucumber-opal-tags.json")
+  into("${rootDir}/functional-output-r1a-only-demo/zephyr")
+  outputs.upToDateWhen { false }
+}
+
+tasks.register('copyR1AOffDemoCucumberJson', Copy) {
+  from("${rootDir}/target/zephyr-reports/cucumber-opal-tags.json")
+  into("${rootDir}/functional-output-r1a-off-demo/zephyr")
   outputs.upToDateWhen { false }
 }
 
@@ -391,8 +450,8 @@ tasks.register('functionalLegacy', Test) {
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/legacy"))
   testLogging.showStandardStreams = true
   environment("IS_LEGACY_MODE", "true")
-  systemProperty 'serenity.outputDirectory', "${rootDir}/functional-test-report-legacy"
-  systemProperty 'cucumber.plugin', "json:${rootDir}/target/zephyr-reports/cucumber-legacy.json"
+  systemProperty 'cucumber.plugin',
+    "net.serenitybdd.cucumber.core.plugin.SerenityReporterParallel,pretty,json:${rootDir}/target/zephyr-reports/cucumber-legacy.json,timeline:${rootDir}/target/test-results/timeline"
 
   include '**/LegacyTestRunner.class'
   finalizedBy 'copyLegacyCucumberJson'
@@ -407,45 +466,45 @@ tasks.register('copyLegacyCucumberJson', Copy) {
 tasks.register('copyFunctionalReport', Copy) {
   dependsOn 'aggregate'
   from("${rootDir}/target/site/serenity")
-  into("${rootDir}/functional-test-report")
+  into("${rootDir}/functional-output/report")
   doLast {
-    logPublishedHtmlReport("Functional Test Report", "${rootDir}/functional-test-report")
+    logPublishedHtmlReport("Functional Test Report", "${rootDir}/functional-output/report")
   }
 }
 tasks.register('copyDemoFunctionalReport', Copy) {
   dependsOn 'aggregate'
   from("${rootDir}/target/site/serenity")
-  into("${rootDir}/functional-test-report-demo")
+  into("${rootDir}/functional-output-demo/report")
   doLast {
-    logPublishedHtmlReport("Demo Functional Test Report", "${rootDir}/functional-test-report-demo")
+    logPublishedHtmlReport("Demo Functional Test Report", "${rootDir}/functional-output-demo/report")
   }
 }
-tasks.register('packageFunctionalOutput', Copy) {
-  dependsOn 'copyFunctionalReport', 'copyOpalCucumberJson'
-  into("${rootDir}/functional-output")
-  from("${rootDir}/functional-test-report") {
-    into("report")
+
+tasks.register('copyR1AOnlyDemoFunctionalReport', Copy) {
+  dependsOn 'aggregate'
+  from("${rootDir}/target/site/serenity")
+  into("${rootDir}/functional-output-r1a-only-demo/report")
+  doLast {
+    logPublishedHtmlReport("Demo R1A Functional Test Report", "${rootDir}/functional-output-r1a-only-demo/report")
   }
 }
-tasks.register('packageDemoFunctionalOutput', Copy) {
-  dependsOn 'copyDemoFunctionalReport', 'copyOpalTagsCucumberJson'
-  into("${rootDir}/functional-output-demo")
-  from("${rootDir}/functional-test-report-demo") {
-    into("report")
+
+tasks.register('copyR1AOffDemoFunctionalReport', Copy) {
+  dependsOn 'aggregate'
+  from("${rootDir}/target/site/serenity")
+  into("${rootDir}/functional-output-r1a-off-demo/report")
+  doLast {
+    logPublishedHtmlReport("Demo R1AOff Functional Test Report", "${rootDir}/functional-output-r1a-off-demo/report")
   }
 }
 tasks.register('packageTaggedDemoFunctionalOutput', Copy) {
   dependsOn 'copyDemoFunctionalReport', 'copyOpalTagsCucumberJson'
-  into("${rootDir}/functional-output-demo")
-  from("${rootDir}/functional-test-report-demo") {
-    into("report")
-  }
 }
 tasks.register('syncFunctionalArtifactsFromExistingResults') {
   doLast {
     syncFunctionalArtifacts(
       'Functional Test Report',
-      "${rootDir}/functional-test-report",
+      "${rootDir}/functional-output/report",
       "${rootDir}/functional-output",
       'cucumber-opal.json'
     )
@@ -455,8 +514,28 @@ tasks.register('syncTaggedFunctionalArtifactsFromExistingResults') {
   doLast {
     syncFunctionalArtifacts(
       'Demo Functional Test Report',
-      "${rootDir}/functional-test-report-demo",
+      "${rootDir}/functional-output-demo/report",
       "${rootDir}/functional-output-demo",
+      'cucumber-opal-tags.json'
+    )
+  }
+}
+tasks.register('syncR1AOnlyTaggedFunctionalArtifactsFromExistingResults') {
+  doLast {
+    syncFunctionalArtifacts(
+      'Demo R1A Functional Test Report',
+      "${rootDir}/functional-output-r1a-only-demo/report",
+      "${rootDir}/functional-output-r1a-only-demo",
+      'cucumber-opal-tags.json'
+    )
+  }
+}
+tasks.register('syncR1AOffTaggedFunctionalArtifactsFromExistingResults') {
+  doLast {
+    syncFunctionalArtifacts(
+      'Demo R1AOff Functional Test Report',
+      "${rootDir}/functional-output-r1a-off-demo/report",
+      "${rootDir}/functional-output-r1a-off-demo",
       'cucumber-opal-tags.json'
     )
   }
@@ -484,21 +563,28 @@ tasks.register('packageIntegrationOutput', Copy) {
   }
 }
 tasks.register('mergeFunctionalResults', Copy) {
-  dependsOn 'functionalOpal'
   from layout.buildDirectory.dir("test-results/functional/opal")
   into layout.buildDirectory.dir("test-results/functional")
   include '*.xml'
 }
 tasks.register('mergeFunctionalWithTagsResults', Copy) {
-  dependsOn 'functionalOpal', 'functionalOpalTags'
   from layout.buildDirectory.dir("test-results/functional/opal")
   from layout.buildDirectory.dir("test-results/functional/opal-tags")
   into layout.buildDirectory.dir("test-results/functional")
   include '*.xml'
 }
 tasks.register('mergeFunctionalOpalTagsResults', Copy) {
-  dependsOn 'functionalOpalTags'
   from layout.buildDirectory.dir("test-results/functional/opal-tags")
+  into layout.buildDirectory.dir("test-results/functional")
+  include '*.xml'
+}
+tasks.register('mergeFunctionalOpalTagsR1AOnlyResults', Copy) {
+  from layout.buildDirectory.dir("test-results/functional/opal-tags-r1a-only")
+  into layout.buildDirectory.dir("test-results/functional")
+  include '*.xml'
+}
+tasks.register('mergeFunctionalOpalTagsR1AOffResults', Copy) {
+  from layout.buildDirectory.dir("test-results/functional/opal-tags-r1a-off")
   into layout.buildDirectory.dir("test-results/functional")
   include '*.xml'
 }
@@ -510,7 +596,6 @@ tasks.register('functional') {
   tasks.mergeFunctionalResults.mustRunAfter functionalOpal
   tasks.aggregate.mustRunAfter functionalOpal
   tasks.copyFunctionalReport.mustRunAfter aggregate
-  finalizedBy 'packageFunctionalOutput'
 }
 
 tasks.register('functionalWithTags') {
@@ -534,11 +619,11 @@ tasks.register('smokeOpal', Test) {
   classpath = sourceSets.functionalTest.runtimeClasspath
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/smoke"))
   testLogging.showStandardStreams = true
-  systemProperty 'serenity.outputDirectory', "${rootDir}/smoke-test-report"
-  systemProperty 'cucumber.plugin', "json:${rootDir}/target/zephyr-reports/cucumber-smoke.json"
+  systemProperty 'cucumber.plugin',
+    "net.serenitybdd.cucumber.core.plugin.SerenityReporterParallel,pretty,json:${rootDir}/target/zephyr-reports/cucumber-smoke.json,timeline:${rootDir}/target/test-results/timeline"
 
   include '**/SmokeTestRunner.class'
-  finalizedBy 'copySmokeCucumberJson'
+  finalizedBy 'copySmokeCucumberJson', 'aggregate', 'copySmokeReport', 'packageSmokeOutput'
 
 }
 tasks.register('copySmokeReport', Copy) {
@@ -589,20 +674,29 @@ tasks.named('aggregate') {
     tasks.named('functionalOpal'),
     tasks.named('functionalLegacy'),
     tasks.named('functionalOpalTags'),
+    tasks.named('functionalOpalTagsR1AOnly'),
+    tasks.named('functionalOpalTagsR1AOff'),
     tasks.named('smokeOpal'),
     tasks.named('mergeFunctionalResults'),
     tasks.named('mergeFunctionalWithTagsResults'),
-    tasks.named('mergeFunctionalOpalTagsResults')
+    tasks.named('mergeFunctionalOpalTagsResults'),
+    tasks.named('mergeFunctionalOpalTagsR1AOnlyResults'),
+    tasks.named('mergeFunctionalOpalTagsR1AOffResults')
   )
 }
 
 tasks.configureEach {
-  if (name in ['copyFunctionalReport', 'copyDemoFunctionalReport', 'copySmokeReport']) {
+  if (name in ['copyFunctionalReport', 'copyDemoFunctionalReport', 'copyR1AOnlyDemoFunctionalReport',
+               'copyR1AOffDemoFunctionalReport', 'copySmokeReport']) {
     mustRunAfter tasks.named('aggregate')
   } else if (name == 'copyOpalCucumberJson') {
     mustRunAfter tasks.named('functionalOpal')
   } else if (name == 'copyOpalTagsCucumberJson') {
     mustRunAfter tasks.named('functionalOpalTags')
+  } else if (name == 'copyR1AOnlyDemoCucumberJson') {
+    mustRunAfter tasks.named('functionalOpalTagsR1AOnly')
+  } else if (name == 'copyR1AOffDemoCucumberJson') {
+    mustRunAfter tasks.named('functionalOpalTagsR1AOff')
   } else if (name == 'copyLegacyCucumberJson') {
     mustRunAfter tasks.named('functionalLegacy')
   } else if (name == 'copySmokeCucumberJson') {

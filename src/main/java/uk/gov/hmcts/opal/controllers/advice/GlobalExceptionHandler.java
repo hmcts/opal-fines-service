@@ -48,6 +48,7 @@ import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
@@ -528,6 +529,20 @@ public class GlobalExceptionHandler {
             e
         );
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
+    }
+
+    @ExceptionHandler(InvalidReferenceValidationException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidReferenceValidationException(
+        InvalidReferenceValidationException e) {
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.BAD_REQUEST,
+            "Bad Request",
+            e.getMessage(),
+            "invalid-reference-validation",
+            false,
+            e
+        );
+        return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

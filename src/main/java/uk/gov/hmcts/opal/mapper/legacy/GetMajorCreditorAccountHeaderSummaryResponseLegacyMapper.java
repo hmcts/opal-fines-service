@@ -29,6 +29,7 @@ public interface GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper {
 
     GetMajorCreditorAccountHeaderSummary200ResponseMajorCreditor toOpal(MajorCreditorLegacy legacy);
 
+    @Mapping(target = "businessUnitId", source = "businessUnitId", qualifiedByName = "toBusinessUnitId")
     BusinessUnitSummaryCommon toOpal(BusinessUnitSummary legacy);
 
     @Mapping(target = "accountType", source = "accountType", qualifiedByName = "toAccountType")
@@ -38,6 +39,11 @@ public interface GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper {
     @Named("toVersion")
     default BigInteger toVersion(Long value) {
         return value == null ? null : BigInteger.valueOf(value);
+    }
+
+    @Named("toBusinessUnitId")
+    default Short toBusinessUnitId(String value) {
+        return value == null ? null : Short.valueOf(value);
     }
 
     @Named("toAccountType")

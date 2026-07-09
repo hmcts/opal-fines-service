@@ -44,15 +44,15 @@ class MajorCreditorApiControllerTest {
             .version(BigInteger.valueOf(7))
             .build();
 
-        when(centralFundService.getCentralFundByBusinessUnit(70)).thenReturn(serviceResponse);
+        when(centralFundService.getCentralFundByBusinessUnit((short) 70)).thenReturn(serviceResponse);
 
         ResponseEntity<GetCentralFundResponse> response =
-            controller.getCentralFundByBusinessUnit(70);
+            controller.getCentralFundByBusinessUnit((short) 70);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("\"7\"", response.getHeaders().getETag());
         assertSame(payload, response.getBody());
-        verify(centralFundService).getCentralFundByBusinessUnit(70);
+        verify(centralFundService).getCentralFundByBusinessUnit((short) 70);
     }
 
     @Test
@@ -96,7 +96,7 @@ class MajorCreditorApiControllerTest {
                 .name("Central Fund")
                 .build())
             .businessUnitDetails(BusinessUnitSummaryCommon.builder()
-                .businessUnitId("70")
+                .businessUnitId((short) 70)
                 .businessUnitName("London Collection")
                 .welshSpeaking("N")
                 .build())

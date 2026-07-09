@@ -104,7 +104,7 @@ class DefendantAccountApiControllerTest {
         PostDefendantAccountSearchRequestDefendantAccount request =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
                 .activeAccountsOnly(true)
-                .businessUnitIds(List.of(101))
+                .businessUnitIds(List.of((short) 101))
                 .referenceNumber(new DefendantAccountSearchReferenceNumberDefendantAccount()
                     .organisation(false)
                     .accountNumber("AC123"))

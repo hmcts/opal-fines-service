@@ -14,7 +14,7 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 public class LJA implements ToJsonString {
 
     @JsonProperty("lja_id")
-    private Integer ljaId;
+    private Short ljaId;
 
     @JsonProperty("lja_code")
     private String ljaCode;

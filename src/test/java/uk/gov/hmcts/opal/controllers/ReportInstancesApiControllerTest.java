@@ -62,13 +62,14 @@ class ReportInstancesApiControllerTest {
         @Test
         void whenAllParamsProvided_returnsNormalServiceResult_happyPath() {
             ReportInstanceListReportsInner dto = createDefaultReportInstanceDto();
+            List<Short> requestedBusinessUnits = List.of((short) 10, (short) 20);
 
             when(genericReportService
                 .searchReportInstances(FROM_DATE, TO_DATE, BUSINESS_UNITS, USER_ID, DEFAULT_REPORT_ID))
                 .thenReturn(List.of(dto));
 
             ResponseEntity<List<ReportInstanceListReportsInner>> response =
-                reportInstancesApiController.getReportInstances(FROM_DATE, TO_DATE, BUSINESS_UNITS, USER_ID,
+                reportInstancesApiController.getReportInstances(FROM_DATE, TO_DATE, requestedBusinessUnits, USER_ID,
                     DEFAULT_REPORT_ID);
 
             assertAll(

@@ -212,7 +212,7 @@ Use the standard functional suite for normal backend functional coverage:
 ```
 
 This runs the default Opal and Legacy functional suites and publishes the Serenity
-functional report under `functional-test-report/`.
+functional report under `functional-output/report/`.
 
 Use the tagged Opal functional suite when you need to run only scenarios for a specific
 feature-flag or business-area configuration:
@@ -245,6 +245,8 @@ execution recorded through the existing cucumber-report Zephyr flow:
 Common examples:
 
 ```bash / zsh
+  ./gradlew functionalOpalTagsR1AOnly
+  ./gradlew functionalOpalTagsR1AOff
   TAGS='@R1AOff and not @Ignore' ./gradlew functionalOpalTags
   TAGS='@R1BOff and not @Ignore' ./gradlew functionalOpalTags
   TAGS='@R1B and @R1C and not @Ignore' ./gradlew functionalWithTags
@@ -291,12 +293,17 @@ does not run the full backend functional suite.
 
 Nightly reports and artifacts:
 
-- Staging integration publishes `Integration Tests Report`.
+- Staging integration publishes the JUnit HTML `Integration Tests Report`.
 - Staging functional publishes `Serenity Functional Test Report`.
 - Staging smoke publishes `Serenity Smoke Test Report`.
 - Demo R1A publishes `Serenity Functional Test Report (Demo R1AOn Only)`.
 - Demo R1AOff publishes `Serenity Functional Test Report (Demo R1AOff)`.
-- Archived output folders are `integration-output`, `functional-output`, `functional-output-r1a-only-demo`, `functional-output-r1a-off-demo`, and `smoke-output`.
+- Generic local tagged demo Gradle runs package to `functional-output-demo`; the generic local demo Serenity HTML report is under `functional-output-demo/report`.
+- Local `functionalOpalTagsR1AOnly` packages to `functional-output-r1a-only-demo`; the local demo Serenity HTML report is under `functional-output-r1a-only-demo/report`.
+- Local `functionalOpalTagsR1AOff` packages to `functional-output-r1a-off-demo`; the local demo Serenity HTML report is under `functional-output-r1a-off-demo/report`.
+- Nightly `RunR1AOnly` archives to `functional-output-r1a-only-demo`; the nightly demo Serenity HTML report is under `functional-output-r1a-only-demo/report`.
+- Nightly `RunR1AOff` archives to `functional-output-r1a-off-demo`; the nightly demo Serenity HTML report is under `functional-output-r1a-off-demo/report`.
+- Staging functional archives to `functional-output`, integration to `integration-output`, and smoke to `smoke-output`.
 - Functional and smoke outputs are published from `*/report` with Zephyr payloads under `*/zephyr`. Integration publishes `integration-output/report` and archives `integration-output/zephyr` when the integration Zephyr JSON is generated.
 - When `ZephyrExecution=true` or the nightly run is on Friday, the nightly pipeline runs the selected test stage first, publishes its artifacts, then invokes the matching generic Zephyr execution task.
 
@@ -313,9 +320,9 @@ This repo-local Jenkinsfile does not declare its own job parameters.
 
 CNP outputs:
 
-- Integration publishes JUnit XML from `build/test-results/integration`, archives `integration-output/**/*`, and publishes `Integration Tests Report` from `integration-output/report`.
-- Functional archives `functional-output/**/*` and publishes `Serenity Functional Test Report`.
-- Smoke archives `smoke-output/**/*` and publishes `Serenity Smoke Test Report`.
+- Integration publishes JUnit XML from `build/test-results/integration`, archives `integration-output/**/*`, and publishes the JUnit HTML `Integration Tests Report` from `integration-output/report`.
+- Functional archives `functional-output/**/*` and publishes `Serenity Functional Test Report` from `functional-output/report`.
+- Smoke archives `smoke-output/**/*` and publishes `Serenity Smoke Test Report` from `smoke-output/report`.
 
 CNP failure handling:
 
@@ -333,6 +340,20 @@ Zephyr tasks require `JIRA_AUTH_TOKEN` to be exported before the upload task run
 The create and update tasks process an existing test report; they do not run the tests.
 Run the matching functional or integration suite first if the report is not already present.
 For local tagged runs, make sure the local fines service is already configured with the intended feature-flag state before executing the test command (and LAUNCH_DARKLY_ENABLED=false)
+
+When reusing reports copied from Jenkins artifacts, place the raw Zephyr JSON in the source location that the
+Gradle sync task rebuilds from before the Jira task runs. Do not rely on copying only into the archived
+`*-output*/zephyr` folder, because the sync task will recreate that folder from the raw source path.
+
+Local report paths:
+
+| Flow | Gradle task | Raw JSON source path to populate locally | Rebuilt packaged path used by the Zephyr task |
+| --- | --- | --- | --- |
+| `integration` | `createJiraExecutionFromIntegrationReport` | `target/zephyr-reports/Junit5Report-IntegrationTest.json` | `integration-output/zephyr/Junit5Report-IntegrationTest.json` |
+| `functional` | `-PzephyrFunctionalStage=functional createJiraExecutionFromFunctionalReport` | `target/zephyr-reports/cucumber-opal.json` | `functional-output/zephyr/cucumber-opal.json` |
+| `smoke` | `-PzephyrFunctionalStage=smoke createJiraExecutionFromFunctionalReport` | `target/zephyr-reports/cucumber-smoke.json` | `smoke-output/zephyr/cucumber-smoke.json` |
+| `runR1AOnly` | `./gradlew functionalOpalTagsR1AOnly` then `-PzephyrFunctionalStage=runR1AOnly createJiraExecutionFromFunctionalReport` | `target/zephyr-reports/cucumber-opal-tags.json` | `functional-output-r1a-only-demo/zephyr/cucumber-opal-tags.json` |
+| `runR1AOff` | `./gradlew functionalOpalTagsR1AOff` then `-PzephyrFunctionalStage=runR1AOff createJiraExecutionFromFunctionalReport` | `target/zephyr-reports/cucumber-opal-tags.json` | `functional-output-r1a-off-demo/zephyr/cucumber-opal-tags.json` |
 
 Examples:
 
@@ -357,14 +378,18 @@ export TEST_URL=https://opal-fines-service.demo.platform.hmcts.net
 export OPAL_USER_SERVICE_API_URL=https://opal-user-service.demo.platform.hmcts.net
 export OPAL_LOGGING_SERVICE_API_URL=https://opal-logging-service.demo.platform.hmcts.net
 
-TAGS='(@JIRA-LABEL:manual-account-creation or (@Opal and @FeatureToggle and @R1BOff)) and not @Smoke and not @Ignore and not (@R1AOff or @R1B or @R1COff or @R1C or @R1CFinance or @R1CWriteOff or @R1CWriteOffOff or @R1CEnforcementOperationalReporting or @R1CEnforcementOperationalReportingOff or @R1CAdministration)' ./gradlew functionalOpalTags
+./gradlew functionalOpalTagsR1AOnly
 ./gradlew -PzephyrFunctionalStage=runR1AOnly createJiraExecutionFromFunctionalReport
 
-TAGS='@R1AOff and not @Ignore' ./gradlew functionalOpalTags
+./gradlew functionalOpalTagsR1AOff
 ./gradlew -PzephyrFunctionalStage=runR1AOff createJiraTicketsFromFunctionalReport
 ./gradlew -PzephyrFunctionalStage=runR1AOff updateJiraTicketsFromFunctionalReport
 ./gradlew -PzephyrFunctionalStage=runR1AOff createJiraExecutionFromFunctionalReport
 ```
+
+Available Zephyr tasks:
+
+Use the task that matches the populated raw JSON source above.
 
 | Task | Purpose |
 | --- | --- |

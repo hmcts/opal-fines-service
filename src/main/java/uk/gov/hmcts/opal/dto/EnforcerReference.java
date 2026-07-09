@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 public class EnforcerReference implements ToJsonString {
 
     @JsonProperty("enforcer_id")
-    private Integer enforcerId;
+    private Long enforcerId;
 
     @JsonProperty("enforcer_name")
     private String enforcerName;

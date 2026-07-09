@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 public class LjaReference implements ToJsonString {
 
     @JsonProperty("lja_id")
-    private Integer ljaId;
+    private Short ljaId;
 
     @JsonProperty("lja_name")
     private String ljaName;
