@@ -89,7 +89,7 @@ public abstract class DetailedTransactionRowMapper
 
     protected String getPaymentTermsDetails(PaymentTermsEntity paymentTerms) {
         StringBuilder sb = new StringBuilder();
-        if (BY_DATE.equals(paymentTerms.getTermsTypeCode())) {
+        if (paymentTerms.getTermsTypeCode() == BY_DATE) {
             sb.append("In full | ");
         } else {
             if (paymentTerms.getInstalmentLumpSum() != null) {
@@ -134,14 +134,14 @@ public abstract class DetailedTransactionRowMapper
     }
 
     protected String getConsolidatedAccountNo(DefendantTransactionEntity entity, ReportMetadataContext context) {
-        if (DefendantTransactionType.CONSOL.equals(entity.getTransactionType())) {
+        if (entity.getTransactionType() == DefendantTransactionType.CONSOL) {
             return getConsolidatedAccountNo(entity.getAssociatedRecordType(), entity.getAssociatedRecordId(), context);
         }
         return null;
     }
 
     protected String getConsolidatedAccountNo(AssociatedRecordType type, String id, ReportMetadataContext context) {
-        if (AssociatedRecordType.DEFENDANT_ACCOUNTS.equals(type)) {
+        if (type == AssociatedRecordType.DEFENDANT_ACCOUNTS) {
             long accountId = Long.parseLong(id);
             DefendantAccountEntity account = defendantAccountService.findById(accountId);
             context.addParticipant(id, CONSOLIDATED_ACCOUNT);
