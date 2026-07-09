@@ -5,16 +5,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler.PaymentCardRequestAlreadyExistsException;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
-import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler.PaymentCardRequestAlreadyExistsException;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.exception.BusinessUnitUserNotFoundException;
 import uk.gov.hmcts.opal.mapper.request.PaymentTermsMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
@@ -80,6 +81,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
 
         log.debug(":addPaymentCardRequest (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
+        final String requiredBusinessUnitUserId = requireBusinessUnitUserId(businessUnitUserId, businessUnitId);
         DefendantAccountEntity account = loadAndValidateAccount(defendantAccountId, businessUnitId);
         VersionUtils.verifyIfMatch(account, ifMatch, account.getDefendantAccountId(), "addPaymentCardRequest");
         defendantAccountControlValidator.validateCanAddPaymentCardRequest(account);
@@ -90,11 +92,18 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
 
         createPaymentCardRequest(defendantAccountId);
 
-        updateDefendantAccountWithPcr(account, businessUnitUserId, postedByName);
+        updateDefendantAccountWithPcr(account, requiredBusinessUnitUserId, postedByName);
 
-        auditComplete(defendantAccountId, account, businessUnitUserId, postedByName);
+        auditComplete(defendantAccountId, account, requiredBusinessUnitUserId, postedByName);
 
         return new AddPaymentCardRequestResponse(defendantAccountId);
+    }
+
+    private String requireBusinessUnitUserId(String businessUnitUserId, String businessUnitId) {
+        if (businessUnitUserId == null || businessUnitUserId.isBlank()) {
+            throw new BusinessUnitUserNotFoundException(Short.parseShort(businessUnitId));
+        }
+        return businessUnitUserId;
     }
 
     @Override
