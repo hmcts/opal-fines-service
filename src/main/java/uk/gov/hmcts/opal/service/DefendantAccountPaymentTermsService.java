@@ -2,9 +2,7 @@ package uk.gov.hmcts.opal.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
@@ -13,6 +11,7 @@ import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
+import uk.gov.hmcts.opal.exception.BusinessUnitUserNotFoundException;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountPaymentTermsServiceProxy;
 
 @Service
@@ -41,7 +40,6 @@ public class DefendantAccountPaymentTermsService {
     public AddPaymentCardRequestResponse addPaymentCardRequest(
         Long defendantAccountId,
         String businessUnitId,
-        String businessUnitUserId,
         String ifMatch
     ) {
         log.debug(":addPaymentCardRequest:");
@@ -50,23 +48,18 @@ public class DefendantAccountPaymentTermsService {
         short buId = Short.parseShort(businessUnitId);
         String businessUnitUserId = getBusinessUnitUserIdForBusinessUnit(userState, buId);
 
-        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS)) {
-            String derivedBusinessUnitUserId = userState.getBusinessUnitUserForBusinessUnit(
-                    Short.parseShort(businessUnitId))
-                .map(BusinessUnitUser::getBusinessUnitUserId)
-                .filter(id -> !id.isBlank())
-                .orElse(userState.getUserName());
+        if (userState.hasBusinessUnitUserWithPermission(buId, FinesPermission.AMEND_PAYMENT_TERMS)) {
             String postedByName = userState.getUserName();
 
             return defendantAccountPaymentTermsServiceProxy.addPaymentCardRequest(
                 defendantAccountId,
                 businessUnitId,
-                derivedBusinessUnitUserId,
+                businessUnitUserId,
                 postedByName,
                 ifMatch
             );
         } else {
-            throw new PermissionNotAllowedException(FinesPermission.AMEND_PAYMENT_TERMS);
+            throw new PermissionNotAllowedException(buId, FinesPermission.AMEND_PAYMENT_TERMS);
         }
     }
 
@@ -110,9 +103,6 @@ public class DefendantAccountPaymentTermsService {
         return userState.getBusinessUnitUserForBusinessUnit(businessUnitId)
             .map(BusinessUnitUser::getBusinessUnitUserId)
             .filter(id -> !id.isBlank())
-            .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.UNAUTHORIZED,
-                "User does not have a business unit user for business unit: " + businessUnitId
-            ));
+            .orElseThrow(() -> new BusinessUnitUserNotFoundException(businessUnitId));
     }
 }
