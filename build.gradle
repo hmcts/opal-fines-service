@@ -805,7 +805,7 @@ repositories {
 
 ext['snakeyaml.version'] = '2.0'
 ext['tomcat.version'] = '10.1.42'
-ext['postgresql.version'] = '42.7.11'
+ext['postgresql.version'] = '42.7.13'
 
 
 dependencies {
