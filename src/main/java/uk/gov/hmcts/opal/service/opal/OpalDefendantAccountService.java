@@ -48,6 +48,7 @@ import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.Checks;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.DefendantAccountSummaryDtoBuilder;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.WarnError;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -90,15 +91,18 @@ import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.search.SearchConsolidatedEntity;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
+import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementCourtDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
+import uk.gov.hmcts.opal.mapper.ConsolidatedAccountMapper;
 import uk.gov.hmcts.opal.mapper.DefendantAccountHeaderSummaryMapper;
 import uk.gov.hmcts.opal.mapper.common.EnforcerDefendantAccountMapper;
 import uk.gov.hmcts.opal.mapper.request.PaymentTermsMapper;
 import uk.gov.hmcts.opal.repository.AliasRepository;
+import uk.gov.hmcts.opal.repository.ConsolidatedAccountRepository;
 import uk.gov.hmcts.opal.repository.CourtLiteRepository;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
@@ -133,6 +137,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private final DefendantAccountHeaderViewRepository repository;
 
     private final DefendantAccountRepository defendantAccountRepository;
+
+    private final ConsolidatedAccountRepository consolidatedAccountRepository;
 
     private final SearchDefendantBasicRepository searchDefendantBasicRepository;
     private final SearchDefendantConsolidatedRepository searchConsolidatedRepository;
@@ -183,6 +189,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private final DefendantAccountHistoryService defendantAccountHistoryService;
 
     // Mappers
+    private final ConsolidatedAccountMapper consolidatedAccountMapper;
     private final DefendantAccountHeaderSummaryMapper defendantAccountHeaderSummaryMapper;
     private final EnforcerDefendantAccountMapper enforcerDefendantAccountMapper;
     private final PaymentTermsMapper paymentTermsMapper;
@@ -214,6 +221,21 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 + defendantAccountId));
 
         return defendantAccountHeaderSummaryMapper.toDto(entity);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public GetDefendantAccountConsolidatedAccountsResult getConsolidatedAccounts(Long defendantAccountId) {
+        log.debug(":getConsolidatedAccounts: Opal mode - ID: {}", defendantAccountId);
+
+        DefendantAccountEntity masterAccount = defendantAccountRepository.findById(defendantAccountId)
+            .orElseThrow(() -> new DefendantAccountNotFoundException(defendantAccountId));
+
+        return GetDefendantAccountConsolidatedAccountsResult.builder()
+            .payload(consolidatedAccountMapper.toResponse(
+                consolidatedAccountRepository.findByMasterAccountIdOrderByChildAccountIdAsc(defendantAccountId)))
+            .version(masterAccount.getVersion())
+            .build();
     }
 
     @Override
