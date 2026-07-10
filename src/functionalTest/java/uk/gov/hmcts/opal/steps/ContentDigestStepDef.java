@@ -1,5 +1,12 @@
 package uk.gov.hmcts.opal.steps;
 
+import static net.serenitybdd.rest.SerenityRest.then;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static uk.gov.hmcts.opal.utils.ContentDigestUtils.contentDigestHeaderForPostBody;
+import static uk.gov.hmcts.opal.utils.ContentDigestUtils.invalidContentDigestHeader;
+import static uk.gov.hmcts.opal.utils.ContentDigestUtils.malformedContentDigestHeader;
+
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -8,16 +15,12 @@ import net.serenitybdd.rest.SerenityRest;
 
 import java.util.Map;
 
-import static net.serenitybdd.rest.SerenityRest.then;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static uk.gov.hmcts.opal.utils.ContentDigestUtils.contentDigestHeaderForEmptyBody;
-import static uk.gov.hmcts.opal.utils.ContentDigestUtils.invalidContentDigestHeader;
-import static uk.gov.hmcts.opal.utils.ContentDigestUtils.malformedContentDigestHeader;
-
 public class ContentDigestStepDef extends BaseStepDef {
 
+    private static final String APPLICATION_JSON = "application/json";
     private static final String CONTENT_DIGEST = "Content-Digest";
+    private static final String POST_BODY = "{}";
+    private static final String POST_ENDPOINT = "/business-units/search";
 
     @When("I make a content digest request without a Content-Digest header")
     public void getRootWithoutContentDigestHeader() {
@@ -26,17 +29,17 @@ public class ContentDigestStepDef extends BaseStepDef {
 
     @When("I make a content digest request with a valid Content-Digest header")
     public void getRootWithValidContentDigestHeader() {
-        getRoot(Map.of("Accept", "*/*", CONTENT_DIGEST, contentDigestHeaderForEmptyBody()));
+        postWithBody(Map.of("Accept", "*/*", CONTENT_DIGEST, contentDigestHeaderForPostBody()));
     }
 
     @When("I make a content digest request with an invalid Content-Digest header")
     public void getRootWithInvalidContentDigestHeader() {
-        getRoot(Map.of("Accept", "*/*", CONTENT_DIGEST, invalidContentDigestHeader()));
+        postWithBody(Map.of("Accept", "*/*", CONTENT_DIGEST, invalidContentDigestHeader()));
     }
 
     @When("I make a content digest request with a malformed Content-Digest header")
     public void getRootWithMalformedContentDigestHeader() {
-        getRoot(Map.of("Accept", "*/*", CONTENT_DIGEST, malformedContentDigestHeader()));
+        postWithBody(Map.of("Accept", "*/*", CONTENT_DIGEST, malformedContentDigestHeader()));
     }
 
     @Then("The content digest response returns {int}")
@@ -66,4 +69,11 @@ public class ContentDigestStepDef extends BaseStepDef {
         request.when().get(getTestUrl() + "/");
     }
 
+    private static void postWithBody(Map<String, String> headers) {
+        RequestSpecification request = authorisedJsonRequestForCurrentUser()
+            .body(POST_BODY);
+        headers.forEach(request::header);
+        request.contentType(APPLICATION_JSON);
+        request.when().post(getTestUrl() + POST_ENDPOINT);
+    }
 }

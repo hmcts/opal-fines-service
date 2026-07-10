@@ -193,9 +193,7 @@ components:
           description: JSON records. DB Mapping - interface_files.records
         business_unit_id:
           type: integer
-          format: int32
-          minimum: 0
-          maximum: 32767
+          format: int16
           description: DB Mapping - interface_jobs.business_unit_id
         interface_name:
           type: string

@@ -40,16 +40,13 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 })
 @Sql(
     scripts = "classpath:db/deleteData/delete_from_consolidated_accounts.sql",
-    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
-)
+    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(
     scripts = "classpath:db/insertData/insert_into_consolidated_accounts.sql",
-    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
-)
+    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(
     scripts = "classpath:db/deleteData/delete_from_consolidated_accounts.sql",
-    executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD
-)
+    executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 @DisplayName("Defendant Account Consolidated Accounts Controller Integration Tests")
 class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
 
@@ -111,8 +108,7 @@ class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOp
                    "reference"),
             child.properties().stream()
                 .map(Map.Entry::getKey)
-                .collect(Collectors.toSet())
-        );
+                .collect(Collectors.toSet()));
     }
 
     @Test
@@ -229,11 +225,12 @@ class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOp
             .andExpect(jsonPath("$[0].account_id").value(233301))
             .andExpect(jsonPath("$[1].account_id").value(233400))
             .andExpect(jsonPath("$[20].account_id").value(233419))
-            .andExpect(jsonPath("$[*].account_id", containsInAnyOrder(
-                233301,
-                233400, 233401, 233402, 233403, 233404, 233405, 233406, 233407, 233408, 233409,
-                233410, 233411, 233412, 233413, 233414, 233415, 233416, 233417, 233418, 233419
-            )))
+            .andExpect(jsonPath(
+                "$[*].account_id",
+                containsInAnyOrder(
+                    233301,
+                    233400, 233401, 233402, 233403, 233404, 233405, 233406, 233407, 233408, 233409,
+                    233410, 233411, 233412, 233413, 233414, 233415, 233416, 233417, 233418, 233419)))
             .andExpect(jsonPath("$[?(@.account_id == 233419)]", hasSize(1)));
     }
 
