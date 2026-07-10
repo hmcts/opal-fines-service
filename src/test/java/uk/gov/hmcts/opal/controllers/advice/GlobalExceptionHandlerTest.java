@@ -7,6 +7,7 @@ import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
 import feign.Response;
+import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
 import java.net.URI;
 import java.util.Collection;
@@ -102,6 +103,19 @@ class GlobalExceptionHandlerTest {
         assertEquals("Defendant Account Not Found", response.getBody().getTitle());
         assertEquals("Defendant account not found with id: 999999999", response.getBody().getDetail());
         assertEquals(false, response.getBody().getProperties().get("retriable"));
+    }
+
+    @Test
+    void handleEntityNotFound_returnsSanitizedNotFoundProblem() {
+        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleEntityNotFoundException(
+            new EntityNotFoundException("Defendant Account not found with id: 999999999")
+        );
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Entity Not Found", response.getBody().getTitle());
+        assertEquals("The requested entity could not be found", response.getBody().getDetail());
+        assertEquals(false, response.getBody().getProperties().get("retriable"));
+        assertNull(response.getBody().getProperties().get("reason"));
     }
 
     @Test

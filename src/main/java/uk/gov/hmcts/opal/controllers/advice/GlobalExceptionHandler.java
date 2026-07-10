@@ -3,8 +3,11 @@ package uk.gov.hmcts.opal.controllers.advice;
 import static uk.gov.hmcts.opal.util.VersionUtils.createETag;
 
 import feign.FeignException;
+import jakarta.persistence.EntityNotFoundException;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
@@ -30,6 +33,7 @@ import uk.gov.hmcts.opal.util.Versioned;
 
 @Slf4j(topic = "opal.GlobalExceptionHandler")
 @ControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(RequiredPermissionException.class)
@@ -88,6 +92,20 @@ public class GlobalExceptionHandler {
         );
 
         return responseWithProblemDetail(HttpStatus.UNPROCESSABLE_CONTENT, problemDetail);
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleEntityNotFoundException(EntityNotFoundException ex) {
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.NOT_FOUND,
+            "Entity Not Found",
+            "The requested entity could not be found",
+            "entity-not-found",
+            false,
+            ex
+        );
+
+        return responseWithProblemDetail(HttpStatus.NOT_FOUND, problemDetail);
     }
 
     @ExceptionHandler(DefendantAccountNotFoundException.class)
