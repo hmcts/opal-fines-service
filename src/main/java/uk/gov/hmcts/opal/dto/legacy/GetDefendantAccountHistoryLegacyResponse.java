@@ -32,9 +32,9 @@ public class GetDefendantAccountHistoryLegacyResponse implements ToXmlString {
     private Long version;
 
     @JsonProperty("history_items")
-    @XmlElementWrapper(name = "history_items")
-    @XmlElement(name = "history_items_element")
-    private List<LegacyDefendantAccountHistoryItem> historyItems;
+    @XmlElementWrapper(name = "historyItems")
+    @XmlElement(name = "historyItems_element")
+        private List<LegacyDefendantAccountHistoryItem> historyItems;
 
     @Data
     @Builder
@@ -44,7 +44,7 @@ public class GetDefendantAccountHistoryLegacyResponse implements ToXmlString {
     public static class LegacyDefendantAccountHistoryItem {
 
         @JsonProperty("posted_details")
-        @XmlElement(name = "posted_details")
+        @XmlElement(name = "postedDetails")
         private LegacyPostedDetails postedDetails;
 
         @JsonProperty("type")
@@ -68,27 +68,27 @@ public class GetDefendantAccountHistoryLegacyResponse implements ToXmlString {
     public static class LegacyDefendantAccountHistoryDetails {
 
         @JsonProperty("attribute_name")
-        @XmlElement(name = "attribute_name")
+        @XmlElement(name = "attributeName")
         private String attributeName;
 
         @JsonProperty("old_value")
-        @XmlElement(name = "old_value")
+        @XmlElement(name = "oldValue")
         private String oldValue;
 
         @JsonProperty("new_value")
-        @XmlElement(name = "new_value")
+        @XmlElement(name = "newValue")
         private String newValue;
 
         @JsonProperty("enforcement_action")
-        @XmlElement(name = "enforcement_action")
+        @XmlElement(name = "enforcementAction")
         private String enforcementAction;
 
         @JsonProperty("days_in_default")
-        @XmlElement(name = "days_in_default")
+        @XmlElement(name = "daysInDefault")
         private Integer daysInDefault;
 
         @JsonProperty("warrant_number")
-        @XmlElement(name = "warrant_number")
+        @XmlElement(name = "warrantNumber")
         private String warrantNumber;
 
         @JsonProperty("hearing_date")
@@ -101,7 +101,7 @@ public class GetDefendantAccountHistoryLegacyResponse implements ToXmlString {
         private CourtReference hearingCourt;
 
         @JsonProperty("case_number")
-        @XmlElement(name = "case_number")
+        @XmlElement(name = "caseNumber")
         private String caseNumber;
 
         @JsonProperty("reason")
@@ -114,23 +114,23 @@ public class GetDefendantAccountHistoryLegacyResponse implements ToXmlString {
         private LocalDate earliestDateOfRelease;
 
         @JsonProperty("note_text")
-        @XmlElement(name = "note_text")
+        @XmlElement(name = "noteText")
         private String noteText;
 
         @JsonProperty("transaction_type")
-        @XmlElement(name = "transaction_type")
+        @XmlElement(name = "transactionType")
         private LegacyHistoryTypeReference transactionType;
 
         @JsonProperty("payment_method")
-        @XmlElement(name = "payment_method")
+        @XmlElement(name = "paymentMethod")
         private LegacyHistoryTypeReference paymentMethod;
 
         @JsonProperty("payment_reference")
-        @XmlElement(name = "payment_reference")
+        @XmlElement(name = "paymentReference")
         private String paymentReference;
 
         @JsonProperty("additional_information")
-        @XmlElement(name = "additional_information")
+        @XmlElement(name = "additionalInformation")
         private String additionalInformation;
 
         @JsonProperty("write_off")
@@ -142,24 +142,24 @@ public class GetDefendantAccountHistoryLegacyResponse implements ToXmlString {
         private LegacyHistoryTypeReference status;
 
         @JsonProperty("status_date")
-        @XmlElement(name = "status_date")
+        @XmlElement(name = "statusDate")
         @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
         private LocalDateTime statusDate;
 
         @JsonProperty("associated_record_type")
-        @XmlElement(name = "associated_record_type")
+        @XmlElement(name = "associatedRecordType")
         private String associatedRecordType;
 
         @JsonProperty("associated_record_id")
-        @XmlElement(name = "associated_record_id")
+        @XmlElement(name = "associatedRecordId")
         private String associatedRecordId;
 
         @JsonProperty("account_number")
-        @XmlElement(name = "account_number")
+        @XmlElement(name = "accountNumber")
         private String accountNumber;
 
         @JsonProperty("sending_court")
-        @XmlElement(name = "sending_court")
+        @XmlElement(name = "sendingCourt")
         private String sendingCourt;
 
         @JsonProperty("imposition_date")
@@ -214,19 +214,19 @@ public class GetDefendantAccountHistoryLegacyResponse implements ToXmlString {
     public static class LegacyHistoryTypeReference {
 
         @JsonProperty("transaction_type")
-        @XmlElement(name = "transaction_type")
+        @XmlElement(name = "transactionType")
         private String transactionType;
 
         @JsonProperty("transaction_type_display_name")
-        @XmlElement(name = "transaction_type_display_name")
+        @XmlElement(name = "transactionTypeDisplayName")
         private String transactionTypeDisplayName;
 
         @JsonProperty("payment_method")
-        @XmlElement(name = "payment_method")
+        @XmlElement(name = "paymentMethod")
         private String paymentMethod;
 
         @JsonProperty("payment_method_display_name")
-        @XmlElement(name = "payment_method_display_name")
+        @XmlElement(name = "paymentMethodDisplayName")
         private String paymentMethodDisplayName;
 
         @JsonProperty("write_off_type")
@@ -238,11 +238,11 @@ public class GetDefendantAccountHistoryLegacyResponse implements ToXmlString {
         private String writeOffTypeDisplayName;
 
         @JsonProperty("defendant_transaction_status")
-        @XmlElement(name = "defendant_transaction_status")
+        @XmlElement(name = "defendantTransactionStatus")
         private String defendantTransactionStatus;
 
         @JsonProperty("defendant_transaction_status_display_name")
-        @XmlElement(name = "defendant_transaction_status_display_name")
+        @XmlElement(name = "defendantTransactionStatusDisplayName")
         private String defendantTransactionStatusDisplayName;
     }
 }
