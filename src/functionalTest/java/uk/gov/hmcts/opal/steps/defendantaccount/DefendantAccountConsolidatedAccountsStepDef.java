@@ -170,7 +170,6 @@ public class DefendantAccountConsolidatedAccountsStepDef extends BaseStepDef {
     private void assertContainsIgnoringCase(String actual, String expected, String fieldName) {
         assertTrue(
             actual.toLowerCase(Locale.ROOT).contains(expected.toLowerCase(Locale.ROOT)),
-            fieldName + " should contain '" + expected + "' but was '" + actual + "'"
-        );
+            fieldName + " should contain '" + expected + "' but was '" + actual + "'");
     }
 }

@@ -7,6 +7,9 @@ bin/main/application.yaml
 smoke-test-report
 functional-test-report
 functional-output
+functional-output-demo
+functional-output-r1a-only-demo
+functional-output-r1a-off-demo
 integration-output
 
 target
