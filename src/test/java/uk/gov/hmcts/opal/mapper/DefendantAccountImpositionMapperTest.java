@@ -88,7 +88,7 @@ class DefendantAccountImpositionMapperTest {
         assertEquals("IG5510", mapped.getOffence().getCode());
         assertEquals("Imposition Graph Offence", mapped.getOffence().getTitle());
         assertEquals(551001L, mapped.getImposedBy().getCourtId());
-        assertEquals(101, mapped.getImposedBy().getCourtCode());
+        assertEquals((short) 101, mapped.getImposedBy().getCourtCode());
         assertEquals("Graph Test Court", mapped.getImposedBy().getCourtName());
     }
 

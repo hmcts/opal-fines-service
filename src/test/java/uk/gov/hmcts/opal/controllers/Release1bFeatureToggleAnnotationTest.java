@@ -4,15 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_ENABLED_PROPERTY;
 
-import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
-import uk.gov.hmcts.opal.controllers.print.PrintRequestController;
-
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
+import uk.gov.hmcts.opal.controllers.print.PrintRequestController;
 
 class Release1bFeatureToggleAnnotationTest {
 
@@ -49,33 +48,35 @@ class Release1bFeatureToggleAnnotationTest {
             .collect(Collectors.toSet());
 
         Set<String> expectedAnnotatedMethods = Set.of(
-            "DefendantAccountApiController#getEnforcementStatus",
-            "DefendantAccountApiController#getImpositions",
-            "DefendantAccountApiController#postDefendantAccountSearch",
-            "DefendantAccountApiController#updateDefendantAccount",
-            "DefendantAccountController#addDefendantAccountParty",
-            "DefendantAccountController#addEnforcement",
-            "DefendantAccountController#addPaymentCardRequest",
             "DefendantAccountController#addPaymentTerms",
-            "DefendantAccountController#defendantAccountPaymentTerms",
-            "DefendantAccountController#getAtAGlance",
+            "DefendantAccountApiController#getDefendantAccountHistory",
+            "DefendantAccountController#replaceDefendantAccountParty",
+            "DefendantAccountController#removeEnforcementHold",
+            "DefendantAccountApiController#updateDefendantAccount",
+            "DefendantAccountApiController#getConsolidatedAccounts",
+            "MinorCreditorController#getMinorCreditorAccountHeaderSummary",
+            "ResultController#getResultById",
+            "DefendantAccountApiController#postDefendantAccountSearch",
+            "DefendantAccountController#addEnforcement",
+            "DefendantAccountController#removeDefendantAccountParty",
+            "MajorCreditorApiController#getCentralFundByBusinessUnit",
+            "DefendantAccountApiController#getEnforcementStatus",
+            "DefendantAccountController#addPaymentCardRequest",
+            "MinorCreditorController#getMinorCreditorsAtAGlance",
             "DefendantAccountController#getDefendantAccountFixedPenalty",
             "DefendantAccountController#getDefendantAccountParty",
-            "DefendantAccountController#getHeaderSummary",
-            "DefendantAccountController#removeDefendantAccountParty",
-            "DefendantAccountController#removeEnforcementHold",
-            "DefendantAccountController#replaceDefendantAccountParty",
-            "DefendantAccountApiController#getDefendantAccountHistory",
-            "MajorCreditorApiController#getCentralFundByBusinessUnit",
-            "MajorCreditorApiController#getMajorCreditorAccountAtAGlance",
-            "MajorCreditorApiController#getMajorCreditorAccountHeaderSummary",
-            "MinorCreditorApiController#getMinorCreditorAccount",
-            "MinorCreditorApiController#patchMinorCreditorAccount",
-            "MinorCreditorController#getMinorCreditorAccountHeaderSummary",
-            "MinorCreditorController#getMinorCreditorsAtAGlance",
-            "MinorCreditorController#postMinorCreditorsSearch",
+            "DefendantAccountController#addDefendantAccountParty",
             "NotesController#addNote",
-            "ResultController#getResultById"
+            "MinorCreditorApiController#getMinorCreditorAccount",
+            "DefendantAccountController#getAtAGlance",
+            "MajorCreditorApiController#getMajorCreditorAccountHeaderSummary",
+            "MinorCreditorApiController#getMinorCreditorHistory",
+            "DefendantAccountApiController#getImpositions",
+            "MinorCreditorApiController#patchMinorCreditorAccount",
+            "MinorCreditorController#postMinorCreditorsSearch",
+            "DefendantAccountApiController#getDefendantAccountHeaderSummary",
+            "MajorCreditorApiController#getMajorCreditorAccountAtAGlance",
+            "DefendantAccountController#defendantAccountPaymentTerms"
         );
 
         assertEquals(expectedAnnotatedMethods, actualAnnotatedMethods);

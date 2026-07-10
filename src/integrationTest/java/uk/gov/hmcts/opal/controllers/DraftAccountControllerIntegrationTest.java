@@ -54,7 +54,9 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
     @MethodSource("endpointsWithInvalidBodiesProvider")
     @JiraStory("PO-2719")
     @JiraEpic("PO-2219")
-    @JiraTestKey("PO-6331")
+    @JiraTestKey(value = "PO-6331", name = "Invalid payload returns 400 [1]")
+    @JiraTestKey(value = "PO-6332", name = "Invalid payload returns 400 [2]")
+    @JiraTestKey(value = "PO-6333", name = "Invalid payload returns 400 [3]")
     void methodsShouldReturn400_whenRequestPayloadIsInvalid(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
 
@@ -79,7 +81,10 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
     @MethodSource("testCasesRequiringAuthorizationProvider")
     @JiraStory("PO-2719")
     @JiraEpic("PO-2219")
-    @JiraTestKey("PO-5838")
+    @JiraTestKey(value = "PO-5838", name = "Unauthorised request returns 403 [4]")
+    @JiraTestKey(value = "PO-8399", name = "Unauthorised request returns 403 [1]")
+    @JiraTestKey(value = "PO-8400", name = "Unauthorised request returns 403 [2]")
+    @JiraTestKey(value = "PO-8401", name = "Unauthorised request returns 403 [3]")
     void methodsShouldReturn403_whenUserLacksPermission(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
 
@@ -113,7 +118,9 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
     @MethodSource("testCasesForResourceNotFoundProvider")
     @JiraStory("PO-2719")
     @JiraEpic("PO-2219")
-    @JiraTestKey("PO-5839")
+    @JiraTestKey(value = "PO-5839", name = "Missing draft account returns 404 [3]")
+    @JiraTestKey(value = "PO-8402", name = "Missing draft account returns 404 [1]")
+    @JiraTestKey(value = "PO-8403", name = "Missing draft account returns 404 [2]")
     void methodsShouldReturn404_whenResourceNotFound(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
 
@@ -139,7 +146,10 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
     @MethodSource("testCasesWithValidBodiesProvider")
     @JiraStory("PO-2719")
     @JiraEpic("PO-2219")
-    @JiraTestKey("PO-5834")
+    @JiraTestKey(value = "PO-5834", name = "Unsupported accept header returns 406 [4]")
+    @JiraTestKey(value = "PO-8404", name = "Unsupported accept header returns 406 [1]")
+    @JiraTestKey(value = "PO-8405", name = "Unsupported accept header returns 406 [2]")
+    @JiraTestKey(value = "PO-8406", name = "Unsupported accept header returns 406 [3]")
     void methodsShouldReturn406_whenAcceptHeaderIsNotSupported(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
 
@@ -174,7 +184,7 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
                 "originator_name": "Police Force",
                 "originator_id": 12345,
                 "originator_type": "NEW",
-                "enforcement_court_id": 101,
+                "enforcement_court_id": 260000000048,
                 "collection_order_made": true,
                 "collection_order_made_today": false,
                 "payment_card_request": true,
@@ -210,14 +220,14 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
                 "offences": [
                   {
                     "date_of_sentence": "2023-11-15",
-                    "imposing_court_id": 202,
-                    "offence_id": 1234,
+                    "imposing_court_id": 260000000048,
+                    "offence_id": 35014,
                     "impositions": [
                       {
-                        "result_id": "1",
+                        "result_id": "FO",
                         "amount_imposed": 500.00,
                         "amount_paid": 200.00,
-                        "major_creditor_id": 999
+                        "major_creditor_id": null
                       }
                     ]
                   }

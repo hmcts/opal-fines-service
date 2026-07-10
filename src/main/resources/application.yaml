@@ -107,8 +107,6 @@ azure:
   application-insights:
     instrumentation-key: ${opal.AppInsightsInstrumentationKey:00000000-0000-0000-0000-000000000000}
 
-app-mode: ${DEFAULT_APP_MODE:opal}
-
 legacy-gateway:
   url: ${OPAL_LEGACY_GATEWAY_URL:http://localhost:4553/opal}
   username: ${OPAL_LEGACY_GATEWAY_USERNAME:username}
@@ -122,10 +120,10 @@ launchdarkly:
   file:
     - ${LAUNCH_DARKLY_FILE:bin/utils/launchdarkly-flags.json}
   default-flag-values:
-    release-1a: ${RELEASE_1A_ENABLED:true}
+    release-1a: ${RELEASE_1A_ENABLED:false}
     release-1b: ${RELEASE_1B_ENABLED:false}
     release-1c: ${RELEASE_1C_ENABLED:false}
-    release-1c-enforcement-operational-reporting: ${RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_ENABLED:true}
+    release-1c-enforcement-operational-reporting: ${RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_ENABLED:false}
 
 opal:
   redis:

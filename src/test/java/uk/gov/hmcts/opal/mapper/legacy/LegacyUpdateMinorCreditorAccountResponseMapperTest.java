@@ -42,7 +42,7 @@ class LegacyUpdateMinorCreditorAccountResponseMapperTest {
                     .build())
                 .individualDetails(IndividualDetails.builder()
                     .title("Ms")
-                    .firstNames("Creditor")
+                    .forenames("Creditor")
                     .surname("Updated")
                     .dateOfBirth(LocalDate.of(2000, 2, 1))
                     .age("24")

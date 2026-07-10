@@ -6,40 +6,53 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.Period;
-import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Mappings;
+import org.mapstruct.ReportingPolicy;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
-import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
-import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
-import uk.gov.hmcts.opal.dto.common.IndividualDetails;
-import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
-import uk.gov.hmcts.opal.dto.common.PartyDetails;
-import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountType;
+import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
+import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.AccountTypeEnum;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.DebtorTypeEnum;
+import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.PaymentStateSummaryCommon;
 
-@Mapper(componentModel = "spring", builder = @Builder(disableBuilder = true))
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface DefendantAccountHeaderSummaryMapper {
 
-    @Mapping(target = "debtorType", source = ".")
-    @Mapping(target = "isYouth", source = "birthDate")
-    @Mapping(target = "parentGuardianPartyId", source = "parentGuardianAccountPartyId")
-    @Mapping(target = "accountStatusReference", source = "accountStatus")
-    @Mapping(target = "businessUnitSummary", source = ".")
-    @Mapping(target = "paymentStateSummary", source = ".")
-    @Mapping(target = "partyDetails", source = ".")
+    @Mappings({
+        @Mapping(target = "response.defendantAccountId"),
+        @Mapping(target = "response.debtorType", source = "."),
+        @Mapping(target = "response.isYouth", source = "birthDate"),
+        @Mapping(target = "response.parentGuardianPartyId", source = "parentGuardianAccountPartyId"),
+        @Mapping(target = "response.accountStatusReference", source = "accountStatus"),
+        @Mapping(target = "response.businessUnitSummary", source = "."),
+        @Mapping(target = "response.paymentStateSummary", source = "."),
+        @Mapping(target = "response.partyDetails", source = "."),
+        @Mapping(target = "response.accountNumber", source = "entity.accountNumber"),
+        @Mapping(target = "response.accountType", source = "entity.accountType"),
+        @Mapping(target = "response.defendantAccountPartyId", source = "entity.defendantAccountPartyId"),
+        @Mapping(target = "response.fixedPenaltyTicketNumber", source = "entity.fixedPenaltyTicketNumber"),
+        @Mapping(target = "response.prosecutorCaseReference", source = "entity.prosecutorCaseReference"),
+        @Mapping(target = "response.hasConsolidatedAccounts"),
+    })
     DefendantAccountHeaderSummary toDto(DefendantAccountHeaderViewEntity entity);
 
     @Mapping(target = "welshSpeaking", constant = "N")
-    BusinessUnitSummary toBusinessUnitSummary(DefendantAccountHeaderViewEntity entity);
+    BusinessUnitSummaryCommon toBusinessUnitSummary(DefendantAccountHeaderViewEntity entity);
 
     @Mapping(target = "imposedAmount", source = "imposed")
     @Mapping(target = "arrearsAmount", source = "arrears")
     @Mapping(target = "paidAmount", source = "paid")
     @Mapping(target = "accountBalance", source = ".")
-    PaymentStateSummary toPaymentStateSummary(DefendantAccountHeaderViewEntity entity);
+    PaymentStateSummaryCommon toPaymentStateSummary(DefendantAccountHeaderViewEntity entity);
 
     default BigDecimal toBalance(DefendantAccountHeaderViewEntity entity) {
         if (entity.getImposed() == null) {
@@ -52,55 +65,57 @@ public interface DefendantAccountHeaderSummaryMapper {
         return entity.getImposed().add(paidAmount);
     }
 
-    default AccountStatusReference toAccountStatusReference(DefendantAccountStatus status) {
+    default AccountStatusReferenceCommon toAccountStatusReference(DefendantAccountStatus status) {
         if (status == null) {
             return null;
         }
-        return AccountStatusReference.builder()
-            .accountStatusCode(status.getLabel())
+
+        return AccountStatusReferenceCommon.builder()
+            .accountStatusCode(AccountStatusCodeEnum.fromValue(status.getLabel()))
             .accountStatusDisplayName(status.getDisplayName())
             .build();
     }
 
-    default PartyDetails toPartyDetails(DefendantAccountHeaderViewEntity entity) {
+    default PartyDetailsCommon toPartyDetails(DefendantAccountHeaderViewEntity entity) {
         boolean isOrganisation = Boolean.TRUE.equals(entity.getOrganisation());
 
-        return PartyDetails.builder()
+        return PartyDetailsCommon.builder()
             .partyId(entity.getPartyId() == null ? null : String.valueOf(entity.getPartyId()))
             .organisationFlag(entity.getOrganisation())
             .organisationDetails(
                 isOrganisation
-                    ? OrganisationDetails.builder()
-                      .organisationName(entity.getOrganisationName())
-                      .organisationAliases(null)
-                      .build()
+                    ? OrganisationDetailsCommon.builder()
+                    .organisationName(entity.getOrganisationName())
+                    .organisationAliases(null)
+                    .build()
                     : null
             )
             .individualDetails(
                 !isOrganisation
-                    ? IndividualDetails.builder()
-                      .title(entity.getTitle())
-                      .forenames(entity.getFirstnames())
-                      .surname(entity.getSurname())
-                      .dateOfBirth(entity.getBirthDate() != null ? entity.getBirthDate().toString() : null)
-                      .age(entity.getBirthDate() != null ? String.valueOf(calculateAge(entity.getBirthDate())) : null)
-                      .nationalInsuranceNumber(null)
-                      .individualAliases(null)
-                      .build()
+                    ? IndividualDetailsCommon.builder()
+                    .title(entity.getTitle())
+                    .forenames(entity.getFirstnames())
+                    .surname(entity.getSurname())
+                    .dateOfBirth(entity.getBirthDate() != null ? entity.getBirthDate().toString() : null)
+                    .age(entity.getBirthDate() != null ? String.valueOf(calculateAge(entity.getBirthDate())) : null)
+                    .nationalInsuranceNumber(null)
+                    .individualAliases(null)
+                    .build()
                     : null
             )
             .build();
     }
 
-    default String resolveDebtorType(DefendantAccountHeaderViewEntity entity) {
+    default DebtorTypeEnum resolveDebtorType(DefendantAccountHeaderViewEntity entity) {
         if (entity.getDebtorType() != null) {
-            return entity.getDebtorType();
+            return DebtorTypeEnum.fromValue(entity.getDebtorType());
         }
-        return Boolean.TRUE.equals(entity.getHasParentGuardian()) ? "Parent/Guardian" : "Defendant";
+        return Boolean.TRUE.equals(entity.getHasParentGuardian()) ? DebtorTypeEnum.PARENT_GUARDIAN
+            : DebtorTypeEnum.DEFENDANT;
     }
 
-    default String toAccountTypeLabel(DefendantAccountType accountType) {
-        return accountType == null ? null : accountType.getLabel();
+    default AccountTypeEnum toAccountTypeLabel(DefendantAccountType accountType) {
+        return accountType == null ? null : AccountTypeEnum.fromValue(accountType.getLabel());
     }
 
     default BigDecimal toZeroIfNull(BigDecimal value) {

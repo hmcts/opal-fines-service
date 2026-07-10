@@ -88,5 +88,6 @@ public abstract class AbstractIntegrationTest {
         registry.add("spring.datasource.password", POSTGRES_CONTAINER::getPassword);
         registry.add("spring.data.redis.url", REDIS_CONTAINER::getRedisURI);
         registry.add("legacy-gateway.url", TestContainerConfig::legacyGatewayUrl);
+        registry.add("opal.report.storage.connection-string", TestContainerConfig::azuriteConnectionString);
     }
 }

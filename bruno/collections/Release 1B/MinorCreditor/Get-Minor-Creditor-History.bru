@@ -1,0 +1,26 @@
+meta {
+  name: Get-Minor-Creditor-History
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseURL}}/minor-creditor-accounts/99000000000808/history
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{BEARER_TOKEN}}
+}
+
+params:query {
+  dateFrom: 2026-05-01
+  dateTo: 2026-05-31
+  itemTypes: financial
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

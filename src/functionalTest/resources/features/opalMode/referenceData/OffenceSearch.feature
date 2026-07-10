@@ -137,7 +137,7 @@ Feature: Offence Search
 
 
   @JIRA-TEST-KEY:PO-5780
-  Scenario: Offences can be searched by CJS code starting with J
+  Scenario: Offences can be searched by CJS code starting with JP
     When I make a request to the offence search api filtering by
       | cjs_code    | JP    |
       | title       |       |
@@ -164,7 +164,7 @@ Feature: Offence Search
     And there are 0 offences in the response
 
   @JIRA-TEST-KEY:PO-5782
-  Scenario: Offences can be searched by title
+  Scenario: Offences with no matches are returned when title does not exist
     When I make a request to the offence search api filtering by
       | cjs_code    |                       |
       | title       | in dwelling other zz  |
@@ -177,7 +177,7 @@ Feature: Offence Search
 
 
   @JIRA-TEST-KEY:PO-5783
-  Scenario: Offences can be searched by act and section
+  Scenario: Offences with no matches are returned when act and section does not exist
     When I make a request to the offence search api filtering by
       | cjs_code        |                                                                                  |
       | title           |                                                                                  |

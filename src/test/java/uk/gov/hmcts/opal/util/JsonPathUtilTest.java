@@ -38,6 +38,10 @@ class JsonPathUtilTest {
             Arguments.of(
                 (Supplier<Object>) () -> JsonPathUtil.safeReadBigDecimal(context, unknownPath),
                 null
+            ),
+            Arguments.of(
+                (Supplier<Object>) () -> JsonPathUtil.safeReadLong(context, unknownPath),
+                null
             )
         );
     }
@@ -98,6 +102,16 @@ class JsonPathUtilTest {
         BigDecimal actual = JsonPathUtil.safeReadBigDecimal(context, "$.bigDecimalField");
 
         assertEquals(BigDecimal.valueOf(10.5), actual);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{\"longField\": 10}", "{\"longField\": \"10\"}"})
+    void safeReadLong_returnsLong(String json) {
+        DocContext context = JsonPathUtil.createDocContext(json, "");
+
+        Long actual = JsonPathUtil.safeReadLong(context, "$.longField");
+
+        assertEquals(Long.valueOf(10), actual);
     }
 
     @Test

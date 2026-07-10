@@ -1,27 +1,35 @@
 package uk.gov.hmcts.opal.util;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import static org.springframework.http.MediaType.APPLICATION_PDF;
+import static org.springframework.http.MediaType.APPLICATION_XML;
+import static org.springframework.http.MediaType.parseMediaType;
+import static uk.gov.hmcts.opal.service.report.FileType.JSON;
+import static uk.gov.hmcts.opal.util.VersionUtils.createETag;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-
-import static uk.gov.hmcts.opal.util.VersionUtils.createETag;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.service.report.FileType;
 
 @SuppressWarnings("unchecked")
 public class HttpUtil {
 
     private static final String NOT_FOUND_MESSAGE =
         """
-    { "error": "Not Found", "message": "No resource found at provided URI"}""";
-
+            { "error": "Not Found", "message": "No resource found at provided URI"}""";
     private static final HttpHeaders HEADERS;
 
     static {
         HEADERS = new HttpHeaders();
         HEADERS.add("content-type", "application/json");
+    }
+
+    private HttpUtil() {
     }
 
     public static <T> ResponseEntity<List<T>> buildResponse(List<T> contents) {
@@ -58,6 +66,23 @@ public class HttpUtil {
         return Optional.ofNullable(authorization)
             .map(tokenService::extractPreferredUsername)
             .orElse(null);
+    }
+
+
+    public static ResponseEntity<Map<String, Object>> buildReportContentResponse(FileType fileType, Object content) {
+        if (fileType == JSON) {
+            return buildResponse((Map<String, Object>) content);
+        }
+
+        MediaType mediaType = switch (fileType) {
+            case PDF -> APPLICATION_PDF;
+            case XML -> APPLICATION_XML;
+            default -> parseMediaType("application/csv");
+        };
+
+        return (ResponseEntity<Map<String, Object>>) (ResponseEntity<?>) ResponseEntity.ok()
+            .contentType(mediaType)
+            .body((byte[]) content);
     }
 
 }

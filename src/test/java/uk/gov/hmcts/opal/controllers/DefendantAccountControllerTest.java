@@ -18,7 +18,6 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
-import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
@@ -53,25 +52,6 @@ class DefendantAccountControllerTest {
 
     @InjectMocks
     private DefendantAccountController defendantAccountController;
-
-    @Test
-    void testGetHeaderSummary_Success() {
-        // Arrange
-        DefendantAccountHeaderSummary mockBody = new DefendantAccountHeaderSummary();
-
-        when(defendantAccountService.getHeaderSummary(1L))
-            .thenReturn(mockBody);
-
-        // Act
-        ResponseEntity<DefendantAccountHeaderSummary> response =
-            defendantAccountController.getHeaderSummary(1L);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(mockBody, response.getBody());
-
-        verify(defendantAccountService).getHeaderSummary(1L);
-    }
 
     @Test
     void testLegacyDefendantAccountService_createGetDefendantAccountRequest() {

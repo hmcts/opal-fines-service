@@ -1,25 +1,20 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
-import uk.gov.hmcts.opal.dto.AppMode;
 
 @Service
 public class DynamicConfigService {
 
-    private static final String APP_MODE_LAUNCH_DARKLY_KEY = "app-mode";
-    private final FeatureToggleApi featureToggleApi;
-    private final String defaultAppMode;
+    private static final String IS_LEGACY_MODE_LAUNCH_DARKLY_KEY = "is-legacy-mode";
 
-    public DynamicConfigService(FeatureToggleApi featureToggleApi, @Value("${app-mode}") String defaultMode) {
-        this.defaultAppMode = defaultMode;
+    private final FeatureToggleApi featureToggleApi;
+
+    public DynamicConfigService(FeatureToggleApi featureToggleApi) {
         this.featureToggleApi = featureToggleApi;
     }
 
-    public AppMode getAppMode() {
-        return AppMode.builder()
-            .mode(featureToggleApi.getFeatureValue(APP_MODE_LAUNCH_DARKLY_KEY, defaultAppMode))
-            .build();
+    public boolean isLegacyMode() {
+        return featureToggleApi.isFeatureEnabled(IS_LEGACY_MODE_LAUNCH_DARKLY_KEY);
     }
 }

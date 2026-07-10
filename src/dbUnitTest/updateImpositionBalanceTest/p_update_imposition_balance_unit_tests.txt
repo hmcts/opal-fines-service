@@ -1,0 +1,98 @@
+Timing is on.
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:33: NOTICE:  === Cleanup data before tests ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:33: NOTICE:  Data cleanup before tests completed
+DO
+Time: 38.083 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:104: NOTICE:  === TEST 1: Valid write off updates paid_amount and preserves completed = FALSE when resultant balance is non-zero ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:104: INFO:  p_update_imposition_balance: pi_imposition_id = 999921, pi_write_off_amount = 30.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:104: INFO:  v_imposed_amount = -100.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:104: INFO:  v_paid_amount = 20.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:104: INFO:  v_completed = f
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:104: INFO:  v_outstanding_balance = -80.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:104: INFO:  v_resultant_balance = -50.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:104: NOTICE:  TEST 1 PASSED
+DO
+Time: 19.203 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:175: NOTICE:  === TEST 2: Valid write off updates paid_amount and sets completed = TRUE when resultant balance is zero ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:175: INFO:  p_update_imposition_balance: pi_imposition_id = 999922, pi_write_off_amount = 80.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:175: INFO:  v_imposed_amount = -100.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:175: INFO:  v_paid_amount = 20.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:175: INFO:  v_completed = f
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:175: INFO:  v_outstanding_balance = -80.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:175: INFO:  v_resultant_balance = 0.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:175: NOTICE:  TEST 2 PASSED
+DO
+Time: 21.984 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:246: NOTICE:  === TEST 3: ETL behaviour preserves completed = NULL when resultant balance is non-zero ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:246: INFO:  p_update_imposition_balance: pi_imposition_id = 999923, pi_write_off_amount = 30.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:246: INFO:  v_imposed_amount = -100.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:246: INFO:  v_paid_amount = 20.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:246: INFO:  v_completed = <NULL>
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:246: INFO:  v_outstanding_balance = -80.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:246: INFO:  v_resultant_balance = -50.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:246: NOTICE:  TEST 3 PASSED
+DO
+Time: 10.281 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:317: NOTICE:  === TEST 4: ETL behaviour sets completed = TRUE when resultant balance is zero ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:317: INFO:  p_update_imposition_balance: pi_imposition_id = 999924, pi_write_off_amount = 80.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:317: INFO:  v_imposed_amount = -100.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:317: INFO:  v_paid_amount = 20.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:317: INFO:  v_completed = <NULL>
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:317: INFO:  v_outstanding_balance = -80.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:317: INFO:  v_resultant_balance = 0.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:317: NOTICE:  TEST 4 PASSED
+DO
+Time: 20.890 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:339: NOTICE:  === TEST 5: Null imposition_id raises P3101 ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:339: INFO:  p_update_imposition_balance: pi_imposition_id = <NULL>, pi_write_off_amount = 10.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:339: NOTICE:  Error in p_update_imposition_balance: P3101 - Imposition ID cannot be null
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:339: NOTICE:  Expected error caught: P3101 - Imposition ID cannot be null
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:339: NOTICE:  TEST 5 PASSED
+DO
+Time: 2.791 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:361: NOTICE:  === TEST 6: Null write_off_amount raises P3102 ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:361: INFO:  p_update_imposition_balance: pi_imposition_id = 999925, pi_write_off_amount = <NULL>
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:361: NOTICE:  Error in p_update_imposition_balance: P3102 - Write off amount cannot be null
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:361: NOTICE:  Expected error caught: P3102 - Write off amount cannot be null
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:361: NOTICE:  TEST 6 PASSED
+DO
+Time: 0.707 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:383: NOTICE:  === TEST 7: Non-positive write_off_amount raises P3103 ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:383: INFO:  p_update_imposition_balance: pi_imposition_id = 999926, pi_write_off_amount = 0.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:383: NOTICE:  Error in p_update_imposition_balance: P3103 - Write off amount must be greater than zero
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:383: NOTICE:  Expected error caught: P3103 - Write off amount must be greater than zero
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:383: NOTICE:  TEST 7 PASSED
+DO
+Time: 9.195 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:405: NOTICE:  === TEST 8: Unknown imposition_id raises P3104 ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:405: INFO:  p_update_imposition_balance: pi_imposition_id = 999927, pi_write_off_amount = 10.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:405: NOTICE:  Error in p_update_imposition_balance: P3104 - Imposition 999927 not found
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:405: NOTICE:  Expected error caught: P3104 - Imposition 999927 not found
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:405: NOTICE:  TEST 8 PASSED
+DO
+Time: 1.028 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:483: NOTICE:  === TEST 9: Completed imposition raises P3105 ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:483: INFO:  p_update_imposition_balance: pi_imposition_id = 999929, pi_write_off_amount = 10.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:483: INFO:  v_imposed_amount = -100.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:483: INFO:  v_paid_amount = 100.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:483: INFO:  v_completed = t
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:483: NOTICE:  Error in p_update_imposition_balance: P3105 - Imposition 999929 is already completed
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:483: NOTICE:  Expected error caught: P3105 - Imposition 999929 is already completed
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:483: NOTICE:  TEST 9 PASSED
+DO
+Time: 24.007 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:561: NOTICE:  === TEST 10: write_off_amount exceeding outstanding balance raises P3106 and does not update the row ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:561: INFO:  p_update_imposition_balance: pi_imposition_id = 999930, pi_write_off_amount = 81.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:561: INFO:  v_imposed_amount = -100.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:561: INFO:  v_paid_amount = 20.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:561: INFO:  v_completed = f
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:561: INFO:  v_outstanding_balance = -80.00
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:561: NOTICE:  Error in p_update_imposition_balance: P3106 - Write off amount 81.00 exceeds outstanding balance for imposition 999930
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:561: NOTICE:  Expected error caught: P3106 - Write off amount 81.00 exceeds outstanding balance for imposition 999930
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:561: NOTICE:  TEST 10 PASSED
+DO
+Time: 25.192 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:575: NOTICE:  === Cleanup data after tests ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/updateImpositionBalanceTest/p_update_imposition_balance_unit_tests.sql:575: NOTICE:  Data cleanup after tests completed
+DO
+Time: 30.145 ms

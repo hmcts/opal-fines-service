@@ -1,0 +1,20 @@
+meta {
+  name: Get Report Instance Content - CSV
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{finesUrl}}/report-instances/99000000353000/content
+  body: none
+  auth: inherit
+}
+
+headers {
+  Accept: application/csv
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

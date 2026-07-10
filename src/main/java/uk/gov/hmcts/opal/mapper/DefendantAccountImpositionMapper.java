@@ -109,7 +109,7 @@ public interface DefendantAccountImpositionMapper {
         }
         return new CourtReferenceCommon()
             .courtId(imposition.imposingCourtId())
-            .courtCode(toInteger(imposition.imposingCourtCode()))
+            .courtCode(imposition.imposingCourtCode())
             .courtName(imposition.imposingCourtName());
     }
 
@@ -149,10 +149,6 @@ public interface DefendantAccountImpositionMapper {
             .map(String::trim)
             .collect(Collectors.joining(" "));
         return firstNonBlank(individualName, imposition.minorCreditorOrganisationName());
-    }
-
-    private Integer toInteger(Short value) {
-        return value == null ? null : value.intValue();
     }
 
     private String firstNonBlank(String... values) {

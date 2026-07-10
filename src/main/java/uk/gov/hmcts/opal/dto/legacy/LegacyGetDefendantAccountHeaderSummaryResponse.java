@@ -10,9 +10,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.ToXmlString;
-import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.PaymentStateSummary;
 
 
@@ -66,4 +66,6 @@ public class LegacyGetDefendantAccountHeaderSummaryResponse implements ToXmlStri
     @XmlElement(name = "party_details")
     private LegacyPartyDetails partyDetails;
 
+    @XmlElement(name = "has_consolidated_accounts")
+    private Boolean hasConsolidatedAccounts;
 }

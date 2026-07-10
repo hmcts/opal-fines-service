@@ -13,6 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
@@ -77,16 +78,16 @@ class DefendantAccountServiceProxyTest extends ProxyTestsBase {
 
     @Test
     void shouldUseOpalServiceWhenModeIsNotLegacy() {
-        // Given: app mode is set
-        setMode(OPAL);
+        // Given: legacy mode flag is set
+        setLegacyMode(false);
         // Then: the target service is called, but the other service is not
         testMode(opalService, legacyService);
     }
 
     @Test
     void shouldUseLegacyServiceWhenModeIsLegacy() {
-        // Given: app mode is set
-        setMode(LEGACY);
+        // Given: legacy mode flag is set
+        setLegacyMode(true);
         // Then: the target service is called, but the other service is not
         testMode(legacyService, opalService);
     }
@@ -94,7 +95,7 @@ class DefendantAccountServiceProxyTest extends ProxyTestsBase {
     @Test
     void shouldDelegateSearchToLegacyServiceWhenInLegacyMode() {
 
-        setMode(LEGACY);
+        setLegacyMode(true);
         AccountSearchDto dto = AccountSearchDto.builder().build();
         DefendantAccountSearchResultsDto expected = new DefendantAccountSearchResultsDto();
 
@@ -110,7 +111,7 @@ class DefendantAccountServiceProxyTest extends ProxyTestsBase {
     @Test
     void shouldDelegateSearchToOpalServiceWhenInOpalMode() {
 
-        setMode(OPAL);
+        setLegacyMode(false);
         AccountSearchDto dto = AccountSearchDto.builder().build();
         DefendantAccountSearchResultsDto expected = new DefendantAccountSearchResultsDto();
 
@@ -119,6 +120,21 @@ class DefendantAccountServiceProxyTest extends ProxyTestsBase {
         DefendantAccountSearchResultsDto result = serviceProxy.searchDefendantAccounts(dto);
 
         verify(opalService).searchDefendantAccounts(dto);
+        verifyNoInteractions(legacyService);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void shouldDelegateConsolidatedAccountsToOpalServiceBecauseEndpointIsOpalOnly() {
+        setLegacyMode(true);
+        GetDefendantAccountConsolidatedAccountsResult expected =
+            GetDefendantAccountConsolidatedAccountsResult.builder().build();
+
+        when(opalService.getConsolidatedAccounts(1L)).thenReturn(expected);
+
+        GetDefendantAccountConsolidatedAccountsResult result = serviceProxy.getConsolidatedAccounts(1L);
+
+        verify(opalService).getConsolidatedAccounts(1L);
         verifyNoInteractions(legacyService);
         assertEquals(expected, result);
     }

@@ -56,13 +56,18 @@ import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.common.user.authentication.exception.AuthenticationError;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
+import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
+import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
+import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 
@@ -109,6 +114,21 @@ class GlobalExceptionHandlerTest {
         ProblemDetail pd = r.getBody();
         assertEquals(HttpStatus.FORBIDDEN.value(), pd.getStatus());
         assertEquals("Forbidden", pd.getTitle());
+        assertEquals(false, pd.getProperties().get("retriable"));
+        assertEquals(MediaType.APPLICATION_PROBLEM_JSON, r.getHeaders().getContentType());
+    }
+
+    @Test
+    void handleRequiredPermission_false() {
+        RequiredPermissionException ex = new RequiredPermissionException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleRequiredPermissionException(ex);
+
+        assertEquals(HttpStatus.FORBIDDEN, r.getStatusCode());
+        ProblemDetail pd = r.getBody();
+        assertEquals(HttpStatus.FORBIDDEN.value(), pd.getStatus());
+        assertEquals("Forbidden", pd.getTitle());
+        assertEquals("User requires permission: Search and View Accounts", pd.getDetail());
         assertEquals(false, pd.getProperties().get("retriable"));
         assertEquals(MediaType.APPLICATION_PROBLEM_JSON, r.getHeaders().getContentType());
     }
@@ -192,6 +212,20 @@ class GlobalExceptionHandlerTest {
             .handleEntityNotFoundException(new EntityNotFoundException("nf"));
         assertEquals(HttpStatus.NOT_FOUND, r.getStatusCode());
         assertEquals(false, r.getBody().getProperties().get("retriable"));
+    }
+
+    @Test
+    void handleDefendantAccountNotFound_false() {
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler
+            .handleDefendantAccountNotFoundException(new DefendantAccountNotFoundException(999999999L));
+
+        assertEquals(HttpStatus.NOT_FOUND, r.getStatusCode());
+        ProblemDetail pd = r.getBody();
+        assertEquals(HttpStatus.NOT_FOUND.value(), pd.getStatus());
+        assertEquals("Defendant Account Not Found", pd.getTitle());
+        assertEquals("Defendant account not found with id: 999999999", pd.getDetail());
+        assertEquals(false, pd.getProperties().get("retriable"));
+        assertEquals(MediaType.APPLICATION_PROBLEM_JSON, r.getHeaders().getContentType());
     }
 
     @Test
@@ -372,6 +406,33 @@ class GlobalExceptionHandlerTest {
             .handleJsonSchemaValidationException(new JsonSchemaValidationException("bad schema"));
         assertEquals(HttpStatus.BAD_REQUEST, r.getStatusCode());
         assertEquals(false, r.getBody().getProperties().get("retriable"));
+    }
+
+    @Test
+    void handleSchemaConfiguration_false() {
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler
+            .handleSchemaConfigurationException(new SchemaConfigurationException("missing config"));
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, r.getStatusCode());
+        ProblemDetail pd = r.getBody();
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), pd.getStatus());
+        assertEquals("Internal Server Error", pd.getTitle());
+        assertEquals("missing config", pd.getDetail());
+        assertEquals(URI.create("https://hmcts.gov.uk/problems/internal-server-error"), pd.getType());
+        assertEquals(false, pd.getProperties().get("retriable"));
+    }
+
+    @Test
+    void handleInvalidReferenceValidation_false() {
+        InvalidReferenceValidationException ex = new InvalidReferenceValidationException("bad reference data");
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleInvalidReferenceValidationException(ex);
+
+        assertEquals(HttpStatus.BAD_REQUEST, r.getStatusCode());
+        ProblemDetail pd = r.getBody();
+        assertEquals("Bad Request", pd.getTitle());
+        assertEquals("bad reference data", pd.getDetail());
+        assertEquals(URI.create("https://hmcts.gov.uk/problems/invalid-reference-validation"), pd.getType());
+        assertEquals(false, pd.getProperties().get("retriable"));
     }
 
     @Test

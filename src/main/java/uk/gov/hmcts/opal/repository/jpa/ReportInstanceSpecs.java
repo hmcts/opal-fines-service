@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.repository.jpa;
 
 import static uk.gov.hmcts.opal.util.DateTimeUtils.endOf;
 import static uk.gov.hmcts.opal.util.DateTimeUtils.startOf;
-import static uk.gov.hmcts.opal.util.NumberUtils.toLong;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Expression;
@@ -24,14 +23,14 @@ public final class ReportInstanceSpecs {
     public static Specification<ReportInstanceEntity> build(
         LocalDate fromDate,
         LocalDate toDate,
-        Integer userId,
+        Long userId,
         String reportId,
-        List<Long> businessUnitIds) {
+        List<Short> businessUnitIds) {
 
         return Specification
             .where(createdTimestampFrom(startOf(fromDate)))
             .and(createdTimestampTo(endOf(toDate)))
-            .and(requestedByEquals(toLong(userId)))
+            .and(requestedByEquals(userId))
             .and(reportIdEquals(reportId))
             .and(hasAnyBusinessUnitIn(businessUnitIds));
 
@@ -71,21 +70,20 @@ public final class ReportInstanceSpecs {
                 : cb.equal(root.get("report").get("reportId"), reportId);
     }
 
-    public static Specification<ReportInstanceEntity> hasAnyBusinessUnitIn(List<Long> businessUnitIds) {
+    public static Specification<ReportInstanceEntity> hasAnyBusinessUnitIn(List<Short> businessUnitIds) {
         return (root, query, cb) -> {
-            List<Short> smallintBusinessUnitIds = businessUnitIds == null
+            List<Short> distinctBusinessUnitIds = businessUnitIds == null
                 ? List.of()
                 : businessUnitIds.stream()
                     .filter(Objects::nonNull)
-                    .map(ReportInstanceSpecs::toSmallint)
                     .distinct()
                     .toList();
 
-            if (smallintBusinessUnitIds.isEmpty()) {
+            if (distinctBusinessUnitIds.isEmpty()) {
                 return null;
             }
 
-            Predicate[] predicates = smallintBusinessUnitIds.stream()
+            Predicate[] predicates = distinctBusinessUnitIds.stream()
                 .map(businessUnitId -> containsBusinessUnit(root, cb, businessUnitId))
                 .toArray(Predicate[]::new);
 
@@ -107,11 +105,4 @@ public final class ReportInstanceSpecs {
         return cb.like(businessUnitIds, "%," + businessUnitId + ",%");
     }
 
-    private static Short toSmallint(Long value) {
-        if (value < Short.MIN_VALUE || value > Short.MAX_VALUE) {
-            throw new IllegalArgumentException("businessUnitId is outside PostgreSQL smallint range: " + value);
-        }
-
-        return value.shortValue();
-    }
 }

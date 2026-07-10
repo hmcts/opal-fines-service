@@ -8,5 +8,7 @@ public interface ReportInterface<T extends ReportDataInterface> {
 
     T generateReportData(ReportInstanceEntity reportInstance);
 
+    Class<? extends T> getStoredReportDataClass(ReportInstanceEntity reportInstance);
+
     byte[] convertReportDataToFileType(ReportInstanceEntity reportInstance, T reportData, FileType fileType);
 }

@@ -48,7 +48,9 @@ public class CashTillReportDataMapper {
             .destinationType(CashTillDestinationType.fromPaymentDestinationType(payment.getDestinationType()))
             .details(resolveDetails(payment, defendantAccountNumbers, miscellaneousAccountNumbers))
             .autoPayment(payment.isAutoPayment())
-            .paymentMethod(CashTillPaymentMethod.fromValue(payment.getPaymentMethod()))
+            .paymentMethod(payment.getPaymentMethod() == null
+                ? null
+                : CashTillPaymentMethod.fromValue(payment.getPaymentMethod().name()))
             .amount(payment.getPaymentAmount())
             .receipt(payment.isReceipt())
             .balance(payment.getPaymentAmount())
@@ -100,12 +102,12 @@ public class CashTillReportDataMapper {
     }
 
     private static AssociatedRecordType associatedRecordType(PaymentInEntity payment) {
-        String associatedRecordType = payment.getAssociatedRecordType();
-        if (associatedRecordType == null || associatedRecordType.isBlank()) {
+        AssociatedRecordType associatedRecordType = payment.getAssociatedRecordType();
+        if (associatedRecordType == null) {
             throw new IllegalArgumentException("Cash Till payment " + payment.getPaymentInId()
                 + " is missing associated_record_type");
         }
-        return AssociatedRecordType.getByLabel(associatedRecordType);
+        return associatedRecordType;
     }
 
     private static String requireAccountNumber(String accountNumber, PaymentInEntity payment, String recordType) {

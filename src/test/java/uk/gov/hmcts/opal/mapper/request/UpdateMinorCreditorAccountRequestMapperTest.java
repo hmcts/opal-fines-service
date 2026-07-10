@@ -90,7 +90,7 @@ class UpdateMinorCreditorAccountRequestMapperTest {
             mapped.getPartyDetails().getOrganisationDetails().getOrganisationAliases()[0].getSequenceNumber());
         assertNotNull(mapped.getPartyDetails().getIndividualDetails());
         assertEquals("Ms", mapped.getPartyDetails().getIndividualDetails().getTitle());
-        assertEquals("Creditor", mapped.getPartyDetails().getIndividualDetails().getFirstNames());
+        assertEquals("Creditor", mapped.getPartyDetails().getIndividualDetails().getForenames());
         assertEquals("Updated", mapped.getPartyDetails().getIndividualDetails().getSurname());
         assertNotNull(mapped.getPartyDetails().getIndividualDetails().getIndividualAliases());
         assertEquals(1, mapped.getPartyDetails().getIndividualDetails().getIndividualAliases().length);

@@ -160,6 +160,10 @@ public final class Release1bFeatureToggleRequestUtil {
                 getWithAuthorization("/defendant-accounts/" + DEFENDANT_ACCOUNT_ID + "/enforcement-status")
             ),
             Arguments.of(
+                "Get Defendant Account Consolidated Accounts",
+                getWithAuthorization("/defendant-accounts/" + DEFENDANT_ACCOUNT_ID + "/consolidated-accounts")
+            ),
+            Arguments.of(
                 "Add Defendant Account Enforcement",
                 postJsonWithBusinessHeaders("/defendant-accounts/" + DEFENDANT_ACCOUNT_ID + "/enforcements", """
                     {
@@ -286,6 +290,10 @@ public final class Release1bFeatureToggleRequestUtil {
             Arguments.of(
                 "Get Minor Creditor Account",
                 getWithAuthorization("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID)
+            ),
+            Arguments.of(
+                "Get Minor Creditor History",
+                getWithAuthorization("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID + "/history")
             ),
             Arguments.of(
                 "Patch Minor Creditor Account",

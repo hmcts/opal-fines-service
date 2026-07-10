@@ -28,7 +28,7 @@ class CentralFundMapperTest {
         assertEquals("Central Fund", majorCreditor.getName());
 
         BusinessUnitSummaryCommon businessUnitDetails = payload.getBusinessUnitDetails();
-        assertEquals("70", businessUnitDetails.getBusinessUnitId());
+        assertEquals((short) 70, businessUnitDetails.getBusinessUnitId());
         assertEquals("London Collection", businessUnitDetails.getBusinessUnitName());
         assertEquals("Y", businessUnitDetails.getWelshSpeaking());
         assertEquals(BigInteger.valueOf(7), response.getVersion());
