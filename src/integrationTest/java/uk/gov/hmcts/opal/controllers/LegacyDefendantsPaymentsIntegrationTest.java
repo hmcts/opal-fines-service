@@ -1,5 +1,9 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -7,17 +11,24 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.util.LegacyDefendantsUtil.getPaymentTermsRequestSampleAsJson;
+import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountPaymentTermsService.ADD_PAYMENT_CARD_REQUEST;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyResponse;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -27,6 +38,9 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.LegacyDefendantsPaymentsIntegrationTest")
 class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIntegrationTest {
+
+    @MockitoSpyBean
+    private GatewayService gatewayService;
 
     @Test
     @DisplayName("LEGACY: Add Payment Card Request – Happy Path [@PO-2088]")
@@ -60,6 +74,19 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
     @JiraEpic("PO-977")
     @JiraTestKey("PO-5938")
     void testAddPaymentCardRequest_500() throws Exception {
+        doThrow(HttpServerErrorException.create(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Internal Server Error",
+            HttpHeaders.EMPTY,
+            null,
+            null
+        )).when(gatewayService).postToGateway(
+            eq(ADD_PAYMENT_CARD_REQUEST),
+            eq(AddPaymentCardLegacyResponse.class),
+            any(AddPaymentCardLegacyRequest.class),
+            isNull()
+        );
+
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
