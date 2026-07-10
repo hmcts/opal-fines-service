@@ -43,7 +43,7 @@ class MinorCreditorControllerTest {
         PostMinorCreditorAccountsSearchResponse mockResponse = new PostMinorCreditorAccountsSearchResponse();
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(101, 202, 303))
+            .businessUnitIds(List.of((short) 101, (short) 202, (short) 303))
             .activeAccountsOnly(true)
             .accountNumber("ACC123456")
             .creditor(new Creditor(/* set Creditor fields as needed */))

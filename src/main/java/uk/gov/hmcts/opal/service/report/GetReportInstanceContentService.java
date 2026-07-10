@@ -63,15 +63,14 @@ public class GetReportInstanceContentService {
             throw new PermissionNotAllowedException(permission);
         }
 
-        List<Integer> businessUnits = instance.getBusinessUnit();
+        List<Short> businessUnits = instance.getBusinessUnit();
         if (businessUnits == null || businessUnits.isEmpty()) {
             throw new PermissionNotAllowedException(permission);
         }
 
-        for (Integer businessUnitId : businessUnits) {
-            short businessUnitIdShort = businessUnitId.shortValue();
-            if (!authToken.hasPermissionInBusinessUnit(permission, businessUnitIdShort)) {
-                throw new PermissionNotAllowedException(businessUnitIdShort, permission);
+        for (Short businessUnitId : businessUnits) {
+            if (!authToken.hasPermissionInBusinessUnit(permission, businessUnitId)) {
+                throw new PermissionNotAllowedException(businessUnitId, permission);
             }
         }
     }

@@ -201,7 +201,7 @@ class DefendantAccountHistoryResponseMapperTest {
                 .daysInDefault(14)
                 .warrantNumber("WR262200")
                 .hearingDate(LocalDate.of(2026, 2, 2))
-                .hearingCourt(CourtReferenceDto.builder().courtId(44).courtName("Magistrates Court").build())
+                .hearingCourt(CourtReferenceDto.builder().courtId(44L).courtName("Magistrates Court").build())
                 .caseNumber("CASE-1")
                 .reason("Reason")
                 .earliestDateOfRelease(LocalDate.of(2026, 3, 1))

@@ -107,9 +107,13 @@ public class LegacyImpositionService implements ImpositionServiceInterface {
         return Optional.ofNullable(courtReference).map(courtReferenceItem ->
             CourtReferenceCommon.builder()
                 .courtId(courtReferenceItem.getCourtId())
-                .courtCode(courtReferenceItem.getCourtCode())
+                .courtCode(toShort(courtReferenceItem.getCourtCode()))
                 .courtName(courtReferenceItem.getCourtName())
                 .build()).orElse(null);
+    }
+
+    private Short toShort(Integer value) {
+        return value == null ? null : value.shortValue();
     }
 
     private OffenceReferenceCommon buildOffence(LegacyOffenceReferenceCommon offence) {

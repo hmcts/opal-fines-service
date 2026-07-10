@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.dto.legacy;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -30,8 +31,9 @@ public class GetDefendantAccountHistoryLegacyResponse implements ToXmlString {
     @XmlElement(name = "version")
     private Long version;
 
-    @XmlElementWrapper(name = "historyItems")
-    @XmlElement(name = "historyItems_element")
+    @JsonProperty("history_items")
+    @XmlElementWrapper(name = "history_items")
+    @XmlElement(name = "history_items_element")
     private List<LegacyDefendantAccountHistoryItem> historyItems;
 
     @Data
@@ -41,15 +43,19 @@ public class GetDefendantAccountHistoryLegacyResponse implements ToXmlString {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class LegacyDefendantAccountHistoryItem {
 
-        @XmlElement(name = "postedDetails")
+        @JsonProperty("posted_details")
+        @XmlElement(name = "posted_details")
         private LegacyPostedDetails postedDetails;
 
+        @JsonProperty("type")
         @XmlElement(name = "type")
         private String type;
 
+        @JsonProperty("details")
         @XmlElement(name = "details")
         private LegacyDefendantAccountHistoryDetails details;
 
+        @JsonProperty("amount")
         @XmlElement(name = "amount")
         private BigDecimal amount;
     }
@@ -61,108 +67,141 @@ public class GetDefendantAccountHistoryLegacyResponse implements ToXmlString {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class LegacyDefendantAccountHistoryDetails {
 
-        @XmlElement(name = "attributeName")
+        @JsonProperty("attribute_name")
+        @XmlElement(name = "attribute_name")
         private String attributeName;
 
-        @XmlElement(name = "oldValue")
+        @JsonProperty("old_value")
+        @XmlElement(name = "old_value")
         private String oldValue;
 
-        @XmlElement(name = "newValue")
+        @JsonProperty("new_value")
+        @XmlElement(name = "new_value")
         private String newValue;
 
-        @XmlElement(name = "enforcementAction")
+        @JsonProperty("enforcement_action")
+        @XmlElement(name = "enforcement_action")
         private String enforcementAction;
 
-        @XmlElement(name = "daysInDefault")
+        @JsonProperty("days_in_default")
+        @XmlElement(name = "days_in_default")
         private Integer daysInDefault;
 
-        @XmlElement(name = "warrantNumber")
+        @JsonProperty("warrant_number")
+        @XmlElement(name = "warrant_number")
         private String warrantNumber;
 
-        @XmlElement(name = "hearingDate")
+        @JsonProperty("hearing_date")
+        @XmlElement(name = "hearing_date")
         @XmlJavaTypeAdapter(LocalDateAdapter.class)
         private LocalDate hearingDate;
 
-        @XmlElement(name = "hearingCourt")
+        @JsonProperty("hearing_court")
+        @XmlElement(name = "hearing_court")
         private CourtReference hearingCourt;
 
-        @XmlElement(name = "caseNumber")
+        @JsonProperty("case_number")
+        @XmlElement(name = "case_number")
         private String caseNumber;
 
+        @JsonProperty("reason")
         @XmlElement(name = "reason")
         private String reason;
 
-        @XmlElement(name = "earliestDateOfRelease")
+        @JsonProperty("earliest_date_of_release")
+        @XmlElement(name = "earliest_date_of_release")
         @XmlJavaTypeAdapter(LocalDateAdapter.class)
         private LocalDate earliestDateOfRelease;
 
-        @XmlElement(name = "noteText")
+        @JsonProperty("note_text")
+        @XmlElement(name = "note_text")
         private String noteText;
 
-        @XmlElement(name = "transactionType")
+        @JsonProperty("transaction_type")
+        @XmlElement(name = "transaction_type")
         private LegacyHistoryTypeReference transactionType;
 
-        @XmlElement(name = "paymentMethod")
+        @JsonProperty("payment_method")
+        @XmlElement(name = "payment_method")
         private LegacyHistoryTypeReference paymentMethod;
 
-        @XmlElement(name = "paymentReference")
+        @JsonProperty("payment_reference")
+        @XmlElement(name = "payment_reference")
         private String paymentReference;
 
-        @XmlElement(name = "additionalInformation")
+        @JsonProperty("additional_information")
+        @XmlElement(name = "additional_information")
         private String additionalInformation;
 
-        @XmlElement(name = "writeOff")
+        @JsonProperty("write_off")
+        @XmlElement(name = "write_off")
         private LegacyHistoryTypeReference writeOff;
 
+        @JsonProperty("status")
         @XmlElement(name = "status")
         private LegacyHistoryTypeReference status;
 
-        @XmlElement(name = "statusDate")
+        @JsonProperty("status_date")
+        @XmlElement(name = "status_date")
         @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
         private LocalDateTime statusDate;
 
-        @XmlElement(name = "associatedRecordType")
+        @JsonProperty("associated_record_type")
+        @XmlElement(name = "associated_record_type")
         private String associatedRecordType;
 
-        @XmlElement(name = "associatedRecordId")
+        @JsonProperty("associated_record_id")
+        @XmlElement(name = "associated_record_id")
         private String associatedRecordId;
 
-        @XmlElement(name = "accountNumber")
+        @JsonProperty("account_number")
+        @XmlElement(name = "account_number")
         private String accountNumber;
 
-        @XmlElement(name = "sendingCourt")
+        @JsonProperty("sending_court")
+        @XmlElement(name = "sending_court")
         private String sendingCourt;
 
-        @XmlElement(name = "impositionDate")
+        @JsonProperty("imposition_date")
+        @XmlElement(name = "imposition_date")
         @XmlJavaTypeAdapter(LocalDateAdapter.class)
         private LocalDate impositionDate;
 
-        @XmlElement(name = "impositionCode")
+        @JsonProperty("imposition_code")
+        @XmlElement(name = "imposition_code")
         private String impositionCode;
 
-        @XmlElement(name = "amountImposed")
+        @JsonProperty("amount_imposed")
+        @XmlElement(name = "amount_imposed")
         private BigDecimal amountImposed;
 
+        @JsonProperty("date_days_in_default_imposed")
         @XmlElement(name = "date_days_in_default_imposed")
         @XmlJavaTypeAdapter(LocalDateAdapter.class)
         private LocalDate dateDaysInDefaultImposed;
 
+        @JsonProperty("reason_for_extension")
         @XmlElement(name = "reason_for_extension")
         private String reasonForExtension;
 
+        @JsonProperty("payment_terms_type")
         @XmlElement(name = "payment_terms_type")
         private LegacyPaymentTermsType paymentTermsType;
 
+        @JsonProperty("effective_date")
         @XmlElement(name = "effective_date")
         @XmlJavaTypeAdapter(LocalDateAdapter.class)
         private LocalDate effectiveDate;
 
+        @JsonProperty("instalment_period")
         @XmlElement(name = "instalment_period")
         private LegacyInstalmentPeriod instalmentPeriod;
 
+        @JsonProperty("lump_sum_amount")
         @XmlElement(name = "lump_sum_amount")
         private BigDecimal lumpSumAmount;
 
+        @JsonProperty("instalment_amount")
         @XmlElement(name = "instalment_amount")
         private BigDecimal instalmentAmount;
     }
@@ -174,28 +213,36 @@ public class GetDefendantAccountHistoryLegacyResponse implements ToXmlString {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class LegacyHistoryTypeReference {
 
-        @XmlElement(name = "transactionType")
+        @JsonProperty("transaction_type")
+        @XmlElement(name = "transaction_type")
         private String transactionType;
 
-        @XmlElement(name = "transactionTypeDisplayName")
+        @JsonProperty("transaction_type_display_name")
+        @XmlElement(name = "transaction_type_display_name")
         private String transactionTypeDisplayName;
 
-        @XmlElement(name = "paymentMethod")
+        @JsonProperty("payment_method")
+        @XmlElement(name = "payment_method")
         private String paymentMethod;
 
-        @XmlElement(name = "paymentMethodDisplayName")
+        @JsonProperty("payment_method_display_name")
+        @XmlElement(name = "payment_method_display_name")
         private String paymentMethodDisplayName;
 
-        @XmlElement(name = "writeOffType")
+        @JsonProperty("write_off_type")
+        @XmlElement(name = "write_off_type")
         private String writeOffType;
 
-        @XmlElement(name = "writeOffTypeDisplayName")
+        @JsonProperty("write_off_type_display_name")
+        @XmlElement(name = "write_off_type_display_name")
         private String writeOffTypeDisplayName;
 
-        @XmlElement(name = "defendantTransactionStatus")
+        @JsonProperty("defendant_transaction_status")
+        @XmlElement(name = "defendant_transaction_status")
         private String defendantTransactionStatus;
 
-        @XmlElement(name = "defendantTransactionStatusDisplayName")
+        @JsonProperty("defendant_transaction_status_display_name")
+        @XmlElement(name = "defendant_transaction_status_display_name")
         private String defendantTransactionStatusDisplayName;
     }
 }
