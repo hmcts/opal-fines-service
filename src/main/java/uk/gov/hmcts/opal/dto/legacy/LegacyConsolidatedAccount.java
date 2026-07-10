@@ -20,28 +20,28 @@ import uk.gov.hmcts.opal.util.LocalDateAdapter;
 public class LegacyConsolidatedAccount {
 
     @JsonProperty("account_id")
-    @XmlElement(name = "account_id")
+    @XmlElement(name = "accountId")
     private Long accountId;
 
     @JsonProperty("account_number")
-    @XmlElement(name = "account_number")
+    @XmlElement(name = "accountNumber")
     private String accountNumber;
 
     @JsonProperty("first_name")
-    @XmlElement(name = "first_name")
+    @XmlElement(name = "firstName")
     private String firstName;
 
     @JsonProperty("last_name")
-    @XmlElement(name = "last_name")
+    @XmlElement(name = "lastName")
     private String lastName;
 
     @JsonProperty("date_imposed")
-    @XmlElement(name = "date_imposed")
+    @XmlElement(name = "dateImposed")
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate dateImposed;
 
     @JsonProperty("imposed_by")
-    @XmlElement(name = "imposed_by")
+    @XmlElement(name = "imposedBy")
     private String imposedBy;
 
     @JsonProperty("reference")

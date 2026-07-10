@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlElementWrapper;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -24,6 +25,7 @@ public class LegacyGetDefendantAccountConsolidatedAccountsResponse {
     private Long version;
 
     @JsonProperty("consolidated_accounts")
-    @XmlElement(name = "consolidated_accounts")
+    @XmlElementWrapper(name = "consolidatedAccounts")
+    @XmlElement(name = "consolidatedAccounts_element")
     private List<LegacyConsolidatedAccount> consolidatedAccounts;
 }

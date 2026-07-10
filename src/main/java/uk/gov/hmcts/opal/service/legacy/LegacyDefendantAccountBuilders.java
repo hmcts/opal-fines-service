@@ -64,12 +64,18 @@ public class LegacyDefendantAccountBuilders {
     static GetDefendantAccountConsolidatedAccountsResult toConsolidatedAccountsResponse(
         LegacyGetDefendantAccountConsolidatedAccountsResponse legacy) {
 
-        return Optional.ofNullable(legacy)
-            .map(response -> GetDefendantAccountConsolidatedAccountsResult.builder()
-                .version(BigInteger.valueOf(response.getVersion()))
-                .payload(toConsolidatedAccounts(response.getConsolidatedAccounts()))
-                .build())
-            .orElse(null);
+        if (legacy == null) {
+            throw new IllegalArgumentException("Legacy consolidated-accounts response did not contain a body");
+        }
+
+        if (legacy.getVersion() == null) {
+            throw new IllegalArgumentException("Legacy consolidated-accounts response did not contain a version");
+        }
+
+        return GetDefendantAccountConsolidatedAccountsResult.builder()
+            .version(BigInteger.valueOf(legacy.getVersion()))
+            .payload(toConsolidatedAccounts(legacy.getConsolidatedAccounts()))
+            .build();
     }
 
     private static List<ConsolidatedAccountDefendantAccount> toConsolidatedAccounts(

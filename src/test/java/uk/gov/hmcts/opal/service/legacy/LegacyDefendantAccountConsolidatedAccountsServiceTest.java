@@ -2,12 +2,15 @@ package uk.gov.hmcts.opal.service.legacy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import java.io.StringReader;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
@@ -131,7 +134,7 @@ class LegacyDefendantAccountConsolidatedAccountsServiceTest {
     }
 
     @Test
-    void getConsolidatedAccounts_whenGatewayReturnsNullEntity_returnsNull() {
+    void getConsolidatedAccounts_whenGatewayReturnsNullEntity_throwsException() {
         when(gatewayService.postToGateway(
             eq(LegacyDefendantAccountService.GET_CONSOLIDATED_ACCOUNTS),
             eq(LegacyGetDefendantAccountConsolidatedAccountsResponse.class),
@@ -139,7 +142,81 @@ class LegacyDefendantAccountConsolidatedAccountsServiceTest {
             isNull()
         )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, null, null, null));
 
-        assertNull(legacyDefendantAccountService.getConsolidatedAccounts(233300L));
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> legacyDefendantAccountService.getConsolidatedAccounts(233300L)
+        );
+
+        assertEquals("Legacy consolidated-accounts response did not contain a body", exception.getMessage());
+    }
+
+    @Test
+    void getConsolidatedAccounts_whenGatewayReturnsNullVersion_throwsException() {
+        LegacyGetDefendantAccountConsolidatedAccountsResponse legacyResponse =
+            LegacyGetDefendantAccountConsolidatedAccountsResponse.builder()
+                .consolidatedAccounts(List.of())
+                .build();
+
+        when(gatewayService.postToGateway(
+            eq(LegacyDefendantAccountService.GET_CONSOLIDATED_ACCOUNTS),
+            eq(LegacyGetDefendantAccountConsolidatedAccountsResponse.class),
+            eq(LegacyGetDefendantAccountRequest.builder().defendantAccountId("233300").build()),
+            isNull()
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null));
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> legacyDefendantAccountService.getConsolidatedAccounts(233300L)
+        );
+
+        assertEquals("Legacy consolidated-accounts response did not contain a version", exception.getMessage());
+    }
+
+    @Test
+    void getConsolidatedAccounts_legacyXmlResponseUnmarshalsAndMapsToOpalResponse() throws JAXBException {
+        String legacyXml = """
+            <response>
+              <version>3</version>
+              <consolidatedAccounts>
+                <consolidatedAccounts_element>
+                  <accountId>233302</accountId>
+                  <accountNumber>233302C</accountNumber>
+                  <firstName>Alex</firstName>
+                  <lastName>Jones</lastName>
+                  <dateImposed>2026-01-21</dateImposed>
+                  <imposedBy>Child Court</imposedBy>
+                  <reference>CHILD-REF</reference>
+                </consolidatedAccounts_element>
+              </consolidatedAccounts>
+            </response>
+            """;
+        LegacyGetDefendantAccountConsolidatedAccountsResponse legacyResponse =
+            (LegacyGetDefendantAccountConsolidatedAccountsResponse) JAXBContext
+                .newInstance(LegacyGetDefendantAccountConsolidatedAccountsResponse.class)
+                .createUnmarshaller()
+                .unmarshal(new StringReader(legacyXml));
+
+        when(gatewayService.postToGateway(
+            eq(LegacyDefendantAccountService.GET_CONSOLIDATED_ACCOUNTS),
+            eq(LegacyGetDefendantAccountConsolidatedAccountsResponse.class),
+            eq(LegacyGetDefendantAccountRequest.builder().defendantAccountId("233300").build()),
+            isNull()
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null));
+
+        GetDefendantAccountConsolidatedAccountsResult response =
+            legacyDefendantAccountService.getConsolidatedAccounts(233300L);
+
+        assertEquals(BigInteger.valueOf(3), response.getVersion());
+        assertEquals(1, response.getPayload().size());
+
+        ConsolidatedAccountDefendantAccount account = response.getPayload().getFirst();
+        assertEquals(233302L, account.getAccountId());
+        assertEquals("233302C", account.getAccountNumber());
+        assertEquals("Alex", account.getFirstName());
+        assertEquals("Jones", account.getLastName());
+        assertEquals(LocalDate.parse("2026-01-21"), account.getDateImposed());
+        assertEquals("Child Court", account.getImposedBy());
+        assertEquals("CHILD-REF", account.getReference());
     }
 
     private LegacyConsolidatedAccount legacyAccount(Long accountId, String accountNumber) {
