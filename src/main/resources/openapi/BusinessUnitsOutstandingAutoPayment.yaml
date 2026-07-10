@@ -1,0 +1,85 @@
+openapi: 3.1.1
+info:
+  title: Opal Fines Service - Business Units
+  version: 1.0.0
+  description: APIs for Business unit information
+paths:
+  /business-units/outstanding-auto-payment-count:
+    get:
+      tags:
+        - businessUnitOutstandingAutoPayment
+      summary: Get outstanding auto payment count
+      description: >
+        Get all business units where the user has the Process and Allocate Payments permission. Return their
+        pending interface files and tills to allocate count
+      security:
+        - permissions:
+            - Filter returned Business Units to those where the user has Process and Allocate Payments permission
+      operationId: getBusinessUnitOutstandingAutoPaymentCount
+      responses:
+        "200":
+          description: Business unit outstanding auto payment count response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusinessUnitOutstandingAutoPaymentCountResponse'
+        "400":
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "401":
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "403":
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "500":
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "503":
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+components:
+  schemas:
+    BusinessUnitOutstandingAutoPaymentCountResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        businessUnits:
+          type: array
+          items:
+            $ref: '#/components/schemas/BusinessUnitOutstandingAutoPaymentCount'
+
+    BusinessUnitOutstandingAutoPaymentCount:
+      type: object
+      additionalProperties: false
+      required:
+        - businessUnitId
+        - businessUnitName
+        - fileCount
+        - tillsCount
+      properties:
+        businessUnitId:
+          type: integer
+          format: int16
+        businessUnitName:
+          type: string
+        fileCount:
+          type: integer
+        tillsCount:
+          type: integer
