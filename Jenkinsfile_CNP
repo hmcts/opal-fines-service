@@ -68,50 +68,55 @@ def determineDevEnvironmentDeployment() {
   echo "Deploying Opal logging service (${env.OPAL_LOGGING_SERVICE_API_URL} - ${env.DEV_OPAL_LOGGING_SERVICE_IMAGE_SUFFIX}) instance in PR environment"
 }
 
-def ensureFunctionalReportOutputExists() {
-  if (steps.fileExists('functional-output/report/index.html')
-    || steps.fileExists('functional-output/report/htmlReport/test-summary.html')) {
-    return
+def copyReportOutputIfPresent(String targetDirectory, String sourceDirectory) {
+  steps.sh """
+    mkdir -p ${targetDirectory}
+    rm -rf ${targetDirectory}/report
+    cp -R ${sourceDirectory} ${targetDirectory}/report
+  """
+}
+
+def ensureReportOutputExists(String reportLabel, String targetDirectory, List<String> candidateDirectories) {
+  steps.sh """
+    mkdir -p ${targetDirectory}
+    rm -rf ${targetDirectory}/report
+  """
+
+  for (String candidateDirectory : candidateDirectories) {
+    if (steps.fileExists("${candidateDirectory}/index.html")
+      || steps.fileExists("${candidateDirectory}/htmlReport/test-summary.html")) {
+      copyReportOutputIfPresent(targetDirectory, candidateDirectory)
+      return
+    }
   }
 
-  if (steps.fileExists('functional-test-report/index.html')
-    || steps.fileExists('functional-test-report/htmlReport/test-summary.html')) {
-    steps.sh '''
-      mkdir -p functional-output
-      rm -rf functional-output/report
-      cp -R functional-test-report functional-output/report
-    '''
-  }
+  throw new RuntimeException(
+    "${reportLabel} was not generated in any expected report location: ${candidateDirectories.join(', ')}"
+  )
+}
+
+def ensureFunctionalReportOutputExists() {
+  ensureReportOutputExists(
+    'Functional Tests Report',
+    'functional-output',
+    ['functional-test-report', 'build/reports/tests/functionalOpal']
+  )
 }
 
 def ensureIntegrationReportOutputExists() {
-  if (steps.fileExists('integration-output/report/index.html')) {
-    return
-  }
-
-  if (steps.fileExists('build/reports/tests/integration/index.html')) {
-    steps.sh '''
-      mkdir -p integration-output
-      rm -rf integration-output/report
-      cp -R build/reports/tests/integration integration-output/report
-    '''
-  }
+  ensureReportOutputExists(
+    'Integration Tests Report',
+    'integration-output',
+    ['build/reports/tests/integration']
+  )
 }
 
 def ensureSmokeReportOutputExists() {
-  if (steps.fileExists('smoke-output/report/index.html')
-    || steps.fileExists('smoke-output/report/htmlReport/test-summary.html')) {
-    return
-  }
-
-  if (steps.fileExists('smoke-test-report/index.html')
-    || steps.fileExists('smoke-test-report/htmlReport/test-summary.html')) {
-    steps.sh '''
-      mkdir -p smoke-output
-      rm -rf smoke-output/report
-      cp -R smoke-test-report smoke-output/report
-    '''
-  }
+  ensureReportOutputExists(
+    'Smoke Tests Report',
+    'smoke-output',
+    ['smoke-test-report', 'build/reports/tests/smokeOpal']
+  )
 }
 
 def failBuildOnUnstableResults() {

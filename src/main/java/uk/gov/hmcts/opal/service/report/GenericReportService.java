@@ -22,8 +22,8 @@ import org.springframework.stereotype.Service;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -34,8 +34,8 @@ import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceRequestReports;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
-import uk.gov.hmcts.opal.mapper.ReportInstanceMapper;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceReports;
+import uk.gov.hmcts.opal.mapper.ReportInstanceMapper;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.ReportInstanceRepository;
 import uk.gov.hmcts.opal.repository.ReportRepository;
@@ -62,6 +62,7 @@ public class GenericReportService implements GenericReportServiceInterface {
     private final ObjectMapper mapper;
     private final BusinessUnitRepository businessUnitRepository;
     private final ReportInstanceSearchService reportInstanceSearchService;
+    private final GetReportInstanceContentService getReportInstanceContentService;
 
     private static void processError(ReportInstanceEntity instance, Exception exception) {
         instance.setGenerationStatus(ReportInstanceGenerationStatus.ERROR);
@@ -108,8 +109,7 @@ public class GenericReportService implements GenericReportServiceInterface {
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
-        List<Short> businessUnitIdsForReportInstance = reportInstanceEntity.getBusinessUnit().stream()
-            .map(Integer::shortValue).toList();
+        List<Short> businessUnitIdsForReportInstance = reportInstanceEntity.getBusinessUnit();
         if (!userState.getBusinessUnitUser().stream().map(BusinessUnitUser::getBusinessUnitId)
             .collect(Collectors.toSet()).containsAll(businessUnitIdsForReportInstance)) {
             throw new AccessDeniedException("You cannot request report instances associated with other business units");
@@ -118,6 +118,11 @@ public class GenericReportService implements GenericReportServiceInterface {
             .findAllById(businessUnitIdsForReportInstance);
 
         return reportInstanceMapper.toReportInstanceReportsDto(reportInstanceEntity, businessUnitEntities);
+    }
+
+    @Override
+    public Object getReportInstanceContent(Long id, FileType fileType) {
+        return getReportInstanceContentService.getReportInstanceContent(id, fileType);
     }
 
     @Transactional
@@ -135,7 +140,7 @@ public class GenericReportService implements GenericReportServiceInterface {
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (!userState.getBusinessUnitUser().stream()
-            .map(buUser -> buUser.getBusinessUnitId().intValue()).collect(Collectors.toSet())
+            .map(BusinessUnitUser::getBusinessUnitId).collect(Collectors.toSet())
             .containsAll(request.getBusinessUnitIds())) {
             throw new AccessDeniedException("You cannot generate reports for other business units");
         }
@@ -175,8 +180,8 @@ public class GenericReportService implements GenericReportServiceInterface {
     public List<ReportInstanceListReportsInner> searchReportInstances(
         final LocalDate fromDate,
         final LocalDate toDate,
-        final List<Integer> businessUnits,
-        final Integer userId,
+        final List<Short> businessUnits,
+        final Long userId,
         final String reportId) {
         log.debug("Searching for report instances");
 
@@ -187,9 +192,9 @@ public class GenericReportService implements GenericReportServiceInterface {
             selectedReports = reportInstanceSearchService.findPermittedReports();
         }
 
-        List<Long> selectedBusinessUnitIds = reportInstanceSearchService.validateBusinessUnitIds(businessUnits);
+        List<Short> selectedBusinessUnitIds = reportInstanceSearchService.validateBusinessUnitIds(businessUnits);
 
-        Map<String, List<Long>> permittedReportForBusinessUnits =
+        Map<String, List<Short>> permittedReportForBusinessUnits =
             reportInstanceSearchService.findPermittedReportForBusinessUnits(selectedReports, selectedBusinessUnitIds);
 
         List<ReportInstanceEntity> reportInstances = new ArrayList<>();

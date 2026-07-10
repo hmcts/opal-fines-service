@@ -4,7 +4,7 @@ Feature: Results Feature Toggles
   Background:
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
-  @R1AOff @JIRA-STORY:PO-3765 @JIRA-STORY:PO-3754 @JIRA-EPIC:PO-3685
+  @R1AOff @JIRA-STORY:PO-3765 @JIRA-STORY:PO-3754 @JIRA-EPIC:PO-3685 @JIRA-TEST-KEY:PO-8855
   Scenario: Results endpoint is unavailable when release 1a is disabled
     When I request results for identifiers "FO,ABDC"
     Then the request is rejected with status 404

@@ -41,7 +41,7 @@ public class MajorCreditorApiController implements MajorCreditorApi {
         defaultValueProperty = FeatureFlags.RELEASE_1B_ENABLED_PROPERTY
     )
     public ResponseEntity<GetCentralFundResponse> getCentralFundByBusinessUnit(
-        Integer id) {
+        Short id) {
 
         log.debug(":GET:getCentralFundByBusinessUnit: businessUnitId={}", id);
 
@@ -91,10 +91,10 @@ public class MajorCreditorApiController implements MajorCreditorApi {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public ResponseEntity<GetMajorCreditorRefData200Response> getMajorCreditorRefData(
         @Nullable String q,
-        @Nullable Integer businessUnit) {
+        @Nullable Short businessUnit) {
 
         Optional<String> filter = Optional.ofNullable(q);
-        Optional<Short> businessUnitId = Optional.ofNullable(businessUnit).map(Integer::shortValue);
+        Optional<Short> businessUnitId = Optional.ofNullable(businessUnit);
 
         log.debug(":GET:getMajorCreditorRefData: business unit: {}, filter string: {}", businessUnitId, filter);
 

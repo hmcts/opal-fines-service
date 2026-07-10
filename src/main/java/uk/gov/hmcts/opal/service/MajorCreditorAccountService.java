@@ -54,15 +54,6 @@ public class MajorCreditorAccountService {
         if (businessUnitDetails == null || businessUnitDetails.getBusinessUnitId() == null) {
             throw new IllegalStateException("Business unit details were not returned for the major creditor account");
         }
-
-        try {
-            return Short.valueOf(businessUnitDetails.getBusinessUnitId());
-        } catch (NumberFormatException ex) {
-            throw new IllegalStateException(
-                "Invalid business unit id returned for the major creditor account: "
-                    + businessUnitDetails.getBusinessUnitId(),
-                ex
-            );
-        }
+        return businessUnitDetails.getBusinessUnitId();
     }
 }

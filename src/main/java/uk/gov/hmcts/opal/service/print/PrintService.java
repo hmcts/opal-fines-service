@@ -31,9 +31,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.entity.print.PrintDefinition;
-import uk.gov.hmcts.opal.entity.print.PrintJob;
+import uk.gov.hmcts.opal.dto.print.PrintJobDto;
+import uk.gov.hmcts.opal.entity.print.PrintDefinitionEntity;
+import uk.gov.hmcts.opal.entity.print.PrintJobEntity;
 import uk.gov.hmcts.opal.entity.print.PrintStatus;
+import uk.gov.hmcts.opal.mapper.print.PrintJobMapper;
 import uk.gov.hmcts.opal.repository.print.PrintDefinitionRepository;
 import uk.gov.hmcts.opal.repository.print.PrintJobRepository;
 
@@ -52,6 +54,8 @@ public class PrintService {
 
     private final PrintJobRepository printJobRepository;
 
+    private final PrintJobMapper printJobMapper;
+
     private final Clock clock;
 
     @Value("${printservice.maxRetries:3}")
@@ -61,14 +65,22 @@ public class PrintService {
     private int pageSize;
 
 
-    public byte[] generatePdf(PrintJob printJob) {
+    public byte[] generatePdf(PrintJobDto printJobDto) {
+        return generatePdf(printJobMapper.toEntity(printJobDto));
+    }
+
+
+    private byte[] generatePdf(PrintJobEntity printJobEntity) {
         // Get print definition from database
-        final PrintDefinition printDef = getPrintDefinition(printJob.getDocType(), printJob.getDocVersion());
+        final PrintDefinitionEntity printDef = getPrintDefinition(
+            printJobEntity.getDocType(),
+            printJobEntity.getDocVersion()
+        );
         // Load XSLT template
         Source xslt = new StreamSource(new StringReader(printDef.getXslt()));
 
         try (ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-             StringReader xmlReader = new StringReader(printJob.getXmlData())) {
+             StringReader xmlReader = new StringReader(printJobEntity.getXmlData())) {
 
             FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
             Fop fop = fopFactory.newFop(MimeConstants.MIME_PDF, foUserAgent, outStream);
@@ -95,25 +107,30 @@ public class PrintService {
     }
 
 
-    private PrintDefinition getPrintDefinition(String docType, String templateId) {
+    private PrintDefinitionEntity getPrintDefinition(String docType, String templateId) {
 
         return printDefinitionRepository.findByDocTypeAndTemplateId(docType, templateId);
     }
 
 
-    public UUID savePrintJobs(List<PrintJob> printJobs) {
+    public UUID savePrintJobs(List<PrintJobDto> printJobDtos) {
+        return savePrintJobEntities(printJobMapper.toEntities(printJobDtos));
+    }
+
+
+    private UUID savePrintJobEntities(List<PrintJobEntity> printJobEntities) {
         UUID batchId = UUID.randomUUID();
 
         log.debug("Saving print jobs for batch {}", batchId);
 
-        for (PrintJob printJob : printJobs) {
+        for (PrintJobEntity printJobEntity : printJobEntities) {
             LocalDateTime now = LocalDateTime.now(clock);
-            printJob.setBatchId(batchId);
-            printJob.setJobId(UUID.randomUUID());
-            printJob.setCreatedAt(now);
-            printJob.setUpdatedAt(now);
-            printJob.setStatus(PrintStatus.PENDING);
-            printJobRepository.save(printJob);
+            printJobEntity.setBatchId(batchId);
+            printJobEntity.setJobId(UUID.randomUUID());
+            printJobEntity.setCreatedAt(now);
+            printJobEntity.setUpdatedAt(now);
+            printJobEntity.setStatus(PrintStatus.PENDING);
+            printJobRepository.save(printJobEntity);
         }
 
         return batchId;
@@ -147,10 +164,10 @@ public class PrintService {
     protected void processJobsWithLock(LocalDateTime cutoffDate) {
         Pageable pageable = PageRequest.of(0, pageSize);
         log.debug("Page Size: {}", pageSize);
-        Page<PrintJob> page;
+        Page<PrintJobEntity> page;
         do {
             page = this.findPendingJobsForUpdate(PrintStatus.PENDING, cutoffDate, pageable);
-            for (PrintJob job : page.getContent()) {
+            for (PrintJobEntity job : page.getContent()) {
                 try {
                     processJob(job);
                 } catch (Exception e) {
@@ -164,7 +181,7 @@ public class PrintService {
     }
 
 
-    private void processJob(PrintJob job) {
+    private void processJob(PrintJobEntity job) {
         job.setStatus(PrintStatus.IN_PROGRESS);
         printJobRepository.save(job);
 
@@ -181,7 +198,7 @@ public class PrintService {
     }
 
 
-    private void savePdfToFile(byte[] pdfData, PrintJob job) {
+    private void savePdfToFile(byte[] pdfData, PrintJobEntity job) {
         String fileName = job.getBatchId() + "_" + job.getJobId() + ".pdf";
         log.debug("Saving PDF to file: {}", fileName);
 
@@ -190,7 +207,11 @@ public class PrintService {
     }
 
 
-    private Page<PrintJob> findPendingJobsForUpdate(PrintStatus status, LocalDateTime cutoffDate, Pageable pageable) {
+    private Page<PrintJobEntity> findPendingJobsForUpdate(
+        PrintStatus status,
+        LocalDateTime cutoffDate,
+        Pageable pageable
+    ) {
         log.debug("Finding pending jobs for update");
         return printJobRepository.findPendingJobsForUpdate(status, cutoffDate, pageable);
     }

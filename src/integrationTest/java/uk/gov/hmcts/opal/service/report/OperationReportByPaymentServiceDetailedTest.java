@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.report;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -41,6 +42,7 @@ import uk.gov.hmcts.opal.service.report.operation.OperationReportByPaymentServic
 import uk.gov.hmcts.opal.util.AgeUtil;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Sql(scripts = "classpath:db/insertData/insert_into_enforcements.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_enforcements.sql", executionPhase = AFTER_TEST_CLASS)
@@ -80,6 +82,7 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
     @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-8822")
     void generateReportData_filterDetailedReportType_returnSortedResultsOfDetailedReportType() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
@@ -150,7 +153,7 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
             () -> assertThat(account.getParentOrGuardian()).isEqualTo("N")
         );
 
-        Assertions.assertThat(report.getTransactionRows()).containsExactly(
+        Assertions.assertThat(report.getTransactionRows()).contains(
             DetailedReportTransactionRowDto.builder()
                 .accountNo("177A")
                 .consolidatedAccountNo("ConsolidatedAcc")
@@ -158,6 +161,7 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
                 .transactionType(DefendantTransactionType.CONSOL.getLabel())
                 .transactionUserId("enforcement.test")
                 .transactionAmount(new BigDecimal("123.45"))
+                .transactionDetails("Account consolidated | 77 | Amount credited to master account")
                 .build(),
             DetailedReportTransactionRowDto.builder()
                 .accountNo("177A")
@@ -166,14 +170,110 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
                 .transactionType(DefendantTransactionType.PAYMNT.getLabel())
                 .transactionUserId("enforcement.test")
                 .transactionAmount(new BigDecimal("50.00"))
+                .transactionDetails("Payment received | Credit Transfer")
                 .build()
         );
+
+        Assertions.assertThat(report.getTransactionRows())
+            .hasSize(21)
+            .extracting(
+                DetailedReportTransactionRowDto::getTransactionType,
+                DetailedReportTransactionRowDto::getTransactionDetails
+            )
+            .containsExactlyInAnyOrder(
+                tuple(
+                    DefendantTransactionType.CONSOL.getLabel(),
+                    "Account consolidated | 77 | Amount credited to master account"
+                ),
+                tuple(
+                    DefendantTransactionType.PAYMNT.getLabel(),
+                    "Payment received | Credit Transfer"
+                ),
+                tuple(
+                    DefendantTransactionType.CANCHQ.getLabel(),
+                    "Cheque cancelled | Cheque number: CHQ1003"
+                ),
+                tuple(
+                    DefendantTransactionType.CHEQUE.getLabel(),
+                    "Cheque issued | Cheque number: CHQ1004 | Dishonoured 2026-05-14T10:15:30"
+                ),
+                tuple(
+                    DefendantTransactionType.CHEQUE.getLabel(),
+                    "Cheque issued | Cheque number: Not yet written | Cancelled 2026-05-14T10:20:30"
+                ),
+                tuple(
+                    DefendantTransactionType.DISHCQ.getLabel(),
+                    "Cheque dishonoured | FCOMP 50.00 Created: 2023-11-03T16:05:10 | 1"
+                ),
+                tuple(
+                    "FR_SUS",
+                    "Transfer from suspense | SUS-1007"
+                ),
+                tuple(
+                    DefendantTransactionType.MADJ.getLabel(),
+                    "Manual adjustment | MADJ-1008"
+                ),
+                tuple(
+                    DefendantTransactionType.PAYMNT.getLabel(),
+                    "Payment received | Credit Transfer | Payment by credit transfer | PR1009"
+                ),
+                tuple(
+                    DefendantTransactionType.REPSUS.getLabel(),
+                    "Repayment from suspense | REP-1010"
+                ),
+                tuple(
+                    DefendantTransactionType.REVPAY.getLabel(),
+                    "Payment reversed | FCPC 50.00 Created: 2023-11-03T16:05:10 | 2"
+                ),
+                tuple(
+                    DefendantTransactionType.RICHEQ.getLabel(),
+                    "Cheque reissued | Cheque number: CHQ1012 | Dishonoured 2026-05-14T10:55:30"
+                ),
+                tuple(
+                    DefendantTransactionType.RVWOFF.getLabel(),
+                    "Write-off reversed Reinstated after review"
+                ),
+                tuple(
+                    DefendantTransactionType.TFO.getLabel(),
+                    "TFO out | Transferred to: Central Office Kingston-upon-Thames Mags Court"
+                ),
+                tuple(
+                    "TFO_IN",
+                    "TFO in | Received from: Kingston-upon-Thames Mags Court"
+                ),
+                tuple(
+                    DefendantTransactionType.WRTOFF.getLabel(),
+                    "Write-off | 2023-11-03T16:05:10 | FCOST 50.00 Created: 2023-11-03T16:05:10 | 3"
+                        + " | Unknown whereabouts | Written off after judgment"
+                ),
+                tuple(
+                    DefendantTransactionType.WRTOFF.getLabel(),
+                    "Write-off | Transferred out - 77"
+                ),
+                tuple(
+                    DefendantTransactionType.WRTOFF.getLabel(),
+                    "Write-off | "
+                ),
+                tuple(
+                    DefendantTransactionType.XFER.getLabel(),
+                    "Suspense transfer | Cheque cancelled to suspense"
+                ),
+                tuple(
+                    DefendantTransactionType.XFER.getLabel(),
+                    "Suspense transfer | Cheque cancelled to Central Fund"
+                ),
+                tuple(
+                    DefendantTransactionType.XFER.getLabel(),
+                    "Suspense transfer | "
+                )
+            );
         verifyMetadata(result);
     }
 
     @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-8827")
     void generateReportData_filterByIncludeAdult_returnResultsOfAdults() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
@@ -206,6 +306,7 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
     @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-8832")
     void generateReportData_filterByIncludeYouth_returnResultsOfYouth() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
@@ -238,6 +339,7 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
     @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-8836")
     void generateReportData_filterByIncludeCompany_returnResultsOfCompanies() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
@@ -269,6 +371,7 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
     @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-8837")
     void generateReportData_filterByParentOrGuardian_returnResultsWithParentOrGuardian() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
@@ -304,6 +407,8 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
         "WITH, true",
         "WITHOUT, false"
     })
+    @JiraTestKey(value = "PO-8820", name = "[1] collectionOrderChoice = \"WITH\", expectedValue = \"true\"")
+    @JiraTestKey(value = "PO-8821", name = "[2] collectionOrderChoice = \"WITHOUT\", expectedValue = \"false\"")
     void generateReportData_filterByCollectionOrderChoice_returnResults(
         String collectionOrderChoice,
         boolean expectedValue
@@ -343,6 +448,7 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
     @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-8818")
     void generateReportData_filterByAccountStatusLive_returnResults() {
         // Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
@@ -381,6 +487,7 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
     @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-8828")
     void generateReportData_filterByAccountStatusClosed_returnResults() {
         // Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
@@ -419,6 +526,7 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
     @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-8833")
     void generateReportData_filterByMinAndMaxBalance_returnSortedWithinMinAndMaxBalance() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
@@ -450,6 +558,7 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
     @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-8825")
     void generateReportData_filterByFirstPaymentOrPayByInNext7Days_returnsForAccountWithPaymentInNext7Days() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
@@ -504,6 +613,7 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
     @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-8823")
     void generateReportData_filterByNameRange_returnSortedWithinNameRange() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
@@ -533,6 +643,7 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
     @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-8829")
     void generateReportData_filterPaymentMadeSinceDate_returnSortedWithPaymentsMadeSinceDate() {
         // Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
@@ -593,6 +704,7 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
     @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-8835")
     void generateReportData_filterPaymentNotMadeSinceDate_returnAccountsWithoutPaymentsMadeSinceDate() {
         // Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
@@ -635,6 +747,7 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
     @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-8824")
     void generateReportData_filterNoPaymentSinceLastEnforcement_returnsAccountWithOnlyPaymentsBeforeLastEnforcement() {
         // Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
@@ -661,6 +774,7 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
     @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-8834")
     void generateReportData_filterPaymentWithRegf_returnsExpectedResults_whenPaymentMadeIsTrue() {
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
@@ -684,6 +798,7 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
     @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-8831")
     void generateReportData_filterPaymentWithRegf_returnsExpectedResults_whenPaymentMadeIsFalse() {
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
@@ -707,6 +822,7 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
     @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-8819")
     void generateReportData_combinesRegfFilterAndBaseFilters_returnsExpectedResults() {
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
@@ -732,6 +848,7 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
     @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-8838")
     void generateReportData_filterPaymentSinceLastEnforcement_returnsExpectedResults_whenPaymentMadeIsTrue() {
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
@@ -758,6 +875,7 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
     @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-8826")
     void generateReportData_combinesSinceLastEnforcementFilterAndBaseFilters_returnsExpectedResults() {
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
@@ -786,6 +904,7 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
     @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
+    @JiraTestKey("PO-8830")
     void generateReportData_filterPaymentSinceLastEnforcement_returnsExpectedResults_whenPaymentMadeIsFalse() {
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
@@ -809,5 +928,4 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
         verifyMetadata(result);
     }
 }
-
 

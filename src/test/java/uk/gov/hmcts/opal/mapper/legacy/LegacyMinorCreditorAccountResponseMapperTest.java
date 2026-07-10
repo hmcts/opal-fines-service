@@ -50,7 +50,7 @@ class LegacyMinorCreditorAccountResponseMapperTest {
             .organisationFlag(false)
             .individualDetails(IndividualDetails.builder()
                 .title("Ms")
-                .firstNames("Jane Mary")
+                .forenames("Jane Mary")
                 .surname("Smith")
                 .dateOfBirth(LocalDate.of(1990, 5, 21))
                 .age("34")

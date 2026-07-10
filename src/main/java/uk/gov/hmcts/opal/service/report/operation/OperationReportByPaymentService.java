@@ -17,14 +17,13 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.OperationReportSpecs;
 import uk.gov.hmcts.opal.service.report.FileType;
-import uk.gov.hmcts.opal.service.report.ReportDataInterface;
 import uk.gov.hmcts.opal.service.report.ReportId;
 import uk.gov.hmcts.opal.service.report.ReportInterface;
 import uk.gov.hmcts.opal.service.report.operation.mapper.DetailedResultMapper;
 
 @Service
 @RequiredArgsConstructor
-public class OperationReportByPaymentService implements ReportInterface {
+public class OperationReportByPaymentService implements ReportInterface<OperationDetailedReport> {
 
     private final DefendantAccountRepository defendantAccountRepository;
     private final DetailedResultMapper detailedResultMapper;
@@ -37,7 +36,7 @@ public class OperationReportByPaymentService implements ReportInterface {
     }
 
     @Override
-    public ReportDataInterface generateReportData(ReportInstanceEntity reportInstance) {
+    public OperationDetailedReport generateReportData(ReportInstanceEntity reportInstance) {
         OperationReportByPaymentFiltersDto filters = readFilters(reportInstance);
         validator.validate(filters);
         List<DefendantAccountEntity> baseAccounts = defendantAccountRepository.findAll(
@@ -71,6 +70,11 @@ public class OperationReportByPaymentService implements ReportInterface {
         };
     }
 
+    @Override
+    public Class<? extends OperationDetailedReport> getStoredReportDataClass(ReportInstanceEntity reportInstance) {
+        return OperationDetailedReport.class;
+    }
+
     private List<DefendantAccountEntity> applyBaseFilter(
         List<DefendantAccountEntity> accounts,
         Set<String> baseAccountNumbers
@@ -94,7 +98,7 @@ public class OperationReportByPaymentService implements ReportInterface {
     @Override
     public byte[] convertReportDataToFileType(
         ReportInstanceEntity reportInstance,
-        ReportDataInterface reportData,
+        OperationDetailedReport reportData,
         FileType fileType
     ) {
         throw new UnsupportedOperationException();

@@ -22,14 +22,12 @@
     {
       "description": "Organisation party",
       "properties": { "organisation_flag": { "const": true } },
-      "required": ["organisation_details"],
-      "not": { "required": ["individual_details"] }
+      "required": ["organisation_details"]
     },
     {
       "description": "Individual party",
       "properties": { "organisation_flag": { "const": false } },
-      "required": ["individual_details"],
-      "not": { "required": ["organisation_details"] }
+      "required": ["individual_details"]
     }
   ]
 }

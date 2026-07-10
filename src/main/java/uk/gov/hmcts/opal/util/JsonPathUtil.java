@@ -7,6 +7,7 @@ import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.PathNotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j(topic = "opal.JsonPathUtil")
@@ -108,6 +109,37 @@ public class JsonPathUtil {
                 return new BigDecimal(String.valueOf(value));
             }
             return new BigDecimal(String.valueOf(value));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static List<?> safeReadList(DocContext docContext, String path) {
+        try {
+            Object value = docContext.read(path);
+            if (value instanceof List<?> list) {
+                return list;
+            }
+            return null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static Long safeReadLong(DocContext docContext, String path) {
+        try {
+            Object value = docContext.read(path);
+            if (value == null) {
+                return null;
+            }
+            if (value instanceof Number number) {
+                return number.longValue();
+            }
+            String stringValue = String.valueOf(value).trim();
+            if (stringValue.isEmpty()) {
+                return null;
+            }
+            return Long.parseLong(stringValue);
         } catch (Exception e) {
             return null;
         }

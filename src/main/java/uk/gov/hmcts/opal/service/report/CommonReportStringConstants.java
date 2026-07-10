@@ -13,5 +13,6 @@ public class CommonReportStringConstants {
     public static final String COMMA_DELIMINATOR = ", ";
     public static final String DOUBLE_QUOTE = "\"";
     public static final String NEW_LINE = "\n";
+    public static final String SPACED_PIPE = " | ";
 
 }

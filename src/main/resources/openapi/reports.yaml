@@ -125,10 +125,12 @@ paths:
             type: array
             items:
               type: integer
+              format: int16
         - name: user_id
           in: query
           schema:
             type: integer
+            format: int64
         - name: report_id
           in: query
           schema:
@@ -299,6 +301,7 @@ components:
           minItems: 1
           items:
             type: integer
+            format: int16
         report_parameters:
           type: object
           additionalProperties: true
@@ -338,6 +341,13 @@ components:
           default: false
         report_parameters:
           type: object
+          description: >
+            Report-specific parameters and metadata. For `operational_report_enforcement`
+            and `operational_report_payment`, this includes
+            `business_unit_warning_threshold`, the centrally managed threshold used to
+            warn when too many business units are selected during report creation.
+          example:
+            business_unit_warning_threshold: 10
           additionalProperties: true
         supports_multiple_business_units:
           type: boolean
@@ -387,6 +397,7 @@ components:
           $ref: '#/components/schemas/status'
         number_of_records:
           type: integer
+          format: int64
         is_downloadable:
           type: boolean
         errors:
@@ -441,6 +452,7 @@ components:
             $ref: '#/components/schemas/status'
           number_of_records:
             type: integer
+            format: int64
           is_downloadable:
             type: boolean
           supported_file_types:
