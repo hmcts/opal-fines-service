@@ -6,6 +6,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import java.io.StringReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -135,6 +138,134 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
         assertEquals(BigInteger.ONE, out.getVersion());
         assertNotNull(out.getHistoryItems());
         assertEquals(0, out.getHistoryItems().size());
+    }
+
+    @Test
+    void getHistory_legacyXmlResponseUnmarshalsCamelCaseHistoryFields() throws JAXBException {
+        String legacyXml = """
+            <response>
+              <version>7</version>
+              <historyItems>
+                <historyItems_element>
+                  <postedDetails>
+                    <posted_date>2026-05-10T11:00:00</posted_date>
+                    <posted_by>legacy-amend</posted_by>
+                    <posted_by_name>Legacy Amend User</posted_by_name>
+                  </postedDetails>
+                  <type>Amendment</type>
+                  <details>
+                    <attributeName>Account status</attributeName>
+                    <oldValue>Old</oldValue>
+                    <newValue>New</newValue>
+                  </details>
+                </historyItems_element>
+                <historyItems_element>
+                  <postedDetails>
+                    <posted_date>2026-05-12T12:00:00</posted_date>
+                    <posted_by>legacy-fin</posted_by>
+                    <posted_by_name>Legacy Financial User</posted_by_name>
+                  </postedDetails>
+                  <type>Financial</type>
+                  <details>
+                    <transactionType>
+                      <transactionType>PAYMNT</transactionType>
+                      <transactionTypeDisplayName>Payment</transactionTypeDisplayName>
+                    </transactionType>
+                    <paymentMethod>
+                      <paymentMethod>NC</paymentMethod>
+                      <paymentMethodDisplayName>National cheque</paymentMethodDisplayName>
+                    </paymentMethod>
+                    <paymentReference>PAY123</paymentReference>
+                    <additionalInformation>Legacy payment</additionalInformation>
+                    <status>
+                      <defendantTransactionStatus>P</defendantTransactionStatus>
+                      <defendantTransactionStatusDisplayName>Partially-reversed</defendantTransactionStatusDisplayName>
+                    </status>
+                    <statusDate>2026-05-12T12:05:00</statusDate>
+                    <associatedRecordType>defendant_accounts</associatedRecordType>
+                    <associatedRecordId>99000000000001</associatedRecordId>
+                    <accountNumber>ACC-99000000000001</accountNumber>
+                    <sendingCourt>Legacy Court</sendingCourt>
+                  </details>
+                  <amount>-25.50</amount>
+                </historyItems_element>
+                <historyItems_element>
+                  <postedDetails>
+                    <posted_date>2026-05-12T13:00:00</posted_date>
+                    <posted_by>legacy-note</posted_by>
+                    <posted_by_name>Legacy Note User</posted_by_name>
+                  </postedDetails>
+                  <type>Note</type>
+                  <details>
+                    <noteText>Legacy account note</noteText>
+                  </details>
+                </historyItems_element>
+                <historyItems_element>
+                  <postedDetails>
+                    <posted_date>2026-05-12T09:30:00</posted_date>
+                    <posted_by>legacy-pt</posted_by>
+                    <posted_by_name>Legacy Terms User</posted_by_name>
+                  </postedDetails>
+                  <type>Payment terms</type>
+                  <details>
+                    <daysInDefault>7</daysInDefault>
+                    <date_days_in_default_imposed>2026-05-12</date_days_in_default_imposed>
+                    <reason_for_extension>Legacy extension</reason_for_extension>
+                    <payment_terms_type>
+                      <payment_terms_type_code>I</payment_terms_type_code>
+                    </payment_terms_type>
+                    <effective_date>2026-05-20</effective_date>
+                    <instalment_period>
+                      <installment_period_code>M</installment_period_code>
+                    </instalment_period>
+                    <lump_sum_amount>100.00</lump_sum_amount>
+                    <instalment_amount>25.00</instalment_amount>
+                  </details>
+                </historyItems_element>
+              </historyItems>
+            </response>
+            """;
+
+        GetDefendantAccountHistoryLegacyResponse response =
+            (GetDefendantAccountHistoryLegacyResponse) JAXBContext
+                .newInstance(GetDefendantAccountHistoryLegacyResponse.class)
+                .createUnmarshaller()
+                .unmarshal(new StringReader(legacyXml));
+
+        assertEquals(7L, response.getVersion());
+        assertEquals(4, response.getHistoryItems().size());
+
+        LegacyDefendantAccountHistoryItem amendment = response.getHistoryItems().get(0);
+        assertEquals(LocalDateTime.of(2026, 5, 10, 11, 0), amendment.getPostedDetails().getPostedDate());
+        assertEquals("Account status", amendment.getDetails().getAttributeName());
+        assertEquals("Old", amendment.getDetails().getOldValue());
+        assertEquals("New", amendment.getDetails().getNewValue());
+
+        LegacyDefendantAccountHistoryItem financial = response.getHistoryItems().get(1);
+        assertEquals(new BigDecimal("-25.50"), financial.getAmount());
+        assertEquals("PAYMNT", financial.getDetails().getTransactionType().getTransactionType());
+        assertEquals("NC", financial.getDetails().getPaymentMethod().getPaymentMethod());
+        assertEquals("PAY123", financial.getDetails().getPaymentReference());
+        assertEquals("P", financial.getDetails().getStatus().getDefendantTransactionStatus());
+        assertEquals(LocalDateTime.of(2026, 5, 12, 12, 5), financial.getDetails().getStatusDate());
+        assertEquals("99000000000001", financial.getDetails().getAssociatedRecordId());
+        assertEquals("ACC-99000000000001", financial.getDetails().getAccountNumber());
+        assertEquals("Legacy Court", financial.getDetails().getSendingCourt());
+
+        LegacyDefendantAccountHistoryItem note = response.getHistoryItems().get(2);
+        assertEquals("Legacy account note", note.getDetails().getNoteText());
+
+        LegacyDefendantAccountHistoryItem paymentTerms = response.getHistoryItems().get(3);
+        assertEquals(7, paymentTerms.getDetails().getDaysInDefault());
+        assertEquals(LocalDate.of(2026, 5, 12), paymentTerms.getDetails().getDateDaysInDefaultImposed());
+        assertEquals("Legacy extension", paymentTerms.getDetails().getReasonForExtension());
+        assertEquals(LegacyPaymentTermsType.PaymentTermsTypeCode.I,
+                     paymentTerms.getDetails().getPaymentTermsType().getPaymentTermsTypeCode());
+        assertEquals(LocalDate.of(2026, 5, 20), paymentTerms.getDetails().getEffectiveDate());
+        assertEquals(LegacyInstalmentPeriod.InstalmentPeriodCode.M,
+                     paymentTerms.getDetails().getInstalmentPeriod().getInstalmentPeriodCode());
+        assertEquals(new BigDecimal("100.00"), paymentTerms.getDetails().getLumpSumAmount());
+        assertEquals(new BigDecimal("25.00"), paymentTerms.getDetails().getInstalmentAmount());
     }
 
     private LegacyDefendantAccountHistoryItem amendmentItem() {

@@ -83,8 +83,8 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
     }
 
     @Test
-    @DisplayName("PO-2333 Legacy: INT.01 returns consolidated child accounts from legacy gateway")
-    @JiraStory("PO-2333")
+    @DisplayName("PO-2335 Legacy: INT.01 returns consolidated child accounts from legacy gateway")
+    @JiraStory("PO-2335")
     @JiraEpic("PO-1286")
     void getConsolidatedAccounts_whenLegacyMode_returnsGatewayPayload() throws Exception {
         ArgumentCaptor<LegacyGetDefendantAccountRequest> requestCaptor =
@@ -121,8 +121,8 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
     }
 
     @Test
-    @DisplayName("PO-2333 Legacy: INT.05 permits user with Search and View Accounts in the same business unit")
-    @JiraStory("PO-2333")
+    @DisplayName("PO-2335 Legacy: INT.05 permits user with Search and View Accounts in the same business unit")
+    @JiraStory("PO-2335")
     @JiraEpic("PO-1286")
     void getConsolidatedAccounts_whenPermissionInSameBusinessUnit_returnsOk() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext())
@@ -135,8 +135,8 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
     }
 
     @Test
-    @DisplayName("PO-2333 Legacy: INT.06 permits user with Search and View Accounts in a different business unit")
-    @JiraStory("PO-2333")
+    @DisplayName("PO-2335 Legacy: INT.06 permits user with Search and View Accounts in a different business unit")
+    @JiraStory("PO-2335")
     @JiraEpic("PO-1286")
     void getConsolidatedAccounts_whenPermissionInDifferentBusinessUnit_returnsOk() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext())
@@ -149,8 +149,8 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
     }
 
     @Test
-    @DisplayName("PO-2333 Legacy: INT.03 returns empty array when legacy has no child accounts")
-    @JiraStory("PO-2333")
+    @DisplayName("PO-2335 Legacy: INT.03 returns empty array when legacy has no child accounts")
+    @JiraStory("PO-2335")
     @JiraEpic("PO-1286")
     void getConsolidatedAccounts_whenLegacyReturnsNoChildren_returnsEmptyArray() throws Exception {
         when(gatewayService.postToGateway(
@@ -175,8 +175,8 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
     }
 
     @Test
-    @DisplayName("PO-2333 Legacy: INT.04 returns 404 when legacy gateway returns not found")
-    @JiraStory("PO-2333")
+    @DisplayName("PO-2335 Legacy: INT.04 returns 404 when legacy gateway returns not found")
+    @JiraStory("PO-2335")
     @JiraEpic("PO-1286")
     void getConsolidatedAccounts_whenLegacyGatewayReturnsNotFound_returnsNotFound() throws Exception {
         when(gatewayService.postToGateway(
@@ -197,8 +197,8 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
     }
 
     @Test
-    @DisplayName("PO-2333 Legacy: INT.07 returns 403 when user lacks Search and View Accounts")
-    @JiraStory("PO-2333")
+    @DisplayName("PO-2335 Legacy: INT.07 returns 403 when user lacks Search and View Accounts")
+    @JiraStory("PO-2335")
     @JiraEpic("PO-1286")
     void getConsolidatedAccounts_whenUserLacksPermission_returnsForbidden() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.noPermissionsUser());
@@ -215,8 +215,8 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
     }
 
     @Test
-    @DisplayName("PO-2333 Legacy: INT.08 returns 401 when credentials are missing")
-    @JiraStory("PO-2333")
+    @DisplayName("PO-2335 Legacy: INT.08 returns 401 when credentials are missing")
+    @JiraStory("PO-2335")
     @JiraEpic("PO-1286")
     void getConsolidatedAccounts_whenCredentialsMissing_returnsUnauthorized() throws Exception {
         doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
@@ -233,8 +233,8 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
     }
 
     @Test
-    @DisplayName("PO-2333 Legacy: INT.09 returns only documented consolidated account fields")
-    @JiraStory("PO-2333")
+    @DisplayName("PO-2335 Legacy: INT.09 returns only documented consolidated account fields")
+    @JiraStory("PO-2335")
     @JiraEpic("PO-1286")
     void getConsolidatedAccounts_returnsOnlyDocumentedFields() throws Exception {
         when(gatewayService.postToGateway(
@@ -258,6 +258,57 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toSet())
         );
+    }
+
+    @Test
+    @DisplayName("PO-2335 Legacy: invalid successful legacy response returns downstream server error")
+    @JiraStory("PO-2335")
+    @JiraEpic("PO-1286")
+    void getConsolidatedAccounts_whenLegacySuccessHasNoBody_returnsDownstreamServerError() throws Exception {
+        when(gatewayService.postToGateway(
+            eq(LegacyDefendantAccountService.GET_CONSOLIDATED_ACCOUNTS),
+            eq(LegacyGetDefendantAccountConsolidatedAccountsResponse.class),
+            any(),
+            isNull()
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, null, null, null));
+
+        performGetConsolidatedAccounts(233300L)
+            .andExpect(status().isInternalServerError())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.status").value(500))
+            .andExpect(jsonPath("$.title").value("Downstream Server Error"))
+            .andExpect(jsonPath("$.detail").value(
+                "Legacy consolidated-accounts response did not contain a body"))
+            .andExpect(jsonPath("$.retriable").value(true));
+    }
+
+    @Test
+    @DisplayName("PO-2335 Legacy: missing legacy response version returns downstream server error")
+    @JiraStory("PO-2335")
+    @JiraEpic("PO-1286")
+    void getConsolidatedAccounts_whenLegacySuccessHasNoVersion_returnsDownstreamServerError() throws Exception {
+        when(gatewayService.postToGateway(
+            eq(LegacyDefendantAccountService.GET_CONSOLIDATED_ACCOUNTS),
+            eq(LegacyGetDefendantAccountConsolidatedAccountsResponse.class),
+            any(),
+            isNull()
+        )).thenReturn(new GatewayService.Response<>(
+            HttpStatus.OK,
+            LegacyGetDefendantAccountConsolidatedAccountsResponse.builder()
+                .consolidatedAccounts(List.of())
+                .build(),
+            null,
+            null
+        ));
+
+        performGetConsolidatedAccounts(233300L)
+            .andExpect(status().isInternalServerError())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.status").value(500))
+            .andExpect(jsonPath("$.title").value("Downstream Server Error"))
+            .andExpect(jsonPath("$.detail").value(
+                "Legacy consolidated-accounts response did not contain a version"))
+            .andExpect(jsonPath("$.retriable").value(true));
     }
 
     private ResultActions performGetConsolidatedAccounts(Long defendantAccountId) throws Exception {

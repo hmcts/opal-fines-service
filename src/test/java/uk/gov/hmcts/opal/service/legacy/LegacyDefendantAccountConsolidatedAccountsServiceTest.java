@@ -21,6 +21,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
@@ -142,12 +143,13 @@ class LegacyDefendantAccountConsolidatedAccountsServiceTest {
             isNull()
         )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, null, null, null));
 
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        HttpServerErrorException exception = assertThrows(
+            HttpServerErrorException.class,
             () -> legacyDefendantAccountService.getConsolidatedAccounts(233300L)
         );
 
-        assertEquals("Legacy consolidated-accounts response did not contain a body", exception.getMessage());
+        assertEquals(HttpStatus.BAD_GATEWAY, exception.getStatusCode());
+        assertEquals("Legacy consolidated-accounts response did not contain a body", exception.getStatusText());
     }
 
     @Test
@@ -164,12 +166,13 @@ class LegacyDefendantAccountConsolidatedAccountsServiceTest {
             isNull()
         )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null));
 
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        HttpServerErrorException exception = assertThrows(
+            HttpServerErrorException.class,
             () -> legacyDefendantAccountService.getConsolidatedAccounts(233300L)
         );
 
-        assertEquals("Legacy consolidated-accounts response did not contain a version", exception.getMessage());
+        assertEquals(HttpStatus.BAD_GATEWAY, exception.getStatusCode());
+        assertEquals("Legacy consolidated-accounts response did not contain a version", exception.getStatusText());
     }
 
     @Test
