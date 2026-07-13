@@ -1,16 +1,22 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.hamcrest.Matchers.hasItem;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.clearInvocations;
+import static uk.gov.hmcts.opal.support.SpyInvocationSupport.countInvocationsByMethodName;
+
 import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -29,6 +35,9 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/enforcers";
+
+    @MockitoSpyBean
+    private EnforcerRepository enforcerRepository;
 
     @Test
     @JiraStory("PO-304")
@@ -134,4 +143,28 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[?(@.enforcer_id == 1)].enforcer_code").value(hasItem(1)))
             .andExpect(jsonPath("$.refData[?(@.enforcer_id == 1)].name").value(hasItem("AAA Enforcers")));
     }
+
+    @Test
+    @DisplayName("Get Enforcer Ref Data uses cache on repeated identical request")
+    @JiraStory("PO-7248")
+    @JiraEpic("PO-8248")
+    void testGetEnforcerRefData_usesCacheOnRepeatedRequest() throws Exception {
+        clearInvocations(enforcerRepository);
+
+        String firstBody = performRequest();
+        String secondBody = performRequest();
+
+        assertEquals(firstBody, secondBody);
+        assertEquals(1, countInvocationsByMethodName(enforcerRepository, "findBy"));
+    }
+
+    private String performRequest() throws Exception {
+        return mockMvc.perform(get(URL_BASE)
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    }
+
 }
