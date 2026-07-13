@@ -1,0 +1,15 @@
+NOTICE:  === Cleanup data before tests ===
+NOTICE:  Cleanup completed
+NOTICE:  === Setting up test data ===
+NOTICE:  Test data setup completed
+NOTICE:  === TEST 1: p_insert_interface_message stores required message values ===
+NOTICE:  TEST 1 PASSED
+NOTICE:  === TEST 2: p_insert_interface_message stores optional message values and message_data ===
+NOTICE:  TEST 2 PASSED
+NOTICE:  === TEST 3: p_insert_interface_message truncates message_text to 500 characters ===
+NOTICE:  TEST 3 PASSED
+NOTICE:  === Cleanup test data ===
+NOTICE:  Test data cleanup completed
+DO
+
+Query returned successfully in 56 msec.
