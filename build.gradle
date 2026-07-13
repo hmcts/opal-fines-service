@@ -805,12 +805,12 @@ repositories {
 
 ext['snakeyaml.version'] = '2.0'
 ext['tomcat.version'] = '10.1.42'
-ext['postgresql.version'] = '42.7.11'
+ext['postgresql.version'] = '42.7.13'
 
 
 dependencies {
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.3.19'
+  implementation 'uk.gov.hmcts:opal-common-lib:0.3.23'
 
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.2.1'
   testImplementation 'uk.gov.hmcts:zephyr-automation:1.2.1'
@@ -940,8 +940,8 @@ dependencies {
 
 
   //Added to override dependency version to resolve vulnerability
-  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.23'
-  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.23'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.24'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.24'
   implementation 'org.apache.commons:commons-lang3:3.20.0'
 
 

@@ -52,6 +52,7 @@ class Release1bFeatureToggleDisabledIntegrationTest extends AbstractIntegrationT
     @JiraTestKey(value = "PO-8542", name = "\"Get Minor Creditor History\"")
     @JiraTestKey(value = "PO-8543", name = "\"Patch Minor Creditor Account\"")
     @JiraTestKey(value = "PO-8544", name = "\"Get Result By Id\"")
+    @JiraTestKey(value = "PO-2333", name = "\"Get Defendant Account Consolidated Accounts\"")
     void shouldReturnFeatureDisabledProblemWhenRelease1bIsDisabled(String endpointName, RequestBuilder request)
         throws Exception {
         mockMvc.perform(request)
