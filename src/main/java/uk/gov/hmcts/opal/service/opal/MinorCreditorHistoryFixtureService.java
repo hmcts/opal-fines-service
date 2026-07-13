@@ -54,7 +54,7 @@ public class MinorCreditorHistoryFixtureService {
         insertCreditorAccount(creditorAccountId, partyId, creditorAccountNumber);
         insertDefendantAccount(defendantAccountId, defendantAccountNumber);
         insertImposition(defendantAccountId, creditorAccountId, excludedDate);
-        insertHistory(creditorAccountId, defendantAccountId, excludedDate, dateFrom, dateTo, creditorAccountNumber);
+        insertHistory(creditorAccountId, defendantAccountId, excludedDate, dateFrom, dateTo);
 
         return MinorCreditorHistoryFixture.builder()
             .creditorAccountId(creditorAccountId)
@@ -198,20 +198,19 @@ public class MinorCreditorHistoryFixtureService {
         long defendantAccountId,
         LocalDate excludedDate,
         LocalDate dateFrom,
-        LocalDate dateTo,
-        String creditorAccountNumber) {
+        LocalDate dateTo) {
 
         insertAmendment(creditorAccountId, dateTo, 41, "hold-old", "hold-new");
-        insertTransaction(creditorAccountId, defendantAccountId, dateTo, creditorAccountNumber, "MCHNEW", 30);
+        insertTransaction(creditorAccountId, defendantAccountId, dateTo, "MCHNEW", 30);
         insertNote(creditorAccountId, dateTo, "Newest minor creditor fixture note");
 
-        insertTransaction(creditorAccountId, defendantAccountId, excludedDate, creditorAccountNumber, "MCHOLD", 10);
+        insertTransaction(creditorAccountId, defendantAccountId, excludedDate, "MCHOLD", 10);
         insertNote(creditorAccountId, excludedDate, "Excluded minor creditor fixture note");
         insertAmendment(creditorAccountId, excludedDate, 43, "sort-old", "sort-new");
 
         insertNote(creditorAccountId, dateFrom, "Inside minor creditor fixture note");
         insertAmendment(creditorAccountId, dateFrom, 42, "bacs-old", "bacs-new");
-        insertTransaction(creditorAccountId, defendantAccountId, dateFrom, creditorAccountNumber, "MCHIN", 20);
+        insertTransaction(creditorAccountId, defendantAccountId, dateFrom, "MCHIN", 20);
     }
 
     private void insertAmendment(
@@ -264,7 +263,6 @@ public class MinorCreditorHistoryFixtureService {
         long creditorAccountId,
         long defendantAccountId,
         LocalDate postedDate,
-        String creditorAccountNumber,
         String reference,
         int amount) {
 

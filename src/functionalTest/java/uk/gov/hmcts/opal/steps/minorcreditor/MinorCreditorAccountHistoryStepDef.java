@@ -28,6 +28,7 @@ import java.util.Set;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -97,7 +98,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
         responseAssertions.assertStatus(response, 200);
 
         JsonNode body = readJson(response);
-        createdMinorCreditorAccountId = assertLong(body.path("creditor_account_id"), "creditor_account_id");
+        createdMinorCreditorAccountId = assertLong(body.path("creditor_account_id"));
         rememberedDateFrom = LocalDate.parse(assertText(body.path("date_from"), "date_from"));
         rememberedDateTo = LocalDate.parse(assertText(body.path("date_to"), "date_to"));
         excludedDate = LocalDate.parse(assertText(body.path("excluded_date"), "excluded_date"));
@@ -178,7 +179,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
         assertEquals(Set.of("historyItems"), fieldNames(root), "Unexpected top-level history response fields");
         JsonNode historyItems = root.path("historyItems");
         assertTrue(historyItems.isArray(), "historyItems should be an array");
-        assertTrue(historyItems.size() > 0, "historyItems should contain created account history");
+        assertFalse(historyItems.isEmpty(), "historyItems should contain created account history");
 
         for (JsonNode historyItem : historyItems) {
             validateHistoryItem(historyItem);
@@ -202,22 +203,6 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
                 "Expected at least " + expectedMinimum + " " + type + " item(s), found " + actual
             );
         });
-    }
-
-    /**
-     * Stores the oldest and newest posted dates from the latest history response.
-     *
-     * @throws Exception if the response body cannot be parsed as JSON.
-     */
-    @Then("I remember the returned minor creditor account history date range")
-    public void rememberReturnedMinorCreditorHistoryDateRange() throws Exception {
-        List<LocalDate> postedDates = historyItems().stream()
-            .map(this::postedDateOf)
-            .toList();
-
-        assertFalse(postedDates.isEmpty(), "History response should contain dates to remember");
-        rememberedDateFrom = postedDates.stream().min(LocalDate::compareTo).orElseThrow();
-        rememberedDateTo = postedDates.stream().max(LocalDate::compareTo).orElseThrow();
     }
 
     /**
@@ -265,10 +250,8 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
         assertExcludedDate();
 
         for (JsonNode historyItem : historyItems()) {
-            assertFalse(
-                excludedDate.equals(postedDateOf(historyItem)),
-                "History item outside the requested date range was returned"
-            );
+            assertNotEquals(excludedDate, postedDateOf(historyItem),
+                "History item outside the requested date range was returned");
         }
     }
 
@@ -342,12 +325,10 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
      * Asserts the latest error response follows the shared ProblemDetail contract.
      *
      * @param expectedStatus expected HTTP status code.
-     * @throws Exception if the response body cannot be parsed as JSON.
      */
     @Then("the minor creditor account history error response matches the standard problem detail contract for "
         + "status {int}")
-    public void minorCreditorHistoryErrorResponseMatchesStandardProblemDetailContract(int expectedStatus)
-        throws Exception {
+    public void minorCreditorHistoryErrorResponseMatchesStandardProblemDetailContract(int expectedStatus) {
 
         Response response = net.serenitybdd.rest.SerenityRest.lastResponse();
         assertEquals(expectedStatus, response.statusCode(), "Unexpected HTTP status");
@@ -385,7 +366,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
         }
     }
 
-    private Response getHistory(String token, long accountId, String query) {
+    private void getHistory(String token, long accountId, String query) {
         RequestSpecification request = given()
             .accept("*/*")
             .contentType("application/json");
@@ -394,7 +375,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
             request.header(HttpHeaders.AUTHORIZATION, "Bearer " + token);
         }
 
-        return request
+        request
             .when()
             .get(getTestUrl() + HISTORY_PATH.formatted(accountId) + querySuffix(query));
     }
@@ -417,7 +398,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
         return 91_000_000_000_000L + Math.abs(System.nanoTime() % 10_000_000_000L);
     }
 
-    private JsonNode latestJsonBody() throws Exception {
+    private JsonNode latestJsonBody() {
         return OBJECT_MAPPER.readTree(net.serenitybdd.rest.SerenityRest.lastResponse().getBody().asString());
     }
 
@@ -489,12 +470,12 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     }
 
     private String assertText(JsonNode node, String fieldName) {
-        assertTrue(node.isTextual(), fieldName + " should be a string");
-        return node.asText();
+        assertTrue(node.isString(), fieldName + " should be a string");
+        return node.asString();
     }
 
-    private Long assertLong(JsonNode node, String fieldName) {
-        assertTrue(node.isIntegralNumber(), fieldName + " should be an integer");
+    private Long assertLong(JsonNode node) {
+        assertTrue(node.isIntegralNumber(), "creditor_account_id" + " should be an integer");
         return node.asLong();
     }
 
