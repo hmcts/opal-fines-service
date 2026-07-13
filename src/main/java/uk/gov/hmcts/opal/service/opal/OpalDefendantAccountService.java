@@ -117,14 +117,13 @@ import uk.gov.hmcts.opal.repository.SearchDefendantBasicRepository;
 import uk.gov.hmcts.opal.repository.SearchDefendantConsolidatedRepository;
 import uk.gov.hmcts.opal.repository.jpa.SearchBasicEntitySpecs;
 import uk.gov.hmcts.opal.repository.jpa.SearchConsolidatedEntitySpecs;
+import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.opal.history.defendant.DefendantAccountHistoryService;
-import uk.gov.hmcts.opal.service.iface.ReportEntryServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountHeaderViewRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountSummaryViewRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.PartyRepositoryService;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
 @Service
@@ -183,7 +182,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final ResultService resultService;
 
-    private final ReportEntryServiceInterface reportEntryService;
+    private final ReportEntryService reportEntryService;
 
     private final DefendantAccountHistoryService defendantAccountHistoryService;
 
