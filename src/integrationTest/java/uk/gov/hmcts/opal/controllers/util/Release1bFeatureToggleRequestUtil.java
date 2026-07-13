@@ -160,6 +160,10 @@ public final class Release1bFeatureToggleRequestUtil {
                 getWithAuthorization("/defendant-accounts/" + DEFENDANT_ACCOUNT_ID + "/enforcement-status")
             ),
             Arguments.of(
+                "Get Defendant Account Consolidated Accounts",
+                getWithAuthorization("/defendant-accounts/" + DEFENDANT_ACCOUNT_ID + "/consolidated-accounts")
+            ),
+            Arguments.of(
                 "Add Defendant Account Enforcement",
                 postJsonWithBusinessHeaders("/defendant-accounts/" + DEFENDANT_ACCOUNT_ID + "/enforcements", """
                     {

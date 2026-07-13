@@ -9,11 +9,13 @@ Feature: Content-Digest handling
 
   @JIRA-TEST-KEY:PO-5777
   Scenario: Valid request Content-Digest succeeds
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a content digest request with a valid Content-Digest header
     Then The content digest response returns 200
 
   @JIRA-TEST-KEY:PO-5778
   Scenario: Invalid request Content-Digest returns a problem response
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a content digest request with an invalid Content-Digest header
     Then The content digest response returns 400
     And The content digest response contains the following
@@ -22,6 +24,7 @@ Feature: Content-Digest handling
 
   @JIRA-TEST-KEY:PO-5779
   Scenario: Malformed request Content-Digest returns a problem response
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a content digest request with a malformed Content-Digest header
     Then The content digest response returns 400
     And The content digest response contains the following

@@ -1,25 +1,30 @@
 package uk.gov.hmcts.opal.controllers;
 
-import org.springframework.test.web.servlet.MvcResult;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import org.springframework.test.web.servlet.MvcResult;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
 
 abstract class AbstractContentDigestIntegrationTest extends AbstractIntegrationTest {
 
     protected static final String CONTENT_DIGEST = "Content-Digest";
     protected static final String ROOT_ENDPOINT = "/";
+    protected static final String POST_ENDPOINT = "/business-units/search";
+    protected static final String POST_BODY = "{}";
 
     private static final byte[] EMPTY_BODY = new byte[0];
 
     protected static String validEmptyBodyDigest() throws NoSuchAlgorithmException {
         return contentDigestHeaderFor(EMPTY_BODY);
+    }
+
+    protected static String validPostBodyDigest() throws NoSuchAlgorithmException {
+        return contentDigestHeaderFor(POST_BODY.getBytes(StandardCharsets.UTF_8));
     }
 
     protected static String invalidDigest() throws NoSuchAlgorithmException {
