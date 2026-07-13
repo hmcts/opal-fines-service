@@ -29,7 +29,6 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
@@ -83,28 +82,6 @@ class OpalDefendantAccountServiceCoreTest {
     private OpalDefendantAccountFixedPenaltyService fpService;
     @InjectMocks
     private OpalDefendantAccountEnforcementService enforcementService;
-
-    @Test
-    void testDefendantAccountById() {
-        long testId = 1L;
-
-        DefendantAccountEntity entity = DefendantAccountEntity.builder().build();
-        when(defendantAccountRepository.findById(testId)).thenReturn(Optional.ofNullable(entity));
-
-        DefendantAccountEntity result = service.getDefendantAccountById(testId);
-        assertNotNull(result);
-    }
-
-    @Test
-    void testGetDefendantAccountSummaryViewById() {
-        long testId = 1L;
-
-        DefendantAccountSummaryViewEntity viewEntity = DefendantAccountSummaryViewEntity.builder().build();
-        when(dasvRepository.findById(testId)).thenReturn(java.util.Optional.of(viewEntity));
-
-        DefendantAccountSummaryViewEntity result = service.getDefendantAccountSummaryViewById(testId);
-        assertNotNull(result);
-    }
 
     @Test
     void getConsolidatedAccounts_whenMasterExists_returnsWrappedPayloadWithMasterVersion() {
