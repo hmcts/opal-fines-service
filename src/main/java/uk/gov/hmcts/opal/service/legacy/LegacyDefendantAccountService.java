@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.legacy;
 
-import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountBuilders.toConsolidatedAccountsResponse;
 import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountBuilders.toEnforcementStatusResponse;
 
 import java.math.BigDecimal;
@@ -94,6 +93,7 @@ import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PaymentStateSummaryCommon;
 import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountHistoryLegacyResponseMapper;
+import uk.gov.hmcts.opal.mapper.legacy.LegacyConsolidatedAccountMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 import uk.gov.hmcts.opal.repository.jpa.SpecificationUtils;
@@ -133,6 +133,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
     /* ---- Mappers ---- */
     private final DefendantAccountHistoryLegacyResponseMapper legacyDefendantAccountHistoryResponseMapper;
+    private final LegacyConsolidatedAccountMapper legacyConsolidatedAccountMapper;
     private final UpdateDefendantAccountRequestMapper updateDefendantAccountRequestMapper;
     private final LegacyUpdateDefendantAccountResponseMapper legacyUpdateDefendantAccountResponseMapper;
 
@@ -171,7 +172,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
             checkResponseForError(response, "getConsolidatedAccounts");
 
-            return toConsolidatedAccountsResponse(response.responseEntity);
+            return legacyConsolidatedAccountMapper.toResponse(response.responseEntity);
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode().isSameCodeAs(HttpStatus.NOT_FOUND)) {
                 throw new DefendantAccountNotFoundException(defendantAccountId);

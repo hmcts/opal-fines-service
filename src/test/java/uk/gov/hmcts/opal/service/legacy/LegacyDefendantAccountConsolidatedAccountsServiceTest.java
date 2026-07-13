@@ -18,7 +18,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mapstruct.factory.Mappers;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
@@ -28,6 +30,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountConsolidatedAccount
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountRequest;
 import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountHistoryLegacyResponseMapper;
+import uk.gov.hmcts.opal.mapper.legacy.LegacyConsolidatedAccountMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 import uk.gov.hmcts.opal.service.opal.CourtService;
@@ -54,6 +57,10 @@ class LegacyDefendantAccountConsolidatedAccountsServiceTest {
 
     @Mock
     private DefendantAccountHistoryLegacyResponseMapper legacyDefendantAccountHistoryResponseMapper;
+
+    @Spy
+    private LegacyConsolidatedAccountMapper legacyConsolidatedAccountMapper =
+        Mappers.getMapper(LegacyConsolidatedAccountMapper.class);
 
     @Mock
     private UpdateDefendantAccountRequestMapper updateDefendantAccountRequestMapper;
