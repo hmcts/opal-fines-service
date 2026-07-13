@@ -167,10 +167,9 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
      * Asserts the successful response follows the documented history contract and local JSON
      * schema resource derived from the OpenAPI history schema.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
      */
     @Then("the minor creditor account history response is returned as documented")
-    public void minorCreditorHistoryResponseIsReturnedAsDocumented() throws Exception {
+    public void minorCreditorHistoryResponseIsReturnedAsDocumented() {
         Response response = net.serenitybdd.rest.SerenityRest.lastResponse();
         responseAssertions.assertStatus(response, 200);
         schemaValidationService.validateOrError(response.getBody().asString(), HISTORY_RESPONSE_SCHEMA);
@@ -351,10 +350,9 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     /**
      * Asserts error responses do not contain account history data.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
      */
     @Then("the minor creditor account history error response contains no account data")
-    public void minorCreditorHistoryErrorResponseContainsNoAccountData() throws Exception {
+    public void minorCreditorHistoryErrorResponseContainsNoAccountData() {
         JsonNode root = latestJsonBody();
         assertTrue(root.path("historyItems").isMissingNode(), "Error response should not include historyItems");
         if (createdMinorCreditorAccountId != null) {
@@ -410,7 +408,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
         }
     }
 
-    private List<JsonNode> historyItems() throws Exception {
+    private List<JsonNode> historyItems() {
         JsonNode historyItems = latestJsonBody().path("historyItems");
         assertTrue(historyItems.isArray(), "historyItems should be an array");
 
