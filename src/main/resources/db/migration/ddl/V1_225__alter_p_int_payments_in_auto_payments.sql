@@ -63,6 +63,7 @@ DECLARE
     k_msg_records_rejected interface_messages.message_text%TYPE := 'records_rejected';
     k_msg_records_ignored interface_messages.message_text%TYPE := 'records_ignored';
     k_msg_records_ignored_rejected interface_messages.message_text%TYPE := 'records_ignored_rejected';
+    k_summary_till text := 'Till allocated: ';
     k_msg_type_info interface_messages.message_type%TYPE := 'Info';
     k_msg_type_warn interface_messages.message_type%TYPE := 'Warning';
     k_msg_type_exc interface_messages.message_type%TYPE := 'Exception';
@@ -91,6 +92,7 @@ DECLARE
     v_total_fines numeric(18,2) := 0;
     v_total_suspense numeric(18,2) := 0;
     v_till_number tills.till_number%TYPE;
+    v_interface_file_id interface_files.interface_file_id%TYPE;
 BEGIN
     SELECT business_unit_id,
            interface_name
@@ -183,6 +185,7 @@ BEGIN
         v_msg_data := NULL;
         v_record_detail := r_payment.record_json::text;
         v_payment_amount := round((r_payment.amount_pence / 100.00), 2);
+        v_interface_file_id := r_payment.interface_file_id;
         v_count_processed := v_count_processed + 1;
         v_total_processed := v_total_processed + r_payment.amount_pence;
 
@@ -430,6 +433,19 @@ BEGIN
         END IF;
     END LOOP;
 
+    -- job summary messages
+    IF v_till_number IS NOT NULL THEN
+        CALL p_insert_interface_message(
+            pi_interface_job_id,
+            k_msg_type_info,
+            k_summary_till||v_till_number::text,
+            v_interface_file_id,
+            NULL,
+            NULL,
+            NULL
+        );
+    END IF;
+
     IF po_till_id IS NOT NULL THEN
         UPDATE tills
         SET    total_amount = v_total_accepted,
@@ -442,7 +458,7 @@ BEGIN
         pi_interface_job_id,
         k_msg_type_info,
         k_msg_records_read,
-        NULL,
+        v_interface_file_id,
         NULL,
         NULL,
         json_build_object('number', v_count_processed, 'value', round(v_total_processed / 100.00, 2))
@@ -451,7 +467,7 @@ BEGIN
         pi_interface_job_id,
         k_msg_type_info,
         k_msg_records_accepted,
-        NULL,
+        v_interface_file_id,
         NULL,
         NULL,
         json_build_object('number', v_count_accepted, 'value', v_total_accepted)
@@ -460,7 +476,7 @@ BEGIN
         pi_interface_job_id,
         k_msg_type_info,
         k_msg_records_fines,
-        NULL,
+        v_interface_file_id,
         NULL,
         NULL,
         json_build_object('number', v_count_fines, 'value', v_total_fines)
@@ -469,7 +485,7 @@ BEGIN
         pi_interface_job_id,
         k_msg_type_info,
         k_msg_records_suspense,
-        NULL,
+        v_interface_file_id,
         NULL,
         NULL,
         json_build_object('number', v_count_suspense, 'value', v_total_suspense)
@@ -480,7 +496,7 @@ BEGIN
             pi_interface_job_id,
             k_msg_type_info,
             k_msg_records_rejected,
-            NULL,
+            v_interface_file_id,
             NULL,
             NULL,
             json_build_object('number', v_count_rejected, 'value', round(v_total_rejected / 100.00, 2))
@@ -492,7 +508,7 @@ BEGIN
             pi_interface_job_id,
             k_msg_type_info,
             k_msg_records_ignored,
-            NULL,
+            v_interface_file_id,
             NULL,
             NULL,
             json_build_object('number', v_count_ignored, 'value', 0)
@@ -503,7 +519,7 @@ BEGIN
         pi_interface_job_id,
         k_msg_type_info,
         k_msg_records_ignored_rejected,
-        NULL,
+        v_interface_file_id,
         NULL,
         NULL,
         json_build_object(
