@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
+import uk.gov.hmcts.opal.entity.ImpositionCategoriesEntity;
 import uk.gov.hmcts.opal.entity.result.ImpositionCreditor;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.result.ResultType;
@@ -47,6 +48,10 @@ class ResultMapperTest {
     @Test
     void toRefDataFromFull_shouldMapFullEntityToDto() {
         // Arrange
+        ImpositionCategoriesEntity finesCategory = ImpositionCategoriesEntity.builder()
+            .impositionCategory("Fines")
+            .build();
+
         ResultEntity entity = ResultEntity.builder()
             .resultId("R456")
             .resultTitle("Full Result")
@@ -57,7 +62,7 @@ class ResultMapperTest {
             .impositionCreditor(ImpositionCreditor.ANY)
             // Include additional fields present only in Full entity
             .imposition(true)
-            .impositionCategory("Fines")
+            .impositionCategory(finesCategory)
             .impositionAccruing(false)
             .build();
 
@@ -111,7 +116,11 @@ class ResultMapperTest {
 
     @Test
     void toDto_shouldMapLiteEntityToFullResultDto() {
-        // Arrange — build full entity
+        // Arrange
+        ImpositionCategoriesEntity compensationCategory = ImpositionCategoriesEntity.builder()
+            .impositionCategory("Compensation")
+            .build();
+
         ResultEntity entity = ResultEntity.builder()
             .resultId("R999")
             .resultTitle("Full Title")
@@ -121,7 +130,7 @@ class ResultMapperTest {
             .impositionAllocationPriority((short) 3)
             .impositionCreditor(ImpositionCreditor.CF)
             .imposition(true)
-            .impositionCategory("Compensation")
+            .impositionCategory(compensationCategory)
             .impositionAccruing(false)
             .enforcement(true)
             .enforcementOverride(false)
@@ -158,7 +167,7 @@ class ResultMapperTest {
         assertEquals(entity.getImpositionAllocationPriority(), dto.getImpositionAllocationPriority());
         assertEquals(entity.getImpositionCreditor().getLabel(), dto.getImpositionCreditor());
         assertEquals(entity.isImposition(), dto.isImposition());
-        assertEquals(entity.getImpositionCategory(), dto.getImpositionCategory());
+        assertEquals("Compensation", dto.getImpositionCategory());
         assertEquals(entity.getImpositionAccruing(), dto.getImpositionAccruing());
         assertEquals(entity.isEnforcement(), dto.isEnforcement());
         assertEquals(entity.isEnforcementOverride(), dto.isEnforcementOverride());

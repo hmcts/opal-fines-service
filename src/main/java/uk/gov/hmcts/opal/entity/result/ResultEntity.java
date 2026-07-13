@@ -6,6 +6,8 @@ import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedAttributeNode;
 import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.OneToMany;
@@ -19,6 +21,7 @@ import org.hibernate.annotations.ColumnTransformer;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.converter.ImpositionCreditorConverter;
 import uk.gov.hmcts.opal.entity.converter.ResultTypeConverter;
+import uk.gov.hmcts.opal.entity.ImpositionCategoriesEntity;
 
 import java.util.List;
 
@@ -34,7 +37,8 @@ import java.util.List;
 @NamedEntityGraph(
     name = ResultEntity.ENTITY_GRAPH_FULL,
     attributeNodes = {
-        @NamedAttributeNode("enforcements")
+        @NamedAttributeNode("enforcements"),
+        @NamedAttributeNode("impositionCategory")
     }
 )
 public class ResultEntity {
@@ -72,8 +76,9 @@ public class ResultEntity {
     @Column(name = "imposition", nullable = false)
     private boolean imposition;
 
-    @Column(name = "imposition_category", length = 30)
-    private String impositionCategory;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "imposition_category", referencedColumnName = "imposition_category")
+    private ImpositionCategoriesEntity impositionCategory;
 
     @Column(name = "imposition_accruing")
     private Boolean impositionAccruing;

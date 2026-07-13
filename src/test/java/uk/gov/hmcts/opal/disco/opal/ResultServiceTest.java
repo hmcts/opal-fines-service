@@ -251,7 +251,7 @@ class ResultServiceTest {
             .requiresEmploymentData(true)
             .build();
 
-        when(resultRepository.findById("ABC")).thenReturn(Optional.of(entity));
+        when(resultRepository.findWithFullGraphByResultId("ABC")).thenReturn(Optional.of(entity));
         when(resultMapper.toDto(entity)).thenReturn(dto);
 
         // Act
@@ -262,7 +262,7 @@ class ResultServiceTest {
         assertEquals("ABC", result.getResultId());
         assertEquals("Result Title", result.getResultTitle());
         assertEquals(true, result.getRequiresEmploymentData());
-        verify(resultRepository).findById("ABC");
+        verify(resultRepository).findWithFullGraphByResultId("ABC");
         verify(resultMapper).toDto(entity);
     }
 
@@ -294,7 +294,7 @@ class ResultServiceTest {
             .resultParameters(resultParameters)
             .build();
 
-        when(resultRepository.findById("ABC")).thenReturn(Optional.of(entity));
+        when(resultRepository.findWithFullGraphByResultId("ABC")).thenReturn(Optional.of(entity));
         when(resultMapper.toDto(entity)).thenReturn(dto);
 
         // Act
@@ -339,7 +339,7 @@ class ResultServiceTest {
             .resultParameters(resultParameters)
             .build();
 
-        when(resultRepository.findById("ABC")).thenReturn(Optional.of(entity));
+        when(resultRepository.findWithFullGraphByResultId("ABC")).thenReturn(Optional.of(entity));
         when(resultMapper.toDto(entity)).thenReturn(dto);
 
         // Act
@@ -380,7 +380,7 @@ class ResultServiceTest {
             .resultParameters(resultParameters)
             .build();
 
-        when(resultRepository.findById("ABC")).thenReturn(Optional.of(entity));
+        when(resultRepository.findWithFullGraphByResultId("ABC")).thenReturn(Optional.of(entity));
         when(resultMapper.toDto(entity)).thenReturn(dto);
 
         // Act
@@ -396,7 +396,7 @@ class ResultServiceTest {
     @Test
     void testGetResult_ThrowsWhenNotFound() {
         // Arrange
-        when(resultRepository.findById("MISSING")).thenReturn(Optional.empty());
+        when(resultRepository.findWithFullGraphByResultId("MISSING")).thenReturn(Optional.empty());
 
         // Act + Assert
         org.junit.jupiter.api.Assertions.assertThrows(
