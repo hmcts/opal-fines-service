@@ -10,6 +10,7 @@ import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyNote;
+import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.iface.NotesServiceInterface;
 
 @Service
@@ -21,13 +22,13 @@ public class LegacyNotesService implements NotesServiceInterface {
     private final GatewayService gatewayService;
 
     @Override
-    public String addNote(AddNoteRequest request, String ifMatch, UserState user, Short businessUnitId) {
+    public String addNote(AddNoteRequest request, String ifMatch, UserState user, AccountNoteContext target) {
         log.info(":LegacyAddNote");
 
         GatewayService.Response<LegacyAddNoteResponse> response = gatewayService.postToGateway(
             ADD_NOTE,
             LegacyAddNoteResponse.class,
-            createRequest(request, ifMatch, user, businessUnitId),
+            createRequest(request, ifMatch, user, target.businessUnitId()),
             null
         );
 
@@ -49,13 +50,13 @@ public class LegacyNotesService implements NotesServiceInterface {
     }
 
     private LegacyAddNoteRequest createRequest(AddNoteRequest request, String version, UserState user,
-                                               Short defendantBusinessUnitId) {
+                                               Short businessUnitId) {
 
         LegacyNote note = LegacyNote.builder().noteText(request.getActivityNote().getNoteText())
             .noteType(request.getActivityNote().getNoteType()).recordType(request.getActivityNote().getRecordType())
             .recordId(request.getActivityNote().getRecordId()).build();
 
-        return LegacyAddNoteRequest.builder().businessUnitId(defendantBusinessUnitId)
+        return LegacyAddNoteRequest.builder().businessUnitId(businessUnitId)
             .businessUnitUserId(user.getUserId()).version(new BigInteger(version)).activityNote(note).build();
     }
 }
