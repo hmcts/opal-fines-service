@@ -5,6 +5,7 @@ import static uk.gov.hmcts.opal.util.VersionUtils.createETag;
 import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.Optional;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -287,6 +288,7 @@ public class GlobalExceptionHandler {
         return builder.body(problemDetail);
     }
 
+    @Getter
     public static class PaymentCardRequestAlreadyExistsException extends RuntimeException {
 
         private final String resourceType;
@@ -302,18 +304,6 @@ public class GlobalExceptionHandler {
 
         public PaymentCardRequestAlreadyExistsException(String resourceType, String resourceId) {
             this(resourceType, resourceId, null);
-        }
-
-        public String getResourceType() {
-            return resourceType;
-        }
-
-        public String getResourceId() {
-            return resourceId;
-        }
-
-        public Versioned getVersioned() {
-            return versioned;
         }
     }
 }
