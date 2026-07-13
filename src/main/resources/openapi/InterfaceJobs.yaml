@@ -4,6 +4,60 @@ info:
   version: 1.0.0
   description: APIs for retrieving processed file summary information.
 paths:
+  /interface-jobs:
+    post:
+      tags:
+        - interface_jobs
+      summary: Create interface jobs
+      description: >
+        Add a list of interface jobs and associated files to the Opal database.
+        Each interface job is created in the requested business unit and requires
+        the Process and Allocate Payments permission for that business unit.
+      operationId: post_interface_jobs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/create_interface_jobs_request'
+      responses:
+        "201":
+          description: Interface jobs created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/create_interface_jobs_response'
+        "400":
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "401":
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "403":
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "500":
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "503":
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
   /interface-jobs/summary:
     get:
       tags:
@@ -103,6 +157,75 @@ paths:
 
 components:
   schemas:
+    create_interface_jobs_request:
+      type: object
+      additionalProperties: false
+      required:
+        - interface_jobs
+      properties:
+        interface_jobs:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/create_interface_job'
+
+    create_interface_job:
+      type: object
+      additionalProperties: false
+      required:
+        - file_name
+        - source
+        - records
+        - business_unit_id
+        - interface_name
+        - created_datetime
+      properties:
+        file_name:
+          type: string
+          minLength: 1
+          description: DB Mapping - interface_files.file_name
+        source:
+          $ref: '#/components/schemas/interface_file_source'
+          description: DB Mapping - interface_files.source
+        records:
+          type: string
+          minLength: 1
+          description: JSON records. DB Mapping - interface_files.records
+        business_unit_id:
+          type: integer
+          format: int16
+          description: DB Mapping - interface_jobs.business_unit_id
+        interface_name:
+          type: string
+          minLength: 1
+          description: DB Mapping - interface_jobs.interface_name
+        created_datetime:
+          type: string
+          format: date-time
+          description: DB Mapping - interface_files.created_datetime
+
+    create_interface_jobs_response:
+      type: object
+      additionalProperties: false
+      required:
+        - interface_jobs
+      properties:
+        interface_jobs:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/create_interface_job_response'
+
+    create_interface_job_response:
+      type: object
+      additionalProperties: false
+      required:
+        - interface_job_id
+      properties:
+        interface_job_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: DB Mapping - interface_jobs.interface_job_id
+
     interface_job_summary_response:
       type: object
       additionalProperties: false
