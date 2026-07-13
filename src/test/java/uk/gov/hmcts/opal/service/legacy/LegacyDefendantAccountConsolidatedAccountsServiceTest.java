@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.service.legacy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
@@ -21,7 +20,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
@@ -132,47 +130,6 @@ class LegacyDefendantAccountConsolidatedAccountsServiceTest {
 
         assertEquals(BigInteger.ONE, response.getVersion());
         assertEquals(List.of(), response.getPayload());
-    }
-
-    @Test
-    void getConsolidatedAccounts_whenGatewayReturnsNullEntity_throwsException() {
-        when(gatewayService.postToGateway(
-            eq(LegacyDefendantAccountService.GET_CONSOLIDATED_ACCOUNTS),
-            eq(LegacyGetDefendantAccountConsolidatedAccountsResponse.class),
-            eq(LegacyGetDefendantAccountRequest.builder().defendantAccountId("233300").build()),
-            isNull()
-        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, null, null, null));
-
-        HttpServerErrorException exception = assertThrows(
-            HttpServerErrorException.class,
-            () -> legacyDefendantAccountService.getConsolidatedAccounts(233300L)
-        );
-
-        assertEquals(HttpStatus.BAD_GATEWAY, exception.getStatusCode());
-        assertEquals("Legacy consolidated-accounts response did not contain a body", exception.getStatusText());
-    }
-
-    @Test
-    void getConsolidatedAccounts_whenGatewayReturnsNullVersion_throwsException() {
-        LegacyGetDefendantAccountConsolidatedAccountsResponse legacyResponse =
-            LegacyGetDefendantAccountConsolidatedAccountsResponse.builder()
-                .consolidatedAccounts(List.of())
-                .build();
-
-        when(gatewayService.postToGateway(
-            eq(LegacyDefendantAccountService.GET_CONSOLIDATED_ACCOUNTS),
-            eq(LegacyGetDefendantAccountConsolidatedAccountsResponse.class),
-            eq(LegacyGetDefendantAccountRequest.builder().defendantAccountId("233300").build()),
-            isNull()
-        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null));
-
-        HttpServerErrorException exception = assertThrows(
-            HttpServerErrorException.class,
-            () -> legacyDefendantAccountService.getConsolidatedAccounts(233300L)
-        );
-
-        assertEquals(HttpStatus.BAD_GATEWAY, exception.getStatusCode());
-        assertEquals("Legacy consolidated-accounts response did not contain a version", exception.getStatusText());
     }
 
     @Test

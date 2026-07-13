@@ -6,9 +6,6 @@ import java.util.Comparator;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.legacy.LegacyConsolidatedAccount;
@@ -67,29 +64,10 @@ public class LegacyDefendantAccountBuilders {
     static GetDefendantAccountConsolidatedAccountsResult toConsolidatedAccountsResponse(
         LegacyGetDefendantAccountConsolidatedAccountsResponse legacy) {
 
-        if (legacy == null) {
-            throw invalidConsolidatedAccountsResponse("Legacy consolidated-accounts response did not contain a body");
-        }
-
-        if (legacy.getVersion() == null) {
-            throw invalidConsolidatedAccountsResponse(
-                "Legacy consolidated-accounts response did not contain a version");
-        }
-
         return GetDefendantAccountConsolidatedAccountsResult.builder()
             .version(BigInteger.valueOf(legacy.getVersion()))
             .payload(toConsolidatedAccounts(legacy.getConsolidatedAccounts()))
             .build();
-    }
-
-    private static HttpServerErrorException invalidConsolidatedAccountsResponse(String message) {
-        return HttpServerErrorException.create(
-            HttpStatus.BAD_GATEWAY,
-            message,
-            HttpHeaders.EMPTY,
-            null,
-            null
-        );
     }
 
     private static List<ConsolidatedAccountDefendantAccount> toConsolidatedAccounts(

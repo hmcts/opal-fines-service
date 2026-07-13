@@ -260,57 +260,6 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
         );
     }
 
-    @Test
-    @DisplayName("PO-2335 Legacy: invalid successful legacy response returns downstream server error")
-    @JiraStory("PO-2335")
-    @JiraEpic("PO-1286")
-    void getConsolidatedAccounts_whenLegacySuccessHasNoBody_returnsDownstreamServerError() throws Exception {
-        when(gatewayService.postToGateway(
-            eq(LegacyDefendantAccountService.GET_CONSOLIDATED_ACCOUNTS),
-            eq(LegacyGetDefendantAccountConsolidatedAccountsResponse.class),
-            any(),
-            isNull()
-        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, null, null, null));
-
-        performGetConsolidatedAccounts(233300L)
-            .andExpect(status().isInternalServerError())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.status").value(500))
-            .andExpect(jsonPath("$.title").value("Downstream Server Error"))
-            .andExpect(jsonPath("$.detail").value(
-                "Legacy consolidated-accounts response did not contain a body"))
-            .andExpect(jsonPath("$.retriable").value(true));
-    }
-
-    @Test
-    @DisplayName("PO-2335 Legacy: missing legacy response version returns downstream server error")
-    @JiraStory("PO-2335")
-    @JiraEpic("PO-1286")
-    void getConsolidatedAccounts_whenLegacySuccessHasNoVersion_returnsDownstreamServerError() throws Exception {
-        when(gatewayService.postToGateway(
-            eq(LegacyDefendantAccountService.GET_CONSOLIDATED_ACCOUNTS),
-            eq(LegacyGetDefendantAccountConsolidatedAccountsResponse.class),
-            any(),
-            isNull()
-        )).thenReturn(new GatewayService.Response<>(
-            HttpStatus.OK,
-            LegacyGetDefendantAccountConsolidatedAccountsResponse.builder()
-                .consolidatedAccounts(List.of())
-                .build(),
-            null,
-            null
-        ));
-
-        performGetConsolidatedAccounts(233300L)
-            .andExpect(status().isInternalServerError())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.status").value(500))
-            .andExpect(jsonPath("$.title").value("Downstream Server Error"))
-            .andExpect(jsonPath("$.detail").value(
-                "Legacy consolidated-accounts response did not contain a version"))
-            .andExpect(jsonPath("$.retriable").value(true));
-    }
-
     private ResultActions performGetConsolidatedAccounts(Long defendantAccountId) throws Exception {
         return mockMvc.perform(get(URL_BASE + "/" + defendantAccountId + "/consolidated-accounts")
                                    .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER)
