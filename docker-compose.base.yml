@@ -2,7 +2,7 @@ include:
   - path: ../opal-shared-infrastructure/docker-compose.yml
   - path: ../opal-shared-infrastructure/docker-compose-service-bus.yml
   - path: ../opal-shared-infrastructure/docker-compose-blob-storage.yml
-
+  - path: ../opal-shared-infrastructure/docker-compose-bais-sftp.yml
 
 services:
   opal-fines-service:
