@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.service.legacy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
@@ -18,9 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mapstruct.factory.Mappers;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
@@ -58,9 +56,8 @@ class LegacyDefendantAccountConsolidatedAccountsServiceTest {
     @Mock
     private DefendantAccountHistoryLegacyResponseMapper legacyDefendantAccountHistoryResponseMapper;
 
-    @Spy
-    private LegacyConsolidatedAccountMapper legacyConsolidatedAccountMapper =
-        Mappers.getMapper(LegacyConsolidatedAccountMapper.class);
+    @Mock
+    private LegacyConsolidatedAccountMapper legacyConsolidatedAccountMapper;
 
     @Mock
     private UpdateDefendantAccountRequestMapper updateDefendantAccountRequestMapper;
@@ -72,7 +69,7 @@ class LegacyDefendantAccountConsolidatedAccountsServiceTest {
     private LegacyDefendantAccountService legacyDefendantAccountService;
 
     @Test
-    void getConsolidatedAccounts_postsLegacyRequestAndMapsSortedResponse() {
+    void getConsolidatedAccounts_postsLegacyRequestAndReturnsMappedResponse() {
         LegacyGetDefendantAccountConsolidatedAccountsResponse legacyResponse =
             LegacyGetDefendantAccountConsolidatedAccountsResponse.builder()
                 .version(7L)
@@ -81,6 +78,7 @@ class LegacyDefendantAccountConsolidatedAccountsServiceTest {
                     legacyAccount(233301L, "233301C")
                 ))
                 .build();
+        GetDefendantAccountConsolidatedAccountsResult expectedResponse = mappedResponse(7L);
 
         ArgumentCaptor<LegacyGetDefendantAccountRequest> requestCaptor =
             ArgumentCaptor.forClass(LegacyGetDefendantAccountRequest.class);
@@ -91,6 +89,7 @@ class LegacyDefendantAccountConsolidatedAccountsServiceTest {
             requestCaptor.capture(),
             isNull()
         )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null));
+        when(legacyConsolidatedAccountMapper.toResponse(legacyResponse)).thenReturn(expectedResponse);
 
         GetDefendantAccountConsolidatedAccountsResult response =
             legacyDefendantAccountService.getConsolidatedAccounts(233300L);
@@ -103,18 +102,8 @@ class LegacyDefendantAccountConsolidatedAccountsServiceTest {
         );
 
         assertEquals("233300", requestCaptor.getValue().getDefendantAccountId());
-        assertEquals(BigInteger.valueOf(7), response.getVersion());
-        assertNotNull(response.getPayload());
-        assertEquals(2, response.getPayload().size());
-
-        ConsolidatedAccountDefendantAccount first = response.getPayload().getFirst();
-        assertEquals(233301L, first.getAccountId());
-        assertEquals("233301C", first.getAccountNumber());
-        assertEquals("Alex", first.getFirstName());
-        assertEquals("Jones", first.getLastName());
-        assertEquals(LocalDate.parse("2026-01-21"), first.getDateImposed());
-        assertEquals("Child Court", first.getImposedBy());
-        assertEquals("CHILD-REF", first.getReference());
+        assertSame(expectedResponse, response);
+        verify(legacyConsolidatedAccountMapper).toResponse(legacyResponse);
     }
 
     @Test
@@ -124,6 +113,7 @@ class LegacyDefendantAccountConsolidatedAccountsServiceTest {
                 .version(1L)
                 .consolidatedAccounts(List.of())
                 .build();
+        GetDefendantAccountConsolidatedAccountsResult expectedResponse = mappedResponse(1L);
 
         when(gatewayService.postToGateway(
             eq(LegacyDefendantAccountService.GET_CONSOLIDATED_ACCOUNTS),
@@ -131,16 +121,17 @@ class LegacyDefendantAccountConsolidatedAccountsServiceTest {
             eq(LegacyGetDefendantAccountRequest.builder().defendantAccountId("233300").build()),
             isNull()
         )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null));
+        when(legacyConsolidatedAccountMapper.toResponse(legacyResponse)).thenReturn(expectedResponse);
 
         GetDefendantAccountConsolidatedAccountsResult response =
             legacyDefendantAccountService.getConsolidatedAccounts(233300L);
 
-        assertEquals(BigInteger.ONE, response.getVersion());
-        assertEquals(List.of(), response.getPayload());
+        assertSame(expectedResponse, response);
+        verify(legacyConsolidatedAccountMapper).toResponse(legacyResponse);
     }
 
     @Test
-    void getConsolidatedAccounts_legacyXmlResponseUnmarshalsAndMapsToOpalResponse() throws JAXBException {
+    void getConsolidatedAccounts_legacyXmlResponseUnmarshalsAndDelegatesToMapper() throws JAXBException {
         String legacyXml = """
             <response>
               <version>3</version>
@@ -162,6 +153,7 @@ class LegacyDefendantAccountConsolidatedAccountsServiceTest {
                 .newInstance(LegacyGetDefendantAccountConsolidatedAccountsResponse.class)
                 .createUnmarshaller()
                 .unmarshal(new StringReader(legacyXml));
+        GetDefendantAccountConsolidatedAccountsResult expectedResponse = mappedResponse(3L);
 
         when(gatewayService.postToGateway(
             eq(LegacyDefendantAccountService.GET_CONSOLIDATED_ACCOUNTS),
@@ -169,21 +161,23 @@ class LegacyDefendantAccountConsolidatedAccountsServiceTest {
             eq(LegacyGetDefendantAccountRequest.builder().defendantAccountId("233300").build()),
             isNull()
         )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null));
+        when(legacyConsolidatedAccountMapper.toResponse(legacyResponse)).thenReturn(expectedResponse);
 
         GetDefendantAccountConsolidatedAccountsResult response =
             legacyDefendantAccountService.getConsolidatedAccounts(233300L);
 
-        assertEquals(BigInteger.valueOf(3), response.getVersion());
-        assertEquals(1, response.getPayload().size());
+        assertSame(expectedResponse, response);
+        verify(legacyConsolidatedAccountMapper).toResponse(legacyResponse);
+    }
 
-        ConsolidatedAccountDefendantAccount account = response.getPayload().getFirst();
-        assertEquals(233302L, account.getAccountId());
-        assertEquals("233302C", account.getAccountNumber());
-        assertEquals("Alex", account.getFirstName());
-        assertEquals("Jones", account.getLastName());
-        assertEquals(LocalDate.parse("2026-01-21"), account.getDateImposed());
-        assertEquals("Child Court", account.getImposedBy());
-        assertEquals("CHILD-REF", account.getReference());
+    private GetDefendantAccountConsolidatedAccountsResult mappedResponse(Long version) {
+        return GetDefendantAccountConsolidatedAccountsResult.builder()
+            .version(BigInteger.valueOf(version))
+            .payload(List.of(ConsolidatedAccountDefendantAccount.builder()
+                             .accountId(233301L)
+                             .accountNumber("233301C")
+                             .build()))
+            .build();
     }
 
     private LegacyConsolidatedAccount legacyAccount(Long accountId, String accountNumber) {
