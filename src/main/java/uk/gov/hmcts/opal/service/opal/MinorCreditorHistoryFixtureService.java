@@ -107,7 +107,11 @@ public class MinorCreditorHistoryFixtureService {
     }
 
     private long nextVal(String sequenceName) {
-        Long value = jdbcTemplate.queryForObject("SELECT nextval('public." + sequenceName + "')", Long.class);
+        Long value = jdbcTemplate.queryForObject(
+            "SELECT nextval(CAST(? AS regclass))",
+            Long.class,
+            "public." + sequenceName
+        );
         if (value == null) {
             throw new IllegalStateException("No value returned for sequence " + sequenceName);
         }
