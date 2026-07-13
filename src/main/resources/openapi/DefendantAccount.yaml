@@ -641,7 +641,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/addPaymentCardRequestResponse'
+                $ref: '#/components/schemas/addPaymentCardRequest'
         400:
           description: Bad request
           content:
@@ -818,7 +818,7 @@ components:
       required:
         - account_id
         - account_number
-    addPaymentCardRequestResponse:
+    addPaymentCardRequest:
       title: Add Payment Card Request
       type: object
       additionalProperties: false
