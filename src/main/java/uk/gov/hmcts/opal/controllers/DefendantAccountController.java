@@ -35,7 +35,6 @@ import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
@@ -133,15 +132,6 @@ public class DefendantAccountController {
         );
 
         return buildResponse(response);
-    }
-
-
-    @GetMapping(value = "/{defendantAccountId}/at-a-glance")
-    @Operation(summary = "Get At A Glance details for a given defendant account")
-    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<DefendantAccountAtAGlanceResponse> getAtAGlance(@PathVariable Long defendantAccountId) {
-
-        return buildResponse(defendantAccountService.getAtAGlance(defendantAccountId));
     }
 
     @GetMapping("/{defendantAccountId}/fixed-penalty")

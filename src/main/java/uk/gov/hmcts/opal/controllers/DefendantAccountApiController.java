@@ -12,11 +12,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.http.api.DefendantAccountApi;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountAtAGlanceResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
@@ -70,6 +72,18 @@ public class DefendantAccountApiController implements DefendantAccountApi {
             defendantAccountService.getConsolidatedAccounts(defendantAccountId);
 
         return ResponseEntity.ok().eTag(VersionUtils.createETag(response)).body(response.getPayload());
+    }
+
+    @Override
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
+    public ResponseEntity<DefendantAccountAtAGlanceResponseDefendantAccount> getDefendantAccountAtAGlance(Long id) {
+        log.debug(":GET:getDefendantAccountAtAGlance: for defendant account id: {}", id);
+
+        GetDefendantAccountAtAGlanceResponse response = defendantAccountService.getAtAGlance(id);
+
+        return ResponseEntity.ok()
+            .eTag(VersionUtils.createETag(response))
+            .body(response.getPayload());
     }
 
     @Override

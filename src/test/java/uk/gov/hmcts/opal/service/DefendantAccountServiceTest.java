@@ -36,12 +36,12 @@ import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
-import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
@@ -349,13 +349,13 @@ class DefendantAccountServiceTest {
     void getAtAGlance_whenUserHasPermission_returnsProxyResult() {
         // arrange
         Long defendantAccountId = 77L;
-        DefendantAccountAtAGlanceResponse proxyResponse = new DefendantAccountAtAGlanceResponse();
+        GetDefendantAccountAtAGlanceResponse proxyResponse = new GetDefendantAccountAtAGlanceResponse();
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(defendantAccountServiceProxy.getAtAGlance(defendantAccountId)).thenReturn(proxyResponse);
 
         // act
-        DefendantAccountAtAGlanceResponse result =
+        GetDefendantAccountAtAGlanceResponse result =
             defendantAccountService.getAtAGlance(defendantAccountId);
 
         // assert

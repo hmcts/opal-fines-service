@@ -8,6 +8,7 @@ import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -16,7 +17,6 @@ import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
-import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
@@ -63,7 +63,7 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
     }
 
     @Override
-    public DefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId) {
+    public GetDefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId) {
         return getCurrentModeService().getAtAGlance(defendantAccountId);
     }
 

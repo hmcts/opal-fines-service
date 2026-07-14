@@ -37,6 +37,7 @@ import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.Checks;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.DefendantAccountSummaryDtoBuilder;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.WarnError;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -47,7 +48,6 @@ import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
-import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
@@ -323,7 +323,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     }
 
     @Transactional(readOnly = true)
-    public DefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId) {
+    public GetDefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId) {
         log.debug(":getAtAGlance (Opal): id: {}.", defendantAccountId);
         return OpalDefendantAccountBuilders
             .buildAtAGlanceResponse(

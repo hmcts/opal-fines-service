@@ -68,7 +68,7 @@ class Release1bFeatureToggleAnnotationTest {
             "DefendantAccountController#addDefendantAccountParty",
             "NotesController#addNote",
             "MinorCreditorApiController#getMinorCreditorAccount",
-            "DefendantAccountController#getAtAGlance",
+            "DefendantAccountApiController#getDefendantAccountAtAGlance",
             "MajorCreditorApiController#getMajorCreditorAccountHeaderSummary",
             "MinorCreditorApiController#getMinorCreditorHistory",
             "DefendantAccountApiController#getImpositions",
