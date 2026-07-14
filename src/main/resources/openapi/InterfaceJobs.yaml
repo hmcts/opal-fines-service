@@ -58,6 +58,54 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 
+  /interface-jobs/process:
+    post:
+      tags:
+        - interface_jobs
+      summary: Process interface jobs
+      description: >
+        Process the selected interface jobs asynchronously. The user requires the
+        Process and Allocate Payments permission in the business unit supplied for each job.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/process_interface_jobs_request'
+      responses:
+        "202":
+          description: Interface jobs accepted for asynchronous processing
+        "400":
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "401":
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "403":
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "500":
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "503":
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
   /interface-jobs/summary:
     get:
       tags:
@@ -285,6 +333,37 @@ components:
         interface_job_id:
           $ref: './types.yaml#/components/schemas/BigInt'
           description: DB Mapping - interface_jobs.interface_job_id
+
+    process_interface_jobs_request:
+      type: object
+      additionalProperties: false
+      required:
+        - interface_jobs
+      properties:
+        interface_jobs:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/process_interface_job'
+
+    process_interface_job:
+      type: object
+      additionalProperties: false
+      required:
+        - interface_job_id
+        - business_unit_id
+        - override_inhibits
+      properties:
+        interface_job_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: DB Mapping - p_int_payments_in.pi_interface_job_id
+        business_unit_id:
+          type: integer
+          format: int16
+          description: DB Mapping - p_int_payments_in.pi_business_unit_id
+        override_inhibits:
+          type: boolean
+          description: DB Mapping - interface_files.override_inhibits
 
     processed_file_summary_response:
       type: object
