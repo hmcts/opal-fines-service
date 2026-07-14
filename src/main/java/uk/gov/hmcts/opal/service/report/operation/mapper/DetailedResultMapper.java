@@ -82,11 +82,11 @@ public abstract class DetailedResultMapper
             .accountTransactionReports(accountTransactionReports)
             .build();
 
-        OperationDetailedReport report = new OperationDetailedReport();
-        report.setDetailedReport(reportDto);
         ReportMetaData meta = new ReportMetaData();
         meta.setPdpoPartyIds(context.getParticipants());
-        report.setReportMetaData(meta);
-        return report;
+        return OperationDetailedReport.builder().
+            detailedReport(reportDto).
+            reportMetaData(meta).
+            build();
     }
 }

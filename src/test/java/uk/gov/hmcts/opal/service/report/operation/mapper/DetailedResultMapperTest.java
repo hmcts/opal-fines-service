@@ -25,7 +25,7 @@ import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
 import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
 import uk.gov.hmcts.opal.repository.ImpositionRepository;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
-import uk.gov.hmcts.opal.service.report.operation.OperationByEnforcementDetailedReport;
+import uk.gov.hmcts.opal.service.report.operation.OperationDetailedReport;
 
 class DetailedResultMapperTest {
 
@@ -87,16 +87,16 @@ class DetailedResultMapperTest {
 
         when(impositionRepository.findAllById(any())).thenReturn(List.of(imposition1, imposition2));
 
-
         when(transactionRowMapper
             .map(eq(transaction1), eq(account1), eq(imposition1), any(ReportMetadataContext.class)))
             .thenReturn(transactionRow1);
         when(transactionRowMapper.map(eq(transaction2), eq(account1), isNull(), any(ReportMetadataContext.class)))
             .thenReturn(transactionRow2);
-        when(transactionRowMapper.map(eq(transaction3), eq(account2), eq(imposition2),any(ReportMetadataContext.class)))
+        when(
+            transactionRowMapper.map(eq(transaction3), eq(account2), eq(imposition2), any(ReportMetadataContext.class)))
             .thenReturn(transactionRow3);
 
-        OperationByEnforcementDetailedReport result = mapper.mapEnforcement(List.of(account1, account2));
+        OperationDetailedReport result = mapper.map(List.of(account1, account2));
 
         assertThat(result).isNotNull();
         assertThat(result.getDetailedReport()).isNotNull();
@@ -122,7 +122,7 @@ class DetailedResultMapperTest {
 
     @Test
     void map_shouldReturnEmptyAccountListWhenNoAccountsProvided() {
-        OperationByEnforcementDetailedReport result = mapper.mapEnforcement(List.of());
+        OperationDetailedReport result = mapper.map(List.of());
 
         assertNotNull(result);
         DetailedReportDto reportDto = result.getDetailedReport();
