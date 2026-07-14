@@ -17,13 +17,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.InterfaceFileEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobEntity_;
 import uk.gov.hmcts.opal.entity.InterfaceJobStatus;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity_;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateItem;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateRequest;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateResponse;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateResponseItem;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsSummaryItem;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsSummaryResponse;
 import uk.gov.hmcts.opal.mapper.InterfaceJobMapper;
+import uk.gov.hmcts.opal.repository.InterfaceFileRepository;
 import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
 import uk.gov.hmcts.opal.repository.jpa.InterfaceJobSpecs;
 import uk.gov.hmcts.opal.service.UserStateService;
@@ -38,11 +44,35 @@ public class InterfaceJobService {
 
     private final InterfaceJobRepository interfaceJobRepository;
 
+    private final InterfaceFileRepository interfaceFileRepository;
+
     private final InterfaceJobMapper interfaceJobMapper;
+
+    private final BusinessUnitService businessUnitService;
 
     private final UserStateService userStateService;
 
     private final InterfaceJobSpecs specs = new InterfaceJobSpecs();
+
+    @Transactional
+    public InterfaceJobsCreateResponse create(InterfaceJobsCreateRequest request) {
+        return InterfaceJobsCreateResponse.builder()
+            .interfaceJobs(request.getInterfaceJobs().stream()
+                .map(this::create)
+                .toList())
+            .build();
+    }
+
+    private InterfaceJobsCreateResponseItem create(InterfaceJobsCreateItem request) {
+        InterfaceJobEntity interfaceJob = interfaceJobMapper.toJobEntity(
+            request, businessUnitService.getBusinessUnit(request.getBusinessUnitId()));
+        InterfaceJobEntity savedJob = interfaceJobRepository.save(interfaceJob);
+        InterfaceFileEntity interfaceFile = interfaceJobMapper.toFileEntity(request, savedJob);
+
+        interfaceFileRepository.save(interfaceFile);
+
+        return interfaceJobMapper.toCreateResponse(savedJob);
+    }
 
     @Transactional(readOnly = true)
     public InterfaceJobsSummaryResponse getSummary(InterfaceJobSearchCriteria searchCriteria) {

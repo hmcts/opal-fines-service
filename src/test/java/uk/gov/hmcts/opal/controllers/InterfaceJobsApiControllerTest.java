@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 import java.time.LocalDateTime;
@@ -15,6 +16,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateRequest;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateResponse;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsSummaryItem;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsSummaryResponse;
 import uk.gov.hmcts.opal.service.opal.InterfaceJobService;
@@ -27,6 +30,22 @@ class InterfaceJobsApiControllerTest {
 
     @InjectMocks
     private InterfaceJobsApiController controller;
+
+    @Test
+    void postInterfaceJobs_returnsCreatedServiceResponse() {
+        InterfaceJobsCreateRequest request = InterfaceJobsCreateRequest.builder().build();
+        InterfaceJobsCreateResponse serviceResponse = InterfaceJobsCreateResponse.builder()
+            .interfaceJobs(List.of())
+            .build();
+
+        when(interfaceJobService.create(request)).thenReturn(serviceResponse);
+
+        ResponseEntity<InterfaceJobsCreateResponse> response = controller.postInterfaceJobs(request);
+
+        assertEquals(CREATED, response.getStatusCode());
+        assertEquals(serviceResponse, response.getBody());
+        verify(interfaceJobService).create(request);
+    }
 
     @Test
     void getInterfaceJobsSummary_returnsServiceResponse() {
