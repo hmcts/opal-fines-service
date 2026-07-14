@@ -150,7 +150,8 @@ public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
      */
     @Then("I remember the returned major creditor account history date range")
     public void rememberReturnedMajorCreditorAccountHistoryDateRange() throws Exception {
-        List<LocalDate> dates = then().extract().jsonPath().getList("historyItems.postedDetails.postedDate", String.class)
+        List<LocalDate> dates = then().extract().jsonPath()
+            .getList("historyItems.postedDetails.postedDate", String.class)
             .stream()
             .map(LocalDate::parse)
             .toList();
@@ -204,7 +205,8 @@ public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
      * Asserts the history response only contains the expected type when filtered.
      */
     @Then("the major creditor account history contains only the following item types")
-    public void majorCreditorAccountHistoryContainsOnlyTheFollowingItemTypes(io.cucumber.datatable.DataTable dataTable) {
+    public void majorCreditorAccountHistoryContainsOnlyTheFollowingItemTypes(
+        io.cucumber.datatable.DataTable dataTable) {
         List<String> expectedTypes = dataTable.asList();
         List<String> actualTypes = then().extract().jsonPath().getList("historyItems.type", String.class);
         assertTrue(actualTypes.stream().allMatch(expectedTypes::contains), "Unexpected history item type returned");
