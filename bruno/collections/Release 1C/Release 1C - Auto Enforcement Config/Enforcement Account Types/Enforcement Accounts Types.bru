@@ -7,11 +7,7 @@ meta {
 get {
   url: {{baseURL}}/enforcement-accounts-types/
   body: none
-  auth: bearer
-}
-
-auth:bearer {
-  token: {{BEARER_TOKEN}}
+  auth: inherit
 }
 
 vars:pre-request {
