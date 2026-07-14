@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Interface Jobs Create Response",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["interface_jobs"],
+  "properties": {
+    "interface_jobs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["interface_job_id"],
+        "properties": {
+          "interface_job_id": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  }
+}
