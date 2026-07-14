@@ -11,13 +11,12 @@ import uk.gov.hmcts.opal.entity.DocumentInstanceEntity;
 import uk.gov.hmcts.opal.entity.document.DocumentEntityStatus;
 import uk.gov.hmcts.opal.repository.DocumentInstanceRepository;
 import uk.gov.hmcts.opal.repository.DocumentRepository;
-import uk.gov.hmcts.opal.service.iface.DocumentServiceInterface;
 import uk.gov.hmcts.opal.util.DocumentIdConstants;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "opal.DocumentService")
-public class DocumentService implements DocumentServiceInterface {
+public class DocumentService {
 
     private final DocumentInstanceRepository documentInstanceRepository;
 
@@ -27,7 +26,6 @@ public class DocumentService implements DocumentServiceInterface {
 
     private final Clock clock;
 
-    @Override
     public void createDocumentInstance(Long defAccountId, short businessUnitId) {
 
         // Look up the document template
