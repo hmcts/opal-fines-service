@@ -250,7 +250,6 @@ public final class Release1bFeatureToggleRequestUtil {
                     .contentType(MediaType.APPLICATION_JSON)
                     .header("Authorization", AUTHORIZATION)
                     .header("Business-Unit-Id", BUSINESS_UNIT_ID)
-                    .header("Business-Unit-User-Id", BUSINESS_UNIT_USER_ID)
                     .header("If-Match", IF_MATCH)
             ),
             Arguments.of(
