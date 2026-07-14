@@ -26,7 +26,7 @@ launchdarkly:
     release-1c: true
     release-1c-enforcement-operational-reporting: true
     is-legacy-mode: false
-    release-1c-auto-enforcement-config: true
+    release-1c-auto-enforcement-config: false
 
 logging:
   level:
