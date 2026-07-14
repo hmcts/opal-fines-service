@@ -224,6 +224,37 @@ class JsonSchemaValidationServiceTest {
     }
 
     @Test
+    void testMinorCreditorAccountsSearchLegacyResponse_withIndividualDefendantOrganisationName_shouldFail() {
+        String invalidJson = """
+            {
+              "count": 1,
+              "creditor_accounts": [
+                {
+                  "creditor_account_id": "99000000000001",
+                  "account_number": "12345678A",
+                  "organisation": false,
+                  "surname": "Smith",
+                  "address_line_1": "1 High Street",
+                  "business_unit_name": "Business Unit",
+                  "business_unit_id": "77",
+                  "account_balance": 12.34,
+                  "defendant": {
+                    "defendant_account_id": "99000000000002",
+                    "defendant_surname": "Jones",
+                    "organisation_name": "Example Ltd"
+                  }
+                }
+              ]
+            }
+            """;
+
+        assertFalse(jsonSchemaValidationService.isValid(
+            invalidJson,
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_LEGACY_RESPONSE
+        ));
+    }
+
+    @Test
     void testDefendantAccountsSearchResponse_withConsolidationFields_shouldPass() {
         String validJson = """
             {
