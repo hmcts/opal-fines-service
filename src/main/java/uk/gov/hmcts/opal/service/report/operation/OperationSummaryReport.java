@@ -1,22 +1,23 @@
 package uk.gov.hmcts.opal.service.report.operation;
 
 import java.util.List;
+import lombok.Builder;
 import lombok.Data;
 import uk.gov.hmcts.opal.dto.report.operation.SummaryOperationReportRowDto;
 import uk.gov.hmcts.opal.dto.report.operation.SummaryReportDto;
-import uk.gov.hmcts.opal.service.report.ReportDataInterface;
 import uk.gov.hmcts.opal.service.report.ReportMetaData;
 
+@Builder
 @Data
-public class OperationByEnforcementSummaryReport implements ReportDataInterface {
+public class OperationSummaryReport implements OperationReportDataInterface {
 
-    private SummaryReportDto enforcementReport;
+    private SummaryReportDto summaryReport;
 
     private ReportMetaData reportMetaData;
 
     @Override
     public long getNumberOfRecords() {
-        List<SummaryOperationReportRowDto> transactionList = enforcementReport.getReportSummaryRows();
+        List<SummaryOperationReportRowDto> transactionList = summaryReport.getReportSummaryRows();
         return transactionList == null ? 0 : transactionList.size();
     }
 
