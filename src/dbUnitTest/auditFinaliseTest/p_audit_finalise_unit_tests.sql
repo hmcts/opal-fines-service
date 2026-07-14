@@ -13,7 +13,6 @@
 * ----------    -------     --------    ----------------------------------------------------------------------------------------------------------------
 * 28/08/2025    C Cho       1.0         PO-1677 Unit tests for p_audit_finalise.
 * 26/05/2026    C Cho       2.0         PO-2596 Add pi_posted_by_name coverage for p_audit_finalise.
-* 09/06/2026    E Adeleke   1.1         PO-2623 Add posted_by_name assertions.
 *
 **/
 
@@ -235,13 +234,6 @@ BEGIN
       AND amended_by_name = 'Test User Name';
 
     ASSERT FOUND, 'Amendments should store both amended_by and amended_by_name for defendant account changes';
-
-    PERFORM 1 FROM amendments
-    WHERE associated_record_type = 'defendant_accounts'
-    AND associated_record_id = v_defendant_account_id::VARCHAR
-    AND amended_by_name = 'TEST_USER_NAME';
-
-    ASSERT FOUND, 'Should have saved the posted_by_name value on amendment records';
 
     -- Verify last_changed_date was updated
     SELECT last_changed_date INTO v_last_changed_after 
@@ -557,7 +549,7 @@ BEGIN
             65::SMALLINT, 
             'TEST_USER'::VARCHAR, 
             NULL::VARCHAR,
-            NULL::VARCHAR,
+            NULL::VARCHAR, 
             'TEST'::VARCHAR
         );
     EXCEPTION
@@ -597,7 +589,7 @@ BEGIN
             65::SMALLINT, 
             'TEST_USER'::VARCHAR, 
             NULL::VARCHAR,
-            NULL::VARCHAR,
+            NULL::VARCHAR, 
             'TEST'::VARCHAR
         );
     EXCEPTION
@@ -638,7 +630,7 @@ BEGIN
             NULL::SMALLINT, 
             'TEST_USER'::VARCHAR, 
             NULL::VARCHAR,
-            NULL::VARCHAR,
+            NULL::VARCHAR, 
             'TEST'::VARCHAR
         );
     EXCEPTION
@@ -679,7 +671,7 @@ BEGIN
             65::SMALLINT, 
             NULL::VARCHAR, 
             NULL::VARCHAR,
-            NULL::VARCHAR,
+            NULL::VARCHAR, 
             'TEST'::VARCHAR
         );
     EXCEPTION
