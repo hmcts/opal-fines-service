@@ -963,6 +963,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
+        String postedByName,
         String ifMatch) {
 
         log.debug(":addPaymentCardRequest (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
@@ -976,11 +977,10 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             businessUnitId,
             businessUnitUserId,
             ifMatch,
-            userStateService.getUserStateV1FromSecurityContext().getDisplayName()
+            postedByName
         );
 
-        auditComplete(defendantAccountId, account, businessUnitUserId,
-            userStateService.getUserStateV1FromSecurityContext().getDisplayName());
+        auditComplete(defendantAccountId, account, businessUnitUserId, postedByName);
 
         return paymentCardResponse;
     }
@@ -1060,6 +1060,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     public GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
+        String postedByName,
         String ifMatch,
         AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
         log.debug(":addPaymentTerms (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
@@ -1099,6 +1100,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         // Update defendant account with any payment term related attributes
         addPaymentTerm(defAccount, addPaymentTermsRequest);
 
+        // Clear last_enforcement on the defendant account, if applicable
         clearLastEnforcementAction(defAccount);
 
         defendantAccountRepository.save(defAccount);
@@ -1108,8 +1110,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         if (Boolean.TRUE.equals(addPaymentTermsRequest.getRequestPaymentCard())) {
             log.debug(":addPaymentTerms: Request Payment Card flag is TRUE for account {}",
                 defAccount.getDefendantAccountId());
-            addPaymentCard(defendantAccountId, businessUnitId, businessUnitUserId, ifMatch,
-                userStateService.getUserStateV1FromSecurityContext().getDisplayName());
+            addPaymentCard(defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, postedByName);
         }
 
         // if generate_payment_terms_change_letter is true
@@ -1133,7 +1134,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             RecordType.DEFENDANT_ACCOUNTS,
             Short.parseShort(businessUnitId),
             businessUnitUserId,
-            savedPaymentTerms.getPostedByUsername(),
+            postedByName,
             defAccount.getProsecutorCaseReference(),
             "ACCOUNT_ENQUIRY"
         );
@@ -1145,8 +1146,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     public GetDefendantAccountPaymentTermsResponse addPaymentTermsPreservingLastEnforcement(Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
+        String postedByName,
         String ifMatch,
-        String authHeader,
         AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
 
         log.debug(":addPaymentTermsPreservingLastEnforcement (Opal): accountId={}, bu={}",
@@ -1184,7 +1185,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         if (Boolean.TRUE.equals(addPaymentTermsRequest.getRequestPaymentCard())) {
             log.debug(":addPaymentTermsPreservingLastEnforcement: Request Payment Card flag is TRUE for account {}",
                 defAccount.getDefendantAccountId());
-            addPaymentCard(defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, authHeader);
+            addPaymentCard(defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, postedByName);
         }
 
         if (Boolean.TRUE.equals(addPaymentTermsRequest.getGeneratePaymentTermsChangeLetter())) {
@@ -1206,7 +1207,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             RecordType.DEFENDANT_ACCOUNTS,
             Short.parseShort(businessUnitId),
             businessUnitUserId,
-            savedPaymentTerms.getPostedByUsername(),
+            postedByName,
             defAccount.getProsecutorCaseReference(),
             "ACCOUNT_ENQUIRY"
         );

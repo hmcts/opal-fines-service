@@ -13,6 +13,7 @@ Feature: Defendant Account History
       | Note          | 1 |
       | Payment terms | 1 |
     And the defendant account history contains seeded amendment history
+    And the defendant account history contains seeded amendment history posted by "L077JG" and posted by name "opal-test@dev.platform.hmcts.net"
     And the defendant account history contains seeded enforcement history
     And the defendant account history is ordered newest first
 
@@ -63,3 +64,10 @@ Feature: Defendant Account History
     When I request defendant account history for a non-existent defendant account
     Then the defendant account history error response matches the standard problem detail contract for status 404
     And the defendant account history error response does not leak internal details
+
+  @cleanUpData @JIRA-STORY:PO-2623 @JIRA-EPIC:PO-2621
+  Scenario: Representative p_audit_finalise caller still exposes audit identity through history
+    Given a defendant account with history exists for submitted by "DEFHST004"
+    When I request defendant account history for the created defendant account with query "itemTypes=amendment"
+    Then the defendant account history contains seeded amendment history
+    And the defendant account history contains seeded amendment history posted by "L077JG" and posted by name "opal-test@dev.platform.hmcts.net"

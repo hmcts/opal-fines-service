@@ -584,6 +584,7 @@ class LegacyMinorCreditorServiceTest {
             request,
             BigInteger.ONE,
             "test.user",
+            "Test User",
             (short) 77
         );
 

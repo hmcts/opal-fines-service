@@ -110,9 +110,10 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
     public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
+        String postedByName,
         String ifMatch) {
         return getCurrentModeService().addPaymentCardRequest(defendantAccountId, businessUnitId,
-            businessUnitUserId, ifMatch);
+            businessUnitUserId, postedByName, ifMatch);
     }
 
     @Override
@@ -129,11 +130,13 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
     public GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
+        String postedByName,
         String ifMatch,
         AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
         return getCurrentModeService().addPaymentTerms(defendantAccountId,
             businessUnitId,
             businessUnitUserId,
+            postedByName,
             ifMatch,
             addPaymentTermsRequest);
     }
