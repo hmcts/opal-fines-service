@@ -76,7 +76,7 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.payment_terms.days_in_default").value(30))
             .andExpect(jsonPath("$.payment_terms.posted_details.posted_by").value("L078JG"))
-            .andExpect(jsonPath("$.payment_terms.posted_details.posted_by_name").value("Pablo"));
+            .andExpect(jsonPath("$.payment_terms.posted_details.posted_by_name").value("opal-test@HMCTS.NET"));
     }
 
     @Test

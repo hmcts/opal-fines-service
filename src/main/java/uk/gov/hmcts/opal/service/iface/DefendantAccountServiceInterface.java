@@ -51,11 +51,10 @@ public interface DefendantAccountServiceInterface {
                                                     String postedBy) {
         return updateDefendantAccount(defendantAccountId, businessUnitId, request, postedBy, postedBy);
     }
-                                                   
 
     AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId, String businessUnitId,
         String businessUnitUserId,
-        String ifMatch);
+        String postedByName, String ifMatch);
 
     AddEnforcementResponse addEnforcement(Long defendantAccountId, String businessUnitId, String businessUnitUserId,
         String ifMatch, AddDefendantAccountEnforcementRequest request);
@@ -87,6 +86,7 @@ public interface DefendantAccountServiceInterface {
     GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
                                             String businessUnitId,
                                             String businessUnitUserId,
+                                            String postedByName,
                                             String ifMatch,
                                             AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest);
 }
