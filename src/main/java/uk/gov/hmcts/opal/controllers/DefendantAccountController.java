@@ -4,7 +4,6 @@ import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_ENABLED_PROPERTY;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
-import tools.jackson.core.JacksonException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.core.JacksonException;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
@@ -120,7 +120,6 @@ public class DefendantAccountController {
     public ResponseEntity<AddPaymentCardRequestResponse> addPaymentCardRequest(
         @PathVariable Long defendantAccountId,
         @RequestHeader("Business-Unit-Id") String businessUnitId,
-        @RequestHeader(value = "Business-Unit-User-Id", required = false) String businessUnitUserId,
         @RequestHeader(value = "If-Match", required = false) String ifMatch
     ) {
         log.debug(":POST:addPaymentCardRequest: for defendantAccountId={}", defendantAccountId);
@@ -128,7 +127,6 @@ public class DefendantAccountController {
         AddPaymentCardRequestResponse response = defendantAccountPaymentTermsService.addPaymentCardRequest(
             defendantAccountId,
             businessUnitId,
-            businessUnitUserId,
             ifMatch
         );
 

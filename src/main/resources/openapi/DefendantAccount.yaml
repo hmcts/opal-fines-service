@@ -606,6 +606,84 @@ paths:
            application/json+problem:
              schema:
                $ref: './common.yaml#/components/schemas/ProblemDetail'
+  /defendant-accounts/{id}/payment-card-request:
+    post:
+      tags:
+        - Defendant Account
+      summary: Add payment card request
+      description: Creates a payment card request for a defendant account.
+      operationId: addPaymentCardRequest
+      security:
+        - permissions:
+            - Amend Payment Terms (in the business unit supplied in Business-Unit-Id)
+      parameters:
+        - in: path
+          name: id
+          description: DB Mapping - defendant_accounts.defendant_account_id
+          schema:
+            type: integer
+            format: int64
+          required: true
+        - in: header
+          name: Business-Unit-Id
+          description: Business unit identifier
+          schema:
+            type: string
+          required: true
+        - in: header
+          name: If-Match
+          description: Version of the defendant account. DB Mapping - defendant_accounts.version_number
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/addPaymentCardRequest'
+        400:
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        409:
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
   /defendant-accounts/{id}/history:
     get:
       tags:
@@ -740,6 +818,17 @@ components:
       required:
         - account_id
         - account_number
+    addPaymentCardRequest:
+      title: Add Payment Card Request
+      type: object
+      additionalProperties: false
+      required:
+        - defendant_account_id
+      properties:
+        defendant_account_id:
+          type: integer
+          format: int64
+          description: DB Mapping - defendant_accounts.defendant_account_id
     postDefendantAccountSearchRequest:
       title: Post Defendant Account Search Request
       type: object

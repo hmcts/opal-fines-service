@@ -8,7 +8,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -18,6 +20,9 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -37,6 +42,7 @@ import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
+import uk.gov.hmcts.opal.exception.BusinessUnitUserNotFoundException;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 
 @ExtendWith(MockitoExtension.class)
@@ -93,7 +99,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
 
         // When
         AddPaymentCardRequestResponse out =
-            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L, "78", null,"4");
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L, "78", "L080JG", "4");
 
         // Then
         assertNotNull(out);
@@ -120,14 +126,31 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         );
 
         // When
-        legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L, "78",null, "9");
+        legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L, "78", "L080JG", "9");
 
         // Then
         AddPaymentCardLegacyRequest sent = captor.getValue();
         assertEquals("123", sent.getDefendantAccountId());
         assertEquals("78", sent.getBusinessUnitId());
         assertEquals(String.valueOf(9), sent.getVersion());
-        assertNull(sent.getBusinessUnitUserId());
+        assertEquals("L080JG", sent.getBusinessUnitUserId());
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = " ")
+    void addPaymentCardRequest_legacy_missingBusinessUnitUserId_throws401BeforeGateway(String businessUnitUserId) {
+        // Arrange
+
+        // Act
+        BusinessUnitUserNotFoundException ex = assertThrows(
+            BusinessUnitUserNotFoundException.class,
+            () -> legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L, "78", businessUnitUserId, "4")
+        );
+
+        // Assert
+        assertEquals((short) 78, ex.getBusinessUnitId());
+        verify(gatewayService, never()).postToGateway(any(), any(), any(), any());
     }
 
     @Test
@@ -144,7 +167,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(99L, "78", null,"1")
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(99L, "78", "L080JG", "1")
         );
     }
 
@@ -164,7 +187,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(88L, "78", null,"2")
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(88L, "78", "L080JG", "2")
         );
     }
 
@@ -182,14 +205,14 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(55L, "78", null, "3")
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(55L, "78", "L080JG", "3")
         );
     }
 
     @Test
     void addPaymentCardRequest_legacy_invalidIfMatchThrows() {
         assertThrows(IllegalArgumentException.class, () ->
-            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(1L, "78", null,"notANumber")
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(1L, "78", "L080JG", "notANumber")
         );
     }
 

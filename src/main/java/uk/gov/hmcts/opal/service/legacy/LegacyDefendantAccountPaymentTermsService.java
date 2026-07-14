@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import java.math.BigInteger;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,10 +21,9 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
+import uk.gov.hmcts.opal.exception.BusinessUnitUserNotFoundException;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPaymentTermsServiceInterface;
 import uk.gov.hmcts.opal.util.VersionUtils;
-
-import java.math.BigInteger;
 
 @Service
 @RequiredArgsConstructor
@@ -155,14 +155,22 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
     ) {
         log.info(":addPaymentCardRequest (Legacy): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
+        String requiredBusinessUnitUserId = requireBusinessUnitUserId(businessUnitUserId, businessUnitId);
         BigInteger version = VersionUtils.extractBigInteger(ifMatch);
         AddPaymentCardLegacyRequest request = buildLegacyRequest(defendantAccountId, businessUnitId,
-            businessUnitUserId, version.toString());
+            requiredBusinessUnitUserId, version.toString());
 
         AddPaymentCardLegacyResponse response = callGateway(request);
         Long id = Long.valueOf(response.getDefendantAccountId());
 
         return new AddPaymentCardRequestResponse(id);
+    }
+
+    private String requireBusinessUnitUserId(String businessUnitUserId, String businessUnitId) {
+        if (businessUnitUserId == null || businessUnitUserId.isBlank()) {
+            throw new BusinessUnitUserNotFoundException(Short.parseShort(businessUnitId));
+        }
+        return businessUnitUserId;
     }
 
     private AddPaymentCardLegacyRequest buildLegacyRequest(
