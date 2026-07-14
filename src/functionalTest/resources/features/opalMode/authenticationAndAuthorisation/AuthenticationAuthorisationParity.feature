@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:authentication-authorisation
+@Opal @JIRA-LABEL:authentication-authorisation @R1A
 Feature: Authentication And Authorisation Parity
 
   @JIRA-STORY:PO-896 @JIRA-EPIC:PO-2233 @JIRA-TEST-KEY:PO-5619
