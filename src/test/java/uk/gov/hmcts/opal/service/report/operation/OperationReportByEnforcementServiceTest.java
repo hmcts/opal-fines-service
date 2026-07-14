@@ -46,13 +46,14 @@ class OperationReportByEnforcementServiceTest {
     private SummaryResultMapper summaryResultMapper;
 
     @Mock
-    private OperationDetailedReport mappedDetailedReport;
-
-    @Mock
     private DetailedResultMapper detailedResultMapper;
 
     @Mock
-    private OperationByEnforcementSummaryReport mappedSummaryReport;
+    private OperationDetailedReport mappedDetailedReport;
+
+
+    @Mock
+    private OperationSummaryReport mappedSummaryReport;
 
     @Mock
     private ObjectMapper objectMapper;
@@ -81,7 +82,7 @@ class OperationReportByEnforcementServiceTest {
             .thenReturn(filters);
 
         assertThat(service.getStoredReportDataClass(reportInstance)).isEqualTo(
-            OperationByEnforcementSummaryReport.class);
+            OperationSummaryReport.class);
     }
 
     @Test
@@ -96,7 +97,8 @@ class OperationReportByEnforcementServiceTest {
         when(objectMapper.readValue(any(String.class), eq(OperationReportByEnforcementFiltersDto.class)))
             .thenReturn(filters);
 
-        assertThat(service.getStoredReportDataClass(reportInstance)).isEqualTo(OperationDetailedReport.class);
+        assertThat(service.getStoredReportDataClass(reportInstance)).isEqualTo(
+            OperationDetailedReport.class);
     }
 
     @Test
