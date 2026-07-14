@@ -8,7 +8,7 @@
 **/
 
 DELETE FROM public.creditor_transactions
-WHERE creditor_transaction_id IN (99264300002001, 99264300002002, 99264300002003);
+WHERE creditor_transaction_id IN (99264300002001, 99264300002002, 99264300002003, 99264300002004);
 
 DELETE FROM public.creditor_accounts
 WHERE creditor_account_id = 99264300000001;
