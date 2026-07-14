@@ -42,6 +42,7 @@ import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 import uk.gov.hmcts.opal.service.report.operation.OperationDetailedReport;
 import uk.gov.hmcts.opal.service.report.operation.OperationReportByEnforcementService;
+import uk.gov.hmcts.opal.testdata.OperationReportByPaymentFiltersIntegrationTestData;
 import uk.gov.hmcts.opal.util.AgeUtil;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -66,9 +67,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
     // Helper
     // ----------------------------------------
     private ReportInstanceEntity reportWithFilters(String json) {
-        ReportInstanceEntity instance = new ReportInstanceEntity();
-        instance.setReportParameters(json);
-        return instance;
+        return OperationReportByPaymentFiltersIntegrationTestData.reportWithFilters(json);
     }
 
     private @NonNull Map<String, Long> getAccountNoToId() {
@@ -302,7 +301,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
             }
             """;
         //Act
-        OperationDetailedReport  result =
+        OperationDetailedReport result =
             (OperationDetailedReport) service.generateReportData(reportWithFilters(json));
         //Assert
         long totalAccounts = defendantAccountRepository.findAllByBusinessUnit_BusinessUnitId((short) 77).size();

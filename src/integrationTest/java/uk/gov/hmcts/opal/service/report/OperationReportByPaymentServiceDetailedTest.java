@@ -96,8 +96,7 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
             }
             """);
         //Act
-        OperationDetailedReport result =
-            (OperationDetailedReport) service.generateReportData(reportInstance);
+        OperationDetailedReport result = (OperationDetailedReport) service.generateReportData(reportInstance);
         //Assert
         List<DetailedAccountReportDto> reports =
             result.getDetailedReport().getAccountTransactionReports();
@@ -659,8 +658,7 @@ public class OperationReportByPaymentServiceDetailedTest extends AbstractIntegra
         LocalDate sinceDate = LocalDate.parse("2026-05-14");
 
         // Act
-        OperationDetailedReport result =
-            (OperationDetailedReport) service.generateReportData(reportInstance);
+        OperationDetailedReport result = (OperationDetailedReport) service.generateReportData(reportInstance);
 
         // Assert
         List<DetailedAccountReportDto> reports =

@@ -921,7 +921,15 @@ INSERT INTO creditor_accounts(creditor_account_id, business_unit_id, account_num
                               creditor_account_type, prosecution_service, from_suspense,
                               hold_payout, pay_by_bacs)
 VALUES (1, 77, '177A', 'MJ',
-        TRUE, FALSE, FALSE, FALSE);
+        TRUE, FALSE, FALSE, FALSE)
+ON CONFLICT (creditor_account_id) DO UPDATE
+    SET business_unit_id = EXCLUDED.business_unit_id,
+        account_number = EXCLUDED.account_number,
+        creditor_account_type = EXCLUDED.creditor_account_type,
+        prosecution_service = EXCLUDED.prosecution_service,
+        from_suspense = EXCLUDED.from_suspense,
+        hold_payout = EXCLUDED.hold_payout,
+        pay_by_bacs = EXCLUDED.pay_by_bacs;
 
 INSERT INTO impositions(imposition_id, defendant_account_id, result_id, imposed_amount, posted_date,
                         imposed_date, paid_amount, creditor_account_id)
@@ -950,4 +958,12 @@ VALUES (1, 77, 'FCOMP', 50.00,
        (12, 77, 'DW', 101.10,
         '2023-11-03 16:05:10', '2023-11-03 16:05:10', 0.00, 1),
        (13, 77, 'FCUEX', 101.10,
-        '2023-11-03 16:05:10', '2023-11-03 16:05:10', 0.00, 1);
+        '2023-11-03 16:05:10', '2023-11-03 16:05:10', 0.00, 1)
+ON CONFLICT (imposition_id) DO UPDATE
+    SET defendant_account_id = EXCLUDED.defendant_account_id,
+        result_id = EXCLUDED.result_id,
+        imposed_amount = EXCLUDED.imposed_amount,
+        posted_date = EXCLUDED.posted_date,
+        paid_amount = EXCLUDED.paid_amount,
+        creditor_account_id = EXCLUDED.creditor_account_id;
+

@@ -5,13 +5,9 @@ meta {
 }
 
 get {
-  url: {{baseURL}}/testing-support/token/test-user
+  url: {{userURL}}/testing-support/token/test-user
   body: none
   auth: none
-}
-
-vars:pre-request {
-  baseURL: http://localhost:4555
 }
 
 script:post-response {
