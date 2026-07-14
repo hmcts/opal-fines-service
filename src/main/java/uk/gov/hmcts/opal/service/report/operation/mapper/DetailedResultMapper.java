@@ -84,9 +84,9 @@ public abstract class DetailedResultMapper
 
         ReportMetaData meta = new ReportMetaData();
         meta.setPdpoPartyIds(context.getParticipants());
-        return OperationDetailedReport.builder().
-            detailedReport(reportDto).
-            reportMetaData(meta).
-            build();
+        return OperationDetailedReport.builder()
+            .detailedReport(reportDto)
+            .reportMetaData(meta)
+            .build();
     }
 }
