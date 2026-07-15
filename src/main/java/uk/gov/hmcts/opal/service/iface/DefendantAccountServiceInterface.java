@@ -7,11 +7,9 @@ import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
@@ -29,9 +27,6 @@ public interface DefendantAccountServiceInterface {
     DefendantAccountHistoryResponse getHistory(Long defendantAccountId, DefendantAccountHistoryFilter filter);
 
     DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto);
-
-    GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId, Long defendantAccountPartyId);
-
 
     GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId);
 
@@ -58,27 +53,6 @@ public interface DefendantAccountServiceInterface {
 
     AddEnforcementResponse addEnforcement(Long defendantAccountId, String businessUnitId, String businessUnitUserId,
         String ifMatch, AddDefendantAccountEnforcementRequest request);
-
-
-    GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
-                                           Long defendantAccountPartyId,
-                                           DefendantAccountParty defendantAccountParty,
-                                           String ifMatch,
-                                           String businessUnitId,
-                                           String postedBy,
-                                           String postedByName,
-                                           String businessUserId);
-
-    default GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
-                                           Long defendantAccountPartyId,
-                                           DefendantAccountParty defendantAccountParty,
-                                           String ifMatch,
-                                           String businessUnitId,
-                                           String postedBy,
-                                           String businessUserId) {
-        return replaceDefendantAccountParty(defendantAccountId, defendantAccountPartyId, defendantAccountParty,
-                                            ifMatch, businessUnitId, postedBy, postedBy, businessUserId);
-    }
 
     EnforcementStatus getEnforcementStatus(Long defendantAccountId);
 
