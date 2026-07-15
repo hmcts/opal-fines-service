@@ -1,12 +1,15 @@
 package uk.gov.hmcts.opal.controllers;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 
 import lombok.extern.slf4j.Slf4j;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -33,12 +36,13 @@ public class OpalNotesIntegrationTest extends NotesIntegrationTest {
         super.postNotes_IDNotFoundError(log);
     }
 
-    @Test
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("nonNotesPermissions")
     @JiraStory("PO-1566")
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6225")
-    void testOpalNotes_Forbidden() throws Exception {
-        super.postNotes_UserWithoutPermission(log);
+    void testOpalNotes_Forbidden(FinesPermission permission) throws Exception {
+        super.postNotes_UserWithoutPermission(permission);
     }
 
     @Test
@@ -46,5 +50,14 @@ public class OpalNotesIntegrationTest extends NotesIntegrationTest {
     @JiraEpic("PO-812")
     void testOpalNotes_BadRequest() throws Exception {
         super.postNotes_badRequest(log);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("businessUnitAuthorizationScenarios")
+    @JiraStory("PO-1566")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-6228")
+    void testOpalNotes_BusinessUnitAuthorization(BusinessUnitAuthorizationScenario scenario) throws Exception {
+        super.postNotes_BusinessUnitAuthorization(scenario);
     }
 }
