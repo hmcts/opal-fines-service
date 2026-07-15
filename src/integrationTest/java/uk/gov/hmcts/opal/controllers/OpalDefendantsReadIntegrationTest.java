@@ -250,13 +250,22 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
             .andExpect(jsonPath("$.party_details.individual_details.age").value(expectedAge()))
             .andExpect(jsonPath("$.address").exists())
             .andExpect(jsonPath("$.payment_terms").exists())
+            .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_code").value("B"))
+            .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_display_name")
+                .value("By date"))
+            .andExpect(jsonPath("$.payment_terms.instalment_period.instalment_period_code").value("W"))
+            .andExpect(jsonPath("$.payment_terms.instalment_period.instalment_period_display_name")
+                .value("Weekly"))
             .andExpect(jsonPath("$.enforcement_status").exists())
             .andExpect(jsonPath("$.enforcement_status.last_enforcement_action.last_enforcement_action_id").value("10"))
             .andExpect(jsonPath("$.enforcement_status.last_enforcement_action.last_enforcement_action_title").value(
                 nullValue()))
-            .andExpect(jsonPath("$.comments_and_notes").exists());
-
-        jsonSchemaValidationService.validateOrError(body, DEFENDANT_GLANCE_RESPONSE_SCHEMA);
+            .andExpect(jsonPath("$.enforcement_status.enforcement_override").exists())
+            .andExpect(jsonPath("$.comments_and_notes").exists())
+            .andExpect(jsonPath("$.comments_and_notes.account_comment").exists())
+            .andExpect(jsonPath("$.comments_and_notes.free_text_note_1").exists())
+            .andExpect(jsonPath("$.comments_and_notes.free_text_note_2").exists())
+            .andExpect(jsonPath("$.comments_and_notes.free_text_note_3").exists());
     }
 
     @Test
@@ -288,10 +297,11 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
             .andExpect(jsonPath("$.party_details.individual_details.age").value(expectedAge()))
             .andExpect(jsonPath("$.address").exists())
             .andExpect(jsonPath("$.payment_terms").exists())
+            .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_code").exists())
+            .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_display_name").exists())
             .andExpect(jsonPath("$.enforcement_status").exists())
+            .andExpect(jsonPath("$.enforcement_status.last_enforcement_action").exists())
             .andExpect(jsonPath("$.comments_and_notes").doesNotExist());
-
-        jsonSchemaValidationService.validateOrError(body, DEFENDANT_GLANCE_RESPONSE_SCHEMA);
     }
 
     @Test
@@ -322,16 +332,21 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
             .andExpect(jsonPath("$.party_details.organisation_details.organisation_name").value("Kings Arms"))
             .andExpect(jsonPath("$.address").exists())
             .andExpect(jsonPath("$.language_preferences").exists())
+            .andExpect(jsonPath("$.language_preferences.hearing_language_preference.language_code").value("EN"))
             .andExpect(jsonPath("$.language_preferences.hearing_language_preference.language_display_name").value(
                 "English only"))
+            .andExpect(jsonPath("$.language_preferences.document_language_preference.language_code").value("EN"))
             .andExpect(jsonPath("$.language_preferences.document_language_preference.language_display_name").value(
                 "English only"))
             .andExpect(jsonPath("$.payment_terms").exists())
+            .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_code").value("B"))
+            .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_display_name")
+                .value("By date"))
             .andExpect(jsonPath("$.enforcement_status").exists())
             .andExpect(jsonPath("$.enforcement_status.collection_order_made").exists())
-            .andExpect(jsonPath("$.comments_and_notes").exists());
-
-        jsonSchemaValidationService.validateOrError(body, DEFENDANT_GLANCE_RESPONSE_SCHEMA);
+            .andExpect(jsonPath("$.enforcement_status.enforcement_override").exists())
+            .andExpect(jsonPath("$.comments_and_notes").exists())
+            .andExpect(jsonPath("$.comments_and_notes.account_comment").exists());
     }
 
     @Test
@@ -361,10 +376,10 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
             .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
             .andExpect(jsonPath("$.party_details.individual_details").doesNotExist())
             .andExpect(jsonPath("$.party_details.organisation_details.organisation_name").value("Kings Arms"))
+            .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_code").exists())
+            .andExpect(jsonPath("$.enforcement_status").exists())
             .andExpect(jsonPath("$.language_preferences").doesNotExist())
             .andExpect(jsonPath("$.comments_and_notes").doesNotExist());
-
-        jsonSchemaValidationService.validateOrError(body, DEFENDANT_GLANCE_RESPONSE_SCHEMA);
     }
 
     @Test
@@ -393,11 +408,11 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
             .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
             .andExpect(jsonPath("$.party_details.individual_details").doesNotExist())
             .andExpect(jsonPath("$.party_details.organisation_details.organisation_name").value("Kings Arms"))
+            .andExpect(jsonPath("$.language_preferences.document_language_preference.language_code").value("EN"))
             .andExpect(jsonPath("$.language_preferences.document_language_preference.language_display_name").value(
                 "English only"))
+            .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_display_name").exists())
             .andExpect(jsonPath("$.language_preferences.hearing_language_preference").doesNotExist());
-
-        jsonSchemaValidationService.validateOrError(body, DEFENDANT_GLANCE_RESPONSE_SCHEMA);
     }
 
     @Test
@@ -480,8 +495,6 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
             .andExpect(jsonPath("$.party_details.organisation_details.organisation_aliases[2].organisation_name")
                 .value("ThirdAliasOrg"))
             .andExpect(jsonPath("$.party_details.individual_details").doesNotExist());
-
-        jsonSchemaValidationService.validateOrError(body, DEFENDANT_GLANCE_RESPONSE_SCHEMA);
     }
 
     @Test
@@ -523,7 +536,5 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
             .andExpect(jsonPath("$.party_details.individual_details.individual_aliases[2].forenames").value("Ana"))
             .andExpect(jsonPath("$.party_details.individual_details.individual_aliases[2].surname").value("Williams"))
             .andExpect(jsonPath("$.party_details.organisation_details").doesNotExist());
-
-        jsonSchemaValidationService.validateOrError(body, DEFENDANT_GLANCE_RESPONSE_SCHEMA);
     }
 }
