@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
@@ -17,12 +16,10 @@ import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
@@ -133,22 +130,6 @@ public class DefendantAccountService {
             .toList();
     }
 
-    public GetDefendantAccountPartyResponse getDefendantAccountParty(
-        Long defendantAccountId,
-        Long defendantAccountPartyId) {
-
-        log.debug(":getDefendantAccountParty:");
-
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
-
-        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
-
-            return defendantAccountServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
-        } else {
-            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        }
-    }
-
     public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
 
         log.debug(":getPaymentTerms:");
@@ -253,38 +234,6 @@ public class DefendantAccountService {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }
     }
-
-    public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
-        Long defendantAccountPartyId,
-        String ifMatch, String businessUnitId, DefendantAccountParty request) {
-        log.debug(":replaceDefendantAccountParty");
-
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
-
-        short buId = Short.parseShort(businessUnitId);
-
-        String postedBy = userState.getBusinessUnitUserForBusinessUnit(buId)
-            .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
-            .filter(id -> !id.isBlank())
-            .orElse(userState.getUserName());
-
-        if (userState.hasBusinessUnitUserWithPermission(buId,
-                FinesPermission.ACCOUNT_MAINTENANCE)) {
-            return defendantAccountServiceProxy.replaceDefendantAccountParty(defendantAccountId,
-                defendantAccountPartyId, request, ifMatch, businessUnitId, postedBy, userState.getUserName(),
-                getBusinessUnitUserIdForBusinessUnit(userState, buId));
-        } else {
-            throw new PermissionNotAllowedException(buId, FinesPermission.ACCOUNT_MAINTENANCE);
-        }
-    }
-
-    private String getBusinessUnitUserIdForBusinessUnit(UserState userState, short buId) {
-        return userState.getBusinessUnitUserForBusinessUnit(buId)
-            .map(BusinessUnitUser::getBusinessUnitUserId)
-            .filter(id -> !id.isBlank())
-            .orElse("");
-    }
-
 
     public AddPaymentCardRequestResponse addPaymentCardRequest(
         Long defendantAccountId,
