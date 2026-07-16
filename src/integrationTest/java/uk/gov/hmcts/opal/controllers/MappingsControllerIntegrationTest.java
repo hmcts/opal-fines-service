@@ -46,14 +46,20 @@ class MappingsControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("GET /mappings/{type} returns 404 for unsupported mapping type")
+    @DisplayName("GET /mappings/{type} returns 400 with supported types for unsupported mapping type")
     @JiraStory("PO-3871")
     @JiraEpic("PO-3372")
-    void getMappings_whenTypeIsUnsupported_returnsNotFound() throws Exception {
+    void getMappings_whenTypeIsUnsupported_returnsBadRequest() throws Exception {
         mockMvc.perform(get("/mappings/unsupported-type"))
-            .andExpect(status().isNotFound())
+            .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.title").value("No Value Present"))
-            .andExpect(jsonPath("$.detail").value("The requested element does not exist"));
+            .andExpect(jsonPath("$.title").value("Unsupported Mapping Type"))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/unsupported-mapping-type"))
+            .andExpect(jsonPath("$.detail").value(
+                "Unsupported mapping type: unsupported-type. Supported types: defendant-account-status"
+            ))
+            .andExpect(jsonPath("$.mapping_type").value("unsupported-type"))
+            .andExpect(jsonPath("$.supported_types", hasSize(1)))
+            .andExpect(jsonPath("$.supported_types[0]").value("defendant-account-status"));
     }
 }

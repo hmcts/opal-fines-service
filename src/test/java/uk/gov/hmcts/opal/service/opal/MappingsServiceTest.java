@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.opal.exception.UnsupportedMappingTypeException;
 import uk.gov.hmcts.opal.generated.model.MappingItemMappings;
 
 class MappingsServiceTest {
@@ -28,9 +28,13 @@ class MappingsServiceTest {
 
     @Test
     void getMappings_throwsWhenTypeIsNotAllowListed() {
-        NoSuchElementException exception = assertThrows(NoSuchElementException.class,
+        UnsupportedMappingTypeException exception = assertThrows(UnsupportedMappingTypeException.class,
             () -> mappingsService.getMappings("unsupported-type"));
 
-        assertEquals("Unsupported mapping type: unsupported-type", exception.getMessage());
+        assertEquals(
+            "Unsupported mapping type: unsupported-type. Supported types: defendant-account-status",
+            exception.getMessage()
+        );
+        assertEquals(List.of("defendant-account-status"), exception.getSupportedTypes());
     }
 }

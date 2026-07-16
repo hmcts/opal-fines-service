@@ -39,8 +39,8 @@ paths:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
-        '404':
-          description: Not Found
+        '400':
+          description: Unsupported mapping type
           content:
             application/problem+json:
               schema:
