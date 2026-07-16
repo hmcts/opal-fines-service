@@ -699,6 +699,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
                 }""";
     }
+
     private static String nonImpositionResultReplaceRequestBody(Long version) {
         return validReplaceRequestBody(version)
             .replace("\"result_id\": \"FO\"", "\"result_id\": \"COLLO\"");
