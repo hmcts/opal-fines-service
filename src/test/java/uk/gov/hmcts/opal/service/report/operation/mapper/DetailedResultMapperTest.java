@@ -87,13 +87,13 @@ class DetailedResultMapperTest {
 
         when(impositionRepository.findAllById(any())).thenReturn(List.of(imposition1, imposition2));
 
-
         when(transactionRowMapper
             .map(eq(transaction1), eq(account1), eq(imposition1), any(ReportMetadataContext.class)))
             .thenReturn(transactionRow1);
         when(transactionRowMapper.map(eq(transaction2), eq(account1), isNull(), any(ReportMetadataContext.class)))
             .thenReturn(transactionRow2);
-        when(transactionRowMapper.map(eq(transaction3), eq(account2), eq(imposition2),any(ReportMetadataContext.class)))
+        when(
+            transactionRowMapper.map(eq(transaction3), eq(account2), eq(imposition2), any(ReportMetadataContext.class)))
             .thenReturn(transactionRow3);
 
         OperationDetailedReport result = mapper.map(List.of(account1, account2));

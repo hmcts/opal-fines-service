@@ -18,7 +18,6 @@ import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.PaymentCardRequestRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.PaymentTermsRepositoryService;
 import uk.gov.hmcts.opal.util.VersionUtils;
-import uk.gov.hmcts.opal.service.UserStateService;
 
 import java.time.LocalDate;
 
@@ -34,9 +33,6 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
     private final AmendmentRepositoryService amendmentRepositoryService;
 
     private final PaymentCardRequestRepositoryService paymentCardRequestRepositoryService;
-
-    private final UserStateService userStateService;
-
 
     @Override
     @Transactional(readOnly = true)
@@ -55,6 +51,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
     public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
+        String postedByName,
         String ifMatch) {
 
         log.debug(":addPaymentCardRequest (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
@@ -68,10 +65,9 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
 
         createPaymentCardRequest(defendantAccountId);
 
-        String displayName = userStateService.getUserStateV1FromSecurityContext().getDisplayName();
-        updateDefendantAccountWithPcr(account, businessUnitUserId, displayName);
+        updateDefendantAccountWithPcr(account, businessUnitUserId, postedByName);
 
-        auditComplete(defendantAccountId, account, businessUnitUserId, displayName);
+        auditComplete(defendantAccountId, account, businessUnitUserId, postedByName);
 
         return new AddPaymentCardRequestResponse(defendantAccountId);
     }

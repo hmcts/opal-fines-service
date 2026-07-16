@@ -8,12 +8,17 @@ import java.util.Base64;
 public final class ContentDigestUtils {
 
     private static final byte[] EMPTY_BODY = new byte[0];
+    private static final String POST_BODY = "{}";
 
     private ContentDigestUtils() {
     }
 
     public static String contentDigestHeaderForEmptyBody() {
         return contentDigestHeaderFor(EMPTY_BODY);
+    }
+
+    public static String contentDigestHeaderForPostBody() {
+        return contentDigestHeaderFor(POST_BODY.getBytes(StandardCharsets.UTF_8));
     }
 
     public static String invalidContentDigestHeader() {

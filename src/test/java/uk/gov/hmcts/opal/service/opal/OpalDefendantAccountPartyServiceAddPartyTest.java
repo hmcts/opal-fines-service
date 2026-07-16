@@ -149,7 +149,7 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
 
             // Act
             GetDefendantAccountPartyResponse resp =
-                service.addDefendantAccountParty(accountId, bu, "bu-user-1", "tester", ifMatch, req);
+                service.addDefendantAccountParty(accountId, bu, "bu-user-1", "tester", "Tester Name", ifMatch, req);
 
             // Assert
             assertNotNull(resp);
@@ -182,7 +182,7 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
             verify(amendmentRepositoryService).auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
             verify(amendmentRepositoryService).auditFinaliseStoredProc(
                 eq(accountId), eq(RecordType.DEFENDANT_ACCOUNTS),
-                eq(Short.parseShort(bu)), eq("tester"), eq("tester"), any(), eq("ACCOUNT_ENQUIRY"));
+                eq(Short.parseShort(bu)), eq("tester"), eq("Tester Name"), any(), eq("ACCOUNT_ENQUIRY"));
             verify(defendantAccountRepositoryService).saveAndFlush(account);
         }
     }
@@ -204,7 +204,8 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
         AddDefendantAccountPartyRequest request = validOrganisationRequest();
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
-            service.addDefendantAccountParty(accountId, businessUnitId, "bu-user-1", "tester", "\"1\"", request));
+            service.addDefendantAccountParty(
+                accountId, businessUnitId, "bu-user-1", "tester", "Tester Name", "\"1\"", request));
 
         assertEquals("Defendant Account not found in business unit " + businessUnitId, exception.getMessage());
         verify(defendantAccountRepositoryService).findById(accountId);
@@ -215,7 +216,7 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
     @Test
     void addDefendantAccountParty_nullRequest_throws() {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-            service.addDefendantAccountParty(100L, "10", "bu-user-1", "tester", "\"1\"", null));
+            service.addDefendantAccountParty(100L, "10", "bu-user-1", "tester", "Tester Name", "\"1\"", null));
 
         assertEquals("Request body is required", exception.getMessage());
         verifyNoInteractions(defendantAccountRepositoryService);
@@ -227,7 +228,7 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
         AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder().build();
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-            service.addDefendantAccountParty(100L, "10", "bu-user-1", "tester", "\"1\"", request));
+            service.addDefendantAccountParty(100L, "10", "bu-user-1", "tester", "Tester Name", "\"1\"", request));
 
         assertEquals("Request body is required", exception.getMessage());
         verifyNoInteractions(defendantAccountRepositoryService);
@@ -244,7 +245,7 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
             .build();
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-            service.addDefendantAccountParty(100L, "10", "bu-user-1", "tester", "\"1\"", request));
+            service.addDefendantAccountParty(100L, "10", "bu-user-1", "tester", "Tester Name", "\"1\"", request));
 
         assertEquals("party_details.organisation_flag is required", exception.getMessage());
         verifyNoInteractions(defendantAccountRepositoryService);
@@ -262,7 +263,7 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
             .build();
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-            service.addDefendantAccountParty(100L, "10", "bu-user-1", "tester", "\"1\"", request));
+            service.addDefendantAccountParty(100L, "10", "bu-user-1", "tester", "Tester Name", "\"1\"", request));
 
         assertEquals("party_details.organisation_flag is required", exception.getMessage());
         verifyNoInteractions(defendantAccountRepositoryService);
@@ -279,7 +280,7 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
         AddDefendantAccountPartyRequest request = validOrganisationRequest();
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
-            service.addDefendantAccountParty(accountId, "10", "bu-user-1", "tester", "\"1\"", request));
+            service.addDefendantAccountParty(accountId, "10", "bu-user-1", "tester", "Tester Name", "\"1\"", request));
 
         assertEquals("Defendant Account not found with id: " + accountId, exception.getMessage());
         verify(defendantAccountRepositoryService).findById(accountId);
@@ -297,7 +298,8 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
         AddDefendantAccountPartyRequest request = validOrganisationRequest();
 
         assertThrows(ObjectOptimisticLockingFailureException.class, () ->
-            service.addDefendantAccountParty(accountId, businessUnitId, "bu-user-1", "tester", "\"4\"", request));
+            service.addDefendantAccountParty(
+                accountId, businessUnitId, "bu-user-1", "tester", "Tester Name", "\"4\"", request));
 
         verify(defendantAccountRepositoryService).findById(accountId);
         verify(defendantAccountRepositoryService).validateAccountExistsInBusinessUnit(account, businessUnitId);
