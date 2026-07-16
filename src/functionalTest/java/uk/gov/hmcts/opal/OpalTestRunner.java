@@ -18,7 +18,7 @@ import uk.gov.hmcts.opal.steps.BaseStepDef;
     value = "@Opal and not @Smoke and not @Ignore and not "
         + "(@R1AOff or @R1BOff or @R1COff or @R1CWriteOffOff or "
         + "@R1CEnforcementOperationalReportingOff or @R1CAdministrationOff or @R1CFinancialMovementsOff or "
-        + "@R1CAutoEnforcementOff or @R1DDataRetentionOff or @R1DAutoEnforcementConfigOff or "
+        + "@R1CAutoEnforcementOff or @R1CDataRetentionOff or @R1CAutoEnforcementConfigOff or "
         + "@R1CRmFinancialMovementsOff or @R1CRmFinancialChecksOff or @R1CRmSuspenseOff or "
         + "@R1CRmPaymentOff or @R1CRmAdminReportsOff or @R1CRmAccountActionsOff or @R1CChecksOff or "
         + "@R1CSuspenseOff or @R1CPaymentOff or @R1CR1ATidyUpOff or @R1CReferenceDataOff or "
