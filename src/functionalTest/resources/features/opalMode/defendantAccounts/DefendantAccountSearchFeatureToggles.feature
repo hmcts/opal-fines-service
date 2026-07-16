@@ -16,7 +16,7 @@ Feature: Defendant Account Search Feature Toggles
     When I search the created defendant account without consolidation
     Then the basic defendant account search returns the created account
 
-  @R1B @JIRA-STORY:PO-3768 @JIRA-EPIC:PO-3685
+  @R1CWriteOffOff @JIRA-STORY:PO-3768 @JIRA-EPIC:PO-3685
   Scenario: Consolidated search is unavailable when release 1c is disabled
     Given a searchable defendant account exists for feature-toggle search
     When I search the created defendant account with consolidation
