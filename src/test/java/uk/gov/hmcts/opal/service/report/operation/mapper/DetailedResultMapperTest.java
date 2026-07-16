@@ -29,8 +29,8 @@ import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
 import uk.gov.hmcts.opal.repository.ImpositionRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
-import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
+import uk.gov.hmcts.opal.service.persistence.NoteRepositoryService;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 import uk.gov.hmcts.opal.service.report.operation.OperationDetailedReport;
 
@@ -49,7 +49,7 @@ class DetailedResultMapperTest {
     private ImpositionRepository impositionRepository;
     private PaymentTermsRepository paymentTermsRepository;
     private EnforcementRepository enforcementRepository;
-    private NoteRepository noteRepository;
+    private NoteRepositoryService noteRepositoryService;
 
     @BeforeEach
     void setUp() {
@@ -61,7 +61,7 @@ class DetailedResultMapperTest {
         impositionRepository = mock(ImpositionRepository.class);
         paymentTermsRepository = mock(PaymentTermsRepository.class);
         enforcementRepository = mock(EnforcementRepository.class);
-        noteRepository = mock(NoteRepository.class);
+        noteRepositoryService = mock(NoteRepositoryService.class);
         mapper.setRowMapper(
             rowMapper,
             transactionRowMapper,
@@ -69,7 +69,7 @@ class DetailedResultMapperTest {
             impositionRepository,
             paymentTermsRepository,
             enforcementRepository,
-            noteRepository
+            noteRepositoryService
         );
     }
 
@@ -115,7 +115,7 @@ class DetailedResultMapperTest {
         when(transaction2.getAssociatedRecordId()).thenReturn("22");
         when(impositionRepository.findAllById(List.of(11L))).thenReturn(List.of(imposition1));
 
-        when(noteRepository.findAll(ArgumentMatchers.<Specification<NoteEntity>>any()))
+        when(noteRepositoryService.findAll(ArgumentMatchers.<Specification<NoteEntity>>any()))
             .thenReturn(List.of(note1))
             .thenReturn(List.of());
 
@@ -196,7 +196,7 @@ class DetailedResultMapperTest {
         verify(transactionRepository).findByDefendantAccountId(101L);
         verify(transactionRepository).findByDefendantAccountId(202L);
         verify(impositionRepository).findAllById(List.of(11L));
-        verify(noteRepository, times(2))
+        verify(noteRepositoryService, times(2))
             .findAll(ArgumentMatchers.<Specification<NoteEntity>>any());
     }
 
