@@ -46,7 +46,7 @@ import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildE
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.filterDefendantParty;
 
 @Service
-@Slf4j(topic = "opal.OpalDefendantAccountService")
+@Slf4j(topic = "opal.OpalDefendantAccountEnforcementService")
 @RequiredArgsConstructor
 public class OpalDefendantAccountEnforcementService
     implements DefendantAccountEnforcementServiceInterface {
@@ -69,11 +69,9 @@ public class OpalDefendantAccountEnforcementService
 
     private final AmendmentService amendmentService;
 
-    private final ReportEntryService reportEntryService;
-
     private final Clock clock;
 
-    private final OpalDefendantAccountService opalDefendantAccountService;
+    private final OpalDefendantAccountPaymentTermsService opalDefendantAccountPaymentTermsService;
 
     private final ObjectMapper objectMapper;
 
@@ -132,7 +130,7 @@ public class OpalDefendantAccountEnforcementService
 
         if (request.getPaymentTerms() != null) {
             DefendantAccountEntity defendantEntity = defendantAccountRepositoryService.findById(defendantAccountId);
-            opalDefendantAccountService.addPaymentTermsPreservingLastEnforcement(
+            opalDefendantAccountPaymentTermsService.addPaymentTermsPreservingLastEnforcement(
                 defendantAccountId,
                 businessUnitId.toString(),
                 businessUnitUserId,

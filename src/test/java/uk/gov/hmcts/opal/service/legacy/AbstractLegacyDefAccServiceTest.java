@@ -47,13 +47,14 @@ abstract class AbstractLegacyDefAccServiceTest extends LegacyTestsBase {
     @Mock protected LegacyUpdateDefendantAccountResponseMapper legacyUpdateDefendantAccountResponseMapper;
     @Mock protected UserStateService userStateService;
 
+    protected LegacyDefendantAccountPaymentTermsService legacyDefendantAccountPaymentTermsService;
     protected LegacyDefendantAccountService legacyDefendantAccountService;
-
     protected UpdateDefendantAccountRequest updateDefendantAccountRequest;
 
     @BeforeEach
     void openMocks() {
         gatewayService = Mockito.spy(new LegacyGatewayService(gatewayProperties, restClient));
+        legacyDefendantAccountPaymentTermsService = new LegacyDefendantAccountPaymentTermsService(gatewayService);
         legacyDefendantAccountService = new LegacyDefendantAccountService(
             gatewayService,
             gatewayProperties,
@@ -64,7 +65,6 @@ abstract class AbstractLegacyDefAccServiceTest extends LegacyTestsBase {
             updateDefendantAccountRequestMapper,
             legacyUpdateDefendantAccountResponseMapper
         );
-
         updateDefendantAccountRequest = mock(UpdateDefendantAccountRequest.class, RETURNS_DEEP_STUBS);
     }
 }

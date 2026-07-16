@@ -28,7 +28,7 @@ import uk.gov.hmcts.opal.dto.legacy.AddPaymentTermsLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.AddPaymentTermsLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
 
-class LegacyDefAccServicePaymentCardRequestTest extends AbstractLegacyDefAccServiceTest {
+class LegacyDefAccPaymentTermsServicePaymentCardRequestTest extends AbstractLegacyDefAccServiceTest {
 
     @Test
     void addPaymentCardRequest_legacy_happyPath() {
@@ -45,7 +45,7 @@ class LegacyDefAccServicePaymentCardRequestTest extends AbstractLegacyDefAccServ
         );
 
         AddPaymentCardRequestResponse out =
-            legacyDefendantAccountService.addPaymentCardRequest(123L, "78", null, "Tester Name", "4");
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L, "78", null, "Tester Name", "4");
 
         assertNotNull(out);
         assertEquals(123L, out.getDefendantAccountId());
@@ -65,7 +65,7 @@ class LegacyDefAccServicePaymentCardRequestTest extends AbstractLegacyDefAccServ
             isNull()
         );
 
-        legacyDefendantAccountService.addPaymentCardRequest(123L, "78", null, "Tester Name", "9");
+        legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L, "78", null, "Tester Name", "9");
 
         AddPaymentCardLegacyRequest sent = captor.getValue();
         assertEquals("123", sent.getDefendantAccountId());
@@ -87,7 +87,7 @@ class LegacyDefAccServicePaymentCardRequestTest extends AbstractLegacyDefAccServ
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountService.addPaymentCardRequest(99L, "78", null, "Tester Name", "1")
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(99L, "78", null, "Tester Name", "1")
         );
     }
 
@@ -106,7 +106,7 @@ class LegacyDefAccServicePaymentCardRequestTest extends AbstractLegacyDefAccServ
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountService.addPaymentCardRequest(88L, "78", null, "Tester Name", "2")
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(88L, "78", null, "Tester Name", "2")
         );
     }
 
@@ -123,14 +123,14 @@ class LegacyDefAccServicePaymentCardRequestTest extends AbstractLegacyDefAccServ
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountService.addPaymentCardRequest(55L, "78", null, "Tester Name", "3")
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(55L, "78", null, "Tester Name", "3")
         );
     }
 
     @Test
     void addPaymentCardRequest_legacy_invalidIfMatchThrows() {
         assertThrows(IllegalArgumentException.class, () ->
-            legacyDefendantAccountService.addPaymentCardRequest(1L, "78", null, "Tester Name", "notANumber")
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(1L, "78", null, "Tester Name", "notANumber")
         );
     }
 
@@ -148,7 +148,7 @@ class LegacyDefAccServicePaymentCardRequestTest extends AbstractLegacyDefAccServ
         // When
         doReturn(gateWayResponse).when(gatewayService).postToGateway(any(), any(), any(), any());
 
-        var actualResponse = legacyDefendantAccountService.addPaymentTerms(
+        var actualResponse = legacyDefendantAccountPaymentTermsService.addPaymentTerms(
             defendantAccountId, businessUnitId,
             businessUnitUserId, "Tester Name", ifMatch, null
         );
@@ -223,7 +223,7 @@ class LegacyDefAccServicePaymentCardRequestTest extends AbstractLegacyDefAccServ
         // Then
         assertThrows(
             HttpServerErrorException.class, () ->
-                legacyDefendantAccountService.addPaymentTerms(
+                legacyDefendantAccountPaymentTermsService.addPaymentTerms(
                     defendantAccountId, businessUnitId,
                     businessUnitUserId, "Tester Name", ifMatch, null
                 )
@@ -262,7 +262,7 @@ class LegacyDefAccServicePaymentCardRequestTest extends AbstractLegacyDefAccServ
         // When
         doReturn(gateWayResponse).when(gatewayService).postToGateway(any(), any(), any(), any());
 
-        var actualResponse = legacyDefendantAccountService.addPaymentTerms(
+        var actualResponse = legacyDefendantAccountPaymentTermsService.addPaymentTerms(
             defendantAccountId, businessUnitId,
             businessUnitUserId, "Tester Name", ifMatch, null
         );

@@ -126,7 +126,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     private DefendantAccountRepositoryService defendantAccountRepositoryService;
 
     @Mock
-    private OpalDefendantAccountService opalDefendantAccountService;
+    private OpalDefendantAccountPaymentTermsService opalDefendantAccountPaymentTermsService;
 
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -645,7 +645,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
 
         assertCommonResponse(response);
 
-        verify(opalDefendantAccountService).addPaymentTermsPreservingLastEnforcement(
+        verify(opalDefendantAccountPaymentTermsService).addPaymentTermsPreservingLastEnforcement(
             eq(DEFENDANT_ACCOUNT_ID),
             eq(BUSINESS_UNIT_ID.toString()),
             eq(BUSINESS_UNIT_USER_ID),

@@ -11,19 +11,16 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
-import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
+
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
-import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
@@ -130,19 +127,6 @@ public class DefendantAccountService {
             .toList();
     }
 
-    public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
-
-        log.debug(":getPaymentTerms:");
-
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
-
-        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
-            return defendantAccountServiceProxy.getPaymentTerms(defendantAccountId);
-        } else {
-            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        }
-    }
-
     public DefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId) {
         log.debug(":getAtAGlance");
 
@@ -235,29 +219,6 @@ public class DefendantAccountService {
         }
     }
 
-    public AddPaymentCardRequestResponse addPaymentCardRequest(
-        Long defendantAccountId,
-        String businessUnitId,
-        String businessUnitUserId,
-        String ifMatch
-    ) {
-        log.debug(":addPaymentCardRequest:");
-
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
-
-        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS)) {
-            return defendantAccountServiceProxy.addPaymentCardRequest(
-                defendantAccountId,
-                businessUnitId,
-                businessUnitUserId,
-                userState.getUserName(),
-                ifMatch
-            );
-        } else {
-            throw new PermissionNotAllowedException(FinesPermission.AMEND_PAYMENT_TERMS);
-        }
-    }
-
     public AddEnforcementResponse addEnforcement(Long defendantAccountId,
         String businessUnitId,
         String ifMatch,
@@ -278,42 +239,6 @@ public class DefendantAccountService {
             );
         } else {
             throw new PermissionNotAllowedException(FinesPermission.ENTER_ENFORCEMENT);
-        }
-    }
-
-    public GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
-        String businessUnitId,
-        String ifMatch,
-        AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
-
-        log.debug(":addPaymentTerms:");
-
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
-
-        short buId = Short.parseShort(businessUnitId);
-        String businessUnitUserId = userState.getBusinessUnitUserForBusinessUnit(buId)
-            .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
-            .filter(id -> !id.isBlank())
-            .orElse(userState.getUserName());
-        String postedByName = userState.getUserName();
-
-        if (addPaymentTermsRequest != null && addPaymentTermsRequest.getPaymentTerms() != null) {
-            addPaymentTermsRequest.getPaymentTerms().setPostedDetails(PostedDetails.builder()
-                .postedBy(businessUnitUserId)
-                .postedByName(postedByName)
-                .build());
-        }
-
-        if (userState.hasBusinessUnitUserWithPermission(buId,
-            FinesPermission.AMEND_PAYMENT_TERMS)) {
-            return defendantAccountServiceProxy.addPaymentTerms(defendantAccountId,
-                businessUnitId,
-                businessUnitUserId,
-                postedByName,
-                ifMatch,
-                addPaymentTermsRequest);
-        } else {
-            throw new PermissionNotAllowedException(buId, FinesPermission.AMEND_PAYMENT_TERMS);
         }
     }
 }

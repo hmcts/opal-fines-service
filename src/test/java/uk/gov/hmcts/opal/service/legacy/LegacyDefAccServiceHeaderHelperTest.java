@@ -12,8 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
-import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
-import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails;
@@ -36,17 +34,6 @@ class LegacyDefAccServiceHeaderHelperTest extends AbstractLegacyDefAccServiceTes
     }
 
     @Test
-    void toPaymentTermsType_and_toInstalmentPeriod_coverNonNullCodes() {
-        LegacyPaymentTermsType legacyType = new LegacyPaymentTermsType(LegacyPaymentTermsType.PaymentTermsTypeCode.B);
-        LegacyInstalmentPeriod legacyInst = new LegacyInstalmentPeriod(LegacyInstalmentPeriod.InstalmentPeriodCode.W);
-
-        Object out1 = LegacyDefendantAccountService.toPaymentTermsType(legacyType);
-        Object out2 = LegacyDefendantAccountService.toInstalmentPeriod(legacyInst);
-        assertNotNull(out1);
-        assertNotNull(out2);
-    }
-
-    @Test
     void getHeaderSummary_errorAndSuccessBranches_triggerLogging() {
         LegacyGetDefendantAccountHeaderSummaryResponse legacyEntity =
             LegacyGetDefendantAccountHeaderSummaryResponse.builder().build();
@@ -66,7 +53,7 @@ class LegacyDefAccServiceHeaderHelperTest extends AbstractLegacyDefAccServiceTes
     }
 
     @Test
-    void toHeaderSumaryDto_mapsOrgAndIndBranches() {
+    void toHeaderSummaryDto_mapsOrgAndIndBranches() {
         OrganisationDetails.OrganisationAlias orgAlias = OrganisationDetails.OrganisationAlias.builder()
             .aliasId("O1").sequenceNumber((short) 1).organisationName("AliasCo").build();
         OrganisationDetails orgDetails = OrganisationDetails.builder()
@@ -93,7 +80,7 @@ class LegacyDefAccServiceHeaderHelperTest extends AbstractLegacyDefAccServiceTes
     }
 
     @Test
-    void toHeaderSumaryDto_populatesDisplayNameFromCodeWhenMissing() {
+    void toHeaderSummaryDto_populatesDisplayNameFromCodeWhenMissing() {
         LegacyGetDefendantAccountHeaderSummaryResponse legacyResponse =
             LegacyGetDefendantAccountHeaderSummaryResponse.builder()
             .accountStatusReference(AccountStatusReference.builder()

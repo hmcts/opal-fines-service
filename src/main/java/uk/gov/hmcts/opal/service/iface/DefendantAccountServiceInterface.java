@@ -2,17 +2,14 @@ package uk.gov.hmcts.opal.service.iface;
 
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
-import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
-import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
@@ -27,8 +24,6 @@ public interface DefendantAccountServiceInterface {
     DefendantAccountHistoryResponse getHistory(Long defendantAccountId, DefendantAccountHistoryFilter filter);
 
     DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto);
-
-    GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId);
 
     DefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId);
 
@@ -47,20 +42,8 @@ public interface DefendantAccountServiceInterface {
         return updateDefendantAccount(defendantAccountId, businessUnitId, request, postedBy, postedBy);
     }
 
-    AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId, String businessUnitId,
-        String businessUnitUserId,
-        String postedByName, String ifMatch);
-
     AddEnforcementResponse addEnforcement(Long defendantAccountId, String businessUnitId, String businessUnitUserId,
         String ifMatch, AddDefendantAccountEnforcementRequest request);
 
     EnforcementStatus getEnforcementStatus(Long defendantAccountId);
-
-
-    GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
-                                            String businessUnitId,
-                                            String businessUnitUserId,
-                                            String postedByName,
-                                            String ifMatch,
-                                            AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest);
 }
