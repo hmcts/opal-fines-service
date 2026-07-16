@@ -24,8 +24,9 @@ import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.ImpositionRepository;
-import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
+import uk.gov.hmcts.opal.repository.jpa.NoteSpecs;
+import uk.gov.hmcts.opal.service.persistence.NoteRepositoryService;
 import uk.gov.hmcts.opal.service.report.ReportMetaData;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 import uk.gov.hmcts.opal.service.report.operation.OperationDetailedReport;
@@ -43,7 +44,7 @@ public abstract class DetailedResultMapper
     protected ImpositionRepository impositionRepository;
     protected PaymentTermsRepository paymentTermsRepository;
     protected EnforcementRepository enforcementRepository;
-    protected NoteRepository noteRepository;
+    protected NoteRepositoryService noteRepositoryService;
 
     @Autowired
     public void setRowMapper(DetailedRowDtoCoreMapper rowMapper,
@@ -52,14 +53,14 @@ public abstract class DetailedResultMapper
         ImpositionRepository impositionRepository,
         PaymentTermsRepository paymentTermsRepository,
         EnforcementRepository enforcementRepository,
-        NoteRepository noteRepository) {
+        NoteRepositoryService noteRepositoryService) {
         this.rowMapper = rowMapper;
         this.transactionRowMapper = transactionRowMapper;
         this.transactionRepository = transactionRepository;
         this.impositionRepository = impositionRepository;
         this.paymentTermsRepository = paymentTermsRepository;
         this.enforcementRepository = enforcementRepository;
-        this.noteRepository = noteRepository;
+        this.noteRepositoryService = noteRepositoryService;
     }
 
     @Override
@@ -69,61 +70,11 @@ public abstract class DetailedResultMapper
             .map(account -> {
                 final DetailedOperationReportAccountRowDto accountRow =
                     rowMapper.map(account, context);
-                //TTPAY
-                List<PaymentTermsEntity> paymentTermsEntities = paymentTermsRepository
-                    .findByDefendantAccount_DefendantAccountIdAndEffectiveDateIsNotNullOrderByEffectiveDateAsc(
-                        account.getDefendantAccountId());
-                //ENFT
-                List<EnforcementEntity> enforcementEntities = enforcementRepository
-                    .findHistoryRowsByDefendantAccountId(account.getDefendantAccountId());
-                //(transaction)
-                List<DefendantTransactionEntity> transactionEntities = transactionRepository
-                    .findByDefendantAccountId(account.getDefendantAccountId());
-                List<Long> impositionIds = transactionEntities.stream()
-                    .filter(transaction ->
-                        AssociatedRecordType.IMPOSITIONS.equals(transaction.getAssociatedRecordType()))
-                    .map(transaction ->
-                        Long.valueOf(transaction.getAssociatedRecordId()))
-                    .toList();
-                Map<String, ImpositionEntity> impositionsForTransactions = impositionRepository
-                    .findAllById(impositionIds)
-                    .stream().collect(Collectors.toMap(
-                        imposition -> imposition.getImpositionId().toString(),
-                        imposition -> imposition));
-                //NOTE
-                List<NoteEntity> noteEntities = noteRepository.findAll(Specification.allOf(
-                    (root, query, builder) ->
-                        builder.and(
-                            builder.equal(
-                                root.get("associatedRecordType").as(String.class),
-                                AssociatedRecordType.DEFENDANT_ACCOUNTS.getLabel()
-                            ),
-                            builder.equal(root.get("associatedRecordId"), account.getDefendantAccountId().toString()),
-                            builder.equal(root.get("noteType").as(String.class), NoteType.AA.name())
-                        )
-                ));
-
-                //TTPAY
-                List<DetailedReportTransactionRowDto> transactionRows = new ArrayList<>(paymentTermsEntities.stream()
-                    .map(paymentTerms -> transactionRowMapper.mapFromPaymentTerms(
-                        paymentTerms, account, context))
-                    .toList());
-                //ENFT
-                transactionRows.addAll(enforcementEntities.stream().map(enforcement -> transactionRowMapper
-                        .mapFromEnforcement(enforcement, account, context))
-                    .toList());
-                //transactions
-                transactionRows.addAll(transactionEntities.stream()
-                    .map(transaction -> transactionRowMapper.mapFromTransaction(
-                        transaction,
-                        account,
-                        impositionsForTransactions.get(transaction.getAssociatedRecordId()),
-                        context))
-                    .toList());
-                //NOTE
-                transactionRows.addAll(noteEntities.stream().map(note -> transactionRowMapper
-                        .mapFromNote(note, account, context))
-                    .toList());
+                List<DetailedReportTransactionRowDto> transactionRows = new ArrayList<>();
+                transactionRows.addAll(getPaymentTermsTransactionRows(account, context));
+                transactionRows.addAll(getEnforcementTransactionRows(account, context));
+                transactionRows.addAll(getDefendantTransactionRows(account, context));
+                transactionRows.addAll(getNoteTransactionRows(account, context));
                 Collections.sort(transactionRows);
                 return DetailedAccountReportDto.builder()
                     .accountRow(accountRow)
@@ -142,5 +93,70 @@ public abstract class DetailedResultMapper
             .detailedReport(reportDto)
             .reportMetaData(meta)
             .build();
+    }
+
+    private List<DetailedReportTransactionRowDto> getPaymentTermsTransactionRows(DefendantAccountEntity account,
+        ReportMetadataContext context) {
+        List<PaymentTermsEntity> paymentTermsEntities = paymentTermsRepository
+            .findByDefendantAccount_DefendantAccountIdAndEffectiveDateIsNotNullOrderByEffectiveDateAsc(
+                account.getDefendantAccountId());
+
+        return paymentTermsEntities.stream()
+            .map(paymentTerms -> transactionRowMapper.mapFromPaymentTerms(paymentTerms, account, context))
+            .toList();
+    }
+
+    private List<DetailedReportTransactionRowDto> getEnforcementTransactionRows(DefendantAccountEntity account,
+        ReportMetadataContext context) {
+        List<EnforcementEntity> enforcementEntities = enforcementRepository
+            .findHistoryRowsByDefendantAccountId(account.getDefendantAccountId());
+
+        return enforcementEntities.stream()
+            .map(enforcement -> transactionRowMapper.mapFromEnforcement(enforcement, account, context))
+            .toList();
+    }
+
+    private List<DetailedReportTransactionRowDto> getDefendantTransactionRows(DefendantAccountEntity account,
+        ReportMetadataContext context) {
+        List<DefendantTransactionEntity> transactionEntities = transactionRepository
+            .findByDefendantAccountId(account.getDefendantAccountId());
+        Map<String, ImpositionEntity> impositionsForTransactions = getImpositionsForTransactions(transactionEntities);
+
+        return transactionEntities.stream()
+            .map(transaction -> transactionRowMapper.mapFromTransaction(
+                transaction,
+                account,
+                impositionsForTransactions.get(transaction.getAssociatedRecordId()),
+                context))
+            .toList();
+    }
+
+    private List<DetailedReportTransactionRowDto> getNoteTransactionRows(DefendantAccountEntity account,
+        ReportMetadataContext context) {
+        List<NoteEntity> noteEntities = noteRepositoryService.findAll(Specification.allOf(
+            NoteSpecs.equalsAssociatedRecordType(AssociatedRecordType.DEFENDANT_ACCOUNTS),
+            NoteSpecs.equalsAssociatedRecordId(account.getDefendantAccountId().toString()),
+            NoteSpecs.equalsNoteType(NoteType.AA)
+        ));
+
+        return noteEntities.stream()
+            .map(note -> transactionRowMapper.mapFromNote(note, account, context))
+            .toList();
+    }
+
+    private Map<String, ImpositionEntity> getImpositionsForTransactions(
+        List<DefendantTransactionEntity> transactionEntities) {
+        List<Long> impositionIds = transactionEntities.stream()
+            .filter(transaction ->
+                AssociatedRecordType.IMPOSITIONS.equals(transaction.getAssociatedRecordType()))
+            .map(transaction -> Long.valueOf(transaction.getAssociatedRecordId()))
+            .toList();
+
+        return impositionRepository.findAllById(impositionIds)
+            .stream()
+            .collect(Collectors.toMap(
+                imposition -> imposition.getImpositionId().toString(),
+                imposition -> imposition
+            ));
     }
 }
