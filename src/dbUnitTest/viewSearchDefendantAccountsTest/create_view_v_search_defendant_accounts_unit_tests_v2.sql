@@ -200,7 +200,7 @@ BEGIN
                 prosecution_service,
                 major_creditor_id, 
                 minor_creditor_party_id, 
-                from_suspense, 
+                repayment,
                 hold_payout, 
                 pay_by_bacs
               ) VALUES 

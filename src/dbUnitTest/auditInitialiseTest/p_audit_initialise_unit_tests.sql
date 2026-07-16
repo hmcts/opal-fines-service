@@ -187,7 +187,7 @@ BEGIN
     INSERT INTO creditor_accounts (
         creditor_account_id, business_unit_id, account_number, 
         creditor_account_type, minor_creditor_party_id, prosecution_service,
-        from_suspense, hold_payout, pay_by_bacs, bank_sort_code, 
+        repayment, hold_payout, pay_by_bacs, bank_sort_code,
         bank_account_type, bank_account_number, bank_account_name, bank_account_reference
     ) VALUES (
         v_creditor_account_id, v_business_unit_id, 'TESTCRED001',
