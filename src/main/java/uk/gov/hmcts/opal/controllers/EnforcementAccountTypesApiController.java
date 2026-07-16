@@ -50,8 +50,7 @@ public class EnforcementAccountTypesApiController implements EnforcementAccountT
         @RequestBody List<PatchEnforcementAccountTypeRequestInner> request) {
         log.debug(":PATCH:patchEnforcementAccountType");
 
-        List<EnforcementAccountTypeCommon> updatedEntities =
-            service.updateEnforcementAccountType(request);
+        List<EnforcementAccountTypeCommon> updatedEntities = service.updateEnforcementAccountType(request);
 
         PatchEnforcementAccountType200Response response = PatchEnforcementAccountType200Response.builder()
             .enforcementAccountTypes(updatedEntities)

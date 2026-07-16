@@ -3,8 +3,6 @@ package uk.gov.hmcts.opal.entity.enforcement;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
@@ -17,8 +15,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+import lombok.Setter;
+import org.hibernate.annotations.ColumnTransformer;
 import uk.gov.hmcts.opal.entity.LowHighValue;
 import uk.gov.hmcts.opal.entity.converter.AccountTypeConverter;
 import uk.gov.hmcts.opal.entity.converter.EnforcementAccountTypeConverter;
@@ -31,7 +29,7 @@ import uk.gov.hmcts.opal.util.Versioned;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @Getter
-
+@Setter
 public class EnforcementAccountTypeEntity implements Versioned {
 
     @Id
@@ -39,24 +37,21 @@ public class EnforcementAccountTypeEntity implements Versioned {
     private long enforcementAccountTypeId;
 
     @Convert(converter = EnforcementAccountTypeConverter.class)
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @NonNull
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @ColumnTransformer(write = "?::t_enforcement_account_type_enum")
     private EnforcementAccountType enforcementAccountType;
 
     @Convert(converter = AccountTypeConverter.class)
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @NonNull
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @ColumnTransformer(write = "?::t_account_type_enum")
     private AccountType accountType;
 
     @Convert(converter = LowHighValueConverter.class)
-    @Enumerated(EnumType.STRING)
     @Column
     @NonNull
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @ColumnTransformer(write = "?::t_low_high_value_enum")
     private LowHighValue accountTypePath;
 
     @Column
