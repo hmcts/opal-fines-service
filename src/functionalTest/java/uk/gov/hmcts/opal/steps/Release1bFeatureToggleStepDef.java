@@ -21,7 +21,6 @@ public class Release1bFeatureToggleStepDef extends BaseStepDef {
     private static final String PLACEHOLDER_RESULT_ID = "FCOMP";
     private static final String DEFAULT_BUSINESS_UNIT_ID = "77";
     private static final String DEFAULT_IF_MATCH = "\"0\"";
-    private static final String DEFAULT_BUSINESS_UNIT_USER_ID = "FEATURE_TOGGLE_TEST";
 
     /**
      * Calls the named release-1b gated endpoint using a valid representative request for that
@@ -234,12 +233,11 @@ public class Release1bFeatureToggleStepDef extends BaseStepDef {
     /**
      * Returns the headers required for payment-card-request operations.
      *
-     * @return map containing the standard business-unit headers plus Business-Unit-User-Id.
+     * @return map containing the Business-Unit-Id and If-Match headers.
      */
     private Map<String, String> paymentCardRequestHeaders() {
         return Map.of(
             "Business-Unit-Id", DEFAULT_BUSINESS_UNIT_ID,
-            "Business-Unit-User-Id", DEFAULT_BUSINESS_UNIT_USER_ID,
             "If-Match", DEFAULT_IF_MATCH
         );
     }
