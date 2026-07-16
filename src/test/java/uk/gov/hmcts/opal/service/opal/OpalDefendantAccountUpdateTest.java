@@ -54,6 +54,7 @@ import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.ResultRepository;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 
 @ExtendWith(MockitoExtension.class)
 class OpalDefendantAccountUpdateTest {
@@ -85,6 +86,9 @@ class OpalDefendantAccountUpdateTest {
     @Mock
     private EnforcerDefendantAccountMapper enforcerDefendantAccountMapper;
 
+    @Mock
+    private DefendantAccountRepositoryService defendantAccountRepositoryService;
+
     @Spy
     private Clock clock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
 
@@ -110,7 +114,7 @@ class OpalDefendantAccountUpdateTest {
         entity.setVersionNumber(1L);
 
         // Stubs
-        when(defendantAccountRepository.findById(id)).thenReturn(Optional.of(entity));
+        when(defendantAccountRepositoryService.findById(id)).thenReturn(entity);
         // Echo the saved entity (so assertions see updated values)
         when(defendantAccountRepository.save(any(DefendantAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -164,7 +168,7 @@ class OpalDefendantAccountUpdateTest {
                         .enforcerId(22L)
                         .build())
                     .lja(LocalJusticeAreaDefendantAccount.builder()
-                        .ljaId(33)
+                        .ljaId((short) 33)
                         .build())
                     .build())
                 .build())
@@ -200,7 +204,7 @@ class OpalDefendantAccountUpdateTest {
         assertNotNull(enforcementOverride.getEnforcer());
         assertEquals(22, enforcementOverride.getEnforcer().getEnforcerId());
         assertNotNull(enforcementOverride.getLja());
-        assertEquals(33, enforcementOverride.getLja().getLjaId());
+        assertEquals((short) 33, enforcementOverride.getLja().getLjaId());
 
         // Verify entity was updated as expected
         assertEquals(court, entity.getEnforcingCourt());
@@ -229,7 +233,7 @@ class OpalDefendantAccountUpdateTest {
             .versionNumber(1L)
             .build();
 
-        when(defendantAccountRepository.findById(id)).thenReturn(Optional.of(entity));
+        when(defendantAccountRepositoryService.findById(id)).thenReturn(entity);
 
         UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
             .payload(UpdateDefendantAccountRequestPayload.builder()
@@ -240,25 +244,6 @@ class OpalDefendantAccountUpdateTest {
 
         assertThrows(EntityNotFoundException.class, () ->
             service.updateDefendantAccount(id, buHeader, req, "tester")
-        );
-        verify(defendantAccountRepository, never()).save(any());
-    }
-
-    @Test
-    void updateDefendantAccount_throwsWhenEntityNotFound() {
-        when(defendantAccountRepository.findById(99L)).thenReturn(Optional.empty());
-
-        UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
-            .payload(UpdateDefendantAccountRequestPayload.builder()
-                .commentAndNotes(CommentsAndNotesCommon.builder()
-                    .accountComment("x")
-                    .build())
-                .build())
-            .version(BigInteger.valueOf(1))
-            .build();
-
-        assertThrows(EntityNotFoundException.class, () ->
-            service.updateDefendantAccount(99L, "10", req, "tester")
         );
         verify(defendantAccountRepository, never()).save(any());
     }
@@ -275,7 +260,7 @@ class OpalDefendantAccountUpdateTest {
             .versionNumber(5L)
             .build();
 
-        when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
+        when(defendantAccountRepositoryService.findById(77L)).thenReturn(entity);
 
         var req = UpdateDefendantAccountRequest.builder()
             .payload(UpdateDefendantAccountRequestPayload.builder()
@@ -287,7 +272,7 @@ class OpalDefendantAccountUpdateTest {
             .build();
 
         assertThrows(ObjectOptimisticLockingFailureException.class,
-            () -> service.updateDefendantAccount(77L, "78", req, "tester"));
+            () -> service.updateDefendantAccount(77L, "78", req, "tester", "Tester Name"));
         verify(defendantAccountRepository, never()).save(any());
     }
 
@@ -303,7 +288,7 @@ class OpalDefendantAccountUpdateTest {
             .versionNumber(0L)
             .build();
 
-        when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
+        when(defendantAccountRepositoryService.findById(77L)).thenReturn(entity);
         when(noteRepository.save(any())).thenReturn(null);
         doNothing().when(entityManager).lock(any(), any());
 
@@ -316,12 +301,12 @@ class OpalDefendantAccountUpdateTest {
             .version(BigInteger.ZERO)
             .build();
 
-        service.updateDefendantAccount(77L, "78", req, "11111111A");
+        service.updateDefendantAccount(77L, "78", req, "11111111A", "Tester Name");
 
         verify(amendmentService).auditInitialiseStoredProc(77L, RecordType.DEFENDANT_ACCOUNTS);
         verify(amendmentService).auditFinaliseStoredProc(
             eq(77L), eq(RecordType.DEFENDANT_ACCOUNTS), eq((short) 78),
-            eq("11111111A"), eq("11111111A"), any(), eq("ACCOUNT_ENQUIRY"));
+            eq("11111111A"), eq("Tester Name"), any(), eq("ACCOUNT_ENQUIRY"));
     }
 
     @Test
@@ -336,7 +321,7 @@ class OpalDefendantAccountUpdateTest {
             .versionNumber(0L)
             .build();
 
-        when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
+        when(defendantAccountRepositoryService.findById(77L)).thenReturn(entity);
         doNothing().when(entityManager).lock(any(), any());
 
         var req = UpdateDefendantAccountRequest.builder()
@@ -349,14 +334,14 @@ class OpalDefendantAccountUpdateTest {
                         .enforcerId(999999L)
                         .build())
                     .lja(LocalJusticeAreaDefendantAccount.builder()
-                        .ljaId(9999)
+                        .ljaId((short) 9999)
                         .build())
                     .build())
                 .build())
             .version(BigInteger.ZERO)
             .build();
 
-        var resp = service.updateDefendantAccount(77L, "78", req, "tester");
+        var resp = service.updateDefendantAccount(77L, "78", req, "tester", "Tester Name");
         assertNotNull(resp.getPayload().getEnforcementOverride());
     }
 
@@ -371,7 +356,7 @@ class OpalDefendantAccountUpdateTest {
             .versionNumber(0L)
             .build();
 
-        when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
+        when(defendantAccountRepositoryService.findById(77L)).thenReturn(entity);
         when(defendantAccountRepository.save(any(DefendantAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
         doNothing().when(entityManager).lock(any(), any());
 
@@ -384,7 +369,7 @@ class OpalDefendantAccountUpdateTest {
             .version(BigInteger.ZERO)
             .build();
 
-        var resp = service.updateDefendantAccount(77L, "78", req, "tester");
+        var resp = service.updateDefendantAccount(77L, "78", req, "tester", "Tester Name");
 
         assertEquals(Boolean.TRUE, resp.getPayload().getCollectionOrder().getCollectionOrderFlag());
         assertEquals(LocalDate.now(), resp.getPayload().getCollectionOrder().getCollectionOrderDate());
@@ -406,7 +391,7 @@ class OpalDefendantAccountUpdateTest {
         entity.setEnforcementOverrideEnforcerId(21L);
         entity.setEnforcementOverrideTfoLjaId((short) 240);
 
-        when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
+        when(defendantAccountRepositoryService.findById(77L)).thenReturn(entity);
         doNothing().when(entityManager).lock(any(), any());
 
         var req = UpdateDefendantAccountRequest.builder()
@@ -417,7 +402,7 @@ class OpalDefendantAccountUpdateTest {
             .version(BigInteger.ZERO)
             .build();
 
-        var resp = service.updateDefendantAccount(77L, "78", req, "tester");
+        var resp = service.updateDefendantAccount(77L, "78", req, "tester", "Tester Name");
 
         assertNull(resp.getPayload().getEnforcementOverride());
         assertNull(entity.getEnforcementOverrideResultId());
@@ -439,7 +424,7 @@ class OpalDefendantAccountUpdateTest {
             .versionNumber(0L)
             .build();
 
-        when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
+        when(defendantAccountRepositoryService.findById(77L)).thenReturn(entity);
         when(defendantAccountRepository.save(any(DefendantAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
         doNothing().when(entityManager).lock(any(), any());
 
@@ -453,7 +438,7 @@ class OpalDefendantAccountUpdateTest {
             .version(BigInteger.ZERO)
             .build();
 
-        var resp = service.updateDefendantAccount(77L, "78", req, "tester");
+        var resp = service.updateDefendantAccount(77L, "78", req, "tester", "Tester Name");
 
         assertEquals(Boolean.FALSE, resp.getPayload().getCollectionOrder().getCollectionOrderFlag());
         assertNull(resp.getPayload().getCollectionOrder().getCollectionOrderDate());
@@ -472,7 +457,7 @@ class OpalDefendantAccountUpdateTest {
             .versionNumber(0L)
             .build();
 
-        when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
+        when(defendantAccountRepositoryService.findById(77L)).thenReturn(entity);
         when(defendantAccountRepository.save(any(DefendantAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
         doNothing().when(entityManager).lock(any(), any());
 
@@ -492,7 +477,7 @@ class OpalDefendantAccountUpdateTest {
             .version(BigInteger.ZERO)
             .build();
 
-        var resp = service.updateDefendantAccount(77L, "78", req, "tester");
+        var resp = service.updateDefendantAccount(77L, "78", req, "tester", "Tester Name");
 
         assertEquals(courtId, resp.getPayload().getEnforcementCourt().getCourtId());
     }

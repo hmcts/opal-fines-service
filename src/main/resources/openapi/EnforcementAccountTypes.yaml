@@ -86,8 +86,10 @@ paths:
                 properties:
                   id:
                     type: integer
+                    format: int64
                   version:
                     type: integer
+                    format: int64
                   minimum_balance:
                     type: number
                     multipleOf: 0.01

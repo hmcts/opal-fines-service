@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.opal.jpa;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -11,6 +12,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_NO;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
@@ -18,7 +20,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,8 +50,8 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.entity.draft.TimelineData;
-import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 
@@ -77,7 +78,7 @@ class DraftAccountTransactionalTest {
     void testGetDraftAccount() {
         // Arrange
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
-                BusinessUnitEntity.builder().businessUnitId((short)77).build())
+                BusinessUnitEntity.builder().businessUnitId((short) 77).build())
             .build();
         when(draftAccountRepository.findById(any())).thenReturn(Optional.of(draftAccountEntity));
 
@@ -96,7 +97,7 @@ class DraftAccountTransactionalTest {
         when(sfq.sortBy(any())).thenReturn(sfq);
 
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
-                BusinessUnitEntity.builder().businessUnitId((short)77).build())
+                BusinessUnitEntity.builder().businessUnitId((short) 77).build())
             .build();
         Page<DraftAccountEntity> mockPage = new PageImpl<>(List.of(draftAccountEntity), Pageable.unpaged(), 999L);
         when(draftAccountRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
@@ -141,7 +142,7 @@ class DraftAccountTransactionalTest {
         String minimalAccountJson = createAccountString();
 
         AddDraftAccountRequestDto dto = AddDraftAccountRequestDto.builder()
-            .businessUnitId((short)2)
+            .businessUnitId((short) 2)
             .submittedBy("TestUser")
             .submittedByName("Test User")
             .account(minimalAccountJson)
@@ -296,7 +297,7 @@ class DraftAccountTransactionalTest {
         // Arrange
         Long draftAccountId = 1L;
         ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
-            .businessUnitId((short)1)
+            .businessUnitId((short) 1)
             .accountType(DraftAccountType.FINE)
             .account(createAccountString())
             .submittedBy("TestUser")
@@ -318,7 +319,7 @@ class DraftAccountTransactionalTest {
         // Arrange
         Long draftAccountId = 1L;
         ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
-            .businessUnitId((short)2)
+            .businessUnitId((short) 2)
             .accountType(DraftAccountType.FINE)
             .account(createAccountString())
             .submittedBy("TestUser")
@@ -679,27 +680,31 @@ class DraftAccountTransactionalTest {
             draftAccountTransactional
         );
 
-        Assertions.assertDoesNotThrow(() -> { }); // Stops SonarQube complaining about no assertions in method.
+        Assertions.assertDoesNotThrow(() -> {
+        }); // Stops SonarQube complaining about no assertions in method.
     }
 
     @Test
-    void testPublishAccountStoredProc() {
+    void testPublishDefendantAccount() {
         // Arrange
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder()
-            .draftAccountId(007L)
+            .draftAccountId(7L)
+            .versionNumber(0L)
             .businessUnit(BusinessUnitEntity.builder()
-                .businessUnitId((short)78)
+                .businessUnitId((short) 78)
                 .build())
             .submittedBy("BU001")
             .submittedByName("Malcolm Mclaren")
             .build();
-        Map<String, Object> mockOutputs = Collections.emptyMap();
+        Map<String, Object> mockOutputs = Map.of(DEF_ACC_NO, "7");
         when(draftAccountRepository.createDefendantAccount(any(), any(), any(), any()))
             .thenReturn(mockOutputs);
+        when(draftAccountRepository.findById(7L)).thenReturn(Optional.ofNullable(draftAccountEntity));
+        when(draftAccountRepository.saveAndFlush(any())).thenReturn(draftAccountEntity);
 
         // Act
-        Map<String, Object> outputs = draftAccountTransactional.publishAccountStoredProc(draftAccountEntity);
-        assertNotNull(outputs);
+        DraftAccountEntity output = draftAccountTransactional.publishDefendantAccount(draftAccountEntity);
+        assertSame(output, draftAccountEntity);
     }
 
     private String createTimelineDataString() {

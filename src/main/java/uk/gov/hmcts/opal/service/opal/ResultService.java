@@ -12,7 +12,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 import uk.gov.hmcts.opal.dto.ResultDto;
+import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
@@ -29,6 +34,8 @@ public class ResultService {
     private final ResultRepository resultRepository;
     private final ResultMapper resultMapper;
     private final ResultSpecs resultSpecs;
+    private static final String WELSH_PARAMETER_PREFIX = "cy_";
+    private static final String WELSH_PARAMETER_HINT = "Provide a welsh version for the defendant";
 
     @Transactional(readOnly = true)
     public ResultEntity getResultById(String resultId) {
@@ -41,12 +48,51 @@ public class ResultService {
         return resultMapper.toRefData(getResultById(resultId));
     }
 
-    @Cacheable(value = "resultsCache", key = "#root.method.name + '_' + #resultId")
-    public ResultDto getResult(String resultId) {
+    @Cacheable(value = "resultsCache", key = "#root.method.name + '_' + #resultId + '_' + #includeWelsh")
+    public ResultDto getResult(String resultId, boolean includeWelsh) {
         ResultEntity entity = resultRepository.findById(resultId)
             .orElseThrow(() -> new EntityNotFoundException("'Result' not found with id: " + resultId));
 
-        return resultMapper.toDto(entity);
+        ResultDto result = resultMapper.toDto(entity);
+        if (includeWelsh) {
+            result.setResultParameters(addWelshResultParameters(result.getResultParameters()));
+        }
+
+        return result;
+    }
+
+    private String addWelshResultParameters(String resultParameters) {
+        try {
+            JsonNode parameters = ToJsonString.toJsonNode(resultParameters);
+            if (!parameters.isArray()) {
+                return resultParameters;
+            }
+
+            ArrayNode updatedParameters = ToJsonString.getObjectMapper().createArrayNode();
+            for (JsonNode parameter : parameters) {
+                updatedParameters.add(parameter.deepCopy());
+                if (isWelshParameterRequired(parameter)) {
+                    updatedParameters.add(createWelshParameter(parameter));
+                }
+            }
+
+            return ToJsonString.getObjectMapper().writeValueAsString(updatedParameters);
+        } catch (JacksonException e) {
+            return resultParameters;
+        }
+    }
+
+    private boolean isWelshParameterRequired(JsonNode parameter) {
+        return parameter.isObject()
+            && "text".equals(parameter.path("type").asText())
+            && parameter.path("language_dependent").asBoolean(false);
+    }
+
+    private ObjectNode createWelshParameter(JsonNode parameter) {
+        ObjectNode welshParameter = (ObjectNode) parameter.deepCopy();
+        welshParameter.put("name", WELSH_PARAMETER_PREFIX + parameter.path("name").asText());
+        welshParameter.put("hint", WELSH_PARAMETER_HINT);
+        return welshParameter;
     }
 
     // @Cacheable(cacheNames = "resultReferenceDataByIds", key = "#resultIds.orElse('noIds'))")

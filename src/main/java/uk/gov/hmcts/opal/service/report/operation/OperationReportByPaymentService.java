@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.report.operation;
 
 import static uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_.ACCOUNT_NUMBER;
 import static uk.gov.hmcts.opal.service.report.ReportId.OP_PAYMENT;
+import static uk.gov.hmcts.opal.service.report.ReportType.SUMMARY;
 
 import java.util.List;
 import java.util.Set;
@@ -17,16 +18,17 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.OperationReportSpecs;
 import uk.gov.hmcts.opal.service.report.FileType;
-import uk.gov.hmcts.opal.service.report.ReportDataInterface;
 import uk.gov.hmcts.opal.service.report.ReportId;
 import uk.gov.hmcts.opal.service.report.ReportInterface;
 import uk.gov.hmcts.opal.service.report.operation.mapper.DetailedResultMapper;
+import uk.gov.hmcts.opal.service.report.operation.mapper.SummaryResultMapper;
 
 @Service
 @RequiredArgsConstructor
-public class OperationReportByPaymentService implements ReportInterface {
+public class OperationReportByPaymentService implements ReportInterface<OperationReportDataInterface> {
 
     private final DefendantAccountRepository defendantAccountRepository;
+    private final SummaryResultMapper summaryResultMapper;
     private final DetailedResultMapper detailedResultMapper;
     private final ObjectMapper objectMapper;
     private final OperationReportByPaymentValidator validator;
@@ -37,7 +39,7 @@ public class OperationReportByPaymentService implements ReportInterface {
     }
 
     @Override
-    public ReportDataInterface generateReportData(ReportInstanceEntity reportInstance) {
+    public OperationReportDataInterface generateReportData(ReportInstanceEntity reportInstance) {
         OperationReportByPaymentFiltersDto filters = readFilters(reportInstance);
         validator.validate(filters);
         List<DefendantAccountEntity> baseAccounts = defendantAccountRepository.findAll(
@@ -50,7 +52,8 @@ public class OperationReportByPaymentService implements ReportInterface {
 
         PaymentReportMode reportMode = filters.getReportMode();
         return switch (reportMode) {
-            case SINCE_LAST_ENFORCEMENT -> detailedResultMapper.map(
+            case SINCE_LAST_ENFORCEMENT -> mapReportData(
+                filters,
                 applyBaseFilter(
                     defendantAccountRepository.findAccountsWithPaymentMadeAfterLastEnforcementAction(
                         filters.getSinceLastEnforcementAction().name(),
@@ -59,7 +62,8 @@ public class OperationReportByPaymentService implements ReportInterface {
                     baseAccountNumbers
                 )
             );
-            case WITH_REGF -> detailedResultMapper.map(
+            case WITH_REGF -> mapReportData(
+                filters,
                 applyBaseFilter(
                     defendantAccountRepository.findAccountsWithPaymentMadeAfterFirstRegfEnforcement(
                         Boolean.TRUE.equals(filters.getIsPaymentMade())
@@ -67,8 +71,25 @@ public class OperationReportByPaymentService implements ReportInterface {
                     baseAccountNumbers
                 )
             );
-            default -> detailedResultMapper.map(baseAccounts);
+            default -> mapReportData(filters, baseAccounts);
         };
+    }
+
+    @Override
+    public Class<? extends OperationReportDataInterface> getStoredReportDataClass(
+        ReportInstanceEntity reportInstance) {
+        OperationReportByPaymentFiltersDto filters = readFilters(reportInstance);
+        return filters.getReportType() == SUMMARY
+            ? OperationSummaryReport.class
+            : OperationDetailedReport.class;
+    }
+
+    private OperationReportDataInterface mapReportData(
+        OperationReportByPaymentFiltersDto filters,
+        List<DefendantAccountEntity> accounts) {
+        return filters.getReportType() == SUMMARY
+            ? summaryResultMapper.map(accounts)
+            : detailedResultMapper.map(accounts);
     }
 
     private List<DefendantAccountEntity> applyBaseFilter(
@@ -94,9 +115,8 @@ public class OperationReportByPaymentService implements ReportInterface {
     @Override
     public byte[] convertReportDataToFileType(
         ReportInstanceEntity reportInstance,
-        ReportDataInterface reportData,
-        FileType fileType
-    ) {
+        OperationReportDataInterface reportData,
+        FileType fileType) {
         throw new UnsupportedOperationException();
     }
 }

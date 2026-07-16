@@ -9,8 +9,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState.UserBusinessUnits;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers.UserBusinessUnits;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -100,13 +102,16 @@ class BusinessUnitControllerTest {
     @Test
     void testGetBusinessUnitsRefData_Permission_Success() {
         // Arrange
-        UserState userState = Mockito.mock(UserState.class);
+        UserStateV2 userState = Mockito.mock(UserStateV2.class);
+        DomainBusinessUnitUsers domainBusinessUnitUsers = Mockito.mock(DomainBusinessUnitUsers.class);
         BusinessUnitReferenceData entity = createBusinessUnitReferenceData();
         List<BusinessUnitReferenceData> businessUnitList = List.of(entity);
 
         when(businessUnitService.getReferenceData(any())).thenReturn(businessUnitList);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.allBusinessUnitUsersWithPermission(any())).thenReturn(new TestUserBusinessUnits(true));
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
+        when(userState.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(domainBusinessUnitUsers);
+        when(domainBusinessUnitUsers.allBusinessUnitUsersWithPermission(any()))
+            .thenReturn(new TestUserBusinessUnits(true));
 
         // Act
         Optional<String> filter = Optional.empty();
@@ -125,13 +130,16 @@ class BusinessUnitControllerTest {
     @Test
     void testGetBusinessUnitsRefData_Permission_Empty() {
         // Arrange
-        UserState userState = Mockito.mock(UserState.class);
+        UserStateV2 userState = Mockito.mock(UserStateV2.class);
+        DomainBusinessUnitUsers domainBusinessUnitUsers = Mockito.mock(DomainBusinessUnitUsers.class);
         BusinessUnitReferenceData entity = createBusinessUnitReferenceData();
         List<BusinessUnitReferenceData> businessUnitList = List.of(entity);
 
         when(businessUnitService.getReferenceData(any())).thenReturn(businessUnitList);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.allBusinessUnitUsersWithPermission(any())).thenReturn(new TestUserBusinessUnits(false));
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
+        when(userState.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(domainBusinessUnitUsers);
+        when(domainBusinessUnitUsers.allBusinessUnitUsersWithPermission(any()))
+            .thenReturn(new TestUserBusinessUnits(false));
 
         // Act
         Optional<String> filter = Optional.empty();

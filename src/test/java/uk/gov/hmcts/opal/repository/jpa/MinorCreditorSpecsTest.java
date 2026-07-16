@@ -60,7 +60,7 @@ class MinorCreditorSpecsTest {
     @SuppressWarnings("unchecked")
     void businessUnitIds_only_buildsInPredicateWithShorts_andDropsNulls() {
         MinorCreditorSearch criteria = mock(MinorCreditorSearch.class);
-        when(criteria.getBusinessUnitIds()).thenReturn(Arrays.asList(1, null, 2));
+        when(criteria.getBusinessUnitIds()).thenReturn(Arrays.asList((short) 1, null, (short) 2));
         when(criteria.getAccountNumber()).thenReturn(null);
         when(criteria.getCreditor()).thenReturn(null);
 

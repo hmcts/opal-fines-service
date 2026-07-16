@@ -8,20 +8,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
@@ -30,6 +28,7 @@ import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
@@ -63,6 +62,18 @@ public class DefendantAccountService {
         }
 
         return defendantAccountServiceProxy.getHeaderSummary(defendantAccountId);
+    }
+
+    public GetDefendantAccountConsolidatedAccountsResult getConsolidatedAccounts(Long defendantAccountId) {
+        log.debug(":getConsolidatedAccounts:");
+
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+
+        if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
+            throw new RequiredPermissionException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        }
+
+        return defendantAccountServiceProxy.getConsolidatedAccounts(defendantAccountId);
     }
 
     public DefendantAccountHistoryResponse getHistory(Long defendantAccountId,
@@ -117,22 +128,6 @@ public class DefendantAccountService {
             .filter(itemType -> !itemType.isEmpty())
             .map(HistoryItemType::fromValue)
             .toList();
-    }
-
-    public GetDefendantAccountPartyResponse getDefendantAccountParty(
-        Long defendantAccountId,
-        Long defendantAccountPartyId) {
-
-        log.debug(":getDefendantAccountParty:");
-
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
-
-        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
-
-            return defendantAccountServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
-        } else {
-            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        }
     }
 
     public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
@@ -240,38 +235,6 @@ public class DefendantAccountService {
         }
     }
 
-    public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
-        Long defendantAccountPartyId,
-        String ifMatch, String businessUnitId, DefendantAccountParty request) {
-        log.debug(":replaceDefendantAccountParty");
-
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
-
-        short buId = Short.parseShort(businessUnitId);
-
-        String postedBy = userState.getBusinessUnitUserForBusinessUnit(buId)
-            .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
-            .filter(id -> !id.isBlank())
-            .orElse(userState.getUserName());
-
-        if (userState.hasBusinessUnitUserWithPermission(buId,
-                FinesPermission.ACCOUNT_MAINTENANCE)) {
-            return defendantAccountServiceProxy.replaceDefendantAccountParty(defendantAccountId,
-                defendantAccountPartyId, request, ifMatch, businessUnitId, postedBy, userState.getUserName(),
-                getBusinessUnitUserIdForBusinessUnit(userState, buId));
-        } else {
-            throw new PermissionNotAllowedException(buId, FinesPermission.ACCOUNT_MAINTENANCE);
-        }
-    }
-
-    private String getBusinessUnitUserIdForBusinessUnit(UserState userState, short buId) {
-        return userState.getBusinessUnitUserForBusinessUnit(buId)
-            .map(BusinessUnitUser::getBusinessUnitUserId)
-            .filter(id -> !id.isBlank())
-            .orElse("");
-    }
-
-
     public AddPaymentCardRequestResponse addPaymentCardRequest(
         Long defendantAccountId,
         String businessUnitId,
@@ -287,6 +250,7 @@ public class DefendantAccountService {
                 defendantAccountId,
                 businessUnitId,
                 businessUnitUserId,
+                userState.getUserName(),
                 ifMatch
             );
         } else {
@@ -331,11 +295,12 @@ public class DefendantAccountService {
             .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
             .filter(id -> !id.isBlank())
             .orElse(userState.getUserName());
+        String postedByName = userState.getUserName();
 
         if (addPaymentTermsRequest != null && addPaymentTermsRequest.getPaymentTerms() != null) {
             addPaymentTermsRequest.getPaymentTerms().setPostedDetails(PostedDetails.builder()
                 .postedBy(businessUnitUserId)
-                .postedByName(userState.getDisplayName())
+                .postedByName(postedByName)
                 .build());
         }
 
@@ -344,6 +309,7 @@ public class DefendantAccountService {
             return defendantAccountServiceProxy.addPaymentTerms(defendantAccountId,
                 businessUnitId,
                 businessUnitUserId,
+                postedByName,
                 ifMatch,
                 addPaymentTermsRequest);
         } else {

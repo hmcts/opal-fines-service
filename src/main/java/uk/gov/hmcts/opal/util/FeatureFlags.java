@@ -18,6 +18,7 @@ public final class FeatureFlags {
     public static final String RELEASE_1C_AUTO_ENFORCEMENT_CONFIG_ENABLED_PROPERTY =
         DEFAULT_VALUE_PROPERTY_PREFIX + RELEASE_1C_AUTO_ENFORCEMENT_CONFIG;
 
+
     private FeatureFlags() {
     }
 

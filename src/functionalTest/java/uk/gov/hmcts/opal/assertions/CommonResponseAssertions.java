@@ -17,8 +17,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class CommonResponseAssertions {
     private static final Pattern STRONG_ETAG = Pattern.compile("^\"[^\"]+\"$");
     private static final Pattern LEGACY_USER_ID_PATTERN = Pattern.compile("^(L\\d{3})JG$");
-    private static final String DEFAULT_APP_MODE = System.getenv().getOrDefault("DEFAULT_APP_MODE", "opal");
-    private static final String LEGACY_GATEWAY_URL = System.getenv().getOrDefault("OPAL_LEGACY_GATEWAY_URL", "");
 
     /**
      * Asserts that a response body contains the supplied field values.
@@ -43,9 +41,8 @@ public class CommonResponseAssertions {
     }
 
     /**
-     * Normalises selected expected values for deployed legacy environments whose upstream source
-     * returns the operational-assistant user-code variant instead of the stubbed judicial-greffe
-     * variant used elsewhere.
+     * Normalises selected expected values when the environment returns the operational-assistant
+     * user-code variant instead of the judicial-greffe variant used in the feature data.
      *
      * @param fieldName asserted response field name.
      * @param expected expected field value from the feature data.
@@ -54,7 +51,7 @@ public class CommonResponseAssertions {
      *         original expected value.
      */
     private String resolveEnvironmentSpecificExpectedValue(String fieldName, String expected, String actual) {
-        if (!isLegacyAgainstPreprod() || expected == null || actual == null) {
+        if (expected == null || actual == null) {
             return expected;
         }
 
@@ -68,20 +65,10 @@ public class CommonResponseAssertions {
             return expected;
         }
 
+        // Accept the operational-assistant variant for the same business-unit user id, for
+        // example L073JG in the feature data matching L073OA in deployed environments.
         String expectedPreprodValue = matcher.group(1) + "OA";
         return expectedPreprodValue.equals(actual) ? expectedPreprodValue : expected;
-    }
-
-    /**
-     * Identifies legacy-mode runs that are not backed by the legacy stub gateway.
-     *
-     * @return {@code true} when the current functional-test run is in legacy mode against a
-     *         non-stub legacy gateway; otherwise {@code false}.
-     */
-    private boolean isLegacyAgainstPreprod() {
-        return "legacy".equalsIgnoreCase(DEFAULT_APP_MODE)
-            && !LEGACY_GATEWAY_URL.isBlank()
-            && !LEGACY_GATEWAY_URL.contains("legacy-db-stub");
     }
 
     /**

@@ -45,7 +45,7 @@ class GetMinorCreditorAccountAtAGlanceResponseMapperTest {
             .organisationDetails(OrganisationDetails.builder().organisationName("The Empire").build())
             .individualDetails(IndividualDetails.builder()
                 .title("Emperor")
-                .firstNames("Sheev")
+                .forenames("Sheev")
                 .surname("Palpatine")
                 .dateOfBirth(LocalDate.of(3000, 12, 25))
                 .age("Ageless")

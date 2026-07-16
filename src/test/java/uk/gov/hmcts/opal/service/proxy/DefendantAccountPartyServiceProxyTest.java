@@ -37,7 +37,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
         Long dapId = 5L;
         String businessUnitId = "10";
         String postedBy = "user@example.com";
-        String postedByName = "Test User";
+        String postedByName = "User Example";
         String businessUserId = "USER123";
         String ifMatch = "1";
 
@@ -48,7 +48,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
             .defendantAccountParty(request)
             .build();
 
-        setMode(OPAL);
+        setLegacyMode(false);
         when(opalDefendantAccountPartyService.replaceDefendantAccountParty(
             accountId, dapId, request, ifMatch, businessUnitId, postedBy, postedByName, businessUserId))
             .thenReturn(expectedResponse);
@@ -70,7 +70,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
         Long dapId = 10L;
         String businessUnitId = "20";
         String postedBy = "admin@example.com";
-        String postedByName = "Admin User";
+        String postedByName = "Admin Example";
         String businessUserId = "ADMIN456";
         String ifMatch = "2";
 
@@ -81,7 +81,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
             .defendantAccountParty(request)
             .build();
 
-        setMode(LEGACY);
+        setLegacyMode(true);
         when(legacyDefendantAccountPartyService.replaceDefendantAccountParty(
             accountId, dapId, request, ifMatch, businessUnitId, postedBy, postedByName, businessUserId))
             .thenReturn(expectedResponse);
@@ -106,7 +106,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
             .version(BigInteger.valueOf(1L))
             .build();
 
-        setMode(OPAL);
+        setLegacyMode(false);
         when(opalDefendantAccountPartyService.getDefendantAccountParty(accountId, dapId))
             .thenReturn(expectedResponse);
 
@@ -128,7 +128,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
             .version(BigInteger.valueOf(2L))
             .build();
 
-        setMode(LEGACY);
+        setLegacyMode(true);
         when(legacyDefendantAccountPartyService.getDefendantAccountParty(accountId, dapId))
             .thenReturn(expectedResponse);
 
@@ -149,7 +149,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
         String businessUserId = "USER123";
         String ifMatch = "1";
         String postedBy = "user@example.com";
-        String postedByName = "Test User";
+        String postedByName = "User Example";
         RemoveDefendantAccountPartyRequest request = RemoveDefendantAccountPartyRequest.builder().build();
 
         RemoveDefendantAccountPartyResponse expectedResponse = RemoveDefendantAccountPartyResponse.builder()
@@ -157,7 +157,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
             .version(BigInteger.valueOf(2L))
             .build();
 
-        setMode(OPAL);
+        setLegacyMode(false);
         when(opalDefendantAccountPartyService.removeDefendantAccountParty(
             accountId, dapId, businessUnitId, businessUserId, postedBy, postedByName, ifMatch, request))
             .thenReturn(expectedResponse);
@@ -181,7 +181,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
         String businessUserId = "ADMIN456";
         String ifMatch = "2";
         String postedBy = "admin@example.com";
-        String postedByName = "Admin User";
+        String postedByName = "Admin Example";
         RemoveDefendantAccountPartyRequest request = RemoveDefendantAccountPartyRequest.builder().build();
 
         RemoveDefendantAccountPartyResponse expectedResponse = RemoveDefendantAccountPartyResponse.builder()
@@ -189,7 +189,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
             .version(BigInteger.valueOf(3L))
             .build();
 
-        setMode(LEGACY);
+        setLegacyMode(true);
         when(legacyDefendantAccountPartyService.removeDefendantAccountParty(
             accountId, dapId, businessUnitId, businessUserId, postedBy, postedByName, ifMatch, request))
             .thenReturn(expectedResponse);

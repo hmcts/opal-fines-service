@@ -4,7 +4,7 @@
   "title": "Get Defendant Account History Legacy Response",
   "type": "object",
   "properties": {
-    "historyItems": {
+    "history_items": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/defendantAccountHistoryItem"
@@ -15,9 +15,9 @@
     "defendantAccountHistoryItem": {
       "title": "historyItem",
       "type": "object",
-      "required": ["postedDetails", "type", "details"],
+      "required": ["posted_details", "type", "details"],
       "properties": {
-        "postedDetails": {
+        "posted_details": {
           "$ref": "./common-objects/postedDetailsLegacy.json"
         },
         "type": {
@@ -52,31 +52,31 @@
     },
     "enforcementDetails": {
       "type": "object",
-      "required": ["enforcementAction"],
+      "required": ["enforcement_action"],
       "properties": {
-        "enforcementAction": {
+        "enforcement_action": {
           "type": "string"
         },
-        "daysInDefault": {
+        "days_in_default": {
           "type": "integer"
         },
-        "warrantNumber": {
+        "warrant_number": {
           "type": "string"
         },
-        "hearingDate": {
+        "hearing_date": {
           "type": "string",
           "format": "date"
         },
-        "hearingCourt": {
+        "hearing_court": {
           "$ref": "./common-objects/courtReferenceLegacy.json"
         },
-        "caseNumber": {
+        "case_number": {
           "type": "string"
         },
         "reason": {
           "type": "string"
         },
-        "earliestDateOfRelease": {
+        "earliest_date_of_release": {
           "type": "string",
           "format": "date"
         }
@@ -84,9 +84,9 @@
     },
     "noteDetails": {
       "type": "object",
-      "required": ["noteText"],
+      "required": ["note_text"],
       "properties": {
-        "noteText": {
+        "note_text": {
           "type": "string"
         }
       }
@@ -94,50 +94,50 @@
     "defendantTransactionDetails": {
       "title": "transactionDetails",
       "type": "object",
-      "required": ["transactionType"],
+      "required": ["transaction_type"],
       "properties": {
-        "transactionType": {
+        "transaction_type": {
           "$ref": "./common-objects/defendantTransactionTypeReferenceLegacy.json"
         },
-        "paymentMethod": {
+        "payment_method": {
           "$ref": "./common-objects/paymentMethodReferenceLegacy.json"
         },
-        "paymentReference": {
+        "payment_reference": {
           "type": "string"
         },
-        "additionalInformation": {
+        "additional_information": {
           "type": "string"
         },
-        "writeOff": {
+        "write_off": {
           "$ref": "./common-objects/writeOffTypeReferenceLegacy.json"
         },
         "status": {
           "$ref": "./common-objects/defendantTransactionStatusReferenceLegacy.json"
         },
-        "statusDate": {
+        "status_date": {
           "type": "string",
           "format": "date-time"
         },
-        "associatedRecordType": {
+        "associated_record_type": {
           "type": "string"
         },
-        "associatedRecordId": {
+        "associated_record_id": {
           "type": "string"
         },
-        "accountNumber": {
+        "account_number": {
           "type": "string"
         },
-        "sendingCourt": {
+        "sending_court": {
           "type": "string"
         },
-        "impositionDate": {
+        "imposition_date": {
           "type": "string",
           "format": "date"
         },
-        "impositionCode": {
+        "imposition_code": {
           "type": "string"
         },
-        "amountImposed": {
+        "amount_imposed": {
           "$ref": "./common-objects/monetaryZeroOrNegative.json"
         }
       }

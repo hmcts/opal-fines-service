@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
+import uk.gov.hmcts.opal.entity.DestinationType;
+import uk.gov.hmcts.opal.entity.InterfaceFileSourceEnum;
 import uk.gov.hmcts.opal.entity.MiscellaneousAccountEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PartyAccountType;
@@ -20,6 +22,7 @@ import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.TillEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.PaymentMethod;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.MiscellaneousAccountRepository;
@@ -65,6 +68,7 @@ class CashTillReportGenerationIntegrationTest extends AbstractIntegrationTest {
             .businessUnit(businessUnit)
             .tillNumber((short) 17)
             .ownedBy("Jamie")
+            .source(InterfaceFileSourceEnum.NATWEST)
             .createdDate(LocalDateTime.of(2026, 5, 1, 8, 0))
             .build());
         DefendantAccountEntity defendantAccount = defendantAccountRepository.findAll().stream().findFirst()
@@ -84,9 +88,9 @@ class CashTillReportGenerationIntegrationTest extends AbstractIntegrationTest {
             .tillEntity(till)
             .paymentAmount(new BigDecimal("8.40"))
             .paymentDate(LocalDateTime.of(2026, 5, 2, 9, 5))
-            .paymentMethod("CQ")
-            .destinationType("S")
-            .associatedRecordType(AssociatedRecordType.MISCELLANEOUS_ACCOUNTS.getLabel())
+            .paymentMethod(PaymentMethod.CQ)
+            .destinationType(DestinationType.S)
+            .associatedRecordType(AssociatedRecordType.MISCELLANEOUS_ACCOUNTS)
             .associatedRecordId(String.valueOf(miscellaneousAccount.getMiscellaneousAccountId()))
             .receipt(false)
             .autoPayment(true)
@@ -96,9 +100,9 @@ class CashTillReportGenerationIntegrationTest extends AbstractIntegrationTest {
             .tillEntity(till)
             .paymentAmount(new BigDecimal("12.30"))
             .paymentDate(LocalDateTime.of(2026, 5, 3, 10, 15))
-            .paymentMethod("NC")
-            .destinationType("F")
-            .associatedRecordType(AssociatedRecordType.DEFENDANT_ACCOUNTS.getLabel())
+            .paymentMethod(PaymentMethod.NC)
+            .destinationType(DestinationType.F)
+            .associatedRecordType(AssociatedRecordType.DEFENDANT_ACCOUNTS)
             .associatedRecordId(String.valueOf(defendantAccount.getDefendantAccountId()))
             .receipt(true)
             .autoPayment(false)

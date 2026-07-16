@@ -9,5 +9,5 @@ public interface DefendantAccountPaymentTermsServiceInterface {
 
     AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId, String businessUnitId,
         String businessUnitUserId,
-        String ifMatch);
+        String postedByName, String ifMatch);
 }

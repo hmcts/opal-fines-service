@@ -24,14 +24,14 @@ import uk.gov.hmcts.opal.dto.report.operation.OperationReportByEnforcementFilter
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
-import uk.gov.hmcts.opal.service.report.operation.mapper.DetailedResultMapper;
-import uk.gov.hmcts.opal.service.report.operation.mapper.SummaryResultMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.service.report.ReportDataInterface;
 import uk.gov.hmcts.opal.service.report.ReportEnforcementMode;
 import uk.gov.hmcts.opal.service.report.ReportId;
 import uk.gov.hmcts.opal.service.report.ReportType;
+import uk.gov.hmcts.opal.service.report.operation.mapper.DetailedResultMapper;
+import uk.gov.hmcts.opal.service.report.operation.mapper.SummaryResultMapper;
 
 @ExtendWith(MockitoExtension.class)
 class OperationReportByEnforcementServiceTest {
@@ -46,13 +46,14 @@ class OperationReportByEnforcementServiceTest {
     private SummaryResultMapper summaryResultMapper;
 
     @Mock
-    private OperationDetailedReport mappedDetailedReport;
-
-    @Mock
     private DetailedResultMapper detailedResultMapper;
 
     @Mock
-    private OperationByEnforcementSummaryReport mappedSummaryReport;
+    private OperationDetailedReport mappedDetailedReport;
+
+
+    @Mock
+    private OperationSummaryReport mappedSummaryReport;
 
     @Mock
     private ObjectMapper objectMapper;
@@ -66,6 +67,38 @@ class OperationReportByEnforcementServiceTest {
     @Test
     void getReportId_returnsOpEnforcement() {
         assertThat(service.getReportId()).isEqualTo(ReportId.OP_ENFORCEMENT);
+    }
+
+    @Test
+    void getStoredReportDataClass_whenSummaryReportType_returnsSummaryClass() {
+        ReportInstanceEntity reportInstance = mockReportInstance("""
+            {
+              "reportType": "SUMMARY"
+            }""");
+        OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
+            .reportType(ReportType.SUMMARY)
+            .build();
+        when(objectMapper.readValue(any(String.class), eq(OperationReportByEnforcementFiltersDto.class)))
+            .thenReturn(filters);
+
+        assertThat(service.getStoredReportDataClass(reportInstance)).isEqualTo(
+            OperationSummaryReport.class);
+    }
+
+    @Test
+    void getStoredReportDataClass_whenReportTypeIsNotSummary_returnsDetailedClass() {
+        ReportInstanceEntity reportInstance = mockReportInstance("""
+            {
+              "reportType": "DETAILED"
+            }""");
+        OperationReportByEnforcementFiltersDto filters = OperationReportByEnforcementFiltersDto.builder()
+            .reportType(ReportType.DETAILED)
+            .build();
+        when(objectMapper.readValue(any(String.class), eq(OperationReportByEnforcementFiltersDto.class)))
+            .thenReturn(filters);
+
+        assertThat(service.getStoredReportDataClass(reportInstance)).isEqualTo(
+            OperationDetailedReport.class);
     }
 
     @Test

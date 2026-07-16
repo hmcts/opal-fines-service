@@ -10,16 +10,15 @@ import uk.gov.hmcts.opal.dto.report.operation.SummaryOperationReportRowDto;
 import uk.gov.hmcts.opal.dto.report.operation.SummaryReportDto;
 import uk.gov.hmcts.opal.dto.report.operation.SummaryReportTotalsRowDto;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.service.report.operation.OperationByEnforcementSummaryReport;
 import uk.gov.hmcts.opal.service.report.ReportMetaData;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
+import uk.gov.hmcts.opal.service.report.operation.OperationSummaryReport;
 
 
 @Mapper(componentModel = "spring", uses = {
     SummaryRowDtoCoreMapper.class
 }, unmappedTargetPolicy = ReportingPolicy.IGNORE)
-public abstract class SummaryResultMapper
-    implements CommonResultMapper {
+public abstract class SummaryResultMapper {
 
     protected SummaryRowDtoCoreMapper rowMapper;
 
@@ -28,7 +27,16 @@ public abstract class SummaryResultMapper
         this.rowMapper = rowMapper;
     }
 
-    public OperationByEnforcementSummaryReport map(
+    public OperationSummaryReport map(
+        List<DefendantAccountEntity> accounts) {
+        SummaryReportMappingResult mappingResult = mapSummaryReport(accounts);
+        return OperationSummaryReport.builder()
+            .summaryReport(mappingResult.reportDto())
+            .reportMetaData(mappingResult.reportMetaData())
+            .build();
+    }
+
+    private SummaryReportMappingResult mapSummaryReport(
         List<DefendantAccountEntity> accounts) {
         ReportMetadataContext context = new ReportMetadataContext();
         List<SummaryOperationReportRowDto> rows = accounts.stream()
@@ -58,14 +66,19 @@ public abstract class SummaryResultMapper
                 .totalBalance(totalBalance)
                 .build();
 
-        OperationByEnforcementSummaryReport report = new OperationByEnforcementSummaryReport();
-        report.setEnforcementReport(SummaryReportDto.builder()
+        SummaryReportDto reportDto = SummaryReportDto.builder()
             .reportSummaryRows(rows)
             .totals(totals)
-            .build());
+            .build();
         ReportMetaData meta = new ReportMetaData();
         meta.setPdpoPartyIds(context.getParticipants());
-        report.setReportMetaData(meta);
-        return report;
+        return new SummaryReportMappingResult(reportDto, meta);
+    }
+
+    private record SummaryReportMappingResult(
+        SummaryReportDto reportDto,
+        ReportMetaData reportMetaData
+    ) {
+
     }
 }

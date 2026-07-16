@@ -165,7 +165,7 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
 
         IndividualDetails ind = IndividualDetails.builder()
             .title("Mr")
-            .firstNames("John James")
+            .forenames("John James")
             .surname("Smith")
             .dateOfBirth(null)
             .age("34")

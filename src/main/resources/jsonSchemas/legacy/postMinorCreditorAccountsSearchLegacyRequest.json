@@ -48,42 +48,68 @@
         "postcode": {
           "type": "string",
           "description": "The postcode associated with the creditor"
+        },
+        "organisation": {
+          "type": "boolean",
+          "description": "Indicates if the creditor is an organisation (true) or an individual (false)"
+        },
+        "organisation_name": {
+          "type": "string",
+          "description": "Name of the organisation"
+        },
+        "exact_match_organisation_name": {
+          "type": "boolean",
+          "description": "Apply exact match for organisation name"
+        },
+        "surname": {
+          "type": "string",
+          "description": "Surname of the individual"
+        },
+        "forenames": {
+          "type": "string",
+          "description": "Forenames of the individual"
+        },
+        "exact_match_surname": {
+          "type": "boolean",
+          "description": "Apply exact match for surname"
+        },
+        "exact_match_forenames": {
+          "type": "boolean",
+          "description": "Apply exact match for forenames"
         }
       },
       "oneOf": [
         {
           "properties": {
             "organisation": { "const": true },
-            "organisation_name": {
-              "type": "string",
-              "description": "Name of the organisation"
-            },
-            "exact_match_organisation_name": {
-              "type": "boolean",
-              "description": "Apply exact match for organisation name"
-            }
-          }
+            "surname": false,
+            "forenames": false,
+            "exact_match_surname": false,
+            "exact_match_forenames": false
+          },
+          "anyOf": [
+            { "required": ["organisation_name"] },
+            { "required": ["address_line_1"] },
+            { "required": ["postcode"] }
+          ]
         },
         {
           "properties": {
             "organisation": { "const": false },
-            "surname": {
-              "type": "string",
-              "description": "Surname of the individual"
-            },
-            "forenames": {
-              "type": "string",
-              "description": "Forenames of the individual"
-            },
-            "exact_match_surname": {
-              "type": "boolean",
-              "description": "Apply exact match for surname"
-            },
-            "exact_match_forenames": {
-              "type": "boolean",
-              "description": "Apply exact match for forenames"
-            }
-          }
+            "organisation_name": false,
+            "exact_match_organisation_name": false
+          },
+          "anyOf": [
+            { "required": ["surname"] },
+            { "required": ["address_line_1"] },
+            { "required": ["postcode"] }
+          ]
+        }
+      ],
+      "allOf": [
+        {
+          "if": { "required": ["forenames"] },
+          "then": { "required": ["surname"] }
         }
       ],
       "additionalProperties": false

@@ -85,7 +85,10 @@ public interface DefendantAccountImpositionMapper {
             return null;
         }
         BigDecimal paidAmount = imposition.paidAmount() == null ? BigDecimal.ZERO : imposition.paidAmount();
-        return imposition.imposedAmount().subtract(paidAmount);
+        if (imposition.imposedAmount().compareTo(BigDecimal.ZERO) > 0) {
+            return imposition.imposedAmount().subtract(paidAmount);
+        }
+        return imposition.imposedAmount().add(paidAmount);
     }
 
     default OffenceReferenceCommon toOffenceReference(DefendantAccountImpositionData imposition) {
@@ -106,7 +109,7 @@ public interface DefendantAccountImpositionMapper {
         }
         return new CourtReferenceCommon()
             .courtId(imposition.imposingCourtId())
-            .courtCode(toInteger(imposition.imposingCourtCode()))
+            .courtCode(imposition.imposingCourtCode())
             .courtName(imposition.imposingCourtName());
     }
 
@@ -146,10 +149,6 @@ public interface DefendantAccountImpositionMapper {
             .map(String::trim)
             .collect(Collectors.joining(" "));
         return firstNonBlank(individualName, imposition.minorCreditorOrganisationName());
-    }
-
-    private Integer toInteger(Short value) {
-        return value == null ? null : value.intValue();
     }
 
     private String firstNonBlank(String... values) {

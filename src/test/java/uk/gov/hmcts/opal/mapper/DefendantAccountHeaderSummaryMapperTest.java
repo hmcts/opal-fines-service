@@ -7,15 +7,18 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import tools.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountType;
+import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.AccountTypeEnum;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.DebtorTypeEnum;
 
 class DefendantAccountHeaderSummaryMapperTest {
 
@@ -33,8 +36,8 @@ class DefendantAccountHeaderSummaryMapperTest {
             .build();
 
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
-        assertEquals("Parent/Guardian", dto.getDebtorType());
-        assertTrue(dto.getIsYouth());
+        assertEquals(DebtorTypeEnum.PARENT_GUARDIAN, dto.getResponse().getDebtorType());
+        assertTrue(dto.getResponse().getIsYouth());
     }
 
     @Test
@@ -48,8 +51,34 @@ class DefendantAccountHeaderSummaryMapperTest {
             .build();
 
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
-        assertEquals("Defendant", dto.getDebtorType());
-        assertFalse(dto.getIsYouth());
+        assertEquals(DebtorTypeEnum.DEFENDANT, dto.getResponse().getDebtorType());
+        assertFalse(dto.getResponse().getIsYouth());
+    }
+
+    @Test
+    void mapToDto_setsHasConsolidatedAccountsReturnsTrue() {
+        DefendantAccountHeaderViewEntity entity =
+            DefendantAccountHeaderViewEntity.builder()
+                .hasConsolidatedAccounts(true)
+                .version(1L)
+                .build();
+
+        DefendantAccountHeaderSummary dto = mapper.toDto(entity);
+        assertNotNull(dto);
+        assertTrue(dto.getResponse().getHasConsolidatedAccounts());
+    }
+
+    @Test
+    void mapToDto_setsHasConsolidatedAccountsReturnsFalse() {
+        DefendantAccountHeaderViewEntity entity =
+            DefendantAccountHeaderViewEntity.builder()
+                .hasConsolidatedAccounts(false)
+                .version(1L)
+                .build();
+
+        DefendantAccountHeaderSummary dto = mapper.toDto(entity);
+        assertNotNull(dto);
+        assertFalse(dto.getResponse().getHasConsolidatedAccounts());
     }
 
     @Test
@@ -78,8 +107,8 @@ class DefendantAccountHeaderSummaryMapperTest {
             .build();
 
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
-        assertEquals("ACCT100", dto.getAccountNumber());
-        assertNotNull(dto.getPartyDetails());
+        assertEquals("ACCT100", dto.getResponse().getAccountNumber());
+        assertNotNull(dto.getResponse().getPartyDetails());
     }
 
     @Test
@@ -96,8 +125,8 @@ class DefendantAccountHeaderSummaryMapperTest {
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
 
         assertNotNull(dto);
-        assertEquals("77", dto.getDefendantAccountPartyId());
-        assertNotEquals("999", dto.getDefendantAccountPartyId());
+        assertEquals("77", dto.getResponse().getDefendantAccountPartyId());
+        assertNotEquals("999", dto.getResponse().getDefendantAccountPartyId());
     }
 
     @Test
@@ -111,7 +140,7 @@ class DefendantAccountHeaderSummaryMapperTest {
 
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
 
-        assertNull(dto.getDefendantAccountPartyId());
+        assertNull(dto.getResponse().getDefendantAccountPartyId());
     }
 
     @Test
@@ -127,8 +156,8 @@ class DefendantAccountHeaderSummaryMapperTest {
 
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
 
-        assertEquals("Fine", dto.getAccountType());
-        assertEquals("Live", dto.getAccountStatusReference().getAccountStatusDisplayName());
+        assertEquals(AccountTypeEnum.FINE, dto.getResponse().getAccountType());
+        assertEquals("Live", dto.getResponse().getAccountStatusReference().getAccountStatusDisplayName());
     }
 
     @Test
@@ -142,8 +171,9 @@ class DefendantAccountHeaderSummaryMapperTest {
 
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
 
-        assertEquals("CS", dto.getAccountStatusReference().getAccountStatusCode());
-        assertEquals("Account consolidated", dto.getAccountStatusReference().getAccountStatusDisplayName());
+        assertEquals(AccountStatusCodeEnum.CS, dto.getResponse().getAccountStatusReference().getAccountStatusCode());
+        assertEquals("Account consolidated",
+            dto.getResponse().getAccountStatusReference().getAccountStatusDisplayName());
     }
 
     @Test
@@ -158,7 +188,7 @@ class DefendantAccountHeaderSummaryMapperTest {
 
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
 
-        assertEquals("88", dto.getParentGuardianPartyId());
+        assertEquals("88", dto.getResponse().getParentGuardianPartyId());
     }
 
     @Test
@@ -173,7 +203,7 @@ class DefendantAccountHeaderSummaryMapperTest {
 
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
 
-        assertNull(dto.getAccountType());
+        assertNull(dto.getResponse().getAccountType());
     }
 
     @Test
@@ -191,10 +221,10 @@ class DefendantAccountHeaderSummaryMapperTest {
 
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
 
-        assertEquals(BigDecimal.ZERO, dto.getPaymentStateSummary().getImposedAmount());
-        assertEquals(BigDecimal.ZERO, dto.getPaymentStateSummary().getArrearsAmount());
-        assertEquals(BigDecimal.ZERO, dto.getPaymentStateSummary().getPaidAmount());
-        assertEquals(BigDecimal.ZERO, dto.getPaymentStateSummary().getAccountBalance());
+        assertEquals(BigDecimal.ZERO, dto.getResponse().getPaymentStateSummary().getImposedAmount());
+        assertEquals(BigDecimal.ZERO, dto.getResponse().getPaymentStateSummary().getArrearsAmount());
+        assertEquals(BigDecimal.ZERO, dto.getResponse().getPaymentStateSummary().getPaidAmount());
+        assertEquals(BigDecimal.ZERO, dto.getResponse().getPaymentStateSummary().getAccountBalance());
     }
 
     @Test
@@ -211,10 +241,10 @@ class DefendantAccountHeaderSummaryMapperTest {
 
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
 
-        assertTrue(dto.getPartyDetails().getOrganisationFlag());
-        assertEquals("101", dto.getPartyDetails().getPartyId());
-        assertEquals("Acme Ltd", dto.getPartyDetails().getOrganisationDetails().getOrganisationName());
-        assertNull(dto.getPartyDetails().getIndividualDetails());
+        assertTrue(dto.getResponse().getPartyDetails().getOrganisationFlag());
+        assertEquals("101", dto.getResponse().getPartyDetails().getPartyId());
+        assertEquals("Acme Ltd", dto.getResponse().getPartyDetails().getOrganisationDetails().getOrganisationName());
+        assertNull(dto.getResponse().getPartyDetails().getIndividualDetails());
     }
 
     @Test
@@ -237,5 +267,28 @@ class DefendantAccountHeaderSummaryMapperTest {
         assertTrue(json.contains("\"defendant_account_party_id\""));
         assertTrue(json.contains("\"party_details\""));
         assertTrue(json.contains("\"account_number\""));
+    }
+
+    @Test
+    void toDto_shouldCalculateBalanceCorrectlyWhenImposedAmountIsNegative() {
+        DefendantAccountHeaderViewEntity accountHeaderView =
+            DefendantAccountHeaderViewEntity.builder()
+                .imposed(new BigDecimal("-50.00"))
+                .paid(new BigDecimal("10.00"))
+                .build();
+
+        DefendantAccountHeaderSummary dto = mapper.toDto(accountHeaderView);
+        assertEquals(new BigDecimal("-40.00"), dto.getResponse().getPaymentStateSummary().getAccountBalance());
+    }
+
+    @Test
+    void toDto_shouldCalculateBalanceCorrectlyWhenImposedAmountIsPositive() {
+        DefendantAccountHeaderViewEntity accountHeaderView = DefendantAccountHeaderViewEntity.builder()
+            .imposed(new BigDecimal("50.00"))
+            .paid(new BigDecimal("10"))
+            .build();
+
+        DefendantAccountHeaderSummary dto = mapper.toDto(accountHeaderView);
+        assertEquals(new BigDecimal("40.00"), dto.getResponse().getPaymentStateSummary().getAccountBalance());
     }
 }

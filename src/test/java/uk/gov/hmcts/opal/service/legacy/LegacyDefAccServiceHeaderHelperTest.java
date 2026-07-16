@@ -82,7 +82,7 @@ class LegacyDefAccServiceHeaderHelperTest extends AbstractLegacyDefAccServiceTes
         IndividualDetails.IndividualAlias indAlias = IndividualDetails.IndividualAlias.builder()
             .aliasId("I1").sequenceNumber((short) 1).surname("Smith").forenames("John").build();
         IndividualDetails ind = IndividualDetails.builder()
-            .firstNames("John").surname("Smith")
+            .forenames("John").surname("Smith")
             .individualAliases(new IndividualDetails.IndividualAlias[] {indAlias})
             .build();
         party = LegacyPartyDetails.builder()

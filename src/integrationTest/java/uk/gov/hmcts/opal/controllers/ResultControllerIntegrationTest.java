@@ -2,6 +2,10 @@ package uk.gov.hmcts.opal.controllers;
 
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -20,6 +24,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.repository.ResultRepository;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -42,6 +47,9 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
+
+    @MockitoSpyBean
+    private ResultRepository resultRepository;
 
     @Test
     @DisplayName("Get result by ID - validates all fields populated [@PO-703, PO-304, PO-2449]")
@@ -93,6 +101,28 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.requires_lja").value(true))
             .andExpect(jsonPath("$.manual_enforcement").value(false))
             .andExpect(jsonPath("$.enf_next_permitted_actions").value("NOENF,WDN"));
+    }
+
+    @Test
+    @DisplayName("PO-2985 Get result by ID duplicates Welsh result parameters when requested")
+    @JiraStory("PO-2985")
+    @JiraEpic("PO-2630")
+    void getResultById_whenIncludeWelshTrue_returnsWelshResultParameters() throws Exception {
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "/DDDDDD?include_welsh=true"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":getResultById_whenIncludeWelshTrue_returnsWelshResultParameters: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.result_id").value("DDDDDD"))
+            .andExpect(jsonPath("$.result_parameters").value(
+                "[{\"name\":\"sample_name\",\"type\":\"text\",\"hint\":\"some hint\",\"language_dependent\":true},"
+                    + "{\"name\":\"cy_sample_name\",\"type\":\"text\","
+                    + "\"hint\":\"Provide a welsh version for the defendant\",\"language_dependent\":true},"
+                    + "{\"name\":\"sample_name_2\",\"type\":\"text\",\"hint\":\"some hint 2\","
+                    + "\"language_dependent\":false}]"));
     }
 
     @Test
@@ -547,6 +577,28 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[*].result_id").value(org.hamcrest.Matchers.not(hasItems("NBWT"))));
 
         jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
+    }
+
+    @Test
+    @DisplayName("Get result by ID uses cache on repeated identical request")
+    @JiraStory("PO-7248")
+    @JiraEpic("PO-8248")
+    void testGetResultById_usesCacheOnRepeatedRequest() throws Exception {
+        clearInvocations(resultRepository);
+
+        String firstBody = performRequest();
+        String secondBody = performRequest();
+
+        assertEquals(firstBody, secondBody);
+        verify(resultRepository, times(1)).findById("BBBBBB");
+    }
+
+    private String performRequest() throws Exception {
+        return mockMvc.perform(get(URL_BASE + "/BBBBBB"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
     }
 
 }

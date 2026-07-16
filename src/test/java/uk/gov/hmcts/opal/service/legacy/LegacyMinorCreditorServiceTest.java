@@ -101,7 +101,7 @@ class LegacyMinorCreditorServiceTest {
     @Test
     void searchMinorCreditors_shouldMapLegacyResponseToDto() {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(1))
+            .businessUnitIds(List.of((short) 1))
             .accountNumber("ACC-1")
             .activeAccountsOnly(true)
             .build();
@@ -151,7 +151,7 @@ class LegacyMinorCreditorServiceTest {
     @Test
     void searchMinorCreditors_shouldMapNullDefendantToNull() {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(1))
+            .businessUnitIds(List.of((short) 1))
             .accountNumber("ACC-2")
             .activeAccountsOnly(true)
             .build();
@@ -584,6 +584,7 @@ class LegacyMinorCreditorServiceTest {
             request,
             BigInteger.ONE,
             "test.user",
+            "Test User",
             (short) 77
         );
 

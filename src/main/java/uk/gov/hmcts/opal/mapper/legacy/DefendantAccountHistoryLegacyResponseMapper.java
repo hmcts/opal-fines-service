@@ -124,7 +124,7 @@ public interface DefendantAccountHistoryLegacyResponseMapper {
         }
 
         return CourtReferenceDto.builder()
-            .courtId(courtReference.getCourtId() == null ? null : Math.toIntExact(courtReference.getCourtId()))
+            .courtId(courtReference.getCourtId())
             .courtName(courtReference.getCourtName())
             .build();
     }

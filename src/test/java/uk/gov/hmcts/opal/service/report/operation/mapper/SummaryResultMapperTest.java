@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -14,28 +13,31 @@ import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.dto.report.operation.SummaryOperationReportRowDto;
 import uk.gov.hmcts.opal.dto.report.operation.SummaryReportTotalsRowDto;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
-import uk.gov.hmcts.opal.service.report.operation.OperationByEnforcementSummaryReport;
+import uk.gov.hmcts.opal.service.report.operation.OperationSummaryReport;
 
+@ExtendWith(MockitoExtension.class)
 class SummaryResultMapperTest {
 
     @Mock
+    private SummaryRowDtoMapper rowMapper;
+
+    @Spy
     private SummaryResultMapper mapper;
 
-    private SummaryRowDtoMapper rowMapper;
 
     @BeforeEach
     void setUp() {
-        mapper = new SummaryResultMapper() {
-        };
-        rowMapper = mock(SummaryRowDtoMapper.class);
         mapper.setRowMapper(rowMapper);
     }
 
@@ -66,10 +68,10 @@ class SummaryResultMapperTest {
         }).when(rowMapper).map(eq(acc2), any());
         List<DefendantAccountEntity> accounts = List.of(acc1, acc2);
         // Act
-        OperationByEnforcementSummaryReport result = mapper.map(accounts);
+        OperationSummaryReport result = mapper.map(accounts);
         // Assert
         assertThat(result).isNotNull();
-        Assertions.assertThat(result.getEnforcementReport().getReportSummaryRows())
+        Assertions.assertThat(result.getSummaryReport().getReportSummaryRows())
             .containsExactly(dto1, dto2);
         Assertions.assertThat(result.getReportMetaData().getPdpoPartyIds())
             .extracting(ParticipantIdentifier::getIdentifier)
@@ -91,10 +93,10 @@ class SummaryResultMapperTest {
     @Test
     void shouldHandleEmptyAccountList() {
         // Act
-        OperationByEnforcementSummaryReport result = mapper.map(List.of());
+        OperationSummaryReport result = mapper.map(List.of());
         // Assert
         Assertions.assertThat(result).isNotNull();
-        Assertions.assertThat(result.getEnforcementReport().getReportSummaryRows()).isEmpty();
+        Assertions.assertThat(result.getSummaryReport().getReportSummaryRows()).isEmpty();
         Assertions.assertThat(result.getReportMetaData()).isNotNull();
         Assertions.assertThat(result.getReportMetaData().getPdpoPartyIds()).isEmpty();
     }
@@ -107,10 +109,10 @@ class SummaryResultMapperTest {
             dto = new SummaryOperationReportRowDto();
         when(rowMapper.map(eq(acc), any())).thenReturn(dto);
         // Act
-        OperationByEnforcementSummaryReport result =
+        OperationSummaryReport result =
             mapper.map(List.of(acc));
         // Assert
-        Assertions.assertThat(result.getEnforcementReport().getReportSummaryRows()).containsExactly(dto);
+        Assertions.assertThat(result.getSummaryReport().getReportSummaryRows()).containsExactly(dto);
         Assertions.assertThat(result.getReportMetaData().getPdpoPartyIds()).isEmpty();
     }
 
@@ -125,10 +127,10 @@ class SummaryResultMapperTest {
         when(rowMapper.map(same(acc2), any())).thenReturn(row2);
         List<DefendantAccountEntity> accounts = List.of(acc1, acc2);
         // Act
-        OperationByEnforcementSummaryReport result = mapper.map(accounts);
+        OperationSummaryReport result = mapper.map(accounts);
         // Assert
         SummaryReportTotalsRowDto totals =
-            result.getEnforcementReport().getTotals();
+            result.getSummaryReport().getTotals();
         assertThat(totals.getAccountsReported()).isEqualTo(2);
         assertThat(totals.getTotalImposed())
             .isEqualByComparingTo("300.00");
@@ -150,11 +152,11 @@ class SummaryResultMapperTest {
         when(rowMapper.map(same(acc1), any())).thenReturn(row1);
         when(rowMapper.map(same(acc2), any())).thenReturn(row2);
         // Act
-        OperationByEnforcementSummaryReport result =
+        OperationSummaryReport result =
             mapper.map(List.of(acc1, acc2));
         // Assert
         SummaryReportTotalsRowDto totals =
-            result.getEnforcementReport().getTotals();
+            result.getSummaryReport().getTotals();
         assertThat(totals.getTotalImposed())
             .isEqualByComparingTo("200.00");
         assertThat(totals.getTotalPaid())
@@ -166,11 +168,11 @@ class SummaryResultMapperTest {
     @Test
     void shouldReturnsZeroTotalsForEmptyList() {
         // Act
-        OperationByEnforcementSummaryReport result =
+        OperationSummaryReport result =
             mapper.map(List.of());
         // Assert
         SummaryReportTotalsRowDto totals =
-            result.getEnforcementReport().getTotals();
+            result.getSummaryReport().getTotals();
         assertThat(totals.getAccountsReported()).isEqualTo(0);
         assertThat(totals.getTotalImposed()).isEqualByComparingTo("0");
         assertThat(totals.getTotalPaid()).isEqualByComparingTo("0");

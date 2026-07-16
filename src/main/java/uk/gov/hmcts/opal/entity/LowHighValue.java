@@ -1,12 +1,11 @@
 package uk.gov.hmcts.opal.entity;
 
 import com.fasterxml.jackson.annotation.JsonValue;
-
 import java.util.stream.Stream;
 
 public enum LowHighValue {
-    L("L"),
-    H("H");
+    LOW("L"),
+    HIGH("H");
 
     private final String value;
 

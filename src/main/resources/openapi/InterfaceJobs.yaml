@@ -1,0 +1,499 @@
+openapi: 3.1.1
+info:
+  title: Opal Fines Service - Interface Jobs
+  version: 1.0.0
+  description: APIs for retrieving processed file summary information.
+paths:
+  /interface-jobs:
+    post:
+      tags:
+        - interface_jobs
+      summary: Create interface jobs
+      description: >
+        Add a list of interface jobs and associated files to the Opal database.
+        Each interface job is created in the requested business unit and requires
+        the Process and Allocate Payments permission for that business unit.
+      operationId: post_interface_jobs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/create_interface_jobs_request'
+      responses:
+        "201":
+          description: Interface jobs created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/create_interface_jobs_response'
+        "400":
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "401":
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "403":
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "500":
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "503":
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+  /interface-jobs/process:
+    post:
+      tags:
+        - interface_jobs
+      summary: Process interface jobs
+      description: >
+        Process the selected interface jobs asynchronously. The user requires the
+        Process and Allocate Payments permission in the business unit supplied for each job.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/process_interface_jobs_request'
+      responses:
+        "202":
+          description: Interface jobs accepted for asynchronous processing
+        "400":
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "401":
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "403":
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "500":
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "503":
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+  /interface-jobs/summary:
+    get:
+      tags:
+        - interface_jobs
+      summary: Get interface jobs summary
+      description: >
+        Get processed file summary information filtered by business unit, status, completed
+        date range, and interface name. Results are filtered at query time to business units
+        where the user has the Process and Allocate Payments permission.
+      operationId: get_interface_jobs_summary
+      parameters:
+        - name: business_unit_ids
+          in: query
+          required: true
+          description: Comma-separated list of business unit IDs to search.
+          style: form
+          explode: false
+          schema:
+            type: array
+            minItems: 1
+            items:
+              type: integer
+              format: int16
+        - name: statuses
+          in: query
+          required: false
+          description: Optional comma-separated list of interface job statuses to search.
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - CREATED
+                - PROCESSED
+                - IGNORED
+                - FAILED
+                - COMPLETED
+        - name: completed_date_from
+          in: query
+          required: false
+          description: Optional lower bound for interface job completion date and time.
+          schema:
+            type: string
+            format: date-time
+        - name: completed_date_to
+          in: query
+          required: false
+          description: Optional upper bound for interface job completion date and time.
+          schema:
+            type: string
+            format: date-time
+        - name: interface_name
+          in: query
+          required: false
+          description: Optional interface name filter.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Interface job summary response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/interface_job_summary_response'
+        "400":
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "401":
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "403":
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "500":
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "503":
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+  /interface-jobs/{id}/processed-file-summary:
+    get:
+      tags:
+        - interface_jobs
+      summary: Get processed file summary
+      description: >
+        Get processed file summary information for the supplied interface job ID.
+        Results require the Process and Allocate Payments permission in the business unit
+        associated with the supplied interface job ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Interface job ID.
+          schema:
+            $ref: './types.yaml#/components/schemas/BigInt'
+      responses:
+        "200":
+          description: Processed file summary response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/processed_file_summary_response'
+        "400":
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "401":
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "403":
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "404":
+          description: Not found
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "500":
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "503":
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+components:
+  schemas:
+    create_interface_jobs_request:
+      type: object
+      additionalProperties: false
+      required:
+        - interface_jobs
+      properties:
+        interface_jobs:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/create_interface_job'
+
+    create_interface_job:
+      type: object
+      additionalProperties: false
+      required:
+        - file_name
+        - source
+        - records
+        - business_unit_id
+        - interface_name
+        - created_datetime
+      properties:
+        file_name:
+          type: string
+          minLength: 1
+          description: DB Mapping - interface_files.file_name
+        source:
+          $ref: '#/components/schemas/interface_file_source'
+          description: DB Mapping - interface_files.source
+        records:
+          type: string
+          minLength: 1
+          description: JSON records. DB Mapping - interface_files.records
+        business_unit_id:
+          type: integer
+          format: int16
+          description: DB Mapping - interface_jobs.business_unit_id
+        interface_name:
+          type: string
+          minLength: 1
+          description: DB Mapping - interface_jobs.interface_name
+        created_datetime:
+          type: string
+          format: date-time
+          description: DB Mapping - interface_files.created_datetime
+
+    create_interface_jobs_response:
+      type: object
+      additionalProperties: false
+      required:
+        - interface_jobs
+      properties:
+        interface_jobs:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/create_interface_job_response'
+
+    create_interface_job_response:
+      type: object
+      additionalProperties: false
+      required:
+        - interface_job_id
+      properties:
+        interface_job_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: DB Mapping - interface_jobs.interface_job_id
+
+    process_interface_jobs_request:
+      type: object
+      additionalProperties: false
+      required:
+        - interface_jobs
+      properties:
+        interface_jobs:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/process_interface_job'
+
+    process_interface_job:
+      type: object
+      additionalProperties: false
+      required:
+        - interface_job_id
+        - business_unit_id
+        - override_inhibits
+      properties:
+        interface_job_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: DB Mapping - p_int_payments_in.pi_interface_job_id
+        business_unit_id:
+          type: integer
+          format: int16
+          description: DB Mapping - p_int_payments_in.pi_business_unit_id
+        override_inhibits:
+          type: boolean
+          description: DB Mapping - interface_files.override_inhibits
+
+    processed_file_summary_response:
+      type: object
+      additionalProperties: false
+      required:
+        - file_name
+        - source
+        - business_unit_name
+        - total_amount
+        - total_records
+        - total_errors
+        - interface_messages
+      properties:
+        file_name:
+          type: string
+          description: DB Mapping - v_interface_jobs_processed_file_summary.file_name
+        source:
+          type: string
+          description: DB Mapping - v_interface_jobs_processed_file_summary.source
+        business_unit_name:
+          type: string
+          description: DB Mapping - v_interface_jobs_processed_file_summary.business_unit_name
+        total_amount:
+          $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
+          description: DB Mapping - v_interface_jobs_processed_file_summary.total_amount
+        total_records:
+          type: integer
+          format: int16
+          description: DB Mapping - v_interface_jobs_processed_file_summary.total_records
+        total_errors:
+          type: integer
+          minimum: 0
+          description: DB Mapping - v_interface_jobs_processed_file_summary.total_errors
+        interface_messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/interface_message'
+
+    interface_message:
+      type: object
+      additionalProperties: false
+      required:
+        - interface_messages_id
+        - message_data
+        - message_type
+        - message_text
+      properties:
+        interface_messages_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: DB Mapping - interface_messages.interface_messages_id
+        message_data:
+          type: object
+          additionalProperties: true
+          description: DB Mapping - interface_messages.message_data
+        message_type:
+          $ref: '#/components/schemas/interface_message_type'
+          description: DB Mapping - interface_messages.message_type
+        message_text:
+          type: string
+          description: DB Mapping - interface_messages.message_text
+
+    interface_job_summary_response:
+      type: object
+      additionalProperties: false
+      required:
+        - interface_jobs
+      properties:
+        interface_jobs:
+          type: array
+          items:
+            $ref: '#/components/schemas/interface_job_summary'
+
+    interface_job_summary:
+      type: object
+      additionalProperties: false
+      required:
+        - interface_job_id
+        - interface_file_id
+        - file_name
+        - source
+        - business_unit_name
+        - created_datetime
+        - status
+      properties:
+        interface_job_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+        interface_file_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+        file_name:
+          type: string
+        source:
+          $ref: '#/components/schemas/interface_file_source'
+        business_unit_name:
+          type: string
+        completed_datetime:
+          type: string
+          format: date-time
+        created_datetime:
+          type: string
+          format: date-time
+        status:
+          $ref: '#/components/schemas/interface_job_status'
+
+    interface_file_source:
+      type: string
+      enum:
+        - NATWEST
+        - ALLPAY
+        - ALLPAY_DD
+        - BARCLAYCARD
+        - BTECKOH
+        - DWP
+        - CDER
+        - JACOBS
+        - MARSTON
+        - OTHER
+
+    interface_message_type:
+      type: string
+      enum:
+        - Exception
+        - Error
+        - Warning
+        - Info
+
+    interface_job_status:
+      type: string
+      enum:
+        - CREATED
+        - PROCESSED
+        - IGNORED
+        - FAILED
+        - COMPLETED

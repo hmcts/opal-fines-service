@@ -21,11 +21,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
+import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
+import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
+import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchReferenceNumberDefendantAccount;
-import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
@@ -82,6 +86,39 @@ class DefendantAccountApiControllerTest {
     }
 
     @Test
+    void given_validRequest_when_getConsolidatedAccounts_then_returnsOkResponseWithEtag() {
+        Long defendantId = 1L;
+        List<ConsolidatedAccountDefendantAccount> payload = List.of();
+        GetDefendantAccountConsolidatedAccountsResult serviceResponse =
+            GetDefendantAccountConsolidatedAccountsResult.builder()
+                .payload(payload)
+                .version(BigInteger.valueOf(7))
+                .build();
+        when(defendantAccountService.getConsolidatedAccounts(defendantId))
+            .thenReturn(serviceResponse);
+
+        ResponseEntity<List<ConsolidatedAccountDefendantAccount>> response =
+            defendantAccountApiController.getConsolidatedAccounts(defendantId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("\"7\"", response.getHeaders().getETag());
+        assertSame(payload, response.getBody());
+        verify(defendantAccountService).getConsolidatedAccounts(defendantId);
+    }
+
+    @Test
+    void getConsolidatedAccounts_isProtectedByRelease1BFeatureToggle() throws NoSuchMethodException {
+        Method method = DefendantAccountApiController.class.getMethod(
+            "getConsolidatedAccounts", Long.class);
+
+        FeatureToggle featureToggle = method.getAnnotation(FeatureToggle.class);
+
+        assertNotNull(featureToggle);
+        assertEquals(RELEASE_1B, featureToggle.feature());
+        assertEquals(RELEASE_1B_ENABLED_PROPERTY, featureToggle.defaultValueProperty());
+    }
+
+    @Test
     void given_validRequest_when_getEnforcementStatus_then_returnsOkResponse() {
         Long defendantId = 1L;
         EnforcementStatus status = EnforcementStatus.builder()
@@ -102,7 +139,7 @@ class DefendantAccountApiControllerTest {
         PostDefendantAccountSearchRequestDefendantAccount request =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
                 .activeAccountsOnly(true)
-                .businessUnitIds(List.of(101))
+                .businessUnitIds(List.of((short) 101))
                 .referenceNumber(new DefendantAccountSearchReferenceNumberDefendantAccount()
                     .organisation(false)
                     .accountNumber("AC123"))
@@ -162,6 +199,24 @@ class DefendantAccountApiControllerTest {
 
         verify(defendantAccountService).getHistory(eq(defendantId), eq(dateFrom), eq(dateTo), eq(itemTypes));
         verify(defendantAccountHistoryResponseMapper).toGeneratedResponse(historyResponse);
+    }
+
+    @Test
+    void given_validRequest_when_getDefendantAccountHeaderSummary_then_returnsOkResponse() {
+        Long defendantId = 1L;
+        GetDefendantAccountHeaderSummary200Response summaryResponse =
+            GetDefendantAccountHeaderSummary200Response.builder().build();
+        DefendantAccountHeaderSummary summary =
+            DefendantAccountHeaderSummary.builder().version(BigInteger.ONE).response(summaryResponse).build();
+        when(defendantAccountService.getHeaderSummary(defendantId)).thenReturn(summary);
+
+        ResponseEntity<GetDefendantAccountHeaderSummary200Response> response =
+            defendantAccountApiController.getDefendantAccountHeaderSummary(defendantId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("\"1\"", response.getHeaders().getETag());
+        assertSame(summaryResponse, response.getBody());
+        verify(defendantAccountService).getHeaderSummary(defendantId);
     }
 
 }

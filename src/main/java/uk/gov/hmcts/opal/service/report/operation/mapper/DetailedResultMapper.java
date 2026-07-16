@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.service.report.operation.mapper;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,8 +10,12 @@ import uk.gov.hmcts.opal.dto.report.operation.DetailedAccountReportDto;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedOperationReportAccountRowDto;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedReportDto;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedReportTransactionRowDto;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
+import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
 import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
+import uk.gov.hmcts.opal.repository.ImpositionRepository;
 import uk.gov.hmcts.opal.service.report.ReportMetaData;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 import uk.gov.hmcts.opal.service.report.operation.OperationDetailedReport;
@@ -24,30 +30,46 @@ public abstract class DetailedResultMapper
     protected DetailedRowDtoCoreMapper rowMapper;
     protected DetailedTransactionRowMapper transactionRowMapper;
     protected DefendantTransactionRepository transactionRepository;
+    protected ImpositionRepository impositionRepository;
 
     @Autowired
     public void setRowMapper(DetailedRowDtoCoreMapper rowMapper,
         DetailedTransactionRowMapper transactionRowMapper,
-        DefendantTransactionRepository transactionRepository) {
+        DefendantTransactionRepository transactionRepository,
+        ImpositionRepository impositionRepository) {
         this.rowMapper = rowMapper;
         this.transactionRowMapper = transactionRowMapper;
         this.transactionRepository = transactionRepository;
+        this.impositionRepository = impositionRepository;
     }
 
     @Override
-    public OperationDetailedReport map(
-        List<DefendantAccountEntity> accounts) {
+    public OperationDetailedReport map(List<DefendantAccountEntity> accounts) {
         ReportMetadataContext context = new ReportMetadataContext();
         List<DetailedAccountReportDto> accountTransactionReports = accounts.stream()
             .map(account -> {
                 DetailedOperationReportAccountRowDto accountRow =
                     rowMapper.map(account, context);
-
-                List<DetailedReportTransactionRowDto> transactionRows =
-                    transactionRepository.findByDefendantAccountId(account.getDefendantAccountId())
-                        .stream()
-                        .map(transaction -> transactionRowMapper.map(transaction, account, context))
-                        .toList();
+                //TODO include additional history here: enforcements, notes, paymentTerms and transactions (curr)
+                //todo see DefendantAccountHistoryService.getHistory() && PO-8659
+                List<DefendantTransactionEntity> transactionEntities = transactionRepository
+                    .findByDefendantAccountId(account.getDefendantAccountId());
+                List<Long> impositionIds = transactionEntities.stream()
+                    .filter(transaction ->
+                        AssociatedRecordType.IMPOSITIONS.equals(transaction.getAssociatedRecordType()))
+                    .map(transaction ->
+                        Long.valueOf(transaction.getAssociatedRecordId()))
+                    .toList();
+                Map<String, ImpositionEntity> impositionsForTransactions = impositionRepository
+                    .findAllById(impositionIds)
+                    .stream().collect(Collectors.toMap(
+                        imposition -> imposition.getImpositionId().toString(),
+                        imposition -> imposition));
+                List<DetailedReportTransactionRowDto> transactionRows = transactionEntities
+                    .stream()
+                    .map(transaction -> transactionRowMapper.map(transaction, account,
+                        impositionsForTransactions.get(transaction.getAssociatedRecordId()), context))
+                    .toList();
 
                 return DetailedAccountReportDto.builder()
                     .accountRow(accountRow)
@@ -60,11 +82,11 @@ public abstract class DetailedResultMapper
             .accountTransactionReports(accountTransactionReports)
             .build();
 
-        OperationDetailedReport report = new OperationDetailedReport();
-        report.setDetailedReport(reportDto);
         ReportMetaData meta = new ReportMetaData();
         meta.setPdpoPartyIds(context.getParticipants());
-        report.setReportMetaData(meta);
-        return report;
+        return OperationDetailedReport.builder()
+            .detailedReport(reportDto)
+            .reportMetaData(meta)
+            .build();
     }
 }
