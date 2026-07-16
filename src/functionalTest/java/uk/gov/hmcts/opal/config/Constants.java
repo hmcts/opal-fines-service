@@ -15,4 +15,5 @@ public class Constants {
     public static final String CENTRAL_FUNDS_URI = "/central-funds";
     public static final String DRAFT_ACCOUNTS_URI = "/draft-accounts";
     public static final String RESULTS_URI = "/results";
+    public static final String MAPPINGS_URI = "/mappings";
 }
