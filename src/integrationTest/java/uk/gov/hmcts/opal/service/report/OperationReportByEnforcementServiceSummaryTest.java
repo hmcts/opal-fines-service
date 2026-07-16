@@ -36,8 +36,8 @@ import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
-import uk.gov.hmcts.opal.service.report.operation.OperationByEnforcementSummaryReport;
 import uk.gov.hmcts.opal.service.report.operation.OperationReportByEnforcementService;
+import uk.gov.hmcts.opal.service.report.operation.OperationSummaryReport;
 import uk.gov.hmcts.opal.util.AgeUtil;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -75,7 +75,7 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
             ));
     }
 
-    private static void verifyMetadata(OperationByEnforcementSummaryReport result,
+    private static void verifyMetadata(OperationSummaryReport result,
         List<SummaryOperationReportRowDto> transactions) {
         ReportMetaData reportMetadata = result.getReportMetaData();
         long numberOfRecords = result.getNumberOfRecords();
@@ -98,11 +98,11 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
             }
             """);
         //Act
-        OperationByEnforcementSummaryReport result =
-            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
+        OperationSummaryReport result =
+            (OperationSummaryReport) service.generateReportData(reportInstance);
         //Assert
         List<SummaryOperationReportRowDto> transactions =
-            result.getEnforcementReport().getReportSummaryRows();
+            result.getSummaryReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
             .extracting(SummaryOperationReportRowDto::getAccountNo)
             .isSorted();
@@ -148,7 +148,7 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
                 assertThat(dto.getProsecutorCaseReference()).isEqualTo("090A");
             });
 
-        SummaryReportTotalsRowDto totalsRow = result.getEnforcementReport().getTotals();
+        SummaryReportTotalsRowDto totalsRow = result.getSummaryReport().getTotals();
         assertThat(totalsRow.getAccountsReported()).isEqualTo(transactions.size());
         int totalAccounts = defendantAccountRepository.findAllByBusinessUnit_BusinessUnitId((short) 78).size();
         assertThat(totalAccounts).isEqualTo(totalsRow.getAccountsReported());
@@ -188,13 +188,13 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
             }
             """;
         //Act
-        OperationByEnforcementSummaryReport result = (OperationByEnforcementSummaryReport)
+        OperationSummaryReport result = (OperationSummaryReport)
             service.generateReportData(reportWithFilters(json));
         //Assert
         long totalAccounts = defendantAccountRepository.findAllByBusinessUnit_BusinessUnitId((short) 77).size();
         assertThat(totalAccounts).isEqualTo(result.getNumberOfRecords());
         List<SummaryOperationReportRowDto> transactions =
-            result.getEnforcementReport().getReportSummaryRows();
+            result.getSummaryReport().getReportSummaryRows();
         assertThat(transactions).isNotNull();
         Assertions.assertThat(transactions)
             .extracting(SummaryOperationReportRowDto::getAccountNo)
@@ -216,11 +216,11 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
             }
             """;
         //Act
-        OperationByEnforcementSummaryReport result = (OperationByEnforcementSummaryReport)
+        OperationSummaryReport result = (OperationSummaryReport)
             service.generateReportData(reportWithFilters(json));
         //Assert
         List<SummaryOperationReportRowDto> transactions =
-            result.getEnforcementReport().getReportSummaryRows();
+            result.getSummaryReport().getReportSummaryRows();
         long totalAccounts = defendantAccountRepository.findAllByBusinessUnit_BusinessUnitId((short) 77).size();
         assertThat(totalAccounts).isEqualTo(transactions.size());
         Assertions.assertThat(transactions)
@@ -264,11 +264,11 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
             """
         );
         //Act
-        OperationByEnforcementSummaryReport result =
-            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
+        OperationSummaryReport result =
+            (OperationSummaryReport) service.generateReportData(reportInstance);
         //Assert
         List<SummaryOperationReportRowDto> transactions =
-            result.getEnforcementReport().getReportSummaryRows();
+            result.getSummaryReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
             .extracting(SummaryOperationReportRowDto::getAccountNo)
             .isSorted();
@@ -309,11 +309,11 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
         ));
 
         //Act
-        OperationByEnforcementSummaryReport result =
-            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
+        OperationSummaryReport result =
+            (OperationSummaryReport) service.generateReportData(reportInstance);
         //Assert
         List<SummaryOperationReportRowDto> transactions =
-            result.getEnforcementReport().getReportSummaryRows();
+            result.getSummaryReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
             .extracting(SummaryOperationReportRowDto::getAccountNo)
             .isSorted();
@@ -349,13 +349,13 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
             }
             """.formatted(from, to);
         //Act
-        OperationByEnforcementSummaryReport result =
-            (OperationByEnforcementSummaryReport)
+        OperationSummaryReport result =
+            (OperationSummaryReport)
                 service.generateReportData(reportWithFilters(json));
         // Assert
         assertThat(result).isNotNull();
         List<SummaryOperationReportRowDto> transactions =
-            result.getEnforcementReport().getReportSummaryRows();
+            result.getSummaryReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
             .extracting(SummaryOperationReportRowDto::getAccountNo)
             .isSorted();
@@ -390,12 +390,12 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
             }
             """;
         //Act
-        OperationByEnforcementSummaryReport result =
-            (OperationByEnforcementSummaryReport) service.generateReportData(reportWithFilters(json));
+        OperationSummaryReport result =
+            (OperationSummaryReport) service.generateReportData(reportWithFilters(json));
         // Assert
         assertThat(result).isNotNull();
         List<SummaryOperationReportRowDto> transactions =
-            result.getEnforcementReport().getReportSummaryRows();
+            result.getSummaryReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
             .extracting(SummaryOperationReportRowDto::getAccountNo)
             .isSorted();
@@ -428,11 +428,11 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
             }
             """;
         //Act
-        OperationByEnforcementSummaryReport result = (OperationByEnforcementSummaryReport)
+        OperationSummaryReport result = (OperationSummaryReport)
             service.generateReportData(reportWithFilters(json));
         //Assert
         List<SummaryOperationReportRowDto> transactions =
-            result.getEnforcementReport().getReportSummaryRows();
+            result.getSummaryReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
             .extracting(SummaryOperationReportRowDto::getAccountNo)
             .isSorted();
@@ -468,11 +468,11 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
             }
             """;
         //Act
-        OperationByEnforcementSummaryReport result = (OperationByEnforcementSummaryReport)
+        OperationSummaryReport result = (OperationSummaryReport)
             service.generateReportData(reportWithFilters(json));
         //Assert
         List<SummaryOperationReportRowDto> transactions =
-            result.getEnforcementReport().getReportSummaryRows();
+            result.getSummaryReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
             .extracting(SummaryOperationReportRowDto::getAccountNo)
             .isSorted();
@@ -508,11 +508,11 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
             }
             """);
         //Act
-        OperationByEnforcementSummaryReport result =
-            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
+        OperationSummaryReport result =
+            (OperationSummaryReport) service.generateReportData(reportInstance);
         //Assert
         List<SummaryOperationReportRowDto> transactions =
-            result.getEnforcementReport().getReportSummaryRows();
+            result.getSummaryReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
             .extracting(SummaryOperationReportRowDto::getAccountNo)
             .isSorted();
@@ -539,11 +539,11 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
             }
             """);
         //Act
-        OperationByEnforcementSummaryReport result =
-            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
+        OperationSummaryReport result =
+            (OperationSummaryReport) service.generateReportData(reportInstance);
         //Assert
         List<SummaryOperationReportRowDto> transactions =
-            result.getEnforcementReport().getReportSummaryRows();
+            result.getSummaryReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
             .extracting(SummaryOperationReportRowDto::getAccountNo)
             .isSorted();
@@ -570,11 +570,11 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
             }
             """);
         //Act
-        OperationByEnforcementSummaryReport result =
-            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
+        OperationSummaryReport result =
+            (OperationSummaryReport) service.generateReportData(reportInstance);
         //Assert
         List<SummaryOperationReportRowDto> transactions =
-            result.getEnforcementReport().getReportSummaryRows();
+            result.getSummaryReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
             .extracting(SummaryOperationReportRowDto::getAccountNo)
             .isSorted();
@@ -600,11 +600,11 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
             }
             """);
         //Act
-        OperationByEnforcementSummaryReport result =
-            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
+        OperationSummaryReport result =
+            (OperationSummaryReport) service.generateReportData(reportInstance);
         //Assert
         List<SummaryOperationReportRowDto> transactions =
-            result.getEnforcementReport().getReportSummaryRows();
+            result.getSummaryReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
             .extracting(SummaryOperationReportRowDto::getAccountNo)
             .isSorted();
@@ -647,11 +647,11 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
             }
             """.formatted(collectionOrderChoice));
         // Act
-        OperationByEnforcementSummaryReport result =
-            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
+        OperationSummaryReport result =
+            (OperationSummaryReport) service.generateReportData(reportInstance);
         // Assert
         List<SummaryOperationReportRowDto> transactions =
-            result.getEnforcementReport().getReportSummaryRows();
+            result.getSummaryReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
             .extracting(SummaryOperationReportRowDto::getAccountNo)
             .containsExactlyInAnyOrderElementsOf(expectedAccountNumbers)
@@ -675,12 +675,12 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
             }
             """);
         // Act
-        OperationByEnforcementSummaryReport result =
-            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
+        OperationSummaryReport result =
+            (OperationSummaryReport) service.generateReportData(reportInstance);
 
         // Assert
         List<SummaryOperationReportRowDto> transactions =
-            result.getEnforcementReport().getReportSummaryRows();
+            result.getSummaryReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
             .extracting(SummaryOperationReportRowDto::getAccountNo)
             .isSorted();
@@ -712,12 +712,12 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
             }
             """);
         // Act
-        OperationByEnforcementSummaryReport result =
-            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
+        OperationSummaryReport result =
+            (OperationSummaryReport) service.generateReportData(reportInstance);
 
         // Assert
         List<SummaryOperationReportRowDto> transactions =
-            result.getEnforcementReport().getReportSummaryRows();
+            result.getSummaryReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
             .extracting(SummaryOperationReportRowDto::getAccountNo)
             .isSorted();
@@ -749,11 +749,11 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
             }
             """);
         //Act
-        OperationByEnforcementSummaryReport result =
-            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
+        OperationSummaryReport result =
+            (OperationSummaryReport) service.generateReportData(reportInstance);
         //Assert
         List<SummaryOperationReportRowDto> transactions =
-            result.getEnforcementReport().getReportSummaryRows();
+            result.getSummaryReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
             .extracting(SummaryOperationReportRowDto::getBalance)
             .filteredOn(Objects::nonNull)
@@ -785,11 +785,11 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
         paymentTermsRepository.saveAndFlush(paymentTermsForSeededData);
 
         //Act
-        OperationByEnforcementSummaryReport result =
-            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
+        OperationSummaryReport result =
+            (OperationSummaryReport) service.generateReportData(reportInstance);
         //Assert
         List<SummaryOperationReportRowDto> transactions =
-            result.getEnforcementReport().getReportSummaryRows();
+            result.getSummaryReport().getReportSummaryRows();
         Map<String, Long> accountNoToId = getAccountNoToId();
         Assertions.assertThat(transactions).allSatisfy(dto -> {
             Long accountId = accountNoToId.get(dto.getAccountNo());
@@ -823,11 +823,11 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
             }
             """);
         //Act
-        OperationByEnforcementSummaryReport result =
-            (OperationByEnforcementSummaryReport) service.generateReportData(reportInstance);
+        OperationSummaryReport result =
+            (OperationSummaryReport) service.generateReportData(reportInstance);
         //Assert
         List<SummaryOperationReportRowDto> transactions =
-            result.getEnforcementReport().getReportSummaryRows();
+            result.getSummaryReport().getReportSummaryRows();
         Assertions.assertThat(transactions)
             .extracting(SummaryOperationReportRowDto::getDefendantName)
             .allSatisfy(name ->
@@ -835,5 +835,3 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
         verifyMetadata(result, transactions);
     }
 }
-
-

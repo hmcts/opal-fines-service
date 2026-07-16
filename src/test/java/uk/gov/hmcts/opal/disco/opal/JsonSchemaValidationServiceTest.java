@@ -224,6 +224,97 @@ class JsonSchemaValidationServiceTest {
     }
 
     @Test
+    void testMinorCreditorAccountsSearchLegacyRequest_withForenamesWithoutSurname_shouldFail() {
+        String invalidJson = """
+            {
+              "active_accounts_only": true,
+              "creditor": {
+                "organisation": false,
+                "forenames": "John",
+                "address_line_1": "1 High Street"
+              }
+            }
+            """;
+
+        assertFalse(jsonSchemaValidationService.isValid(
+            invalidJson,
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_LEGACY_REQUEST
+        ));
+    }
+
+    @Test
+    void testMinorCreditorAccountsSearchLegacyRequest_withSurnameOnly_shouldPass() {
+        String validJson = """
+            {
+              "active_accounts_only": true,
+              "creditor": {
+                "organisation": false,
+                "surname": "Smith"
+              }
+            }
+            """;
+
+        assertTrue(jsonSchemaValidationService.isValid(
+            validJson,
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_LEGACY_REQUEST
+        ));
+    }
+
+    @Test
+    void testMinorCreditorAccountsSearchLegacyRequest_withOrganisationNameOnly_shouldPass() {
+        String validJson = """
+            {
+              "active_accounts_only": true,
+              "creditor": {
+                "organisation": true,
+                "organisation_name": "Acme Ltd"
+              }
+            }
+            """;
+
+        assertTrue(jsonSchemaValidationService.isValid(
+            validJson,
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_LEGACY_REQUEST
+        ));
+    }
+
+    @Test
+    void testMinorCreditorAccountsSearchLegacyRequest_withAddressLine1Only_shouldPass() {
+        String validJson = """
+            {
+              "active_accounts_only": true,
+              "creditor": {
+                "organisation": false,
+                "address_line_1": "1 High Street"
+              }
+            }
+            """;
+
+        assertTrue(jsonSchemaValidationService.isValid(
+            validJson,
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_LEGACY_REQUEST
+        ));
+    }
+
+    @Test
+    void testMinorCreditorAccountsSearchLegacyRequest_withPostcodeOnly_shouldPass() {
+        String validJson = """
+            {
+              "active_accounts_only": true,
+              "creditor": {
+                "organisation": false,
+                "postcode": "AB1 2CD"
+              }
+            }
+            """;
+
+        assertTrue(jsonSchemaValidationService.isValid(
+            validJson,
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_LEGACY_REQUEST
+        ));
+    }
+
+    @Test
     void testDefendantAccountsSearchResponse_withConsolidationFields_shouldPass() {
         String validJson = """
             {

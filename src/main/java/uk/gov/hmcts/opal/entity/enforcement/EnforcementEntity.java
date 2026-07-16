@@ -1,9 +1,8 @@
 package uk.gov.hmcts.opal.entity.enforcement;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,6 +17,7 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -26,13 +26,11 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
+import uk.gov.hmcts.opal.entity.converter.EnforcementAccountTypeExtendedConverter;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.dto.EnforcementAccountType;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
-
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -114,9 +112,9 @@ public class EnforcementEntity {
     @Column(name = "hearing_court_id", insertable = false, updatable = false)
     private Long hearingCourtId;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = EnforcementAccountTypeExtendedConverter.class)
     @Column(name = "enforcement_account_type", length = 20)
-    private EnforcementAccountType enforcementAccountType;
+    private EnforcementAccountTypeExtended enforcementAccountType;
 
     @Column(name = "posted_by_name", length = 100)
     private String postedByUsername;

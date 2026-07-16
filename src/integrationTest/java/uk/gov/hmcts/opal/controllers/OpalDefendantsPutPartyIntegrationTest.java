@@ -549,6 +549,9 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @SuppressWarnings("LineLength")
     class ReplaceDefendantAccountPartyTests {
 
+        private static final String EXPECTED_AMENDED_BY = "L078JG";
+        private static final String EXPECTED_AMENDED_BY_NAME = "opal-test@HMCTS.NET";
+
         @Test
         @DisplayName("OPAL: PUT Replace DAP – Single name change creates one amendment.")
         @JiraStory("PO-2471")
@@ -608,6 +611,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
             assertEquals(1, rows.size());
             assertEquals("Mr SeedForenames22005 SeedSurname22005", rows.get(0).get("old_value"));
             assertEquals("Mr Changed Forenames SeedSurname22005", rows.get(0).get("new_value"));
+            assertAuditIdentity(rows);
 
             List<Map<String, Object>> defendants = jdbcTemplate.queryForList(
                 "SELECT last_changed_date FROM defendant_accounts WHERE defendant_account_id = '22005'");
@@ -733,6 +737,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
             assertEquals("Changed Address 22006", rows.get(1).get("new_value"));
             assertEquals("SE2 0AA", rows.get(2).get("old_value"));
             assertEquals("SE3 0BB", rows.get(2).get("new_value"));
+            assertAuditIdentity(rows);
 
 
             List<Map<String, Object>> defendants = jdbcTemplate.queryForList(
@@ -741,6 +746,13 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
 
             Integer updatedVersion = versionFor(22006L);
             assertEquals(currentVersion + 1, updatedVersion);
+        }
+
+        private void assertAuditIdentity(List<Map<String, Object>> rows) {
+            for (Map<String, Object> row : rows) {
+                assertEquals(EXPECTED_AMENDED_BY, row.get("amended_by"));
+                assertEquals(EXPECTED_AMENDED_BY_NAME, row.get("amended_by_name"));
+            }
         }
 
         @Test
