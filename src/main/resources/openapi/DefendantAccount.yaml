@@ -789,6 +789,24 @@ components:
         account_number:
           type: string
           description: DB Mapping - defendant_accounts.account_number
+        account_balance:
+          type: number
+          multipleOf: 0.01
+          description: DB Mapping - defendant_accounts.account_balance
+        account_status_code:
+          type: string
+          enum:
+            - L
+            - C
+            - TO
+            - TS
+            - TA
+            - CS
+            - WO
+          description: DB Mapping - defendant_accounts.account_status
+        account_status_name:
+          type: string
+          description: Derived display name from defendant_accounts.account_status
         debtor_type:
           type: string
           enum:
