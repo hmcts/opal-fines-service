@@ -49,7 +49,7 @@ public class EnforcementAccountTypeService {
         for (PatchEnforcementAccountTypeRequestInner requestObject : request) {
 
             EnforcementAccountTypeEntity entity =
-                repository.findById(requestObject.getId().longValue())
+                repository.findById(requestObject.getId())
                     .orElseThrow(() -> new EntityNotFoundException("Enforcement account type not found"));
 
             if (entity.getAccountTypePath() == LowHighValue.LOW
@@ -63,7 +63,7 @@ public class EnforcementAccountTypeService {
                 throw new UnprocessableException("Can not set minimum balance to a negative value");
             }
 
-            VersionUtils.verifyVersions(entity, BigInteger.valueOf(requestObject.getVersion().longValue()),
+            VersionUtils.verifyVersions(entity, BigInteger.valueOf(requestObject.getVersion()),
                 entity.getEnforcementAccountTypeId(), "updateEnforcementAccountType");
 
             entity.setMinimumBalance(requestObject.getMinimumBalance());

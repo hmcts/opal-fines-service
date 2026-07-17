@@ -11,30 +11,25 @@ import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.entity.LowHighValue;
 import uk.gov.hmcts.opal.entity.enforcement.AccountType;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementAccountType;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementAccountTypeEntity;
-import uk.gov.hmcts.opal.service.UserStateService;
-import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
+import uk.gov.hmcts.opal.generated.model.EnforcementAccountTypeCommon;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static uk.gov.hmcts.opal.common.dto.ToJsonString.toJsonString;
 
 
 @ActiveProfiles({"integration", "opal"})
@@ -47,21 +42,9 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
 
     protected static final String URL_BASE = "/enforcement-accounts-types/";
 
-    @MockitoBean
-    protected UserStateService userStateService;
-
-    @MockitoSpyBean
-    protected JsonSchemaValidationService jsonSchemaValidationService;
-
-    @MockitoBean
-    UserStateClientService userStateClientService;
-
-    @MockitoBean
-    protected AccessTokenService accessTokenService;
-
-    protected void authorizeWithPermission(short businessUnitId) {
+    protected void authorizeWithPermission() {
         userStateStub.setupWithNoPermissions();
-        userStateStub.addPermissions(businessUnitId, FinesPermission.AUTO_ENFORCEMENT);
+        userStateStub.addPermissions((short)1, FinesPermission.AUTO_ENFORCEMENT);
     }
 
     protected void authoriseNoPermissions() {
@@ -80,6 +63,15 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
             .build();
     };
 
+    private void assertEnforcementAccountType(int id, long expectedVersion, BigDecimal expectedMinBal) {
+        EnforcementAccountTypeEntity changedObject = jdbcTemplate.queryForObject(
+            "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id = ?",
+            eatRowMapper, id);
+
+        assertEquals(expectedVersion, changedObject.getVersionNumber());
+        assertEquals(expectedMinBal, changedObject.getMinimumBalance());
+    }
+
     @TestPropertySource(properties = {
         "launchdarkly.enabled=false",
         "launchdarkly.default-flag-values.release-1c-auto-enforcement-config=true"
@@ -92,28 +84,25 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
         @JiraStory("PO-2435")
         @JiraEpic("PO-2433")
         void patch_updatesSingleObjectOnly() throws Exception {
-            authorizeWithPermission((short) 78); // Auto enforcement permission
+            authorizeWithPermission(); // Auto enforcement permission
 
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(userStateStub.getBearerToken());
-            headers.add("Business-Unit-Id", "78");
 
-            String body = """
-                [
-                  {
-                    "id": 1,
-                    "version": 1,
-                    "minimum_balance": 200
-                  }
-                ]
-                """;
+            List<EnforcementAccountTypeCommon> body = List.of(
+                EnforcementAccountTypeCommon.builder()
+                    .id(1L)
+                    .version(1L)
+                    .minimumBalance(new BigDecimal("200"))
+                    .build()
+            );
 
             ResultActions res = mockMvc.perform(
                 patch(URL_BASE)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(body)
+                    .content(toJsonString(body))
             );
 
             res.andExpect(status().isOk())
@@ -122,12 +111,8 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
                 .andExpect(jsonPath("$.enforcement_account_types.[0].version").value("2"))
                 .andExpect(jsonPath("$.enforcement_account_types.[0].minimum_balance").value("200"));
 
-            EnforcementAccountTypeEntity changedObject = jdbcTemplate.queryForObject(
-                "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id = '1'",
-                eatRowMapper);
 
-            assertEquals(2L, changedObject.getVersionNumber());
-            assertEquals(new BigDecimal("200.00"), changedObject.getMinimumBalance());
+            assertEnforcementAccountType(1, 2L, new BigDecimal("200.00"));
         }
 
         @Test
@@ -135,33 +120,30 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
         @JiraStory("PO-2435")
         @JiraEpic("PO-2433")
         void patch_updatesMultipleObjects() throws Exception {
-            authorizeWithPermission((short) 78); // Auto enforcement permission
+            authorizeWithPermission(); // Auto enforcement permission
 
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(userStateStub.getBearerToken());
-            headers.add("Business-Unit-Id", "78");
 
-            String body = """
-                [
-                  {
-                    "id": 1,
-                    "version": 1,
-                    "minimum_balance": 200
-                  },
-                  {
-                    "id": 2,
-                    "version": 1,
-                    "minimum_balance": 300
-                  }
-                ]
-                """;
+            List<EnforcementAccountTypeCommon> body = List.of(
+                EnforcementAccountTypeCommon.builder()
+                    .id(1L)
+                    .version(1L)
+                    .minimumBalance(new BigDecimal("200"))
+                    .build(),
+                EnforcementAccountTypeCommon.builder()
+                    .id(2L)
+                    .version(1L)
+                    .minimumBalance(new BigDecimal("300"))
+                    .build()
+            );
 
             ResultActions res = mockMvc.perform(
                 patch(URL_BASE)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(body)
+                    .content(toJsonString(body))
             );
 
             res.andExpect(status().isOk())
@@ -173,17 +155,8 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
                 .andExpect(jsonPath("$.enforcement_account_types.[1].version").value("2"))
                 .andExpect(jsonPath("$.enforcement_account_types.[1].minimum_balance").value("300"));
 
-            EnforcementAccountTypeEntity firstChanged = jdbcTemplate.queryForObject(
-                "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id = '1'",
-                eatRowMapper);
-            assertEquals(2L, firstChanged.getVersionNumber());
-            assertEquals(new BigDecimal("200.00"), firstChanged.getMinimumBalance());
-
-            EnforcementAccountTypeEntity secondChanged = jdbcTemplate.queryForObject(
-                "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id = '2'",
-                eatRowMapper);
-            assertEquals(2L, secondChanged.getVersionNumber());
-            assertEquals(new BigDecimal("300.00"), secondChanged.getMinimumBalance());
+            assertEnforcementAccountType(1, 2L, new BigDecimal("200.00"));
+            assertEnforcementAccountType(2, 2L, new BigDecimal("300.00"));
         }
 
         @Test
@@ -191,27 +164,25 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
         @JiraStory("PO-2435")
         @JiraEpic("PO-2433")
         void patch_updatingALowValueToHaveNullMinimumBalanceShouldError() throws Exception {
-            authorizeWithPermission((short) 78); // Auto enforcement permission
+            authorizeWithPermission(); // Auto enforcement permission
 
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(userStateStub.getBearerToken());
-            headers.add("Business-Unit-Id", "78");
 
-            String body = """
-                [
-                  {
-                    "id": 1,
-                    "version": 1
-                  }
-                ]
-                """;
+            List<EnforcementAccountTypeCommon> body = List.of(
+                EnforcementAccountTypeCommon.builder()
+                    .id(1L)
+                    .version(1L)
+                    .build()
+            );
+
 
             ResultActions res = mockMvc.perform(
                 patch(URL_BASE)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(body)
+                    .content(toJsonString(body))
             );
 
             res.andExpect(status().is(422))
@@ -220,12 +191,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
                     "Can not update enforcement account type minimum balance for a low enforcement path"))
                 .andExpect(jsonPath("$.retriable").value("false"));
 
-            EnforcementAccountTypeEntity changedObject = jdbcTemplate.queryForObject(
-                "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id = '1'",
-                eatRowMapper);
-
-            assertEquals(1L, changedObject.getVersionNumber());
-            assertNull(changedObject.getMinimumBalance());
+            assertEnforcementAccountType(1, 1L, null);
 
         }
 
@@ -234,27 +200,24 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
         @JiraStory("PO-2435")
         @JiraEpic("PO-2433")
         void patch_highPathNullBalanceAllowed() throws Exception {
-            authorizeWithPermission((short) 78); // Auto enforcement permission
+            authorizeWithPermission(); // Auto enforcement permission
 
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(userStateStub.getBearerToken());
-            headers.add("Business-Unit-Id", "78");
 
-            String body = """
-                [
-                  {
-                    "id": 3,
-                    "version": 1
-                  }
-                ]
-                """;
+            List<EnforcementAccountTypeCommon> body = List.of(
+                EnforcementAccountTypeCommon.builder()
+                    .id(3L)
+                    .version(1L)
+                    .build()
+            );
 
             ResultActions res = mockMvc.perform(
                 patch(URL_BASE)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(body)
+                    .content(toJsonString(body))
             );
 
             res.andExpect(status().isOk())
@@ -263,12 +226,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
                 .andExpect(jsonPath("$.enforcement_account_types.[0].version").value("2"))
                 .andExpect(jsonPath("$.enforcement_account_types.[0].minimum_balance").isEmpty());
 
-            EnforcementAccountTypeEntity changedObject = jdbcTemplate.queryForObject(
-                "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id = '3'",
-                eatRowMapper);
-
-            assertEquals(2L, changedObject.getVersionNumber());
-            assertNull(changedObject.getMinimumBalance());
+            assertEnforcementAccountType(3, 2L, null);
         }
 
         @Test
@@ -276,28 +234,25 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
         @JiraStory("PO-2435")
         @JiraEpic("PO-2433")
         void patch_versionNumberMisMatch() throws Exception {
-            authorizeWithPermission((short) 78); // Auto enforcement permission
+            authorizeWithPermission(); // Auto enforcement permission
 
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(userStateStub.getBearerToken());
-            headers.add("Business-Unit-Id", "78");
 
-            String body = """
-                [
-                  {
-                    "id": 1,
-                    "version": 0,
-                    "minimum_balance": 200
-                  }
-                ]
-                """;
+            List<EnforcementAccountTypeCommon> body = List.of(
+                EnforcementAccountTypeCommon.builder()
+                    .id(1L)
+                    .version(0L)
+                    .minimumBalance(new BigDecimal("200"))
+                    .build()
+            );
 
             ResultActions res = mockMvc.perform(
                 patch(URL_BASE)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(body)
+                    .content(toJsonString(body))
             );
 
             res.andExpect(status().is(409))
@@ -309,12 +264,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
                 .andExpect(jsonPath("$.type")
                     .value("https://hmcts.gov.uk/problems/optimistic-locking"));
 
-            EnforcementAccountTypeEntity changedObject = jdbcTemplate.queryForObject(
-                "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id = '1'",
-                eatRowMapper);
-
-            assertEquals(1L, changedObject.getVersionNumber());
-            assertNull(changedObject.getMinimumBalance());
+            assertEnforcementAccountType(1, 1L, null);
         }
 
         @Test
@@ -322,39 +272,33 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
         @JiraStory("PO-2435")
         @JiraEpic("PO-2433")
         void patch_enforcementAccountTypeNotFound() throws Exception {
-            authorizeWithPermission((short) 78); // Auto enforcement permission
+            authorizeWithPermission(); // Auto enforcement permission
 
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(userStateStub.getBearerToken());
-            headers.add("Business-Unit-Id", "78");
 
-            String body = """
-                [
-                  {
-                    "id": 1000,
-                    "version": 1,
-                    "minimum_balance": 200
-                  }
-                ]
-                """;
-
+            List<EnforcementAccountTypeCommon> body = List.of(
+                EnforcementAccountTypeCommon.builder()
+                    .id(1000L)
+                    .version(1L)
+                    .minimumBalance(new BigDecimal("200"))
+                    .build()
+            );
             ResultActions res = mockMvc.perform(
                 patch(URL_BASE)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(body)
+                    .content(toJsonString(body))
             );
 
             res.andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.retriable").value("false"));
 
-            List<EnforcementAccountTypeEntity> changedObject = jdbcTemplate.query(
-                "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id IN (1, 2, 3)", eatRowMapper);
-            assertEquals(1L, changedObject.getFirst().getVersionNumber());
-            assertEquals(1L, changedObject.get(1).getVersionNumber());
-            assertEquals(1L, changedObject.get(2).getVersionNumber());
+            assertEnforcementAccountType(1, 1L, null);
+            assertEnforcementAccountType(2, 1L, null);
+            assertEnforcementAccountType(3, 1L, null);
         }
 
         @Test
@@ -366,24 +310,20 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
 
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(expiredToken);
-            headers.add("Business-Unit-Id", "78");
 
-            String body = """
-                [
-                  {
-                    "id": 1,
-                    "version": 1,
-                    "minimum_balance": 200
-                  }
-                ]
-                """;
-
+            List<EnforcementAccountTypeCommon> body = List.of(
+                EnforcementAccountTypeCommon.builder()
+                    .id(1L)
+                    .version(1L)
+                    .minimumBalance(new BigDecimal("200"))
+                    .build()
+            );
             ResultActions res = mockMvc.perform(
                 patch(URL_BASE)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(body)
+                    .content(toJsonString(body))
             );
 
             res.andExpect(status().isForbidden())
@@ -392,11 +332,9 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
                 .andExpect(jsonPath("$.detail")
                     .value("You do not have permission to access this resource"));
 
-            List<EnforcementAccountTypeEntity> changedObject = jdbcTemplate.query(
-                "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id IN (1, 2, 3)", eatRowMapper);
-            assertEquals(1L, changedObject.getFirst().getVersionNumber());
-            assertEquals(1L, changedObject.get(1).getVersionNumber());
-            assertEquals(1L, changedObject.get(2).getVersionNumber());
+            assertEnforcementAccountType(1, 1L, null);
+            assertEnforcementAccountType(2, 1L, null);
+            assertEnforcementAccountType(3, 1L, null);
         }
 
         @Test
@@ -404,41 +342,38 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
         @JiraStory("PO-2435")
         @JiraEpic("PO-2433")
         void patch_rollsbackOnMixedSuccessNullMinBalance() throws Exception {
-            authorizeWithPermission((short) 78); // Auto enforcement permission
+            authorizeWithPermission(); // Auto enforcement permission
 
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(userStateStub.getBearerToken());
-            headers.add("Business-Unit-Id", "78");
 
             EnforcementAccountTypeEntity orig = jdbcTemplate.queryForObject(
                 "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id = '1'",
                 eatRowMapper);
 
-            String body = """
-                [
-                  {
-                    "id": 1,
-                    "version": 1,
-                    "minimum_balance": 200
-                  },
-                  {
-                    "id": 2,
-                    "version": 1
-                  },
-                  {
-                    "id": 3,
-                    "version": 0,
-                    "minimum_balance": 300
-                  }
-                ]
-                """;
+            List<EnforcementAccountTypeCommon> body = List.of(
+                EnforcementAccountTypeCommon.builder()
+                    .id(1L)
+                    .version(1L)
+                    .minimumBalance(new BigDecimal("200"))
+                    .build(),
+                EnforcementAccountTypeCommon.builder()
+                    .id(2L)
+                    .version(1L)
+                    .build(),
+                EnforcementAccountTypeCommon.builder()
+                    .id(3L)
+                    .version(0L)
+                    .minimumBalance(new BigDecimal("300"))
+                    .build()
+            );
 
             ResultActions res = mockMvc.perform(
                 patch(URL_BASE)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(body)
+                    .content(toJsonString(body))
             );
 
             res.andExpect(status().is(422))
@@ -447,11 +382,9 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
                     "Can not update enforcement account type minimum balance for a low enforcement path"))
                 .andExpect(jsonPath("$.retriable").value("false"));
 
-            List<EnforcementAccountTypeEntity> changedObject = jdbcTemplate.query(
-                "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id IN (1, 2, 3)", eatRowMapper);
-            assertEquals(1L, changedObject.getFirst().getVersionNumber());
-            assertEquals(1L, changedObject.get(1).getVersionNumber());
-            assertEquals(1L, changedObject.get(2).getVersionNumber());
+            assertEnforcementAccountType(1, 1L, null);
+            assertEnforcementAccountType(2, 1L, null);
+            assertEnforcementAccountType(3, 1L, null);
         }
 
         @Test
@@ -459,38 +392,35 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
         @JiraStory("PO-2435")
         @JiraEpic("PO-2433")
         void patch_rollsbackOnMixedSuccessVersionMismatch() throws Exception {
-            authorizeWithPermission((short) 78); // Auto enforcement permission
+            authorizeWithPermission(); // Auto enforcement permission
 
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(userStateStub.getBearerToken());
-            headers.add("Business-Unit-Id", "78");
 
-            String body = """
-                [
-                  {
-                    "id": 1,
-                    "version": 1,
-                    "minimum_balance": 200
-                  },
-                  {
-                    "id": 2,
-                    "version": 5,
-                    "minimum_balance": 300
-                  },
-                  {
-                    "id": 3,
-                    "version": 0,
-                    "minimum_balance": 300
-                  }
-                ]
-                """;
+            List<EnforcementAccountTypeCommon> body = List.of(
+                EnforcementAccountTypeCommon.builder()
+                    .id(1L)
+                    .version(1L)
+                    .minimumBalance(new BigDecimal("200"))
+                    .build(),
+                EnforcementAccountTypeCommon.builder()
+                    .id(2L)
+                    .version(5L)
+                    .minimumBalance(new BigDecimal("300"))
+                    .build(),
+                EnforcementAccountTypeCommon.builder()
+                    .id(3L)
+                    .version(0L)
+                    .minimumBalance(new BigDecimal("300"))
+                    .build()
+            );
 
             ResultActions res = mockMvc.perform(
                 patch(URL_BASE)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(body)
+                    .content(toJsonString(body))
             );
 
             res.andExpect(status().is(409))
@@ -502,11 +432,9 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
                 .andExpect(jsonPath("$.type")
                     .value("https://hmcts.gov.uk/problems/optimistic-locking"));
 
-            List<EnforcementAccountTypeEntity> changedObject = jdbcTemplate.query(
-                "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id IN (1, 2, 3)", eatRowMapper);
-            assertEquals(1L, changedObject.getFirst().getVersionNumber());
-            assertEquals(1L, changedObject.get(1).getVersionNumber());
-            assertEquals(1L, changedObject.get(2).getVersionNumber());
+            assertEnforcementAccountType(1, 1L, null);
+            assertEnforcementAccountType(2, 1L, null);
+            assertEnforcementAccountType(3, 1L, null);
         }
 
         @Test
@@ -514,28 +442,25 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
         @JiraStory("PO-2435")
         @JiraEpic("PO-2433")
         void patch_minBalanceNumericValidation() throws Exception {
-            authorizeWithPermission((short) 78); // Auto enforcement permission
+            authorizeWithPermission(); // Auto enforcement permission
 
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(userStateStub.getBearerToken());
-            headers.add("Business-Unit-Id", "78");
 
-            String body = """
-                [
-                  {
-                    "id": 1,
-                    "version": 1,
-                    "minimum_balance": -200
-                  }
-                ]
-                """;
+            List<EnforcementAccountTypeCommon> body = List.of(
+                EnforcementAccountTypeCommon.builder()
+                    .id(1L)
+                    .version(1L)
+                    .minimumBalance(new BigDecimal("-200"))
+                    .build()
+            );
 
             ResultActions res = mockMvc.perform(
                 patch(URL_BASE)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(body)
+                    .content(toJsonString(body))
             );
 
             res.andExpect(status().is(422))
@@ -545,11 +470,9 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
                     .value("Can not set minimum balance to a negative value"))
                 .andExpect(jsonPath("$.retriable").value("false"));
 
-            List<EnforcementAccountTypeEntity> changedObject = jdbcTemplate.query(
-                "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id IN (1, 2, 3)", eatRowMapper);
-            assertEquals(1L, changedObject.getFirst().getVersionNumber());
-            assertEquals(1L, changedObject.get(1).getVersionNumber());
-            assertEquals(1L, changedObject.get(2).getVersionNumber());
+            assertEnforcementAccountType(1, 1L, null);
+            assertEnforcementAccountType(2, 1L, null);
+            assertEnforcementAccountType(3, 1L, null);
         }
     }
 
@@ -565,28 +488,24 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
         @JiraStory("PO-2435")
         @JiraEpic("PO-2433")
         void getAllEnforcementAccountTypes_FeatureOff_404() throws Exception {
-            authorizeWithPermission((short) 78); // Auto enforcement permission
+            authorizeWithPermission(); // Auto enforcement permission
 
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(userStateStub.getBearerToken());
-            headers.add("Business-Unit-Id", "78");
 
-            String body = """
-                [
-                  {
-                    "id": 1,
-                    "version": 1,
-                    "minimum_balance": 200
-                  }
-                ]
-                """;
-
+            List<EnforcementAccountTypeCommon> body = List.of(
+                EnforcementAccountTypeCommon.builder()
+                    .id(1L)
+                    .version(1L)
+                    .minimumBalance(new BigDecimal("200"))
+                    .build()
+            );
             ResultActions res = mockMvc.perform(
                 patch(URL_BASE)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(body)
+                    .content(toJsonString(body))
             );
 
             res.andExpect(status().isNotFound());
