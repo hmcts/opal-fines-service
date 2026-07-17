@@ -809,7 +809,7 @@ jacocoTestCoverageVerification.dependsOn jacocoTestReport
 sonarqube {
   properties {
     property "sonar.projectName", "HMCTS :: opal-fines-service"
-    property "sonar.projectKey", "uk.gov.hmcts:opal-fines-service"
+    property "sonar.projectKey", "uk.gov.hmcts:opal-fines-service-v2"
     property "sonar.gradle.skipCompile", "true"
     property "sonar.exclusions", coverageExclusions.join(', ')
     property 'sonar.coverage.exclusions', "**/entity/**,**/model/*,**/exception/*,**/config/**,**/repository/jpa/*,**/opal/dto/*"
