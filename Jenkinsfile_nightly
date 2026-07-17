@@ -7,8 +7,7 @@ properties([
     booleanParam(name: 'Integration', defaultValue: true, description: 'Run integration tests'),
     booleanParam(name: 'Functional', defaultValue: true, description: 'Run functional tests'),
     booleanParam(name: 'Smoke', defaultValue: true, description: 'Run smoke tests'),
-    booleanParam(name: 'RunR1AOnly', defaultValue: true, description: 'Run R1A functional tests against demo'),
-    booleanParam(name: 'RunR1AOff', defaultValue: false, description: 'Run R1AOff functional tests against demo'),
+    choice(name: 'DemoTaggedFunctionalMode', choices: ['RunR1AOnly', 'RunR1AAndR1BOnly', 'RunAllFlagsOff'], description: 'Select which demo tagged functional stage to run'),
     booleanParam(name: 'ZephyrExecution', defaultValue: false, description: 'Create Zephyr Execution'),
   ])
 ])
@@ -17,21 +16,13 @@ import uk.gov.hmcts.contino.GradleBuilder
 import java.time.DayOfWeek
 import java.time.ZonedDateTime
 
-@Library("Infrastructure@master")
+@Library("Infrastructure@2.4.5")
 
 def type = "java"
 def product = "opal"
 def component = "fines-service"
 
 GradleBuilder builder = new GradleBuilder(this, product)
-
-def r1ATagFilter = '(@JIRA-LABEL:manual-account-creation or (@Opal and @FeatureToggle and @R1BOff)) and ' +
-        'not @Smoke and not @Ignore and ' +
-        'not (@R1AOff or @R1B or @R1COff or @R1C or @R1CFinance or @R1CWriteOff or ' +
-        '@R1CWriteOffOff or @R1CEnforcementOperationalReporting or ' +
-        '@R1CEnforcementOperationalReportingOff or @R1CAdministration)'
-def r1AOffTagFilter = '@R1AOff and not @Ignore'
-
 def testEnvironments = [
     staging: [
         name                 : 'staging',
@@ -346,13 +337,13 @@ def runSmokeStage = { stageName, shouldRunWithZephyr, reportNameSuffix ->
   }
 }
 
-def runTaggedFunctionalStage = { enabled, stageName, shouldRunWithZephyr, reportDirectory, reportNameSuffix, tagFilter ->
+def runNamedTaggedFunctionalStage = { enabled, stageName, shouldRunWithZephyr, gradleTask, reportDirectory, reportNameSuffix,
+  candidateReportDirectories, junitPattern, buildReportDirectory, zephyrStageKey ->
   if (enabled) {
     stage(stageName) {
       deleteStageOutputs([
         reportDirectory,
-        'functional-output-demo',
-        'build/reports/tests/functionalOpalTags',
+        buildReportDirectory,
         'build/test-results/functional',
         'build/serenity-functional-demo',
         'target/zephyr-reports/cucumber-opal-tags.json',
@@ -361,28 +352,24 @@ def runTaggedFunctionalStage = { enabled, stageName, shouldRunWithZephyr, report
       ])
 
       try {
-        withEnv(["TAGS=${tagFilter}"]) {
-          builder.gradle('clearReports functionalOpalTags')
-        }
+        builder.gradle("clearReports ${gradleTask}")
       } catch (error) {
         recordStageFailure(stageName, "failed. Error: ${error.message}")
       } finally {
         try {
-          builder.gradle('syncTaggedFunctionalArtifactsFromExistingResults')
           publishFunctionalResults(
             "${stageName} Report",
             reportDirectory,
-            'functional-output-demo',
-            ['functional-output-demo/report', 'build/reports/tests/functionalOpalTags'],
+            reportDirectory,
+            candidateReportDirectories,
             reportNameSuffix,
-            'build/test-results/functional/opal-tags/*.xml',
+            junitPattern,
             "${reportDirectory}/zephyr/cucumber-opal-tags.json"
           )
         } catch (publishError) {
           recordStageFailure(stageName, "result publication failed. Error: ${publishError.message}")
         }
         if (shouldRunWithZephyr) {
-          def zephyrStageKey = reportDirectory == 'functional-output-r1a-only-demo' ? 'runR1AOnly' : 'runR1AOff'
           runFunctionalZephyrExecution(stageName, zephyrStageKey)
         }
       }
@@ -399,8 +386,7 @@ withNightlyPipeline(type, product, component) {
     echo 'Integration:' + params.Integration
     echo 'Functional:' + params.Functional
     echo 'Smoke:' + params.Smoke
-    echo 'RunR1AOnly:' + params.RunR1AOnly
-    echo 'RunR1AOff:' + params.RunR1AOff
+    echo 'DemoTaggedFunctionalMode:' + params.DemoTaggedFunctionalMode
 
     def today = ZonedDateTime.now().getDayOfWeek()
     def shouldRunWithZephyr = params.ZephyrExecution || today == DayOfWeek.FRIDAY
@@ -413,34 +399,56 @@ withNightlyPipeline(type, product, component) {
     runFunctionalStage('Functional Tests', shouldRunWithZephyr, testEnvironments.staging.reportNameSuffix)
     runSmokeStage('Smoke Tests', shouldRunWithZephyr, testEnvironments.staging.reportNameSuffix)
 
-    if (params.RunR1AOnly) {
-      configureTestEnvironment(testEnvironments.demo)
-      if (shouldRunWithZephyr) {
-        configureZephyrExecution(testEnvironments.demo)
-      }
-      runTaggedFunctionalStage(
-        params.RunR1AOnly,
-        'Demo R1A Functional Tests',
-        shouldRunWithZephyr,
-        'functional-output-r1a-only-demo',
-        testEnvironments.demo.reportNameSuffix,
-        r1ATagFilter
-      )
+    configureTestEnvironment(testEnvironments.demo)
+    if (shouldRunWithZephyr) {
+      configureZephyrExecution(testEnvironments.demo)
     }
 
-    if (params.RunR1AOff) {
-      configureTestEnvironment(testEnvironments.demo)
-      if (shouldRunWithZephyr) {
-        configureZephyrExecution(testEnvironments.demo)
-      }
-      runTaggedFunctionalStage(
-        params.RunR1AOff,
-        'R1AOff Demo Functional Tests',
-        shouldRunWithZephyr,
-        'functional-output-r1a-off-demo',
-        ' (Demo R1AOff)',
-        r1AOffTagFilter
-      )
+    switch (params.DemoTaggedFunctionalMode) {
+      case 'RunR1AOnly':
+        runNamedTaggedFunctionalStage(
+          true,
+          'Demo R1A Functional Tests',
+          shouldRunWithZephyr,
+          'functionalOpalTagsR1AOnly',
+          'functional-output-r1a-only-demo',
+          testEnvironments.demo.reportNameSuffix,
+          ['functional-output-r1a-only-demo/report', 'build/reports/tests/functionalOpalTagsR1AOnly'],
+          'build/test-results/functional/opal-tags-r1a-only/*.xml',
+          'build/reports/tests/functionalOpalTagsR1AOnly',
+          'runR1AOnly'
+        )
+        break
+      case 'RunR1AAndR1BOnly':
+        runNamedTaggedFunctionalStage(
+          true,
+          'Demo R1A and R1B Functional Tests',
+          shouldRunWithZephyr,
+          'functionalOpalTagsR1AAndR1BOnly',
+          'functional-output-r1a-r1b-only-demo',
+          ' (Demo R1A and R1B)',
+          ['functional-output-r1a-r1b-only-demo/report', 'build/reports/tests/functionalOpalTagsR1AAndR1BOnly'],
+          'build/test-results/functional/opal-tags-r1a-r1b-only/*.xml',
+          'build/reports/tests/functionalOpalTagsR1AAndR1BOnly',
+          'runR1AAndR1BOnly'
+        )
+        break
+      case 'RunAllFlagsOff':
+        runNamedTaggedFunctionalStage(
+          true,
+          'All Flags Off Demo Functional Tests',
+          shouldRunWithZephyr,
+          'functionalOpalTagsAllFlagsOff',
+          'functional-output-all-flags-off-demo',
+          ' (Demo All Flags Off)',
+          ['functional-output-all-flags-off-demo/report', 'build/reports/tests/functionalOpalTagsAllFlagsOff'],
+          'build/test-results/functional/opal-tags-all-flags-off/*.xml',
+          'build/reports/tests/functionalOpalTagsAllFlagsOff',
+          'runAllFlagsOff'
+        )
+        break
+      default:
+        error("Unsupported DemoTaggedFunctionalMode: ${params.DemoTaggedFunctionalMode}")
     }
 
     if (!stageFailures.isEmpty()) {

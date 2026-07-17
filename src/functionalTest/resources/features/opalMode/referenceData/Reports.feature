@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:reference-data
+@Opal @JIRA-LABEL:reference-data @R1CReferenceData
 Feature: Report Definition Reference Data
 
   # NOTE: E2E.01 cannot currently be covered in QA from this service alone.
