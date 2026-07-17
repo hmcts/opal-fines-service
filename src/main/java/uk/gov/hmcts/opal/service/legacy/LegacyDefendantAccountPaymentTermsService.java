@@ -62,6 +62,49 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
         return toPaymentTermsResponse(response.responseEntity);
     }
 
+    @Override
+    public GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
+        String businessUnitId,
+        String businessUnitUserId,
+        String postedByName,
+        String ifMatch,
+        AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
+
+        var legacyRequest = createAddPaymentTermsLegacyRequest(
+            defendantAccountId, businessUnitId, businessUnitUserId,
+            ifMatch, addPaymentTermsRequest
+        );
+
+        var response = gatewayService.postToGateway(
+            ADD_PAYMENT_TERMS, AddPaymentTermsLegacyResponse.class,
+            legacyRequest, null
+        );
+
+        checkResponseForError(response, "addPaymentTerms");
+
+        return createGetDefendantAccountPaymentTermsResponse(response.responseEntity);
+    }
+
+    @Override
+    public AddPaymentCardRequestResponse addPaymentCardRequest(
+        Long defendantAccountId,
+        String businessUnitId,
+        String businessUnitUserId,
+        String postedByName,
+        String ifMatch
+    ) {
+        log.info(":addPaymentCardRequest (Legacy): accountId={}, bu={}", defendantAccountId, businessUnitId);
+
+        BigInteger version = VersionUtils.extractBigInteger(ifMatch);
+        AddPaymentCardLegacyRequest request = buildLegacyRequest(defendantAccountId, businessUnitId,
+            businessUnitUserId, version.toString());
+
+        AddPaymentCardLegacyResponse response = callGateway(request);
+        Long id = Long.valueOf(response.getDefendantAccountId());
+
+        return new AddPaymentCardRequestResponse(id);
+    }
+
     /* This is probably common code that will be needed across multiple Legacy requests to get
     Defendant Account details. */
     public static LegacyGetDefendantAccountRequest createGetDefendantAccountRequest(String defendantAccountId) {
@@ -150,26 +193,6 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
             .build();
     }
 
-    @Override
-    public AddPaymentCardRequestResponse addPaymentCardRequest(
-        Long defendantAccountId,
-        String businessUnitId,
-        String businessUnitUserId,
-        String postedByName,
-        String ifMatch
-    ) {
-        log.info(":addPaymentCardRequest (Legacy): accountId={}, bu={}", defendantAccountId, businessUnitId);
-
-        BigInteger version = VersionUtils.extractBigInteger(ifMatch);
-        AddPaymentCardLegacyRequest request = buildLegacyRequest(defendantAccountId, businessUnitId,
-            businessUnitUserId, version.toString());
-
-        AddPaymentCardLegacyResponse response = callGateway(request);
-        Long id = Long.valueOf(response.getDefendantAccountId());
-
-        return new AddPaymentCardRequestResponse(id);
-    }
-
     private AddPaymentCardLegacyRequest buildLegacyRequest(
         Long defendantAccountId,
         String businessUnitId,
@@ -220,29 +243,6 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
         }
 
         throw new IllegalArgumentException("Legacy gateway error: " + gw.code);
-    }
-
-    @Override
-    public GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
-        String businessUnitId,
-        String businessUnitUserId,
-        String postedByName,
-        String ifMatch,
-        AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
-
-        var legacyRequest = createAddPaymentTermsLegacyRequest(
-            defendantAccountId, businessUnitId, businessUnitUserId,
-            ifMatch, addPaymentTermsRequest
-        );
-
-        var response = gatewayService.postToGateway(
-            ADD_PAYMENT_TERMS, AddPaymentTermsLegacyResponse.class,
-            legacyRequest, null
-        );
-
-        checkResponseForError(response, "addPaymentTerms");
-
-        return createGetDefendantAccountPaymentTermsResponse(response.responseEntity);
     }
 
     private AddPaymentTermsLegacyRequest createAddPaymentTermsLegacyRequest(Long defendantAccountId,
