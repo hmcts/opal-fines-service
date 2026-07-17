@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:account-enquiry
+@Opal @JIRA-LABEL:account-enquiry @R1B
 Feature: Defendant Account History
 
   @cleanUpData @JIRA-STORY:PO-2622 @JIRA-EPIC:PO-2621 @JIRA-TEST-KEY:PO-8660

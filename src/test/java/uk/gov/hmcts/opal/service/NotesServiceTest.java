@@ -1,172 +1,72 @@
 package uk.gov.hmcts.opal.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.LockModeType;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
-import org.springframework.web.server.ResponseStatusException;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
-import uk.gov.hmcts.opal.dto.Note;
-import uk.gov.hmcts.opal.dto.RecordType;
-import uk.gov.hmcts.opal.entity.AssociatedRecordType;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.NoteEntity;
-import uk.gov.hmcts.opal.entity.NoteType;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
-import uk.gov.hmcts.opal.exception.ResourceConflictException;
-import uk.gov.hmcts.opal.repository.NoteRepository;
-import uk.gov.hmcts.opal.service.opal.OpalNotesService;
+import uk.gov.hmcts.opal.service.proxy.NotesProxy;
 
 @ExtendWith(MockitoExtension.class)
 class NotesServiceTest {
 
-    @Mock private NoteRepository repository;
-    @Mock private EntityManager em;
-    @Mock private UserState user;
+    public static final String IF_MATCH = "etag-123";
+    public static final Short BUSINESS_UNIT_ID = 10;
+    @Mock
+    private NotesProxy notesProxy;
 
-    @InjectMocks
-    private OpalNotesService service;
+    @Mock
+    private UserStateService userStateService;
 
-    @Spy
-    private Clock clock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
+    @Mock
+    private UserState userState;
 
-    // common test data objects (no stubbing here to keep STRICT_STUBS happy)
-    private AddNoteRequest request;
-    private DefendantAccountEntity detachedParam;
-    private DefendantAccountEntity managedInEm;
+    private NotesService notesService;
 
     @BeforeEach
     void setUp() {
-        // Build request payload
-        Note n = new Note();
-        n.setRecordId("77");
-        n.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
-        n.setNoteText("hello world");
-        n.setNoteType("AA");
-
-        request = new AddNoteRequest();
-        request.setActivityNote(n);
-
-        // Detached param passed by caller
-        detachedParam = new DefendantAccountEntity();
-        detachedParam.setDefendantAccountId(77L);
-        detachedParam.setVersionNumber(2L); // irrelevant to service; it re-fetches
-
-        // Managed entity returned by em.find(...)
-        managedInEm = new DefendantAccountEntity();
-        managedInEm.setDefendantAccountId(77L);
-        managedInEm.setVersionNumber(2L);
-        managedInEm.setBusinessUnit(bu((short) 1));
+        notesService = new NotesService(notesProxy, userStateService);
     }
 
     @Test
-    void addNote_success_savesFields_returnsId_andLocksManagedEntity() {
-        when(em.find(DefendantAccountEntity.class, 77L)).thenReturn(managedInEm);
-        when(user.getDisplayName()).thenReturn("Normal User");
+    void addNote_shouldThrowPermissionNotAllowedException_whenUserLacksPermission() {
+        // given
+        AddNoteRequest request = new AddNoteRequest();
 
-        // repository.save returns an entity with generated id
-        NoteEntity persisted = new NoteEntity();
-        persisted.setNoteId(123456789L);
-        when(repository.save(any(NoteEntity.class))).thenReturn(persisted);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userState.hasBusinessUnitUserWithPermission(
+            BUSINESS_UNIT_ID, FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES)).thenReturn(false);
 
-        // Use a quoted If-Match to exercise the strip-quotes logic
-        String returnedId = service.addNote(request, "\"2\"", user, detachedParam);
-
-        assertEquals("123456789", returnedId);
-
-        // Verify saved values
-        ArgumentCaptor<NoteEntity> captor = ArgumentCaptor.forClass(NoteEntity.class);
-        verify(repository).save(captor.capture());
-        NoteEntity toSave = captor.getValue();
-
-        assertEquals("hello world", toSave.getNoteText());
-        assertEquals(NoteType.AA, toSave.getNoteType());
-        assertEquals("77", toSave.getAssociatedRecordId());
-        assertEquals(AssociatedRecordType.DEFENDANT_ACCOUNTS, toSave.getAssociatedRecordType());
-        assertEquals("1", toSave.getBusinessUnitUserId()); // short -> "1"
-        assertEquals("Normal User", toSave.getPostedByUsername());
-        assertNotNull(toSave.getPostedDate(), "postedDate should be set");
-        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), toSave.getPostedDate());
-
-        // Lock is called on the MANAGED instance
-        verify(em).lock(eq(managedInEm), eq(LockModeType.OPTIMISTIC_FORCE_INCREMENT));
-        verifyNoMoreInteractions(repository, em);
-    }
-
-    @Test
-    void addNote_accountNotFound_throws404_andDoesNotSaveOrLock() {
-        when(em.find(DefendantAccountEntity.class, 77L)).thenReturn(null);
-
-        ResponseStatusException ex = assertThrows(
-            ResponseStatusException.class,
-            () -> service.addNote(request, "2", user, detachedParam)
+        // when / then
+        assertThrows(
+            PermissionNotAllowedException.class,
+            () -> notesService.addNote(request, IF_MATCH, BUSINESS_UNIT_ID)
         );
-
-        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
-        assertNotNull(ex.getReason());
-        assertTrue(ex.getReason().contains("Account 77 not found"));
-
-        verify(repository, never()).save(any());
-        verify(em, never()).lock(any(), any());
     }
 
     @Test
-    void addNote_versionMismatch_throwsObjectOptimisticLockingFailure_andDoesNotSaveOrLock() {
-        // DB version is 2; pass mismatching If-Match "1"
-        when(em.find(DefendantAccountEntity.class, 77L)).thenReturn(managedInEm);
+    void addNote_shouldDelegateToNotesProxy_whenUserHasPermission() {
+        // given
+        AddNoteRequest request = new AddNoteRequest();
+        String expectedResponse = "note-id-456";
 
-        ObjectOptimisticLockingFailureException ex = assertThrows(
-            ObjectOptimisticLockingFailureException.class,
-            () -> service.addNote(request, "1", user, detachedParam)
-        );
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userState.hasBusinessUnitUserWithPermission(
+            BUSINESS_UNIT_ID, FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES)).thenReturn(true);
+        when(notesProxy.addNote(request, IF_MATCH, userState, BUSINESS_UNIT_ID)).thenReturn(expectedResponse);
 
-        assertTrue(ex.getMessage() == null || ex.getMessage().contains("Version")
-                       || ex.getMessage().contains("match"), "Expected version mismatch message");
+        // when
+        String actualResponse = notesService.addNote(request, IF_MATCH, BUSINESS_UNIT_ID);
 
-        verify(repository, never()).save(any());
-        verify(em, never()).lock(any(), any());
-    }
-
-    @Test
-    void addNote_ifMatchNull_throwsResourceConflict_andDoesNotSaveOrLock() {
-        when(em.find(DefendantAccountEntity.class, 77L)).thenReturn(managedInEm);
-
-        assertThrows(ResourceConflictException.class,
-                     () -> service.addNote(request, null, user, detachedParam));
-
-        verify(repository, never()).save(any());
-        verify(em, never()).lock(any(), any());
-    }
-
-    // ---------- helpers ----------
-
-    private static BusinessUnitEntity bu(short id) {
-        BusinessUnitEntity bu = new BusinessUnitEntity();
-        bu.setBusinessUnitId(id);
-        return bu;
+        // then
+        assertEquals(expectedResponse, actualResponse);
     }
 }

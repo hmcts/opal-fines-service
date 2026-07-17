@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:reference-data
+@Opal @JIRA-LABEL:reference-data @R1CReferenceData
 Feature: Reference Data Smoke Checks
 
   Background:

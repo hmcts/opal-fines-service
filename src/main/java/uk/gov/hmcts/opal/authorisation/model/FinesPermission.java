@@ -20,6 +20,7 @@ public enum FinesPermission implements PermissionDescriptor {
     CHECK_VALIDATE_DRAFT_ACCOUNTS(5L, "Check and Validate Draft Accounts"),
     SEARCH_AND_VIEW_ACCOUNTS(6L, "Search and View Accounts"),
     ACCOUNT_MAINTENANCE(7L, "Account Maintenance"),
+    ADD_ACCOUNT_ACTIVITY_NOTES(8L, "Add account activity notes"),
     VIEW_CREDITOR_BACS(11L, "View Creditor BACS"),
     AMEND_PAYMENT_TERMS(9L, "Amend Payment Terms"),
     ENTER_ENFORCEMENT(10L, "Enter Enforcement"),

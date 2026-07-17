@@ -720,7 +720,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
                 addNoteRequestCaptor.capture(),
                 eq(updatedIfMatch),
                 eq(userState),
-                eq(defendantEntity)
+                eq((short) 10)
             );
             verifyNoInteractions(reportEntryService);
             verify(amendmentService).auditFinaliseStoredProc(

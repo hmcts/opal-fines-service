@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:account-enquiry
+@Opal @JIRA-LABEL:account-enquiry @R1B
 Feature: Defendant Account Consolidated Accounts
 
   # NOTE: Blocked until Consolidation 2 can create or seed real consolidated-account data

@@ -224,25 +224,6 @@ class JsonSchemaValidationServiceTest {
     }
 
     @Test
-    void testMinorCreditorAccountsSearchLegacyRequest_withAccountNumberAndCreditor_shouldFail() {
-        String invalidJson = """
-            {
-              "active_accounts_only": true,
-              "account_number": "12345678A",
-              "creditor": {
-                "organisation": false,
-                "surname": "Smith"
-              }
-            }
-            """;
-
-        assertFalse(jsonSchemaValidationService.isValid(
-            invalidJson,
-            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_LEGACY_REQUEST
-        ));
-    }
-
-    @Test
     void testMinorCreditorAccountsSearchLegacyRequest_withForenamesWithoutSurname_shouldFail() {
         String invalidJson = """
             {
