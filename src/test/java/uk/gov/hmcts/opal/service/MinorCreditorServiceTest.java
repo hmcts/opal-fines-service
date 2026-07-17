@@ -59,7 +59,7 @@ class MinorCreditorServiceTest {
     private MinorCreditorService minorCreditorService;
 
     @Test
-    void testPostSearchMinorCreditors() {
+    void testPostSearchMinorCreditors() throws InterruptedException {
         // Arrange
         PostMinorCreditorAccountsSearchResponse postMinorCreditorAccountsSearchResponse =
             PostMinorCreditorAccountsSearchResponse.builder().build();
