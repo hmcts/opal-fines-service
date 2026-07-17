@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:reference-data
+@Opal @JIRA-LABEL:reference-data @R1CReferenceData
 Feature: Major Creditors Reference Data
 
   @JIRA-STORY:PO-349 @JIRA-EPIC:PO-304 @JIRA-TEST-KEY:PO-5715

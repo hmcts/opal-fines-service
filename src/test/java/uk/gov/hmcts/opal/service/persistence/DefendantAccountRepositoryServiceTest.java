@@ -3,8 +3,11 @@ package uk.gov.hmcts.opal.service.persistence;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -168,5 +171,43 @@ class DefendantAccountRepositoryServiceTest {
             .hasMessage("Defendant Account not found in business unit 78");
 
         verifyNoInteractions(defendantAccountRepository);
+    }
+
+    @Test
+    void validateFindByDefendantAccountIdForUpdate_defendantAccountFound() {
+        // Arrange
+        long defendantAccountId = 77L;
+        DefendantAccountEntity entity = new DefendantAccountEntity();
+        entity.setDefendantAccountId(defendantAccountId);
+
+        when(defendantAccountRepository.findByDefendantAccountIdForUpdate(defendantAccountId))
+            .thenReturn(Optional.of(entity));
+
+        // Act
+        DefendantAccountEntity result =
+            service.getDefendantAccountByIdForUpdate(defendantAccountId);
+
+        // Assert
+        assertThat(result).isSameAs(entity);
+        verify(defendantAccountRepository)
+            .findByDefendantAccountIdForUpdate(defendantAccountId);
+        verifyNoMoreInteractions(defendantAccountRepository);
+    }
+
+    @Test
+    void shouldThrowEntityNotFoundExceptionWhenDefendantAccountNotFound() {
+        long defendantAccountId = 77L;
+        when(defendantAccountRepository.findByDefendantAccountIdForUpdate(defendantAccountId))
+            .thenReturn(Optional.empty());
+
+        EntityNotFoundException exception = assertThrows(
+            EntityNotFoundException.class,
+            () -> service.getDefendantAccountByIdForUpdate(defendantAccountId)
+        );
+
+        assertEquals(
+            "Defendant Account not found with id: 77",
+            exception.getMessage()
+        );
     }
 }

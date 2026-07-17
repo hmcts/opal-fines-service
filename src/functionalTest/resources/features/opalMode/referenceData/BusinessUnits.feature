@@ -1,8 +1,7 @@
 @Opal @JIRA-LABEL:reference-data
 Feature: Business Units Reference Data
 
-
-  @JIRA-STORY:PO-313 @JIRA-EPIC:PO-304 @JIRA-TEST-KEY:PO-5705
+  @JIRA-STORY:PO-313 @JIRA-EPIC:PO-304 @JIRA-TEST-KEY:PO-5705 @R1CReferenceData
   Scenario: Area business units can be retrieved
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to the business unit ref data api filtering by business unit type "Area"

@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:reference-data
+@Opal @JIRA-LABEL:reference-data @R1CReferenceData
 Feature: Offences Reference Data
 
   @JIRA-STORY:PO-311 @JIRA-EPIC:PO-304

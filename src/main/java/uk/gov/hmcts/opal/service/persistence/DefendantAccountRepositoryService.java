@@ -56,6 +56,9 @@ public class DefendantAccountRepositoryService {
         }
     }
 
+    /**
+     * Get entity by defendantAccountId with OPTIMISTIC_FORCE_INCREMENT locking.
+     */
     public DefendantAccountEntity getDefendantAccountByIdForUpdate(long defendantAccountId) {
         return defendantAccountRepository.findByDefendantAccountIdForUpdate(defendantAccountId)
             .orElseThrow(() -> new EntityNotFoundException(
