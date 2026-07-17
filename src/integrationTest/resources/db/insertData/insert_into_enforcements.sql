@@ -918,7 +918,7 @@ ON CONFLICT (enforcement_id) DO UPDATE
         posted_by_name = EXCLUDED.posted_by_name;
 
 INSERT INTO creditor_accounts(creditor_account_id, business_unit_id, account_number,
-                              creditor_account_type, prosecution_service, from_suspense,
+                              creditor_account_type, prosecution_service, repayment,
                               hold_payout, pay_by_bacs)
 VALUES (1, 77, '177A', 'MJ',
         TRUE, FALSE, FALSE, FALSE)
@@ -927,7 +927,7 @@ ON CONFLICT (creditor_account_id) DO UPDATE
         account_number = EXCLUDED.account_number,
         creditor_account_type = EXCLUDED.creditor_account_type,
         prosecution_service = EXCLUDED.prosecution_service,
-        from_suspense = EXCLUDED.from_suspense,
+        repayment = EXCLUDED.repayment,
         hold_payout = EXCLUDED.hold_payout,
         pay_by_bacs = EXCLUDED.pay_by_bacs;
 

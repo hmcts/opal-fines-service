@@ -330,7 +330,7 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
             .andExpect(ignoreForLegacy(jsonPath("$.last_enforcement_action.result_responses[1].response")
                 .value("Mordred"), isLegacy))
             .andExpect(ignoreForLegacy(jsonPath("$.last_enforcement_action.result_responses[2].parameter_name")
-                .value("prisondetention"), isLegacy))
+                .value("detailsifother"), isLegacy))
             .andExpect(ignoreForLegacy(jsonPath("$.last_enforcement_action.result_responses[2].response")
                 .doesNotExist(), isLegacy))
             .andExpect(jsonPath("$.account_status_reference.account_status_code").value("L"))

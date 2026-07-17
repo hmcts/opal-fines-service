@@ -1,5 +1,14 @@
 package uk.gov.hmcts.opal.disco.opal;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,16 +28,6 @@ import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
 import uk.gov.hmcts.opal.mapper.MajorCreditorMapper;
 import uk.gov.hmcts.opal.repository.MajorCreditorRepository;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class MajorCreditorServiceTest {
@@ -96,7 +95,7 @@ class MajorCreditorServiceTest {
                     .creditorAccountType(CreditorAccountType.CF)
                     .prosecutionService(true)
                     .minorCreditorPartyId(555L)
-                    .fromSuspense(true)
+                    .repayment(true)
                     .holdPayout(true)
                     .lastChangedDate(LocalDateTime.now())
                     .build())
@@ -113,7 +112,7 @@ class MajorCreditorServiceTest {
             .creditorAccountType(majorCreditorEntity.getCreditorAccountEntity().getCreditorAccountType().toString())
             .prosecutionService(majorCreditorEntity.getCreditorAccountEntity().isProsecutionService())
             .minorCreditorPartyId(majorCreditorEntity.getCreditorAccountEntity().getMinorCreditorPartyId())
-            .fromSuspense(majorCreditorEntity.getCreditorAccountEntity().isFromSuspense())
+            .repayment(majorCreditorEntity.getCreditorAccountEntity().isRepayment())
             .holdPayout(majorCreditorEntity.getCreditorAccountEntity().isHoldPayout())
             .lastChangedDate(majorCreditorEntity.getCreditorAccountEntity().getLastChangedDate())
             .build();

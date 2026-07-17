@@ -214,7 +214,7 @@ class DefendantTransactionDetailsServiceTest {
     }
 
     @Test
-    void generateTransactionDetails_transferToSuspense_fromSuspense_returnsSuspenseReason() {
+    void generateTransactionDetails_transferToSuspense_forSuspenseTransaction_returnsSuspenseReason() {
         DefendantTransactionEntity transaction = transaction(DefendantTransactionType.XFER);
         transaction.setAssociatedRecordType(AssociatedRecordType.SUSPENSE_TRANSACTIONS);
 

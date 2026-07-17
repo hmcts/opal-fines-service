@@ -23,10 +23,13 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.math.BigInteger;
+import java.time.LocalDateTime;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -35,10 +38,6 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 import uk.gov.hmcts.opal.util.Versioned;
-
-import java.math.BigInteger;
-import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Data
 @SuperBuilder
@@ -100,8 +99,8 @@ public class CreditorAccountEntity implements Versioned {
     @Column(name = "minor_creditor_party_id")
     private Long minorCreditorPartyId;
 
-    @Column(name = "from_suspense", nullable = false)
-    private boolean fromSuspense;
+    @Column(name = "repayment", nullable = false)
+    private boolean repayment;
 
     @Column(name = "hold_payout", nullable = false)
     private boolean holdPayout;
