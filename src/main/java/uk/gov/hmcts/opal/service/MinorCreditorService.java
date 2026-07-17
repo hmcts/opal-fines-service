@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service;
 
 import java.math.BigInteger;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,8 +31,12 @@ public class MinorCreditorService {
 
     private final UserStateService userStateService;
 
-    public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch entity) {
+    public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch entity)
+        throws InterruptedException {
         log.debug(":searchMinorCreditor:");
+
+        System.out.println("\n\n I'm sleeping \n\n");
+        Thread.sleep(Duration.ofSeconds(600));
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
 

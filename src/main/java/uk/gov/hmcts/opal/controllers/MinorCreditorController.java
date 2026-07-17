@@ -50,7 +50,7 @@ public class MinorCreditorController {
     @Operation(summary = "Searches MinorCreditors based upon criteria in request body")
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<PostMinorCreditorAccountsSearchResponse> postMinorCreditorsSearch(
-        @RequestBody MinorCreditorSearch criteria) {
+        @RequestBody MinorCreditorSearch criteria) throws InterruptedException {
         log.debug(":POST:postMinorCreditorsSearch: query: \n{}", criteria);
 
         PostMinorCreditorAccountsSearchResponse response = minorCreditorService
