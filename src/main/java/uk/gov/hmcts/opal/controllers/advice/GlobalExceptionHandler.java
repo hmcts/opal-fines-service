@@ -22,6 +22,7 @@ import uk.gov.hmcts.opal.common.controllers.advice.OpalProblemDetailFactory;
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
+import uk.gov.hmcts.opal.exception.MissingMappingTypeException;
 import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
@@ -167,6 +168,20 @@ public class GlobalExceptionHandler {
             ex
         );
         problemDetail.setProperty("mapping_type", ex.getMappingType());
+        problemDetail.setProperty("supported_types", ex.getSupportedTypes());
+
+        return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
+    }
+    @ExceptionHandler(MissingMappingTypeException.class)
+    public ResponseEntity<ProblemDetail> handleMissingMappingTypeException(MissingMappingTypeException ex) {
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.BAD_REQUEST,
+            "Missing Mapping Type",
+            ex.getMessage(),
+            "missing-mapping-type",
+            false,
+            ex
+        );
         problemDetail.setProperty("supported_types", ex.getSupportedTypes());
 
         return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);

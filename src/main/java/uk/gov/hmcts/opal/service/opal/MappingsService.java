@@ -38,6 +38,10 @@ public class MappingsService {
         return mappingSource.getValues();
     }
 
+    public List<String> getSupportedMappingTypes() {
+        return SUPPORTED_MAPPING_TYPES;
+    }
+
     private record EnumMappingSource<T extends Enum<T> & MappingValue>(Class<T> enumClass) {
 
         private List<MappingItemMappings> getValues() {

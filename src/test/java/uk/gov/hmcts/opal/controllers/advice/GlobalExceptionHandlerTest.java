@@ -28,6 +28,7 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
+import uk.gov.hmcts.opal.exception.MissingMappingTypeException;
 import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
@@ -244,6 +245,25 @@ class GlobalExceptionHandlerTest {
         assertEquals("123", response.getBody().getProperties().get("resourceId"));
         assertEquals("BU mismatch", response.getBody().getProperties().get("conflictReason"));
         assertEquals("\"666\"", response.getHeaders().getETag());
+    }
+
+    @Test
+    void handleMissingMappingType_false() {
+        MissingMappingTypeException ex = new MissingMappingTypeException(List.of("defendant-account-status"));
+
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleMissingMappingTypeException(ex);
+
+        assertEquals(HttpStatus.BAD_REQUEST, r.getStatusCode());
+        ProblemDetail pd = r.getBody();
+        assertEquals(HttpStatus.BAD_REQUEST.value(), pd.getStatus());
+        assertEquals("Missing Mapping Type", pd.getTitle());
+        assertEquals(
+            "Required mapping type is missing. Supported types: defendant-account-status",
+            pd.getDetail()
+        );
+        assertEquals(List.of("defendant-account-status"), pd.getProperties().get("supported_types"));
+        assertEquals(URI.create("https://hmcts.gov.uk/problems/missing-mapping-type"), pd.getType());
+        assertEquals(false, pd.getProperties().get("retriable"));
     }
 
     @Test

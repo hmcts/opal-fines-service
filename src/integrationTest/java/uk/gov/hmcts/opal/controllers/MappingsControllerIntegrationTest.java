@@ -62,4 +62,21 @@ class MappingsControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.supported_types", hasSize(1)))
             .andExpect(jsonPath("$.supported_types[0]").value("defendant-account-status"));
     }
+
+    @Test
+    @DisplayName("GET /mappings returns 400 when mapping type is missing")
+    @JiraStory("PO-3871")
+    @JiraEpic("PO-3372")
+    void getMappings_whenTypeIsMissing_returnsBadRequest() throws Exception {
+        mockMvc.perform(get("/mappings"))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Missing Mapping Type"))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/missing-mapping-type"))
+            .andExpect(jsonPath("$.detail").value(
+                "Required mapping type is missing. Supported types: defendant-account-status"
+            ))
+            .andExpect(jsonPath("$.supported_types", hasSize(1)))
+            .andExpect(jsonPath("$.supported_types[0]").value("defendant-account-status"));
+    }
 }
