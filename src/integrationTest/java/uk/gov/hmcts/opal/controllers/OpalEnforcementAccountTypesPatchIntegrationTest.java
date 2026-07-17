@@ -9,14 +9,23 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
 import org.springframework.test.web.servlet.ResultActions;
+import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.entity.LowHighValue;
 import uk.gov.hmcts.opal.entity.enforcement.AccountType;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementAccountType;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementAccountTypeEntity;
+import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -28,12 +37,36 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 
+@ActiveProfiles({"integration", "opal"})
 @Slf4j(topic = "opal.OpalEnforcementAccountTypesPatchIntegrationTest")
 @Sql(
     scripts = "classpath:db/deleteData/delete_from_enforcement_account_types.sql",
     executionPhase = ExecutionPhase.AFTER_TEST_METHOD
 )
-class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractOpalEnforcementAccountTypesIntegrationTest {
+class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegrationWithSecurityTest {
+
+    protected static final String URL_BASE = "/enforcement-accounts-types/";
+
+    @MockitoBean
+    protected UserStateService userStateService;
+
+    @MockitoSpyBean
+    protected JsonSchemaValidationService jsonSchemaValidationService;
+
+    @MockitoBean
+    UserStateClientService userStateClientService;
+
+    @MockitoBean
+    protected AccessTokenService accessTokenService;
+
+    protected void authorizeWithPermission(short businessUnitId) {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(businessUnitId, FinesPermission.AUTO_ENFORCEMENT);
+    }
+
+    protected void authoriseNoPermissions() {
+        userStateStub.setupWithNoPermissions();
+    }
 
     private final RowMapper<EnforcementAccountTypeEntity> eatRowMapper = (resultSet, rowNum) -> {
         return EnforcementAccountTypeEntity.builder()

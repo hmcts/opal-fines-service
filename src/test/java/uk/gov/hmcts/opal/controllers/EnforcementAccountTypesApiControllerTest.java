@@ -2,7 +2,7 @@ package uk.gov.hmcts.opal.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -62,12 +62,16 @@ public class EnforcementAccountTypesApiControllerTest {
         List<EnforcementAccountTypeCommon> enfAccountTypes = List.of(
             mock(EnforcementAccountTypeCommon.class)
         );
-        when(service.updateEnforcementAccountType(any())).thenReturn(enfAccountTypes);
+        List<PatchEnforcementAccountTypeRequestInner> request = List.of(
+            mock(PatchEnforcementAccountTypeRequestInner.class)
+        );
+
+        when(service.updateEnforcementAccountType(eq(request))).thenReturn(enfAccountTypes);
 
         ResponseEntity<PatchEnforcementAccountType200Response> response = controller
-            .patchEnforcementAccountType(List.of(mock(PatchEnforcementAccountTypeRequestInner.class)));
+            .patchEnforcementAccountType(request);
 
-        verify(service).updateEnforcementAccountType(any());
+        verify(service).updateEnforcementAccountType(eq(request));
         assertAll(
             () -> assertEquals(HttpStatus.OK, response.getStatusCode()),
             () -> assertEquals(enfAccountTypes, response.getBody().getEnforcementAccountTypes())

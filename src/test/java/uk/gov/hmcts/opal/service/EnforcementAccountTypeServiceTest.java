@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.service;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -99,7 +98,7 @@ public class EnforcementAccountTypeServiceTest {
             EnforcementAccountTypeEntity mockEntity = mock(EnforcementAccountTypeEntity.class);
             when(mockEntity.getVersion()).thenReturn(BigInteger.ZERO);
 
-            when(repository.findById(any())).thenReturn(Optional.of(mockEntity));
+            when(repository.findById(eq(0L))).thenReturn(Optional.of(mockEntity));
 
             service.updateEnforcementAccountType(request);
 
@@ -120,7 +119,7 @@ public class EnforcementAccountTypeServiceTest {
 
             assertThrows(EntityNotFoundException.class, () -> service.updateEnforcementAccountType(request));
             verifyNoInteractions(mapper);
-            verify(repository).findById(any());
+            verify(repository).findById(eq(1L));
             verifyNoMoreInteractions(repository);
         }
     }
@@ -162,7 +161,7 @@ public class EnforcementAccountTypeServiceTest {
             ));
 
             assertThrows(UnprocessableException.class, () -> service.updateEnforcementAccountType(request));
-            verify(repository).findById(any());
+            verify(repository).findById(eq(1L));
             verifyNoMoreInteractions(repository);
             verifyNoInteractions(mapper);
         }
@@ -190,7 +189,7 @@ public class EnforcementAccountTypeServiceTest {
             ));
 
             assertThrows(UnprocessableException.class, () -> service.updateEnforcementAccountType(request));
-            verify(repository).findById(any());
+            verify(repository).findById(eq(1L));
             verifyNoMoreInteractions(repository);
             verifyNoInteractions(mapper);
         }
@@ -223,7 +222,7 @@ public class EnforcementAccountTypeServiceTest {
                 ObjectOptimisticLockingFailureException.class,
                 () -> service.updateEnforcementAccountType(request)
             );
-            verify(repository).findById(any());
+            verify(repository).findById(eq(1L));
             verifyNoMoreInteractions(repository);
             verifyNoInteractions(mapper);
         }
