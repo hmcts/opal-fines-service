@@ -15,18 +15,26 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlMergeMode;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.repository.ConfigurationItemRepository;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
+@SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
 class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/reports";
+    private static final String BU_WARNING_THRESHOLD_ITEM_NAME = "OPERATIONAL_REPORT_BU_WARNING_THRESHOLD";
+
+    @Autowired
+    private ConfigurationItemRepository configurationItemRepository;
 
 
     @BeforeEach
@@ -247,25 +255,11 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @MethodSource("reportCases")
         @DisplayName("Get report by ID - null permission returns forbidden [@PO-2250]")
         @Sql(
-            statements = """
-                UPDATE public.reports
-                   SET permission = NULL
-                 WHERE report_id IN (
-                           'operational_report_enforcement',
-                           'operational_report_payment'
-                       );
-                """,
+            scripts = "classpath:db/insertData/clear_operational_report_permissions.sql",
             executionPhase = BEFORE_TEST_METHOD
         )
         @Sql(
-            statements = """
-                UPDATE public.reports
-                   SET permission = 'SEARCH_AND_VIEW_ACCOUNTS'
-                 WHERE report_id IN (
-                           'operational_report_enforcement',
-                           'operational_report_payment'
-                       );
-                """,
+            scripts = "classpath:db/insertData/set_operational_report_permissions.sql",
             executionPhase = AFTER_TEST_METHOD
         )
         @JiraStory("PO-2250")
@@ -323,15 +317,11 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Nested
     @Sql(
-        statements =
-            "UPDATE reports SET permission = 'SEARCH_AND_VIEW_ACCOUNTS' "
-                + "WHERE report_id IN ('operational_report_enforcement', 'operational_report_payment')",
+        scripts = "classpath:db/insertData/set_operational_report_permissions.sql",
         executionPhase = BEFORE_TEST_METHOD
     )
     @Sql(
-        statements =
-            "UPDATE reports SET permission = 'SEARCH_AND_VIEW_ACCOUNTS' "
-                + "WHERE report_id IN ('operational_report_enforcement', 'operational_report_payment')",
+        scripts = "classpath:db/insertData/set_operational_report_permissions.sql",
         executionPhase = AFTER_TEST_METHOD
     )
     class GetOperationalReportThresholdCases {
@@ -367,21 +357,11 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @Test
         @DisplayName("Get report by ID - missing BU warning threshold config returns 500 [@PO-7225]")
         @Sql(
-            statements = {
-                "UPDATE reports SET permission = 'SEARCH_AND_VIEW_ACCOUNTS' "
-                    + "WHERE report_id = 'operational_report_enforcement'",
-                "DELETE FROM configuration_items WHERE item_name = 'OPERATIONAL_REPORT_BU_WARNING_THRESHOLD'"
-            },
+            scripts = "classpath:db/insertData/missing_operational_report_bu_threshold.sql",
             executionPhase = BEFORE_TEST_METHOD
         )
         @Sql(
-            statements = {
-                "INSERT INTO configuration_items "
-                    + "(configuration_item_id, item_name, business_unit_id, item_value, item_values) "
-                    + "VALUES (60000000000014, 'OPERATIONAL_REPORT_BU_WARNING_THRESHOLD', NULL, '10', NULL)",
-                "UPDATE reports SET permission = 'SEARCH_AND_VIEW_ACCOUNTS' "
-                    + "WHERE report_id = 'operational_report_enforcement'"
-            },
+            scripts = "classpath:db/deleteData/reset_operational_report_bu_threshold.sql",
             executionPhase = AFTER_TEST_METHOD
         )
         @JiraStory("PO-7225")
@@ -402,18 +382,17 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         )
         @MethodSource("uk.gov.hmcts.opal.controllers.ReportsApiControllerIntegrationTest#invalidThresholdValues")
         @Sql(
-            statements = "UPDATE configuration_items SET item_value = '10' "
-                + "WHERE item_name = 'OPERATIONAL_REPORT_BU_WARNING_THRESHOLD' AND business_unit_id IS NULL",
+            scripts = "classpath:db/deleteData/reset_operational_report_bu_threshold.sql",
             executionPhase = AFTER_TEST_METHOD
         )
         @JiraStory("PO-7225")
         @JiraEpic("PO-2248")
         void getReportById_whenThresholdConfigInvalid_returns500(String invalidThresholdValue) throws Exception {
-            jdbcTemplate.update(
-                "UPDATE configuration_items SET item_value = ? "
-                    + "WHERE item_name = 'OPERATIONAL_REPORT_BU_WARNING_THRESHOLD' AND business_unit_id IS NULL",
-                invalidThresholdValue
-            );
+            var threshold = configurationItemRepository
+                .findByItemNameAndBusinessUnitIdIsNull(BU_WARNING_THRESHOLD_ITEM_NAME)
+                .orElseThrow();
+            threshold.setItemValue(invalidThresholdValue);
+            configurationItemRepository.save(threshold);
 
             mockMvc.perform(get(URL_BASE + "/operational_report_enforcement")
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor()))

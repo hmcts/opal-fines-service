@@ -24,6 +24,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlMergeMode;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.databind.JsonNode;
@@ -38,6 +39,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
     "launchdarkly.enabled=false",
     "launchdarkly.default-flag-values.release-1b=true"
 })
+@SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
 @Sql(
     scripts = "classpath:db/deleteData/delete_from_consolidated_accounts.sql",
     executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
@@ -48,7 +50,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
     scripts = "classpath:db/deleteData/delete_from_consolidated_accounts.sql",
     executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 @DisplayName("Defendant Account Consolidated Accounts Controller Integration Tests")
-class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
+class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
 
     private static final long MASTER_ACCOUNT_ID = 233300L;
     private static final long CHILD_ACCOUNT_ID = 233301L;
@@ -209,14 +211,10 @@ class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOp
     @DisplayName("PO-2333: INT.12 returns all consolidated accounts without pagination")
     @JiraStory("PO-2333")
     @JiraEpic("PO-1286")
+    @Sql(
+        scripts = "classpath:db/insertData/insert_into_consolidated_accounts_bulk.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getConsolidatedAccounts_whenManyChildrenExist_returnsFullArray() throws Exception {
-        for (int i = 0; i < 20; i++) {
-            long childAccountId = 233400L + i;
-            insertDefendantAccount(childAccountId, BUSINESS_UNIT_ID, "2334%02dC".formatted(i), i + 20L,
-                                   "Bulk Child Court", "BULK-%02d".formatted(i));
-            insertConsolidationTransaction(23340000L + i, MASTER_ACCOUNT_ID, childAccountId);
-        }
-
         mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID))
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
@@ -251,29 +249,6 @@ class OpalDefendantAccountConsolidatedAccountsIntegrationTest extends AbstractOp
             .andReturn();
 
         assertEquals(first.getResponse().getContentAsString(), second.getResponse().getContentAsString());
-    }
-
-    private void insertDefendantAccount(long accountId, int businessUnitId, String accountNumber, long version,
-                                        String imposedByName, String reference) {
-        jdbcTemplate.update("""
-            INSERT INTO defendant_accounts (
-                defendant_account_id, version_number, business_unit_id, account_number, imposed_hearing_date,
-                amount_paid, account_balance, amount_imposed, account_status, allow_writeoffs, allow_cheques,
-                account_type, collection_order, payment_card_requested, originator_name, imposed_by_name,
-                prosecutor_case_reference
-            ) VALUES (?, ?, ?, ?, TIMESTAMP '2026-01-21 10:15:00', 0.00, 100.00, 100.00, 'L', 'N', 'N',
-                'Fine', 'N', 'N', 'PO-2333 Court', ?, ?)
-            """, accountId, version, businessUnitId, accountNumber, imposedByName, reference);
-    }
-
-    private void insertConsolidationTransaction(long transactionId, long masterAccountId, long childAccountId) {
-        jdbcTemplate.update("""
-            INSERT INTO defendant_transactions (
-                defendant_transaction_id, defendant_account_id, posted_date, posted_by, transaction_type,
-                transaction_amount, status_date, associated_record_type, associated_record_id, status, posted_by_name
-            ) VALUES (?, ?, TIMESTAMP '2026-01-21 12:00:00', 'po2333', 'CONSOL', 0.00,
-                TIMESTAMP '2026-01-21 12:00:00', 'defendant_accounts', ?, 'P', 'PO-2333 User')
-            """, transactionId, masterAccountId, String.valueOf(childAccountId));
     }
 
     private void mockUserWithPermission(short businessUnitId) {
