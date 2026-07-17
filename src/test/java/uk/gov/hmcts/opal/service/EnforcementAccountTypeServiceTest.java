@@ -77,6 +77,18 @@ public class EnforcementAccountTypeServiceTest {
         secutityUtilMock.when(SecurityUtil::getOpalJwtAuthenticationTokenForCurrentUser).thenReturn(authToken);
     }
 
+    private void withData(long id, LowHighValue accountTypePath, long version) {
+        when(repository.findById(eq(id))).thenReturn(Optional.of(
+            EnforcementAccountTypeEntity.builder()
+                .enforcementAccountTypeId(id)
+                .enforcementAccountType(EnforcementAccountType.ADULT_NO_COLLECTION_ORDER_HIGH)
+                .accountType(AccountType.ADULT_NO_COLLECTION_ORDER)
+                .accountTypePath(accountTypePath)
+                .versionNumber(version)
+                .build()
+        ));
+    }
+
     @Test
     public void getEnforcementAccountTypes_shouldOrchestrateCallCorrectly() {
         withPermission();
@@ -172,14 +184,7 @@ public class EnforcementAccountTypeServiceTest {
                 .build()
         );
 
-        when(repository.findById(eq(1L))).thenReturn(Optional.of(
-            EnforcementAccountTypeEntity.builder()
-                .enforcementAccountTypeId(1L)
-                .enforcementAccountType(EnforcementAccountType.ADULT_NO_COLLECTION_ORDER_HIGH)
-                .accountType(AccountType.ADULT_NO_COLLECTION_ORDER)
-                .accountTypePath(LowHighValue.LOW)
-                .build()
-        ));
+        withData(1L, LowHighValue.LOW, 1L);
 
         UnprocessableException e = assertThrows(
             UnprocessableException.class,
@@ -205,14 +210,7 @@ public class EnforcementAccountTypeServiceTest {
                 .build()
         );
 
-        when(repository.findById(eq(1L))).thenReturn(Optional.of(
-            EnforcementAccountTypeEntity.builder()
-                .enforcementAccountTypeId(1L)
-                .enforcementAccountType(EnforcementAccountType.ADULT_NO_COLLECTION_ORDER_HIGH)
-                .accountType(AccountType.ADULT_NO_COLLECTION_ORDER)
-                .accountTypePath(LowHighValue.LOW)
-                .build()
-        ));
+        withData(1L, LowHighValue.LOW, 1L);
 
         UnprocessableException e = assertThrows(
             UnprocessableException.class,
@@ -237,15 +235,7 @@ public class EnforcementAccountTypeServiceTest {
                 .build()
         );
 
-        when(repository.findById(eq(1L))).thenReturn(Optional.of(
-            EnforcementAccountTypeEntity.builder()
-                .enforcementAccountTypeId(1L)
-                .enforcementAccountType(EnforcementAccountType.ADULT_NO_COLLECTION_ORDER_HIGH)
-                .accountType(AccountType.ADULT_NO_COLLECTION_ORDER)
-                .accountTypePath(LowHighValue.LOW)
-                .versionNumber(2L)
-                .build()
-        ));
+        withData(1L, LowHighValue.LOW, 2L);
 
         ObjectOptimisticLockingFailureException e = assertThrows(
             ObjectOptimisticLockingFailureException.class,
