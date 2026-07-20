@@ -78,7 +78,7 @@ public final class Release1bFeatureToggleRequestUtil {
                     .contentType(MediaType.APPLICATION_JSON)
                     .header("Authorization", AUTHORIZATION)
                     .header("If-Match", IF_MATCH)
-                    .header("Business_Unit_ID", "78")
+                    .header("Business-Unit-Id", "78")
                     .content("""
                         {
                           "activity_note": {
