@@ -10,6 +10,7 @@ import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.json.JSONException;
 import org.springframework.http.HttpHeaders;
+import net.serenitybdd.annotations.Steps;
 import uk.gov.hmcts.opal.actions.defendantaccount.DefendantAccountEnforcementsActions;
 import uk.gov.hmcts.opal.assertions.CommonResponseAssertions;
 import uk.gov.hmcts.opal.context.DefendantAccountHistoryScenarioState;
@@ -70,7 +71,9 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     private final DefendantAccountEnforcementsActions enforcementActions = new DefendantAccountEnforcementsActions();
     private final DefendantAccountEnforcementWorkflow enforcementWorkflow = new DefendantAccountEnforcementWorkflow();
     private final CommonResponseAssertions responseAssertions = new CommonResponseAssertions();
-    private final DefendantAccountHistoryScenarioState historyState = new DefendantAccountHistoryScenarioState();
+
+    @Steps
+    private DefendantAccountHistoryScenarioState historyState;
 
     /**
      * Creates a defendant account with the fixture-backed history data needed by the history

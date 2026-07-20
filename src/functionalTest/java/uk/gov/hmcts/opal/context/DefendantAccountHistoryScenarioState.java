@@ -7,6 +7,7 @@ import java.time.LocalDate;
 /**
  * Holds the mutable history-related state for a single defendant-account scenario.
  */
+@ScenarioScoped
 public class DefendantAccountHistoryScenarioState {
 
     private Response firstResponse;
