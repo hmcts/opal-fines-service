@@ -182,7 +182,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         doThrow(exception).when(defendantAccountControlValidator).validateCanAddPaymentCardRequest(account);
 
         UnprocessableException result = assertThrows(UnprocessableException.class, () ->
-            service.addPaymentCardRequest(1L, "10", "BU-USER-123", "\"1\""));
+            service.addPaymentCardRequest(1L, "10", "BU-USER-123", "John Smith", "\"1\""));
 
         assertEquals(exception, result);
         verify(defendantAccountControlValidator).validateCanAddPaymentCardRequest(account);

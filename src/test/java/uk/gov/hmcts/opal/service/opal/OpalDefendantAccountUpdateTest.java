@@ -295,7 +295,7 @@ class OpalDefendantAccountUpdateTest {
             .build();
         UnprocessableException exception = new UnprocessableException("blocked");
 
-        when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
+        when(defendantAccountRepositoryService.findById(77L)).thenReturn(entity);
         doThrow(exception).when(defendantAccountControlValidator).validateCanUpdateProtectedFields(entity);
 
         var req = UpdateDefendantAccountRequest.builder()
@@ -329,7 +329,7 @@ class OpalDefendantAccountUpdateTest {
             .versionNumber(0L)
             .build();
 
-        when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
+        when(defendantAccountRepositoryService.findById(77L)).thenReturn(entity);
         when(noteRepository.save(any())).thenReturn(null);
         doNothing().when(entityManager).lock(any(), any());
 
@@ -362,7 +362,7 @@ class OpalDefendantAccountUpdateTest {
             .versionNumber(0L)
             .build();
 
-        when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
+        when(defendantAccountRepositoryService.findById(77L)).thenReturn(entity);
         doNothing().when(entityManager).lock(any(), any());
 
         var req = UpdateDefendantAccountRequest.builder()

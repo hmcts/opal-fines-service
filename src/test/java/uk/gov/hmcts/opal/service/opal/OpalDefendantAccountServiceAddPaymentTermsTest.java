@@ -274,8 +274,8 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
             .build();
         UnprocessableException exception = new UnprocessableException("blocked");
 
-        when(defendantAccountRepository.findByDefendantAccountIdForUpdate(defendantAccountId))
-            .thenReturn(Optional.of(account));
+        when(defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(defendantAccountId))
+            .thenReturn(account);
         doThrow(exception).when(defendantAccountControlValidator).validateCanAddPaymentTerms(account);
 
         PaymentTerms paymentTermsDto = new PaymentTerms();
@@ -284,7 +284,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
 
         UnprocessableException result = assertThrows(UnprocessableException.class, () ->
             defendantAccountService.addPaymentTerms(
-                defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, request));
+                defendantAccountId, businessUnitId, businessUnitUserId, "Tester Name", ifMatch, request));
 
         assertEquals(exception, result);
         verify(defendantAccountControlValidator).validateCanAddPaymentTerms(account);

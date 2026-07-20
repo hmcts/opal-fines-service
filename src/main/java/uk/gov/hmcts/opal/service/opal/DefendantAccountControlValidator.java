@@ -94,16 +94,13 @@ public class DefendantAccountControlValidator {
         Long requestedEnforcerId = enforcementOverride.getEnforcer() == null
             ? null
             : enforcementOverride.getEnforcer().getEnforcerId();
-        Integer requestedLjaId = enforcementOverride.getLja() == null
+        Short requestedLjaId = enforcementOverride.getLja() == null
             ? null
             : enforcementOverride.getLja().getLjaId();
-        Integer currentLjaId = Optional.ofNullable(account.getEnforcementOverrideTfoLjaId())
-            .map(Short::intValue)
-            .orElse(null);
 
         return !Objects.equals(requestedResultId, account.getEnforcementOverrideResultId())
             || !Objects.equals(requestedEnforcerId, account.getEnforcementOverrideEnforcerId())
-            || !Objects.equals(requestedLjaId, currentLjaId);
+            || !Objects.equals(requestedLjaId, account.getEnforcementOverrideTfoLjaId());
     }
 
     private void validate(DefendantAccountEntity account, Check... checks) {
