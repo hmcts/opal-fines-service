@@ -123,13 +123,13 @@ public class EnforcementAccountTypeServiceTest {
     public void updateEnforcementAccountTypes_shouldOrchestrateCallCorrectly() {
         withPermission();
 
+        EnforcementAccountTypeEntity mockEntity = mock(EnforcementAccountTypeEntity.class);
+        when(repository.findById(eq(0L))).thenReturn(Optional.of(mockEntity));
+        when(repository.findAllById(eq(List.of(0L)))).thenReturn(List.of(mockEntity));
+        when(mockEntity.getVersion()).thenReturn(BigInteger.ZERO);
         List<PatchEnforcementAccountTypeRequestInner> request = List.of(
             mock(PatchEnforcementAccountTypeRequestInner.class)
         );
-        EnforcementAccountTypeEntity mockEntity = mock(EnforcementAccountTypeEntity.class);
-        when(mockEntity.getVersion()).thenReturn(BigInteger.ZERO);
-
-        when(repository.findById(eq(0L))).thenReturn(Optional.of(mockEntity));
 
         service.updateEnforcementAccountType(request);
 

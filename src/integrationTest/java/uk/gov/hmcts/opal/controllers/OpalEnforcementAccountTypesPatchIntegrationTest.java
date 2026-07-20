@@ -223,10 +223,10 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
             res.andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.enforcement_account_types.[0].id").value("3"))
-                .andExpect(jsonPath("$.enforcement_account_types.[0].version").value("2"))
+                .andExpect(jsonPath("$.enforcement_account_types.[0].version").value("1"))
                 .andExpect(jsonPath("$.enforcement_account_types.[0].minimum_balance").isEmpty());
 
-            assertEnforcementAccountType(3, 2L, null);
+            assertEnforcementAccountType(3, 1L, null);
         }
 
         @Test

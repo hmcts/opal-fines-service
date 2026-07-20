@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -29,6 +30,7 @@ public class EnforcementAccountTypeService {
 
     private final EnforcementAccountTypeRepository repository;
     private final EnforcementAccountTypeMapper mapper;
+    private final EntityManager entityManager;
 
     @Transactional(readOnly = true)
     public List<EnforcementAccountTypeCommon> getAllEnforcementAccountTypes() {
@@ -48,8 +50,7 @@ public class EnforcementAccountTypeService {
         List<EnforcementAccountTypeEntity> entities = new ArrayList<EnforcementAccountTypeEntity>();
         for (PatchEnforcementAccountTypeRequestInner requestObject : request) {
 
-            EnforcementAccountTypeEntity entity =
-                repository.findById(requestObject.getId())
+            EnforcementAccountTypeEntity entity = repository.findById(requestObject.getId())
                     .orElseThrow(() -> new EntityNotFoundException("Enforcement account type not found"));
 
             if (entity.getAccountTypePath() == LowHighValue.LOW
@@ -67,12 +68,14 @@ public class EnforcementAccountTypeService {
                 entity.getEnforcementAccountTypeId(), "updateEnforcementAccountType");
 
             entity.setMinimumBalance(requestObject.getMinimumBalance());
-            entity.setVersionNumber(entity.getVersion().add(BigInteger.ONE).longValueExact());
 
             entities.add(entity);
         }
 
-        return mapper.toEnforcementAccountTypeCommonList(entities);
+        List<EnforcementAccountTypeEntity> updatedEntities = repository.findAllById(
+            entities.stream().mapToLong(x -> x.getEnforcementAccountTypeId()).boxed().toList());
+
+        return mapper.toEnforcementAccountTypeCommonList(updatedEntities);
     }
 
     private void checkPermissions() {
