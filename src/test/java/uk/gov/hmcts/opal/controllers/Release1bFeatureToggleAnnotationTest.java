@@ -50,8 +50,6 @@ class Release1bFeatureToggleAnnotationTest {
         Set<String> expectedAnnotatedMethods = Set.of(
             "DefendantAccountController#addPaymentTerms",
             "DefendantAccountApiController#getDefendantAccountHistory",
-            "DefendantAccountController#replaceDefendantAccountParty",
-            "DefendantAccountController#removeEnforcementHold",
             "DefendantAccountApiController#updateDefendantAccount",
             "DefendantAccountApiController#getConsolidatedAccounts",
             "MinorCreditorController#getMinorCreditorAccountHeaderSummary",
@@ -66,16 +64,19 @@ class Release1bFeatureToggleAnnotationTest {
             "DefendantAccountController#getDefendantAccountFixedPenalty",
             "DefendantAccountController#getDefendantAccountParty",
             "DefendantAccountController#addDefendantAccountParty",
+            "DefendantAccountController#removeEnforcementHold",
+            "DefendantAccountController#replaceDefendantAccountParty",
             "NotesController#addNote",
+            "MajorCreditorApiController#getMajorCreditorAccountAtAGlance",
+            "MajorCreditorApiController#getMajorCreditorAccountHeaderSummary",
+            "MajorCreditorApiController#getMajorCreditorHistory",
             "MinorCreditorApiController#getMinorCreditorAccount",
             "DefendantAccountController#getAtAGlance",
-            "MajorCreditorApiController#getMajorCreditorAccountHeaderSummary",
             "MinorCreditorApiController#getMinorCreditorHistory",
             "DefendantAccountApiController#getImpositions",
             "MinorCreditorApiController#patchMinorCreditorAccount",
             "MinorCreditorController#postMinorCreditorsSearch",
             "DefendantAccountApiController#getDefendantAccountHeaderSummary",
-            "MajorCreditorApiController#getMajorCreditorAccountAtAGlance",
             "DefendantAccountController#defendantAccountPaymentTerms"
         );
 

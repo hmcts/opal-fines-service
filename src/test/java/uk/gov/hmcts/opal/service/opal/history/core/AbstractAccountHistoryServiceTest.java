@@ -9,6 +9,13 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryContext;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryFilter;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryItem;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryItemType;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryPostedDetails;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryResult;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryType;
 
 class AbstractAccountHistoryServiceTest {
 

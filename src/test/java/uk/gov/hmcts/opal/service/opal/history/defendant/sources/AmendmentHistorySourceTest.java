@@ -15,9 +15,9 @@ import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
 import uk.gov.hmcts.opal.entity.auditamendmentfield.AuditAmendmentFieldEntity;
 import uk.gov.hmcts.opal.mapper.history.AmendmentEntityHistoryMapper;
 import uk.gov.hmcts.opal.mapper.history.AmendmentEntityHistoryMapperImpl;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryContext;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryFilter;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryType;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryContext;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryFilter;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryType;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.AuditAmendmentFieldRepositoryService;
 
@@ -68,9 +68,9 @@ class AmendmentHistorySourceTest {
 
         assertThat(historyItems).hasSize(1);
         assertThat(historyItems.get(0).getDetails()).isInstanceOf(
-            uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryAmendmentDetails.class
+            uk.gov.hmcts.opal.dto.history.AccountHistoryAmendmentDetails.class
         );
-        var details = (uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryAmendmentDetails)
+        var details = (uk.gov.hmcts.opal.dto.history.AccountHistoryAmendmentDetails)
             historyItems.get(0).getDetails();
         assertThat(details.getAttributeName()).isEqualTo("Major Creditor Code");
         assertThat(details.getOldValue()).isEqualTo("old");
