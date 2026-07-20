@@ -21,6 +21,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.support.UserStateStub;
 import uk.hmcts.zephyr.automation.junit5.extension.ZephyrAutomationExtension;
 
@@ -44,6 +45,10 @@ public abstract class AbstractIntegrationTest {
     // Limit JdbcTemplate use to narrow test setup or persistence-side-effect checks.
     @Autowired
     protected JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    protected DefendantAccountRepository defendantAccountRepository;
+
     @Autowired
     private CacheManager cacheManager;
 
@@ -78,6 +83,12 @@ public abstract class AbstractIntegrationTest {
 
     protected UserStateStub createUserStateStub() {
         return new UserStateStub();
+    }
+
+    protected Integer defendantAccountVersionFor(long defendantAccountId) {
+        return defendantAccountRepository.findById(defendantAccountId)
+            .map(defendantAccount -> defendantAccount.getVersionNumber().intValue())
+            .orElseThrow();
     }
 
     // Dynamically register properties to configure the datasource

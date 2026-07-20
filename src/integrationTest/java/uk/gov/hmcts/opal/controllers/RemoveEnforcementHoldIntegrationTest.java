@@ -17,7 +17,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @DisplayName("Remove Defendant Account Enforcement Hold Integration Tests")
-class OpalDefendantAccountRemoveEnforcementHoldIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
+class RemoveEnforcementHoldIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
 
     static final String URL_BASE = "/defendant-accounts";
 
@@ -53,13 +53,7 @@ class OpalDefendantAccountRemoveEnforcementHoldIntegrationTest extends AbstractO
             .andExpect(content().contentType(APPLICATION_JSON))
             .andExpect(jsonPath("$.defendantAccountId").value(String.valueOf(ACCOUNT_WITH_ENFORCEMENT_HOLD)));
 
-        String lastEnforcement = jdbcTemplate.queryForObject(
-            "SELECT last_enforcement FROM defendant_accounts WHERE defendant_account_id = ?",
-            String.class,
-            ACCOUNT_WITH_ENFORCEMENT_HOLD
-        );
-
-        org.junit.jupiter.api.Assertions.assertNull(lastEnforcement);
+        org.junit.jupiter.api.Assertions.assertNull(lastEnforcementFor(ACCOUNT_WITH_ENFORCEMENT_HOLD));
     }
 
     @Test

@@ -12,4 +12,6 @@ public interface ReportEntryRepository extends JpaRepository<ReportEntryEntity, 
     );
 
     ReportEntryEntity getAllByAssociatedRecordId(String associatedRecordId);
+
+    long countByAssociatedRecordId(String associatedRecordId);
 }
