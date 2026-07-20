@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -26,6 +27,43 @@ class RemoveEnforcementHoldIntegrationTest extends AbstractOpalDefendantsIntegra
 
     @MockitoBean
     private ReportEntryService reportEntryService;
+
+    @Test
+    @DisplayName("Remove enforcement hold returns 422 when blocked by account controls")
+    @JiraStory("PO-5757")
+    @JiraEpic("PO-2990")
+    void removeEnforcementHold_returns422_whenBlockedByAccountControls() throws Exception {
+        // Arrange
+        long defendantAccountId = 9077L;
+        String ifMatch = "\"" + versionFor(defendantAccountId) + "\"";
+
+        // Act
+        ResultActions resultActions = mockMvc.perform(
+            patch(URL_BASE + "/{defendantAccountId}/remove-enf-hold", defendantAccountId)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("Business-Unit-Id", 78)
+                .header("If-Match", ifMatch)
+                .contentType(APPLICATION_JSON)
+                .accept(APPLICATION_PROBLEM_JSON)
+                .content("""
+                    {
+                      "reason": "remove hold reason"
+                    }
+                    """)
+        );
+
+        // Assert
+        resultActions.andExpect(status().isUnprocessableEntity())
+            .andExpect(content().contentType(APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Unprocessable Content"))
+            .andExpect(jsonPath("$.status").value(422))
+            .andExpect(jsonPath("$.detail").value(
+                "Defendant account update blocked: Account Status Check failed because account_status is CS."))
+            .andExpect(jsonPath("$.retriable").value(false));
+
+        assertEquals(ifMatch, "\"" + versionFor(defendantAccountId) + "\"");
+    }
 
     @Test
     @DisplayName("Remove enforcement hold returns 200 and updates the defendant account")

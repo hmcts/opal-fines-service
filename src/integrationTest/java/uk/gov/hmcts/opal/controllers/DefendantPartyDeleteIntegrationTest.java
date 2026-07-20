@@ -22,6 +22,53 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 class DefendantPartyDeleteIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
 
     @Test
+    @DisplayName("OPAL: DELETE Remove DAP - account controls return 422 for blocked account status")
+    @JiraStory("PO-5757")
+    @JiraEpic("PO-2990")
+    void delete_removeParty_returns422_whenBlockedByAccountControls() throws Exception {
+        // Arrange
+        long defendantAccountId = 9077L;
+        Integer currentVersion = versionFor(defendantAccountId);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
+
+        String body = """
+            {
+              "party_details": {
+                "party_id": "77"
+              }
+            }
+            """;
+
+        // Act
+        ResultActions res = mockMvc.perform(
+            delete("/defendant-accounts/9077/defendant-account-parties/9077")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+        );
+
+        log.info("DELETE DAP account controls response:\n{}", res.andReturn().getResponse().getContentAsString());
+
+        // Assert
+        res.andExpect(status().isUnprocessableEntity())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Unprocessable Content"))
+            .andExpect(jsonPath("$.status").value(422))
+            .andExpect(jsonPath("$.detail").value(
+                "Defendant account update blocked: Account Status Check failed because account_status is CS."))
+            .andExpect(jsonPath("$.retriable").value(false));
+
+        assertEquals(currentVersion, versionFor(defendantAccountId));
+        long dapId = 9077L;
+        assertEquals(1, partyAssociationCountFor(defendantAccountId, dapId));
+    }
+
+    @Test
     @DisplayName("OPAL: DELETE Remove DAP - Happy path (removed association + bumps version")
     @JiraStory("PO-1897")
     @JiraEpic("PO-1970")

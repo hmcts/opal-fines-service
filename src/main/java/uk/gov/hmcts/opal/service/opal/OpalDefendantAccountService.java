@@ -165,6 +165,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final Clock clock;
 
+    private final DefendantAccountControlValidator defendantAccountControlValidator;
+
     @Override
     @Transactional(readOnly = true)
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
@@ -352,6 +354,10 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         VersionUtils.verifyIfMatch(entity, request.getVersion(), defendantAccountId, "updateDefendantAccount");
 
+        if (defendantAccountControlValidator.isProtectedUpdate(request, entity)) {
+            defendantAccountControlValidator.validateCanUpdateProtectedFields(entity);
+        }
+
         amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
         if (request.getPayload().getCommentAndNotes() != null) {
@@ -416,12 +422,16 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         String businessUnitId,
         String businessUnitUserId,
         String ifMatch,
-        String displayName) {
+        String displayName,
+        boolean validatePaymentCardControls) {
 
         log.debug(":addPaymentCard (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
         DefendantAccountEntity account = loadAndValidateAccount(defendantAccountId, businessUnitId);
         VersionUtils.verifyIfMatch(account, ifMatch, account.getDefendantAccountId(), "addPaymentCard");
+        if (validatePaymentCardControls) {
+            defendantAccountControlValidator.validateCanAddPaymentCardRequest(account);
+        }
 
         ensureNoExistingPaymentCardRequest(defendantAccountId);
 
@@ -573,7 +583,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             businessUnitId,
             businessUnitUserId,
             ifMatch,
-            postedByName
+            postedByName,
+            true
         );
 
         auditComplete(defendantAccountId, account, businessUnitUserId, postedByName);
@@ -673,6 +684,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         }
 
         VersionUtils.verifyIfMatch(defAccount, ifMatch, defendantAccountId, "addPaymentTerms");
+        defendantAccountControlValidator.validateCanAddPaymentTerms(defAccount);
 
         amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
@@ -706,7 +718,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         if (Boolean.TRUE.equals(addPaymentTermsRequest.getRequestPaymentCard())) {
             log.debug(":addPaymentTerms: Request Payment Card flag is TRUE for account {}",
                 defAccount.getDefendantAccountId());
-            addPaymentCard(defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, postedByName);
+            addPaymentCard(defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, postedByName, false);
         }
 
         // if generate_payment_terms_change_letter is true
@@ -759,6 +771,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         }
 
         VersionUtils.verifyIfMatch(defAccount, ifMatch, defendantAccountId, "addPaymentTerms");
+        defendantAccountControlValidator.validateCanAddPaymentTerms(defAccount);
 
         amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
@@ -781,7 +794,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         if (Boolean.TRUE.equals(addPaymentTermsRequest.getRequestPaymentCard())) {
             log.debug(":addPaymentTermsPreservingLastEnforcement: Request Payment Card flag is TRUE for account {}",
                 defAccount.getDefendantAccountId());
-            addPaymentCard(defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, postedByName);
+            addPaymentCard(defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, postedByName, false);
         }
 
         if (Boolean.TRUE.equals(addPaymentTermsRequest.getGeneratePaymentTermsChangeLetter())) {
