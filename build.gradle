@@ -960,7 +960,7 @@ dependencies {
     }
   }
 
-  testImplementation 'org.wiremock.integrations:wiremock-spring-boot:4.2.1'
+  testImplementation 'org.wiremock.integrations:wiremock-spring-boot:4.2.2'
 
   testImplementation 'org.springframework.boot:spring-boot-devtools'
   testImplementation 'org.springframework.boot:spring-boot-test'
