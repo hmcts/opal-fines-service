@@ -8,7 +8,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
@@ -19,8 +18,8 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
-@Slf4j(topic = "opal.OpalDefendantsDeletePartyIntegrationTest")
-class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
+@Slf4j(topic = "opal.DefendantPartyDeleteIntegrationTest")
+class DefendantPartyDeleteIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
 
     @Test
     @DisplayName("OPAL: DELETE Remove DAP - Happy path (removed association + bumps version")
@@ -47,7 +46,7 @@ class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsInt
             }
             """;
 
-        Integer associationCountBefore = getAssociationCountForDAP(defendantAccountId, dapId);
+        int associationCountBefore = partyAssociationCountFor(defendantAccountId, dapId);
 
         ResultActions res = mockMvc.perform(
             delete("/defendant-accounts/2006/defendant-account-parties/2006")
@@ -68,21 +67,11 @@ class OpalDefendantsDeletePartyIntegrationTest extends AbstractOpalDefendantsInt
         assertEquals(1, associationCountBefore);
 
         // Assert that associated DAP count dropped after deletion
-        Integer associationCountAfter = getAssociationCountForDAP(defendantAccountId, dapId);
+        int associationCountAfter = partyAssociationCountFor(defendantAccountId, dapId);
         assertEquals(0, associationCountAfter);
 
         Integer updatedVersion = versionFor(defendantAccountId);
         assertEquals(currentVersion + 1, updatedVersion);
-    }
-
-    private @Nullable Integer getAssociationCountForDAP(Long defAccountId, Long dapId) {
-        return jdbcTemplate.queryForObject(
-            "SELECT COUNT(*) FROM defendant_account_parties "
-                + "WHERE defendant_account_id = ? AND defendant_account_party_id = ?",
-            Integer.class,
-            defAccountId,
-            dapId
-        );
     }
 
     @Test

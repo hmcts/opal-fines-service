@@ -27,6 +27,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpHeaders;
@@ -44,6 +45,9 @@ import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorAccountAtAGlanceEntity;
+import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.MajorCreditorAccountAtAGlanceRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -73,8 +77,8 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
     executionPhase = AFTER_TEST_CLASS
 )
 @DisplayName("Major Creditor Account At A Glance Opal Integration Tests")
-@Slf4j(topic = "opal.OpalMajorCreditorAccountAtAGlanceIntegrationTest")
-class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrationTest {
+@Slf4j(topic = "opal.MajorCreditorAtGlanceIntegrationTest")
+class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
 
     private static final String AUTH_HEADER = "Bearer some_value";
     private static final String URL = "/major-creditor-accounts/{id}/at-a-glance";
@@ -86,6 +90,9 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
 
     @MockitoSpyBean
     private MajorCreditorAccountAtAGlanceRepository majorCreditorAccountAtAGlanceRepository;
+
+    @Autowired
+    private CreditorAccountRepository creditorAccountRepository;
 
     @AfterEach
     void resetSpies() {
@@ -101,7 +108,7 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
         when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
 
-        Map<String, Object> account = getAtAGlanceRow(MJ_ACCOUNT_ID);
+        AtAGlanceExpected account = getAtAGlance(MJ_ACCOUNT_ID);
 
         ResultActions actions = mockMvc.perform(get(URL, MJ_ACCOUNT_ID)
             .accept(MediaType.APPLICATION_JSON)
@@ -116,13 +123,13 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(header().string(HttpHeaders.ETAG, "\"1\""))
             .andExpect(jsonPath("$.major_creditor.creditor_account_id").value(MJ_ACCOUNT_ID))
-            .andExpect(jsonPath("$.major_creditor.name").value(account.get("name")))
-            .andExpect(jsonPath("$.major_creditor.code").value(account.get("major_creditor_code")))
-            .andExpect(jsonPath("$.major_creditor.address.line_1").value(account.get("address_line_1")))
-            .andExpect(jsonPath("$.major_creditor.address.line_2").value(account.get("address_line_2")))
-            .andExpect(jsonPath("$.major_creditor.address.line_3").value(account.get("address_line_3")))
-            .andExpect(jsonPath("$.major_creditor.address.postcode").value(account.get("postcode")))
-            .andExpect(jsonPath("$.major_creditor.pay_by_bacs").value(account.get("pay_by_bacs")));
+            .andExpect(jsonPath("$.major_creditor.name").value(account.name()))
+            .andExpect(jsonPath("$.major_creditor.code").value(account.majorCreditorCode()))
+            .andExpect(jsonPath("$.major_creditor.address.line_1").value(account.addressLine1()))
+            .andExpect(jsonPath("$.major_creditor.address.line_2").value(account.addressLine2()))
+            .andExpect(jsonPath("$.major_creditor.address.line_3").value(account.addressLine3()))
+            .andExpect(jsonPath("$.major_creditor.address.postcode").value(account.postcode()))
+            .andExpect(jsonPath("$.major_creditor.pay_by_bacs").value(account.payByBacs()));
 
         JsonNode json = objectMapper.readTree(body);
         assertEquals(Set.of("major_creditor"), fieldNames(json));
@@ -147,7 +154,7 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
         when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
 
-        Map<String, Object> account = getAtAGlanceRow(CF_ACCOUNT_ID);
+        AtAGlanceExpected account = getAtAGlance(CF_ACCOUNT_ID);
 
         ResultActions actions = mockMvc.perform(get(URL, CF_ACCOUNT_ID)
             .accept(MediaType.APPLICATION_JSON)
@@ -162,10 +169,10 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(header().string(HttpHeaders.ETAG, "\"1\""))
             .andExpect(jsonPath("$.major_creditor.creditor_account_id").value(CF_ACCOUNT_ID))
-            .andExpect(jsonPath("$.major_creditor.name").value(account.get("name")))
-            .andExpect(jsonPath("$.major_creditor.address.line_1").value(account.get("address_line_1")))
-            .andExpect(jsonPath("$.major_creditor.address.line_2").value(account.get("address_line_2")))
-            .andExpect(jsonPath("$.major_creditor.address.line_3").value(account.get("address_line_3")))
+            .andExpect(jsonPath("$.major_creditor.name").value(account.name()))
+            .andExpect(jsonPath("$.major_creditor.address.line_1").value(account.addressLine1()))
+            .andExpect(jsonPath("$.major_creditor.address.line_2").value(account.addressLine2()))
+            .andExpect(jsonPath("$.major_creditor.address.line_3").value(account.addressLine3()))
             .andExpect(jsonPath("$.major_creditor.address.postcode").doesNotExist())
             .andExpect(jsonPath("$.major_creditor.code").doesNotExist())
             .andExpect(jsonPath("$.major_creditor.pay_by_bacs").doesNotExist());
@@ -341,24 +348,34 @@ class OpalMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrati
             .andExpect(jsonPath("$.retriable").value(false));
     }
 
-    private Map<String, Object> getAtAGlanceRow(long creditorAccountId) {
-        return jdbcTemplate.queryForMap("""
-            SELECT v.creditor_account_id,
-                   v.name,
-                   v.address_line_1,
-                   v.address_line_2,
-                   v.address_line_3,
-                   v.postcode,
-                   ca.pay_by_bacs,
-                   ca.version_number,
-                   mc.major_creditor_code
-              FROM v_major_creditor_account_at_a_glance v
-              JOIN creditor_accounts ca
-                ON ca.creditor_account_id = v.creditor_account_id
-              LEFT JOIN major_creditors mc
-                ON mc.major_creditor_id = ca.major_creditor_id
-             WHERE v.creditor_account_id = ?
-            """, creditorAccountId);
+    private AtAGlanceExpected getAtAGlance(long creditorAccountId) {
+        MajorCreditorAccountAtAGlanceEntity atAGlance = majorCreditorAccountAtAGlanceRepository
+            .findById(creditorAccountId)
+            .orElseThrow();
+        CreditorAccountEntity creditorAccount = creditorAccountRepository.findFullByCreditorAccountId(creditorAccountId)
+            .orElseThrow();
+        String majorCreditorCode = creditorAccount.getMajorCreditor() == null
+            ? null
+            : creditorAccount.getMajorCreditor().getMajorCreditorCode();
+
+        return new AtAGlanceExpected(
+            atAGlance.getName(),
+            atAGlance.getAddressLine1(),
+            atAGlance.getAddressLine2(),
+            atAGlance.getAddressLine3(),
+            atAGlance.getPostcode(),
+            creditorAccount.isPayByBacs(),
+            majorCreditorCode);
+    }
+
+    private record AtAGlanceExpected(
+        String name,
+        String addressLine1,
+        String addressLine2,
+        String addressLine3,
+        String postcode,
+        boolean payByBacs,
+        String majorCreditorCode) {
     }
 
     private void assertStandardProblemResponse(JsonNode problem,
