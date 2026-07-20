@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.config;
 
+import io.lettuce.core.ClientOptions;
+import io.lettuce.core.MaintNotificationsConfig;
 import io.lettuce.core.RedisURI;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -53,7 +55,10 @@ public class CacheConfig {
         RedisURI redisURI = RedisURI.create(redisUrl);
 
         RedisConfiguration redisConfiguration = LettuceConnectionFactory.createRedisConfiguration(redisURI);
-        LettuceClientConfigurationBuilder clientConfigurationBuilder = LettuceClientConfiguration.builder();
+        LettuceClientConfigurationBuilder clientConfigurationBuilder = LettuceClientConfiguration.builder()
+            .clientOptions(ClientOptions.builder()
+                               .maintNotificationsConfig(MaintNotificationsConfig.disabled())
+                               .build());
         if (redisURI.isSsl()) {
             clientConfigurationBuilder.useSsl();
         }

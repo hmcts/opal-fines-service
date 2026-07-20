@@ -5,8 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
+import io.lettuce.core.ClientOptions;
+import io.lettuce.core.MaintNotificationsConfig;
 import java.lang.reflect.Field;
 import java.time.Duration;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,6 +97,22 @@ class CacheConfigTest {
         LettuceConnectionFactory factory = (LettuceConnectionFactory) config.redisConnectionFactory();
 
         assertThat(factory.isUseSsl()).isFalse();
+    }
+
+    @Test
+    void redisConnectionFactory_shouldDisableMaintenanceNotifications() throws Exception {
+        CacheConfig config = new CacheConfig();
+        setField(config, "redisUrl", "redis://localhost:6379");
+        setField(config, "redisEnabled", true);
+        setField(config, "redisTtlDuration", Duration.ofMinutes(5));
+
+        LettuceConnectionFactory factory = (LettuceConnectionFactory) config.redisConnectionFactory();
+
+        Optional<ClientOptions> clientOptions = factory.getClientConfiguration().getClientOptions();
+        assertThat(clientOptions).isPresent();
+        assertThat(clientOptions.map(ClientOptions::getMaintNotificationsConfig)
+                       .map(MaintNotificationsConfig::maintNotificationsEnabled))
+            .hasValue(false);
     }
 
     private static void setField(Object target, String fieldName, Object value) throws Exception {
