@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doThrow;
@@ -384,14 +385,14 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
                                                String detail,
                                                String type,
                                                boolean retriable) {
-        assertEquals(Set.of("type", "title", "status", "detail", "instance", "operation_id", "retriable", "reason"),
+        assertEquals(Set.of("type", "title", "status", "detail", "instance", "operation_id", "retriable"),
             fieldNames(problem));
         assertEquals(statusCode, problem.get("status").asInt());
         assertEquals(title, problem.get("title").asText());
         assertEquals(detail, problem.get("detail").asText());
         assertEquals(type, problem.get("type").asText());
         assertEquals(retriable, problem.get("retriable").asBoolean());
-        assertTrue(problem.get("reason").asText().matches(".+"));
+        assertFalse(problem.has("reason"));
         assertTrue(problem.get("operation_id").asText().matches(".+"));
         assertTrue(problem.get("instance").asText().matches("https://hmcts.gov.uk/problems/instance/.+"));
     }
