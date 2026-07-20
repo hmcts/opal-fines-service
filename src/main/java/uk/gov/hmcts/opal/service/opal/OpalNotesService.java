@@ -1,26 +1,25 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import static uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS;
 import static uk.gov.hmcts.opal.util.VersionUtils.verifyIfMatch;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
-import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.NoteType;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
+import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.iface.NotesServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
+import uk.gov.hmcts.opal.util.Versioned;
 
 @Service
 @Slf4j(topic = "opal.OpalNotesService")
@@ -29,47 +28,48 @@ public class OpalNotesService implements NotesServiceInterface {
 
     private final NoteRepository repository;
     private final DefendantAccountRepositoryService defendantAccountRepositoryService;
+    private final CreditorAccountRepository creditorAccountRepository;
     private final Clock clock;
 
     @Override
     @Transactional
-    public String addNote(AddNoteRequest req, String ifMatch, UserState user, Short businessUnitId) {
+    public String addNote(AddNoteRequest req, String ifMatch, UserState user, AccountNoteContext target) {
         log.info(":OpalAddNote");
 
-        String accountId = req.getActivityNote().getRecordId();
-        validateAccountId(req, accountId);
-        //Use getDefendantAccountByIdForUpdate() as this ensures the account version is increased with
-        // OPTIMISTIC_FORCE_INCREMENT locking
-        DefendantAccountEntity managed =
-            defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(Long.parseLong(accountId));
-
-        verifyIfMatch(managed, ifMatch, managed.getVersion(), "addNote");
+        final Versioned account = getAccountAndVerifyVersion(target, ifMatch);
 
         Note requestNote = req.getActivityNote();
+
         NoteEntity note = new NoteEntity();
         note.setNoteText(requestNote.getNoteText());
         note.setNoteType(NoteType.valueOf(requestNote.getNoteType()));
         note.setAssociatedRecordId(requestNote.getRecordId());
-        note.setAssociatedRecordType(AssociatedRecordType.DEFENDANT_ACCOUNTS);
-        note.setBusinessUnitUserId(managed.getBusinessUnit().getBusinessUnitId().toString());
+        note.setAssociatedRecordType(target.associatedRecordType());
+        note.setBusinessUnitUserId(target.businessUnitId().toString());
         note.setPostedDate(LocalDateTime.now(clock));
         note.setPostedByUsername(user.getDisplayName());
+
         NoteEntity entity = repository.save(note);
+
         return entity.getNoteId().toString();
     }
 
-    private static void validateAccountId(AddNoteRequest req, String accountId) {
-        if (!Objects.equals(req.getActivityNote().getRecordType(), DEFENDANT_ACCOUNTS)) {
-            throw new IllegalArgumentException(
-                "recordType must be '%s'".formatted(DEFENDANT_ACCOUNTS)
+    private Versioned getAccountAndVerifyVersion(AccountNoteContext target, String ifMatch) {
+        Versioned account = switch (target.associatedRecordType()) {
+            case DEFENDANT_ACCOUNTS -> defendantAccountRepositoryService
+                .getDefendantAccountByIdForUpdate(target.accountId());
+            case CREDITOR_ACCOUNTS -> creditorAccountRepository.findByCreditorAccountIdForUpdate(target.accountId())
+                .orElseThrow(() -> accountNotFound(target.accountId()));
+            default -> throw new IllegalArgumentException(
+                "Record type %s is not supported".formatted(target.associatedRecordType())
             );
-        }
+        };
 
-        if (!NumberUtils.isCreatable(accountId)) {
-            throw new IllegalArgumentException(
-                "recordId must be a numeric value"
-            );
-        }
+        verifyIfMatch(account, ifMatch, target.accountId(), "addNote");
+        return account;
     }
 
+    private EntityNotFoundException accountNotFound(Long accountId) {
+        return new EntityNotFoundException("Account %s not found".formatted(accountId));
+    }
 }
