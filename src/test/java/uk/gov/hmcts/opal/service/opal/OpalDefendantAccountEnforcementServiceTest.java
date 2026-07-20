@@ -29,6 +29,7 @@ import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
@@ -39,6 +40,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
@@ -678,6 +680,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
         UserState userState = allPermissionsUser();
         LocalDate expectedLastMovementDate = LocalDate.of(2026, 4, 22);
         ArgumentCaptor<AddNoteRequest> addNoteRequestCaptor = ArgumentCaptor.forClass(AddNoteRequest.class);
+        ArgumentCaptor<AccountNoteContext> accountNoteContextCaptor = ArgumentCaptor.forClass(AccountNoteContext.class);
 
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(defendantAccountRepositoryService.findById(defendantAccountId)).thenReturn(defendantEntity);
@@ -720,7 +723,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
                 addNoteRequestCaptor.capture(),
                 eq(updatedIfMatch),
                 eq(userState),
-                eq((short) 10)
+                accountNoteContextCaptor.capture()
             );
             verifyNoInteractions(reportEntryService);
             verify(amendmentService).auditFinaliseStoredProc(
@@ -740,6 +743,12 @@ public class OpalDefendantAccountEnforcementServiceTest {
             assertEquals(String.valueOf(defendantAccountId), capturedNote.getRecordId());
             assertEquals("remove hold reason", capturedNote.getNoteText());
             assertEquals("AA", capturedNote.getNoteType());
+
+            AccountNoteContext capturedTarget = accountNoteContextCaptor.getValue();
+            assertEquals(DefendantAccountEntity.class, capturedTarget.accountClass());
+            assertEquals(defendantAccountId, capturedTarget.accountId());
+            assertEquals(businessUnitId, capturedTarget.businessUnitId());
+            assertEquals(AssociatedRecordType.DEFENDANT_ACCOUNTS, capturedTarget.associatedRecordType());
             versionUtils.verify(() -> VersionUtils.createETag(defendantEntity));
         }
     }
