@@ -13,12 +13,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -29,6 +29,8 @@ import org.springframework.test.web.servlet.ResultActions;
 import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.repository.CentralFundProjection;
+import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -47,6 +49,9 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String URL_BASE = "/central-funds";
     private static final String AUTH_HEADER = "Bearer test-token";
 
+    @Autowired
+    private CreditorAccountRepository creditorAccountRepository;
+
 
     @BeforeEach
     void setup() {
@@ -60,7 +65,7 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-7566")
     void getCentralFund_returnsPayloadWithEtag() throws Exception {
-        Map<String, Object> centralFund = getCentralFundRow(73);
+        CentralFundProjection centralFund = getCentralFund(73);
 
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/73")
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -73,9 +78,9 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
         String body = response.getContentAsString();
         log.info(":getCentralFund_returnsPayloadWithEtag: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
-        assertEquals("\"" + longValue(centralFund, "version_number") + "\"", response.getHeader(HttpHeaders.ETAG));
+        assertEquals("\"" + centralFund.getVersionNumber() + "\"", response.getHeader(HttpHeaders.ETAG));
         assertCentralFundResponse(objectMapper.readTree(body), centralFund);
-        assertFalse(Boolean.TRUE.equals(centralFund.get("welsh_language")),
+        assertFalse(Boolean.TRUE.equals(centralFund.getWelshLanguage()),
             "Seeded central fund data should exercise the default welsh speaking mapping");
     }
 
@@ -180,46 +185,28 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
         assertEquals(firstResponse.getHeaderNames(), secondResponse.getHeaderNames());
     }
 
-    private Map<String, Object> getCentralFundRow(int businessUnitId) {
-        return jdbcTemplate.queryForMap("""
-            SELECT ca.creditor_account_id AS creditor_account_id,
-                   ca.account_number AS account_number,
-                   ci.item_values ->> 'name' AS name,
-                   bu.business_unit_id AS business_unit_id,
-                   bu.business_unit_name AS business_unit_name,
-                   bu.welsh_language AS welsh_language,
-                   ca.version_number AS version_number
-              FROM creditor_accounts ca
-              JOIN business_units bu
-                ON bu.business_unit_id = ca.business_unit_id
-              JOIN configuration_items ci
-                ON ci.business_unit_id = bu.business_unit_id
-               AND ci.item_name = 'CENTRAL_FUND_ACCOUNT'
-             WHERE ca.business_unit_id = ?
-               AND ca.creditor_account_type = 'CF'::public.t_creditor_account_type_enum
-             ORDER BY ca.creditor_account_id
-             LIMIT 1
-            """, businessUnitId);
+    private CentralFundProjection getCentralFund(int businessUnitId) {
+        return creditorAccountRepository.findCentralFundByBusinessUnitId((short) businessUnitId).orElseThrow();
     }
 
-    private void assertCentralFundResponse(JsonNode response, Map<String, Object> centralFund) {
+    private void assertCentralFundResponse(JsonNode response, CentralFundProjection centralFund) {
         assertEquals(Set.of("major_creditor", "business_unit_details"), fieldNames(response));
 
         JsonNode majorCreditor = response.get("major_creditor");
         assertEquals(Set.of("creditor_account_id", "account_number", "name"), fieldNames(majorCreditor));
-        assertEquals(longValue(centralFund, "creditor_account_id"), majorCreditor.get("creditor_account_id").asLong());
-        assertEquals(centralFund.get("account_number"), majorCreditor.get("account_number").asText());
-        assertEquals(centralFund.get("name"), majorCreditor.get("name").asText());
+        assertEquals(centralFund.getCreditorAccountId(), majorCreditor.get("creditor_account_id").asLong());
+        assertEquals(centralFund.getAccountNumber(), majorCreditor.get("account_number").asText());
+        assertEquals(centralFund.getName(), majorCreditor.get("name").asText());
 
         JsonNode businessUnitDetails = response.get("business_unit_details");
         assertEquals(
             Set.of("business_unit_id", "business_unit_name", "welsh_speaking"),
             fieldNames(businessUnitDetails)
         );
-        assertEquals(String.valueOf(longValue(centralFund, "business_unit_id")),
-            businessUnitDetails.get("business_unit_id").asText());
-        assertEquals(centralFund.get("business_unit_name"), businessUnitDetails.get("business_unit_name").asText());
-        assertEquals(Boolean.TRUE.equals(centralFund.get("welsh_language")) ? "Y" : "N",
+        assertEquals(String.valueOf(centralFund.getBusinessUnitId()), businessUnitDetails.get("business_unit_id")
+            .asText());
+        assertEquals(centralFund.getBusinessUnitName(), businessUnitDetails.get("business_unit_name").asText());
+        assertEquals(Boolean.TRUE.equals(centralFund.getWelshLanguage()) ? "Y" : "N",
             businessUnitDetails.get("welsh_speaking").asText());
     }
 
@@ -246,7 +233,4 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
         return fields;
     }
 
-    private long longValue(Map<String, Object> values, String key) {
-        return ((Number) values.get(key)).longValue();
-    }
 }

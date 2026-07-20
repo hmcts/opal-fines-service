@@ -20,7 +20,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.controllers.util.DefendantAccountVersionUtil;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RecordType;
@@ -54,7 +53,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
         log.info(":testPostNotes payload: {}", payload);
 
         // Read the current version immediately before use
-        final Integer versionBefore = DefendantAccountVersionUtil.getVersion(jdbcTemplate, 77L);
+        final Integer versionBefore = defendantAccountVersionFor(77L);
         assertThat(versionBefore).isNotNull();
         // Act
         ResultActions result =
@@ -74,7 +73,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
         result.andExpect(status().isCreated());
 
         // Assert defendantAccount version incremented
-        final Integer versionAfter = DefendantAccountVersionUtil.getVersion(jdbcTemplate, 77L);
+        final Integer versionAfter = defendantAccountVersionFor(77L);
         assertThat(versionAfter).isEqualTo(versionBefore + 1);
     }
 

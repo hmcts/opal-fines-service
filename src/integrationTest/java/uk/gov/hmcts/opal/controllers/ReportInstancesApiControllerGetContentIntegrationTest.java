@@ -21,11 +21,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlMergeMode;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
+@SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
 @Sql(scripts = "classpath:db/insertData/insert_into_report_instance_content_cash_till_data.sql",
     executionPhase = BEFORE_TEST_METHOD)
 @Sql(scripts = "classpath:db/deleteData/delete_from_report_instance_content_cash_till_data.sql",
@@ -36,7 +38,6 @@ class ReportInstancesApiControllerGetContentIntegrationTest extends AbstractInte
     private static final Long REPORT_INSTANCE_ID = 99000000353000L;
     private static final short BUSINESS_UNIT_ID = 1778;
     private static final String LOCATION = "stored-cash-till-report-location";
-    private static final String MISSING_SERVICE_REPORT_ID = "missing_service_report";
 
     @Autowired
     private BlobServiceClient blobServiceClient;
@@ -163,12 +164,11 @@ class ReportInstancesApiControllerGetContentIntegrationTest extends AbstractInte
         }
 
         @Test
+        @Sql(scripts = "classpath:db/insertData/set_cash_till_supported_types_csv_pdf.sql",
+            executionPhase = BEFORE_TEST_METHOD)
         @JiraStory("PO-2253")
         @JiraEpic("PO-2248")
         void whenRequestedContentTypeUnsupported_unprocessableContentIsReturned_sadPath() throws Exception {
-            jdbcTemplate.update(
-                "UPDATE reports SET supported_file_types = '{CSV,PDF}' WHERE report_id = 'cash_till'");
-
             mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept(APPLICATION_JSON))
                 .andExpectAll(
                     status().isUnprocessableContent(),
@@ -219,57 +219,24 @@ class ReportInstancesApiControllerGetContentIntegrationTest extends AbstractInte
         }
 
         @Test
+        @Sql(scripts = "classpath:db/insertData/insert_missing_report_service_content_data.sql",
+            executionPhase = BEFORE_TEST_METHOD)
+        @Sql(scripts = "classpath:db/deleteData/delete_missing_report_service_content_data.sql",
+            executionPhase = AFTER_TEST_METHOD)
         @JiraStory("PO-2253")
         @JiraEpic("PO-2248")
         void whenReportServiceMissing_internalServerErrorIsReturned_sadPath() throws Exception {
-            jdbcTemplate.update(
-                """
-                    INSERT INTO reports (
-                        report_id,
-                        report_title,
-                        report_group,
-                        audited_report,
-                        report_parameters,
-                        supports_multi_bu,
-                        is_bespoke_journey,
-                        shown_as_worklist,
-                        retention_period,
-                        permission,
-                        supported_file_types,
-                        can_manually_create
-                    ) VALUES (?, 'Missing Service Report', 'Operational Reports', false, '[]'::json, false,
-                        false, false, 'P14D', 'SEARCH_AND_VIEW_ACCOUNTS', '{CSV}', false)
-                    """,
-                MISSING_SERVICE_REPORT_ID
-            );
-            jdbcTemplate.update(
-                "UPDATE report_instances SET report_id = ? WHERE report_instance_id = ?",
-                MISSING_SERVICE_REPORT_ID,
-                REPORT_INSTANCE_ID
-            );
-
-            try {
-                mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept("application/csv"))
-                    .andExpectAll(
-                        status().isInternalServerError(),
-                        content().contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON),
-                        jsonPath("$.title").value("Missing Report Service"),
-                        jsonPath("$.detail").value(
-                            "No report service implementation found for reportId: " + MISSING_SERVICE_REPORT_ID
-                        ),
-                        jsonPath("$.status").value(500),
-                        jsonPath("$.retriable").value(false)
-                    );
-            } finally {
-                jdbcTemplate.update(
-                    "UPDATE report_instances SET report_id = 'cash_till' WHERE report_instance_id = ?",
-                    REPORT_INSTANCE_ID
+            mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept("application/csv"))
+                .andExpectAll(
+                    status().isInternalServerError(),
+                    content().contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON),
+                    jsonPath("$.title").value("Missing Report Service"),
+                    jsonPath("$.detail").value(
+                        "No report service implementation found for reportId: missing_service_report"
+                    ),
+                    jsonPath("$.status").value(500),
+                    jsonPath("$.retriable").value(false)
                 );
-                jdbcTemplate.update(
-                    "DELETE FROM reports WHERE report_id = ?",
-                    MISSING_SERVICE_REPORT_ID
-                );
-            }
         }
     }
 
