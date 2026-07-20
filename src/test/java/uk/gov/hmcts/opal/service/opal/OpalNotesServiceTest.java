@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -10,6 +9,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,24 +25,21 @@ import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.NoteType;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
+import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 
 @ExtendWith(MockitoExtension.class)
 class OpalNotesServiceTest {
 
-    @Mock
-    private NoteRepository repository;
-
-    @Mock
-    private DefendantAccountRepositoryService defendantAccountRepositoryService;
-
-    @Mock
-    private Clock clock;
-
-    @Mock
-    private UserState user;
+    @Mock private NoteRepository repository;
+    @Mock private DefendantAccountRepositoryService defendantAccountRepositoryService;
+    @Mock private CreditorAccountRepository creditorAccountRepository;
+    @Mock private Clock clock;
+    @Mock private UserState user;
 
     @InjectMocks
     private OpalNotesService service;
@@ -50,7 +47,6 @@ class OpalNotesServiceTest {
     @Test
     @DisplayName("addNote saves a note and returns the note id")
     void addNote_shouldSaveNoteAndReturnId() {
-        // Arrange
         when(clock.instant()).thenReturn(Instant.parse("2026-07-03T10:15:30Z"));
         when(clock.getZone()).thenReturn(ZoneOffset.UTC);
         DefendantAccountEntity managed = new DefendantAccountEntity();
@@ -66,10 +62,8 @@ class OpalNotesServiceTest {
         when(repository.save(any(NoteEntity.class))).thenReturn(saved);
         AddNoteRequest req = buildRequest("77", RecordType.DEFENDANT_ACCOUNTS);
 
-        // Act
-        String result = service.addNote(req, "\"12\"", user, (short) 78);
+        String result = service.addNote(req, "\"12\"", user, defendantTarget());
 
-        // Assert
         assertThat(result).isEqualTo("999");
         ArgumentCaptor<NoteEntity> captor = ArgumentCaptor.forClass(NoteEntity.class);
         verify(repository).save(captor.capture());
@@ -86,21 +80,30 @@ class OpalNotesServiceTest {
     }
 
     @Test
-    void addNote_shouldThrowWhenRecordTypeIsInvalid() {
-        AddNoteRequest req = buildRequest("77", RecordType.CREDITOR_ACCOUNTS);
+    void addNote_shouldSaveCreditorAccountNote() {
+        when(clock.instant()).thenReturn(Instant.parse("2026-07-03T10:15:30Z"));
+        when(clock.getZone()).thenReturn(ZoneOffset.UTC);
+        CreditorAccountEntity managed = new CreditorAccountEntity();
+        managed.setCreditorAccountId(104L);
+        managed.setVersionNumber(3L);
+        NoteEntity saved = new NoteEntity();
+        saved.setNoteId(1001L);
+        when(creditorAccountRepository.findByCreditorAccountIdForUpdate(104L)).thenReturn(Optional.of(managed));
+        when(user.getDisplayName()).thenReturn("Creditor User");
+        when(repository.save(any(NoteEntity.class))).thenReturn(saved);
+        AddNoteRequest req = buildRequest("104", RecordType.CREDITOR_ACCOUNTS);
 
-        assertThatThrownBy(() -> service.addNote(req, "\"12\"", user, (short) 78))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("recordType must be 'defendant_accounts'");
-    }
+        String result = service.addNote(req, "\"3\"", user, creditorTarget());
 
-    @Test
-    void addNote_shouldThrowWhenRecordIdIsNotNumeric() {
-        AddNoteRequest req = buildRequest("abc", RecordType.DEFENDANT_ACCOUNTS);
-
-        assertThatThrownBy(() -> service.addNote(req, "\"12\"", user, (short) 78))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("recordId must be a numeric value");
+        assertThat(result).isEqualTo("1001");
+        ArgumentCaptor<NoteEntity> captor = ArgumentCaptor.forClass(NoteEntity.class);
+        verify(repository).save(captor.capture());
+        NoteEntity entity = captor.getValue();
+        assertThat(entity.getAssociatedRecordId()).isEqualTo("104");
+        assertThat(entity.getAssociatedRecordType()).isEqualTo(AssociatedRecordType.CREDITOR_ACCOUNTS);
+        assertThat(entity.getBusinessUnitUserId()).isEqualTo("78");
+        assertThat(entity.getPostedByUsername()).isEqualTo("Creditor User");
+        verify(creditorAccountRepository).findByCreditorAccountIdForUpdate(104L);
     }
 
     private static AddNoteRequest buildRequest(String recordId, RecordType recordType) {
@@ -112,5 +115,23 @@ class OpalNotesServiceTest {
         AddNoteRequest req = new AddNoteRequest();
         req.setActivityNote(note);
         return req;
+    }
+
+    private static AccountNoteContext defendantTarget() {
+        return new AccountNoteContext(
+            DefendantAccountEntity.class,
+            77L,
+            (short) 78,
+            AssociatedRecordType.DEFENDANT_ACCOUNTS
+        );
+    }
+
+    private static AccountNoteContext creditorTarget() {
+        return new AccountNoteContext(
+            CreditorAccountEntity.class,
+            104L,
+            (short) 78,
+            AssociatedRecordType.CREDITOR_ACCOUNTS
+        );
     }
 }

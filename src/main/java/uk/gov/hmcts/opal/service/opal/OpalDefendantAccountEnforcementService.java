@@ -24,9 +24,11 @@ import uk.gov.hmcts.opal.dto.ResultResponse;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
+import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountEnforcementServiceInterface;
@@ -220,7 +222,12 @@ public class OpalDefendantAccountEnforcementService
             buildRemoveEnforcementHoldNoteRequest(defendantAccountId, request),
             VersionUtils.createETag(savedEntity),
             userState,
-            businessUnitId
+            new AccountNoteContext(
+                DefendantAccountEntity.class,
+                savedEntity.getDefendantAccountId(),
+                businessUnitId,
+                AssociatedRecordType.DEFENDANT_ACCOUNTS
+            )
         );
 
         amendmentService.auditFinaliseStoredProc(

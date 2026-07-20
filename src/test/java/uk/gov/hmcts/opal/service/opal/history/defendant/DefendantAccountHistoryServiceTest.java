@@ -17,13 +17,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryItem;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryItemType;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryNoteDetails;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryPostedDetails;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.dto.history.NoteDetails;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.opal.history.HistoryItemOrderingService;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItem;
 import uk.gov.hmcts.opal.service.opal.history.defendant.sources.AmendmentHistorySource;
 import uk.gov.hmcts.opal.service.opal.history.defendant.sources.DefendantTransactionHistorySource;
 import uk.gov.hmcts.opal.service.opal.history.defendant.sources.EnforcementHistorySource;
@@ -67,11 +70,9 @@ class DefendantAccountHistoryServiceTest {
         );
 
         AccountHistoryItem noteItem = AccountHistoryItem.builder()
-            .postedDetails(org.mockito.Mockito.mock(
-                uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryPostedDetails.class
-            ))
-            .type(uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItemType.NOTE)
-            .details(uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryNoteDetails.builder()
+            .postedDetails(org.mockito.Mockito.mock(AccountHistoryPostedDetails.class))
+            .type(AccountHistoryItemType.NOTE)
+            .details(AccountHistoryNoteDetails.builder()
                 .noteText("History note")
                 .build())
             .eventDateTime(LocalDateTime.of(2026, 1, 4, 9, 0))
@@ -80,22 +81,22 @@ class DefendantAccountHistoryServiceTest {
 
         when(noteSource.supports(org.mockito.ArgumentMatchers.any())).thenReturn(true);
         when(noteSource.getItemType())
-            .thenReturn(uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItemType.NOTE);
+            .thenReturn(AccountHistoryItemType.NOTE);
         when(noteSource.fetch(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any()))
             .thenReturn(List.of(noteItem));
 
         when(amendmentSource.supports(org.mockito.ArgumentMatchers.any())).thenReturn(true);
         when(amendmentSource.getItemType())
-            .thenReturn(uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItemType.AMENDMENT);
+            .thenReturn(AccountHistoryItemType.AMENDMENT);
         when(enforcementSource.supports(org.mockito.ArgumentMatchers.any())).thenReturn(true);
         when(enforcementSource.getItemType())
-            .thenReturn(uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItemType.ENFORCEMENT);
+            .thenReturn(AccountHistoryItemType.ENFORCEMENT);
         when(paymentTermsSource.supports(org.mockito.ArgumentMatchers.any())).thenReturn(true);
         when(paymentTermsSource.getItemType())
-            .thenReturn(uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItemType.PAYMENT_TERMS);
+            .thenReturn(AccountHistoryItemType.PAYMENT_TERMS);
         when(transactionSource.supports(org.mockito.ArgumentMatchers.any())).thenReturn(true);
         when(transactionSource.getItemType())
-            .thenReturn(uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItemType.FINANCIAL);
+            .thenReturn(AccountHistoryItemType.FINANCIAL);
 
         DefendantAccountHistoryResponse response = service.getHistory(
             262200L,

@@ -16,15 +16,19 @@ public class NotesService {
 
     private final NotesProxy notesProxy;
     private final UserStateService userStateService;
+    private final AccountNoteContextFactory accountNoteContextFactory;
 
     public String addNote(AddNoteRequest request, String ifMatch, Short businessUnitId) {
         log.debug(":addNote:");
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        AccountNoteContext target = accountNoteContextFactory.from(request.getActivityNote());
+
         if (!userState.hasBusinessUnitUserWithPermission(
             businessUnitId, FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES)) {
-            throw new PermissionNotAllowedException(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE);
+            throw new PermissionNotAllowedException(businessUnitId, FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES);
         }
-        return notesProxy.addNote(request, ifMatch, userState, businessUnitId);
+
+        return notesProxy.addNote(request, ifMatch, userState, target);
     }
 }
