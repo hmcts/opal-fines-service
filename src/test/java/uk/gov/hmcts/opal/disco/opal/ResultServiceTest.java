@@ -27,6 +27,7 @@ import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultType;
 import uk.gov.hmcts.opal.mapper.ResultMapper;
 import uk.gov.hmcts.opal.repository.ResultRepository;
 import uk.gov.hmcts.opal.repository.jpa.ResultSpecs;
@@ -220,8 +221,8 @@ class ResultServiceTest {
             entity.getResultTitle(),
             entity.getResultTitleCy(),
             entity.isActive(),
-            entity.getResultType(),
-            entity.getImpositionCreditor(),
+            entity.getResultType() == null ? null : entity.getResultType().getLabel(),
+            entity.getImpositionCreditor() == null ? null : entity.getImpositionCreditor().getLabel(),
             entity.getImpositionAllocationPriority()
         );
 
@@ -236,7 +237,7 @@ class ResultServiceTest {
             .resultId("ABC")
             .resultTitle("Result Title")
             .resultTitleCy("Welsh Title")
-            .resultType("TYPE1")
+            .resultType(ResultType.ACTION)
             .active(true)
             .requiresEmploymentData(true)
             .build();
@@ -245,12 +246,12 @@ class ResultServiceTest {
             .resultId("ABC")
             .resultTitle("Result Title")
             .resultTitleCy("Welsh Title")
-            .resultType("TYPE1")
+            .resultType("Action")
             .active(true)
             .requiresEmploymentData(true)
             .build();
 
-        when(resultRepository.findById("ABC")).thenReturn(Optional.of(entity));
+        when(resultRepository.findWithFullGraphByResultId("ABC")).thenReturn(Optional.of(entity));
         when(resultMapper.toDto(entity)).thenReturn(dto);
 
         // Act
@@ -261,7 +262,7 @@ class ResultServiceTest {
         assertEquals("ABC", result.getResultId());
         assertEquals("Result Title", result.getResultTitle());
         assertEquals(true, result.getRequiresEmploymentData());
-        verify(resultRepository).findById("ABC");
+        verify(resultRepository).findWithFullGraphByResultId("ABC");
         verify(resultMapper).toDto(entity);
     }
 
@@ -293,7 +294,7 @@ class ResultServiceTest {
             .resultParameters(resultParameters)
             .build();
 
-        when(resultRepository.findById("ABC")).thenReturn(Optional.of(entity));
+        when(resultRepository.findWithFullGraphByResultId("ABC")).thenReturn(Optional.of(entity));
         when(resultMapper.toDto(entity)).thenReturn(dto);
 
         // Act
@@ -338,7 +339,7 @@ class ResultServiceTest {
             .resultParameters(resultParameters)
             .build();
 
-        when(resultRepository.findById("ABC")).thenReturn(Optional.of(entity));
+        when(resultRepository.findWithFullGraphByResultId("ABC")).thenReturn(Optional.of(entity));
         when(resultMapper.toDto(entity)).thenReturn(dto);
 
         // Act
@@ -379,7 +380,7 @@ class ResultServiceTest {
             .resultParameters(resultParameters)
             .build();
 
-        when(resultRepository.findById("ABC")).thenReturn(Optional.of(entity));
+        when(resultRepository.findWithFullGraphByResultId("ABC")).thenReturn(Optional.of(entity));
         when(resultMapper.toDto(entity)).thenReturn(dto);
 
         // Act
@@ -395,7 +396,7 @@ class ResultServiceTest {
     @Test
     void testGetResult_ThrowsWhenNotFound() {
         // Arrange
-        when(resultRepository.findById("MISSING")).thenReturn(Optional.empty());
+        when(resultRepository.findWithFullGraphByResultId("MISSING")).thenReturn(Optional.empty());
 
         // Act + Assert
         org.junit.jupiter.api.Assertions.assertThrows(

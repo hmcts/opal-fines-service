@@ -9,16 +9,16 @@ import uk.gov.hmcts.opal.dto.history.EnforcementDetails;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.dto.history.NoteDetails;
 import uk.gov.hmcts.opal.dto.history.PaymentTermsDetails;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryAmendmentDetails;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryDefendantTransactionDetails;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryDetails;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryEnforcementDetails;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryFilter;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItem;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItemType;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryNoteDetails;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryPaymentTermsDetails;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryPostedDetails;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryAmendmentDetails;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryDefendantTransactionDetails;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryDetails;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryEnforcementDetails;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryFilter;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryItem;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryItemType;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryNoteDetails;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryPaymentTermsDetails;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryPostedDetails;
 
 public final class DefendantAccountHistoryModelAdapter {
 

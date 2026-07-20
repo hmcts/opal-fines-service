@@ -212,10 +212,6 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
     }
 
     private Integer getCurrentDefendantAccountVersion(Long defendantAccountId) {
-        return jdbcTemplate.queryForObject(
-            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-            Integer.class,
-            defendantAccountId
-        );
+        return defendantAccountVersionFor(defendantAccountId);
     }
 }
