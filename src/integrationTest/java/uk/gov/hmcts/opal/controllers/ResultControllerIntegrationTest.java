@@ -590,7 +590,7 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
         String secondBody = performRequest();
 
         assertEquals(firstBody, secondBody);
-        verify(resultRepository, times(1)).findById("BBBBBB");
+        verify(resultRepository, times(1)).findWithFullGraphByResultId("BBBBBB");
     }
 
     private String performRequest() throws Exception {

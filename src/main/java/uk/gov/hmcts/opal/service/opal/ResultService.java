@@ -49,8 +49,9 @@ public class ResultService {
     }
 
     @Cacheable(value = "resultsCache", key = "#root.method.name + '_' + #resultId + '_' + #includeWelsh")
+    @Transactional(readOnly = true)
     public ResultDto getResult(String resultId, boolean includeWelsh) {
-        ResultEntity entity = resultRepository.findById(resultId)
+        ResultEntity entity = resultRepository.findWithFullGraphByResultId(resultId)
             .orElseThrow(() -> new EntityNotFoundException("'Result' not found with id: " + resultId));
 
         ResultDto result = resultMapper.toDto(entity);
