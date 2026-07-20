@@ -65,7 +65,7 @@ class DefendantPartyDeleteIntegrationTest extends AbstractOpalDefendantsIntegrat
 
         assertEquals(currentVersion, versionFor(defendantAccountId));
         long dapId = 9077L;
-        assertEquals(1, getAssociationCountForDAP(defendantAccountId, dapId));
+        assertEquals(1, partyAssociationCountFor(defendantAccountId, dapId));
     }
 
     @Test
