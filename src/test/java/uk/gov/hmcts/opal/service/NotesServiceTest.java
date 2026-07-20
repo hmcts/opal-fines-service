@@ -3,13 +3,12 @@ package uk.gov.hmcts.opal.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
@@ -19,10 +18,7 @@ import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.service.proxy.NotesProxy;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,29 +30,29 @@ class NotesServiceTest {
 
     @Mock private NotesProxy notesProxy;
     @Mock private UserStateService userStateService;
-    @Mock private DefendantAccountRepository defendantAccountRepository;
-    @Mock private CreditorAccountRepository creditorAccountRepository;
+    @Mock private AccountNoteContextFactory accountNoteContextFactory;
     @Mock private UserState userState;
 
     private NotesService notesService;
     private AddNoteRequest request;
+    private AccountNoteContext target;
 
     @BeforeEach
     void setUp() {
-        notesService = new NotesService(
-            notesProxy,
-            userStateService,
-            defendantAccountRepository,
-            creditorAccountRepository
-        );
-
+        notesService = new NotesService(notesProxy, userStateService, accountNoteContextFactory);
         request = addNoteRequest();
+        target = new AccountNoteContext(
+            DefendantAccountEntity.class,
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            AssociatedRecordType.DEFENDANT_ACCOUNTS
+        );
     }
 
     @Test
     void addNote_shouldThrowPermissionNotAllowedException_whenUserLacksPermission() {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(defendantAccountRepository.findById(DEFENDANT_ACCOUNT_ID)).thenReturn(Optional.of(defendantAccount()));
+        when(accountNoteContextFactory.from(request.getActivityNote())).thenReturn(target);
         when(userState.hasBusinessUnitUserWithPermission(
             BUSINESS_UNIT_ID, FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES)).thenReturn(false);
 
@@ -71,26 +67,15 @@ class NotesServiceTest {
         String expectedResponse = "note-id-456";
 
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(defendantAccountRepository.findById(DEFENDANT_ACCOUNT_ID)).thenReturn(Optional.of(defendantAccount()));
+        when(accountNoteContextFactory.from(request.getActivityNote())).thenReturn(target);
         when(userState.hasBusinessUnitUserWithPermission(
             BUSINESS_UNIT_ID, FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES)).thenReturn(true);
-        when(notesProxy.addNote(eq(request), eq(IF_MATCH), eq(userState), org.mockito.ArgumentMatchers.any()))
-            .thenReturn(expectedResponse);
+        when(notesProxy.addNote(eq(request), eq(IF_MATCH), eq(userState), eq(target))).thenReturn(expectedResponse);
 
         String actualResponse = notesService.addNote(request, IF_MATCH, BUSINESS_UNIT_ID);
 
         assertEquals(expectedResponse, actualResponse);
-
-        ArgumentCaptor<AccountNoteContext> targetCaptor = ArgumentCaptor.forClass(AccountNoteContext.class);
-        org.mockito.Mockito.verify(notesProxy).addNote(
-            eq(request), eq(IF_MATCH), eq(userState), targetCaptor.capture()
-        );
-
-        AccountNoteContext target = targetCaptor.getValue();
-        assertEquals(DefendantAccountEntity.class, target.accountClass());
-        assertEquals(DEFENDANT_ACCOUNT_ID, target.accountId());
-        assertEquals(BUSINESS_UNIT_ID, target.businessUnitId());
-        assertEquals(AssociatedRecordType.DEFENDANT_ACCOUNTS, target.associatedRecordType());
+        verify(notesProxy).addNote(request, IF_MATCH, userState, target);
     }
 
     private static AddNoteRequest addNoteRequest() {
@@ -101,15 +86,5 @@ class NotesServiceTest {
             .noteType("AA")
             .build();
         return new AddNoteRequest(note);
-    }
-
-    private static DefendantAccountEntity defendantAccount() {
-        BusinessUnitEntity businessUnit = new BusinessUnitEntity();
-        businessUnit.setBusinessUnitId(BUSINESS_UNIT_ID);
-
-        DefendantAccountEntity account = new DefendantAccountEntity();
-        account.setDefendantAccountId(DEFENDANT_ACCOUNT_ID);
-        account.setBusinessUnit(businessUnit);
-        return account;
     }
 }
