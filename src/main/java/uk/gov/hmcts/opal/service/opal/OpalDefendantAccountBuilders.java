@@ -16,6 +16,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import org.openapitools.jackson.nullable.JsonNullable;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -51,7 +53,6 @@ import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails.VehicleDetailsBuilder;
 import uk.gov.hmcts.opal.dto.common.VehicleFixedPenaltyDetails;
-import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AliasDto;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.AliasEntity;
@@ -76,6 +77,7 @@ import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
+import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.CollectionOrderCommon;
 import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
 import uk.gov.hmcts.opal.generated.model.CourtReferenceCommon;
@@ -87,9 +89,26 @@ import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultDefendantAccou
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverviewDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcerReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountAtAGlanceEnforcementOverrideDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountAtAGlanceEnforcementOverrideDefendantAccountEnforcementOverrideResult;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountAtAGlanceEnforcementOverrideDefendantAccountEnforcer;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountAtAGlanceEnforcementOverrideDefendantAccountLja;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountAtAGlanceEnforcementStatusSummaryDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountAtAGlanceInstalmentPeriodDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountAtAGlanceLanguagePreferenceDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountAtAGlanceLanguagePreferencesDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountAtAGlanceLastEnforcementActionDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountAtAGlancePaymentTermsSummaryDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountAtAGlancePaymentTermsTypeDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountAtAGlanceResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse.DefendantAccountTypeEnum;
+import uk.gov.hmcts.opal.generated.model.IndividualAliasCommon;
+import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.LjaReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.LocalJusticeAreaDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.OrganisationAliasCommon;
+import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.ResultReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.ResultResponsesCommon;
 import uk.gov.hmcts.opal.util.DateTimeUtils;
@@ -901,25 +920,284 @@ public class OpalDefendantAccountBuilders {
             : 0;
     }
 
-    static DefendantAccountAtAGlanceResponse buildAtAGlanceResponse(
+    static GetDefendantAccountAtAGlanceResponse buildAtAGlanceResponse(
         DefendantAccountSummaryViewEntity entity) {
 
         if (null == entity) {
             return null;
         }
 
-        return DefendantAccountAtAGlanceResponse.builder()
+        return GetDefendantAccountAtAGlanceResponse.builder()
+            .payload(buildAtAGlancePayload(entity))
+            .version(entity.getVersion())
+            .build();
+    }
+
+    static DefendantAccountAtAGlanceResponseDefendantAccount buildAtAGlancePayload(
+        DefendantAccountSummaryViewEntity entity) {
+
+        return DefendantAccountAtAGlanceResponseDefendantAccount.builder()
             .defendantAccountId(entity.getDefendantAccountId().toString())
             .accountNumber(entity.getAccountNumber())
-            .debtorType(entity.getDebtorType())
+            .debtorType(DefendantAccountAtAGlanceResponseDefendantAccount.DebtorTypeEnum.fromValue(
+                entity.getDebtorType()))
             .isYouth(isYouth(entity.getBirthDate(), entity.getAge()))
-            .partyDetails(buildPartyDetails(entity))
-            .addressDetails(buildAddress(entity))
-            .languagePreferences(buildLanguagePreferences(entity))
-            .paymentTermsSummary(buildPaymentTerms(entity))
-            .enforcementStatus(buildEnforcementStatusSummary(entity))
-            .commentsAndNotes(buildCommentsAndNotes(entity))
-            .version(entity.getVersion())
+            .partyDetails(toPartyDetailsCommon(buildPartyDetails(entity)))
+            .address(toAddressDetailsCommon(buildAddress(entity)))
+            .languagePreferences(toGenerated(buildLanguagePreferences(entity)))
+            .paymentTerms(toGenerated(buildPaymentTerms(entity)))
+            .enforcementStatus(toGenerated(buildEnforcementStatusSummary(entity)))
+            .commentsAndNotes(toGenerated(buildCommentsAndNotes(entity)))
+            .build();
+    }
+
+    static PartyDetailsCommon toPartyDetailsCommon(PartyDetails source) {
+        if (source == null) {
+            return null;
+        }
+
+        return PartyDetailsCommon.builder()
+            .partyId(source.getPartyId())
+            .organisationFlag(source.getOrganisationFlag())
+            .organisationDetails(toOrganisationDetailsCommon(source.getOrganisationDetails()))
+            .individualDetails(toIndividualDetailsCommon(source.getIndividualDetails()))
+            .build();
+    }
+
+    static OrganisationDetailsCommon toOrganisationDetailsCommon(OrganisationDetails source) {
+        if (source == null) {
+            return null;
+        }
+
+        return OrganisationDetailsCommon.builder()
+            .organisationName(source.getOrganisationName())
+            .organisationAliases(source.getOrganisationAliases() == null ? null : source.getOrganisationAliases()
+                .stream()
+                .map(OpalDefendantAccountBuilders::toOrganisationAliasCommon)
+                .toList())
+            .build();
+    }
+
+    static OrganisationAliasCommon toOrganisationAliasCommon(OrganisationAlias source) {
+        if (source == null) {
+            return null;
+        }
+
+        return OrganisationAliasCommon.builder()
+            .aliasId(source.getAliasId())
+            .sequenceNumber(source.getSequenceNumber())
+            .organisationName(source.getOrganisationName())
+            .build();
+    }
+
+    static IndividualDetailsCommon toIndividualDetailsCommon(IndividualDetails source) {
+        if (source == null) {
+            return null;
+        }
+
+        return IndividualDetailsCommon.builder()
+            .title(source.getTitle())
+            .forenames(source.getForenames())
+            .surname(source.getSurname())
+            .dateOfBirth(source.getDateOfBirth())
+            .age(source.getAge())
+            .nationalInsuranceNumber(source.getNationalInsuranceNumber())
+            .individualAliases(source.getIndividualAliases() == null ? null : source.getIndividualAliases()
+                .stream()
+                .map(OpalDefendantAccountBuilders::toIndividualAliasCommon)
+                .toList())
+            .build();
+    }
+
+    static IndividualAliasCommon toIndividualAliasCommon(IndividualAlias source) {
+        if (source == null) {
+            return null;
+        }
+
+        return IndividualAliasCommon.builder()
+            .aliasId(source.getAliasId())
+            .sequenceNumber(source.getSequenceNumber())
+            .surname(source.getSurname())
+            .forenames(source.getForenames())
+            .build();
+    }
+
+    static AddressDetailsCommon toAddressDetailsCommon(AddressDetails source) {
+        if (source == null) {
+            return null;
+        }
+
+        return AddressDetailsCommon.builder()
+            .addressLine1(source.getAddressLine1())
+            .addressLine2(source.getAddressLine2())
+            .addressLine3(source.getAddressLine3())
+            .addressLine4(source.getAddressLine4())
+            .addressLine5(source.getAddressLine5())
+            .postcode(source.getPostcode())
+            .build();
+    }
+
+    static DefendantAccountAtAGlanceLanguagePreferencesDefendantAccount toGenerated(LanguagePreferences source) {
+        if (source == null) {
+            return null;
+        }
+
+        return DefendantAccountAtAGlanceLanguagePreferencesDefendantAccount.builder()
+            .documentLanguagePreference(toGenerated(source.getDocumentLanguagePreference()))
+            .hearingLanguagePreference(toGenerated(source.getHearingLanguagePreference()))
+            .build();
+    }
+
+    static DefendantAccountAtAGlanceLanguagePreferenceDefendantAccount toGenerated(LanguagePreference source) {
+        if (source == null || source.getLanguageCode() == null) {
+            return null;
+        }
+
+        return DefendantAccountAtAGlanceLanguagePreferenceDefendantAccount.builder()
+            .languageCode(DefendantAccountAtAGlanceLanguagePreferenceDefendantAccount.LanguageCodeEnum.fromValue(
+                source.getLanguageCode()))
+            .languageDisplayName(
+                DefendantAccountAtAGlanceLanguagePreferenceDefendantAccount.LanguageDisplayNameEnum.fromValue(
+                    source.getLanguageDisplayName()))
+            .build();
+    }
+
+    static DefendantAccountAtAGlancePaymentTermsSummaryDefendantAccount toGenerated(PaymentTermsSummary source) {
+        if (source == null) {
+            return null;
+        }
+
+        return DefendantAccountAtAGlancePaymentTermsSummaryDefendantAccount.builder()
+            .paymentTermsType(toGenerated(source.getPaymentTermsType()))
+            .effectiveDate(JsonNullable.of(source.getEffectiveDate()))
+            .instalmentPeriod(source.getInstalmentPeriod() == null
+                ? JsonNullable.undefined()
+                : JsonNullable.of(toGenerated(source.getInstalmentPeriod())))
+            .lumpSumAmount(JsonNullable.of(source.getLumpSumAmount()))
+            .instalmentAmount(JsonNullable.of(source.getInstalmentAmount()))
+            .build();
+    }
+
+    static DefendantAccountAtAGlancePaymentTermsTypeDefendantAccount toGenerated(PaymentTermsType source) {
+        if (source == null || source.getPaymentTermsTypeCode() == null) {
+            return null;
+        }
+
+        return DefendantAccountAtAGlancePaymentTermsTypeDefendantAccount.builder()
+            .paymentTermsTypeCode(
+                DefendantAccountAtAGlancePaymentTermsTypeDefendantAccount.PaymentTermsTypeCodeEnum.fromValue(
+                    source.getPaymentTermsTypeCode().name()))
+            .paymentTermsTypeDisplayName(
+                DefendantAccountAtAGlancePaymentTermsTypeDefendantAccount.PaymentTermsTypeDisplayNameEnum.fromValue(
+                    source.getPaymentTermsTypeDisplayName()))
+            .build();
+    }
+
+    static DefendantAccountAtAGlanceInstalmentPeriodDefendantAccount toGenerated(InstalmentPeriod source) {
+        if (source == null || source.getInstalmentPeriodCode() == null) {
+            return null;
+        }
+
+        return DefendantAccountAtAGlanceInstalmentPeriodDefendantAccount.builder()
+            .instalmentPeriodCode(
+                DefendantAccountAtAGlanceInstalmentPeriodDefendantAccount.InstalmentPeriodCodeEnum.fromValue(
+                    source.getInstalmentPeriodCode().name()))
+            .instalmentPeriodDisplayName(
+                DefendantAccountAtAGlanceInstalmentPeriodDefendantAccount.InstalmentPeriodDisplayNameEnum.fromValue(
+                    source.getInstalmentPeriodDisplayName()))
+            .build();
+    }
+
+    static DefendantAccountAtAGlanceEnforcementStatusSummaryDefendantAccount toGenerated(
+        EnforcementStatusSummary source) {
+        if (source == null) {
+            return null;
+        }
+
+        return DefendantAccountAtAGlanceEnforcementStatusSummaryDefendantAccount.builder()
+            .lastEnforcementAction(source.getLastEnforcementAction() == null
+                ? JsonNullable.undefined()
+                : JsonNullable.of(toGenerated(source.getLastEnforcementAction())))
+            .collectionOrderMade(source.getCollectionOrderMade())
+            .defaultDaysInJail(JsonNullable.of(source.getDefaultDaysInJail()))
+            .enforcementOverride(source.getEnforcementOverride() == null
+                ? JsonNullable.undefined()
+                : JsonNullable.of(toGenerated(source.getEnforcementOverride())))
+            .lastMovementDate(JsonNullable.of(source.getLastMovementDate()))
+            .build();
+    }
+
+    static DefendantAccountAtAGlanceLastEnforcementActionDefendantAccount toGenerated(LastEnforcementAction source) {
+        if (source == null) {
+            return null;
+        }
+
+        return DefendantAccountAtAGlanceLastEnforcementActionDefendantAccount.builder()
+            .lastEnforcementActionId(source.getLastEnforcementActionId())
+            .lastEnforcementActionTitle(JsonNullable.of(source.getLastEnforcementActionTitle()))
+            .build();
+    }
+
+    static DefendantAccountAtAGlanceEnforcementOverrideDefendantAccount toGenerated(EnforcementOverride source) {
+        if (source == null) {
+            return null;
+        }
+
+        return DefendantAccountAtAGlanceEnforcementOverrideDefendantAccount.builder()
+            .enforcementOverrideResult(source.getEnforcementOverrideResult() == null
+                ? JsonNullable.undefined()
+                : JsonNullable.of(toGenerated(source.getEnforcementOverrideResult())))
+            .enforcer(source.getEnforcer() == null ? JsonNullable.undefined() : JsonNullable.of(
+                toGenerated(source.getEnforcer())))
+            .lja(source.getLja() == null ? JsonNullable.undefined() : JsonNullable.of(toGenerated(source.getLja())))
+            .build();
+    }
+
+    static DefendantAccountAtAGlanceEnforcementOverrideDefendantAccountEnforcementOverrideResult toGenerated(
+        EnforcementOverrideResult source) {
+        if (source == null) {
+            return null;
+        }
+
+        return DefendantAccountAtAGlanceEnforcementOverrideDefendantAccountEnforcementOverrideResult.builder()
+            .enforcementOverrideResultId(source.getEnforcementOverrideId())
+            .enforcementOverrideResultTitle(source.getEnforcementOverrideTitle())
+            .build();
+    }
+
+    static DefendantAccountAtAGlanceEnforcementOverrideDefendantAccountEnforcer toGenerated(Enforcer source) {
+        if (source == null) {
+            return null;
+        }
+
+        return DefendantAccountAtAGlanceEnforcementOverrideDefendantAccountEnforcer.builder()
+            .enforcerId(source.getEnforcerId())
+            .enforcerName(source.getEnforcerName())
+            .build();
+    }
+
+    static DefendantAccountAtAGlanceEnforcementOverrideDefendantAccountLja toGenerated(LJA source) {
+        if (source == null) {
+            return null;
+        }
+
+        return DefendantAccountAtAGlanceEnforcementOverrideDefendantAccountLja.builder()
+            .ljaId(source.getLjaId() == null ? null : source.getLjaId().longValue())
+            .ljaCode(source.getLjaCode())
+            .ljaName(source.getLjaName())
+            .build();
+    }
+
+    static CommentsAndNotesCommon toGenerated(CommentsAndNotes source) {
+        if (source == null) {
+            return null;
+        }
+
+        return CommentsAndNotesCommon.builder()
+            .accountComment(source.getAccountNotesAccountComments())
+            .freeTextNote1(source.getAccountNotesFreeTextNote1())
+            .freeTextNote2(source.getAccountNotesFreeTextNote2())
+            .freeTextNote3(source.getAccountNotesFreeTextNote3())
             .build();
     }
 

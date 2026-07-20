@@ -18,10 +18,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
-import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
@@ -315,14 +315,15 @@ class OpalDefendantAccountBuildersTest {
             .accountNote3("Note3")
             .build();
 
-        DefendantAccountAtAGlanceResponse response = OpalDefendantAccountBuilders.buildAtAGlanceResponse(entity);
+        GetDefendantAccountAtAGlanceResponse response = OpalDefendantAccountBuilders.buildAtAGlanceResponse(entity);
 
         assertNotNull(response);
-        assertEquals("1", response.getDefendantAccountId());
-        assertEquals("ACC123", response.getAccountNumber());
-        assertEquals("Defendant", response.getDebtorType());
-        assertTrue(response.getIsYouth());
-        assertNotNull(response.getPartyDetails());
+        assertNotNull(response.getPayload());
+        assertEquals("1", response.getPayload().getDefendantAccountId());
+        assertEquals("ACC123", response.getPayload().getAccountNumber());
+        assertEquals("Defendant", response.getPayload().getDebtorType().getValue());
+        assertTrue(response.getPayload().getIsYouth());
+        assertNotNull(response.getPayload().getPartyDetails());
     }
 
     @Test
@@ -350,14 +351,15 @@ class OpalDefendantAccountBuildersTest {
             .accountNote3("Note3")
             .build();
 
-        DefendantAccountAtAGlanceResponse response = OpalDefendantAccountBuilders.buildAtAGlanceResponse(entity);
+        GetDefendantAccountAtAGlanceResponse response = OpalDefendantAccountBuilders.buildAtAGlanceResponse(entity);
 
         assertNotNull(response);
-        assertEquals("1", response.getDefendantAccountId());
-        assertEquals("ACC123", response.getAccountNumber());
-        assertEquals("Defendant", response.getDebtorType());
-        assertTrue(response.getIsYouth());
-        assertNotNull(response.getPartyDetails());
+        assertNotNull(response.getPayload());
+        assertEquals("1", response.getPayload().getDefendantAccountId());
+        assertEquals("ACC123", response.getPayload().getAccountNumber());
+        assertEquals("Defendant", response.getPayload().getDebtorType().getValue());
+        assertTrue(response.getPayload().getIsYouth());
+        assertNotNull(response.getPayload().getPartyDetails());
     }
 
     private DefendantAccountSummaryViewEntity mockDasv(Boolean organisation,

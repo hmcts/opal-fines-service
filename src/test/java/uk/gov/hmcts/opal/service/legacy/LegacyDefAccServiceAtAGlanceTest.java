@@ -1,9 +1,11 @@
 package uk.gov.hmcts.opal.service.legacy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -17,7 +19,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.common.LastEnforcementAction;
-import uk.gov.hmcts.opal.dto.common.PartyDetails;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
@@ -29,7 +31,6 @@ import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LanguagePreferences;
 import uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.PaymentTermsSummary;
-import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 
 class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
 
@@ -50,20 +51,20 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.OK));
 
-        DefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(123L);
+        GetDefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(123L);
 
         assertNotNull(out);
-        assertEquals("123", out.getDefendantAccountId());
-        assertEquals("ACC-42", out.getAccountNumber());
-        assertEquals("PERSON", out.getDebtorType());
-        assertEquals(Boolean.FALSE, out.getIsYouth());
+        assertEquals("123", out.getPayload().getDefendantAccountId());
+        assertEquals("ACC-42", out.getPayload().getAccountNumber());
+        assertEquals("Defendant", out.getPayload().getDebtorType().getValue());
+        assertEquals(Boolean.FALSE, out.getPayload().getIsYouth());
         assertEquals(BigInteger.valueOf(5L), out.getVersion());
-        assertNull(out.getPartyDetails());
-        assertNull(out.getAddressDetails());
-        assertNull(out.getLanguagePreferences());
-        assertNull(out.getPaymentTermsSummary());
-        assertNull(out.getEnforcementStatus());
-        assertNull(out.getCommentsAndNotes());
+        assertNull(out.getPayload().getPartyDetails());
+        assertNull(out.getPayload().getAddress());
+        assertFalse(out.getPayload().getLanguagePreferences().isPresent());
+        assertNull(out.getPayload().getPaymentTerms());
+        assertNull(out.getPayload().getEnforcementStatus());
+        assertFalse(out.getPayload().getCommentsAndNotes().isPresent());
     }
 
     @Test
@@ -78,9 +79,9 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
 
-        DefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(456L);
+        GetDefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(456L);
         assertNotNull(out);
-        assertEquals("456", out.getDefendantAccountId());
+        assertEquals("456", out.getPayload().getDefendantAccountId());
     }
 
     @Test
@@ -92,7 +93,7 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>("<error/>", HttpStatus.INTERNAL_SERVER_ERROR));
 
-        DefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(999L);
+        GetDefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(999L);
         assertNull(out);
     }
 
@@ -137,9 +138,9 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.OK));
 
-        DefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(1L);
+        GetDefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(1L);
 
-        PartyDetails pd = out.getPartyDetails();
+        var pd = out.getPayload().getPartyDetails();
         assertNotNull(pd);
         assertEquals(true, pd.getOrganisationFlag());
         assertEquals("777", pd.getPartyId());
@@ -191,9 +192,9 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.OK));
 
-        DefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(1L);
+        GetDefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(1L);
 
-        PartyDetails pd = out.getPartyDetails();
+        var pd = out.getPayload().getPartyDetails();
         assertEquals(false, pd.getOrganisationFlag());
         assertEquals("1001", pd.getPartyId());
         assertNull(pd.getOrganisationDetails());
@@ -278,35 +279,35 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.OK));
 
-        DefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(1L);
+        GetDefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(1L);
 
-        assertNotNull(out.getAddressDetails());
-        assertEquals("1 Street", out.getAddressDetails().getAddressLine1());
-        assertNull(out.getAddressDetails().getAddressLine3());
-        assertEquals("AB1 2CD", out.getAddressDetails().getPostcode());
+        assertNotNull(out.getPayload().getAddress());
+        assertEquals("1 Street", out.getPayload().getAddress().getAddressLine1());
+        assertNull(out.getPayload().getAddress().getAddressLine3());
+        assertEquals("AB1 2CD", out.getPayload().getAddress().getPostcode());
 
-        assertNotNull(out.getLanguagePreferences());
+        assertTrue(out.getPayload().getLanguagePreferences().isPresent());
 
-        uk.gov.hmcts.opal.dto.common.PaymentTermsSummary pts = out.getPaymentTermsSummary();
-        assertEquals(LocalDate.of(2024, 1, 2), pts.getEffectiveDate());
-        assertEquals(new BigDecimal("250.00"), pts.getLumpSumAmount());
-        assertEquals(new BigDecimal("25.00"), pts.getInstalmentAmount());
+        var pts = out.getPayload().getPaymentTerms();
+        assertEquals(LocalDate.of(2024, 1, 2), pts.getEffectiveDate().get());
+        assertEquals(new BigDecimal("250.00"), pts.getLumpSumAmount().get());
+        assertEquals(new BigDecimal("25.00"), pts.getInstalmentAmount().get());
 
-        uk.gov.hmcts.opal.dto.common.EnforcementStatusSummary es = out.getEnforcementStatus();
+        var es = out.getPayload().getEnforcementStatus();
         assertNotNull(es);
-        assertNotNull(es.getLastEnforcementAction());
-        assertEquals("REM", es.getLastEnforcementAction().getLastEnforcementActionId());
-        assertEquals("Reminder", es.getLastEnforcementAction().getLastEnforcementActionTitle());
+        assertTrue(es.getLastEnforcementAction().isPresent());
+        assertEquals("REM", es.getLastEnforcementAction().get().getLastEnforcementActionId());
+        assertEquals("Reminder", es.getLastEnforcementAction().get().getLastEnforcementActionTitle().get());
         assertEquals(Boolean.TRUE, es.getCollectionOrderMade());
-        assertEquals(7, es.getDefaultDaysInJail());
-        assertNull(es.getEnforcementOverride());
-        assertEquals(LocalDate.of(2023, 12, 31), es.getLastMovementDate());
+        assertEquals(7, es.getDefaultDaysInJail().get());
+        assertFalse(es.getEnforcementOverride().isPresent());
+        assertEquals(LocalDate.of(2023, 12, 31), es.getLastMovementDate().get());
 
-        uk.gov.hmcts.opal.dto.common.CommentsAndNotes cn = out.getCommentsAndNotes();
-        assertEquals("Main note", cn.getAccountNotesAccountComments());
-        assertEquals("N1", cn.getAccountNotesFreeTextNote1());
-        assertEquals("N2", cn.getAccountNotesFreeTextNote2());
-        assertEquals("N3", cn.getAccountNotesFreeTextNote3());
+        var cn = out.getPayload().getCommentsAndNotes().get();
+        assertEquals("Main note", cn.getAccountComment());
+        assertEquals("N1", cn.getFreeTextNote1());
+        assertEquals("N2", cn.getFreeTextNote2());
+        assertEquals("N3", cn.getFreeTextNote3());
     }
 
     @Test
@@ -330,9 +331,9 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.OK));
 
-        DefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(1L);
-        assertNotNull(out.getPaymentTermsSummary());
-        assertNull(out.getPaymentTermsSummary().getPaymentTermsType());
-        assertNull(out.getPaymentTermsSummary().getInstalmentPeriod());
+        GetDefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(1L);
+        assertNotNull(out.getPayload().getPaymentTerms());
+        assertNull(out.getPayload().getPaymentTerms().getPaymentTermsType());
+        assertFalse(out.getPayload().getPaymentTerms().getInstalmentPeriod().isPresent());
     }
 }

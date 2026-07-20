@@ -259,6 +259,70 @@ paths:
             application/json+problem:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
+  /defendant-accounts/{id}/at-a-glance:
+    get:
+      tags:
+        - Defendant Account
+      summary: Get Defendant Account At A Glance
+      description: Returns the at-a-glance summary for a Defendant Account.
+      operationId: getDefendantAccountAtAGlance
+      security:
+        - permissions:
+            - Search and View Accounts (in at least one business unit)
+      parameters:
+        - in: path
+          name: id
+          description: DB Mapping - defendant_accounts.defendant_account_id
+          schema:
+            type: integer
+            format: int64
+          required: true
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/defendantAccountAtAGlanceResponse'
+        400:
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
   /defendant-accounts/{id}/impositions:
     get:
       tags:
@@ -704,6 +768,260 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    defendantAccountAtAGlanceResponse:
+      title: Defendant Account At A Glance Response
+      type: object
+      additionalProperties: false
+      required:
+        - defendant_account_id
+        - account_number
+        - debtor_type
+        - is_youth
+        - party_details
+        - address
+        - payment_terms
+        - enforcement_status
+        - comments_and_notes
+      properties:
+        defendant_account_id:
+          type: string
+          description: DB Mapping - defendant_accounts.defendant_account_id
+        account_number:
+          type: string
+          description: DB Mapping - defendant_accounts.account_number
+        account_balance:
+          type: number
+          multipleOf: 0.01
+          description: DB Mapping - defendant_accounts.account_balance
+        account_status_code:
+          type: string
+          enum:
+            - L
+            - C
+            - TO
+            - TS
+            - TA
+            - CS
+            - WO
+          description: DB Mapping - defendant_accounts.account_status
+        account_status_name:
+          type: string
+          description: Derived display name from defendant_accounts.account_status
+        debtor_type:
+          type: string
+          enum:
+            - Defendant
+            - Parent/Guardian
+          description: |
+            This field will be set to 'Defendant' if defendant_account_parties.debtor = 'TRUE', otherwise if this is null and a Parent/Guardian is on the account with defendant_account_parties.debtor = 'TRUE', then the value returned is 'Parent/Guardian'.
+        is_youth:
+          type: boolean
+          description: |
+            Derived from the defendant party age or date of birth.
+        party_details:
+          $ref: './common.yaml#/components/schemas/partyDetails'
+        address:
+          $ref: './common.yaml#/components/schemas/addressDetails'
+        language_preferences:
+          anyOf:
+            - $ref: '#/components/schemas/defendantAccountAtAGlanceLanguagePreferences'
+            - type: 'null'
+        payment_terms:
+          $ref: '#/components/schemas/defendantAccountAtAGlancePaymentTermsSummary'
+        enforcement_status:
+          $ref: '#/components/schemas/defendantAccountAtAGlanceEnforcementStatusSummary'
+        comments_and_notes:
+          anyOf:
+            - $ref: './common.yaml#/components/schemas/commentsAndNotes'
+            - type: 'null'
+    defendantAccountAtAGlancePaymentTermsSummary:
+      title: Defendant Account At A Glance Payment Terms Summary
+      type: object
+      additionalProperties: false
+      required:
+        - payment_terms_type
+      properties:
+        payment_terms_type:
+          $ref: '#/components/schemas/defendantAccountAtAGlancePaymentTermsType'
+        effective_date:
+          type:
+            - string
+            - 'null'
+          format: date
+        instalment_period:
+          anyOf:
+            - $ref: '#/components/schemas/defendantAccountAtAGlanceInstalmentPeriod'
+            - type: 'null'
+        lump_sum_amount:
+          type:
+            - number
+            - 'null'
+          multipleOf: 0.01
+        instalment_amount:
+          type:
+            - number
+            - 'null'
+          multipleOf: 0.01
+    defendantAccountAtAGlanceEnforcementStatusSummary:
+      title: Defendant Account At A Glance Enforcement Status Summary
+      type: object
+      additionalProperties: false
+      required:
+        - last_enforcement_action
+        - collection_order_made
+        - default_days_in_jail
+        - enforcement_override
+        - last_movement_date
+      properties:
+        last_enforcement_action:
+          anyOf:
+            - $ref: '#/components/schemas/defendantAccountAtAGlanceLastEnforcementAction'
+            - type: 'null'
+        collection_order_made:
+          type: boolean
+        default_days_in_jail:
+          type:
+            - integer
+            - 'null'
+        enforcement_override:
+          anyOf:
+            - $ref: '#/components/schemas/defendantAccountAtAGlanceEnforcementOverride'
+            - type: 'null'
+        last_movement_date:
+          type:
+            - string
+            - 'null'
+          format: date
+    defendantAccountAtAGlanceLanguagePreferences:
+      title: Defendant Account At A Glance Language Preferences
+      type: object
+      properties:
+        document_language_preference:
+          $ref: '#/components/schemas/defendantAccountAtAGlanceLanguagePreference'
+        hearing_language_preference:
+          $ref: '#/components/schemas/defendantAccountAtAGlanceLanguagePreference'
+    defendantAccountAtAGlanceLanguagePreference:
+      title: Defendant Account At A Glance Language Preference
+      type: object
+      additionalProperties: false
+      properties:
+        language_code:
+          type: string
+          enum:
+            - CY
+            - EN
+        language_display_name:
+          type: string
+          enum:
+            - Welsh and English
+            - English only
+      required:
+        - language_code
+    defendantAccountAtAGlancePaymentTermsType:
+      title: Defendant Account At A Glance Payment Terms Type
+      type: object
+      additionalProperties: false
+      properties:
+        payment_terms_type_code:
+          type: string
+          enum:
+            - B
+            - P
+            - I
+        payment_terms_type_display_name:
+          type: string
+          enum:
+            - By date
+            - Paid
+            - Instalments
+      required:
+        - payment_terms_type_code
+    defendantAccountAtAGlanceInstalmentPeriod:
+      title: Defendant Account At A Glance Instalment Period
+      type: object
+      additionalProperties: false
+      properties:
+        instalment_period_code:
+          type: string
+          enum:
+            - W
+            - M
+            - F
+        instalment_period_display_name:
+          type: string
+          enum:
+            - Weekly
+            - Monthly
+            - Fortnightly
+      required:
+        - instalment_period_code
+        - instalment_period_display_name
+    defendantAccountAtAGlanceLastEnforcementAction:
+      title: Defendant Account At A Glance Last Enforcement Action
+      type: object
+      additionalProperties: false
+      required:
+        - last_enforcement_action_id
+        - last_enforcement_action_title
+      properties:
+        last_enforcement_action_id:
+          type: string
+        last_enforcement_action_title:
+          type:
+            - string
+            - 'null'
+    defendantAccountAtAGlanceEnforcementOverride:
+      title: Defendant Account At A Glance Enforcement Override
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      properties:
+        enforcement_override_result:
+          anyOf:
+            - type: object
+              additionalProperties: false
+              required:
+                - enforcement_override_result_id
+                - enforcement_override_result_title
+              properties:
+                enforcement_override_result_id:
+                  type: string
+                enforcement_override_result_title:
+                  type: string
+            - type: 'null'
+        enforcer:
+          anyOf:
+            - type: object
+              additionalProperties: false
+              required:
+                - enforcer_id
+                - enforcer_name
+              properties:
+                enforcer_id:
+                  type: integer
+                  format: int64
+                enforcer_name:
+                  type: string
+            - type: 'null'
+        lja:
+          anyOf:
+            - type: object
+              additionalProperties: false
+              required:
+                - lja_id
+                - lja_name
+              properties:
+                lja_id:
+                  type: integer
+                  format: int64
+                lja_code:
+                  type:
+                    - string
+                    - 'null'
+                lja_name:
+                  type: string
+            - type: 'null'
     consolidatedAccountDefendantAccount:
       title: Consolidated Account
       type: object

@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
@@ -23,6 +24,7 @@ import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
@@ -30,17 +32,7 @@ import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.ResultResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
-import uk.gov.hmcts.opal.dto.common.AddressDetails;
-import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
-import uk.gov.hmcts.opal.dto.common.EnforcementStatusSummary;
-import uk.gov.hmcts.opal.dto.common.IndividualAlias;
-import uk.gov.hmcts.opal.dto.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
-import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
-import uk.gov.hmcts.opal.dto.common.OrganisationAlias;
-import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
-import uk.gov.hmcts.opal.dto.common.PartyDetails;
-import uk.gov.hmcts.opal.dto.common.PaymentTermsSummary;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
@@ -52,13 +44,13 @@ import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddPaymentTermsLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.AddPaymentTermsLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountSearchCriteria;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
-import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyRequest;
-import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
@@ -72,12 +64,25 @@ import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LjaReference;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
-import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
+import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
+import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountAtAGlanceEnforcementOverrideDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountAtAGlanceEnforcementOverrideDefendantAccountEnforcementOverrideResult;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountAtAGlanceEnforcementOverrideDefendantAccountEnforcer;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountAtAGlanceEnforcementOverrideDefendantAccountLja;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountAtAGlanceEnforcementStatusSummaryDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountAtAGlanceInstalmentPeriodDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountAtAGlanceLanguagePreferenceDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountAtAGlanceLanguagePreferencesDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountAtAGlanceLastEnforcementActionDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountAtAGlancePaymentTermsSummaryDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountAtAGlancePaymentTermsTypeDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountAtAGlanceResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.AccountTypeEnum;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.DebtorTypeEnum;
@@ -219,8 +224,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .toDate(filter != null ? filter.getDateTo() : null)
             .itemTypes(filter == null || filter.getItemTypes() == null || filter.getItemTypes().isEmpty() ? null
                 : filter.getItemTypes().stream()
-                .map(LegacyDefendantAccountService::toLegacyHistoryItemType)
-                .toList())
+                    .map(LegacyDefendantAccountService::toLegacyHistoryItemType)
+                    .toList())
             .build();
     }
 
@@ -240,46 +245,46 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
             List<OrganisationAliasCommon> orgAliases = (legacyOrg != null && legacyOrg.getOrganisationAliases() != null)
                 ? Arrays.stream(legacyOrg.getOrganisationAliases())
-                  .filter(a -> a.getAliasId() != null && a.getOrganisationName() != null)
-                  .map(a -> OrganisationAliasCommon.builder()
-                            .aliasId(a.getAliasId())
-                            .sequenceNumber(a.getSequenceNumber() != null ? a.getSequenceNumber().intValue() : null)
-                            .organisationName(a.getOrganisationName())
-                            .build())
-                  .collect(Collectors.toList())
+                .filter(a -> a.getAliasId() != null && a.getOrganisationName() != null)
+                .map(a -> OrganisationAliasCommon.builder()
+                    .aliasId(a.getAliasId())
+                    .sequenceNumber(a.getSequenceNumber() != null ? a.getSequenceNumber().intValue() : null)
+                    .organisationName(a.getOrganisationName())
+                    .build())
+                .collect(Collectors.toList())
                 : Collections.emptyList();
 
             List<IndividualAliasCommon> indAliases = (legacyInd != null && legacyInd.getIndividualAliases() != null)
                 ? Arrays.stream(legacyInd.getIndividualAliases())
-                  .filter(a -> a.getAliasId() != null)
-                  .map(a -> IndividualAliasCommon.builder()
-                            .aliasId(a.getAliasId())
-                            .sequenceNumber(a.getSequenceNumber() != null ? a.getSequenceNumber().intValue() : null)
-                            .surname(a.getSurname())
-                            .forenames(a.getForenames())
-                            .build())
-                  .collect(Collectors.toList())
+                .filter(a -> a.getAliasId() != null)
+                .map(a -> IndividualAliasCommon.builder()
+                    .aliasId(a.getAliasId())
+                    .sequenceNumber(a.getSequenceNumber() != null ? a.getSequenceNumber().intValue() : null)
+                    .surname(a.getSurname())
+                    .forenames(a.getForenames())
+                    .build())
+                .collect(Collectors.toList())
                 : Collections.emptyList();
 
             OrganisationDetailsCommon opalOrg =
                 Boolean.TRUE.equals(legacyParty.getOrganisationFlag()) && legacyOrg != null
                     ? OrganisationDetailsCommon.builder()
-                      .organisationName(legacyOrg.getOrganisationName())
-                      .organisationAliases(orgAliases)
-                      .build()
+                    .organisationName(legacyOrg.getOrganisationName())
+                    .organisationAliases(orgAliases)
+                    .build()
                     : null;
 
             IndividualDetailsCommon opalInd =
                 !Boolean.TRUE.equals(legacyParty.getOrganisationFlag()) && legacyInd != null
                     ? IndividualDetailsCommon.builder()
-                      .title(legacyInd.getTitle())
-                      .forenames(legacyInd.getForenames())
-                      .surname(legacyInd.getSurname())
-                      .dateOfBirth(legacyInd.getDateOfBirth() != null ? legacyInd.getDateOfBirth().toString() : null)
-                      .age(legacyInd.getAge())
-                      .nationalInsuranceNumber(legacyInd.getNationalInsuranceNumber())
-                      .individualAliases(indAliases)
-                      .build()
+                    .title(legacyInd.getTitle())
+                    .forenames(legacyInd.getForenames())
+                    .surname(legacyInd.getSurname())
+                    .dateOfBirth(legacyInd.getDateOfBirth() != null ? legacyInd.getDateOfBirth().toString() : null)
+                    .age(legacyInd.getAge())
+                    .nationalInsuranceNumber(legacyInd.getNationalInsuranceNumber())
+                    .individualAliases(indAliases)
+                    .build()
                     : null;
 
             opalPartyDetails = PartyDetailsCommon.builder()
@@ -292,30 +297,30 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         BusinessUnitSummaryCommon bu = response.getBusinessUnitSummary() == null ? null
             : BusinessUnitSummaryCommon.builder()
-              .businessUnitId(Short.valueOf(response.getBusinessUnitSummary().getBusinessUnitId()))
-              .businessUnitName(response.getBusinessUnitSummary().getBusinessUnitName())
-              .welshSpeaking("N")
-              .build();
+                .businessUnitId(Short.valueOf(response.getBusinessUnitSummary().getBusinessUnitId()))
+                .businessUnitName(response.getBusinessUnitSummary().getBusinessUnitName())
+                .welshSpeaking("N")
+                .build();
 
         AccountStatusReferenceCommon status = response.getAccountStatusReference() == null ? null
             : AccountStatusReferenceCommon.builder()
-              .accountStatusCode(
-                  AccountStatusCodeEnum.fromValue(response.getAccountStatusReference().getAccountStatusCode()))
-              .accountStatusDisplayName(
-                  Optional.ofNullable(response.getAccountStatusReference().getAccountStatusDisplayName())
-                  .orElse(SpecificationUtils.mapAccountStatusDisplayName(
-                      response.getAccountStatusReference().getAccountStatusCode()))
-              )
-              .build();
+                .accountStatusCode(
+                    AccountStatusCodeEnum.fromValue(response.getAccountStatusReference().getAccountStatusCode()))
+                .accountStatusDisplayName(
+                    Optional.ofNullable(response.getAccountStatusReference().getAccountStatusDisplayName())
+                        .orElse(SpecificationUtils.mapAccountStatusDisplayName(
+                            response.getAccountStatusReference().getAccountStatusCode()))
+                )
+                .build();
 
         // ----- Payment State Summary (never null numbers) -----
         PaymentStateSummaryCommon pay = response.getPaymentStateSummary() == null ? null
             : PaymentStateSummaryCommon.builder()
-              .imposedAmount(toBigDecimalOrZero(response.getPaymentStateSummary().getImposedAmount()))
-              .arrearsAmount(toBigDecimalOrZero(response.getPaymentStateSummary().getArrearsAmount()))
-              .paidAmount(toBigDecimalOrZero(response.getPaymentStateSummary().getPaidAmount()))
-              .accountBalance(toBigDecimalOrZero(response.getPaymentStateSummary().getAccountBalance()))
-              .build();
+                .imposedAmount(toBigDecimalOrZero(response.getPaymentStateSummary().getImposedAmount()))
+                .arrearsAmount(toBigDecimalOrZero(response.getPaymentStateSummary().getArrearsAmount()))
+                .paidAmount(toBigDecimalOrZero(response.getPaymentStateSummary().getPaidAmount()))
+                .accountBalance(toBigDecimalOrZero(response.getPaymentStateSummary().getAccountBalance()))
+                .build();
 
         GetDefendantAccountHeaderSummary200Response defendantAccHeaderSummaryResponse =
             GetDefendantAccountHeaderSummary200Response.builder()
@@ -457,7 +462,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     }
 
     @Override
-    public DefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId) {
+    public GetDefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId) {
         log.info(":getAtAGlance: id: {}", defendantAccountId);
 
         Response<LegacyGetDefendantAccountAtAGlanceResponse> response = gatewayService.postToGateway(
@@ -471,34 +476,53 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
     }
 
-    private DefendantAccountAtAGlanceResponse toDefendantAtAGlanceResponse(
+    private GetDefendantAccountAtAGlanceResponse toDefendantAtAGlanceResponse(
         LegacyGetDefendantAccountAtAGlanceResponse src) {
         if (src == null) {
             return null;
         }
 
-        return DefendantAccountAtAGlanceResponse.builder()
-            .defendantAccountId(src.getDefendantAccountId())
-            .accountNumber(src.getAccountNumber())
-            .debtorType(src.getDebtorType())
-            .isYouth(src.isYouth())
-            .partyDetails(toPartyDetails(src.getPartyDetails()))
-            .addressDetails(toAddress(src.getAddress()))
-            .languagePreferences(toLanguagePreferences(src.getLanguagePreferences()))
-            .paymentTermsSummary(toPaymentTermsFromSummary(src.getPaymentTermsSummary()))
-            .enforcementStatus(toEnforcementStatus(src.getEnforcementStatusSummary()))
-            .commentsAndNotes(toComments(src.getCommentsAndNotes()))
+        return GetDefendantAccountAtAGlanceResponse.builder()
+            .payload(DefendantAccountAtAGlanceResponseDefendantAccount.builder()
+                .defendantAccountId(src.getDefendantAccountId())
+                .accountNumber(src.getAccountNumber())
+                .debtorType(toDebtorType(src.getDebtorType()))
+                .isYouth(src.isYouth())
+                .partyDetails(toPartyDetails(src.getPartyDetails()))
+                .address(toAddress(src.getAddress()))
+                .languagePreferences(src.getLanguagePreferences() == null
+                    ? JsonNullable.undefined()
+                    : JsonNullable.of(toLanguagePreferences(src.getLanguagePreferences())))
+                .paymentTerms(toPaymentTermsFromSummary(src.getPaymentTermsSummary()))
+                .enforcementStatus(toEnforcementStatus(src.getEnforcementStatusSummary()))
+                .commentsAndNotes(src.getCommentsAndNotes() == null
+                    ? JsonNullable.undefined()
+                    : JsonNullable.of(toComments(src.getCommentsAndNotes())))
+                .build())
             .version(BigInteger.valueOf(src.getVersion()))
             .build();
     }
 
-    private PartyDetails toPartyDetails(
+    private DefendantAccountAtAGlanceResponseDefendantAccount.DebtorTypeEnum toDebtorType(String debtorType) {
+        if (debtorType == null) {
+            return null;
+        }
+
+        return switch (debtorType) {
+            case "PERSON", "Defendant" -> DefendantAccountAtAGlanceResponseDefendantAccount.DebtorTypeEnum.DEFENDANT;
+            case "PARENT/GUARDIAN", "Parent/Guardian" ->
+                DefendantAccountAtAGlanceResponseDefendantAccount.DebtorTypeEnum.PARENT_GUARDIAN;
+            default -> DefendantAccountAtAGlanceResponseDefendantAccount.DebtorTypeEnum.fromValue(debtorType);
+        };
+    }
+
+    private PartyDetailsCommon toPartyDetails(
         LegacyPartyDetails src) {
         if (src == null) {
             return null;
         }
         Boolean org = src.getOrganisationFlag();
-        return PartyDetails.builder()
+        return PartyDetailsCommon.builder()
             .partyId(src.getPartyId())
             .organisationFlag(org)
             .organisationDetails(Boolean.TRUE.equals(org) ? toOrganisationDetails(src.getOrganisationDetails()) : null)
@@ -506,12 +530,12 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .build();
     }
 
-    private OrganisationDetails toOrganisationDetails(
+    private OrganisationDetailsCommon toOrganisationDetails(
         uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails src) {
         if (src == null) {
             return null;
         }
-        List<OrganisationAlias> aliases = Optional
+        List<OrganisationAliasCommon> aliases = Optional
             .ofNullable(src.getOrganisationAliases())
             .map(Arrays::asList)
             .orElseGet(List::of)
@@ -520,31 +544,31 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .filter(Objects::nonNull)
             .toList();
 
-        return OrganisationDetails.builder()
+        return OrganisationDetailsCommon.builder()
             .organisationName(src.getOrganisationName())
             .organisationAliases(aliases.isEmpty() ? null : aliases)
             .build();
     }
 
-    private OrganisationAlias toOrganisationAlias(
+    private OrganisationAliasCommon toOrganisationAlias(
         uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias el) {
         if (el == null) {
             return null;
         }
-        return OrganisationAlias.builder()
+        return OrganisationAliasCommon.builder()
             .aliasId(el.getAliasId())
             .sequenceNumber(el.getSequenceNumber() == null ? null : el.getSequenceNumber().intValue())
             .organisationName(el.getOrganisationName())
             .build();
     }
 
-    private IndividualDetails toIndividualDetails(
+    private IndividualDetailsCommon toIndividualDetails(
         uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails src) {
         if (src == null) {
             return null;
         }
 
-        List<IndividualAlias> aliases = Optional
+        List<IndividualAliasCommon> aliases = Optional
             .ofNullable(src.getIndividualAliases())
             .map(Arrays::asList)
             .orElseGet(List::of)
@@ -553,7 +577,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .filter(Objects::nonNull)
             .toList();
 
-        return IndividualDetails.builder()
+        return IndividualDetailsCommon.builder()
             .title(src.getTitle())
             .forenames(src.getForenames())
             .surname(src.getSurname())
@@ -564,12 +588,12 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .build();
     }
 
-    private IndividualAlias toIndividualAlias(
+    private IndividualAliasCommon toIndividualAlias(
         uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.IndividualAlias el) {
         if (el == null) {
             return null;
         }
-        return IndividualAlias.builder()
+        return IndividualAliasCommon.builder()
             .aliasId(el.getAliasId())
             .sequenceNumber(el.getSequenceNumber() == null ? null : el.getSequenceNumber().intValue())
             .surname(el.getSurname())
@@ -577,12 +601,12 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .build();
     }
 
-    private AddressDetails toAddress(
+    private AddressDetailsCommon toAddress(
         AddressDetailsLegacy src) {
         if (src == null) {
             return null;
         }
-        return AddressDetails.builder()
+        return AddressDetailsCommon.builder()
             .addressLine1(src.getAddressLine1())
             .addressLine2(src.getAddressLine2())
             .addressLine3(src.getAddressLine3())
@@ -592,7 +616,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .build();
     }
 
-    private LanguagePreferences toLanguagePreferences(
+    private DefendantAccountAtAGlanceLanguagePreferencesDefendantAccount toLanguagePreferences(
         uk.gov.hmcts.opal.dto.legacy.common.LanguagePreferences src) {
         if (src == null) {
             return null;
@@ -608,10 +632,26 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 ::getHearingLanguageCode)
             .orElse(null);
 
-        return LanguagePreferences.ofCodes(docCode, hearingCode);
+        return DefendantAccountAtAGlanceLanguagePreferencesDefendantAccount.builder()
+            .documentLanguagePreference(toLanguagePreference(docCode))
+            .hearingLanguagePreference(toLanguagePreference(hearingCode))
+            .build();
     }
 
-    private PaymentTermsSummary toPaymentTermsFromSummary(
+    private DefendantAccountAtAGlanceLanguagePreferenceDefendantAccount toLanguagePreference(String code) {
+        if (code == null) {
+            return null;
+        }
+
+        return DefendantAccountAtAGlanceLanguagePreferenceDefendantAccount.builder()
+            .languageCode(DefendantAccountAtAGlanceLanguagePreferenceDefendantAccount.LanguageCodeEnum.fromValue(code))
+            .languageDisplayName(
+                DefendantAccountAtAGlanceLanguagePreferenceDefendantAccount.LanguageDisplayNameEnum.fromValue(
+                    "CY".equals(code) ? "Welsh and English" : "English only"))
+            .build();
+    }
+
+    private DefendantAccountAtAGlancePaymentTermsSummaryDefendantAccount toPaymentTermsFromSummary(
         uk.gov.hmcts.opal.dto.legacy.common.PaymentTermsSummary src) {
         if (src == null) {
             return null;
@@ -627,41 +667,125 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .map(Enum::name)
             .orElse(null);
 
-        return PaymentTermsSummary.builder()
-            .paymentTermsType(typeCode == null ? null : PaymentTermsType.fromCode(typeCode))
-            .effectiveDate(src.getEffectiveDate())
-            .instalmentPeriod(instalmentCode == null ? null : InstalmentPeriod.fromCode(instalmentCode))
-            .lumpSumAmount(src.getLumpSumAmount())
-            .instalmentAmount(src.getInstalmentAmount())
+        return DefendantAccountAtAGlancePaymentTermsSummaryDefendantAccount.builder()
+            .paymentTermsType(toGeneratedPaymentTermsType(typeCode))
+            .effectiveDate(JsonNullable.of(src.getEffectiveDate()))
+            .instalmentPeriod(instalmentCode == null
+                ? JsonNullable.undefined()
+                : JsonNullable.of(toGeneratedInstalmentPeriod(instalmentCode)))
+            .lumpSumAmount(JsonNullable.of(src.getLumpSumAmount()))
+            .instalmentAmount(JsonNullable.of(src.getInstalmentAmount()))
             .build();
     }
 
-    private EnforcementStatusSummary toEnforcementStatus(
+    private DefendantAccountAtAGlancePaymentTermsTypeDefendantAccount toGeneratedPaymentTermsType(String code) {
+        if (code == null) {
+            return null;
+        }
+
+        return DefendantAccountAtAGlancePaymentTermsTypeDefendantAccount.builder()
+            .paymentTermsTypeCode(
+                DefendantAccountAtAGlancePaymentTermsTypeDefendantAccount.PaymentTermsTypeCodeEnum.fromValue(code))
+            .paymentTermsTypeDisplayName(
+                DefendantAccountAtAGlancePaymentTermsTypeDefendantAccount.PaymentTermsTypeDisplayNameEnum.fromValue(
+                    switch (code) {
+                        case "B" -> "By date";
+                        case "P" -> "Paid";
+                        case "I" -> "Instalments";
+                        default -> throw new IllegalArgumentException("Invalid payment terms type code: " + code);
+                    }))
+            .build();
+    }
+
+    private DefendantAccountAtAGlanceInstalmentPeriodDefendantAccount toGeneratedInstalmentPeriod(String code) {
+        if (code == null) {
+            return null;
+        }
+
+        return DefendantAccountAtAGlanceInstalmentPeriodDefendantAccount.builder()
+            .instalmentPeriodCode(
+                DefendantAccountAtAGlanceInstalmentPeriodDefendantAccount.InstalmentPeriodCodeEnum.fromValue(code))
+            .instalmentPeriodDisplayName(
+                DefendantAccountAtAGlanceInstalmentPeriodDefendantAccount.InstalmentPeriodDisplayNameEnum.fromValue(
+                    switch (code) {
+                        case "W" -> "Weekly";
+                        case "M" -> "Monthly";
+                        case "F" -> "Fortnightly";
+                        default -> throw new IllegalArgumentException("Invalid instalment period code: " + code);
+                    }))
+            .build();
+    }
+
+    private DefendantAccountAtAGlanceEnforcementStatusSummaryDefendantAccount toEnforcementStatus(
         uk.gov.hmcts.opal.dto.legacy.common.EnforcementStatusSummary src) {
         if (src == null) {
             return null;
         }
 
-        return EnforcementStatusSummary.builder()
-            .lastEnforcementAction(src.getLastEnforcementAction())
+        return DefendantAccountAtAGlanceEnforcementStatusSummaryDefendantAccount.builder()
+            .lastEnforcementAction(src.getLastEnforcementAction() == null
+                ? JsonNullable.undefined()
+                : JsonNullable.of(toLastEnforcementAction(src.getLastEnforcementAction())))
             .collectionOrderMade(src.getCollectionOrderMade())
-            .defaultDaysInJail(src.getDefaultDaysInJail())
-            .enforcementOverride(src.getEnforcementOverride())
-            .lastMovementDate(src.getLastMovementDate()) // LocalDate
+            .defaultDaysInJail(JsonNullable.of(src.getDefaultDaysInJail()))
+            .enforcementOverride(src.getEnforcementOverride() == null
+                ? JsonNullable.undefined()
+                : JsonNullable.of(toEnforcementOverride(src.getEnforcementOverride())))
+            .lastMovementDate(JsonNullable.of(src.getLastMovementDate()))
             .build();
     }
 
-    private CommentsAndNotes toComments(
+    private DefendantAccountAtAGlanceLastEnforcementActionDefendantAccount toLastEnforcementAction(
+        uk.gov.hmcts.opal.dto.common.LastEnforcementAction src) {
+        if (src == null) {
+            return null;
+        }
+
+        return DefendantAccountAtAGlanceLastEnforcementActionDefendantAccount.builder()
+            .lastEnforcementActionId(src.getLastEnforcementActionId())
+            .lastEnforcementActionTitle(JsonNullable.of(src.getLastEnforcementActionTitle()))
+            .build();
+    }
+
+    private DefendantAccountAtAGlanceEnforcementOverrideDefendantAccount toEnforcementOverride(
+        uk.gov.hmcts.opal.dto.common.EnforcementOverride src) {
+        if (src == null) {
+            return null;
+        }
+
+        return DefendantAccountAtAGlanceEnforcementOverrideDefendantAccount.builder()
+            .enforcementOverrideResult(src.getEnforcementOverrideResult() == null
+                ? JsonNullable.undefined()
+                : JsonNullable.of(DefendantAccountAtAGlanceEnforcementOverrideDefendantAccountEnforcementOverrideResult
+                    .builder()
+                    .enforcementOverrideResultId(src.getEnforcementOverrideResult().getEnforcementOverrideId())
+                    .enforcementOverrideResultTitle(src.getEnforcementOverrideResult().getEnforcementOverrideTitle())
+                    .build()))
+            .enforcer(src.getEnforcer() == null ? JsonNullable.undefined()
+                : JsonNullable.of(DefendantAccountAtAGlanceEnforcementOverrideDefendantAccountEnforcer.builder()
+                    .enforcerId(src.getEnforcer().getEnforcerId())
+                    .enforcerName(src.getEnforcer().getEnforcerName())
+                    .build()))
+            .lja(src.getLja() == null ? JsonNullable.undefined()
+                : JsonNullable.of(DefendantAccountAtAGlanceEnforcementOverrideDefendantAccountLja.builder()
+                    .ljaId(src.getLja().getLjaId() == null ? null : src.getLja().getLjaId().longValue())
+                    .ljaCode(src.getLja().getLjaCode())
+                    .ljaName(src.getLja().getLjaName())
+                    .build()))
+            .build();
+    }
+
+    private CommentsAndNotesCommon toComments(
         uk.gov.hmcts.opal.dto.legacy.common.CommentsAndNotes src) {
         if (src == null) {
             return null;
         }
 
-        return CommentsAndNotes.builder()
-            .accountNotesAccountComments(src.getAccountComment())
-            .accountNotesFreeTextNote1(src.getFreeTextNote1())
-            .accountNotesFreeTextNote2(src.getFreeTextNote2())
-            .accountNotesFreeTextNote3(src.getFreeTextNote3())
+        return CommentsAndNotesCommon.builder()
+            .accountComment(src.getAccountComment())
+            .freeTextNote1(src.getFreeTextNote1())
+            .freeTextNote2(src.getFreeTextNote2())
+            .freeTextNote3(src.getFreeTextNote3())
             .build();
     }
 
