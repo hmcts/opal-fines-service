@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:reference-data @JIRA-LABEL:authentication-authorisation
+@Opal @JIRA-LABEL:reference-data @JIRA-LABEL:authentication-authorisation @R1CReferenceData
 Feature: Central Funds Reference Data
 
   # Ignored because deployed environments do not currently contain the Central Fund

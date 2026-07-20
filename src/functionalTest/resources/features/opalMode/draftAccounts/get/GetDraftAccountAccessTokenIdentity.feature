@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:manual-account-creation
+@Opal @JIRA-LABEL:manual-account-creation @R1A
 Feature: Draft Account Access Token Identity
 
   Background:

@@ -9,7 +9,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,12 +17,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.debtordetail.Language;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
-@Slf4j(topic = "opal.OpalDefendantsPostPartyIntegrationTest")
-class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
+@Slf4j(topic = "opal.DefendantPartyPostIntegrationTest")
+class DefendantPartyPostIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
 
     private static final long ACCOUNT_ID = 24010L;
     private static final String BU_ID = "78";
@@ -238,17 +238,14 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
             "$.defendant_account_party.party_details.party_id");
         assertNotNull(newPartyId);
 
-        Map<String, Object> debtorRow = jdbcTemplate.queryForMap(
-            "SELECT party_id, vehicle_make, vehicle_registration, employer_name, employer_address_line_1, "
-                + "document_language FROM debtor_detail WHERE party_id = ?",
-            Long.parseLong(newPartyId));
+        var debtorDetail = debtorDetailFor(Long.parseLong(newPartyId));
 
-        assertEquals(Long.parseLong(newPartyId), ((Number) debtorRow.get("party_id")).longValue());
-        assertEquals("Ford Focus", debtorRow.get("vehicle_make"));
-        assertEquals("PO11 TST", debtorRow.get("vehicle_registration"));
-        assertEquals("Post Corp", debtorRow.get("employer_name"));
-        assertEquals("10 Corp Ave", debtorRow.get("employer_address_line_1"));
-        assertEquals("EN", debtorRow.get("document_language"));
+        assertEquals(Long.parseLong(newPartyId), debtorDetail.getPartyId());
+        assertEquals("Ford Focus", debtorDetail.getVehicleMake());
+        assertEquals("PO11 TST", debtorDetail.getVehicleRegistration());
+        assertEquals("Post Corp", debtorDetail.getEmployerName());
+        assertEquals("10 Corp Ave", debtorDetail.getEmployerAddressLine1());
+        assertEquals(Language.ENGLISH, debtorDetail.getDocumentLanguage());
 
         Integer updatedVersion = versionFor(ACCOUNT_ID);
         assertEquals(currentVersion + 1, updatedVersion);
@@ -332,14 +329,7 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
         Integer versionAfter = versionFor(ACCOUNT_ID);
         assertEquals(versionBefore + 2, versionAfter);
 
-        Integer partyCount = jdbcTemplate.queryForObject(
-            "SELECT COUNT(*) FROM defendant_account_parties dap "
-                + "JOIN parties p ON p.party_id = dap.party_id "
-                + "WHERE dap.defendant_account_id = ? "
-                + "AND p.organisation_name IN ('SeqPostCo 1', 'SeqPostCo 2')",
-            Integer.class, ACCOUNT_ID);
-        assertNotNull(partyCount);
-        assertEquals(2, partyCount);
+        assertEquals(2, partyCountForOrganisations(ACCOUNT_ID, "SeqPostCo 1", "SeqPostCo 2"));
     }
 
     @Test
@@ -382,18 +372,11 @@ class OpalDefendantsPostPartyIntegrationTest extends AbstractOpalDefendantsInteg
             "$.defendant_account_party.party_details.party_id");
         assertNotNull(newPartyId);
 
-        Integer debtorRowCount = jdbcTemplate.queryForObject(
-            "SELECT COUNT(*) FROM debtor_detail WHERE party_id = ?",
-            Integer.class, Long.parseLong(newPartyId));
-        assertEquals(1, debtorRowCount);
+        var debtorDetail = debtorDetailFor(Long.parseLong(newPartyId));
 
-        Map<String, Object> debtorRow = jdbcTemplate.queryForMap(
-            "SELECT vehicle_make, vehicle_registration, employer_name FROM debtor_detail WHERE party_id = ?",
-            Long.parseLong(newPartyId));
-
-        assertNull(debtorRow.get("vehicle_make"));
-        assertNull(debtorRow.get("vehicle_registration"));
-        assertNull(debtorRow.get("employer_name"));
+        assertNull(debtorDetail.getVehicleMake());
+        assertNull(debtorDetail.getVehicleRegistration());
+        assertNull(debtorDetail.getEmployerName());
     }
 
     @Test

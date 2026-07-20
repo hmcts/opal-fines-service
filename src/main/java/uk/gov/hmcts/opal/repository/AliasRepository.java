@@ -14,5 +14,9 @@ public interface AliasRepository extends JpaRepository<AliasEntity, Long>, JpaSp
 
     List<AliasEntity> findByParty_PartyId(Long partyId);
 
+    List<AliasEntity> findByParty_PartyIdOrderBySequenceNumberAsc(Long partyId);
+
+    int countByParty_PartyIdAndAliasId(Long partyId, Long aliasId);
+
     void deleteByParty_PartyIdAndAliasIdNotIn(Long partyId, Collection<Long> keepIds);
 }

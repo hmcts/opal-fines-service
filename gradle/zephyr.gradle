@@ -40,10 +40,15 @@ Map<String, Map<String, Object>> functionalZephyrTargets = [
                 testFolder: "functionalTest/resources",
                 syncTask  : "syncR1AOnlyTaggedFunctionalArtifactsFromExistingResults",
         ],
-        runR1AOff: [
-                reportPath: "functional-output-r1a-off-demo/zephyr/cucumber-opal-tags.json",
+        runR1AAndR1BOnly: [
+                reportPath: "functional-output-r1a-r1b-only-demo/zephyr/cucumber-opal-tags.json",
                 testFolder: "functionalTest/resources",
-                syncTask  : "syncR1AOffTaggedFunctionalArtifactsFromExistingResults",
+                syncTask  : "syncR1AAndR1BTaggedFunctionalArtifactsFromExistingResults",
+        ],
+        runAllFlagsOff: [
+                reportPath: "functional-output-all-flags-off-demo/zephyr/cucumber-opal-tags.json",
+                testFolder: "functionalTest/resources",
+                syncTask  : "syncAllFlagsOffTaggedFunctionalArtifactsFromExistingResults",
         ],
 ]
 
@@ -126,17 +131,17 @@ void configureIntegrationZephyrTask(JavaExec task, String actionType, String des
 
 tasks.register('createJiraTicketsFromFunctionalReport', JavaExec) { JavaExec task ->
     configureFunctionalZephyrTask(task, "CREATE_TICKETS",
-            "Creates and links Jira tickets from the selected functional-family Zephyr report. Requires -PzephyrFunctionalStage=functional|smoke|runR1AOnly|runR1AOff")
+            "Creates and links Jira tickets from the selected functional-family Zephyr report. Requires -PzephyrFunctionalStage=functional|smoke|runR1AOnly|runR1AAndR1BOnly|runAllFlagsOff")
 }
 
 tasks.register('updateJiraTicketsFromFunctionalReport', JavaExec) { JavaExec task ->
     configureFunctionalZephyrTask(task, "UPDATE_TICKETS",
-            "Updates Jira tickets from the selected functional-family Zephyr report. Requires -PzephyrFunctionalStage=functional|smoke|runR1AOnly|runR1AOff")
+            "Updates Jira tickets from the selected functional-family Zephyr report. Requires -PzephyrFunctionalStage=functional|smoke|runR1AOnly|runR1AAndR1BOnly|runAllFlagsOff")
 }
 
 tasks.register('createJiraExecutionFromFunctionalReport', JavaExec) { JavaExec task ->
     configureFunctionalZephyrTask(task, "CREATE_EXECUTION",
-            "Creates a Zephyr execution from the selected functional-family Zephyr report. Requires -PzephyrFunctionalStage=functional|smoke|runR1AOnly|runR1AOff")
+            "Creates a Zephyr execution from the selected functional-family Zephyr report. Requires -PzephyrFunctionalStage=functional|smoke|runR1AOnly|runR1AAndR1BOnly|runAllFlagsOff")
 }
 
 tasks.register('createJiraTicketsFromIntegrationReport', JavaExec) { JavaExec task ->

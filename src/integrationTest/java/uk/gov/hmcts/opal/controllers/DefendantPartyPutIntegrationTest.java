@@ -13,7 +13,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -24,12 +23,16 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.AliasEntity;
+import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
+import uk.gov.hmcts.opal.entity.debtordetail.Language;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
-@Slf4j(topic = "opal.OpalDefendantsPutPartyIntegrationTest")
-class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
+@Slf4j(topic = "opal.DefendantPartyPutIntegrationTest")
+class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
 
     @Test
     @DisplayName("OPAL: PUT Replace DAP – Not Found (account not in BU)")
@@ -228,23 +231,21 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
 
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList(
-            "SELECT alias_id, sequence_number, forenames, surname, organisation_name "
-                + "FROM aliases WHERE party_id = ? ORDER BY sequence_number", 22004L);
+        List<AliasEntity> aliases = aliasesForParty(22004L);
 
-        assertEquals(2, rows.size());
-        assertEquals(1, ((Number) rows.get(0).get("sequence_number")).intValue());
-        assertEquals(2200401L, ((Number) rows.get(0).get("alias_id")).longValue());
-        assertEquals("Jane", rows.get(0).get("forenames"));
-        assertEquals("Doe", rows.get(0).get("surname"));
-        assertNull(rows.get(0).get("organisation_name"));
+        assertEquals(2, aliases.size());
+        assertEquals(1, aliases.get(0).getSequenceNumber());
+        assertEquals(2200401L, aliases.get(0).getAliasId());
+        assertEquals("Jane", aliases.get(0).getForenames());
+        assertEquals("Doe", aliases.get(0).getSurname());
+        assertNull(aliases.get(0).getOrganisationName());
 
-        assertEquals(2, ((Number) rows.get(1).get("sequence_number")).intValue());
-        assertNotNull(rows.get(1).get("alias_id"));
-        assertNotEquals(2200401L, ((Number) rows.get(1).get("alias_id")).longValue());
-        assertEquals("J.", rows.get(1).get("forenames"));
-        assertEquals("Smith", rows.get(1).get("surname"));
-        assertNull(rows.get(1).get("organisation_name"));
+        assertEquals(2, aliases.get(1).getSequenceNumber());
+        assertNotNull(aliases.get(1).getAliasId());
+        assertNotEquals(2200401L, aliases.get(1).getAliasId());
+        assertEquals("J.", aliases.get(1).getForenames());
+        assertEquals("Smith", aliases.get(1).getSurname());
+        assertNull(aliases.get(1).getOrganisationName());
 
         Integer updatedVersion = versionFor(22004L);
         assertEquals(currentVersion + 1, updatedVersion);
@@ -310,33 +311,27 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
 
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList(
-            "SELECT alias_id, sequence_number, organisation_name, surname, forenames "
-                + "FROM aliases WHERE party_id = ? ORDER BY sequence_number ASC", 20010L);
+        List<AliasEntity> aliases = aliasesForParty(20010L);
 
-        assertEquals(2, rows.size(), "Expected exactly 2 aliases after upsert+trim");
+        assertEquals(2, aliases.size(), "Expected exactly 2 aliases after upsert+trim");
 
-        Map<String, Object> r0 = rows.get(0);
-        assertEquals(2, ((Number) r0.get("sequence_number")).intValue());
-        assertEquals(200101L, ((Number) r0.get("alias_id")).longValue());
-        assertEquals("PutCo Alias One (updated)", r0.get("organisation_name"));
-        assertNull(r0.get("surname"));
-        assertNull(r0.get("forenames"));
+        AliasEntity firstAlias = aliases.get(0);
+        assertEquals(2, firstAlias.getSequenceNumber());
+        assertEquals(200101L, firstAlias.getAliasId());
+        assertEquals("PutCo Alias One (updated)", firstAlias.getOrganisationName());
+        assertNull(firstAlias.getSurname());
+        assertNull(firstAlias.getForenames());
 
-        Map<String, Object> r1 = rows.get(1);
-        assertEquals(3, ((Number) r1.get("sequence_number")).intValue());
-        Long newId = ((Number) r1.get("alias_id")).longValue();
+        AliasEntity secondAlias = aliases.get(1);
+        assertEquals(3, secondAlias.getSequenceNumber());
+        Long newId = secondAlias.getAliasId();
         assertNotNull(newId);
         assertNotEquals(200102L, newId, "Omitted alias 200102 must have been deleted");
-        assertEquals("PutCo Alias Three (new)", r1.get("organisation_name"));
-        assertNull(r1.get("surname"));
-        assertNull(r1.get("forenames"));
+        assertEquals("PutCo Alias Three (new)", secondAlias.getOrganisationName());
+        assertNull(secondAlias.getSurname());
+        assertNull(secondAlias.getForenames());
 
-        Integer stillThere =
-            jdbcTemplate.queryForObject("SELECT COUNT(*) FROM aliases WHERE party_id = ? AND alias_id = 200102",
-                Integer.class, 20010L);
-
-        assertEquals(0, stillThere, "Alias 200102 should be trimmed");
+        assertEquals(0, aliasCountFor(20010L, 200102L), "Alias 200102 should be trimmed");
 
         Integer updatedVersion = versionFor(20010L);
         assertEquals(currentVersion + 1, updatedVersion);
@@ -396,16 +391,13 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
 
-        Map<String, Object> row = jdbcTemplate.queryForMap(
-            "SELECT party_id, vehicle_make, vehicle_registration, employer_name, document_language "
-                + "FROM debtor_detail WHERE party_id = ?",
-            20010L);
+        var debtorDetail = debtorDetailFor(20010L);
 
-        assertEquals(20010L, ((Number) row.get("party_id")).longValue());
-        assertNull(row.get("vehicle_make"), "vehicle_make should be cleared to null");
-        assertNull(row.get("vehicle_registration"), "vehicle_registration should be cleared to null");
-        assertNull(row.get("employer_name"), "employer_name should be cleared to null");
-        assertNull(row.get("document_language"), "document_language should be cleared to null");
+        assertEquals(20010L, debtorDetail.getPartyId());
+        assertNull(debtorDetail.getVehicleMake(), "vehicle_make should be cleared to null");
+        assertNull(debtorDetail.getVehicleRegistration(), "vehicle_registration should be cleared to null");
+        assertNull(debtorDetail.getEmployerName(), "employer_name should be cleared to null");
+        assertNull(debtorDetail.getDocumentLanguage(), "document_language should be cleared to null");
 
         Integer updatedVersion = versionFor(20010L);
         assertEquals(currentVersion + 1, updatedVersion);
@@ -471,18 +463,14 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
 
-        Map<String, Object> row = jdbcTemplate.queryForMap(
-            "SELECT party_id, vehicle_make, vehicle_registration, "
-                + "employer_name, employer_address_line_1, employee_reference, employer_telephone, "
-                + "employer_email, document_language FROM debtor_detail WHERE party_id = ?",
-            20010L);
+        var debtorDetail = debtorDetailFor(20010L);
 
-        assertEquals(20010L, ((Number) row.get("party_id")).longValue());
-        assertEquals("VW Golf", row.get("vehicle_make"));
-        assertEquals("PU70ABC", row.get("vehicle_registration"));
-        assertEquals("Put Employer", row.get("employer_name"));
-        assertEquals("1 Employer Way", row.get("employer_address_line_1"));
-        assertEquals("EN", row.get("document_language"));
+        assertEquals(20010L, debtorDetail.getPartyId());
+        assertEquals("VW Golf", debtorDetail.getVehicleMake());
+        assertEquals("PU70ABC", debtorDetail.getVehicleRegistration());
+        assertEquals("Put Employer", debtorDetail.getEmployerName());
+        assertEquals("1 Employer Way", debtorDetail.getEmployerAddressLine1());
+        assertEquals(Language.ENGLISH, debtorDetail.getDocumentLanguage());
 
         Integer updatedVersion = versionFor(20010L);
         assertEquals(currentVersion + 1, updatedVersion);
@@ -495,10 +483,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-6064")
     void put_convertIndividualToOrganisation_removesParentGuardianParty() throws Exception {
-        Integer parentGuardianCountBefore = jdbcTemplate.queryForObject(
-            "SELECT COUNT(*) FROM defendant_account_parties "
-                + "WHERE defendant_account_id = 20010 AND association_type = 'Parent/Guardian'",
-            Integer.class);
+        int parentGuardianCountBefore = partyAssociationCountFor(20010L, AssociationType.PARENT_GUARDIAN);
         assertEquals(1, parentGuardianCountBefore);
 
         Integer currentVersion = versionFor(20010L);
@@ -534,10 +519,7 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
             .andExpect(header().string(HttpHeaders.ETAG, "\"" + (currentVersion + 1) + "\""))
             .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
 
-        Integer parentGuardianCountAfter = jdbcTemplate.queryForObject(
-            "SELECT COUNT(*) FROM defendant_account_parties "
-                + "WHERE defendant_account_id = 20010 AND association_type = 'Parent/Guardian'",
-            Integer.class);
+        int parentGuardianCountAfter = partyAssociationCountFor(20010L, AssociationType.PARENT_GUARDIAN);
         assertEquals(0, parentGuardianCountAfter);
     }
 
@@ -605,17 +587,14 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
 
-            List<Map<String, Object>> rows = jdbcTemplate.queryForList(
-                "SELECT * FROM amendments WHERE associated_record_id = '22005'");
+            List<AmendmentEntity> amendments = defendantAccountAmendmentsFor(22005L);
 
-            assertEquals(1, rows.size());
-            assertEquals("Mr SeedForenames22005 SeedSurname22005", rows.get(0).get("old_value"));
-            assertEquals("Mr Changed Forenames SeedSurname22005", rows.get(0).get("new_value"));
-            assertAuditIdentity(rows);
+            assertEquals(1, amendments.size());
+            assertAmendment(amendments.getFirst(), "Mr SeedForenames22005 SeedSurname22005",
+                "Mr Changed Forenames SeedSurname22005");
+            assertAuditIdentity(amendments);
 
-            List<Map<String, Object>> defendants = jdbcTemplate.queryForList(
-                "SELECT last_changed_date FROM defendant_accounts WHERE defendant_account_id = '22005'");
-            assertNotNull(defendants.getFirst().get("last_changed_date"));
+            assertNotNull(lastChangedDateFor(22005L));
 
             Integer updatedVersion = versionFor(22005L);
             assertEquals(currentVersion + 1, updatedVersion);
@@ -666,16 +645,12 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
 
-            List<Map<String, Object>> rows = jdbcTemplate.queryForList(
-                "SELECT * FROM amendments WHERE associated_record_id = '22006'");
+            List<AmendmentEntity> amendments = defendantAccountAmendmentsFor(22006L);
 
-            assertEquals(1, rows.size());
-            assertEquals("Seed Org", rows.get(0).get("old_value"));
-            assertEquals("Changed Org", rows.get(0).get("new_value"));
+            assertEquals(1, amendments.size());
+            assertAmendment(amendments.getFirst(), "Seed Org", "Changed Org");
 
-            List<Map<String, Object>> defendants = jdbcTemplate.queryForList(
-                "SELECT last_changed_date FROM defendant_accounts WHERE defendant_account_id = '22006'");
-            assertNotNull(defendants.getFirst().get("last_changed_date"));
+            assertNotNull(lastChangedDateFor(22006L));
 
             Integer updatedVersion = versionFor(22006L);
             assertEquals(currentVersion + 1, updatedVersion);
@@ -727,32 +702,31 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
 
-            List<Map<String, Object>> rows = jdbcTemplate.queryForList(
-                "SELECT * FROM amendments WHERE associated_record_id = '22006'");
+            List<AmendmentEntity> amendments = defendantAccountAmendmentsFor(22006L);
 
-            assertEquals(3, rows.size());
-            assertEquals("Seed Org", rows.get(0).get("old_value"));
-            assertEquals("Changed Org", rows.get(0).get("new_value"));
-            assertEquals("Seed Address 22006", rows.get(1).get("old_value"));
-            assertEquals("Changed Address 22006", rows.get(1).get("new_value"));
-            assertEquals("SE2 0AA", rows.get(2).get("old_value"));
-            assertEquals("SE3 0BB", rows.get(2).get("new_value"));
-            assertAuditIdentity(rows);
+            assertEquals(3, amendments.size());
+            assertAmendment(amendments.get(0), "Seed Org", "Changed Org");
+            assertAmendment(amendments.get(1), "Seed Address 22006", "Changed Address 22006");
+            assertAmendment(amendments.get(2), "SE2 0AA", "SE3 0BB");
+            assertAuditIdentity(amendments);
 
 
-            List<Map<String, Object>> defendants = jdbcTemplate.queryForList(
-                "SELECT last_changed_date FROM defendant_accounts WHERE defendant_account_id = '22006'");
-            assertNotNull(defendants.getFirst().get("last_changed_date"));
+            assertNotNull(lastChangedDateFor(22006L));
 
             Integer updatedVersion = versionFor(22006L);
             assertEquals(currentVersion + 1, updatedVersion);
         }
 
-        private void assertAuditIdentity(List<Map<String, Object>> rows) {
-            for (Map<String, Object> row : rows) {
-                assertEquals(EXPECTED_AMENDED_BY, row.get("amended_by"));
-                assertEquals(EXPECTED_AMENDED_BY_NAME, row.get("amended_by_name"));
+        private void assertAuditIdentity(List<AmendmentEntity> amendments) {
+            for (AmendmentEntity amendment : amendments) {
+                assertEquals(EXPECTED_AMENDED_BY, amendment.getAmendedBy());
+                assertEquals(EXPECTED_AMENDED_BY_NAME, amendment.getAmendedByName());
             }
+        }
+
+        private void assertAmendment(AmendmentEntity amendment, String expectedOldValue, String expectedNewValue) {
+            assertEquals(expectedOldValue, amendment.getOldValue());
+            assertEquals(expectedNewValue, amendment.getNewValue());
         }
 
         @Test
@@ -808,18 +782,15 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
 
-            List<Map<String, Object>> rows = jdbcTemplate.queryForList(
-                "SELECT * FROM amendments WHERE associated_record_id = '22005'");
+            List<AmendmentEntity> amendments = defendantAccountAmendmentsFor(22005L);
 
-            assertEquals(2, rows.size());
-            assertEquals("AliasForenamesSeed AliasSurnameSeed", rows.get(0).get("old_value"));
-            assertEquals("Changed Forename AliasSurnameSeed", rows.get(0).get("new_value"));
-            assertEquals("AliasForenamesSeed AliasSurnameSeed", rows.get(1).get("old_value"));
-            assertEquals("Changed Forename AliasSurnameSeed", rows.get(1).get("new_value"));
+            assertEquals(2, amendments.size());
+            assertAmendment(amendments.get(0), "AliasForenamesSeed AliasSurnameSeed",
+                "Changed Forename AliasSurnameSeed");
+            assertAmendment(amendments.get(1), "AliasForenamesSeed AliasSurnameSeed",
+                "Changed Forename AliasSurnameSeed");
 
-            List<Map<String, Object>> defendants = jdbcTemplate.queryForList(
-                "SELECT last_changed_date FROM defendant_accounts WHERE defendant_account_id = '22005'");
-            assertNotNull(defendants.getFirst().get("last_changed_date"));
+            assertNotNull(lastChangedDateFor(22005L));
 
             Integer updatedVersion = versionFor(22005L);
             assertEquals(currentVersion + 1, updatedVersion);
@@ -878,19 +849,14 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
 
-            List<Map<String, Object>> rows = jdbcTemplate.queryForList(
-                "SELECT * FROM amendments WHERE associated_record_id = '22005'");
+            List<AmendmentEntity> amendments = defendantAccountAmendmentsFor(22005L);
 
-            assertEquals(2, rows.size());
-            assertEquals("Seed Address 22005", rows.get(0).get("old_value"));
-            assertEquals("Changed Address 22005", rows.get(0).get("new_value"));
-            assertEquals("SE2 0AA", rows.get(1).get("old_value"));
-            assertEquals("SE3 0BB", rows.get(1).get("new_value"));
+            assertEquals(2, amendments.size());
+            assertAmendment(amendments.get(0), "Seed Address 22005", "Changed Address 22005");
+            assertAmendment(amendments.get(1), "SE2 0AA", "SE3 0BB");
 
 
-            List<Map<String, Object>> defendants = jdbcTemplate.queryForList(
-                "SELECT last_changed_date FROM defendant_accounts WHERE defendant_account_id = '22005'");
-            assertNotNull(defendants.getFirst().get("last_changed_date"));
+            assertNotNull(lastChangedDateFor(22005L));
 
             Integer updatedVersion = versionFor(22005L);
             assertEquals(currentVersion + 1, updatedVersion);
@@ -949,16 +915,12 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
 
-            List<Map<String, Object>> rows = jdbcTemplate.queryForList(
-                "SELECT * FROM amendments WHERE associated_record_id = '22005'");
+            List<AmendmentEntity> amendments = defendantAccountAmendmentsFor(22005L);
 
-            assertEquals(1, rows.size());
-            assertEquals("SE2 0AA", rows.get(0).get("old_value"));
-            assertEquals("NEW PC0", rows.get(0).get("new_value"));
+            assertEquals(1, amendments.size());
+            assertAmendment(amendments.getFirst(), "SE2 0AA", "NEW PC0");
 
-            List<Map<String, Object>> defendants = jdbcTemplate.queryForList(
-                "SELECT last_changed_date FROM defendant_accounts WHERE defendant_account_id = '22005'");
-            assertNotNull(defendants.getFirst().get("last_changed_date"));
+            assertNotNull(lastChangedDateFor(22005L));
 
             Integer updatedVersion = versionFor(22005L);
             assertEquals(currentVersion + 1, updatedVersion);
@@ -1017,16 +979,12 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
 
-            List<Map<String, Object>> rows = jdbcTemplate.queryForList(
-                "SELECT * FROM amendments WHERE associated_record_id = '22005'");
+            List<AmendmentEntity> amendments = defendantAccountAmendmentsFor(22005L);
 
-            assertEquals(1, rows.size());
-            assertEquals("1990-01-01 00:00:00", rows.get(0).get("old_value"));
-            assertEquals("2000-01-01 00:00:00", rows.get(0).get("new_value"));
+            assertEquals(1, amendments.size());
+            assertAmendment(amendments.getFirst(), "1990-01-01 00:00:00", "2000-01-01 00:00:00");
 
-            List<Map<String, Object>> defendants = jdbcTemplate.queryForList(
-                "SELECT last_changed_date FROM defendant_accounts WHERE defendant_account_id = '22005'");
-            assertNotNull(defendants.getFirst().get("last_changed_date"));
+            assertNotNull(lastChangedDateFor(22005L));
 
             Integer updatedVersion = versionFor(22005L);
             assertEquals(currentVersion + 1, updatedVersion);
@@ -1085,18 +1043,14 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
 
-            List<Map<String, Object>> rows = jdbcTemplate.queryForList(
-                "SELECT * FROM amendments WHERE associated_record_id = '22005'");
+            List<AmendmentEntity> amendments = defendantAccountAmendmentsFor(22005L);
 
-            assertEquals(2, rows.size());
-            assertEquals("Mr SeedForenames22005 SeedSurname22005", rows.get(0).get("old_value"));
-            assertEquals("Mr Changed Name SeedSurname22005", rows.get(0).get("new_value"));
-            assertEquals("1990-01-01 00:00:00", rows.get(1).get("old_value"));
-            assertEquals("2000-01-01 00:00:00", rows.get(1).get("new_value"));
+            assertEquals(2, amendments.size());
+            assertAmendment(amendments.get(0), "Mr SeedForenames22005 SeedSurname22005",
+                "Mr Changed Name SeedSurname22005");
+            assertAmendment(amendments.get(1), "1990-01-01 00:00:00", "2000-01-01 00:00:00");
 
-            List<Map<String, Object>> defendants = jdbcTemplate.queryForList(
-                "SELECT last_changed_date FROM defendant_accounts WHERE defendant_account_id = '22005'");
-            assertNotNull(defendants.getFirst().get("last_changed_date"));
+            assertNotNull(lastChangedDateFor(22005L));
 
             Integer updatedVersion = versionFor(22005L);
             assertEquals(currentVersion + 1, updatedVersion);
@@ -1155,20 +1109,17 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
 
-            List<Map<String, Object>> rows = jdbcTemplate.queryForList(
-                "SELECT * FROM amendments WHERE associated_record_id = '22005'");
+            List<AmendmentEntity> amendments = defendantAccountAmendmentsFor(22005L);
 
-            assertEquals(3, rows.size());
-            assertEquals("Mr SeedForenames22005 SeedSurname22005", rows.get(0).get("old_value"));
-            assertEquals("Mr Changed Forename SeedSurname22005", rows.get(0).get("new_value"));
-            assertEquals("AliasForenamesSeed AliasSurnameSeed", rows.get(1).get("old_value"));
-            assertEquals("Changed ForenamesAlias AliasSurnameSeed", rows.get(1).get("new_value"));
-            assertEquals("AliasForenamesSeed AliasSurnameSeed", rows.get(2).get("old_value"));
-            assertEquals("AliasForenamesSeed Changed SurnameAlias", rows.get(2).get("new_value"));
+            assertEquals(3, amendments.size());
+            assertAmendment(amendments.get(0), "Mr SeedForenames22005 SeedSurname22005",
+                "Mr Changed Forename SeedSurname22005");
+            assertAmendment(amendments.get(1), "AliasForenamesSeed AliasSurnameSeed",
+                "Changed ForenamesAlias AliasSurnameSeed");
+            assertAmendment(amendments.get(2), "AliasForenamesSeed AliasSurnameSeed",
+                "AliasForenamesSeed Changed SurnameAlias");
 
-            List<Map<String, Object>> defendants = jdbcTemplate.queryForList(
-                "SELECT last_changed_date FROM defendant_accounts WHERE defendant_account_id = '22005'");
-            assertNotNull(defendants.getFirst().get("last_changed_date"));
+            assertNotNull(lastChangedDateFor(22005L));
 
             Integer updatedVersion = versionFor(22005L);
             assertEquals(currentVersion + 1, updatedVersion);
@@ -1227,20 +1178,15 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
 
-            List<Map<String, Object>> rows = jdbcTemplate.queryForList(
-                "SELECT * FROM amendments WHERE associated_record_id = '22005'");
+            List<AmendmentEntity> amendments = defendantAccountAmendmentsFor(22005L);
 
-            assertEquals(3, rows.size());
-            assertEquals("Mr SeedForenames22005 SeedSurname22005", rows.get(0).get("old_value"));
-            assertEquals("Mr Changed Forenames SeedSurname22005", rows.get(0).get("new_value"));
-            assertEquals("Seed Address 22005", rows.get(1).get("old_value"));
-            assertEquals("Changed Address 22005", rows.get(1).get("new_value"));
-            assertEquals("SE2 0AA", rows.get(2).get("old_value"));
-            assertEquals("NEW PC0", rows.get(2).get("new_value"));
+            assertEquals(3, amendments.size());
+            assertAmendment(amendments.get(0), "Mr SeedForenames22005 SeedSurname22005",
+                "Mr Changed Forenames SeedSurname22005");
+            assertAmendment(amendments.get(1), "Seed Address 22005", "Changed Address 22005");
+            assertAmendment(amendments.get(2), "SE2 0AA", "NEW PC0");
 
-            List<Map<String, Object>> defendants = jdbcTemplate.queryForList(
-                "SELECT last_changed_date FROM defendant_accounts WHERE defendant_account_id = '22005'");
-            assertNotNull(defendants.getFirst().get("last_changed_date"));
+            assertNotNull(lastChangedDateFor(22005L));
 
             Integer updatedVersion = versionFor(22005L);
             assertEquals(currentVersion + 1, updatedVersion);
@@ -1298,10 +1244,9 @@ class OpalDefendantsPutPartyIntegrationTest extends AbstractOpalDefendantsIntegr
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
 
-            List<Map<String, Object>> rows = jdbcTemplate.queryForList(
-                "SELECT * FROM amendments WHERE associated_record_id = '22005'");
+            List<AmendmentEntity> amendments = defendantAccountAmendmentsFor(22005L);
 
-            assertEquals(0, rows.size());
+            assertEquals(0, amendments.size());
 
             Integer updatedVersion = versionFor(22005L);
             assertEquals(currentVersion + 1, updatedVersion);

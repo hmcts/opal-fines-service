@@ -12,7 +12,7 @@
 * 02/06/2025  R DODD   1.0      PO-1047 Inserts rows of data into the DEFENDANT_ACCOUNTS table for the Integration Tests.
 * 18/03/2026  TMc      2.0      PO-2850 Amended insert statement for DOCUMENTS. Updated value (0) for PRIORITY column, now an ENUM, to '0'
 * 02/04/2026  Shan     3.0      PO-1897 Added additional seed data for PO-1897.
-* 07/05/2026  Shan     3.1      PO-1896 Seed a dedicated defendant account for OpalDefendantsPostPartyIntegrationTest.
+* 07/05/2026  Shan     3.1      PO-1896 Seed a dedicated defendant account for DefendantPartyPostIntegrationTest.
 **/
 
 -- Make sure we’re operating in the expected schema
