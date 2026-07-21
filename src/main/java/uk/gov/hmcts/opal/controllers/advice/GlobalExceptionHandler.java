@@ -172,6 +172,7 @@ public class GlobalExceptionHandler {
 
         return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
     }
+
     @ExceptionHandler(MissingMappingTypeException.class)
     public ResponseEntity<ProblemDetail> handleMissingMappingTypeException(MissingMappingTypeException ex) {
         ProblemDetail problemDetail = createProblemDetail(
@@ -186,6 +187,7 @@ public class GlobalExceptionHandler {
 
         return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
     }
+
     @ExceptionHandler(HttpClientErrorException.class)
     public ResponseEntity<ProblemDetail> handleHttpClientErrorException(HttpClientErrorException ex) {
         HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
