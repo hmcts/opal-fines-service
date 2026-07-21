@@ -5,6 +5,7 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectInternalServerErrorWithoutStatus;
 
 import java.util.Set;
 import java.util.stream.Stream;
@@ -370,10 +371,9 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
             mockMvc.perform(get(URL_BASE + "/operational_report_enforcement")
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.title").value("Internal Server Error"))
-                .andExpect(jsonPath("$.detail")
-                    .value("Missing configuration item: OPERATIONAL_REPORT_BU_WARNING_THRESHOLD"))
-                .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/internal-server-error"))
+                .andExpect(expectInternalServerErrorWithoutStatus(
+                    "Missing configuration item: OPERATIONAL_REPORT_BU_WARNING_THRESHOLD"
+                ))
                 .andExpect(jsonPath("$.retriable").value(false));
         }
 
@@ -397,10 +397,9 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
             mockMvc.perform(get(URL_BASE + "/operational_report_enforcement")
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.title").value("Internal Server Error"))
-                .andExpect(jsonPath("$.detail")
-                    .value("Invalid positive integer configuration item: OPERATIONAL_REPORT_BU_WARNING_THRESHOLD"))
-                .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/internal-server-error"))
+                .andExpect(expectInternalServerErrorWithoutStatus(
+                    "Invalid positive integer configuration item: OPERATIONAL_REPORT_BU_WARNING_THRESHOLD"
+                ))
                 .andExpect(jsonPath("$.retriable").value(false));
         }
     }
