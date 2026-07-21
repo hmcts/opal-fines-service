@@ -1,33 +1,31 @@
 package uk.gov.hmcts.opal.service.legacy;
 
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestClientResponseException;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
-import uk.gov.hmcts.opal.dto.legacy.MajorCreditorHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountAtAGlanceLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountAtAGlanceLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse.MajorCreditorLegacy;
+import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.exception.LegacyGatewayException;
-import uk.gov.hmcts.opal.mapper.legacy.MajorCreditorHistoryLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountAtAGlanceResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper;
+import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHistoryResponseLegacyMapper;
 import uk.gov.hmcts.opal.service.iface.MajorCreditorAccountServiceInterface;
 
 @Service
@@ -41,25 +39,25 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
         "LIBRA.get_major_creditor_account_header_summary";
     public static final String GET_MAJOR_CREDITOR_ACCOUNT_HISTORY =
         "LIBRA.get_major_creditor_account_history";
+    private static final List<String> MAJOR_CREDITOR_HISTORY_ITEM_TYPES = List.of("Financial");
 
     private final GatewayService gatewayService;
     private final GetMajorCreditorAccountAtAGlanceResponseLegacyMapper atAGlanceResponseMapper;
     private final GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
-    private final MajorCreditorHistoryLegacyMapper historyResponseMapper;
+    private final GetMajorCreditorAccountHistoryResponseLegacyMapper historyResponseMapper;
 
     @Override
     public GetMajorCreditorAccountAtAGlanceResponse getAtAGlance(Long majorCreditorAccountId) {
         Response<GetMajorCreditorAccountAtAGlanceLegacyResponse> response =
-            gatewayService.postToGateway(
+            postToGateway(
                 GET_MAJOR_CREDITOR_ACCOUNT_AT_A_GLANCE,
                 GetMajorCreditorAccountAtAGlanceLegacyResponse.class,
                 GetMajorCreditorAccountAtAGlanceLegacyRequest.builder()
                     .creditorAccountId(String.valueOf(majorCreditorAccountId))
-                    .build(),
-                null
+                    .build()
             );
 
-        checkResponseForError(response, "getAtAGlance", false);
+        checkResponseForError(response, "getAtAGlance");
 
         GetMajorCreditorAccountAtAGlanceResponse mapped = atAGlanceResponseMapper.toOpal(response.responseEntity);
         mapped.setVersion(response.responseEntity.getMajorCreditor().getCreditorAccountVersion());
@@ -70,16 +68,15 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
     @Override
     public GetMajorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long majorCreditorAccountId) {
         Response<GetMajorCreditorAccountHeaderSummaryLegacyResponse> response =
-            gatewayService.postToGateway(
+            postToGateway(
                 GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY,
                 GetMajorCreditorAccountHeaderSummaryLegacyResponse.class,
                 GetMajorCreditorAccountHeaderSummaryLegacyRequest.builder()
                     .creditorAccountId(String.valueOf(majorCreditorAccountId))
-                    .build(),
-                null
+                    .build()
             );
 
-        checkResponseForError(response, "getHeaderSummary", false);
+        checkResponseForError(response, "getHeaderSummary");
 
         GetMajorCreditorAccountHeaderSummaryResponse mapped = headerSummaryResponseMapper.toOpal(
             response.responseEntity);
@@ -97,89 +94,72 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
         LocalDate dateTo,
         List<String> itemTypes
     ) {
-        Response<MajorCreditorHistoryLegacyResponse> response =
+        Response<GetMajorCreditorAccountHistoryLegacyResponse> response =
             postToGateway(
                 GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
-                MajorCreditorHistoryLegacyResponse.class,
-                historyResponseMapper.toLegacyRequest(majorCreditorAccountId, dateFrom, dateTo, itemTypes)
+                GetMajorCreditorAccountHistoryLegacyResponse.class,
+                createGetMajorCreditorAccountHistoryRequest(majorCreditorAccountId, dateFrom, dateTo)
             );
 
-        checkResponseForError(response, "getHistory", true);
+        checkResponseForError(response, "getHistory");
 
         return historyResponseMapper.toOpal(response.responseEntity);
+    }
+
+    static GetMajorCreditorAccountHistoryLegacyRequest createGetMajorCreditorAccountHistoryRequest(
+        Long majorCreditorAccountId,
+        LocalDate dateFrom,
+        LocalDate dateTo
+    ) {
+        return GetMajorCreditorAccountHistoryLegacyRequest.builder()
+            .creditorAccountId(String.valueOf(majorCreditorAccountId))
+            .fromDate(dateFrom)
+            .toDate(dateTo)
+            .itemTypes(MAJOR_CREDITOR_HISTORY_ITEM_TYPES)
+            .build();
     }
 
     private <T, R> Response<T> postToGateway(String procedureName, Class<T> responseType, R request) {
         try {
             return gatewayService.postToGateway(procedureName, responseType, request, null);
-        } catch (HttpServerErrorException ex) {
+        } catch (RestClientResponseException ex) {
             throw createGatewayException(ex);
         }
     }
 
-    private static <T> void checkResponseForError(
-        Response<T> response,
-        String method,
-        boolean useLegacyGatewayException
-    ) {
+    private static <T> void checkResponseForError(Response<T> response, String method) {
         if (response.isError()) {
             log.error(":{}: Legacy Gateway response: HTTP Response Code {}", method, response.code);
             if (response.isException()) {
                 log.error(":{}: Exception Message:", method, response.exception);
-                throw createGatewayException(response.code, "Legacy gateway exception",
-                    response.body, response.exception, useLegacyGatewayException);
+                throw createGatewayException(response.code, "Legacy gateway exception", response.exception);
             } else if (response.isLegacyFailure()) {
                 log.error(":{}: Legacy Failure: Body:\n{}", method, response.body);
-                throw createGatewayException(response.code, "Legacy gateway returned failure", response.body, null,
-                                            useLegacyGatewayException);
+                throw createGatewayException(response.code, "Legacy gateway returned failure", null);
             }
-            throw createGatewayException(response.code, "Legacy gateway error", response.body, null,
-                                        useLegacyGatewayException);
+            throw createGatewayException(response.code, "Legacy gateway error", null);
         } else if (response.isSuccessful()) {
             log.info(":{}: Legacy Gateway response: Success.", method);
         }
     }
 
-    private static LegacyGatewayException createGatewayException(HttpServerErrorException exception) {
+    private static LegacyGatewayException createGatewayException(RestClientResponseException exception) {
         String statusText = Optional.ofNullable(exception.getStatusText())
             .filter(text -> !text.isBlank())
             .orElse(exception.getMessage());
         return new LegacyGatewayException(exception.getStatusCode(), statusText, exception);
     }
 
-    private static RuntimeException createGatewayException(
+    private static LegacyGatewayException createGatewayException(
         HttpStatusCode status,
         String fallbackStatusText,
-        String responseBody,
-        Throwable exception,
-        boolean useLegacyGatewayException
+        Throwable exception
     ) {
         HttpStatusCode responseStatus = status == null ? HttpStatus.INTERNAL_SERVER_ERROR : status;
         String statusText = exception != null && exception.getMessage() != null
             ? exception.getMessage()
             : fallbackStatusText;
-        byte[] body = responseBody == null ? null : responseBody.getBytes(StandardCharsets.UTF_8);
 
-        if (responseStatus.is4xxClientError()) {
-            return HttpClientErrorException.create(
-                responseStatus,
-                statusText,
-                HttpHeaders.EMPTY,
-                body,
-                StandardCharsets.UTF_8
-            );
-        }
-
-        if (useLegacyGatewayException) {
-            return new LegacyGatewayException(responseStatus, statusText, exception);
-        }
-
-        return HttpServerErrorException.create(
-            responseStatus,
-            statusText,
-            HttpHeaders.EMPTY,
-            body,
-            StandardCharsets.UTF_8
-        );
+        return new LegacyGatewayException(responseStatus, statusText, exception);
     }
 }

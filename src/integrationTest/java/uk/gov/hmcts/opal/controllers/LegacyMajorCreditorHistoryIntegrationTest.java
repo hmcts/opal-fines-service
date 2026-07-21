@@ -40,12 +40,12 @@ import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
-import uk.gov.hmcts.opal.dto.legacy.MajorCreditorHistoryLegacyRequest;
-import uk.gov.hmcts.opal.dto.legacy.MajorCreditorHistoryLegacyResponse;
-import uk.gov.hmcts.opal.dto.legacy.MajorCreditorHistoryLegacyResponse.LegacyTransactionStatusReference;
-import uk.gov.hmcts.opal.dto.legacy.MajorCreditorHistoryLegacyResponse.LegacyTransactionTypeReference;
-import uk.gov.hmcts.opal.dto.legacy.MajorCreditorHistoryLegacyResponse.LegacyHistoryDetails;
-import uk.gov.hmcts.opal.dto.legacy.MajorCreditorHistoryLegacyResponse.LegacyHistoryItem;
+import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyCreditorTransactionStatusReference;
+import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyCreditorTransactionTypeReference;
+import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyMajorCreditorHistoryDetails;
+import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyMajorCreditorHistoryItem;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -108,28 +108,28 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             .andExpect(jsonPath("$.historyItems[0].details.defendantAccountId").value(99000000000001L))
             .andExpect(jsonPath("$.historyItems[1].details.transactionType.transactionType").value("MADJ"));
 
-        MajorCreditorHistoryLegacyRequest request = captureLegacyRequest();
+        GetMajorCreditorAccountHistoryLegacyRequest request = captureLegacyRequest();
         assertThat(request.getCreditorAccountId()).isEqualTo(String.valueOf(MAJOR_CREDITOR_ACCOUNT_ID));
         assertThat(request.getFromDate()).isNull();
         assertThat(request.getToDate()).isNull();
-        assertThat(request.getItemTypes()).isNull();
+        assertThat(request.getItemTypes()).containsExactly("Financial");
     }
 
     @Test
     @DisplayName("PO-2659 INT.05 and INT.06 forwards inclusive date filters to legacy")
     @JiraStory("PO-2659")
     @JiraEpic("PO-2655")
-    void getHistory_forwardsDateFiltersAndItemTypes() throws Exception {
+    void getHistory_forwardsDateFiltersAndForcesFinancialItemType() throws Exception {
         stubLegacyResponse();
 
         getHistory("dateFrom", "2026-01-25", "dateTo", "2026-01-31", "itemTypes", "note")
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.historyItems", hasSize(3)));
 
-        MajorCreditorHistoryLegacyRequest request = captureLegacyRequest();
+        GetMajorCreditorAccountHistoryLegacyRequest request = captureLegacyRequest();
         assertThat(request.getFromDate()).hasToString("2026-01-25");
         assertThat(request.getToDate()).hasToString("2026-01-31");
-        assertThat(request.getItemTypes()).containsExactly("Note");
+        assertThat(request.getItemTypes()).containsExactly("Financial");
     }
 
     @Test
@@ -261,7 +261,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     private void stubLegacyResponse() {
         when(gatewayService.postToGateway(
             eq(GET_MAJOR_CREDITOR_ACCOUNT_HISTORY),
-            eq(MajorCreditorHistoryLegacyResponse.class),
+            eq(GetMajorCreditorAccountHistoryLegacyResponse.class),
             any(),
             isNull()
         )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse(), null, null));
@@ -270,18 +270,18 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     private void stubGatewayException(RuntimeException exception) {
         when(gatewayService.postToGateway(
             eq(GET_MAJOR_CREDITOR_ACCOUNT_HISTORY),
-            eq(MajorCreditorHistoryLegacyResponse.class),
+            eq(GetMajorCreditorAccountHistoryLegacyResponse.class),
             any(),
             isNull()
         )).thenThrow(exception);
     }
 
-    private MajorCreditorHistoryLegacyRequest captureLegacyRequest() {
-        ArgumentCaptor<MajorCreditorHistoryLegacyRequest> requestCaptor =
-            ArgumentCaptor.forClass(MajorCreditorHistoryLegacyRequest.class);
+    private GetMajorCreditorAccountHistoryLegacyRequest captureLegacyRequest() {
+        ArgumentCaptor<GetMajorCreditorAccountHistoryLegacyRequest> requestCaptor =
+            ArgumentCaptor.forClass(GetMajorCreditorAccountHistoryLegacyRequest.class);
         verify(gatewayService).postToGateway(
             eq(GET_MAJOR_CREDITOR_ACCOUNT_HISTORY),
-            eq(MajorCreditorHistoryLegacyResponse.class),
+            eq(GetMajorCreditorAccountHistoryLegacyResponse.class),
             requestCaptor.capture(),
             isNull()
         );
@@ -300,21 +300,21 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
         return mockMvc.perform(request);
     }
 
-    private MajorCreditorHistoryLegacyResponse legacyResponse() {
-        return MajorCreditorHistoryLegacyResponse.builder()
+    private GetMajorCreditorAccountHistoryLegacyResponse legacyResponse() {
+        return GetMajorCreditorAccountHistoryLegacyResponse.builder()
             .version(7L)
             .historyItems(List.of(
-                historyItem("MJUSR2", "Major User Two", "MJF002", "PAYMNT", "Payment",
-                            LocalDateTime.of(2026, 1, 25, 9, 15), new BigDecimal("-25.50")),
+                historyItem("MJUSR3", "Major User Three", "MJF003", "MADJ", "Manual Adjustment",
+                            LocalDateTime.of(2026, 1, 31, 10, 30), new BigDecimal("-31.00")),
                 historyItem("MJUSR4", "Major User Four", "MJF004", "MADJ", "Manual Adjustment",
                             LocalDateTime.of(2026, 1, 31, 10, 30), new BigDecimal("31.00")),
-                historyItem("MJUSR3", "Major User Three", "MJF003", "MADJ", "Manual Adjustment",
-                            LocalDateTime.of(2026, 1, 31, 10, 30), new BigDecimal("-31.00"))
+                historyItem("MJUSR2", "Major User Two", "MJF002", "PAYMNT", "Payment",
+                            LocalDateTime.of(2026, 1, 25, 9, 15), new BigDecimal("-25.50"))
             ))
             .build();
     }
 
-    private LegacyHistoryItem historyItem(
+    private LegacyMajorCreditorHistoryItem historyItem(
         String postedBy,
         String postedByName,
         String paymentReference,
@@ -323,17 +323,17 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
         LocalDateTime postedDate,
         BigDecimal amount
     ) {
-        return LegacyHistoryItem.builder()
+        return LegacyMajorCreditorHistoryItem.builder()
             .postedDetails(new LegacyPostedDetails(postedDate, postedBy, postedByName))
             .type("Financial")
             .amount(amount)
-            .details(LegacyHistoryDetails.builder()
-                .transactionType(LegacyTransactionTypeReference.builder()
+            .details(LegacyMajorCreditorHistoryDetails.builder()
+                .transactionType(LegacyCreditorTransactionTypeReference.builder()
                     .transactionType(transactionType)
                     .transactionTypeDisplayName(transactionTypeDisplayName)
                     .build())
                 .paymentReference(paymentReference)
-                .status(LegacyTransactionStatusReference.builder()
+                .status(LegacyCreditorTransactionStatusReference.builder()
                     .creditorTransactionStatus("R")
                     .creditorTransactionStatusDisplayName("Reversed")
                     .build())
