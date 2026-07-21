@@ -465,7 +465,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
 
             res.andExpect(status().is(422))
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.title").value("Unprocessable Entity"))
+                .andExpect(jsonPath("$.title").value("Unprocessable Content"))
                 .andExpect(jsonPath("$.unprocessableReason")
                     .value("Can not set minimum balance to a negative value"))
                 .andExpect(jsonPath("$.retriable").value("false"));
