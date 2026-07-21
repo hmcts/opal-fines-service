@@ -23,7 +23,6 @@ import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
-import uk.gov.hmcts.opal.service.opal.history.majorcreditor.MajorCreditorHistoryService;
 import uk.gov.hmcts.opal.service.proxy.MajorCreditorAccountProxy;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,9 +33,6 @@ class MajorCreditorAccountServiceTest {
 
     @Mock
     private MajorCreditorAccountProxy majorCreditorAccountProxy;
-
-    @Mock
-    private MajorCreditorHistoryService majorCreditorHistoryService;
 
     @InjectMocks
     private MajorCreditorAccountService majorCreditorAccountService;
@@ -131,7 +127,7 @@ class MajorCreditorAccountServiceTest {
     }
 
     @Test
-    void getHistory_authorisedUserDelegatesToHistoryService() {
+    void getHistory_authorisedUserDelegatesToProxy() {
         UserState userState = mock(UserState.class);
         LocalDate dateFrom = LocalDate.of(2026, Month.JANUARY, 1);
         LocalDate dateTo = LocalDate.of(2026, Month.JANUARY, 31);
@@ -140,14 +136,14 @@ class MajorCreditorAccountServiceTest {
 
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
-        when(majorCreditorHistoryService.getHistory(123L, dateFrom, dateTo, itemTypes)).thenReturn(response);
+        when(majorCreditorAccountProxy.getHistory(123L, dateFrom, dateTo, itemTypes)).thenReturn(response);
 
         GetMajorCreditorHistoryResponse result =
             majorCreditorAccountService.getHistory(123L, dateFrom, dateTo, itemTypes);
 
         assertEquals(response, result);
         verify(userStateService).getUserStateV1FromSecurityContext();
-        verify(majorCreditorHistoryService).getHistory(123L, dateFrom, dateTo, itemTypes);
+        verify(majorCreditorAccountProxy).getHistory(123L, dateFrom, dateTo, itemTypes);
     }
 
     @Test
@@ -163,7 +159,7 @@ class MajorCreditorAccountServiceTest {
         );
 
         assertThat(exception.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        verifyNoInteractions(majorCreditorHistoryService);
+        verifyNoInteractions(majorCreditorAccountProxy);
     }
 
     private GetMajorCreditorAccountHeaderSummaryResponse responseWithBusinessUnit(Short businessUnitId) {

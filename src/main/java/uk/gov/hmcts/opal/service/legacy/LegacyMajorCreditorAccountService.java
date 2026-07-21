@@ -2,6 +2,8 @@ package uk.gov.hmcts.opal.service.legacy;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -14,11 +16,15 @@ import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountAtAGlanceLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountAtAGlanceLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse.MajorCreditorLegacy;
+import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
+import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHistoryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountAtAGlanceResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.service.iface.MajorCreditorAccountServiceInterface;
@@ -32,10 +38,14 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
         "LIBRA.get_major_creditor_account_at_a_glance";
     public static final String GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY =
         "LIBRA.get_major_creditor_account_header_summary";
+    public static final String GET_MAJOR_CREDITOR_ACCOUNT_HISTORY =
+        "LIBRA.get_major_creditor_account_history";
+    private static final List<String> MAJOR_CREDITOR_HISTORY_ITEM_TYPES = List.of("Financial");
 
     private final GatewayService gatewayService;
     private final GetMajorCreditorAccountAtAGlanceResponseLegacyMapper atAGlanceResponseMapper;
     private final GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
+    private final GetMajorCreditorAccountHistoryResponseLegacyMapper historyResponseMapper;
 
     @Override
     public GetMajorCreditorAccountAtAGlanceResponse getAtAGlance(Long majorCreditorAccountId) {
@@ -78,6 +88,39 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
         mapped.setVersion(BigInteger.valueOf(majorCreditor.getAccountVersion()));
 
         return mapped;
+    }
+
+    @Override
+    public GetMajorCreditorHistoryResponse getHistory(
+        Long majorCreditorAccountId,
+        LocalDate dateFrom,
+        LocalDate dateTo,
+        List<String> itemTypes
+    ) {
+        Response<GetMajorCreditorAccountHistoryLegacyResponse> response =
+            gatewayService.postToGateway(
+                GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
+                GetMajorCreditorAccountHistoryLegacyResponse.class,
+                createGetMajorCreditorAccountHistoryRequest(majorCreditorAccountId, dateFrom, dateTo),
+                null
+            );
+
+        checkResponseForError(response, "getHistory");
+
+        return historyResponseMapper.toOpal(response.responseEntity);
+    }
+
+    static GetMajorCreditorAccountHistoryLegacyRequest createGetMajorCreditorAccountHistoryRequest(
+        Long majorCreditorAccountId,
+        LocalDate dateFrom,
+        LocalDate dateTo
+    ) {
+        return GetMajorCreditorAccountHistoryLegacyRequest.builder()
+            .creditorAccountId(String.valueOf(majorCreditorAccountId))
+            .fromDate(dateFrom)
+            .toDate(dateTo)
+            .itemTypes(MAJOR_CREDITOR_HISTORY_ITEM_TYPES)
+            .build();
     }
 
     private static <T> void checkResponseForError(Response<T> response, String method) {
