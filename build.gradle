@@ -44,7 +44,7 @@ ext {
 
 //Should we fail fast on test failures?
 //Defaults to true if env is not present
-//skipping tests and sonar
+//skipping tests and sonar -
 var failFast = System.getenv('FAIL_FAST') == null || System.getenv('FAIL_FAST').toBoolean()
 var skipTests = true//System.getenv('SKIP_TESTS') != null && System.getenv('SKIP_TESTS').toBoolean();
 var skipSonar = true //System.getenv('SKIP_SONAR') != null && System.getenv('SKIP_SONAR').toBoolean()
