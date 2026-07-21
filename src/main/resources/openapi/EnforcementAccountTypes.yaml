@@ -9,7 +9,7 @@ info:
   title: Opal Fines Service
 
 paths:
-  /enforcement-accounts-types/:
+  /enforcement-accounts-types:
     get:
       tags:
         - Enforcement Account Types

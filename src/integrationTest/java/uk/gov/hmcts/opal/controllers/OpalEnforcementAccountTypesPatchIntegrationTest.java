@@ -40,7 +40,7 @@ import static uk.gov.hmcts.opal.common.dto.ToJsonString.toJsonString;
 )
 class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
-    protected static final String URL_BASE = "/enforcement-accounts-types/";
+    protected static final String URL_BASE = "/enforcement-accounts-types";
 
     protected void authorizeWithPermission() {
         userStateStub.setupWithNoPermissions();
