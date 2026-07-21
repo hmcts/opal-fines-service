@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class EnforcementAccountTypesStepDef extends BaseStepDef {
 
-    private static final String ENFORCEMENT_ACCOUNT_TYPES_PATH = "/enforcement-accounts-types/";
+    private static final String ENFORCEMENT_ACCOUNT_TYPES_PATH = "/enforcement-accounts-types";
     private static final String ENFORCEMENT_ACCOUNT_TYPES = "enforcement_account_types";
     private static final Set<String> TOP_LEVEL_FIELDS = Set.of(ENFORCEMENT_ACCOUNT_TYPES);
     private static final Set<String> ENFORCEMENT_ACCOUNT_TYPE_FIELDS = Set.of(
