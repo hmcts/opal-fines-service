@@ -63,7 +63,7 @@ public class TestingSupportControllerDeleteInterfaceJobsIntegrationTest extends 
         assertThat(paymentInRepository.count()).isEqualTo(2);
 
         ResultActions actions = mockMvc.perform(delete("/testing-support/interface-jobs")
-            .queryParam("ids", ""+firstInterfaceJobId, ""+secondInterfaceJobId));
+            .queryParam("ids", "" + firstInterfaceJobId, "" + secondInterfaceJobId));
 
         actions.andExpect(status().isNoContent());
 

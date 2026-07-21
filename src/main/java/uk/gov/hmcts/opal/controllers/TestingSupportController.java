@@ -27,7 +27,6 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.InterfaceJobService;
-import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @RestController
 @RequestMapping("/testing-support")
