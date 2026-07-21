@@ -12,6 +12,7 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
@@ -27,12 +28,14 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
+import uk.gov.hmcts.opal.exception.MissingMappingTypeException;
 import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
+import uk.gov.hmcts.opal.exception.UnsupportedMappingTypeException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.exception.UnsupportedContentTypeException;
 
@@ -203,6 +206,29 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void handleUnsupportedMappingType_false() {
+        UnsupportedMappingTypeException ex = new UnsupportedMappingTypeException(
+            "unsupported-type",
+            List.of("defendant-account-status")
+        );
+
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleUnsupportedMappingTypeException(ex);
+
+        assertEquals(HttpStatus.BAD_REQUEST, r.getStatusCode());
+        ProblemDetail pd = r.getBody();
+        assertEquals(HttpStatus.BAD_REQUEST.value(), pd.getStatus());
+        assertEquals("Unsupported Mapping Type", pd.getTitle());
+        assertEquals(
+            "Unsupported mapping type: unsupported-type. Supported types: defendant-account-status",
+            pd.getDetail()
+        );
+        assertEquals("unsupported-type", pd.getProperties().get("mapping_type"));
+        assertEquals(List.of("defendant-account-status"), pd.getProperties().get("supported_types"));
+        assertEquals(URI.create("https://hmcts.gov.uk/problems/unsupported-mapping-type"), pd.getType());
+        assertEquals(false, pd.getProperties().get("retriable"));
+    }
+
+    @Test
     void handleResourceConflict_returnsPropertiesAndEtag() {
         ResourceConflictException ex = new ResourceConflictException(
             DraftAccountEntity.class.getSimpleName(),
@@ -219,6 +245,25 @@ class GlobalExceptionHandlerTest {
         assertEquals("123", response.getBody().getProperties().get("resourceId"));
         assertEquals("BU mismatch", response.getBody().getProperties().get("conflictReason"));
         assertEquals("\"666\"", response.getHeaders().getETag());
+    }
+
+    @Test
+    void handleMissingMappingType_false() {
+        MissingMappingTypeException ex = new MissingMappingTypeException(List.of("defendant-account-status"));
+
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleMissingMappingTypeException(ex);
+
+        assertEquals(HttpStatus.BAD_REQUEST, r.getStatusCode());
+        ProblemDetail pd = r.getBody();
+        assertEquals(HttpStatus.BAD_REQUEST.value(), pd.getStatus());
+        assertEquals("Missing Mapping Type", pd.getTitle());
+        assertEquals(
+            "Required mapping type is missing. Supported types: defendant-account-status",
+            pd.getDetail()
+        );
+        assertEquals(List.of("defendant-account-status"), pd.getProperties().get("supported_types"));
+        assertEquals(URI.create("https://hmcts.gov.uk/problems/missing-mapping-type"), pd.getType());
+        assertEquals(false, pd.getProperties().get("retriable"));
     }
 
     @Test

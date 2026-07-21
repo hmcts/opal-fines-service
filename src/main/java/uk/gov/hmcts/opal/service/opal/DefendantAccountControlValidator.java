@@ -121,7 +121,7 @@ public class DefendantAccountControlValidator {
             String failureMessage(DefendantAccountEntity account) {
                 DefendantAccountStatus accountStatus = account.getAccountStatus();
                 if (accountStatus != null && BLOCKED_ACCOUNT_STATUSES.contains(accountStatus)) {
-                    return "Account Status Check failed because account_status is " + accountStatus.getLabel();
+                    return "Account Status Check failed because account_status is " + accountStatus.getCode();
                 }
                 return null;
             }

@@ -98,6 +98,9 @@ Feature: Fines Service Release 1b Feature Toggles
     Examples:
       | endpoint                                   |
       | Get Minor Creditor Account                 |
+    Examples:
+      | endpoint                                   |
+      | Get Mappings                               |
 
   @R1B @JIRA-STORY:PO-2077 @JIRA-EPIC:PO-979
   Scenario: Get Defendant Account Impositions is available when release 1b is enabled
