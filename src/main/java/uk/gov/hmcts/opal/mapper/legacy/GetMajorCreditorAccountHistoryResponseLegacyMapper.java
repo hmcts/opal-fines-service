@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.mapper.legacy;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import org.mapstruct.Mapper;
@@ -37,6 +38,7 @@ public interface GetMajorCreditorAccountHistoryResponseLegacyMapper {
             .historyItems(Optional.ofNullable(legacy)
                 .map(GetMajorCreditorAccountHistoryLegacyResponse::getHistoryItems)
                 .orElse(List.of()).stream()
+                .sorted(legacyHistoryItemComparator())
                 .map(this::toHistoryItem)
                 .toList());
     }
@@ -80,5 +82,33 @@ public interface GetMajorCreditorAccountHistoryResponseLegacyMapper {
 
     default LocalDate toLocalDate(LocalDateTime dateTime) {
         return dateTime == null ? null : dateTime.toLocalDate();
+    }
+
+    default Comparator<LegacyMajorCreditorHistoryItem> legacyHistoryItemComparator() {
+        return Comparator.comparing(
+                GetMajorCreditorAccountHistoryResponseLegacyMapper::postedDate,
+                Comparator.nullsLast(Comparator.reverseOrder())
+            )
+            .thenComparing(LegacyMajorCreditorHistoryItem::getType, Comparator.nullsLast(Comparator.naturalOrder()))
+            .thenComparing(
+                GetMajorCreditorAccountHistoryResponseLegacyMapper::paymentReference,
+                Comparator.nullsLast(Comparator.naturalOrder())
+            )
+            .thenComparing(
+                GetMajorCreditorAccountHistoryResponseLegacyMapper::associatedRecordId,
+                Comparator.nullsLast(Comparator.naturalOrder())
+            );
+    }
+
+    private static LocalDateTime postedDate(LegacyMajorCreditorHistoryItem item) {
+        return item == null || item.getPostedDetails() == null ? null : item.getPostedDetails().getPostedDate();
+    }
+
+    private static String paymentReference(LegacyMajorCreditorHistoryItem item) {
+        return item == null || item.getDetails() == null ? null : item.getDetails().getPaymentReference();
+    }
+
+    private static String associatedRecordId(LegacyMajorCreditorHistoryItem item) {
+        return item == null || item.getDetails() == null ? null : item.getDetails().getAssociatedRecordId();
     }
 }

@@ -194,7 +194,7 @@ class LegacyMinorCreditorPatchIntegrationTest extends MinorCreditorControllerInt
             HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable", HttpHeaders.EMPTY, null, null));
 
         performLegacyPatch(503L, "\"1\"")
-            .andExpect(status().isInternalServerError())
+            .andExpect(status().isServiceUnavailable())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 
