@@ -1,0 +1,196 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Get Minor Creditor History Response",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "historyItems": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "postedDetails": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "posted_date": {
+                "type": "string",
+                "format": "date"
+              },
+              "posted_by": {
+                "type": ["string", "null"],
+                "maxLength": 20
+              },
+              "posted_by_name": {
+                "type": ["string", "null"],
+                "maxLength": 100
+              }
+            },
+            "required": [
+              "posted_date"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "Amendment",
+              "Financial",
+              "Note"
+            ]
+          },
+          "details": {
+            "type": "object"
+          },
+          "amount": {
+            "type": ["number", "null"]
+          }
+        },
+        "required": [
+          "postedDetails",
+          "type",
+          "details"
+        ],
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "Amendment"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "details": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "attributeName": {
+                      "type": "string"
+                    },
+                    "oldValue": {
+                      "type": ["string", "null"]
+                    },
+                    "newValue": {
+                      "type": ["string", "null"]
+                    }
+                  },
+                  "required": [
+                    "attributeName",
+                    "oldValue",
+                    "newValue"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "Financial"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "details": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "transactionType": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "transactionType": {
+                          "type": "string"
+                        },
+                        "transactionTypeDisplayName": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "transactionType",
+                        "transactionTypeDisplayName"
+                      ]
+                    },
+                    "paymentReference": {
+                      "type": ["string", "null"]
+                    },
+                    "status": {
+                      "type": ["object", "null"],
+                      "additionalProperties": false,
+                      "properties": {
+                        "creditorTransactionStatus": {
+                          "type": "string"
+                        },
+                        "creditorTransactionStatusDisplayName": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "creditorTransactionStatus",
+                        "creditorTransactionStatusDisplayName"
+                      ]
+                    },
+                    "statusDate": {
+                      "type": ["string", "null"],
+                      "format": "date-time"
+                    },
+                    "associatedRecordType": {
+                      "type": ["string", "null"]
+                    },
+                    "associatedRecordId": {
+                      "type": ["string", "null"]
+                    },
+                    "accountNumber": {
+                      "type": ["string", "null"]
+                    },
+                    "defendantAccountNumber": {
+                      "type": ["string", "null"]
+                    },
+                    "defendantAccountId": {
+                      "type": ["integer", "null"]
+                    }
+                  },
+                  "required": [
+                    "transactionType"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "Note"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "details": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "noteText": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "noteText"
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "required": [
+    "historyItems"
+  ]
+}

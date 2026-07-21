@@ -249,14 +249,14 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
                                                String title,
                                                String detail,
                                                String type) {
-        assertEquals(Set.of("type", "title", "status", "detail", "instance", "operation_id", "retriable", "reason"),
+        assertEquals(Set.of("type", "title", "status", "detail", "instance", "operation_id", "retriable"),
             fieldNames(problem));
         assertEquals(statusCode, problem.get("status").asInt());
         assertEquals(title, problem.get("title").asText());
         assertEquals(detail, problem.get("detail").asText());
         assertEquals(type, problem.get("type").asText());
         assertFalse(problem.get("retriable").asBoolean());
-        assertTrue(problem.get("reason").asText().matches(".+"));
+        assertFalse(problem.has("reason"));
         assertTrue(problem.get("operation_id").asText().matches(".+"));
         assertTrue(problem.get("instance").asText().matches("https://hmcts.gov.uk/problems/instance/.+"));
     }

@@ -63,7 +63,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                     .content(payload)
                     .header("authorization", userStateStub.getBearerToken())
                     .header(HttpHeaders.IF_MATCH, "\"" + versionBefore + "\"")
-                    .header("Business_Unit_ID", "78")
+                    .header("Business-Unit-Id", "78")
                     .with(authentication(allFinesPermissionsToken()))
             );
 
@@ -98,7 +98,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                     .content(objectMapper.writeValueAsString(request))
                     .header("authorization", userStateStub.getBearerToken())
                     .header("If-Match", "1")
-                    .header("Business_Unit_ID", "78")
+                    .header("Business-Unit-Id", "78")
                     .with(authentication(allFinesPermissionsToken()))
             );
 
@@ -128,7 +128,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                     .content(objectMapper.writeValueAsString(request))
                     .header("authorization", userStateStub.getBearerToken())
                     .header("If-Match", "1")
-                    .header("Business_Unit_ID", "78")
+                    .header("Business-Unit-Id", "78")
                     .with(authentication(allFinesPermissionsToken()))
             );
 
@@ -157,7 +157,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("authorization", userStateStub.getBearerToken())
                 .header("If-Match", "1")
-                .header("Business_Unit_ID", "78")
+                .header("Business-Unit-Id", "78")
                 .with(authentication(permissionsToken((short) 78, permission)))
         );
         resultActions.andExpect(status().isForbidden())
@@ -198,7 +198,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                     scenario.authenticationBusinessUnitId(), scenario.permission())));
 
         if (scenario.requestBusinessUnitId() != null) {
-            requestBuilder.header("Business_Unit_ID", scenario.requestBusinessUnitId());
+            requestBuilder.header("Business-Unit-Id", scenario.requestBusinessUnitId());
         }
 
         ResultActions resultActions = mockMvc.perform(requestBuilder);
@@ -219,14 +219,14 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     protected static Stream<BusinessUnitAuthorizationScenario> businessUnitAuthorizationScenarios() {
         return Stream.of(
             new BusinessUnitAuthorizationScenario(
-                "missing Business_Unit_ID header",
+                "missing Business-Unit-Id header",
                 null,
                 (short) 78,
                 ADD_ACCOUNT_ACTIVITY_NOTES,
                 HttpStatus.BAD_REQUEST,
                 "https://hmcts.gov.uk/problems/missing-header",
                 "Missing Required Header",
-                "Required request header \"Business_Unit_ID\" is missing"
+                "Required request header \"Business-Unit-Id\" is missing"
             ),
             new BusinessUnitAuthorizationScenario(
                 "wrong business unit in header",
@@ -291,7 +291,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                     .content(objectMapper.writeValueAsString(request))
                     .header("authorization", userStateStub.getBearerToken())
                     .header("If-Match", "1")
-                    .header("Business_Unit_ID", 78)
+                    .header("Business-Unit-Id", 78)
                     .with(authentication(allFinesPermissionsToken()))
             );
 
@@ -325,7 +325,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                     .content(objectMapper.writeValueAsString(request))
                     .header("authorization", userStateStub.getBearerToken())
                     .header("If-Match", "5")
-                    .header("Business_Unit_ID", "78")
+                    .header("Business-Unit-Id", "78")
                     .with(authentication(allFinesPermissionsToken()))
             );
 
