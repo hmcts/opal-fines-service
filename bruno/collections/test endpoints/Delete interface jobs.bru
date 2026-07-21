@@ -1,0 +1,20 @@
+meta {
+  name: Delete interface jobs
+  type: http
+  seq: 1
+}
+
+delete {
+  url: {{baseURL}}/testing-support/interface-jobs?ids=
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ids: 
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

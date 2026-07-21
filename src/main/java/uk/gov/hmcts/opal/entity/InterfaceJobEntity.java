@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,6 +16,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -63,6 +65,11 @@ public class InterfaceJobEntity {
     @Column(name = "completed_datetime")
     private LocalDateTime completedDateTime;
 
-    @OneToMany(mappedBy = "interfaceJob", fetch = FetchType.LAZY)
-    private List<InterfaceFileEntity> interfaceFiles;
+    @Builder.Default
+    @OneToMany(mappedBy = "interfaceJob", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private List<InterfaceMessageEntity> interfaceMessages = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "interfaceJob", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private List<InterfaceFileEntity> interfaceFiles = new ArrayList<>();
 }

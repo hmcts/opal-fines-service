@@ -19,6 +19,8 @@ public final class FeatureFlags {
         RELEASE_1C + "-auto-enforcement-config";
     public static final String RELEASE_1C_AUTO_ENFORCEMENT_CONFIG_ENABLED_PROPERTY =
         DEFAULT_VALUE_PROPERTY_PREFIX + RELEASE_1C_AUTO_ENFORCEMENT_CONFIG;
+    public static final String RELEASE_1C_PAYMENT = RELEASE_1C + "-payment";
+    public static final String RELEASE_1C_PAYMENT_ENABLED_PROPERTY = DEFAULT_VALUE_PROPERTY_PREFIX + RELEASE_1C_PAYMENT;
 
 
     private FeatureFlags() {
