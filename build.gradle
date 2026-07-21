@@ -38,7 +38,7 @@ plugins {
 
 ext {
   log4JVersion = "2.26.1"
-  serenityVersion = "5.3.10"
+  serenityVersion = "5.3.11"
   cucumberVersion = "7.23.0" // Keep the forced Cucumber version stable while aligning Serenity with the Gradle plugin
 }
 
@@ -974,13 +974,13 @@ dependencies {
   testImplementation 'io.rest-assured:rest-assured:6.0.0'
   integrationTestImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.14.0'
   testImplementation 'junit:junit:4.13.2'
-  testImplementation(platform('org.junit:junit-bom:6.1.1'))
+  testImplementation(platform('org.junit:junit-bom:6.1.2'))
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
   testImplementation 'org.springframework.boot:spring-boot-starter-test', {
     exclude group: 'junit', module: 'junit'
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
-  testImplementation 'org.junit.platform:junit-platform-suite:6.1.1'
+  testImplementation 'org.junit.platform:junit-platform-suite:6.1.2'
   testImplementation "io.cucumber:cucumber-junit-platform-engine:${cucumberVersion}"
 
   testImplementation "net.serenity-bdd:serenity-core:${serenityVersion}"
