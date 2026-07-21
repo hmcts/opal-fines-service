@@ -29,11 +29,14 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
@@ -130,6 +133,18 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     }
 
     @Test
+    @DisplayName("PO-2659 returns 400 when dateFrom is after dateTo")
+    @JiraStory("PO-2659")
+    @JiraEpic("PO-2655")
+    void getHistory_whenDateRangeInvalidReturns400BeforeLegacyCall() throws Exception {
+        getHistory("dateFrom", "2026-01-31", "dateTo", "2026-01-25")
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+
+        verifyNoInteractions(gatewayService);
+    }
+
+    @Test
     @DisplayName("PO-2659 INT.10 requires Search and View Accounts permission in at least one business unit")
     @JiraStory("PO-2659")
     @JiraEpic("PO-2655")
@@ -174,6 +189,58 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     }
 
     @Test
+    @DisplayName("PO-2659 returns 404 when legacy gateway returns not found")
+    @JiraStory("PO-2659")
+    @JiraEpic("PO-2655")
+    void getHistory_whenLegacyGatewayReturnsNotFoundReturns404() throws Exception {
+        stubGatewayException(HttpClientErrorException.create(
+            HttpStatus.NOT_FOUND, "Not Found", HttpHeaders.EMPTY, null, null));
+
+        getHistory()
+            .andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+    }
+
+    @Test
+    @DisplayName("PO-2659 returns 408 when legacy gateway times out")
+    @JiraStory("PO-2659")
+    @JiraEpic("PO-2655")
+    void getHistory_whenLegacyGatewayTimesOutReturns408() throws Exception {
+        stubGatewayException(HttpClientErrorException.create(
+            HttpStatusCode.valueOf(408), "Request Timeout", HttpHeaders.EMPTY, null, null));
+
+        getHistory()
+            .andExpect(status().isRequestTimeout())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+    }
+
+    @Test
+    @DisplayName("PO-2659 returns 503 when legacy gateway is unavailable")
+    @JiraStory("PO-2659")
+    @JiraEpic("PO-2655")
+    void getHistory_whenLegacyGatewayUnavailableReturns503() throws Exception {
+        stubGatewayException(HttpServerErrorException.create(
+            HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable", HttpHeaders.EMPTY, null, null));
+
+        getHistory()
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+    }
+
+    @Test
+    @DisplayName("PO-2659 returns 500 when legacy gateway returns server error")
+    @JiraStory("PO-2659")
+    @JiraEpic("PO-2655")
+    void getHistory_whenLegacyGatewayReturnsServerErrorReturns500() throws Exception {
+        stubGatewayException(HttpServerErrorException.create(
+            HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", HttpHeaders.EMPTY, null, null));
+
+        getHistory()
+            .andExpect(status().isInternalServerError())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+    }
+
+    @Test
     @DisplayName("PO-2659 INT.12 repeated legacy GETs return deterministic content")
     @JiraStory("PO-2659")
     @JiraEpic("PO-2655")
@@ -198,6 +265,15 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             any(),
             isNull()
         )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse(), null, null));
+    }
+
+    private void stubGatewayException(RuntimeException exception) {
+        when(gatewayService.postToGateway(
+            eq(GET_MAJOR_CREDITOR_ACCOUNT_HISTORY),
+            eq(GetMajorCreditorAccountHistoryLegacyResponse.class),
+            any(),
+            isNull()
+        )).thenThrow(exception);
     }
 
     private GetMajorCreditorAccountHistoryLegacyRequest captureLegacyRequest() {
@@ -228,12 +304,12 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
         return GetMajorCreditorAccountHistoryLegacyResponse.builder()
             .version(7L)
             .historyItems(List.of(
-                historyItem("MJUSR3", "Major User Three", "MJF003", "MADJ", "Manual Adjustment",
-                            LocalDateTime.of(2026, 1, 31, 10, 30), new BigDecimal("-31.00")),
+                historyItem("MJUSR2", "Major User Two", "MJF002", "PAYMNT", "Payment",
+                            LocalDateTime.of(2026, 1, 25, 9, 15), new BigDecimal("-25.50")),
                 historyItem("MJUSR4", "Major User Four", "MJF004", "MADJ", "Manual Adjustment",
                             LocalDateTime.of(2026, 1, 31, 10, 30), new BigDecimal("31.00")),
-                historyItem("MJUSR2", "Major User Two", "MJF002", "PAYMNT", "Payment",
-                            LocalDateTime.of(2026, 1, 25, 9, 15), new BigDecimal("-25.50"))
+                historyItem("MJUSR3", "Major User Three", "MJF003", "MADJ", "Manual Adjustment",
+                            LocalDateTime.of(2026, 1, 31, 10, 30), new BigDecimal("-31.00"))
             ))
             .build();
     }

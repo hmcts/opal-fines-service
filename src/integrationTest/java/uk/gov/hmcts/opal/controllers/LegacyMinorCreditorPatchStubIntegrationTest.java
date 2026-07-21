@@ -87,7 +87,7 @@ class LegacyMinorCreditorPatchStubIntegrationTest extends AbstractIntegrationTes
         stubLegacyPatchResponse(503, "<error><message>Service Unavailable</message></error>");
 
         performLegacyPatch(503L, "\"1\"")
-            .andExpect(status().isInternalServerError())
+            .andExpect(status().isServiceUnavailable())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 

@@ -101,4 +101,42 @@ class GetMajorCreditorAccountHistoryResponseLegacyMapperTest extends AbstractMap
         assertNotNull(result.getPayload());
         assertEquals(List.of(), result.getPayload().getHistoryItems());
     }
+
+    @Test
+    void toOpal_ordersHistoryItemsNewestFirstWithDeterministicTieHandling() {
+        GetMajorCreditorAccountHistoryLegacyResponse legacy =
+            GetMajorCreditorAccountHistoryLegacyResponse.builder()
+                .version(7L)
+                .historyItems(List.of(
+                    historyItem("MJF002", LocalDateTime.of(2026, 1, 25, 9, 15)),
+                    historyItem("MJF004", LocalDateTime.of(2026, 1, 31, 10, 30)),
+                    historyItem("MJF003", LocalDateTime.of(2026, 1, 31, 10, 30))
+                ))
+                .build();
+
+        GetMajorCreditorHistoryResponse result = mapper.toOpal(legacy);
+
+        assertEquals(
+            List.of("MJF003", "MJF004", "MJF002"),
+            result.getPayload().getHistoryItems().stream()
+                .map(MajorCreditorHistoryItemHistory::getDetails)
+                .map(CreditorTransactionDetailsHistory::getPaymentReference)
+                .toList()
+        );
+    }
+
+    private LegacyMajorCreditorHistoryItem historyItem(String paymentReference, LocalDateTime postedDate) {
+        return LegacyMajorCreditorHistoryItem.builder()
+            .postedDetails(new LegacyPostedDetails(postedDate, "MJUSR", "Major User"))
+            .type("Financial")
+            .details(LegacyMajorCreditorHistoryDetails.builder()
+                .transactionType(LegacyCreditorTransactionTypeReference.builder()
+                    .transactionType("MADJ")
+                    .transactionTypeDisplayName("Manual Adjustment")
+                    .build())
+                .paymentReference(paymentReference)
+                .associatedRecordId("99264300000001")
+                .build())
+            .build();
+    }
 }

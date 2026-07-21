@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity.BodyBuilder;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.common.controllers.advice.OpalProblemDetailFactory;
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
@@ -198,6 +199,22 @@ public class GlobalExceptionHandler {
             Optional.ofNullable(ex.getStatusText()).filter(text -> !text.isBlank()).orElse(ex.getMessage()),
             "http-client-error",
             false,
+            ex
+        );
+
+        return responseWithProblemDetail(status, problemDetail);
+    }
+
+    @ExceptionHandler(HttpServerErrorException.class)
+    public ResponseEntity<ProblemDetail> handleHttpServerErrorException(HttpServerErrorException ex) {
+        HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
+
+        ProblemDetail problemDetail = createProblemDetail(
+            status,
+            status.getReasonPhrase(),
+            Optional.ofNullable(ex.getStatusText()).filter(text -> !text.isBlank()).orElse(ex.getMessage()),
+            "http-server-error",
+            status == HttpStatus.SERVICE_UNAVAILABLE,
             ex
         );
 

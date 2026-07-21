@@ -161,6 +161,41 @@ class MajorCreditorAccountServiceTest {
         verifyNoInteractions(majorCreditorAccountProxy);
     }
 
+    @Test
+    void getHistory_whenDateFromIsAfterDateToThrowsBadRequestBeforeProxyCall() {
+        UserState userState = mock(UserState.class);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> majorCreditorAccountService.getHistory(
+                123L,
+                LocalDate.of(2026, 1, 31),
+                LocalDate.of(2026, 1, 1),
+                null
+            )
+        );
+
+        assertEquals("dateFrom must be on or before dateTo", exception.getMessage());
+        verifyNoInteractions(majorCreditorAccountProxy);
+    }
+
+    @Test
+    void getHistory_whenItemTypesContainUnsupportedValueThrowsBadRequestBeforeProxyCall() {
+        UserState userState = mock(UserState.class);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> majorCreditorAccountService.getHistory(123L, null, null, List.of("amendment"))
+        );
+
+        assertEquals("itemTypes must contain only financial, note", exception.getMessage());
+        verifyNoInteractions(majorCreditorAccountProxy);
+    }
+
     private GetMajorCreditorAccountHeaderSummaryResponse responseWithBusinessUnit(Short businessUnitId) {
         GetMajorCreditorAccountHeaderSummaryResponse response =
             new GetMajorCreditorAccountHeaderSummaryResponse();
