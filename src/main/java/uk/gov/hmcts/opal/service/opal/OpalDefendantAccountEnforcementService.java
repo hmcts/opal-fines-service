@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -40,7 +41,6 @@ import uk.gov.hmcts.opal.service.persistence.LocalJusticeAreaRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.ResultRepositoryService;
 import uk.gov.hmcts.opal.service.proxy.NotesProxy;
 import uk.gov.hmcts.opal.util.VersionUtils;
-import java.util.Objects;
 
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementAction;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementOverrideResult;
@@ -79,7 +79,10 @@ public class OpalDefendantAccountEnforcementService
 
     private final ObjectMapper objectMapper;
 
+    private final DefendantAccountControlValidator defendantAccountControlValidator;
+
     @Override
+    @Transactional
     public AddEnforcementResponse addEnforcement(
         Long defendantAccountId,
         Short businessUnitId,
@@ -131,6 +134,10 @@ public class OpalDefendantAccountEnforcementService
             earliestReleaseDate,
             VersionUtils.extractBigInteger(ifMatch).longValue()
         );
+
+        // The stored procedure updates defendant_accounts outside Hibernate. Refresh the managed account so chained
+        // payment terms and the response use the latest version and enforcement state.
+        defendantAccountRepositoryService.refresh(defendant);
 
         if (request.getPaymentTerms() != null) {
             DefendantAccountEntity defendantEntity = defendantAccountRepositoryService.findById(defendantAccountId);
@@ -198,6 +205,7 @@ public class OpalDefendantAccountEnforcementService
         }
 
         VersionUtils.verifyIfMatch(defendantEntity, ifMatch, defendantAccountId, "removeEnforcementHold");
+        defendantAccountControlValidator.validateCanRemoveEnforcementHold(defendantEntity);
 
         if (defendantEntity.getLastEnforcement() == null) {
             throw new ResourceConflictException(

@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,9 @@ class DefendantAccountRepositoryServiceTest {
 
     @Mock
     private DefendantAccountRepository defendantAccountRepository;
+
+    @Mock
+    private EntityManager entityManager;
 
     @InjectMocks
     private DefendantAccountRepositoryService service;
@@ -209,5 +213,19 @@ class DefendantAccountRepositoryServiceTest {
             "Defendant Account not found with id: 77",
             exception.getMessage()
         );
+    }
+
+    @Test
+    void refresh_refreshesEntityManagerState() {
+        // arrange
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(5L)
+            .build();
+
+        // act
+        service.refresh(account);
+
+        // assert
+        verify(entityManager).refresh(account);
     }
 }

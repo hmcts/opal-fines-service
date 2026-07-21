@@ -1,10 +1,13 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -25,6 +28,7 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.mapper.request.PaymentTermsMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
@@ -49,6 +53,9 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
     private ResultService resultService;
     @Mock
     private ReportEntryService reportEntryService;
+
+    @Mock
+    private DefendantAccountControlValidator defendantAccountControlValidator;
 
     @InjectMocks
     private OpalDefendantAccountService defendantAccountService;
@@ -211,7 +218,6 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
         account.setBusinessUnit(bu);
         account.setLastEnforcement("55");
         account.setVersionNumber(1L);
-
         PaymentTerms paymentTermsDto = new PaymentTerms();
         AddDefendantAccountPaymentTermsRequest request = new AddDefendantAccountPaymentTermsRequest();
         request.setPaymentTerms(paymentTermsDto);
@@ -252,5 +258,37 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
         assertEquals("55", savedAccount.getLastEnforcement(),
             "Expected lastEnforcement to be preserved for enforcement-driven payment terms");
         verify(reportEntryService).createExtendTtpReportEntry(any(Long.class), any(short.class));
+    }
+
+    @Test
+    void addPaymentTerms_whenAccountControlsFail_throwsBeforeCreatingPaymentTerms() {
+        final Long defendantAccountId = 1L;
+        final String businessUnitId = "10";
+        final String businessUnitUserId = "userX";
+        final String ifMatch = "\"1\"";
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(defendantAccountId)
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 10).build())
+            .versionNumber(1L)
+            .build();
+        UnprocessableException exception = new UnprocessableException("blocked");
+
+        when(defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(defendantAccountId))
+            .thenReturn(account);
+        doThrow(exception).when(defendantAccountControlValidator).validateCanAddPaymentTerms(account);
+
+        PaymentTerms paymentTermsDto = new PaymentTerms();
+        AddDefendantAccountPaymentTermsRequest request = new AddDefendantAccountPaymentTermsRequest();
+        request.setPaymentTerms(paymentTermsDto);
+
+        UnprocessableException result = assertThrows(UnprocessableException.class, () ->
+            defendantAccountService.addPaymentTerms(
+                defendantAccountId, businessUnitId, businessUnitUserId, "Tester Name", ifMatch, request));
+
+        assertEquals(exception, result);
+        verify(defendantAccountControlValidator).validateCanAddPaymentTerms(account);
+        verify(paymentTermsService, never()).addPaymentTerm(any());
+        verify(defendantAccountRepository, never()).save(any());
     }
 }

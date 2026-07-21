@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.postgresql.util.PGobject;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.common.exceptions.standard.InternalServerErrorException;
@@ -72,9 +73,9 @@ public class EnforcementRepositoryService {
         String sql =
             "CALL p_add_defendant_account_enforcement(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CAST(? AS timestamp), ?, ?)";
 
-        try (Connection connection = dataSource.getConnection();
-             CallableStatement cs = connection.prepareCall(sql)) {
+        Connection connection = DataSourceUtils.getConnection(dataSource);
 
+        try (CallableStatement cs = connection.prepareCall(sql)) {
             cs.setString(1, resultId);
             cs.setLong(2, defendantAccountId);
             cs.setShort(3, businessUnitId);
@@ -97,6 +98,8 @@ public class EnforcementRepositoryService {
         } catch (Exception e) {
             throw new InternalServerErrorException("Failed to call stored procedure",
                                                    "p_add_defendant_account_enforcement", e);
+        } finally {
+            DataSourceUtils.releaseConnection(connection, dataSource);
         }
     }
 

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.persistence;
 
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
@@ -16,6 +17,8 @@ import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 public class DefendantAccountRepositoryService {
 
     private final DefendantAccountRepository defendantAccountRepository;
+
+    private final EntityManager entityManager;
 
     @Transactional(readOnly = true)
     public DefendantAccountEntity findById(long defendantAccountId) {
@@ -63,5 +66,9 @@ public class DefendantAccountRepositoryService {
         return defendantAccountRepository.findByDefendantAccountIdForUpdate(defendantAccountId)
             .orElseThrow(() -> new EntityNotFoundException(
                 "Defendant Account not found with id: " + defendantAccountId));
+    }
+
+    public void refresh(DefendantAccountEntity defendantAccountEntity) {
+        entityManager.refresh(defendantAccountEntity);
     }
 }

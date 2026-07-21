@@ -40,6 +40,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
@@ -129,6 +130,9 @@ public class OpalDefendantAccountEnforcementServiceTest {
 
     @Mock
     private OpalDefendantAccountService opalDefendantAccountService;
+
+    @Mock
+    private DefendantAccountControlValidator defendantAccountControlValidator;
 
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -799,6 +803,58 @@ public class OpalDefendantAccountEnforcementServiceTest {
     }
 
     @Test
+    void removeEnforcementHold_whenAccountControlsFail_throwsBeforeMutation() {
+        Long defendantAccountId = 77L;
+        Short businessUnitId = 10;
+        String businessUnitUserId = "BU-USER-1";
+        String ifMatch = "\"7\"";
+
+        RemoveDefendantAccountEnforcementHoldRequest request =
+            RemoveDefendantAccountEnforcementHoldRequest.builder()
+                .reason("remove hold reason")
+                .build();
+
+        DefendantAccountEntity defendantEntity = DefendantAccountEntity.builder()
+            .defendantAccountId(defendantAccountId)
+            .lastEnforcement("NOENF")
+            .versionNumber(7L)
+            .build();
+        UnprocessableException exception = new UnprocessableException("blocked");
+
+        UserState userState = allPermissionsUser();
+
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(defendantAccountRepositoryService.findById(defendantAccountId)).thenReturn(defendantEntity);
+        doThrow(exception).when(defendantAccountControlValidator).validateCanRemoveEnforcementHold(defendantEntity);
+
+        try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
+            versionUtils.when(() -> VersionUtils.verifyIfMatch(
+                defendantEntity,
+                ifMatch,
+                defendantAccountId,
+                "removeEnforcementHold"
+            )).thenAnswer(invocation -> null);
+
+            UnprocessableException result = assertThrows(
+                UnprocessableException.class,
+                () -> service.removeEnforcementHold(
+                    defendantAccountId,
+                    businessUnitId,
+                    businessUnitUserId,
+                    ifMatch,
+                    request
+                )
+            );
+
+            assertEquals(exception, result);
+            verify(defendantAccountControlValidator).validateCanRemoveEnforcementHold(defendantEntity);
+            verifyNoInteractions(amendmentService, reportEntryService, notesProxy);
+            verify(defendantAccountRepositoryService, org.mockito.Mockito.never()).saveAndFlush(defendantEntity);
+            assertEquals("NOENF", defendantEntity.getLastEnforcement());
+        }
+    }
+
+    @Test
     void removeEnforcementHold_whenNoEnforcementHold_throwsResourceConflictException() {
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
@@ -963,6 +1019,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
         assertEquals(String.valueOf(DEFENDANT_ACCOUNT_ID), response.getDefendantAccountId());
         assertEquals(0, response.getVersion());
         assertEquals(String.valueOf(ENFORCEMENT_ID), response.getEnforcementId());
+        verify(defendantAccountRepositoryService).refresh(ArgumentMatchers.any(DefendantAccountEntity.class));
     }
 
     private void mockAuthorisedUser() {
