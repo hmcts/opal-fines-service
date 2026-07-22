@@ -30,7 +30,6 @@ public class EnforcementAccountTypeService {
 
     private final EnforcementAccountTypeRepository repository;
     private final EnforcementAccountTypeMapper mapper;
-    private final EntityManager entityManager;
 
     @Transactional(readOnly = true)
     public List<EnforcementAccountTypeCommon> getAllEnforcementAccountTypes() {
