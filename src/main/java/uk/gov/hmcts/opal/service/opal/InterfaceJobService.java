@@ -67,14 +67,13 @@ public class InterfaceJobService {
         return InterfaceJobsSummaryResponse.builder().interfaceJobs(summaries).build();
     }
 
+    @Transactional
     public void deleteInterfaceJobs(List<Long> interfaceJobIds) {
-        if (interfaceJobIds.isEmpty()) {
+        if (interfaceJobIds == null || interfaceJobIds.isEmpty()) {
             log.warn("TEST ENDPOINT: No interface job ids supplied for deletion");
             return;
         }
-
         log.warn("DESTRUCTIVE OPERATION: Deleting interface jobs with ids: {}", interfaceJobIds);
-
         interfaceJobRepository.deleteAllById(interfaceJobIds);
     }
 

@@ -96,11 +96,11 @@ public class TestingSupportController {
     )
     @DeleteMapping("/interface-jobs")
     @Operation(summary = "Deletes a list of Interface jobs. FOR TESTING ONLY!")
-    public ResponseEntity<Void> deleteInterfaceJobs(@RequestParam("ids") List<Long> interfaceJobIds) {
+    public ResponseEntity<Void> deleteInterfaceJobs(@RequestParam(value = "ids", required = false) List<Long> interfaceJobIds) {
         log.warn("TEST ENDPOINT: Request to delete interface jobs with ids: {}", interfaceJobIds);
 
         interfaceJobService.deleteInterfaceJobs(interfaceJobIds);
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 }

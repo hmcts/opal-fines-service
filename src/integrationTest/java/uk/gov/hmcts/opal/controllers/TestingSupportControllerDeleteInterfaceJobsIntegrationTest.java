@@ -65,12 +65,21 @@ public class TestingSupportControllerDeleteInterfaceJobsIntegrationTest extends 
         ResultActions actions = mockMvc.perform(delete("/testing-support/interface-jobs")
             .queryParam("ids", "" + firstInterfaceJobId, "" + secondInterfaceJobId));
 
-        actions.andExpect(status().isNoContent());
+        actions.andExpect(status().isOk());
 
         assertThat(paymentInRepository.count()).isZero();
         assertThat(tillRepository.countByInterfaceFile_InterfaceFileIdIn(interfaceFileIds)).isZero();
         assertThat(interfaceMessageRepository.count()).isZero();
         assertThat(interfaceFileRepository.count()).isZero();
         assertThat(interfaceJobRepository.count()).isZero();
+    }
+
+    @Test
+    @JiraStory("PO-2578")
+    @JiraEpic("PO-2468")
+    void wouldDeleteInterfaceJobsAndAssociatedDataNoneSupplied() throws Exception {
+        ResultActions actions = mockMvc.perform(delete("/testing-support/interface-jobs"));
+
+        actions.andExpect(status().isOk());
     }
 }
