@@ -16,6 +16,7 @@ import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
 import uk.gov.hmcts.opal.disco.legacy.LegacyTestsBase;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountHistoryLegacyResponseMapper;
+import uk.gov.hmcts.opal.mapper.legacy.LegacyConsolidatedAccountMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 import uk.gov.hmcts.opal.service.UserStateService;
@@ -42,6 +43,8 @@ abstract class AbstractLegacyDefAccServiceTest extends LegacyTestsBase {
     protected HistoryItemOrderingService historyItemOrderingService = new HistoryItemOrderingService();
     protected DefendantAccountHistoryLegacyResponseMapper legacyDefendantAccountHistoryResponseMapper =
         Mappers.getMapper(DefendantAccountHistoryLegacyResponseMapper.class);
+    protected LegacyConsolidatedAccountMapper legacyConsolidatedAccountMapper =
+        Mappers.getMapper(LegacyConsolidatedAccountMapper.class);
 
     @Mock protected UpdateDefendantAccountRequestMapper updateDefendantAccountRequestMapper;
     @Mock protected LegacyUpdateDefendantAccountResponseMapper legacyUpdateDefendantAccountResponseMapper;
@@ -61,6 +64,7 @@ abstract class AbstractLegacyDefAccServiceTest extends LegacyTestsBase {
             ljaService,
             historyItemOrderingService,
             legacyDefendantAccountHistoryResponseMapper,
+            legacyConsolidatedAccountMapper,
             updateDefendantAccountRequestMapper,
             legacyUpdateDefendantAccountResponseMapper
         );
