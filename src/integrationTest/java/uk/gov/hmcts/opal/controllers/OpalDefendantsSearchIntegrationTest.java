@@ -884,6 +884,36 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = {false, true})
+    @DisplayName("PO-8937: parent/guardian names are returned")
+    @JiraStory("PO-8937")
+    @JiraEpic("PO-2821")
+    void postSearch_returnsParentGuardianNames(boolean consolidation) throws Exception {
+        ResultActions actions = mockMvc.perform(
+            post(DEFENDANTS_SEARCH_URL)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON).content("""
+                    {
+                      "active_accounts_only": true,
+                      "business_unit_ids": [78],
+                      "reference_number": {
+                        "account_number": "990001",
+                        "prosecutor_case_reference": null,
+                        "organisation": false
+                      },
+                      "defendant": null,
+                      "consolidation_search": %s
+                    }""".formatted(consolidation)));
+
+        actions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("990001"))
+            .andExpect(jsonPath("$.defendant_accounts[0].parent_guardian_firstnames").value("Parent"))
+            .andExpect(jsonPath("$.defendant_accounts[0].parent_guardian_surname").value("Guardian"));
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {false, true})
     @DisplayName("OPAL: Alias fields are mapped when party personal details are null")
     @JiraStory("PO-2296")
     @JiraEpic("PO-2294")
