@@ -136,7 +136,7 @@ class TestingSupportControllerTest {
 
         ResponseEntity<Void> response = controller.deleteInterfaceJobs(interfaceJobIds);
 
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertFalse(response.hasBody());
         verify(interfaceJobService).deleteInterfaceJobs(interfaceJobIds);
     }
