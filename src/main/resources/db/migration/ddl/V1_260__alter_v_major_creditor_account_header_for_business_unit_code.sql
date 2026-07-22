@@ -42,7 +42,7 @@ AS
         ON bu.business_unit_id = ca.business_unit_id
       JOIN major_creditors mj 
         ON mj.major_creditor_id = ca.major_creditor_id     
-     WHERE ca.creditor_account_type = 'MJ'           
+     WHERE ca.creditor_account_type = 'MJ'::t_creditor_account_type_enum  
      UNION 
     SELECT ca.creditor_account_id
          , ca.account_number            AS creditor_account_number
@@ -67,6 +67,6 @@ AS
       JOIN configuration_items ci 
         ON bu.business_unit_id = ci.business_unit_id
        AND ci.item_name = 'CENTRAL_FUND_ACCOUNT'
-     WHERE ca.creditor_account_type = 'CF';
+     WHERE ca.creditor_account_type = 'CF'::t_creditor_account_type_enum;
 
 COMMENT ON VIEW v_major_creditor_account_header IS 'Retrieves major creditor account header information';
