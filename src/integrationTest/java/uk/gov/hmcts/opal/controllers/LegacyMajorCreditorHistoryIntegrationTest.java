@@ -112,14 +112,14 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
         assertThat(request.getCreditorAccountId()).isEqualTo(String.valueOf(MAJOR_CREDITOR_ACCOUNT_ID));
         assertThat(request.getFromDate()).isNull();
         assertThat(request.getToDate()).isNull();
-        assertThat(request.getItemTypes()).containsExactly("Financial");
+        assertThat(request.getItemTypes()).isNull();
     }
 
     @Test
     @DisplayName("PO-2659 INT.05 and INT.06 forwards inclusive date filters to legacy")
     @JiraStory("PO-2659")
     @JiraEpic("PO-2655")
-    void getHistory_forwardsDateFiltersAndForcesFinancialItemType() throws Exception {
+    void getHistory_forwardsDateFiltersAndItemTypes() throws Exception {
         stubLegacyResponse();
 
         getHistory("dateFrom", "2026-01-25", "dateTo", "2026-01-31", "itemTypes", "note")
@@ -129,7 +129,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
         GetMajorCreditorAccountHistoryLegacyRequest request = captureLegacyRequest();
         assertThat(request.getFromDate()).hasToString("2026-01-25");
         assertThat(request.getToDate()).hasToString("2026-01-31");
-        assertThat(request.getItemTypes()).containsExactly("Financial");
+        assertThat(request.getItemTypes()).containsExactly("Note");
     }
 
     @Test

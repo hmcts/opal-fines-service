@@ -3,7 +3,9 @@ package uk.gov.hmcts.opal.service.legacy;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -16,6 +18,7 @@ import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountAtAGlanceLegacyRequest;
@@ -40,7 +43,6 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
         "LIBRA.get_major_creditor_account_header_summary";
     public static final String GET_MAJOR_CREDITOR_ACCOUNT_HISTORY =
         "LIBRA.get_major_creditor_account_history";
-    private static final List<String> MAJOR_CREDITOR_HISTORY_ITEM_TYPES = List.of("Financial");
 
     private final GatewayService gatewayService;
     private final GetMajorCreditorAccountAtAGlanceResponseLegacyMapper atAGlanceResponseMapper;
@@ -101,7 +103,7 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
             gatewayService.postToGateway(
                 GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
                 GetMajorCreditorAccountHistoryLegacyResponse.class,
-                createGetMajorCreditorAccountHistoryRequest(majorCreditorAccountId, dateFrom, dateTo),
+                createGetMajorCreditorAccountHistoryRequest(majorCreditorAccountId, dateFrom, dateTo, itemTypes),
                 null
             );
 
@@ -113,14 +115,36 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
     static GetMajorCreditorAccountHistoryLegacyRequest createGetMajorCreditorAccountHistoryRequest(
         Long majorCreditorAccountId,
         LocalDate dateFrom,
-        LocalDate dateTo
+        LocalDate dateTo,
+        List<String> itemTypes
     ) {
         return GetMajorCreditorAccountHistoryLegacyRequest.builder()
             .creditorAccountId(String.valueOf(majorCreditorAccountId))
             .fromDate(dateFrom)
             .toDate(dateTo)
-            .itemTypes(MAJOR_CREDITOR_HISTORY_ITEM_TYPES)
+            .itemTypes(toLegacyHistoryItemTypes(itemTypes))
             .build();
+    }
+
+    private static List<String> toLegacyHistoryItemTypes(List<String> itemTypes) {
+        List<String> legacyItemTypes = queryValues(itemTypes).stream()
+            .map(HistoryItemType::fromValue)
+            .map(HistoryItemType::getResponseValue)
+            .toList();
+
+        return legacyItemTypes.isEmpty() ? null : legacyItemTypes;
+    }
+
+    private static List<String> queryValues(List<String> itemTypes) {
+        if (itemTypes == null) {
+            return List.of();
+        }
+
+        return itemTypes.stream()
+            .flatMap(rawValue -> rawValue == null ? Stream.of("") : Arrays.stream(rawValue.split(",", -1)))
+            .map(String::trim)
+            .filter(itemType -> !itemType.isEmpty())
+            .toList();
     }
 
     private static <T> void checkResponseForError(Response<T> response, String method) {
