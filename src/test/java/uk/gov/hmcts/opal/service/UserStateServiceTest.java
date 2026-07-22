@@ -1,7 +1,17 @@
 package uk.gov.hmcts.opal.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,21 +22,16 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("java:S1874")
@@ -102,6 +107,30 @@ class UserStateServiceTest {
 
         // Assert
         assertEquals("User state not found in token", ade.getMessage());
+    }
+
+    @Test
+    void testGetPermittedBusinessUnitIds_filtersUsingFinesDomainBusinessUnitUsers() {
+        // Arrange
+        OpalJwtAuthenticationToken authToken = mock(OpalJwtAuthenticationToken.class);
+        setAuthentication(authToken);
+        when(authToken.getUserState()).thenReturn(UserStateV2.builder()
+            .userId(1L)
+            .username("opal-user")
+            .domains(Map.of(Domain.FINES, DomainBusinessUnitUsers.builder()
+                .businessUnitUsers(List.of(
+                    businessUnitUser((short) 10, FinesPermission.ACCOUNT_ENQUIRY),
+                    businessUnitUser((short) 20, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)))
+                .build()))
+            .build());
+
+        // Act
+        List<Short> permittedBusinessUnitIds = userStateService.getPermittedBusinessUnitIds(
+            List.of((short) 10, (short) 20), FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
+
+        // Assert
+        assertEquals(List.of((short) 20), permittedBusinessUnitIds);
+        verifyNoInteractions(userStateMapper);
     }
 
     @Test
@@ -193,5 +222,12 @@ class UserStateServiceTest {
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
         securityContext.setAuthentication(authentication);
         SecurityContextHolder.setContext(securityContext);
+    }
+
+    private BusinessUnitUser businessUnitUser(Short businessUnitId, FinesPermission permission) {
+        return BusinessUnitUser.builder()
+            .businessUnitId(businessUnitId)
+            .permissions(Set.of(permission.toCommonPermission()))
+            .build();
     }
 }
