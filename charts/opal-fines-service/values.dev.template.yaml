@@ -185,6 +185,7 @@ servicebus:
     queues:
       - name: "logging-pdpl"
       - name: "report"
+      - name: "banking-interfaces-preprocess-interface-file-fines"
 hmcts-redis:
   enabled: true
   master:
