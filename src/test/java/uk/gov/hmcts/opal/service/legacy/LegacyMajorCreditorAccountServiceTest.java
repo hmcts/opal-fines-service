@@ -165,7 +165,7 @@ class LegacyMajorCreditorAccountServiceTest {
     }
 
     @Test
-    void getHistory_postsLegacyRequestMapsResponseAndForcesFinancialItemType() {
+    void getHistory_postsLegacyRequestMapsResponseAndForwardsItemTypes() {
         LocalDate dateFrom = LocalDate.of(2026, 1, 1);
         LocalDate dateTo = LocalDate.of(2026, 1, 31);
         GetMajorCreditorAccountHistoryLegacyRequest expectedRequest =
@@ -173,7 +173,7 @@ class LegacyMajorCreditorAccountServiceTest {
                 .creditorAccountId("123")
                 .fromDate(dateFrom)
                 .toDate(dateTo)
-                .itemTypes(List.of("Financial"))
+                .itemTypes(List.of("Note"))
                 .build();
         GetMajorCreditorAccountHistoryLegacyResponse legacyResponse =
             GetMajorCreditorAccountHistoryLegacyResponse.builder().version(7L).build();
@@ -206,7 +206,6 @@ class LegacyMajorCreditorAccountServiceTest {
         GetMajorCreditorAccountHistoryLegacyRequest expectedRequest =
             GetMajorCreditorAccountHistoryLegacyRequest.builder()
                 .creditorAccountId("123")
-                .itemTypes(List.of("Financial"))
                 .build();
 
         when(gatewayService.postToGateway(
@@ -228,6 +227,39 @@ class LegacyMajorCreditorAccountServiceTest {
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
         verifyNoInteractions(historyResponseMapper);
+    }
+
+    @Test
+    void getHistory_splitsCommaSeparatedItemTypes() {
+        GetMajorCreditorAccountHistoryLegacyRequest expectedRequest =
+            GetMajorCreditorAccountHistoryLegacyRequest.builder()
+                .creditorAccountId("123")
+                .itemTypes(List.of("Financial", "Note"))
+                .build();
+        GetMajorCreditorAccountHistoryLegacyResponse legacyResponse =
+            GetMajorCreditorAccountHistoryLegacyResponse.builder().version(7L).build();
+        GetMajorCreditorHistoryResponse mappedResponse = GetMajorCreditorHistoryResponse.builder()
+            .version(BigInteger.valueOf(7))
+            .build();
+
+        when(gatewayService.postToGateway(
+            GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
+            GetMajorCreditorAccountHistoryLegacyResponse.class,
+            expectedRequest,
+            null
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse));
+        when(historyResponseMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
+
+        GetMajorCreditorHistoryResponse result =
+            legacyMajorCreditorAccountService.getHistory(123L, null, null, List.of("financial,note"));
+
+        assertEquals(mappedResponse, result);
+        verify(gatewayService).postToGateway(
+            GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
+            GetMajorCreditorAccountHistoryLegacyResponse.class,
+            expectedRequest,
+            null
+        );
     }
 
     @Test
