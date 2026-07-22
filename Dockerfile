@@ -7,5 +7,4 @@ COPY lib/applicationinsights.json /opt/app/
 COPY build/libs/opal-fines-service.jar /opt/app/
 
 EXPOSE 4550
-EXPOSE 5005
 CMD [ "opal-fines-service.jar" ]
