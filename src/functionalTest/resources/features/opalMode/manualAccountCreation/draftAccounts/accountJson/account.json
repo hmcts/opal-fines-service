@@ -1,7 +1,7 @@
 {
   "originator_type": "TFO",
   "account_type": "Fine",
-  "defendant_type": "DEFENDANT",
+  "defendant_type": "adultOrYouthOnly",
   "originator_name": "Humber Magistrates' Court",
   "originator_id": 1980,
   "enforcement_court_id": 260000000048,
