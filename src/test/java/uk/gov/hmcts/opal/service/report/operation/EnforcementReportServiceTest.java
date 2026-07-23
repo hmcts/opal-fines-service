@@ -24,8 +24,11 @@ import uk.gov.hmcts.opal.dto.report.operation.OperationReportByEnforcementFilter
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
+import uk.gov.hmcts.opal.exception.UnsupportedContentTypeException;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
+import uk.gov.hmcts.opal.service.report.FileType;
+import uk.gov.hmcts.opal.service.report.ReportCSVService;
 import uk.gov.hmcts.opal.service.report.ReportDataInterface;
 import uk.gov.hmcts.opal.service.report.ReportEnforcementMode;
 import uk.gov.hmcts.opal.service.report.ReportId;
@@ -59,6 +62,9 @@ class EnforcementReportServiceTest {
 
     @Mock
     private EnforcementReportValidator validator;
+
+    @Mock
+    private ReportCSVService reportCSVService;
 
     @InjectMocks
     private EnforcementReportService service;
@@ -275,6 +281,35 @@ class EnforcementReportServiceTest {
             .hasMessageContaining("Failed to parse report filters");
 
         verifyNoInteractions(defendantAccountRepository, enforcementRepository, detailedResultMapper);
+    }
+
+    @Test
+    void convertReportDataToFileType_summaryCsv_returnsBytes() {
+        byte[] expected = "csv".getBytes();
+        when(reportCSVService.convertReportDtoToCSV(mappedSummaryReport)).thenReturn(expected);
+
+        byte[] result = service.convertReportDataToFileType(new ReportInstanceEntity(), mappedSummaryReport,
+            FileType.CSV);
+
+        assertThat(result).isSameAs(expected);
+        verify(reportCSVService).convertReportDtoToCSV(mappedSummaryReport);
+    }
+
+    @Test
+    void convertReportDataToFileType_nonCsv_throwsUnsupportedType() {
+        assertThatThrownBy(() -> service.convertReportDataToFileType(new ReportInstanceEntity(), mappedSummaryReport,
+            FileType.PDF))
+            .isInstanceOf(UnsupportedContentTypeException.class)
+            .hasMessage("Content type PDF is not supported for OP_ENFORCEMENT. Supported content types: CSV");
+    }
+
+    @Test
+    void convertReportDataToFileType_detailedReport_throwsUnsupportedType() {
+        assertThatThrownBy(() -> service.convertReportDataToFileType(new ReportInstanceEntity(), mappedDetailedReport,
+            FileType.CSV))
+            .isInstanceOf(UnsupportedContentTypeException.class)
+            .hasMessage("Content type DETAILED CSV is not supported for OP_ENFORCEMENT. Supported content types: "
+                + "SUMMARY CSV");
     }
 
     private ReportInstanceEntity mockReportInstance(String json) {

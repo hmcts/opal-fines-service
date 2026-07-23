@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.report;
 
-import lombok.AllArgsConstructor;
+import java.nio.charset.StandardCharsets;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
@@ -11,7 +12,7 @@ import uk.gov.hmcts.opal.service.report.mapper.csv.ReportCSVMapper;
  * TODO this must be wired up to the endpoint created by PO-2253
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Slf4j(topic = "opal.ReportCSVService")
 public class ReportCSVService {
     private final ReportCSVMapperRegistry reportCSVMapperRegistry;
@@ -32,6 +33,6 @@ public class ReportCSVService {
             throw new UnprocessableException("Report cannot be converted to CSV format.");
         }
         String csv = reportCSVMapper.reportToCSVString(reportDataInterface);
-        return csv.getBytes();
+        return csv.getBytes(StandardCharsets.UTF_8);
     }
 }
