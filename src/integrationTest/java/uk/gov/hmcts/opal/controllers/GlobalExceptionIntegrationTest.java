@@ -159,7 +159,7 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
         String body = a.andReturn().getResponse().getContentAsString();
         log.info("HTTP 503 body:\n{}", ToJsonString.toPrettyJson(body));
 
-        a.andExpect(status().isServiceUnavailable())
+        a.andExpect(status().isInternalServerError())
             .andExpect(header().exists("operation_id"))
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.retriable").value(true));
