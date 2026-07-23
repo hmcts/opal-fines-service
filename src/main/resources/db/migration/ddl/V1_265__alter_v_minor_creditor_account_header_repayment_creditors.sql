@@ -9,9 +9,14 @@
 *
 * Date          Author         Version     Nature of Change
 * ----------    -----------    --------    ----------------------------------------------------------------------------
-* 14/07/2026    C Cho          1.0         PO-2975 - Update repayment creditor header financial values.
+* 08/07/2026    P Brumby    1.0         PO-7421 Amend view v_minor_creditor_account_header to fetch business_units.business_unit_code for frontend consumption.
+* 14/07/2026    C Cho       2.0         PO-2975 - Update repayment creditor header financial values.
 *
 **/
+
+--
+-- Name: v_minor_creditor_account_header; Type: VIEW; Schema: public; Owner: -
+--
 
 CREATE OR REPLACE VIEW v_minor_creditor_account_header AS
  SELECT DISTINCT t.creditor_account_id,
@@ -31,35 +36,35 @@ CREATE OR REPLACE VIEW v_minor_creditor_account_header AS
             WHEN (imp.creditor_account_id IS NOT NULL) THEN true
             ELSE false
         END AS has_associated_defendant,
-        CASE
-            WHEN (t.repayment IS TRUE) THEN (0)::numeric
-            ELSE COALESCE(( SELECT sum(i.imposed_amount) AS sum
-                   FROM impositions i
-                  WHERE (i.creditor_account_id = t.creditor_account_id)), (0)::numeric)
-        END AS awarded,
-        CASE
-            WHEN (t.repayment IS TRUE) THEN COALESCE(( SELECT ct.transaction_amount
-                   FROM creditor_transactions ct
-                  WHERE (ct.creditor_account_id = t.creditor_account_id)
-                  ORDER BY ct.posted_date ASC
-                  LIMIT 1), (0)::numeric)
-            ELSE COALESCE(( SELECT sum(ct.transaction_amount) AS sum
-                   FROM creditor_transactions ct
-                  WHERE ((ct.creditor_account_id = t.creditor_account_id) AND (ct.payment_processed IS TRUE))), (0)::numeric)
-        END AS paid_out,
-        CASE
-            WHEN (t.repayment IS TRUE) THEN (0)::numeric
-            ELSE COALESCE(( SELECT sum(ct.transaction_amount) AS sum
-                   FROM creditor_transactions ct
-                  WHERE ((ct.creditor_account_id = t.creditor_account_id) AND (ct.payment_processed IS FALSE))), (0)::numeric)
-        END AS awaiting_payment,
-        CASE
-            WHEN (t.repayment IS TRUE) THEN (0)::numeric
-            ELSE COALESCE(( SELECT (sum(i.imposed_amount) - sum(i.paid_amount))
-                   FROM impositions i
-                  WHERE (i.creditor_account_id = t.creditor_account_id)), (0)::numeric)
-        END AS outstanding,
-        bu.business_unit_code
+    CASE
+        WHEN (t.repayment IS TRUE) THEN (0)::numeric
+        ELSE COALESCE(( SELECT sum(i.imposed_amount) AS sum
+           FROM impositions i
+          WHERE (i.creditor_account_id = t.creditor_account_id)), (0)::numeric)
+    END AS awarded,
+    CASE
+        WHEN (t.repayment IS TRUE) THEN COALESCE(( SELECT ct.transaction_amount
+           FROM creditor_transactions ct
+          WHERE (ct.creditor_account_id = t.creditor_account_id)
+          ORDER BY ct.posted_date ASC
+          LIMIT 1), (0)::numeric)
+        ELSE COALESCE(( SELECT sum(ct.transaction_amount) AS sum
+           FROM creditor_transactions ct
+          WHERE ((ct.creditor_account_id = t.creditor_account_id) AND (ct.payment_processed IS TRUE))), (0)::numeric)
+    END AS paid_out,
+    CASE
+        WHEN (t.repayment IS TRUE) THEN (0)::numeric
+        ELSE COALESCE(( SELECT sum(ct.transaction_amount) AS sum
+           FROM creditor_transactions ct
+          WHERE ((ct.creditor_account_id = t.creditor_account_id) AND (ct.payment_processed IS FALSE))), (0)::numeric)
+    END AS awaiting_payment,
+    CASE
+        WHEN (t.repayment IS TRUE) THEN (0)::numeric
+        ELSE COALESCE(( SELECT (sum(i.imposed_amount) - sum(i.paid_amount))
+           FROM impositions i
+          WHERE (i.creditor_account_id = t.creditor_account_id)), (0)::numeric)
+    END AS outstanding,
+    bu.business_unit_code
    FROM (((( SELECT ca.creditor_account_id,
             ca.account_number AS creditor_account_number,
             ca.creditor_account_type,
@@ -74,5 +79,8 @@ CREATE OR REPLACE VIEW v_minor_creditor_account_header AS
      LEFT JOIN ( SELECT DISTINCT impositions.creditor_account_id
            FROM impositions) imp ON ((t.creditor_account_id = imp.creditor_account_id)));
 
-COMMENT ON VIEW v_minor_creditor_account_header IS 'Retrieves minor creditor accounts header information';
+--
+-- Name: VIEW v_minor_creditor_account_header; Type: COMMENT; Schema: public; Owner: -
+--
 
+COMMENT ON VIEW v_minor_creditor_account_header IS 'Retrieves minor creditor accounts header information';
