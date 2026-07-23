@@ -20,6 +20,7 @@ import uk.gov.hmcts.opal.generated.model.CreditorTransactionDetailsHistory;
 import uk.gov.hmcts.opal.generated.model.CreditorTransactionStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorTransactionTypeReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.MajorCreditorHistoryItemHistory;
+import uk.gov.hmcts.opal.generated.model.NoteDetailsHistory;
 import uk.gov.hmcts.opal.mapper.AbstractMapperTest;
 
 class GetMajorCreditorAccountHistoryResponseLegacyMapperTest extends AbstractMapperTest {
@@ -73,7 +74,7 @@ class GetMajorCreditorAccountHistoryResponseLegacyMapperTest extends AbstractMap
         assertEquals("MJUSR3", item.getPostedDetails().getPostedBy());
         assertEquals("Major User Three", item.getPostedDetails().getPostedByName());
 
-        CreditorTransactionDetailsHistory details = item.getDetails();
+        CreditorTransactionDetailsHistory details = (CreditorTransactionDetailsHistory)item.getDetails();
         assertEquals(
             CreditorTransactionTypeReferenceCommon.TransactionTypeEnum.MADJ,
             details.getTransactionType().getTransactionType()
@@ -91,6 +92,32 @@ class GetMajorCreditorAccountHistoryResponseLegacyMapperTest extends AbstractMap
         assertEquals("87654321", details.getAccountNumber());
         assertEquals("12345678", details.getDefendantAccountNumber());
         assertEquals(999L, details.getDefendantAccountId());
+    }
+
+    @Test
+    void toOpal_mapsLegacyNoteHistoryResponse() {
+        GetMajorCreditorAccountHistoryLegacyResponse legacy =
+            GetMajorCreditorAccountHistoryLegacyResponse.builder()
+                .version(7L)
+                .historyItems(List.of(LegacyMajorCreditorHistoryItem.builder()
+                    .postedDetails(new LegacyPostedDetails(
+                        LocalDateTime.of(2026, 1, 31, 10, 30),
+                        "MJUSR3",
+                        "Major User Three"
+                    ))
+                    .type("Note")
+                    .details(LegacyMajorCreditorHistoryDetails.builder()
+                        .noteText("History note")
+                        .build())
+                    .build()))
+                .build();
+
+        GetMajorCreditorHistoryResponse result = mapper.toOpal(legacy);
+
+        MajorCreditorHistoryItemHistory item = result.getPayload().getHistoryItems().getFirst();
+        assertEquals(MajorCreditorHistoryItemHistory.TypeEnum.NOTE, item.getType());
+        NoteDetailsHistory details = (NoteDetailsHistory)item.getDetails();
+        assertEquals("History note", details.getNoteText());
     }
 
     @Test
@@ -120,6 +147,7 @@ class GetMajorCreditorAccountHistoryResponseLegacyMapperTest extends AbstractMap
             List.of("MJF003", "MJF004", "MJF002"),
             result.getPayload().getHistoryItems().stream()
                 .map(MajorCreditorHistoryItemHistory::getDetails)
+                .map(CreditorTransactionDetailsHistory.class::cast)
                 .map(CreditorTransactionDetailsHistory::getPaymentReference)
                 .toList()
         );
