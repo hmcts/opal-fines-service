@@ -343,26 +343,15 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("authorization", userStateStub.getBearerToken())
-                .contentType(MediaType.APPLICATION_JSON).content("""
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
                     {
                       "active_accounts_only": true,
                       "business_unit_ids": [78],
-                      "reference_number": null,
                       "defendant": {
-                        "include_aliases": true,
-                        "organisation": false,
-                        "address_line_1": null,
-                        "postcode": null,
-                        "organisation_name": null,
-                        "exact_match_organisation_name": null,
-                        "surname": null,
-                        "exact_match_surname": null,
-                        "forenames": null,
-                        "exact_match_forenames": null,
-                        "birth_date": null,
                         "national_insurance_number": "A111"
-                     },
-                         "consolidation_search": %s
+                      },
+                      "consolidation_search": %s
                     }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
@@ -1158,29 +1147,16 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         // NI searches are exclusive, so only the national insurance number is populated.
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL)
-
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON).content("""
                     {
                       "active_accounts_only": true,
                       "business_unit_ids": [78],
-                      "reference_number": null,
                       "defendant": {
-                        "include_aliases": false,
-                        "organisation": false,
-                        "address_line_1": null,
-                        "postcode": null,
-                        "organisation_name": null,
-                        "exact_match_organisation_name": null,
-                        "surname": null,
-                        "exact_match_surname": null,
-                        "forenames": null,
-                        "exact_match_forenames": null,
-                        "birth_date": null,
                         "national_insurance_number": "A111"
-                     },
-                         "consolidation_search": %s
+                      },
+                      "consolidation_search": %s
                     }""".formatted(consolidation)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
