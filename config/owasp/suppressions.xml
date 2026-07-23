@@ -16,6 +16,21 @@
     <cve>CVE-2025-21199</cve>
   </suppress>
 
+  <suppress until="2026-08-31Z">
+    <notes><![CDATA[
+    Reviewed 2026-07-23.
+    Netty advisories for CVE-2026-44891, CVE-2026-55831, and CVE-2026-55833 list
+    4.2.16.Final as the fixed release for the Netty 4.2 line. Dependency-Check is
+    reporting these CVEs against io.netty:netty-buffer:4.2.16.Final because the NVD
+    CPE range currently includes 4.2.16 despite the advisory text marking it fixed.
+    Keep this suppression only for that exact fixed netty-buffer artifact.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.netty/netty-buffer@4\.2\.16\.Final$</packageUrl>
+    <cve>CVE-2026-44891</cve>
+    <cve>CVE-2026-55831</cve>
+    <cve>CVE-2026-55833</cve>
+  </suppress>
+
   <!--End of false positives section -->
 
   <!--Please add Temporary suppression here-->
