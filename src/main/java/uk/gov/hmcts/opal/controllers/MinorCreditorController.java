@@ -7,6 +7,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.time.Duration;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -54,7 +55,11 @@ public class MinorCreditorController {
     @Operation(summary = "Searches MinorCreditors based upon criteria in request body")
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<PostMinorCreditorAccountsSearchResponse> postMinorCreditorsSearch(
-        @RequestBody MinorCreditorSearch criteria) {
+        @RequestBody MinorCreditorSearch criteria) throws InterruptedException {
+
+        System.out.println("\n\n Thread sleep \n\n");
+
+        Thread.sleep(Duration.ofSeconds(60));
 
         log.debug(":POST:postMinorCreditorsSearch: query: \n{}", criteria);
 

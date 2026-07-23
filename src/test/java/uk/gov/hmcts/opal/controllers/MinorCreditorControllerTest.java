@@ -37,7 +37,7 @@ class MinorCreditorControllerTest {
     private MinorCreditorController minorCreditorController;
 
     @Test
-    void testPostMinorCreditorSearch_Success() {
+    void testPostMinorCreditorSearch_Success() throws InterruptedException {
         // Arrange
         PostMinorCreditorAccountsSearchResponse mockResponse = new PostMinorCreditorAccountsSearchResponse();
 
