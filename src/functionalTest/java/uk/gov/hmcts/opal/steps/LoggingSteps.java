@@ -23,6 +23,9 @@ public class LoggingSteps extends BaseStepDef {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String SEARCH_PATH = "/test-support/search";
+    private static final String PDPO_CREATED_BY_ID = "500000000";
+    private static final String PDPO_CREATED_BY_TYPE = "OPAL_USER_ID";
+    private static final String PDPO_BUSINESS_IDENTIFIER = "Submit Draft Account - Parent or Guardian";
 
     private static final int DEFAULT_TIMEOUT_SECONDS =
         Optional.ofNullable(System.getenv("LOG_SEARCH_TIMEOUT_SECONDS"))
@@ -51,8 +54,10 @@ public class LoggingSteps extends BaseStepDef {
     @Then("the logging service emits PDPO logs for the created draft account id")
     public void loggingServiceEmitsPdpoLogsForTheCreatedDraftAccountId() {
         latestPdpoSearchResponse = waitForPdpoLogs(Map.of(
-            "individual_id",
-            scenarioContext().getLastDraftAccountIdOrFail()
+            "created_by_id", PDPO_CREATED_BY_ID,
+            "created_by_type", PDPO_CREATED_BY_TYPE,
+            "business_identifier", PDPO_BUSINESS_IDENTIFIER,
+            "individual_id", scenarioContext().getLastDraftAccountIdOrFail()
         ));
     }
 
