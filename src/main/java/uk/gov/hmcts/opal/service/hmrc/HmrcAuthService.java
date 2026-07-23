@@ -46,10 +46,10 @@ public class HmrcAuthService {
 
     URI buildUri() {
         return UriComponentsBuilder.fromUriString(url)
-            .replaceQueryParam("client_id", clientId)
-            .replaceQueryParam("client_secret", clientSecret)
-            .replaceQueryParam("grant_type", GRANT_TYPE)
-            .replaceQueryParam("scope", scope)
+            .queryParam("client_id", clientId)
+            .queryParam("client_secret", clientSecret)
+            .queryParam("grant_type", GRANT_TYPE)
+            .queryParam("scope", scope)
             .build()
             .toUri();
     }
