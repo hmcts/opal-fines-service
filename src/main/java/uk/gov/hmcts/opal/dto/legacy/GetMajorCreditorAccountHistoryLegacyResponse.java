@@ -100,6 +100,10 @@ public class GetMajorCreditorAccountHistoryLegacyResponse implements ToXmlString
         @JsonProperty("defendant_account_id")
         @XmlElement(name = "defendant_account_id")
         private Long defendantAccountId;
+
+        @JsonProperty("note_text")
+        @XmlElement(name = "note_text")
+        private String noteText;
     }
 
     @Data

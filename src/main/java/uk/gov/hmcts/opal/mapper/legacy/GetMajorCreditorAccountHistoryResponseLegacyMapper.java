@@ -9,6 +9,7 @@ import java.util.Optional;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
+import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyCreditorTransactionStatusReference;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyCreditorTransactionTypeReference;
@@ -21,6 +22,8 @@ import uk.gov.hmcts.opal.generated.model.CreditorTransactionStatusReferenceCommo
 import uk.gov.hmcts.opal.generated.model.CreditorTransactionTypeReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.GetMajorCreditorHistory200Response;
 import uk.gov.hmcts.opal.generated.model.MajorCreditorHistoryItemHistory;
+import uk.gov.hmcts.opal.generated.model.MajorCreditorHistoryItemHistoryDetails;
+import uk.gov.hmcts.opal.generated.model.NoteDetailsHistory;
 import uk.gov.hmcts.opal.generated.model.PostedDetailsCommon;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
@@ -45,7 +48,7 @@ public interface GetMajorCreditorAccountHistoryResponseLegacyMapper {
 
     @Mapping(target = "postedDetails", source = "postedDetails")
     @Mapping(target = "type", source = "type")
-    @Mapping(target = "details", source = "details")
+    @Mapping(target = "details", expression = "java(mapDetails(item.getType(), item.getDetails()))")
     MajorCreditorHistoryItemHistory toHistoryItem(LegacyMajorCreditorHistoryItem item);
 
     CreditorTransactionDetailsHistory toDetails(LegacyMajorCreditorHistoryDetails details);
@@ -63,6 +66,22 @@ public interface GetMajorCreditorAccountHistoryResponseLegacyMapper {
             .map(GetMajorCreditorAccountHistoryLegacyResponse::getVersion)
             .map(BigInteger::valueOf)
             .orElse(BigInteger.ONE);
+    }
+
+    default MajorCreditorHistoryItemHistoryDetails mapDetails(
+        String type,
+        LegacyMajorCreditorHistoryDetails details
+    ) {
+        if (type == null || details == null) {
+            return null;
+        }
+
+        HistoryItemType historyItemType = HistoryItemType.fromValue(type);
+        return switch (historyItemType) {
+            case FINANCIAL -> toDetails(details);
+            case NOTE -> new NoteDetailsHistory().noteText(details.getNoteText());
+            default -> throw new IllegalArgumentException("Unsupported major creditor history item type: " + type);
+        };
     }
 
     default MajorCreditorHistoryItemHistory.TypeEnum toHistoryItemType(String type) {
