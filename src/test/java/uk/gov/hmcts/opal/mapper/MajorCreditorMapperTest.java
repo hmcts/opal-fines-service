@@ -33,7 +33,7 @@ class MajorCreditorMapperTest {
                 .creditorAccountType(CreditorAccountType.MJ)
                 .prosecutionService(true)
                 .minorCreditorPartyId(303L)
-                .fromSuspense(false)
+                .repayment(false)
                 .holdPayout(true)
                 .lastChangedDate(lastChangedDate)
                 .build())
@@ -53,7 +53,7 @@ class MajorCreditorMapperTest {
             () -> assertEquals("MJ", mapped.getCreditorAccountType()),
             () -> assertEquals(Boolean.TRUE, mapped.getProsecutionService()),
             () -> assertEquals(303L, mapped.getMinorCreditorPartyId()),
-            () -> assertEquals(Boolean.FALSE, mapped.getFromSuspense()),
+            () -> assertEquals(Boolean.FALSE, mapped.getRepayment()),
             () -> assertEquals(Boolean.TRUE, mapped.getHoldPayout()),
             () -> assertEquals(lastChangedDate, mapped.getLastChangedDate())
         );

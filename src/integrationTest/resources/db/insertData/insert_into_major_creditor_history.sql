@@ -27,7 +27,7 @@ VALUES
 INSERT INTO public.creditor_accounts (
   creditor_account_id, business_unit_id, account_number, creditor_account_type,
   prosecution_service, major_creditor_id, minor_creditor_party_id,
-  from_suspense, hold_payout, pay_by_bacs,
+  repayment, hold_payout, pay_by_bacs,
   bank_sort_code, bank_account_number, bank_account_name, bank_account_reference,
   bank_account_type, version_number, last_changed_date
 )

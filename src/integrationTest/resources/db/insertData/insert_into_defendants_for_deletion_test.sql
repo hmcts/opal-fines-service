@@ -4,7 +4,7 @@
 -- Add a creditor account for the test (this is what impositions references, not major_creditors)
 INSERT INTO creditor_accounts (creditor_account_id, business_unit_id, account_number,
                                creditor_account_type,
-                               prosecution_service, from_suspense, hold_payout, pay_by_bacs)
+                               prosecution_service, repayment, hold_payout, pay_by_bacs)
 VALUES (9200, 78, 'CRED001', 'MN',
         false, false, false, false);
 

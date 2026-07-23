@@ -1,6 +1,6 @@
 INSERT INTO creditor_accounts (
     creditor_account_id, business_unit_id, account_number, creditor_account_type, prosecution_service,
-    from_suspense, hold_payout, pay_by_bacs, version_number
+    repayment, hold_payout, pay_by_bacs, version_number
 ) VALUES (
     262200, 78, 'CR262200', 'MJ', TRUE, FALSE, FALSE, FALSE, 0
 ) ON CONFLICT (creditor_account_id) DO NOTHING;

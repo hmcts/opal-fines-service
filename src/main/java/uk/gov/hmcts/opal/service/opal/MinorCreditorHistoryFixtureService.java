@@ -1,16 +1,15 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import lombok.Builder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Clock;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 /**
  * Creates and removes minor-creditor history fixtures through the testing-support API.
@@ -146,7 +145,7 @@ public class MinorCreditorHistoryFixtureService {
                 INSERT INTO creditor_accounts (
                   creditor_account_id, business_unit_id, account_number, creditor_account_type,
                   prosecution_service, major_creditor_id, minor_creditor_party_id,
-                  from_suspense, hold_payout, pay_by_bacs,
+                  repayment, hold_payout, pay_by_bacs,
                   bank_sort_code, bank_account_number, bank_account_name, bank_account_reference,
                   bank_account_type, version_number, last_changed_date
                 )
