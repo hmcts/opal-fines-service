@@ -257,6 +257,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .defendantSurname(isOrganisation ? null : account.getSurname())
             .addressLine1(OpalDefendantAccountBuilders.orEmpty(account.getAddressLine1()))
             .postcode(account.getPostcode())
+            .parentGuardianSurname(account.getParentGuardianSurname())
+            .parentGuardianFirstnames(account.getParentGuardianForenames())
             .businessUnitName(account.getBusinessUnitName())
             .businessUnitId(String.valueOf(account.getBusinessUnitId()))
             .prosecutorCaseReference(account.getProsecutorCaseReference())
