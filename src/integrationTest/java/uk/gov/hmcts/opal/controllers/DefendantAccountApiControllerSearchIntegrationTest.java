@@ -29,7 +29,7 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
     @Test
     @JiraEpic("PO-2630")
     @JiraStory("PO-2970")
-    @DisplayName("AC1 - If national insurance number is provided no other fields can be provided")
+    @DisplayName("INT.01 - If national insurance number is provided no other fields can be provided")
     void postDefendantAccountSearch_other_fields_cannot_be_provided_when_NI_number_is_provided() throws Exception {
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
@@ -73,7 +73,7 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
     @Test
     @JiraEpic("PO-2630")
     @JiraStory("PO-2970")
-    @DisplayName("AC2 - If national insurance number is provided no other fields can be provided")
+    @DisplayName("INT.02 - If national insurance number is provided no other fields can be provided")
     void postDefendantAccountSearch_NI_number_provides_successful_response() throws Exception {
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
@@ -99,7 +99,7 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
     @Test
     @JiraEpic("PO-2630")
     @JiraStory("PO-2970")
-    @DisplayName("AC3 - If first name is populated last name must also be populated")
+    @DisplayName("INT.03 - If first name is populated last name must also be populated")
     void postDefendantAccountSearch_only_first_name_provided() throws Exception {
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
@@ -132,7 +132,7 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
     @Test
     @JiraEpic("PO-2630")
     @JiraStory("PO-2970")
-    @DisplayName("AC4 - If first name is populated last name must also be populated")
+    @DisplayName("INT.04 - If first name is populated last name must also be populated")
     void postDefendantAccountSearch_first_name_and_last_name_provides_successful_response() throws Exception {
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
@@ -159,7 +159,7 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
     @Test
     @JiraEpic("PO-2630")
     @JiraStory("PO-2970")
-    @DisplayName("AC5 - If Date of birth is populated last name must also be populated")
+    @DisplayName("INT.05 - If Date of birth is populated last name must also be populated")
     void postDefendantAccountSearch_only_has_date_of_brith() throws Exception {
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
@@ -192,7 +192,7 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
     @Test
     @JiraEpic("PO-2630")
     @JiraStory("PO-2970")
-    @DisplayName("AC6 - If Date of birth is populated last name must also be populated")
+    @DisplayName("INT.06 - If Date of birth is populated last name must also be populated")
     void postDefendantAccountSearch_date_of_birth_and_last_name_provide_successful_response() throws Exception {
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
@@ -219,7 +219,7 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
     @Test
     @JiraEpic("PO-2630")
     @JiraStory("PO-2970")
-    @DisplayName("AC7 - If Date of birth is populated last name must also be populated")
+    @DisplayName("INT.07 - If Date of birth is populated last name must also be populated")
     void postDefendantAccountSearch_request_includes_line1() throws Exception {
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
@@ -249,7 +249,7 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
     @Test
     @JiraEpic("PO-2630")
     @JiraStory("PO-2970")
-    @DisplayName("AC8 - If I only add post code I should not be required to add last name or organisation")
+    @DisplayName("INT.08 - If I only add post code I should not be required to add last name or organisation")
     void postDefendantAccountSearch_request_includes_postcode() throws Exception {
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
@@ -278,7 +278,7 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
     @Test
     @JiraEpic("PO-2630")
     @JiraStory("PO-2970")
-    @DisplayName("AC9 - Surname should be filtered by starts with")
+    @DisplayName("INT.09 - Surname should be filtered by starts with")
     void postDefendantAccountSearch_surname_filtered_by_starts_with() throws Exception {
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
