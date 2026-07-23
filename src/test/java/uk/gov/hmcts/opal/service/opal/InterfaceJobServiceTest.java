@@ -26,11 +26,16 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.entity.InterfaceFileEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateItem;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateRequest;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateResponse;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateResponseItem;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsFileSource;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsJobStatus;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsSummaryItem;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsSummaryResponse;
 import uk.gov.hmcts.opal.mapper.InterfaceJobMapper;
+import uk.gov.hmcts.opal.repository.InterfaceFileRepository;
 import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.InterfaceJobService.InterfaceJobSearchCriteria;
@@ -42,13 +47,63 @@ class InterfaceJobServiceTest {
     private InterfaceJobRepository interfaceJobRepository;
 
     @Mock
+    private InterfaceFileRepository interfaceFileRepository;
+
+    @Mock
     private InterfaceJobMapper interfaceJobMapper;
+
+    @Mock
+    private BusinessUnitService businessUnitService;
 
     @Mock
     private UserStateService userStateService;
 
     @InjectMocks
     private InterfaceJobService interfaceJobService;
+
+    @Test
+    void create_savesJobsAndFiles() {
+        LocalDateTime createdDateTime = LocalDateTime.of(2026, 7, 14, 10, 0);
+        InterfaceJobsCreateItem requestItem = InterfaceJobsCreateItem.builder()
+            .fileName("auto-payments-in.dat")
+            .source(InterfaceJobsFileSource.NATWEST)
+            .records("[{\"account\":\"123\"}]")
+            .businessUnitId((short) 77)
+            .interfaceName("Auto Payments In")
+            .createdDatetime(createdDateTime)
+            .build();
+        InterfaceJobsCreateRequest request = InterfaceJobsCreateRequest.builder()
+            .interfaceJobs(List.of(requestItem))
+            .build();
+        BusinessUnitEntity businessUnit = BusinessUnitEntity.builder().businessUnitId((short) 77).build();
+        InterfaceJobEntity unsavedJob = InterfaceJobEntity.builder().businessUnit(businessUnit).build();
+        InterfaceJobEntity savedJob = InterfaceJobEntity.builder()
+            .interfaceJobId(123L)
+            .businessUnit(businessUnit)
+            .build();
+        InterfaceFileEntity unsavedFile = InterfaceFileEntity.builder()
+            .interfaceJob(savedJob)
+            .fileName("auto-payments-in.dat")
+            .records("[{\"account\":\"123\"}]")
+            .build();
+        InterfaceJobsCreateResponseItem createResponse = InterfaceJobsCreateResponseItem.builder()
+            .interfaceJobId(123L)
+            .build();
+
+        when(businessUnitService.getBusinessUnit((short) 77)).thenReturn(businessUnit);
+        when(interfaceJobMapper.toJobEntity(requestItem, businessUnit)).thenReturn(unsavedJob);
+        when(interfaceJobRepository.save(unsavedJob)).thenReturn(savedJob);
+        when(interfaceJobMapper.toFileEntity(requestItem, savedJob)).thenReturn(unsavedFile);
+        when(interfaceJobMapper.toCreateResponse(savedJob)).thenReturn(createResponse);
+
+        InterfaceJobsCreateResponse result = interfaceJobService.create(request);
+
+        assertEquals(List.of(createResponse), result.getInterfaceJobs());
+        verify(businessUnitService).getBusinessUnit((short) 77);
+        verify(interfaceJobRepository).save(unsavedJob);
+        verify(interfaceFileRepository).save(unsavedFile);
+        verify(interfaceJobMapper).toCreateResponse(savedJob);
+    }
 
     @Test
     void getSummary_returnsEmptyResponseWhenUserHasNoPermittedBusinessUnits() {

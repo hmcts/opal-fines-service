@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 import java.time.LocalDateTime;
@@ -10,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.generated.http.api.InterfaceJobsApi;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateRequest;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateResponse;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsSummaryResponse;
 import uk.gov.hmcts.opal.service.opal.InterfaceJobService.InterfaceJobSearchCriteria;
 import uk.gov.hmcts.opal.service.opal.InterfaceJobService;
@@ -21,6 +24,15 @@ import uk.gov.hmcts.opal.util.FeatureFlags;
 public class InterfaceJobsApiController implements InterfaceJobsApi {
 
     private final InterfaceJobService interfaceJobService;
+
+    @Override
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1C_PAYMENT,
+        defaultValueProperty = FeatureFlags.RELEASE_1C_PAYMENT_ENABLED_PROPERTY)
+    public ResponseEntity<InterfaceJobsCreateResponse> postInterfaceJobs(
+        InterfaceJobsCreateRequest request) {
+
+        return buildCreatedResponse(interfaceJobService.create(request));
+    }
 
     @Override
     @FeatureToggle(feature = FeatureFlags.RELEASE_1C_PAYMENT,
