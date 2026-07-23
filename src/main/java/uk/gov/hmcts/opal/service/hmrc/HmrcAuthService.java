@@ -44,7 +44,7 @@ public class HmrcAuthService {
             .body(HMRCAuthToken.class); // TODO check can de-serialize into constructor
     }
 
-    URI buildUri() {
+    private URI buildUri() {
         return UriComponentsBuilder.fromUriString(url)
             .queryParam("client_id", clientId)
             .queryParam("client_secret", clientSecret)
