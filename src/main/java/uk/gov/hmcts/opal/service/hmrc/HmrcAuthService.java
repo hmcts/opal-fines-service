@@ -1,9 +1,7 @@
 package uk.gov.hmcts.opal.service.hmrc;
 
 import java.net.URI;
-import java.util.Set;
-import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -12,22 +10,32 @@ import uk.gov.hmcts.opal.config.cache.CacheKeys;
 import uk.gov.hmcts.opal.service.hmrc.response.HMRCAuthToken;
 
 @Service
-@RequiredArgsConstructor
 public class HmrcAuthService {
 
     private static final String GRANT_TYPE = "client_credentials";
 
     private final RestClient restClient;
-    private final String URL = "https://todo.put.in.application.yaml"; // TODO put in config
+    private final String clientId;
+    private final String clientSecret;
+    private final String scope;
+    private final String url;
 
-//    @Cacheable(key = CacheKeys.HMRC_AUTH_TOKEN)
-//    public HMRCAuthToken getAuthToken(String[] scopes) {
-//        return getAuthToken(Set.of(scopes));
-//    }
+    public HmrcAuthService(RestClient restClient,
+        @Value("opal.hmrc.auth.client-id") String clientId,
+        @Value("opal.hmrc.auth.client-secret") String clientSecret,
+        @Value("opal.hmrc.auth.scope") String scope,
+        @Value("opal.hmrc.auth.url") String url) {
+
+        this.restClient = restClient;
+        this.clientId = clientId;
+        this.clientSecret = clientSecret;
+        this.scope = scope;
+        this.url = url;
+    }
 
     @Cacheable(key = CacheKeys.HMRC_AUTH_TOKEN)
-    public HMRCAuthToken getAuthToken(Set<String> scopes) {
-        URI uri = buildUri(scopes);
+    public HMRCAuthToken getAuthToken() {
+        URI uri = buildUri();
 
         // TODO error handling
         return restClient.get()
@@ -36,15 +44,12 @@ public class HmrcAuthService {
             .body(HMRCAuthToken.class); // TODO check can de-serialize into constructor
     }
 
-    URI buildUri(Set<String> scopes) {
-
-        String scopesJoined = scopes.stream().collect(Collectors.joining("+"));
-
-        return UriComponentsBuilder.fromUriString(URL)
-            .replaceQueryParam("client_secret", "") // TODO client_secret
-            .replaceQueryParam("client_id", "") // TODO client_id
+    URI buildUri() {
+        return UriComponentsBuilder.fromUriString(url)
+            .replaceQueryParam("client_id", clientId)
+            .replaceQueryParam("client_secret", clientSecret)
             .replaceQueryParam("grant_type", GRANT_TYPE)
-            .replaceQueryParam("scope", scopesJoined)
+            .replaceQueryParam("scope", scope)
             .build()
             .toUri();
     }

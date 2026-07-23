@@ -156,6 +156,12 @@ opal:
         algorithm: ${OPAL_COMMON_CONTENT_DIGEST_RESPONSE_ALGORITHM:SHA-512}
       supported-algorithms:
         sha-512: SHA-512
+  hmrc:
+    auth:
+      client-id: ${OPAL_HMRC_AUTH_CLIENT_ID:TODO}
+      client-secret: ${OPAL_HMRC_AUTH_CLIENT_SECRET:TODO}
+      scope: ${OPAL_HMRC_AUTH_CLIENT_ID:TODO}
+      url: ${OPAL_HMRC_AUTH_URL:https://localhost:4400}
 
   report:
     storage:
