@@ -23,8 +23,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
@@ -35,7 +35,7 @@ import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 
 @ExtendWith(MockitoExtension.class)
-public class OpalDefendantAccountServiceAddPaymentTermsTest {
+public class OpalDefendantAccountPaymentTermsServiceTest {
     private static final LocalDateTime TEST_POSTED_DATE = LocalDateTime.of(2026, Month.JUNE, 11, 10, 0);
 
     @Mock
@@ -46,8 +46,6 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
 
     // other dependencies the service needs (audit, userState, mappers etc.)
     @Mock
-    private AmendmentService amendmentService;
-    @Mock
     private PaymentTermsService paymentTermsService;
     @Mock
     private ResultService resultService;
@@ -55,10 +53,13 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
     private ReportEntryService reportEntryService;
 
     @Mock
+    private AmendmentService amendmentService;
+
+    @Mock
     private DefendantAccountControlValidator defendantAccountControlValidator;
 
     @InjectMocks
-    private OpalDefendantAccountService defendantAccountService;
+    private OpalDefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
 
     @Captor
     private ArgumentCaptor<DefendantAccountEntity> accountCaptor;
@@ -133,7 +134,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
         when(resultService.getResultById("55")).thenReturn(resultEntityLite);
 
         // Act
-        defendantAccountService.addPaymentTerms(defendantAccountId, businessUnitId, "tester", "Tester Name",
+        defendantAccountPaymentTermsService.addPaymentTerms(defendantAccountId, businessUnitId, "tester", "Tester Name",
             ifMatch, request);
 
         // Assert
@@ -192,7 +193,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
         when(paymentTermsService.addPaymentTerm(any(PaymentTermsEntity.class))).thenReturn(savedPaymentTermsEntity);
 
         // Act
-        defendantAccountService.addPaymentTerms(
+        defendantAccountPaymentTermsService.addPaymentTerms(
             defendantAccountId, businessUnitId, businessUnitUserId, "Tester Name", ifMatch, request);
 
         // Assert
@@ -243,7 +244,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
 
         when(paymentTermsService.addPaymentTerm(any(PaymentTermsEntity.class))).thenReturn(savedPaymentTermsEntity);
 
-        defendantAccountService.addPaymentTermsPreservingLastEnforcement(
+        defendantAccountPaymentTermsService.addPaymentTermsPreservingLastEnforcement(
             defendantAccountId,
             businessUnitId,
             businessUnitUserId,
@@ -283,7 +284,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
         request.setPaymentTerms(paymentTermsDto);
 
         UnprocessableException result = assertThrows(UnprocessableException.class, () ->
-            defendantAccountService.addPaymentTerms(
+            defendantAccountPaymentTermsService.addPaymentTerms(
                 defendantAccountId, businessUnitId, businessUnitUserId, "Tester Name", ifMatch, request));
 
         assertEquals(exception, result);

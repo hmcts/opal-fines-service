@@ -69,9 +69,8 @@ public interface DefendantAccountHeaderSummaryMapper {
         if (status == null) {
             return null;
         }
-
         return AccountStatusReferenceCommon.builder()
-            .accountStatusCode(AccountStatusCodeEnum.fromValue(status.getLabel()))
+            .accountStatusCode(AccountStatusCodeEnum.fromValue(status.getCode()))
             .accountStatusDisplayName(status.getDisplayName())
             .build();
     }
