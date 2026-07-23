@@ -54,7 +54,7 @@ AS
          , CASE WHEN dap_pg.debtor IS TRUE THEN dap_pg.association_type ELSE NULL END AS parent_guardian_debtor_type
          , CASE WHEN dt.defendant_account_id IS NOT NULL THEN TRUE ELSE FALSE END AS has_consolidated_accounts
          , da.originator_type
-           da.originator_name
+         , da.originator_name
       FROM defendant_accounts da
       JOIN business_units bu
         ON da.business_unit_id = bu.business_unit_id                
