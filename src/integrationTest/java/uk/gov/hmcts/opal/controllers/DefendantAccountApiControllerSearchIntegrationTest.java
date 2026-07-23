@@ -1,5 +1,8 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -9,22 +12,37 @@ import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchDefendantDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
-@DisplayName("Defendant Account API Controller Search Integration Test")
+@Sql(
+    executionPhase = BEFORE_TEST_METHOD,
+    scripts = {"classpath:db/insertData/insert_into_defendant_accounts.sql"}
+)
+@Sql(
+    executionPhase = AFTER_TEST_METHOD,
+    scripts = {"classpath:db/deleteData/delete_from_defendant_accounts.sql"}
+)
+@DisplayName("Defendant Accounts Search Controller Integration Tests")
 public class DefendantAccountApiControllerSearchIntegrationTest extends AbstractIntegrationTest {
 
     private static final String DEFENDANT_ACCOUNT_SEARCH_API_URL = "/defendant-accounts/search";
 
     private static final String AUTHORIZATION_HEADER = "authorization";
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
     @JiraEpic("PO-2630")
@@ -45,10 +63,10 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
                 .forenames("john")
                 .exactMatchForenames(false)
                 .birthDate(LocalDate.of(1980, 1, 1))
-                .nationalInsuranceNumber("QQ123456C")
+                .nationalInsuranceNumber("NI2221C")
                 .build())
             .activeAccountsOnly(true)
-            .businessUnitIds(List.of(101))
+            .businessUnitIds(List.of(78))
             .build();
 
         ResultActions result = mockMvc.perform(post(DEFENDANT_ACCOUNT_SEARCH_API_URL)
@@ -78,10 +96,10 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
             .defendant(DefendantAccountSearchDefendantDefendantAccount.builder()
-                .nationalInsuranceNumber("QQ123456C")
+                .nationalInsuranceNumber("NI2221C")
                 .build())
             .activeAccountsOnly(true)
-            .businessUnitIds(List.of(101))
+            .businessUnitIds(List.of(78))
             .build();
 
         ResultActions result = mockMvc.perform(post(DEFENDANT_ACCOUNT_SEARCH_API_URL)
@@ -90,10 +108,18 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
             .contentType(MediaType.APPLICATION_JSON)
             .content(toJson(searchRequest)));
 
-        result.andExpect(status().isOk())
+        String body = result.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").exists())
-            .andExpect(jsonPath("$.defendant_accounts").exists());
+            .andReturn().getResponse().getContentAsString();
+
+        PostDefendantAccountSearchResponseDefendantAccount response =
+            objectMapper.readValue(body, PostDefendantAccountSearchResponseDefendantAccount.class);
+
+        assertAll(
+            () -> assertEquals(2, response.getCount()),
+            () -> assertEquals("991199", response.getDefendantAccounts().getFirst().getDefendantAccountId()),
+            () -> assertEquals("991198", response.getDefendantAccounts().getLast().getDefendantAccountId())
+        );
     }
 
     @Test
@@ -104,10 +130,10 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
             .defendant(DefendantAccountSearchDefendantDefendantAccount.builder()
-                    .forenames("john")
+                    .forenames("forenamey")
                     .build())
             .activeAccountsOnly(true)
-            .businessUnitIds(List.of(101))
+            .businessUnitIds(List.of(78))
             .build();
 
         ResultActions result = mockMvc.perform(post(DEFENDANT_ACCOUNT_SEARCH_API_URL)
@@ -137,11 +163,11 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
             .defendant(DefendantAccountSearchDefendantDefendantAccount.builder()
-                .forenames("john")
-                .surname("doe")
+                .forenames("Forenamey")
+                .surname("Surnamey")
                 .build())
             .activeAccountsOnly(true)
-            .businessUnitIds(List.of(101))
+            .businessUnitIds(List.of(78))
             .build();
 
         ResultActions result = mockMvc.perform(post(DEFENDANT_ACCOUNT_SEARCH_API_URL)
@@ -150,10 +176,18 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
             .contentType(MediaType.APPLICATION_JSON)
             .content(toJson(searchRequest)));
 
-        result.andExpect(status().isOk())
+        String body = result.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").exists())
-            .andExpect(jsonPath("$.defendant_accounts").exists());
+            .andReturn().getResponse().getContentAsString();
+
+        PostDefendantAccountSearchResponseDefendantAccount response =
+            objectMapper.readValue(body, PostDefendantAccountSearchResponseDefendantAccount.class);
+
+        assertAll(
+            () -> assertEquals(2, response.getCount()),
+            () -> assertEquals("991199", response.getDefendantAccounts().getFirst().getDefendantAccountId()),
+            () -> assertEquals("991198", response.getDefendantAccounts().getLast().getDefendantAccountId())
+        );
     }
 
     @Test
@@ -164,10 +198,10 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
             .defendant(DefendantAccountSearchDefendantDefendantAccount.builder()
-                .birthDate(LocalDate.of(1980, 1, 1))
+                .birthDate(LocalDate.of(1980, 2, 3))
                 .build())
             .activeAccountsOnly(true)
-            .businessUnitIds(List.of(101))
+            .businessUnitIds(List.of(78))
             .build();
 
         ResultActions result = mockMvc.perform(post(DEFENDANT_ACCOUNT_SEARCH_API_URL)
@@ -197,11 +231,11 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
             .defendant(DefendantAccountSearchDefendantDefendantAccount.builder()
-                .birthDate(LocalDate.of(1980, 1, 1))
-                .surname("doe")
+                .birthDate(LocalDate.of(1980, 2, 3))
+                .surname("Surnamey")
                 .build())
             .activeAccountsOnly(true)
-            .businessUnitIds(List.of(101))
+            .businessUnitIds(List.of(78))
             .build();
 
         ResultActions result = mockMvc.perform(post(DEFENDANT_ACCOUNT_SEARCH_API_URL)
@@ -210,10 +244,18 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
             .contentType(MediaType.APPLICATION_JSON)
             .content(toJson(searchRequest)));
 
-        result.andExpect(status().isOk())
+        String body = result.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").exists())
-            .andExpect(jsonPath("$.defendant_accounts").exists());
+            .andReturn().getResponse().getContentAsString();
+
+        PostDefendantAccountSearchResponseDefendantAccount response =
+            objectMapper.readValue(body, PostDefendantAccountSearchResponseDefendantAccount.class);
+
+        assertAll(
+            () -> assertEquals(2, response.getCount()),
+            () -> assertEquals("991199", response.getDefendantAccounts().getFirst().getDefendantAccountId()),
+            () -> assertEquals("991198", response.getDefendantAccounts().getLast().getDefendantAccountId())
+        );
     }
 
     @Test
@@ -224,14 +266,10 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
             .defendant(DefendantAccountSearchDefendantDefendantAccount.builder()
-                //.includeAliases(false)
-                .addressLine1("123 Fake Street")
-                //.postcode("SW1A 1AA")
-                //.organisationName("org")
-                //.exactMatchOrganisationName(false)
+                .addressLine1("Square House")
                 .build())
             .activeAccountsOnly(true)
-            .businessUnitIds(List.of(101))
+            .businessUnitIds(List.of(78))
             .build();
 
         ResultActions result = mockMvc.perform(post(DEFENDANT_ACCOUNT_SEARCH_API_URL)
@@ -240,10 +278,18 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
             .contentType(MediaType.APPLICATION_JSON)
             .content(toJson(searchRequest)));
 
-        result.andExpect(status().isOk())
+        String body = result.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").exists())
-            .andExpect(jsonPath("$.defendant_accounts").exists());
+            .andReturn().getResponse().getContentAsString();
+
+        PostDefendantAccountSearchResponseDefendantAccount response =
+            objectMapper.readValue(body, PostDefendantAccountSearchResponseDefendantAccount.class);
+
+        assertAll(
+            () -> assertEquals(2, response.getCount()),
+            () -> assertEquals("991199", response.getDefendantAccounts().getFirst().getDefendantAccountId()),
+            () -> assertEquals("991198", response.getDefendantAccounts().getLast().getDefendantAccountId())
+        );
     }
 
     @Test
@@ -254,10 +300,75 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
             .defendant(DefendantAccountSearchDefendantDefendantAccount.builder()
-                //.includeAliases(false)
-                //.addressLine1("123 Fake Street")
-                .postcode("SW1A 1AA")
-                //.organisationName("org")
+                .postcode("BH13 1PO")
+                .build())
+            .activeAccountsOnly(true)
+            .businessUnitIds(List.of(78))
+            .build();
+
+        ResultActions result = mockMvc.perform(post(DEFENDANT_ACCOUNT_SEARCH_API_URL)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header(AUTHORIZATION_HEADER, userStateStub.getBearerToken())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(toJson(searchRequest)));
+
+        String body = result.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn().getResponse().getContentAsString();
+
+        PostDefendantAccountSearchResponseDefendantAccount response =
+            objectMapper.readValue(body, PostDefendantAccountSearchResponseDefendantAccount.class);
+
+        assertAll(
+            () -> assertEquals(2, response.getCount()),
+            () -> assertEquals("991199", response.getDefendantAccounts().getFirst().getDefendantAccountId()),
+            () -> assertEquals("991198", response.getDefendantAccounts().getLast().getDefendantAccountId())
+        );
+    }
+
+    @Test
+    @JiraEpic("PO-2630")
+    @JiraStory("PO-2970")
+    @DisplayName("INT.09 - Surname should be filtered by starts with")
+    void postDefendantAccountSearch_surname_filtered_by_starts_with() throws Exception {
+        PostDefendantAccountSearchRequestDefendantAccount searchRequest =
+            PostDefendantAccountSearchRequestDefendantAccount.builder()
+            .defendant(DefendantAccountSearchDefendantDefendantAccount.builder()
+                .surname("Sur")
+                .build())
+            .activeAccountsOnly(true)
+            .businessUnitIds(List.of(78))
+            .build();
+
+        ResultActions result = mockMvc.perform(post(DEFENDANT_ACCOUNT_SEARCH_API_URL)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header(AUTHORIZATION_HEADER, userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(toJson(searchRequest)));
+
+        String body = result.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn().getResponse().getContentAsString();
+
+        PostDefendantAccountSearchResponseDefendantAccount response =
+            objectMapper.readValue(body, PostDefendantAccountSearchResponseDefendantAccount.class);
+
+        assertAll(
+            () -> assertEquals(2, response.getCount()),
+            () -> assertEquals("991199", response.getDefendantAccounts().getFirst().getDefendantAccountId()),
+            () -> assertEquals("991198", response.getDefendantAccounts().getLast().getDefendantAccountId())
+        );
+    }
+
+    @Test
+    @JiraEpic("PO-2630")
+    @JiraStory("PO-2970")
+    @DisplayName("INT.10 - Returns an empty response when no results match the search criteria")
+    void postDefendantAccountSearch_returns_empty_response() throws Exception {
+        PostDefendantAccountSearchRequestDefendantAccount searchRequest =
+            PostDefendantAccountSearchRequestDefendantAccount.builder()
+            .defendant(DefendantAccountSearchDefendantDefendantAccount.builder()
+                .nationalInsuranceNumber("QQ123456C")
                 .build())
             .activeAccountsOnly(true)
             .businessUnitIds(List.of(101))
@@ -269,36 +380,17 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
             .contentType(MediaType.APPLICATION_JSON)
             .content(toJson(searchRequest)));
 
-        result.andExpect(status().isOk())
+        String body = result.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").exists())
-            .andExpect(jsonPath("$.defendant_accounts").exists());
-    }
+            .andReturn().getResponse().getContentAsString();
 
-    @Test
-    @JiraEpic("PO-2630")
-    @JiraStory("PO-2970")
-    @DisplayName("INT.09 - Surname should be filtered by starts with")
-    void postDefendantAccountSearch_surname_filtered_by_starts_with() throws Exception {
-        PostDefendantAccountSearchRequestDefendantAccount searchRequest =
-            PostDefendantAccountSearchRequestDefendantAccount.builder()
-            .defendant(DefendantAccountSearchDefendantDefendantAccount.builder()
-                .surname("Smith")
-                .build())
-            .activeAccountsOnly(true)
-            .businessUnitIds(List.of(101))
-            .build();
+        PostDefendantAccountSearchResponseDefendantAccount response =
+            objectMapper.readValue(body, PostDefendantAccountSearchResponseDefendantAccount.class);
 
-        ResultActions result = mockMvc.perform(post(DEFENDANT_ACCOUNT_SEARCH_API_URL)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header(AUTHORIZATION_HEADER, userStateStub.getBearerToken())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(toJson(searchRequest)));
-
-        result.andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").exists())
-            .andExpect(jsonPath("$.defendant_accounts").exists());
+        assertAll(
+            () -> assertEquals(0, response.getCount()),
+            () -> assertEquals(0, response.getDefendantAccounts().size())
+        );
     }
 
     private String toJson(PostDefendantAccountSearchRequestDefendantAccount request) {
