@@ -20,6 +20,7 @@ import uk.gov.hmcts.opal.generated.model.CreditorTransactionDetailsHistory;
 import uk.gov.hmcts.opal.generated.model.CreditorTransactionStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorTransactionTypeReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.MajorCreditorHistoryItemHistory;
+import uk.gov.hmcts.opal.generated.model.NoteDetailsHistory;
 import uk.gov.hmcts.opal.mapper.AbstractMapperTest;
 
 class GetMajorCreditorAccountHistoryResponseLegacyMapperTest extends AbstractMapperTest {
@@ -94,11 +95,76 @@ class GetMajorCreditorAccountHistoryResponseLegacyMapperTest extends AbstractMap
     }
 
     @Test
+    void toOpal_mapsLegacyNoteHistoryResponse() {
+        GetMajorCreditorAccountHistoryLegacyResponse legacy =
+            GetMajorCreditorAccountHistoryLegacyResponse.builder()
+                .version(7L)
+                .historyItems(List.of(LegacyMajorCreditorHistoryItem.builder()
+                    .postedDetails(new LegacyPostedDetails(
+                        LocalDateTime.of(2026, 1, 31, 10, 30),
+                        "MJUSR3",
+                        "Major User Three"
+                    ))
+                    .type("Note")
+                    .details(LegacyMajorCreditorHistoryDetails.builder()
+                        .noteText("History note")
+                        .build())
+                    .build()))
+                .build();
+
+        GetMajorCreditorHistoryResponse result = mapper.toOpal(legacy);
+
+        MajorCreditorHistoryItemHistory item = result.getPayload().getHistoryItems().getFirst();
+        assertEquals(MajorCreditorHistoryItemHistory.TypeEnum.NOTE, item.getType());
+        NoteDetailsHistory details = (NoteDetailsHistory) item.getDetails();
+        assertEquals("History note", details.getNoteText());
+    }
+
+    @Test
     void toOpal_mapsNullLegacyResponseToEmptyPayloadWithDefaultVersion() {
         GetMajorCreditorHistoryResponse result = mapper.toOpal(null);
 
         assertEquals(BigInteger.ONE, result.getVersion());
         assertNotNull(result.getPayload());
         assertEquals(List.of(), result.getPayload().getHistoryItems());
+    }
+
+    @Test
+    void toOpal_ordersHistoryItemsNewestFirstWithDeterministicTieHandling() {
+        GetMajorCreditorAccountHistoryLegacyResponse legacy =
+            GetMajorCreditorAccountHistoryLegacyResponse.builder()
+                .version(7L)
+                .historyItems(List.of(
+                    historyItem("MJF002", LocalDateTime.of(2026, 1, 25, 9, 15)),
+                    historyItem("MJF004", LocalDateTime.of(2026, 1, 31, 10, 30)),
+                    historyItem("MJF003", LocalDateTime.of(2026, 1, 31, 10, 30))
+                ))
+                .build();
+
+        GetMajorCreditorHistoryResponse result = mapper.toOpal(legacy);
+
+        assertEquals(
+            List.of("MJF003", "MJF004", "MJF002"),
+            result.getPayload().getHistoryItems().stream()
+                .map(MajorCreditorHistoryItemHistory::getDetails)
+                .map(CreditorTransactionDetailsHistory.class::cast)
+                .map(CreditorTransactionDetailsHistory::getPaymentReference)
+                .toList()
+        );
+    }
+
+    private LegacyMajorCreditorHistoryItem historyItem(String paymentReference, LocalDateTime postedDate) {
+        return LegacyMajorCreditorHistoryItem.builder()
+            .postedDetails(new LegacyPostedDetails(postedDate, "MJUSR", "Major User"))
+            .type("Financial")
+            .details(LegacyMajorCreditorHistoryDetails.builder()
+                .transactionType(LegacyCreditorTransactionTypeReference.builder()
+                    .transactionType("MADJ")
+                    .transactionTypeDisplayName("Manual Adjustment")
+                    .build())
+                .paymentReference(paymentReference)
+                .associatedRecordId("99264300000001")
+                .build())
+            .build();
     }
 }
