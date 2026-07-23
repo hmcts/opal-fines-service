@@ -1,9 +1,9 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -12,17 +12,14 @@ import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import tools.jackson.core.JacksonException;
-import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchDefendantDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -41,13 +38,10 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
 
     private static final String AUTHORIZATION_HEADER = "authorization";
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
     @Test
     @JiraEpic("PO-2630")
     @JiraStory("PO-2970")
-    @DisplayName("INT.01 - If national insurance number is provided no other fields can be provided")
+    @DisplayName("AC01 - If national insurance number is provided no other fields can be provided")
     void postDefendantAccountSearch_other_fields_cannot_be_provided_when_NI_number_is_provided() throws Exception {
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
@@ -75,23 +69,13 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
             .contentType(MediaType.APPLICATION_JSON)
             .content(toJson(searchRequest)));
 
-        result.andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail")
-                .value("The request does not conform to the required JSON schema"))
-            .andExpect(jsonPath("$.instance").exists())
-            .andExpect(jsonPath("$.status").value(400))
-            .andExpect(jsonPath("$.title").value("Bad Request"))
-            .andExpect(jsonPath("$.type")
-                .value("https://hmcts.gov.uk/problems/json-schema-validation"))
-            .andExpect(jsonPath("$.operation_id").exists())
-            .andExpect(jsonPath("$.retriable").value(false));
+        expectErrorResultActions(result);
     }
 
     @Test
     @JiraEpic("PO-2630")
     @JiraStory("PO-2970")
-    @DisplayName("INT.02 - If national insurance number is provided no other fields can be provided")
+    @DisplayName("AC02 - If national insurance number is provided no other fields can be provided")
     void postDefendantAccountSearch_NI_number_provides_successful_response() throws Exception {
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
@@ -108,24 +92,13 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
             .contentType(MediaType.APPLICATION_JSON)
             .content(toJson(searchRequest)));
 
-        String body = result.andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andReturn().getResponse().getContentAsString();
-
-        PostDefendantAccountSearchResponseDefendantAccount response =
-            objectMapper.readValue(body, PostDefendantAccountSearchResponseDefendantAccount.class);
-
-        assertAll(
-            () -> assertEquals(2, response.getCount()),
-            () -> assertEquals("991199", response.getDefendantAccounts().getFirst().getDefendantAccountId()),
-            () -> assertEquals("991198", response.getDefendantAccounts().getLast().getDefendantAccountId())
-        );
+        expectOkResultActions(result);
     }
 
     @Test
     @JiraEpic("PO-2630")
     @JiraStory("PO-2970")
-    @DisplayName("INT.03 - If first name is populated last name must also be populated")
+    @DisplayName("AC03 - If first name is populated last name must also be populated")
     void postDefendantAccountSearch_only_first_name_provided() throws Exception {
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
@@ -142,23 +115,13 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(toJson(searchRequest)));
 
-        result.andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail")
-                .value("The request does not conform to the required JSON schema"))
-            .andExpect(jsonPath("$.instance").exists())
-            .andExpect(jsonPath("$.status").value(400))
-            .andExpect(jsonPath("$.title").value("Bad Request"))
-            .andExpect(jsonPath("$.type")
-                .value("https://hmcts.gov.uk/problems/json-schema-validation"))
-            .andExpect(jsonPath("$.operation_id").exists())
-            .andExpect(jsonPath("$.retriable").value(false));
+        expectErrorResultActions(result);
     }
 
     @Test
     @JiraEpic("PO-2630")
     @JiraStory("PO-2970")
-    @DisplayName("INT.04 - If first name is populated last name must also be populated")
+    @DisplayName("AC04 - If first name is populated last name must also be populated")
     void postDefendantAccountSearch_first_name_and_last_name_provides_successful_response() throws Exception {
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
@@ -176,24 +139,13 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
             .contentType(MediaType.APPLICATION_JSON)
             .content(toJson(searchRequest)));
 
-        String body = result.andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andReturn().getResponse().getContentAsString();
-
-        PostDefendantAccountSearchResponseDefendantAccount response =
-            objectMapper.readValue(body, PostDefendantAccountSearchResponseDefendantAccount.class);
-
-        assertAll(
-            () -> assertEquals(2, response.getCount()),
-            () -> assertEquals("991199", response.getDefendantAccounts().getFirst().getDefendantAccountId()),
-            () -> assertEquals("991198", response.getDefendantAccounts().getLast().getDefendantAccountId())
-        );
+        expectOkResultActions(result);
     }
 
     @Test
     @JiraEpic("PO-2630")
     @JiraStory("PO-2970")
-    @DisplayName("INT.05 - If Date of birth is populated last name must also be populated")
+    @DisplayName("AC05 - If Date of birth is populated last name must also be populated")
     void postDefendantAccountSearch_only_has_date_of_brith() throws Exception {
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
@@ -210,23 +162,13 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
             .contentType(MediaType.APPLICATION_JSON)
             .content(toJson(searchRequest)));
 
-        result.andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail")
-                .value("The request does not conform to the required JSON schema"))
-            .andExpect(jsonPath("$.instance").exists())
-            .andExpect(jsonPath("$.status").value(400))
-            .andExpect(jsonPath("$.title").value("Bad Request"))
-            .andExpect(jsonPath("$.type")
-                .value("https://hmcts.gov.uk/problems/json-schema-validation"))
-            .andExpect(jsonPath("$.operation_id").exists())
-            .andExpect(jsonPath("$.retriable").value(false));
+        expectErrorResultActions(result);
     }
 
     @Test
     @JiraEpic("PO-2630")
     @JiraStory("PO-2970")
-    @DisplayName("INT.06 - If Date of birth is populated last name must also be populated")
+    @DisplayName("AC06 - If Date of birth is populated last name must also be populated")
     void postDefendantAccountSearch_date_of_birth_and_last_name_provide_successful_response() throws Exception {
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
@@ -244,24 +186,13 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
             .contentType(MediaType.APPLICATION_JSON)
             .content(toJson(searchRequest)));
 
-        String body = result.andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andReturn().getResponse().getContentAsString();
-
-        PostDefendantAccountSearchResponseDefendantAccount response =
-            objectMapper.readValue(body, PostDefendantAccountSearchResponseDefendantAccount.class);
-
-        assertAll(
-            () -> assertEquals(2, response.getCount()),
-            () -> assertEquals("991199", response.getDefendantAccounts().getFirst().getDefendantAccountId()),
-            () -> assertEquals("991198", response.getDefendantAccounts().getLast().getDefendantAccountId())
-        );
+        expectOkResultActions(result);
     }
 
     @Test
     @JiraEpic("PO-2630")
     @JiraStory("PO-2970")
-    @DisplayName("INT.07 - If Date of birth is populated last name must also be populated")
+    @DisplayName("AC07 - If Date of birth is populated last name must also be populated")
     void postDefendantAccountSearch_request_includes_line1() throws Exception {
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
@@ -278,24 +209,13 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
             .contentType(MediaType.APPLICATION_JSON)
             .content(toJson(searchRequest)));
 
-        String body = result.andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andReturn().getResponse().getContentAsString();
-
-        PostDefendantAccountSearchResponseDefendantAccount response =
-            objectMapper.readValue(body, PostDefendantAccountSearchResponseDefendantAccount.class);
-
-        assertAll(
-            () -> assertEquals(2, response.getCount()),
-            () -> assertEquals("991199", response.getDefendantAccounts().getFirst().getDefendantAccountId()),
-            () -> assertEquals("991198", response.getDefendantAccounts().getLast().getDefendantAccountId())
-        );
+        expectOkResultActions(result);
     }
 
     @Test
     @JiraEpic("PO-2630")
     @JiraStory("PO-2970")
-    @DisplayName("INT.08 - If I only add post code I should not be required to add last name or organisation")
+    @DisplayName("AC08 - If I only add post code I should not be required to add last name or organisation")
     void postDefendantAccountSearch_request_includes_postcode() throws Exception {
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
@@ -312,24 +232,13 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
             .contentType(MediaType.APPLICATION_JSON)
             .content(toJson(searchRequest)));
 
-        String body = result.andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andReturn().getResponse().getContentAsString();
-
-        PostDefendantAccountSearchResponseDefendantAccount response =
-            objectMapper.readValue(body, PostDefendantAccountSearchResponseDefendantAccount.class);
-
-        assertAll(
-            () -> assertEquals(2, response.getCount()),
-            () -> assertEquals("991199", response.getDefendantAccounts().getFirst().getDefendantAccountId()),
-            () -> assertEquals("991198", response.getDefendantAccounts().getLast().getDefendantAccountId())
-        );
+        expectOkResultActions(result);
     }
 
     @Test
     @JiraEpic("PO-2630")
     @JiraStory("PO-2970")
-    @DisplayName("INT.09 - Surname should be filtered by starts with")
+    @DisplayName("AC09 - Surname should be filtered by starts with")
     void postDefendantAccountSearch_surname_filtered_by_starts_with() throws Exception {
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
@@ -346,24 +255,13 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(toJson(searchRequest)));
 
-        String body = result.andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andReturn().getResponse().getContentAsString();
-
-        PostDefendantAccountSearchResponseDefendantAccount response =
-            objectMapper.readValue(body, PostDefendantAccountSearchResponseDefendantAccount.class);
-
-        assertAll(
-            () -> assertEquals(2, response.getCount()),
-            () -> assertEquals("991199", response.getDefendantAccounts().getFirst().getDefendantAccountId()),
-            () -> assertEquals("991198", response.getDefendantAccounts().getLast().getDefendantAccountId())
-        );
+        expectOkResultActions(result);
     }
 
     @Test
     @JiraEpic("PO-2630")
     @JiraStory("PO-2970")
-    @DisplayName("INT.10 - Returns an empty response when no results match the search criteria")
+    @DisplayName("AC10 - Returns an empty response when no results match the search criteria")
     void postDefendantAccountSearch_returns_empty_response() throws Exception {
         PostDefendantAccountSearchRequestDefendantAccount searchRequest =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
@@ -371,7 +269,7 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
                 .nationalInsuranceNumber("QQ123456C")
                 .build())
             .activeAccountsOnly(true)
-            .businessUnitIds(List.of(101))
+            .businessUnitIds(List.of(1101))
             .build();
 
         ResultActions result = mockMvc.perform(post(DEFENDANT_ACCOUNT_SEARCH_API_URL)
@@ -380,17 +278,43 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
             .contentType(MediaType.APPLICATION_JSON)
             .content(toJson(searchRequest)));
 
-        String body = result.andExpect(status().isOk())
+        result.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andReturn().getResponse().getContentAsString();
+            .andExpect(jsonPath("$.count").value(0))
+            .andExpect(jsonPath("$.defendant_accounts").isEmpty());
+    }
 
-        PostDefendantAccountSearchResponseDefendantAccount response =
-            objectMapper.readValue(body, PostDefendantAccountSearchResponseDefendantAccount.class);
+    private void expectOkResultActions(ResultActions result) throws Exception {
+        result.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(2))
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id")
+                .value("991199"))
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id")
+                .value("78"))
+            .andExpect(jsonPath("$.defendant_accounts[0].account_number")
+                .value("1989"))
+            .andExpect(jsonPath("$.defendant_accounts[1].defendant_account_id")
+            .value("991198"))
+            .andExpect(jsonPath("$.defendant_accounts[1].business_unit_id")
+                .value("78"))
+            .andExpect(jsonPath("$.defendant_accounts[1].account_number")
+                .value("1988"))
+            .andDo(print());
+    }
 
-        assertAll(
-            () -> assertEquals(0, response.getCount()),
-            () -> assertEquals(0, response.getDefendantAccounts().size())
-        );
+    private void expectErrorResultActions(ResultActions result) throws Exception {
+        result.andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail")
+                .value("The request does not conform to the required JSON schema"))
+            .andExpect(jsonPath("$.instance").exists())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.title").value("Bad Request"))
+            .andExpect(jsonPath("$.type")
+                .value("https://hmcts.gov.uk/problems/json-schema-validation"))
+            .andExpect(jsonPath("$.operation_id").exists())
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     private String toJson(PostDefendantAccountSearchRequestDefendantAccount request) {
