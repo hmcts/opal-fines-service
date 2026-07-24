@@ -15,9 +15,11 @@ import uk.gov.hmcts.opal.dto.report.operation.OperationReportByPaymentFiltersDto
 import uk.gov.hmcts.opal.dto.report.operation.PaymentReportMode;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.exception.UnsupportedContentTypeException;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.OperationReportSpecs;
 import uk.gov.hmcts.opal.service.report.FileType;
+import uk.gov.hmcts.opal.service.report.ReportCSVService;
 import uk.gov.hmcts.opal.service.report.ReportId;
 import uk.gov.hmcts.opal.service.report.ReportInterface;
 import uk.gov.hmcts.opal.service.report.operation.mapper.DetailedResultMapper;
@@ -32,6 +34,7 @@ public class PaymentReportService implements ReportInterface<OperationReportData
     private final DetailedResultMapper detailedResultMapper;
     private final ObjectMapper objectMapper;
     private final PaymentReportValidator validator;
+    private final ReportCSVService reportCSVService;
 
     @Override
     public ReportId getReportId() {
@@ -117,6 +120,13 @@ public class PaymentReportService implements ReportInterface<OperationReportData
         ReportInstanceEntity reportInstance,
         OperationReportDataInterface reportData,
         FileType fileType) {
-        throw new UnsupportedOperationException();
+        if (fileType != FileType.CSV) {
+            throw new UnsupportedContentTypeException(
+                getReportId().name(), fileType.name(), List.of(FileType.CSV.name()));
+        }
+        if (!(reportData instanceof OperationSummaryReport summaryReport)) {
+            throw new UnsupportedContentTypeException(getReportId().name(), "DETAILED CSV", List.of("SUMMARY CSV"));
+        }
+        return reportCSVService.convertReportDtoToCSV(summaryReport);
     }
 }

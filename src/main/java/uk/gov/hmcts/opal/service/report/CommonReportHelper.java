@@ -2,12 +2,18 @@ package uk.gov.hmcts.opal.service.report;
 
 import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.COMMA;
 import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.DOUBLE_QUOTE;
+import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.EMPTY_STRING;
 import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.NEW_LINE;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
+import java.util.Optional;
 
 public final class CommonReportHelper {
+
+    private static final DateTimeFormatter REPORT_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private CommonReportHelper() {
         // utility class
@@ -15,6 +21,27 @@ public final class CommonReportHelper {
 
     public static String formatMoney(BigDecimal value) {
         return value.setScale(2, RoundingMode.UNNECESSARY).toPlainString();
+    }
+
+    public static String formatReportMoney(BigDecimal value) {
+        return Optional.ofNullable(value)
+            .map(CommonReportHelper::formatMoney)
+            .orElse(EMPTY_STRING);
+    }
+
+    public static String formatReportDate(TemporalAccessor value) {
+        return Optional.ofNullable(value)
+            .map(REPORT_DATE_FORMATTER::format)
+            .orElse(EMPTY_STRING);
+    }
+
+    public static String formatReportValue(Object value) {
+        if (value instanceof TemporalAccessor temporalValue) {
+            return formatReportDate(temporalValue);
+        }
+        return Optional.ofNullable(value)
+            .map(Object::toString)
+            .orElse(EMPTY_STRING);
     }
 
     public static String escapeCsv(String value) {

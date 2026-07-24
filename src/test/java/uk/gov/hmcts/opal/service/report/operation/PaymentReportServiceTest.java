@@ -34,9 +34,12 @@ import uk.gov.hmcts.opal.dto.report.operation.OperationReportByPaymentFiltersDto
 import uk.gov.hmcts.opal.dto.report.operation.PaymentReportMode;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.exception.UnsupportedContentTypeException;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
+import uk.gov.hmcts.opal.service.report.FileType;
+import uk.gov.hmcts.opal.service.report.ReportCSVService;
 import uk.gov.hmcts.opal.service.report.ReportDataInterface;
 import uk.gov.hmcts.opal.service.report.ReportId;
 import uk.gov.hmcts.opal.service.report.operation.mapper.DetailedResultMapper;
@@ -74,6 +77,9 @@ class PaymentReportServiceTest {
 
     @Mock
     private DefendantAccountEntity account;
+
+    @Mock
+    private ReportCSVService reportCSVService;
 
     @InjectMocks
     private PaymentReportService service;
@@ -229,6 +235,35 @@ class PaymentReportServiceTest {
         verify(detailedResultMapper).map(eq(accounts));
     }
 
+    @Test
+    void convertReportDataToFileType_summaryCsv_returnsBytes() {
+        byte[] expected = "csv".getBytes();
+        when(reportCSVService.convertReportDtoToCSV(mappedSummaryReport)).thenReturn(expected);
+
+        byte[] result = service.convertReportDataToFileType(new ReportInstanceEntity(), mappedSummaryReport,
+            FileType.CSV);
+
+        assertThat(result).isSameAs(expected);
+        verify(reportCSVService).convertReportDtoToCSV(mappedSummaryReport);
+    }
+
+    @Test
+    void convertReportDataToFileType_nonCsv_throwsUnsupportedContentType() {
+        assertThatThrownBy(() -> service.convertReportDataToFileType(new ReportInstanceEntity(), mappedSummaryReport,
+            FileType.PDF))
+            .isInstanceOf(UnsupportedContentTypeException.class)
+            .hasMessage("Content type PDF is not supported for OP_PAYMENT. Supported content types: CSV");
+    }
+
+    @Test
+    void convertReportDataToFileType_detailedReport_throwsUnsupportedType() {
+        assertThatThrownBy(() -> service.convertReportDataToFileType(new ReportInstanceEntity(), mappedDetailedReport,
+            FileType.CSV))
+            .isInstanceOf(UnsupportedContentTypeException.class)
+            .hasMessage("Content type DETAILED CSV is not supported for OP_PAYMENT. Supported content types: "
+                + "SUMMARY CSV");
+    }
+
     @Nested
     @DisplayName("GenerateReportDataSummary")
     class GenerateReportDataSummary {
@@ -238,7 +273,7 @@ class PaymentReportServiceTest {
             ReportInstanceEntity reportInstance = reportInstance("{ }");
             List<DefendantAccountEntity> accounts = singleDefendantAccountList();
             OperationReportByPaymentFiltersDto filters = summarySinceDate();
-            mock_summaryQueryAndMapper(filters, accounts);
+            mockSummaryQueryAndMapper(filters, accounts);
 
             ReportDataInterface result = service.generateReportData(reportInstance);
 
@@ -254,7 +289,7 @@ class PaymentReportServiceTest {
             ReportInstanceEntity reportInstance = reportInstance("{ }");
             List<DefendantAccountEntity> accounts = singleDefendantAccountList();
             OperationReportByPaymentFiltersDto filters = summaryWithRegfPaymentMade();
-            mock_summaryQueryAndMapper(filters, accounts);
+            mockSummaryQueryAndMapper(filters, accounts);
             when(defendantAccountRepository.findAccountsWithPaymentMadeAfterFirstRegfEnforcement(true)).thenReturn(
                 accounts);
 
@@ -274,7 +309,7 @@ class PaymentReportServiceTest {
             ReportInstanceEntity reportInstance = reportInstance("{ }");
             List<DefendantAccountEntity> accounts = singleDefendantAccountList();
             OperationReportByPaymentFiltersDto filters = summarySinceLastEnforcementPaymentMade();
-            mock_summaryQueryAndMapper(filters, accounts);
+            mockSummaryQueryAndMapper(filters, accounts);
             when(defendantAccountRepository.findAccountsWithPaymentMadeAfterLastEnforcementAction(ABDC.name(),
                 true)).thenReturn(accounts);
 
@@ -296,7 +331,8 @@ class PaymentReportServiceTest {
         return reportInstance;
     }
 
-    private void mock_summaryQueryAndMapper(OperationReportByPaymentFiltersDto filters,
+    private void mockSummaryQueryAndMapper(
+        OperationReportByPaymentFiltersDto filters,
         List<DefendantAccountEntity> accounts) {
         when(objectMapper.readValue(any(String.class), eq(OperationReportByPaymentFiltersDto.class)))
             .thenReturn(filters);
