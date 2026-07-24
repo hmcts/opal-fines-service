@@ -55,6 +55,7 @@ public class CacheConfig {
         RedisURI redisURI = RedisURI.create(redisUrl);
 
         RedisConfiguration redisConfiguration = LettuceConnectionFactory.createRedisConfiguration(redisURI);
+        // disabling maintenance notifications as these were showing as errors on application insights
         LettuceClientConfigurationBuilder clientConfigurationBuilder = LettuceClientConfiguration.builder()
             .clientOptions(ClientOptions.builder()
                                .maintNotificationsConfig(MaintNotificationsConfig.disabled())
