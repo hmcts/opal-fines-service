@@ -1,0 +1,22 @@
+Timing is on.
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v4.sql:58: NOTICE:  === Cleanup data before tests ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v4.sql:58: NOTICE:  === Test cleanup completed ===
+DO
+Time: 34.785 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v4.sql:333: NOTICE:  === Setting up test data for v_major_creditor_account_header tests ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v4.sql:333: NOTICE:  --- Running test scenario 1 ---
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v4.sql:333: NOTICE:  --- Running test scenario 2 ---
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v4.sql:333: NOTICE:  --- Running test scenario 3 ---
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v4.sql:333: NOTICE:  --- Running test scenario 4 ---
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v4.sql:333: NOTICE:  --- Running test scenario 5 ---
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v4.sql:333: NOTICE:  --- Running test scenario 6 ---
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v4.sql:333: NOTICE:  --- Running test scenario 7 ---
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v4.sql:333: NOTICE:  --- Running test scenario 8 ---
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v4.sql:333: NOTICE:  === All tests completed and passed for v_major_creditor_account_header view ===
+DO
+Time: 22.432 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v4.sql:354: NOTICE:  === Final targeted cleanup: removing test rows ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v4.sql:354: NOTICE:  === Final targeted cleanup completed ===
+DO
+Time: 12.135 ms
+Timing is off.
