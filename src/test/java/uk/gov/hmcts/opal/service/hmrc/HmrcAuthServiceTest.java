@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.service.hmrc;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -58,7 +57,7 @@ public class HmrcAuthServiceTest {
         verify(requestHeadersUriSpec).uri(uriCaptor.capture());
         URI uri = uriCaptor.getValue();
         String query = uri.getQuery();
-        assertEquals(url, uri.getScheme() + "://" + uri.getHost() + uri.getPath());
+        assertThat(uri.getScheme() + "://" + uri.getHost() + uri.getPath()).isEqualTo(url);
         assertThat(query).contains("client_id=" + clientId);
         assertThat(query).contains("client_secret=" + clientSecret);
         assertThat(query).contains("scope=" + scope);
