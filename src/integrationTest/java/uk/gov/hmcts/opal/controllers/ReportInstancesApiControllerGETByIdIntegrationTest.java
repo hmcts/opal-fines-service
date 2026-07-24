@@ -7,6 +7,7 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectEntityNotFoundWithoutType;
 
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
@@ -346,9 +347,7 @@ public class ReportInstancesApiControllerGETByIdIntegrationTest extends Abstract
         log.info(":getReportInstance_404_reportInstanceNotFound response:\n{}", ToJsonString.toPrettyJson(body));
 
         result.andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.title").value("Entity Not Found"))
-            .andExpect(jsonPath("$.detail").value("The requested entity could not be found"))
-            .andExpect(jsonPath("$.status").value(404));
+            .andExpect(expectEntityNotFoundWithoutType());
     }
 
     @Test

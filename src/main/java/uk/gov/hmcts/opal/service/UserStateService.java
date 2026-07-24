@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
@@ -84,6 +86,15 @@ public class UserStateService {
             throw new AccessDeniedException("User state not found in token");
         }
         return userState;
+    }
+
+    public List<Short> getPermittedBusinessUnitIds(List<Short> requestedBusinessUnitIds, FinesPermission permission) {
+        return getUserStateFromSecurityContext()
+            .getDomainBusinessUnitUsers(Domain.FINES)
+            .filterBusinessUnitsByBusinessUnitUsersWithAnyPermissions(
+                Optional.ofNullable(requestedBusinessUnitIds), permission)
+            .stream()
+            .toList();
     }
 
     public String getPreferredUsername(String authorization) {

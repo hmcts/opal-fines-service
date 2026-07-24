@@ -22,12 +22,14 @@ import uk.gov.hmcts.opal.common.controllers.advice.OpalProblemDetailFactory;
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
+import uk.gov.hmcts.opal.exception.MissingMappingTypeException;
 import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
+import uk.gov.hmcts.opal.exception.UnsupportedMappingTypeException;
 import uk.gov.hmcts.opal.exception.UnsupportedContentTypeException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.util.Versioned;
@@ -153,6 +155,37 @@ public class GlobalExceptionHandler {
         );
 
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
+    }
+
+    @ExceptionHandler(UnsupportedMappingTypeException.class)
+    public ResponseEntity<ProblemDetail> handleUnsupportedMappingTypeException(UnsupportedMappingTypeException ex) {
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.BAD_REQUEST,
+            "Unsupported Mapping Type",
+            ex.getMessage(),
+            "unsupported-mapping-type",
+            false,
+            ex
+        );
+        problemDetail.setProperty("mapping_type", ex.getMappingType());
+        problemDetail.setProperty("supported_types", ex.getSupportedTypes());
+
+        return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
+    }
+
+    @ExceptionHandler(MissingMappingTypeException.class)
+    public ResponseEntity<ProblemDetail> handleMissingMappingTypeException(MissingMappingTypeException ex) {
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.BAD_REQUEST,
+            "Missing Mapping Type",
+            ex.getMessage(),
+            "missing-mapping-type",
+            false,
+            ex
+        );
+        problemDetail.setProperty("supported_types", ex.getSupportedTypes());
+
+        return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
     }
 
     @ExceptionHandler(HttpClientErrorException.class)

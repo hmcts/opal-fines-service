@@ -43,7 +43,7 @@ class DefendantAccountControlValidatorTest {
         );
 
         assertEquals("Defendant account update blocked: Account Status Check failed because account_status is "
-                         + status.getLabel() + ".",
+                         + status.getCode() + ".",
                      exception.getDetailedReason());
     }
 

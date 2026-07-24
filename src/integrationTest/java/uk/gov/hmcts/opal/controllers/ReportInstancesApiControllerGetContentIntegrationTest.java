@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectEntityNotFoundWithoutType;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
 import static uk.gov.hmcts.opal.controllers.util.ReportInstanceContentTestData.storedReportBytes;
 
@@ -211,9 +212,7 @@ class ReportInstancesApiControllerGetContentIntegrationTest extends AbstractInte
                 .andExpectAll(
                     status().isNotFound(),
                     content().contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON),
-                    jsonPath("$.title").value("Entity Not Found"),
-                    jsonPath("$.detail").value("The requested entity could not be found"),
-                    jsonPath("$.status").value(404),
+                    expectEntityNotFoundWithoutType(),
                     jsonPath("$.retriable").value(false)
                 );
         }

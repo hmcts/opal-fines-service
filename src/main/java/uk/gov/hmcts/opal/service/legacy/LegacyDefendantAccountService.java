@@ -14,15 +14,17 @@ import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
-import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
@@ -47,19 +49,16 @@ import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyResponse;
-import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyRequest;
-import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyResponse;
-import uk.gov.hmcts.opal.dto.legacy.AddPaymentTermsLegacyRequest;
-import uk.gov.hmcts.opal.dto.legacy.AddPaymentTermsLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountSearchCriteria;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountConsolidatedAccountsResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
@@ -71,10 +70,10 @@ import uk.gov.hmcts.opal.dto.legacy.ResultResponsesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LjaReference;
-import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
@@ -88,6 +87,7 @@ import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PaymentStateSummaryCommon;
 import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountHistoryLegacyResponseMapper;
+import uk.gov.hmcts.opal.mapper.legacy.LegacyConsolidatedAccountMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 import uk.gov.hmcts.opal.repository.jpa.SpecificationUtils;
@@ -109,6 +109,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public static final String ADD_PAYMENT_TERMS = "LIBRA.add_payment_terms";
     public static final String GET_DEFENDANT_AT_A_GLANCE = "LIBRA.getDefendantAtAGlance";
     public static final String ADD_ENFORCEMENT = "LIBRA.addEnforcement";
+    public static final String GET_CONSOLIDATED_ACCOUNTS = "LIBRA.get_consolidated_accounts";
 
     public static final String GET_DEFENDANT_ACCOUNT_PARTY = "LIBRA.get_defendant_account_party";
     public static final String ADD_DEFENDANT_ACCOUNT_PARTY = "LIBRA.add_defendant_account_party";
@@ -126,6 +127,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
     /* ---- Mappers ---- */
     private final DefendantAccountHistoryLegacyResponseMapper legacyDefendantAccountHistoryResponseMapper;
+    private final LegacyConsolidatedAccountMapper legacyConsolidatedAccountMapper;
     private final UpdateDefendantAccountRequestMapper updateDefendantAccountRequestMapper;
     private final LegacyUpdateDefendantAccountResponseMapper legacyUpdateDefendantAccountResponseMapper;
 
@@ -146,6 +148,33 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         } catch (RuntimeException e) {
             log.error(":getHeaderSummary: problem with call to Legacy: {}", e.getClass().getName());
             log.error(":getHeaderSummary:", e);
+            throw e;
+        }
+    }
+
+    @Override
+    public GetDefendantAccountConsolidatedAccountsResult getConsolidatedAccounts(Long defendantAccountId) {
+        log.debug(":getConsolidatedAccounts: id: {}", defendantAccountId);
+
+        try {
+            Response<LegacyGetDefendantAccountConsolidatedAccountsResponse> response = gatewayService.postToGateway(
+                GET_CONSOLIDATED_ACCOUNTS,
+                LegacyGetDefendantAccountConsolidatedAccountsResponse.class,
+                createGetDefendantAccountRequest(defendantAccountId.toString()),
+                null
+            );
+
+            checkResponseForError(response, "getConsolidatedAccounts");
+
+            return legacyConsolidatedAccountMapper.toResponse(response.responseEntity);
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode().isSameCodeAs(HttpStatus.NOT_FOUND)) {
+                throw new DefendantAccountNotFoundException(defendantAccountId);
+            }
+            throw e;
+        } catch (RuntimeException e) {
+            log.error(":getConsolidatedAccounts: problem with call to Legacy: {}", e.getClass().getName());
+            log.error(":getConsolidatedAccounts:", e);
             throw e;
         }
     }
@@ -185,20 +214,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         return response.responseEntity.toDefendantAccountSearchResultsDto();
 
-    }
-
-    @Override
-    //TODO: Remove method, duplicated in refactored class
-    public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
-
-        Response<LegacyGetDefendantAccountPaymentTermsResponse> response = gatewayService.postToGateway(
-            GET_PAYMENT_TERMS, LegacyGetDefendantAccountPaymentTermsResponse.class,
-            createGetDefendantAccountRequest(defendantAccountId.toString()), null
-        );
-
-        checkResponseForError(response, "getPaymentTerms");
-
-        return toPaymentTermsResponse(response.responseEntity);
     }
 
     /* This is probably common code that will be needed across multiple Legacy requests to get
@@ -698,81 +713,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
     @Override
     //TODO: Remove method, duplicated in refactored class
-    public AddPaymentCardRequestResponse addPaymentCardRequest(
-        Long defendantAccountId,
-        String businessUnitId,
-        String businessUnitUserId,
-        String postedByName,
-        String ifMatch
-    ) {
-        log.info(":addPaymentCardRequest (Legacy): accountId={}, bu={}", defendantAccountId, businessUnitId);
-
-        BigInteger version = VersionUtils.extractBigInteger(ifMatch);
-        AddPaymentCardLegacyRequest request = buildLegacyRequest(
-            defendantAccountId, businessUnitId,
-            businessUnitUserId, version.toString()
-        );
-
-        AddPaymentCardLegacyResponse response = callGateway(request);
-        Long id = Long.valueOf(response.getDefendantAccountId());
-
-        return new AddPaymentCardRequestResponse(id);
-    }
-
-    private AddPaymentCardLegacyRequest buildLegacyRequest(
-        Long defendantAccountId,
-        String businessUnitId,
-        String businessUnitUserId,
-        String version
-    ) {
-        return AddPaymentCardLegacyRequest.builder()
-            .defendantAccountId(String.valueOf(defendantAccountId))
-            .businessUnitId(businessUnitId)
-            .businessUnitUserId(businessUnitUserId)
-            .version(version)
-            .build();
-    }
-
-    private AddPaymentCardLegacyResponse callGateway(AddPaymentCardLegacyRequest request) {
-
-        Response<AddPaymentCardLegacyResponse> gw =
-            gatewayService.postToGateway(
-                ADD_PAYMENT_CARD_REQUEST,
-                AddPaymentCardLegacyResponse.class,
-                request,
-                null
-            );
-
-        if (gw.isError()) {
-            handleGatewayError(gw);
-        }
-
-        if (gw.responseEntity == null) {
-            throw new IllegalArgumentException("Legacy response missing");
-        }
-
-        return gw.responseEntity;
-    }
-
-    private void handleGatewayError(Response<?> gw) {
-
-        log.error(":addPaymentCardRequest: Legacy Gateway error {}", gw.code);
-
-        if (gw.isException()) {
-            log.error(":addPaymentCardRequest: exception", gw.exception);
-            throw new IllegalArgumentException("Legacy gateway exception", gw.exception);
-        }
-
-        if (gw.isLegacyFailure()) {
-            log.error(":addPaymentCardRequest: legacy failure:\n{}", gw.body);
-            throw new IllegalArgumentException("Legacy gateway returned failure");
-        }
-
-        throw new IllegalArgumentException("Legacy gateway error: " + gw.code);
-    }
-
-    @Override
-    //TODO: Remove method, duplicated in refactored class
     public AddEnforcementResponse addEnforcement(Long defendantAccountId, String businessUnitId,
         String businessUnitUserId, String ifMatch, AddDefendantAccountEnforcementRequest request) {
 
@@ -934,61 +874,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
     private void populateLjaCode(LjaReference ljaRef) {
         ljaRef.setLjaCode(ljaService.getLocalJusticeAreaById(ljaRef.getLjaId()).getLjaCode());
-    }
-
-    @Override
-    public GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
-        String businessUnitId,
-        String businessUnitUserId,
-        String postedByName,
-        String ifMatch,
-        AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
-
-        var legacyRequest = createAddPaymentTermsLegacyRequest(
-            defendantAccountId, businessUnitId, businessUnitUserId,
-            ifMatch, addPaymentTermsRequest
-        );
-
-        var response = gatewayService.postToGateway(
-            ADD_PAYMENT_TERMS, AddPaymentTermsLegacyResponse.class,
-            legacyRequest, null
-        );
-
-        checkResponseForError(response, "addPaymentTerms");
-
-        return createGetDefendantAccountPaymentTermsResponse(response.responseEntity);
-    }
-
-    private AddPaymentTermsLegacyRequest createAddPaymentTermsLegacyRequest(Long defendantAccountId,
-        String businessUnitId,
-        String businessUnitUserId,
-        String ifMatch,
-        AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
-
-        return AddPaymentTermsLegacyRequest.builder()
-            .defendantAccountId(String.valueOf(defendantAccountId))
-            .businessUnitId(businessUnitId)
-            .businessUnitUserId(businessUnitUserId)
-            .version(VersionUtils.extractBigInteger(ifMatch))
-            .paymentTerms(mapPaymentTerms(addPaymentTermsRequest != null
-                ? addPaymentTermsRequest.getPaymentTerms() : null))
-            .requestPaymentCard(addPaymentTermsRequest != null ? addPaymentTermsRequest.getRequestPaymentCard() : null)
-            .generatePaymentTermsChangeLetter(addPaymentTermsRequest != null
-                ? addPaymentTermsRequest.getGeneratePaymentTermsChangeLetter() : null)
-            .build();
-    }
-
-    private static GetDefendantAccountPaymentTermsResponse createGetDefendantAccountPaymentTermsResponse(
-        AddPaymentTermsLegacyResponse addPaymentTermsResponse) {
-
-        return GetDefendantAccountPaymentTermsResponse.builder()
-            .version(Optional.ofNullable(addPaymentTermsResponse.getVersion())
-                .map(v -> BigInteger.valueOf(v.longValue()))
-                .orElse(BigInteger.ONE))
-            .paymentTerms(toPaymentTerms(addPaymentTermsResponse.getPaymentTerms()))
-            .paymentCardLastRequested(addPaymentTermsResponse.getPaymentCardLastRequested())
-            .lastEnforcement(addPaymentTermsResponse.getLastEnforcement())
-            .build();
     }
 
     private static <T> void checkResponseForError(Response<T> response, String method) {

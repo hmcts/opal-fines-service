@@ -3,9 +3,10 @@ package uk.gov.hmcts.opal.entity.defendantaccount;
 import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.stream.Stream;
 import lombok.Getter;
+import uk.gov.hmcts.opal.entity.MappingValue;
 
 @Getter
-public enum DefendantAccountStatus {
+public enum DefendantAccountStatus implements MappingValue {
     ACCOUNT_CONSOLIDATED("CS", "Account consolidated"),
     LIVE("L", "Live"),
     TRANSFER_OUT_ACKNOWLEDGED("TA", "TFO acknowledged"),
@@ -13,23 +14,24 @@ public enum DefendantAccountStatus {
     TRANSFER_OUT_TO_NI_SCOTLAND("TS", "TFO to NI/Scotland to be acknowledged"),
     ACCOUNT_WRITTEN_OFF("WO", "Account written off");
 
-    private final String label;
+    private final String code;
     private final String displayName;
 
-    DefendantAccountStatus(String label, String displayName) {
-        this.label = label;
+    DefendantAccountStatus(String code, String displayName) {
+        this.code = code;
         this.displayName = displayName;
     }
 
+    @Override
     @JsonValue
-    public String getLabel() {
-        return label;
+    public String getCode() {
+        return code;
     }
 
-    public static DefendantAccountStatus getByLabel(String label) {
+    public static DefendantAccountStatus getByCode(String code) {
         return Stream.of(values())
-            .filter(status -> status.getLabel().equals(label))
+            .filter(status -> status.getCode().equals(code))
             .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Unknown DefendantAccountStatus: " + label));
+            .orElseThrow(() -> new IllegalArgumentException("Unknown DefendantAccountStatus: " + code));
     }
 }
