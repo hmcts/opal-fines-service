@@ -114,9 +114,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
             .orElseThrow();
         assertThat(savedJob.getStatus()).isEqualTo(InterfaceJobStatus.COMPLETED);
         assertThat(savedJob.getCompletedDateTime()).isNull();
-        assertThat(interfaceJobQueueHelper.countTillsCreatedForInterfaceFile()).isZero();
-        assertThat(interfaceJobQueueHelper.countPaymentsCreatedForDefendantAccount()).isZero();
-        assertThat(interfaceJobQueueHelper.countPreAllocatedCashTillReports()).isZero();
+        interfaceJobQueueHelper.assertNoSideEffects();
     }
 
     @Test
@@ -134,9 +132,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
             .orElseThrow();
         assertThat(savedJob.getStatus()).isEqualTo(InterfaceJobStatus.PROCESSING);
         assertThat(savedJob.getCompletedDateTime()).isNull();
-        assertThat(interfaceJobQueueHelper.countTillsCreatedForInterfaceFile()).isZero();
-        assertThat(interfaceJobQueueHelper.countPaymentsCreatedForDefendantAccount()).isZero();
-        assertThat(interfaceJobQueueHelper.countPreAllocatedCashTillReports()).isZero();
+        interfaceJobQueueHelper.assertNoSideEffects();
     }
 
     @Test
@@ -151,9 +147,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
             .orElseThrow();
         assertThat(savedJob.getStatus()).isEqualTo(InterfaceJobStatus.IGNORED);
         assertThat(savedJob.getCompletedDateTime()).isNotNull();
-        assertThat(interfaceJobQueueHelper.countTillsCreatedForInterfaceFile()).isZero();
-        assertThat(interfaceJobQueueHelper.countPaymentsCreatedForDefendantAccount()).isZero();
-        assertThat(interfaceJobQueueHelper.countPreAllocatedCashTillReports()).isZero();
+        interfaceJobQueueHelper.assertNoSideEffects();
     }
 
     @Test
@@ -169,9 +163,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
             .orElseThrow();
         assertThat(savedJob.getStatus()).isEqualTo(InterfaceJobStatus.FAILED);
         assertThat(savedJob.getCompletedDateTime()).isNotNull();
-        assertThat(interfaceJobQueueHelper.countTillsCreatedForInterfaceFile()).isZero();
-        assertThat(interfaceJobQueueHelper.countPaymentsCreatedForDefendantAccount()).isZero();
-        assertThat(interfaceJobQueueHelper.countPreAllocatedCashTillReports()).isZero();
+        interfaceJobQueueHelper.assertNoSideEffects();
         assertThat(interfaceJobQueueHelper.findFailedInterfaceMessagesForJob())
             .singleElement()
                 .satisfies(message -> {
@@ -236,8 +228,6 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
         final LocalDateTime createdDateTimeBefore = beforeJob.getCreatedDateTime();
         final LocalDateTime startedDateTimeBefore = beforeJob.getStartedDateTime();
 
-        // amount_pence = "abc" forces the non-transient failure path so we can verify
-        // only the documented failure fields are updated.
         interfaceJobQueueHelper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_FAILED);
 
         assertThatCode(() -> listener.onMessage(validTextMessage))
