@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.dto.report.operation.OperationReportByEnforcementFiltersDto;
 
 @Component
-public class OperationReportByEnforcementValidator {
+public class EnforcementReportValidator {
 
     public void validate(OperationReportByEnforcementFiltersDto filters) {
         List<String> validationErrors = new ArrayList<>();

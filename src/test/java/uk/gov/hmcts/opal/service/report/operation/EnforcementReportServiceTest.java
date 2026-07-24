@@ -34,7 +34,7 @@ import uk.gov.hmcts.opal.service.report.operation.mapper.DetailedResultMapper;
 import uk.gov.hmcts.opal.service.report.operation.mapper.SummaryResultMapper;
 
 @ExtendWith(MockitoExtension.class)
-class OperationReportByEnforcementServiceTest {
+class EnforcementReportServiceTest {
 
     @Mock
     private DefendantAccountRepository defendantAccountRepository;
@@ -51,7 +51,6 @@ class OperationReportByEnforcementServiceTest {
     @Mock
     private OperationDetailedReport mappedDetailedReport;
 
-
     @Mock
     private OperationSummaryReport mappedSummaryReport;
 
@@ -59,10 +58,10 @@ class OperationReportByEnforcementServiceTest {
     private ObjectMapper objectMapper;
 
     @Mock
-    private OperationReportByEnforcementValidator validator;
+    private EnforcementReportValidator validator;
 
     @InjectMocks
-    private OperationReportByEnforcementService service;
+    private EnforcementReportService service;
 
     @Test
     void getReportId_returnsOpEnforcement() {
@@ -159,7 +158,7 @@ class OperationReportByEnforcementServiceTest {
     }
 
     @Test
-    void generateReportData_whenFilteringOnEnforcementData_usesEnforcementAndAccountRepositories() {
+    void generateReportData_withEnforcementFilters_usesBothRepositories() {
         ReportInstanceEntity reportInstance = mockReportInstance("""
             {
               "reportEnforcementMode": "LAST_ACTION",

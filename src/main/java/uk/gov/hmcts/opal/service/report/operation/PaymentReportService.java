@@ -25,13 +25,13 @@ import uk.gov.hmcts.opal.service.report.operation.mapper.SummaryResultMapper;
 
 @Service
 @RequiredArgsConstructor
-public class OperationReportByPaymentService implements ReportInterface<OperationReportDataInterface> {
+public class PaymentReportService implements ReportInterface<OperationReportDataInterface> {
 
     private final DefendantAccountRepository defendantAccountRepository;
     private final SummaryResultMapper summaryResultMapper;
     private final DetailedResultMapper detailedResultMapper;
     private final ObjectMapper objectMapper;
-    private final OperationReportByPaymentValidator validator;
+    private final PaymentReportValidator validator;
 
     @Override
     public ReportId getReportId() {
