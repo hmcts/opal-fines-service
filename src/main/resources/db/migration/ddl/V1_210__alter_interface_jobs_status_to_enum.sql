@@ -23,7 +23,7 @@ ALTER TABLE interface_jobs
     ALTER COLUMN status TYPE t_interface_job_status_enum
     USING CASE status::text
             WHEN 'Created' THEN 'CREATED'::t_interface_job_status_enum
-            WHEN 'Written' THEN 'PROCESSING'::t_interface_job_status_enum
+            WHEN 'Written' THEN 'PROCESSED'::t_interface_job_status_enum
             WHEN 'No data' THEN 'IGNORED'::t_interface_job_status_enum
             WHEN 'Completed' THEN 'COMPLETED'::t_interface_job_status_enum
             WHEN 'Failed' THEN 'FAILED'::t_interface_job_status_enum
