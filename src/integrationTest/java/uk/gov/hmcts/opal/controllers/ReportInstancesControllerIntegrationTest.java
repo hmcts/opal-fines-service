@@ -277,6 +277,12 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-7745")
     void createReportInstance_reportIDNotFound_404() throws Exception {
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
+        when(userState.getUserId()).thenReturn(USER_ID);
+        when(userState.getUserName()).thenReturn(USER_NAME);
+        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
+
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId("unknown-report-id")
             .reportName(null)

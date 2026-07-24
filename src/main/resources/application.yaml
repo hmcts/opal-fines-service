@@ -164,6 +164,10 @@ opal:
       queue-name: ${SERVICEBUS_REPORT_QUEUE_NAME:report}
       consumer-enabled: ${REPORT_CONSUMER_ENABLED:true}
       publisher-enabled: ${REPORT_PUBLISHER_ENABLED:true}
+  interface-jobs:
+    service-bus:
+      queue-name: ${SERVICEBUS_INTERFACE_JOBS_QUEUE_NAME:auto-payments-process-interface-files}
+      consumer-enabled: ${INTERFACE_JOBS_CONSUMER_ENABLED:true}
 
 be-developer-config:
   user-role-permissions: ${BE_DEV_ROLE_PERMISSIONS:}

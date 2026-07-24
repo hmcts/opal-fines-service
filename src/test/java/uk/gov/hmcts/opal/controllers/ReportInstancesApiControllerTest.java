@@ -38,9 +38,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.server.ResponseStatusException;
+import uk.gov.hmcts.opal.generated.model.CreateReportInstanceRequestReports;
+import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
 import uk.gov.hmcts.opal.service.report.FileType;
 import uk.gov.hmcts.opal.service.report.GenericReportService;
+import uk.gov.hmcts.opal.service.report.ReportInstanceCreationService;
 
 @ExtendWith(MockitoExtension.class)
 class ReportInstancesApiControllerTest {
@@ -49,6 +52,9 @@ class ReportInstancesApiControllerTest {
 
     @Mock
     private GenericReportService genericReportService;
+
+    @Mock
+    private ReportInstanceCreationService reportInstanceCreationService;
 
     @Mock
     private HttpServletRequest request;
@@ -84,6 +90,33 @@ class ReportInstancesApiControllerTest {
                 },
                 () -> verify(genericReportService)
                     .searchReportInstances(FROM_DATE, TO_DATE, BUSINESS_UNITS, USER_ID, DEFAULT_REPORT_ID)
+            );
+        }
+    }
+
+    @Nested
+    class CreateReportInstance {
+
+        @Test
+        void whenRequestProvided_returnsCreatedResult_happyPath() {
+            CreateReportInstanceResponseReports response =
+                CreateReportInstanceResponseReports.builder().reportInstanceId(REPORT_INSTANCE_ID).build();
+            CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
+                .reportId(DEFAULT_REPORT_ID)
+                .businessUnitIds(BUSINESS_UNITS)
+                .reportParameters(Map.of())
+                .build();
+
+            when(reportInstanceCreationService.createReportInstance(request)).thenReturn(response);
+
+            ResponseEntity<CreateReportInstanceResponseReports> actual =
+                reportInstancesApiController.createReportInstance(request);
+
+            assertAll(
+                () -> assertEquals(HttpStatus.CREATED, actual.getStatusCode()),
+                () -> assertEquals(response, actual.getBody()),
+                () -> verify(reportInstanceCreationService).createReportInstance(request),
+                () -> verifyNoInteractions(genericReportService)
             );
         }
     }

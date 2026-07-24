@@ -309,8 +309,6 @@ class GenericReportServiceTest {
     @Test
     public void addReportInstance_success_singleBU() {
         //setup
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.isSupportsMultiBu()).thenReturn(false);
         when(reportEntity.isCanManuallyCreate()).thenReturn(true);
@@ -319,8 +317,6 @@ class GenericReportServiceTest {
         when(reportInstanceMapper.toResponseDto(reportInstance)).thenReturn(reportInstanceResponse);
         when(reportParameterValidator.validateReportInstanceParameterValues(reportParameters, reportEntity))
             .thenReturn(true);
-
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
         reportInstance.setReportInstanceId(123L);
 
         //test
@@ -330,7 +326,7 @@ class GenericReportServiceTest {
                 .reportName(null)
                 .businessUnitIds(List.of((short) 1))
                 .reportParameters(reportParameters)
-                .build(), true)).isEqualTo(reportInstanceResponse);
+                .build(), USER_ID, "test-user", true)).isEqualTo(reportInstanceResponse);
 
         verify(reportQueuePublisher).publish(123L);
     }
@@ -338,8 +334,6 @@ class GenericReportServiceTest {
     @Test
     public void addReportInstance_success_multiBU() {
         //setup
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.isSupportsMultiBu()).thenReturn(true);
         when(reportEntity.isCanManuallyCreate()).thenReturn(true);
@@ -348,9 +342,6 @@ class GenericReportServiceTest {
         when(reportInstanceMapper.toResponseDto(reportInstance)).thenReturn(reportInstanceResponse);
         when(reportParameterValidator.validateReportInstanceParameterValues(reportParameters, reportEntity))
             .thenReturn(true);
-
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
-        when(businessUnitUser2.getBusinessUnitId()).thenReturn((short) 2);
 
         reportInstance.setReportInstanceId(123L);
 
@@ -361,7 +352,7 @@ class GenericReportServiceTest {
                 .reportName(null)
                 .businessUnitIds(List.of((short) 1, (short) 2))
                 .reportParameters(reportParameters)
-                .build(), true)).isEqualTo(reportInstanceResponse);
+                .build(), USER_ID, "test-user", true)).isEqualTo(reportInstanceResponse);
 
         verify(reportQueuePublisher).publish(123L);
     }
@@ -380,7 +371,7 @@ class GenericReportServiceTest {
                     .reportName(null)
                     .businessUnitIds(List.of((short) 1, (short) 2))
                     .reportParameters(reportParameters)
-                    .build(), true));
+                    .build(), USER_ID, "test-user", true));
         assertEquals("Too many business units supplied, this report only allows 1", exception.getDetailedReason());
     }
 
@@ -399,46 +390,19 @@ class GenericReportServiceTest {
                     .reportName(null)
                     .businessUnitIds(List.of((short) 1))
                     .reportParameters(reportParameters)
-                    .build(), true));
+                    .build(), USER_ID, "test-user", true));
         assertEquals("This report cannot be manually created", exception.getDetailedReason());
-    }
-
-    @Test
-    public void addReportInstance_userNotAuthorizedWithBU_throwsException() {
-        //setup
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
-        when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
-        when(reportEntity.isSupportsMultiBu()).thenReturn(true);
-        when(reportEntity.isCanManuallyCreate()).thenReturn(true);
-        //when(mapper.writeValueAsString(any())).thenReturn("{}");
-
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
-        //test
-        AccessDeniedException exception = assertThrows(AccessDeniedException.class,
-            () -> genericReportService.addReportInstance(
-                CreateReportInstanceRequestReports.builder()
-                    .reportId(reportId)
-                    .reportName(null)
-                    .businessUnitIds(List.of((short) 1, (short) 2))
-                    .reportParameters(reportParameters)
-                    .build(), true));
-        assertEquals("You cannot generate reports for other business units", exception.getMessage());
     }
 
     @Test
     public void addReportInstance_failsValidation_throwsException() {
         //setup
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.isSupportsMultiBu()).thenReturn(true);
         when(reportEntity.isCanManuallyCreate()).thenReturn(true);
         //when(mapper.writeValueAsString(any())).thenReturn("{}");
         when(reportParameterValidator.validateReportInstanceParameterValues(reportParameters, reportEntity))
             .thenReturn(false);
-
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
         //test
         UnprocessableException exception = assertThrows(UnprocessableException.class,
             () -> genericReportService.addReportInstance(
@@ -447,50 +411,51 @@ class GenericReportServiceTest {
                     .reportName(null)
                     .businessUnitIds(List.of((short) 1))
                     .reportParameters(reportParameters)
-                    .build(), true));
+                    .build(), USER_ID, "test-user", true));
         assertEquals("Validation failed for report instance parameters", exception.getDetailedReason());
     }
 
     @Test
-    public void addReportInstance_genReportAsyncFalse_throwsException() {
+    public void addReportInstance_genReportAsyncFalse_generatesImmediately() {
         //setup
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.isSupportsMultiBu()).thenReturn(false);
-        when(reportEntity.isCanManuallyCreate()).thenReturn(true);
         when(mapper.writeValueAsString(any())).thenReturn("{}");
         when(reportInstanceRepository.save(any())).thenReturn(reportInstance);
+        when(reportInstanceRepository.findById(123L)).thenReturn(Optional.of(reportInstance));
         when(reportParameterValidator.validateReportInstanceParameterValues(reportParameters, reportEntity))
             .thenReturn(true);
-
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
+        when(reportEntity.getReportId()).thenReturn(reportId);
+        //noinspection rawtypes
+        when((ReportInterface) reportRegistry.get(reportId)).thenReturn(reportInterfaceImplementation);
+        when(reportInterfaceImplementation.generateReportData(reportInstance)).thenReturn(reportData);
+        when(reportData.getNumberOfRecords()).thenReturn(2L);
+        when(reportBlobStore.storeReport(any())).thenReturn(LOCATION);
+        when(reportEntity.getRetentionPeriod()).thenReturn(Duration.ofDays(1));
+        when(reportInstanceMapper.toResponseDto(reportInstance)).thenReturn(reportInstanceResponse);
+        reportInstance.setReportInstanceId(123L);
 
         //test
-        UnprocessableException exception = assertThrows(UnprocessableException.class,
-            () -> genericReportService.addReportInstance(
-                CreateReportInstanceRequestReports.builder()
-                    .reportId(reportId)
-                    .reportName(null)
-                    .businessUnitIds(List.of((short) 1))
-                    .reportParameters(reportParameters)
-                    .build(), false));
-        assertEquals("generateReportContentAsync cannot be false", exception.getDetailedReason());
+        assertThat(genericReportService.addReportInstance(
+            CreateReportInstanceRequestReports.builder()
+                .reportId(reportId)
+                .reportName(null)
+                .businessUnitIds(List.of((short) 1))
+                .reportParameters(reportParameters)
+                .build(), USER_ID, "test-user", false)).isEqualTo(reportInstanceResponse);
+
+        verify(reportBlobStore).storeReport(any());
+        verify(reportQueuePublisher, never()).publish(any());
     }
 
     @Test
     public void addReportInstance_invalidJson_throwsException() {
         //setup
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.isSupportsMultiBu()).thenReturn(false);
-        when(reportEntity.isCanManuallyCreate()).thenReturn(true);
         when(mapper.writeValueAsString(any())).thenThrow(new StreamConstraintsException("unit test"));
         when(reportParameterValidator.validateReportInstanceParameterValues(reportParameters, reportEntity))
             .thenReturn(true);
-
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
         reportInstance.setReportInstanceId(123L);
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
@@ -500,7 +465,7 @@ class GenericReportServiceTest {
                     .reportName(null)
                     .businessUnitIds(List.of((short) 1))
                     .reportParameters(reportParameters)
-                    .build(), false));
+                    .build(), USER_ID, "test-user", false));
         assertEquals("Report parameters badly formatted", exception.getMessage());
     }
 

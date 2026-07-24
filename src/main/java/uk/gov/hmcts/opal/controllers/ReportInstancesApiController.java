@@ -26,6 +26,7 @@ import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceReports;
 import uk.gov.hmcts.opal.service.report.FileType;
 import uk.gov.hmcts.opal.service.report.GenericReportService;
+import uk.gov.hmcts.opal.service.report.ReportInstanceCreationService;
 import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @RestController
@@ -34,6 +35,7 @@ import uk.gov.hmcts.opal.util.FeatureFlags;
 public class ReportInstancesApiController implements ReportInstancesApi {
 
     private final GenericReportService genericReportService;
+    private final ReportInstanceCreationService reportInstanceCreationService;
     private final HttpServletRequest request;
 
     @Override
@@ -55,7 +57,8 @@ public class ReportInstancesApiController implements ReportInstancesApi {
         defaultValueProperty = RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_ENABLED_PROPERTY)
     public ResponseEntity<CreateReportInstanceResponseReports> createReportInstance(
         CreateReportInstanceRequestReports createReportInstanceRequestReports) {
-        return buildCreatedResponse(genericReportService.addReportInstance(createReportInstanceRequestReports, true));
+        return buildCreatedResponse(reportInstanceCreationService.createReportInstance(
+            createReportInstanceRequestReports));
     }
 
     @FeatureToggle(feature = RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING,

@@ -51,6 +51,7 @@ public class ReportParameterValidatorTest {
             .thenReturn(radioList);
 
         when(report.getReportParameters()).thenReturn(List.of(
+            parameter("boolean-param", "boolean", true, null, null, null),
             parameter("date-param", "date", true, null, null, null),
             parameter("decimal-param", "decimal-2dp", true, 1.0, 10.0, null),
             parameter("integer-param", "integer", true, 1L, 10L, null),
@@ -63,6 +64,7 @@ public class ReportParameterValidatorTest {
         ));
 
         boolean result = reportParameterValidator.validateReportInstanceParameterValues(Map.of(
+            "boolean-param", true,
             "date-param", "2026-05-26",
             "decimal-param", 5.0,
             "integer-param", 5L,
@@ -141,6 +143,18 @@ public class ReportParameterValidatorTest {
         assertThrows(ReportNotFoundException.class,
             () -> reportParameterValidator.validateReportInstanceParameterValues(
                 Map.of("text-param", "value"), report));
+    }
+
+    @Test
+    void validateReportInstanceParameterValues_booleanValueIsNotBoolean_returnsFalse() {
+        when(report.getReportParameters()).thenReturn(List.of(
+            parameter("boolean-param", "boolean", false, null, null, null)
+        ));
+
+        boolean result = reportParameterValidator.validateReportInstanceParameterValues(
+            Map.of("boolean-param", "true"), report);
+
+        assertFalse(result);
     }
 
     @Test

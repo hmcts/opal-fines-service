@@ -43,6 +43,11 @@ public class ReportParameterValidator {
                             report.getReportId()), true));
                 //see if given value for
                 switch (ReportParameterType.fromParameterName(reportParameterData.type())) {
+                    case BOOLEAN -> {
+                        if (!(reportInstanceParameters.get(parameterName) instanceof Boolean)) {
+                            return false;
+                        }
+                    }
                     case DATE -> {
                         if (reportInstanceParameters.get(parameterName) instanceof String dateString) {
                             if (isInvalidDate(dateString, reportParameterData)) {

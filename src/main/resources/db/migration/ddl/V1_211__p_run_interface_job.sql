@@ -21,7 +21,7 @@ AS $$
 DECLARE
     k_msg_type_error text := 'Error';
     k_status_created t_interface_job_status_enum := 'CREATED';
-    k_status_written t_interface_job_status_enum := 'PROCESSED';
+    k_status_written t_interface_job_status_enum := 'PROCESSING';
     k_status_nodata t_interface_job_status_enum := 'IGNORED';
     k_status_completed t_interface_job_status_enum := 'COMPLETED';
     k_status_failed t_interface_job_status_enum := 'FAILED';

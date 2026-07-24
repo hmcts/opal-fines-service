@@ -18,7 +18,7 @@ CREATE TYPE t_cheque_allocation_type_enum AS ENUM ('COMP', 'REPAYW');
 CREATE TYPE t_cheque_status_enum AS ENUM ('D', 'N', 'P', 'Q', 'W', 'X');
 CREATE TYPE t_frequency_period_enum AS ENUM ('D', 'F', 'M', 'W');
 CREATE TYPE t_interface_file_source_enum AS ENUM ('NATWEST', 'ALLPAY', 'ALLPAY_DD', 'BARCLAYCARD', 'BTECKOH', 'DWP', 'CDER', 'JACOBS', 'MARSTON', 'OTHER');
-CREATE TYPE t_interface_job_status_enum AS ENUM ('CREATED', 'PROCESSED', 'IGNORED', 'FAILED', 'COMPLETED');
+CREATE TYPE t_interface_job_status_enum AS ENUM ('CREATED', 'PROCESSING', 'IGNORED', 'FAILED', 'COMPLETED');
 CREATE TYPE t_pi_destination_type_enum AS ENUM ('F', 'S', 'C');
 CREATE TYPE t_print_job_status_enum AS ENUM ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED');
 CREATE TYPE t_imposition_creditor_enum AS ENUM ('Any', 'CF', '!CPS', 'CPS');

@@ -8,6 +8,7 @@ import uk.gov.hmcts.opal.exception.ReportNotFoundException;
 
 @Getter
 public enum ReportParameterType {
+    BOOLEAN("boolean"),
     DATE("date"),
     DECIMAL("decimal-2dp"),
     INTEGER("integer"),

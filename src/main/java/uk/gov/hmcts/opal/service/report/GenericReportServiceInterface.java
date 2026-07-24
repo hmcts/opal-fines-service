@@ -13,6 +13,8 @@ public interface GenericReportServiceInterface {
 
     CreateReportInstanceResponseReports addReportInstance(
         CreateReportInstanceRequestReports request,
+        Long requestedBy,
+        String requestedByName,
         boolean generateReportContentAsync
     );
 

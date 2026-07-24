@@ -127,53 +127,30 @@ public class GenericReportService implements GenericReportServiceInterface {
 
     @Transactional
     public CreateReportInstanceResponseReports addReportInstance(CreateReportInstanceRequestReports request,
-        boolean generateReportContentAsync) {
+        Long requestedBy, String requestedByName, boolean generateReportContentAsync) {
         ReportEntity reportEntity = reportRepository.findById(request.getReportId())
             .orElseThrow(EntityNotFoundException::new);
         if (!reportEntity.isSupportsMultiBu() && request.getBusinessUnitIds().size() > 1) {
             throw new UnprocessableException("Too many business units supplied, this report only allows 1");
         }
-        if (!reportEntity.isCanManuallyCreate()) {
+        if (generateReportContentAsync && !reportEntity.isCanManuallyCreate()) {
             throw new UnprocessableException("This report cannot be manually created");
         }
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        validateReportInstanceParameters(request, reportEntity);
 
-        if (!userState.getBusinessUnitUser().stream()
-            .map(BusinessUnitUser::getBusinessUnitId).collect(Collectors.toSet())
-            .containsAll(request.getBusinessUnitIds())) {
-            throw new AccessDeniedException("You cannot generate reports for other business units");
+        CreateReportInstanceResponseReports response = createReportInstance(
+            request,
+            reportEntity,
+            requestedBy,
+            requestedByName
+        );
+        if (generateReportContentAsync) {
+            reportQueuePublisher.publish(response.getReportInstanceId());
+        } else {
+            generateReportInstanceContent(response.getReportInstanceId());
         }
-
-        if (!reportParameterValidator.validateReportInstanceParameterValues(
-            request.getReportParameters(), reportEntity)) {
-            throw new UnprocessableException("Validation failed for report instance parameters", true);
-        }
-
-        try {
-            ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
-                .report(reportEntity)
-                .businessUnit(request.getBusinessUnitIds())
-                .requestedBy(userState.getUserId())
-                .requestedByName(userState.getUserName())
-                .reportParameters(mapper.writeValueAsString(request.getReportParameters()))
-                .requestedAt(LocalDateTime.now())
-                .generationStatus(REQUESTED)
-                .reportName(request.getReportName())
-                .build();
-
-            reportInstanceEntity = saveReportInstance(reportInstanceEntity);
-            if (generateReportContentAsync) {
-                reportQueuePublisher.publish(reportInstanceEntity.getReportInstanceId());
-            } else {
-                //TODO future ticket generateReportContentAsync false
-                throw new UnprocessableException("generateReportContentAsync cannot be false");
-            }
-
-            return reportInstanceMapper.toResponseDto(reportInstanceEntity);
-        } catch (JacksonException e) {
-            throw new IllegalArgumentException("Report parameters badly formatted", e);
-        }
+        return response;
     }
 
     @Override
@@ -217,6 +194,35 @@ public class GenericReportService implements GenericReportServiceInterface {
             return reportInstanceRepository.save(instance);
         } catch (Exception e) {
             throw new EntityNotSavedException("Unable to save report instance", e);
+        }
+    }
+
+    private void validateReportInstanceParameters(CreateReportInstanceRequestReports request,
+        ReportEntity reportEntity) {
+        if (!reportParameterValidator.validateReportInstanceParameterValues(
+            request.getReportParameters(), reportEntity)) {
+            throw new UnprocessableException("Validation failed for report instance parameters", true);
+        }
+    }
+
+    private CreateReportInstanceResponseReports createReportInstance(CreateReportInstanceRequestReports request,
+        ReportEntity reportEntity, Long requestedBy, String requestedByName) {
+        try {
+            ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
+                .report(reportEntity)
+                .businessUnit(request.getBusinessUnitIds())
+                .requestedBy(requestedBy)
+                .requestedByName(requestedByName)
+                .reportParameters(mapper.writeValueAsString(request.getReportParameters()))
+                .requestedAt(LocalDateTime.now())
+                .generationStatus(REQUESTED)
+                .reportName(request.getReportName())
+                .build();
+
+            reportInstanceEntity = saveReportInstance(reportInstanceEntity);
+            return reportInstanceMapper.toResponseDto(reportInstanceEntity);
+        } catch (JacksonException e) {
+            throw new IllegalArgumentException("Report parameters badly formatted", e);
         }
     }
 
