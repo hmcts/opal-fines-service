@@ -26,6 +26,7 @@ import uk.gov.hmcts.opal.dto.history.AccountHistoryItemType;
 import uk.gov.hmcts.opal.dto.history.AccountHistoryPostedDetails;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
+import uk.gov.hmcts.opal.generated.model.CreditorTransactionDetailsHistory;
 import uk.gov.hmcts.opal.generated.model.MajorCreditorHistoryItemHistory;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.service.opal.history.HistoryItemOrderingService;
@@ -94,10 +95,11 @@ class MajorCreditorHistoryServiceTest {
         assertEquals(MajorCreditorHistoryItemHistory.TypeEnum.FINANCIAL, generatedItem.getType());
         assertEquals(LocalDate.of(2026, 1, 2), generatedItem.getPostedDetails().getPostedDate());
         assertEquals(BigDecimal.TEN, generatedItem.getAmount());
-        assertEquals("PAY123", generatedItem.getDetails().getPaymentReference());
-        assertEquals("MC123", generatedItem.getDetails().getAccountNumber());
-        assertEquals("DA123", generatedItem.getDetails().getDefendantAccountNumber());
-        assertEquals(44L, generatedItem.getDetails().getDefendantAccountId());
+        CreditorTransactionDetailsHistory details = (CreditorTransactionDetailsHistory)generatedItem.getDetails();
+        assertEquals("PAY123", details.getPaymentReference());
+        assertEquals("MC123", details.getAccountNumber());
+        assertEquals("DA123", details.getDefendantAccountNumber());
+        assertEquals(44L, details.getDefendantAccountId());
 
         ArgumentCaptor<AccountHistoryFilter> filterCaptor = ArgumentCaptor.forClass(AccountHistoryFilter.class);
         verify(transactionSource).fetch(any(AccountHistoryContext.class), filterCaptor.capture());

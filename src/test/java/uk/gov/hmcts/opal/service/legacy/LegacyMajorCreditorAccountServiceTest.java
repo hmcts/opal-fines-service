@@ -7,8 +7,11 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService.GET_MAJOR_CREDITOR_ACCOUNT_AT_A_GLANCE;
 import static uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService.GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY;
+import static uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService.GET_MAJOR_CREDITOR_ACCOUNT_HISTORY;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,11 +22,15 @@ import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountAtAGlanceLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountAtAGlanceLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountAtAGlanceLegacyResponse.MajorCreditorLegacy;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse;
+import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
+import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHistoryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountAtAGlanceResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper;
 
@@ -38,6 +45,9 @@ class LegacyMajorCreditorAccountServiceTest {
 
     @Mock
     private GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
+
+    @Mock
+    private GetMajorCreditorAccountHistoryResponseLegacyMapper historyResponseMapper;
 
     @InjectMocks
     private LegacyMajorCreditorAccountService legacyMajorCreditorAccountService;
@@ -152,6 +162,104 @@ class LegacyMajorCreditorAccountServiceTest {
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
         verifyNoInteractions(headerSummaryResponseMapper);
+    }
+
+    @Test
+    void getHistory_postsLegacyRequestMapsResponseAndForwardsItemTypes() {
+        LocalDate dateFrom = LocalDate.of(2026, 1, 1);
+        LocalDate dateTo = LocalDate.of(2026, 1, 31);
+        GetMajorCreditorAccountHistoryLegacyRequest expectedRequest =
+            GetMajorCreditorAccountHistoryLegacyRequest.builder()
+                .creditorAccountId("123")
+                .fromDate(dateFrom)
+                .toDate(dateTo)
+                .itemTypes(List.of("Note"))
+                .build();
+        GetMajorCreditorAccountHistoryLegacyResponse legacyResponse =
+            GetMajorCreditorAccountHistoryLegacyResponse.builder().version(7L).build();
+        GetMajorCreditorHistoryResponse mappedResponse = GetMajorCreditorHistoryResponse.builder()
+            .version(BigInteger.valueOf(7))
+            .build();
+
+        when(gatewayService.postToGateway(
+            GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
+            GetMajorCreditorAccountHistoryLegacyResponse.class,
+            expectedRequest,
+            null
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse));
+        when(historyResponseMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
+
+        GetMajorCreditorHistoryResponse result =
+            legacyMajorCreditorAccountService.getHistory(123L, dateFrom, dateTo, List.of("note"));
+
+        assertEquals(mappedResponse, result);
+        verify(gatewayService).postToGateway(
+            GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
+            GetMajorCreditorAccountHistoryLegacyResponse.class,
+            expectedRequest,
+            null
+        );
+    }
+
+    @Test
+    void getHistory_handlesGatewayExceptionResponse() {
+        GetMajorCreditorAccountHistoryLegacyRequest expectedRequest =
+            GetMajorCreditorAccountHistoryLegacyRequest.builder()
+                .creditorAccountId("123")
+                .build();
+
+        when(gatewayService.postToGateway(
+            GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
+            GetMajorCreditorAccountHistoryLegacyResponse.class,
+            expectedRequest,
+            null
+        )).thenReturn(new GatewayService.Response<>(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            GetMajorCreditorAccountHistoryLegacyResponse.builder().build(),
+            null,
+            new RuntimeException("Gateway error")
+        ));
+
+        HttpServerErrorException exception = assertThrows(
+            HttpServerErrorException.class,
+            () -> legacyMajorCreditorAccountService.getHistory(123L, null, null, null)
+        );
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
+        verifyNoInteractions(historyResponseMapper);
+    }
+
+    @Test
+    void getHistory_splitsCommaSeparatedItemTypes() {
+        GetMajorCreditorAccountHistoryLegacyRequest expectedRequest =
+            GetMajorCreditorAccountHistoryLegacyRequest.builder()
+                .creditorAccountId("123")
+                .itemTypes(List.of("Financial", "Note"))
+                .build();
+        GetMajorCreditorAccountHistoryLegacyResponse legacyResponse =
+            GetMajorCreditorAccountHistoryLegacyResponse.builder().version(7L).build();
+        GetMajorCreditorHistoryResponse mappedResponse = GetMajorCreditorHistoryResponse.builder()
+            .version(BigInteger.valueOf(7))
+            .build();
+
+        when(gatewayService.postToGateway(
+            GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
+            GetMajorCreditorAccountHistoryLegacyResponse.class,
+            expectedRequest,
+            null
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse));
+        when(historyResponseMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
+
+        GetMajorCreditorHistoryResponse result =
+            legacyMajorCreditorAccountService.getHistory(123L, null, null, List.of("financial,note"));
+
+        assertEquals(mappedResponse, result);
+        verify(gatewayService).postToGateway(
+            GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
+            GetMajorCreditorAccountHistoryLegacyResponse.class,
+            expectedRequest,
+            null
+        );
     }
 
     @Test

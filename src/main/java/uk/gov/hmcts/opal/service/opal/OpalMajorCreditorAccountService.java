@@ -1,12 +1,15 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorAccountAtAGlanceEntity;
@@ -15,6 +18,7 @@ import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.MajorCreditorAccountAtAGlanceRepository;
 import uk.gov.hmcts.opal.repository.MajorCreditorAccountHeaderRepository;
 import uk.gov.hmcts.opal.service.iface.MajorCreditorAccountServiceInterface;
+import uk.gov.hmcts.opal.service.opal.history.majorcreditor.MajorCreditorHistoryService;
 
 @Service
 @Slf4j(topic = "opal.OpalMajorCreditorAccountService")
@@ -29,6 +33,7 @@ public class OpalMajorCreditorAccountService implements MajorCreditorAccountServ
     private final MajorCreditorAccountAtAGlanceRepository majorCreditorAccountAtAGlanceRepository;
     private final MajorCreditorAccountHeaderRepository majorCreditorAccountHeaderRepository;
     private final MajorCreditorAccountHeaderEntityMapper majorCreditorAccountHeaderEntityMapper;
+    private final MajorCreditorHistoryService majorCreditorHistoryService;
 
     @Override
     @Transactional(readOnly = true)
@@ -79,6 +84,18 @@ public class OpalMajorCreditorAccountService implements MajorCreditorAccountServ
             .orElseThrow(() -> new EntityNotFoundException(
                 ACCOUNT_NOT_FOUND + majorCreditorAccountId
             ));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public GetMajorCreditorHistoryResponse getHistory(
+        Long majorCreditorAccountId,
+        LocalDate dateFrom,
+        LocalDate dateTo,
+        List<String> itemTypes
+    ) {
+        log.debug(":getHistory (Opal): majorCreditorAccountId={}", majorCreditorAccountId);
+        return majorCreditorHistoryService.getHistory(majorCreditorAccountId, dateFrom, dateTo, itemTypes);
     }
 
     private GetMajorCreditorAccountAtAGlanceResponse.Address mapAddress(
