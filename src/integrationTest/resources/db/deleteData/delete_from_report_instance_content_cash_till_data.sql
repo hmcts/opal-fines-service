@@ -14,7 +14,7 @@ DELETE FROM business_units
 WHERE business_unit_id = 1778;
 
 UPDATE reports
-SET retention_period = '14',
+SET retention_period = 'P14D',
     permission = NULL,
     supported_file_types = '{CSV,PDF}'
 WHERE report_id = 'cash_till';
