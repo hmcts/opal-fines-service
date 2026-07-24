@@ -8,8 +8,9 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.TestConstructor;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedAccountReportDto;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedOperationReportAccountRowDto;
@@ -20,6 +21,8 @@ import uk.gov.hmcts.opal.service.report.operation.OperationDetailedReport;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class ReportCSVServiceIntegrationTest extends AbstractIntegrationTest {
 
     private static final String DETAIL = "DETAIL";
@@ -66,13 +69,12 @@ class ReportCSVServiceIntegrationTest extends AbstractIntegrationTest {
     private static final String TXN_USER_ID = "user-1";
     private static final BigDecimal TXN_AMOUNT = new BigDecimal("12.34");
 
-    @Autowired
-    private ReportCSVService reportCSVService;
+    private final ReportCSVService reportCSVService;
 
     @Test
     @JiraStory("PO-2283")
     @JiraEpic("PO-2248")
-    void convertReportDtoToCSV_happyPath_usesOperationByEnforcementDetailedReportMapper() {
+    void convertReportDtoToCSV_usesDetailedMapper() {
         OperationDetailedReport report = report();
 
         byte[] result = reportCSVService.convertReportDtoToCSV(report);
@@ -83,7 +85,7 @@ class ReportCSVServiceIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2283")
     @JiraEpic("PO-2248")
-    void convertReportDtoToCSV_unmappedReportType_throwsUnprocessableException() {
+    void convertReportDtoToCSV_unmappedType_throwsUnprocessable() {
         UnprocessableException exception = assertThrows(UnprocessableException.class,
             () -> reportCSVService.convertReportDtoToCSV(new MissingReportData()));
 
