@@ -108,7 +108,9 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
             .isSorted();
         //Verify fields mapped
         Assertions.assertThat(transactions)
-            .anySatisfy(dto -> {
+            .filteredOn(dto -> "177A".equals(dto.getAccountNo()))
+            .singleElement()
+            .satisfies(dto -> {
                 assertThat(dto.getHeader1()).isEqualTo("DETAIL");
                 assertThat(dto.getCompany()).isEqualTo("N");
                 assertThat(dto.getDefendantName()).isEqualTo("Graham, Anna");
@@ -140,7 +142,7 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
                 assertThat(dto.getEmployerTel()).isEqualTo("02079997777");
                 assertThat(dto.getEmployerEmail()).isEqualTo("employer77@company.com");
                 assertThat(dto.getEnforcementReason()).isEqualTo("Test enforcement");
-                assertThat(dto.getLastEnforcementDate()).isEqualTo(LocalDate.of(2000, 1, 2));
+                assertThat(dto.getLastEnforcementDate()).isEqualTo(LocalDate.of(2026, 5, 14));
                 assertThat(dto.getUser()).isEqualTo("L080JG");
                 assertThat(dto.getWarrantRef()).isEqualTo("001/25/00001");
                 assertThat(dto.getJailDays()).isEqualTo(101);

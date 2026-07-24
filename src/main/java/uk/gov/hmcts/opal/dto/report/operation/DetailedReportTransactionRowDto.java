@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DetailedReportTransactionRowDto {
+public class DetailedReportTransactionRowDto implements Comparable<DetailedReportTransactionRowDto> {
 
     private String accountNo;
     private String consolidatedAccountNo;
@@ -21,4 +21,8 @@ public class DetailedReportTransactionRowDto {
     private String transactionUserId;
     private BigDecimal transactionAmount;
 
+    @Override
+    public int compareTo(DetailedReportTransactionRowDto o) {
+        return this.transactionDate.compareTo(o.transactionDate);
+    }
 }
