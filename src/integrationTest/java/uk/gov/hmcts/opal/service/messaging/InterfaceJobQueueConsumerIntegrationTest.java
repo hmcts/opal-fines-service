@@ -311,7 +311,8 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractInterfaceJobQueue
 
     //INT.11
     //We have coverge apart from some queue aspect we can't write a test for
-    //. What is still not covered is a true JMS/session commit failure on message completion. That would need broker-level fault injection, not just the current consumer harness.
+    // What is still not covered is a true JMS/session commit failure on message completion.
+    // That would need broker-level fault injection, not just the current consumer harness.
 
     //INT.12
     //Unable to write this test as uses Queue directly.
