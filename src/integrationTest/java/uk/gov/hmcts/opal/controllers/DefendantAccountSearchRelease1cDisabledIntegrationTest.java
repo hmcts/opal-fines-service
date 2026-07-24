@@ -29,9 +29,9 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @TestPropertySource(properties = {
     "launchdarkly.enabled=false",
     "launchdarkly.default-flag-values.release-1b=true",
-    "launchdarkly.default-flag-values.release-1c=false"
+    "launchdarkly.default-flag-values.release-1c-write-off=false"
 })
-@DisplayName("Defendant account search release-1c disabled Integration Test")
+@DisplayName("Defendant account search release-1c-write-off disabled Integration Test")
 class DefendantAccountSearchRelease1cDisabledIntegrationTest extends AbstractIntegrationTest {
 
     private static final String DEFENDANTS_SEARCH_URL = "/defendant-accounts/search";
@@ -70,7 +70,7 @@ class DefendantAccountSearchRelease1cDisabledIntegrationTest extends AbstractInt
     }
 
     @Test
-    @DisplayName("POST /defendant-accounts/search rejects consolidated search when release-1c is disabled")
+    @DisplayName("POST /defendant-accounts/search rejects consolidated search when release-1c-write-off is disabled")
     @JiraStory("PO-3768")
     @JiraEpic("PO-3685")
     @JiraTestKey("PO-7574")
@@ -79,7 +79,7 @@ class DefendantAccountSearchRelease1cDisabledIntegrationTest extends AbstractInt
         when(defendantAccountService.searchDefendantAccounts(
             any(PostDefendantAccountSearchRequestDefendantAccount.class)))
             .thenThrow(new FeatureDisabledException(
-                "Feature release-1c is not enabled for defendant account consolidated search"));
+                "Feature release-1c-write-off is not enabled for defendant account consolidated search"));
 
         mockMvc.perform(post(DEFENDANTS_SEARCH_URL)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
