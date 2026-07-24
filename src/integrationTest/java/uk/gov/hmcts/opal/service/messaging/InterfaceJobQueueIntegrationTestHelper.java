@@ -70,15 +70,6 @@ class InterfaceJobQueueIntegrationTestHelper {
     @Value("${opal.report.storage.container}")
     private String reportContainerName;
 
-    String validProcessingMessage() {
-        return "{\"interface_job_id\":" + INTERFACE_JOB_ID + "}";
-    }
-
-    TextMessage textMessage(String payload) throws JMSException {
-        TextMessage textMessage = new AmqpJmsTextMessageFacade().asJmsMessage();
-        textMessage.setText(payload);
-        return textMessage;
-    }
 
     @Transactional
     void replaceInterfaceFileRecords(Long interfaceFileId, String recordsJson) {

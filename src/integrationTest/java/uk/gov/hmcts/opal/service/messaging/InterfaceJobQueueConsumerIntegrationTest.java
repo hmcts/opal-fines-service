@@ -10,6 +10,7 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import jakarta.jms.JMSException;
+import jakarta.jms.TextMessage;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.sql.Connection;
@@ -17,6 +18,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import org.apache.qpid.jms.provider.amqp.message.AmqpJmsTextMessageFacade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -63,12 +65,17 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private PlatformTransactionManager platformTransactionManager;
 
+    private TextMessage validTextMessage;
+
+
     @BeforeEach
-    void setUpReportStorage() {
+    void setUpReportStorage() throws JMSException {
         BlobContainerClient blobContainerClient = blobServiceClient.getBlobContainerClient(reportContainerName);
         if (!blobContainerClient.exists()) {
             blobContainerClient.create();
         }
+        validTextMessage = new AmqpJmsTextMessageFacade().asJmsMessage();
+        validTextMessage.setText("{\"interface_job_id\":" + INTERFACE_JOB_ID + "}");
     }
 
     @Autowired
@@ -80,7 +87,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-2592") // INT.01 and INT.03
     @JiraEpic("PO-2468")
     void int01ValidProcessingMessageInvokesPaymentsInProcedureOnce() throws JMSException {
-        listener.onMessage(interfaceJobQueueHelper.textMessage(interfaceJobQueueHelper.validProcessingMessage()));
+        listener.onMessage(validTextMessage);
 
         assertThat(interfaceJobRepository.findById(INTERFACE_JOB_ID))
             .map(InterfaceJobEntity::getStatus)
@@ -99,8 +106,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
         interfaceJob.setStatus(InterfaceJobStatus.COMPLETED);
         interfaceJobRepository.saveAndFlush(interfaceJob);
 
-        assertThatThrownBy(() -> listener.onMessage(interfaceJobQueueHelper.textMessage(
-            interfaceJobQueueHelper.validProcessingMessage())))
+        assertThatThrownBy(() -> listener.onMessage(validTextMessage))
             .isInstanceOf(IllegalStateException.class)
             .hasMessage("Interface job " + INTERFACE_JOB_ID + " is not PROCESSING");
 
@@ -121,8 +127,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
         // which drives the rollback-and-abandon branch.
         blobServiceClient.getBlobContainerClient(reportContainerName).deleteIfExists();
 
-        assertThatThrownBy(() -> listener.onMessage(interfaceJobQueueHelper.textMessage(
-            interfaceJobQueueHelper.validProcessingMessage())))
+        assertThatThrownBy(() -> listener.onMessage(validTextMessage))
             .isInstanceOf(ReportGenerationException.class);
 
         InterfaceJobEntity savedJob = interfaceJobRepository.findById(INTERFACE_JOB_ID)
@@ -142,7 +147,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
         // which drives the IGNORED branch.
         interfaceJobQueueHelper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_IGNORED);
 
-        listener.onMessage(interfaceJobQueueHelper.textMessage(interfaceJobQueueHelper.validProcessingMessage()));
+        listener.onMessage(validTextMessage);
 
         InterfaceJobEntity savedJob = interfaceJobRepository.findById(INTERFACE_JOB_ID)
             .orElseThrow();
@@ -159,8 +164,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     void int06StoredProcedureFailurePersistsFailedMessageAndMarksJobFailed() throws JMSException {
         interfaceJobQueueHelper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_FAILED);
 
-        assertThatCode(() -> listener.onMessage(interfaceJobQueueHelper.textMessage(
-            interfaceJobQueueHelper.validProcessingMessage())))
+        assertThatCode(() -> listener.onMessage(validTextMessage))
             .doesNotThrowAnyException();
 
         InterfaceJobEntity savedJob = interfaceJobRepository.findById(INTERFACE_JOB_ID)
@@ -182,7 +186,6 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-2592") // INT.07
     @JiraEpic("PO-2468")
     void int07TransientDbFailureRollsBackAndAbandonsMessage() throws Exception {
-        var message = interfaceJobQueueHelper.textMessage(interfaceJobQueueHelper.validProcessingMessage());
         // Hold the job row in a separate session so the consumer transaction blocks on update,
         // then apply a short lock timeout in the consumer transaction to force a transient failure.
         try (Connection ignored = interfaceJobQueueHelper.lockInterfaceJobForUpdate(INTERFACE_JOB_ID)) {
@@ -190,7 +193,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
                 .executeWithoutResult(status -> {
                     jdbcTemplate.execute("SET lock_timeout = '1s'");
                     try {
-                        listener.onMessage(message);
+                        listener.onMessage(validTextMessage);
                     } catch (JMSException ex) {
                         throw new RuntimeException(ex);
                     }
@@ -209,11 +212,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-2592") // INT.08
     @JiraEpic("PO-2468")
     void int08Scenario1CommitWaitsForReportSuccess() throws Exception {
-        assertCommitBoundary(
-            interfaceJobQueueHelper.validProcessingMessage(),
-            InterfaceJobStatus.COMPLETED,
-            true
-        );
+        assertCommitBoundary(InterfaceJobStatus.COMPLETED,true);
     }
 
     @Test
@@ -222,10 +221,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     void int08Scenario2CommitWaitsForIgnoredOutcome() throws Exception {
         interfaceJobQueueHelper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_IGNORED);
 
-        assertCommitBoundary(
-            interfaceJobQueueHelper.validProcessingMessage(),
-            InterfaceJobStatus.IGNORED,
-            false
+        assertCommitBoundary(InterfaceJobStatus.IGNORED, false
         );
     }
 
@@ -244,23 +240,9 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
 
         // amount_pence = "abc" forces the non-transient failure path so we can verify
         // only the documented failure fields are updated.
-        interfaceJobQueueHelper.replaceInterfaceFileRecords(99000000401001L, """
-                [{
-                    "receiving_sort_code":"123456",
-                    "receiving_bank_account_number":"01234567",
-                    "receiving_account_type":"5",
-                    "transaction_code":"68",
-                    "originator_sort_code":"654321",
-                    "originator_bank_account_number":"98765432",
-                    "amount_pence":"abc",
-                    "originator_name":"Test Payer",
-                    "originator_reference":"99000001A",
-                    "originator_beneficiary_name":"Test Court"
-                }]
-                """);
+        interfaceJobQueueHelper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_FAILED);
 
-        assertThatCode(() -> listener.onMessage(interfaceJobQueueHelper.textMessage(
-            interfaceJobQueueHelper.validProcessingMessage())))
+        assertThatCode(() -> listener.onMessage(validTextMessage))
             .doesNotThrowAnyException();
 
         InterfaceJobEntity afterJob = interfaceJobRepository.findById(INTERFACE_JOB_ID)
@@ -300,7 +282,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     //INT.12
     //Unable to write this test as uses Queue directly.
 
-    private void assertCommitBoundary(String messagePayload, InterfaceJobStatus expectedStatus,
+    private void assertCommitBoundary(InterfaceJobStatus expectedStatus,
                                       boolean expectReportSideEffects) throws Exception {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Future<?> listenerFuture = null;
@@ -309,7 +291,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
             // commit yet; that lets the test observe the pre-commit state explicitly.
             listenerFuture = executor.submit(() -> {
                 try {
-                    listener.onMessage(interfaceJobQueueHelper.textMessage(messagePayload));
+                    listener.onMessage(validTextMessage);
                 } catch (JMSException ex) {
                     throw new RuntimeException(ex);
                 }
