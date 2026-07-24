@@ -24,10 +24,10 @@ public class HmrcAuthService {
     private final String url;
 
     public HmrcAuthService(RestClient restClient,
-        @Value("opal.hmrc.auth.client-id") String clientId,
-        @Value("opal.hmrc.auth.client-secret") String clientSecret,
-        @Value("opal.hmrc.auth.scope") String scope,
-        @Value("opal.hmrc.auth.url") String url) {
+        @Value("hmrc.auth.client-id") String clientId,
+        @Value("hmrc.auth.client-secret") String clientSecret,
+        @Value("hmrc.auth.scope") String scope,
+        @Value("hmrc.auth.url") String url) {
 
         this.restClient = restClient;
         this.clientId = clientId;
@@ -36,7 +36,7 @@ public class HmrcAuthService {
         this.url = url;
     }
 
-    @Cacheable(key = CacheKeys.HMRC_AUTH_TOKEN)
+    @Cacheable(value = "HmrcAuthService", key = "'" + CacheKeys.HMRC_AUTH_TOKEN + "'")
     public HMRCAuthToken getAuthToken() {
         URI uri = buildUri();
 

@@ -13,7 +13,7 @@ public class RedisTtlFunction implements TtlFunction {
 
     @Override
     public Duration getTimeToLive(Object key, @Nullable Object value) {
-        if (key == CacheKeys.HMRC_AUTH_TOKEN) {
+        if (key == CacheKeys.HMRC_AUTH_TOKEN) { // TODO debug that this is actually the key passed it
             return hmrcAuthTtlDuration;
         } else {
             return ttlDuration;
