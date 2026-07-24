@@ -4,7 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 
+import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import jakarta.jms.JMSException;
 import java.math.BigDecimal;
@@ -14,25 +17,43 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.InterfaceJobEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobStatus;
 import uk.gov.hmcts.opal.exception.ReportGenerationException;
+import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
-@TestPropertySource(properties = "opal.interface-jobs.service-bus.consumer-enabled=false")
+@Sql(scripts = "classpath:db/insertData/insert_into_interface_job_queue_processing.sql",
+    executionPhase = BEFORE_TEST_METHOD)
+@Sql(scripts = "classpath:db/deleteData/delete_from_interface_job_queue_processing.sql",
+    executionPhase = AFTER_TEST_METHOD)
 @DisplayName("Interface Job Queue Consumer Integration Tests")
-class InterfaceJobQueueConsumerIntegrationTest extends AbstractInterfaceJobQueueProcessingIntegrationTest {
+class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
 
     private static final Long INTERFACE_JOB_ID = 99000000401000L;
     private static final BigDecimal EXPECTED_PAYMENT_AMOUNT = new BigDecimal("123.45");
+
+    @Autowired
+    protected InterfaceJobRepository interfaceJobRepository;
+
+    @Autowired
+    protected InterfaceJobQueueIntegrationTestHelper interfaceJobQueueHelper;
+
+    @Autowired
+    private BlobServiceClient blobServiceClient;
+
+    @Value("${opal.report.storage.container}")
+    private String reportContainerName;
 
     private final InterfaceJobQueueListener listener;
 
@@ -42,11 +63,13 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractInterfaceJobQueue
     @Autowired
     private PlatformTransactionManager platformTransactionManager;
 
-    @Autowired
-    private BlobServiceClient blobServiceClient;
-
-    @Value("${opal.report.storage.container}")
-    private String reportContainerName;
+    @BeforeEach
+    void setUpReportStorage() {
+        BlobContainerClient blobContainerClient = blobServiceClient.getBlobContainerClient(reportContainerName);
+        if (!blobContainerClient.exists()) {
+            blobContainerClient.create();
+        }
+    }
 
     @Autowired
     InterfaceJobQueueConsumerIntegrationTest(InterfaceJobQueueConsumerService interfaceJobQueueConsumerService) {
@@ -117,20 +140,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractInterfaceJobQueue
     void int05TillReturnedNullMarksJobIgnoredAndCommits() throws JMSException {
         // amount_pence = 0 makes p_int_payments_in succeed without returning a till_id,
         // which drives the IGNORED branch.
-        interfaceJobQueueHelper.replaceInterfaceFileRecords(99000000401001L, """
-                [{
-                    "receiving_sort_code":"123456",
-                    "receiving_bank_account_number":"01234567",
-                    "receiving_account_type":"5",
-                    "transaction_code":"68",
-                    "originator_sort_code":"654321",
-                    "originator_bank_account_number":"98765432",
-                    "amount_pence":0,
-                    "originator_name":"Test Payer",
-                    "originator_reference":"99000001A",
-                    "originator_beneficiary_name":"Test Court"
-                }]
-                """);
+        interfaceJobQueueHelper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_IGNORED);
 
         listener.onMessage(interfaceJobQueueHelper.textMessage(interfaceJobQueueHelper.validProcessingMessage()));
 
@@ -147,22 +157,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractInterfaceJobQueue
     @JiraStory("PO-2592") // INT.06
     @JiraEpic("PO-2468")
     void int06StoredProcedureFailurePersistsFailedMessageAndMarksJobFailed() throws JMSException {
-        // amount_pence = "abc" is intentionally invalid so the stored procedure fails
-        // with a non-transient database error and the FAILED-message path is exercised.
-        interfaceJobQueueHelper.replaceInterfaceFileRecords(99000000401001L, """
-                [{
-                    "receiving_sort_code":"123456",
-                    "receiving_bank_account_number":"01234567",
-                    "receiving_account_type":"5",
-                    "transaction_code":"68",
-                    "originator_sort_code":"654321",
-                    "originator_bank_account_number":"98765432",
-                    "amount_pence":"abc",
-                    "originator_name":"Test Payer",
-                    "originator_reference":"99000001A",
-                    "originator_beneficiary_name":"Test Court"
-                }]
-                """);
+        interfaceJobQueueHelper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_FAILED);
 
         assertThatCode(() -> listener.onMessage(interfaceJobQueueHelper.textMessage(
             interfaceJobQueueHelper.validProcessingMessage())))
@@ -225,22 +220,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractInterfaceJobQueue
     @JiraStory("PO-2592") // INT.08
     @JiraEpic("PO-2468")
     void int08Scenario2CommitWaitsForIgnoredOutcome() throws Exception {
-        // amount_pence = 0 makes p_int_payments_in succeed without returning a till_id,
-        // so the commit boundary is exercised on the IGNORED branch.
-        interfaceJobQueueHelper.replaceInterfaceFileRecords(99000000401001L, """
-                [{
-                    "receiving_sort_code":"123456",
-                    "receiving_bank_account_number":"01234567",
-                    "receiving_account_type":"5",
-                    "transaction_code":"68",
-                    "originator_sort_code":"654321",
-                    "originator_bank_account_number":"98765432",
-                    "amount_pence":0,
-                    "originator_name":"Test Payer",
-                    "originator_reference":"99000001A",
-                    "originator_beneficiary_name":"Test Court"
-                }]
-                """);
+        interfaceJobQueueHelper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_IGNORED);
 
         assertCommitBoundary(
             interfaceJobQueueHelper.validProcessingMessage(),
@@ -354,4 +334,38 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractInterfaceJobQueue
             executor.shutdownNow();
         }
     }
+
+    // amount_pence = 0 makes p_int_payments_in succeed without returning a till_id,
+    // which drives the IGNORED branch.
+    private String RECORD_TO_TRIGGER_IGNORED = """
+                [{
+                    "receiving_sort_code":"123456",
+                    "receiving_bank_account_number":"01234567",
+                    "receiving_account_type":"5",
+                    "transaction_code":"68",
+                    "originator_sort_code":"654321",
+                    "originator_bank_account_number":"98765432",
+                    "amount_pence":0,
+                    "originator_name":"Test Payer",
+                    "originator_reference":"99000001A",
+                    "originator_beneficiary_name":"Test Court"
+                }]
+                """;
+
+    // amount_pence = "abc" is intentionally invalid so the stored procedure fails
+    // with a non-transient database error and the FAILED-message path is exercised.
+    private String RECORD_TO_TRIGGER_FAILED = """
+                [{
+                    "receiving_sort_code":"123456",
+                    "receiving_bank_account_number":"01234567",
+                    "receiving_account_type":"5",
+                    "transaction_code":"68",
+                    "originator_sort_code":"654321",
+                    "originator_bank_account_number":"98765432",
+                    "amount_pence":"abc",
+                    "originator_name":"Test Payer",
+                    "originator_reference":"99000001A",
+                    "originator_beneficiary_name":"Test Court"
+                }]
+                """;
 }
