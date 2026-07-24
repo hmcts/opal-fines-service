@@ -54,8 +54,8 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractInterfaceJobQueue
     }
 
     @Test
-    @JiraStory("INT.01") //and INT.03
-    @JiraEpic("INT.01")
+    @JiraStory("PO-2592") // INT.01 and INT.03
+    @JiraEpic("PO-2468")
     void int01ValidProcessingMessageInvokesPaymentsInProcedureOnce() throws JMSException {
         listener.onMessage(interfaceJobQueueHelper.textMessage(interfaceJobQueueHelper.validProcessingMessage()));
 
@@ -68,8 +68,8 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractInterfaceJobQueue
     }
 
     @Test
-    @JiraStory("INT.02")
-    @JiraEpic("INT.02")
+    @JiraStory("PO-2592") // INT.02
+    @JiraEpic("PO-2468")
     void int02NonProcessingMessageIsAbandonedImmediately() throws JMSException {
         InterfaceJobEntity interfaceJob = interfaceJobRepository.findById(INTERFACE_JOB_ID)
             .orElseThrow();
@@ -91,8 +91,8 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractInterfaceJobQueue
     }
 
     @Test
-    @JiraStory("INT.04")
-    @JiraEpic("INT.04")
+    @JiraStory("PO-2592") // INT.04
+    @JiraEpic("PO-2468")
     void int04TillReturnedButReportFailureRollsBackAndIsRetryable() throws JMSException {
         // Remove the report container so report creation fails after the till is returned,
         // which drives the rollback-and-abandon branch.
@@ -112,8 +112,8 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractInterfaceJobQueue
     }
 
     @Test
-    @JiraStory("INT.05")
-    @JiraEpic("INT.05")
+    @JiraStory("PO-2592") // INT.05
+    @JiraEpic("PO-2468")
     void int05TillReturnedNullMarksJobIgnoredAndCommits() throws JMSException {
         // amount_pence = 0 makes p_int_payments_in succeed without returning a till_id,
         // which drives the IGNORED branch.
@@ -144,8 +144,8 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractInterfaceJobQueue
     }
 
     @Test
-    @JiraStory("INT.06")
-    @JiraEpic("INT.06")
+    @JiraStory("PO-2592") // INT.06
+    @JiraEpic("PO-2468")
     void int06StoredProcedureFailurePersistsFailedMessageAndMarksJobFailed() throws JMSException {
         // amount_pence = "abc" is intentionally invalid so the stored procedure fails
         // with a non-transient database error and the FAILED-message path is exercised.
@@ -184,8 +184,8 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractInterfaceJobQueue
     }
 
     @Test
-    @JiraStory("INT.07")
-    @JiraEpic("INT.07")
+    @JiraStory("PO-2592") // INT.07
+    @JiraEpic("PO-2468")
     void int07TransientDbFailureRollsBackAndAbandonsMessage() throws Exception {
         var message = interfaceJobQueueHelper.textMessage(interfaceJobQueueHelper.validProcessingMessage());
         // Hold the job row in a separate session so the consumer transaction blocks on update,
@@ -211,8 +211,8 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractInterfaceJobQueue
     }
 
     @Test
-    @JiraStory("INT.08")
-    @JiraEpic("INT.08")
+    @JiraStory("PO-2592") // INT.08
+    @JiraEpic("PO-2468")
     void int08Scenario1CommitWaitsForReportSuccess() throws Exception {
         assertCommitBoundary(
             interfaceJobQueueHelper.validProcessingMessage(),
@@ -222,8 +222,8 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractInterfaceJobQueue
     }
 
     @Test
-    @JiraStory("INT.08")
-    @JiraEpic("INT.08")
+    @JiraStory("PO-2592") // INT.08
+    @JiraEpic("PO-2468")
     void int08Scenario2CommitWaitsForIgnoredOutcome() throws Exception {
         // amount_pence = 0 makes p_int_payments_in succeed without returning a till_id,
         // so the commit boundary is exercised on the IGNORED branch.
@@ -249,9 +249,12 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractInterfaceJobQueue
         );
     }
 
+    //INT.09 Makes no sense to me.
+    //If a message is redelivered it must have been a transient exception, and so nothing is written, let alone written twice,
+
     @Test
-    @JiraStory("INT.10")
-    @JiraEpic("INT.10")
+    @JiraStory("PO-2592") // INT.10
+    @JiraEpic("PO-2468")
     void int10StoredProcedureFailureOnlyUpdatesDocumentedFields() throws JMSException {
         final InterfaceJobEntity beforeJob = interfaceJobRepository.findById(INTERFACE_JOB_ID)
             .orElseThrow();
