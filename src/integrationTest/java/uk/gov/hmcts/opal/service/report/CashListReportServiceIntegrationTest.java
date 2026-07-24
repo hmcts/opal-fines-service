@@ -15,11 +15,12 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
@@ -36,18 +37,18 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Transactional
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class CashListReportServiceIntegrationTest extends AbstractIntegrationTest {
 
     private static final long REPORT_INSTANCE_ID = 99000000343000L;
     private static final long TILL_ID = 99000000343100L;
 
-    @Autowired
-    private ReportQueueConsumerService reportQueueConsumerService;
+    private final ReportQueueConsumerService reportQueueConsumerService;
 
     private ReportQueueListener reportQueueListener;
 
-    @Autowired
-    private ReportInstanceRepository reportInstanceRepository;
+    private final ReportInstanceRepository reportInstanceRepository;
 
     @MockitoBean
     private ReportBlobStore blobStore;
