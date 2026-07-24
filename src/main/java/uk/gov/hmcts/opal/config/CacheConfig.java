@@ -32,6 +32,7 @@ import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializ
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import uk.gov.hmcts.opal.config.cache.RedisTtlFunction;
 
 @Slf4j(topic = "opal.CacheConfig")
 @Configuration
@@ -46,6 +47,9 @@ public class CacheConfig {
 
     @Value("${opal.redis.ttl-duration}")
     private Duration redisTtlDuration;
+
+    @Value("${opal.redis.hmrc-auth-token-ttl-duration}")
+    private Duration redisHmrcAUTHTokenTtlDuration;
 
     @Bean
     @ConditionalOnProperty(name = "opal.redis.enabled", havingValue = "true")
@@ -84,7 +88,7 @@ public class CacheConfig {
     public CacheManager redisCacheManager(RedisConnectionFactory redisConnectionFactory) {
 
         RedisCacheConfiguration cacheConfig = RedisCacheConfiguration.defaultCacheConfig()
-            .entryTtl(redisTtlDuration)
+            .entryTtl(new RedisTtlFunction(redisTtlDuration, redisHmrcAUTHTokenTtlDuration))
             .serializeKeysWith(SerializationPair.fromSerializer(redisKeySerializer()))
             .serializeValuesWith(SerializationPair.fromSerializer(redisValueSerializer()));
 
@@ -127,6 +131,7 @@ public class CacheConfig {
         log.info("Redis Enabled: {}", redisEnabled);
         log.info("Redis Url: {}", redisUrl);
         log.info("Redis TTL (duration): {}", redisTtlDuration);
+        log.info("Redis HMRC Token TTL (duration): {}", redisHmrcAUTHTokenTtlDuration);
         if (cacheManager != null) {
             log.info("Cache Manager: {}", cacheManager.getClass().getName());
             if (cacheManager instanceof RedisCacheManager) {
