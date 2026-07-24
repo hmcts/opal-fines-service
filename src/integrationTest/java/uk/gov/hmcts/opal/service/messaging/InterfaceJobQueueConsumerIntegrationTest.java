@@ -49,7 +49,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     protected InterfaceJobRepository interfaceJobRepository;
 
     @Autowired
-    protected InterfaceJobQueueIntegrationTestHelper interfaceJobQueueHelper;
+    protected InterfaceJobQueueIntegrationTestHelper helper;
 
     @Autowired
     private BlobServiceClient blobServiceClient;
@@ -92,8 +92,8 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
         assertThat(interfaceJobRepository.findById(INTERFACE_JOB_ID))
             .map(InterfaceJobEntity::getStatus)
             .contains(InterfaceJobStatus.COMPLETED);
-        interfaceJobQueueHelper.assertSideEffects();
-        assertThat(interfaceJobQueueHelper.findPaymentAmountForDefendantAccount())
+        helper.assertSideEffects();
+        assertThat(helper.findPaymentAmountForDefendantAccount())
             .isEqualByComparingTo(EXPECTED_PAYMENT_AMOUNT);
     }
 
@@ -114,7 +114,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
             .orElseThrow();
         assertThat(savedJob.getStatus()).isEqualTo(InterfaceJobStatus.COMPLETED);
         assertThat(savedJob.getCompletedDateTime()).isNull();
-        interfaceJobQueueHelper.assertNoSideEffects();
+        helper.assertNoSideEffects();
     }
 
     @Test
@@ -132,14 +132,14 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
             .orElseThrow();
         assertThat(savedJob.getStatus()).isEqualTo(InterfaceJobStatus.PROCESSING);
         assertThat(savedJob.getCompletedDateTime()).isNull();
-        interfaceJobQueueHelper.assertNoSideEffects();
+        helper.assertNoSideEffects();
     }
 
     @Test
     @JiraStory("PO-2592") // INT.05
     @JiraEpic("PO-2468")
     void int05TillReturnedNullMarksJobIgnoredAndCommits() throws JMSException {
-        interfaceJobQueueHelper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_IGNORED);
+        helper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_IGNORED);
 
         listener.onMessage(validTextMessage);
 
@@ -147,14 +147,14 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
             .orElseThrow();
         assertThat(savedJob.getStatus()).isEqualTo(InterfaceJobStatus.IGNORED);
         assertThat(savedJob.getCompletedDateTime()).isNotNull();
-        interfaceJobQueueHelper.assertNoSideEffects();
+        helper.assertNoSideEffects();
     }
 
     @Test
     @JiraStory("PO-2592") // INT.06
     @JiraEpic("PO-2468")
     void int06StoredProcedureFailurePersistsFailedMessageAndMarksJobFailed() {
-        interfaceJobQueueHelper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_FAILED);
+        helper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_FAILED);
 
         assertThatCode(() -> listener.onMessage(validTextMessage))
             .doesNotThrowAnyException();
@@ -163,8 +163,8 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
             .orElseThrow();
         assertThat(savedJob.getStatus()).isEqualTo(InterfaceJobStatus.FAILED);
         assertThat(savedJob.getCompletedDateTime()).isNotNull();
-        interfaceJobQueueHelper.assertNoSideEffects();
-        assertThat(interfaceJobQueueHelper.findFailedInterfaceMessagesForJob())
+        helper.assertNoSideEffects();
+        assertThat(helper.findFailedInterfaceMessagesForJob())
             .singleElement()
                 .satisfies(message -> {
                     assertThat(message.getMessageType()).isEqualTo("Error");
@@ -178,7 +178,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     void int07TransientDbFailureRollsBackAndAbandonsMessage() throws Exception {
         // Hold the job row in a separate session so the consumer transaction blocks on update,
         // then apply a short lock timeout in the consumer transaction to force a transient failure.
-        try (Connection ignored = interfaceJobQueueHelper.lockInterfaceJobForUpdate(INTERFACE_JOB_ID)) {
+        try (Connection ignored = helper.lockInterfaceJobForUpdate(INTERFACE_JOB_ID)) {
             Throwable thrown = catchThrowable(() -> new TransactionTemplate(platformTransactionManager)
                 .executeWithoutResult(status -> {
                     jdbcTemplate.execute("SET lock_timeout = '1s'");
@@ -193,9 +193,9 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
             assertThat(transientFailureHelper.isTransientFailure((RuntimeException) thrown)).isTrue();
         }
 
-        interfaceJobQueueHelper.assertJobStatus(InterfaceJobStatus.PROCESSING, false);
-        interfaceJobQueueHelper.assertNoSideEffects();
-        assertThat(interfaceJobQueueHelper.findFailedInterfaceMessagesForJob()).isEmpty();
+        helper.assertJobStatus(InterfaceJobStatus.PROCESSING, false);
+        helper.assertNoSideEffects();
+        assertThat(helper.findFailedInterfaceMessagesForJob()).isEmpty();
     }
 
     @Test
@@ -209,7 +209,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-2592") // INT.08
     @JiraEpic("PO-2468")
     void int08Scenario2CommitWaitsForIgnoredOutcome() throws Exception {
-        interfaceJobQueueHelper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_IGNORED);
+        helper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_IGNORED);
 
         assertCommitBoundary(InterfaceJobStatus.IGNORED, false
         );
@@ -228,7 +228,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
         final LocalDateTime createdDateTimeBefore = beforeJob.getCreatedDateTime();
         final LocalDateTime startedDateTimeBefore = beforeJob.getStartedDateTime();
 
-        interfaceJobQueueHelper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_FAILED);
+        helper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_FAILED);
 
         assertThatCode(() -> listener.onMessage(validTextMessage))
             .doesNotThrowAnyException();
@@ -242,11 +242,11 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
         assertThat(afterJob.getStatus()).isEqualTo(InterfaceJobStatus.FAILED);
         assertThat(afterJob.getCompletedDateTime()).isNotNull();
 
-        assertThat(interfaceJobQueueHelper.countTillsCreatedForInterfaceFile()).isZero();
-        assertThat(interfaceJobQueueHelper.countPaymentsCreatedForDefendantAccount()).isZero();
-        assertThat(interfaceJobQueueHelper.countPreAllocatedCashTillReports()).isZero();
+        assertThat(helper.countTillsCreatedForInterfaceFile()).isZero();
+        assertThat(helper.countPaymentsCreatedForDefendantAccount()).isZero();
+        assertThat(helper.countPreAllocatedCashTillReports()).isZero();
 
-        assertThat(interfaceJobQueueHelper.findFailedInterfaceMessagesForJob())
+        assertThat(helper.findFailedInterfaceMessagesForJob())
             .singleElement()
             .satisfies(message -> {
                 assertThat(message.getInterfaceJobId()).isEqualTo(INTERFACE_JOB_ID);
@@ -274,7 +274,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
                                       boolean expectReportSideEffects) throws Exception {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Future<?> listenerFuture = null;
-        try (Connection ignored = interfaceJobQueueHelper.lockInterfaceJobForUpdate(INTERFACE_JOB_ID)) {
+        try (Connection ignored = helper.lockInterfaceJobForUpdate(INTERFACE_JOB_ID)) {
             // Hold the job row in a separate session so the consumer work finishes but cannot
             // commit yet; that lets the test observe the pre-commit state explicitly.
             listenerFuture = executor.submit(() -> {
@@ -286,19 +286,19 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
             });
 
             Thread.sleep(500);
-            interfaceJobQueueHelper.assertJobStatus(InterfaceJobStatus.PROCESSING, false);
-            interfaceJobQueueHelper.assertNoSideEffects();
+            helper.assertJobStatus(InterfaceJobStatus.PROCESSING, false);
+            helper.assertNoSideEffects();
             assertThat(listenerFuture.isDone()).isFalse();
         }
 
         assertThat(listenerFuture).isNotNull();
         listenerFuture.get(5, TimeUnit.SECONDS);
         try {
-            interfaceJobQueueHelper.assertJobStatus(expectedStatus, true);
+            helper.assertJobStatus(expectedStatus, true);
             if (expectReportSideEffects) {
-                interfaceJobQueueHelper.assertSideEffects();
+                helper.assertSideEffects();
             } else {
-                interfaceJobQueueHelper.assertNoSideEffects();
+                helper.assertNoSideEffects();
             }
         } finally {
             executor.shutdownNow();
