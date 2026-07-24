@@ -143,8 +143,6 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-2592") // INT.05
     @JiraEpic("PO-2468")
     void int05TillReturnedNullMarksJobIgnoredAndCommits() throws JMSException {
-        // amount_pence = 0 makes p_int_payments_in succeed without returning a till_id,
-        // which drives the IGNORED branch.
         interfaceJobQueueHelper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_IGNORED);
 
         listener.onMessage(validTextMessage);
@@ -161,7 +159,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2592") // INT.06
     @JiraEpic("PO-2468")
-    void int06StoredProcedureFailurePersistsFailedMessageAndMarksJobFailed() throws JMSException {
+    void int06StoredProcedureFailurePersistsFailedMessageAndMarksJobFailed() {
         interfaceJobQueueHelper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_FAILED);
 
         assertThatCode(() -> listener.onMessage(validTextMessage))
@@ -231,7 +229,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2592") // INT.10
     @JiraEpic("PO-2468")
-    void int10StoredProcedureFailureOnlyUpdatesDocumentedFields() throws JMSException {
+    void int10StoredProcedureFailureOnlyUpdatesDocumentedFields() {
         final InterfaceJobEntity beforeJob = interfaceJobRepository.findById(INTERFACE_JOB_ID)
             .orElseThrow();
         final String interfaceNameBefore = beforeJob.getInterfaceName();
@@ -319,7 +317,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
 
     // amount_pence = 0 makes p_int_payments_in succeed without returning a till_id,
     // which drives the IGNORED branch.
-    private String RECORD_TO_TRIGGER_IGNORED = """
+    private static final String RECORD_TO_TRIGGER_IGNORED = """
                 [{
                     "receiving_sort_code":"123456",
                     "receiving_bank_account_number":"01234567",
@@ -336,7 +334,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
 
     // amount_pence = "abc" is intentionally invalid so the stored procedure fails
     // with a non-transient database error and the FAILED-message path is exercised.
-    private String RECORD_TO_TRIGGER_FAILED = """
+    private static final String RECORD_TO_TRIGGER_FAILED = """
                 [{
                     "receiving_sort_code":"123456",
                     "receiving_bank_account_number":"01234567",
