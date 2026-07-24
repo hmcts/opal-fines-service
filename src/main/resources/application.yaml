@@ -132,7 +132,7 @@ opal:
   redis:
     enabled: ${OPAL_REDIS_ENABLED:true}
     ttl-duration: ${OPAL_REDIS_TTL_DURATION:8H}
-    hmrc-auth-token-ttl-duration: ${OPAL_REDIS_HMRC_AUTH_TOKEN_TTL_DURATION:3.5H}
+    hmrc-auth-token-ttl-duration: ${OPAL_REDIS_HMRC_AUTH_TOKEN_TTL_DURATION:PT3H30M}
   frontend:
     url: ${OPAL_FRONTEND_URL:http://localhost:4200}
   azure:
@@ -158,12 +158,6 @@ opal:
         algorithm: ${OPAL_COMMON_CONTENT_DIGEST_RESPONSE_ALGORITHM:SHA-512}
       supported-algorithms:
         sha-512: SHA-512
-  hmrc:
-    auth:
-      client-id: ${OPAL_HMRC_AUTH_CLIENT_ID:TODO}
-      client-secret: ${OPAL_HMRC_AUTH_CLIENT_SECRET:TODO}
-      scope: ${OPAL_HMRC_AUTH_CLIENT_ID:TODO}
-      url: ${OPAL_HMRC_AUTH_URL:https://localhost:4400}
 
   report:
     storage:
@@ -208,3 +202,10 @@ logging-service:
       protocol: ${SERVICEBUS_LOGGING_PDPL_PROTOCOL:amqp}
       connection-string: ${SERVICEBUS_CONNECTION_STRING:Endpoint=sb://localhost/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=local;UseDevelopmentEmulator=true}
       queue-name: ${SERVICEBUS_LOGGING_PDPL_QUEUE_NAME:logging-pdpl}
+
+hmrc:
+  auth:
+    client-id: ${OPAL_HMRC_AUTH_CLIENT_ID:TODO}
+    client-secret: ${OPAL_HMRC_AUTH_CLIENT_SECRET:TODO}
+    scope: ${OPAL_HMRC_AUTH_CLIENT_ID:TODO}
+    url: ${OPAL_HMRC_AUTH_URL:https://localhost:4400}

@@ -13,19 +13,24 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.CacheManager;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
+import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.config.cache.CacheKeys;
 import uk.gov.hmcts.opal.service.hmrc.response.HMRCAuthToken;
 
+//@ActiveProfiles({"hmrc"})
 @Slf4j(topic = "opal.HmrcAuthServiceIntegrationTest")
 @DisplayName("HMRC Auth Service Integration Test")
 public class HmrcAuthServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
-    private CacheManager cacheManager;
+    private StringRedisTemplate redisTemplate;
 
     @Autowired
+    private RestClient restClient;
+
     private HmrcAuthService hmrcAuthService;
 
     private HMRCAuthToken hmrcAuthToken = new HMRCAuthToken(
@@ -33,18 +38,24 @@ public class HmrcAuthServiceIntegrationTest extends AbstractIntegrationTest {
     );
 
     @BeforeEach
-    void setupWireMock() {
-        WireMock.configureFor("localhost", 4400);
+    void setup() {
+        hmrcAuthService = new HmrcAuthService( //TODO why is @Value not working
+            restClient, "test-hmrc-client-id",
+            "test-hmrc-client-secret",
+            "test-scope1+test-scope2",
+            "http://localhost:4553/oauth/token"
+        );
+        redisTemplate.delete(CacheKeys.HMRC_AUTH_TOKEN);
+    }
+
+    @Test
+    void correctlyCallsHmrcEndpointAndReturnsDto() {
+        WireMock.configureFor("localhost", 4553);
         stubFor(get("/oauth/token")
             .willReturn(aResponse()
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .withBody(objectMapper.writeValueAsString(hmrcAuthToken))));
 
-        cacheManager.resetCaches();
-    }
-
-    @Test
-    void correctlyCallsHmrcEndpointAndReturnsDto() {
         HMRCAuthToken returnedAuthToken = hmrcAuthService.getAuthToken();
 
         assertEquals(hmrcAuthToken, returnedAuthToken);

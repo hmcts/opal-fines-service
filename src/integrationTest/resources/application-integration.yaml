@@ -61,13 +61,13 @@ opal:
   redis:
     enabled: true
     ttl-duration: 8H
-    hmrc-auth-token-ttl-duration: 3.5H
-  hmrc:
-    auth:
-      client-id: test-hmrc-client-id
-      client-secret: test-hmrc-client-secret
-      scope: test-scope1+test-scope2
-      url: https://localhost:4400/oauth/token
+    hmrc-auth-token-ttl-duration: PT3H30M
 user:
   service:
     url: http://localhost:4553/opal
+hmrc:
+  auth:
+    client-id: test-hmrc-client-id
+    client-secret: test-hmrc-client-secret
+    scope: test-scope1+test-scope2
+    url: http://localhost:4553/oauth/token
