@@ -24,8 +24,9 @@ DECLARE
 
 BEGIN
     RAISE NOTICE '=== Cleanup data before tests ===';
-    
+
     -- Delete test data from related tables in correct order to avoid FK violations
+    DELETE FROM amendments WHERE associated_record_type = 'defendant_accounts' AND associated_record_id IN ('90001', '90002', '90003', '90004', '90005', '90006');
     DELETE FROM report_entries WHERE associated_record_type = 'enforcements' AND associated_record_id IN (SELECT enforcement_id::VARCHAR FROM enforcements WHERE defendant_account_id IN (90001, 90002, 90003, 90004, 90005, 90006));
     DELETE FROM document_instances WHERE associated_record_type = 'enforcements' AND associated_record_id IN (SELECT enforcement_id::VARCHAR FROM enforcements WHERE defendant_account_id IN (90001, 90002, 90003, 90004, 90005, 90006));
     DELETE FROM warrant_register WHERE enforcement_id IN (SELECT enforcement_id FROM enforcements WHERE defendant_account_id IN (90001, 90002, 90003, 90004, 90005, 90006));
@@ -194,13 +195,6 @@ BEGIN
     WHERE associated_record_type = 'enforcements' AND associated_record_id = v_enforcement_id::VARCHAR;
     ASSERT v_record_count = v_expected_doc_count, FORMAT('Should have exactly %s document instance(s) based on result_documents', v_expected_doc_count);
 
-    PERFORM 1 FROM amendments
-    WHERE associated_record_type = 'defendant_accounts'
-      AND amended_by = 'USER123'
-      AND amended_by_name = 'Test User';
-
-    ASSERT FOUND, 'Audit amendments should store posted_by_name when enforcement changes create amendments';
-
     -- Verify report entry was created
     SELECT COUNT(*) INTO v_record_count FROM report_entries 
     WHERE associated_record_type = 'enforcements' AND associated_record_id = v_enforcement_id::VARCHAR;
@@ -279,6 +273,17 @@ BEGIN
       AND collection_order_date IS NOT NULL;
 
     ASSERT FOUND, 'Collection order should be set to TRUE with timestamp';
+
+    PERFORM 1 FROM amendments
+    WHERE associated_record_type = 'defendant_accounts'
+      AND associated_record_id = v_defendant_account_id::VARCHAR
+      AND field_code = (SELECT field_code FROM audit_amendment_fields WHERE data_item = 'Collection Order')
+      AND old_value = 'false'
+      AND new_value = 'true'
+      AND amended_by = 'USER123'
+      AND amended_by_name = 'Test User';
+
+    ASSERT FOUND, 'Audit amendments should store posted_by_name when enforcement changes create amendments';
 
     -- Get expected document count for this result
     SELECT COUNT(*) INTO v_expected_doc_count 
@@ -610,8 +615,7 @@ BEGIN
     RAISE NOTICE 'TEST 5 PASSED: Error handling works correctly for NULL defendant_account_id';
 END $$;
 
-----------------------------------------------------------------------------------------------------------------------
--- Test 6: Test error handling - Invalid record type
+-- Test 6: Test error handling - Unsupported record type
 ----------------------------------------------------------------------------------------------------------------------
 DO LANGUAGE 'plpgsql' $$
 DECLARE
@@ -619,15 +623,15 @@ DECLARE
     v_expected_sqlstate          VARCHAR := 'P4004';
     v_enforcement_id             BIGINT;
 BEGIN
-    RAISE NOTICE '=== TEST 6: Test error handling - Invalid record type ===';
+    RAISE NOTICE '=== TEST 6: Test error handling - Unsupported record type ===';
     
-    -- Call the procedure with invalid record type - should throw P4004 exception
+    -- Call the procedure with a valid enum value that is unsupported by this procedure - should throw P4004 exception
     BEGIN
         CALL p_add_defendant_account_enforcement(
             pi_result_id := 'SUMM',
             pi_defendant_account_id := 90001::BIGINT,
             pi_business_unit_id := 65::SMALLINT,
-            pi_record_type := 'invalid_type',
+            pi_record_type := 'creditor_accounts',
             pi_case_reference := NULL,
             pi_function_code := 'ACCOUNT_ENQUIRY',
             pi_jail_days := NULL,
@@ -654,9 +658,9 @@ BEGIN
     END;
 
     -- Verify error was caught
-    ASSERT v_error_caught = TRUE, 'A P4004 error should have been raised due to invalid record type';
+    ASSERT v_error_caught = TRUE, 'A P4004 error should have been raised due to unsupported record type';
 
-    RAISE NOTICE 'TEST 6 PASSED: Error handling works correctly for invalid record type';
+    RAISE NOTICE 'TEST 6 PASSED: Error handling works correctly for unsupported record type';
 END $$;
 
 ----------------------------------------------------------------------------------------------------------------------
@@ -860,8 +864,9 @@ END $$;
 DO LANGUAGE 'plpgsql' $$
 BEGIN
     RAISE NOTICE '=== Cleanup test data ===';
-    
+
     -- Delete test data from related tables in correct order to avoid FK violations
+    DELETE FROM amendments WHERE associated_record_type = 'defendant_accounts' AND associated_record_id IN ('90001', '90002', '90003', '90004', '90005', '90006');
     DELETE FROM report_entries WHERE associated_record_type = 'enforcements' AND associated_record_id IN (SELECT enforcement_id::VARCHAR FROM enforcements WHERE defendant_account_id IN (90001, 90002, 90003, 90004, 90005, 90006));
     DELETE FROM document_instances WHERE associated_record_type = 'enforcements' AND associated_record_id IN (SELECT enforcement_id::VARCHAR FROM enforcements WHERE defendant_account_id IN (90001, 90002, 90003, 90004, 90005, 90006));
     DELETE FROM warrant_register WHERE enforcement_id IN (SELECT enforcement_id FROM enforcements WHERE defendant_account_id IN (90001, 90002, 90003, 90004, 90005, 90006));
