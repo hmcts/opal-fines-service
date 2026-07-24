@@ -10,14 +10,12 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.jspecify.annotations.NonNull;
@@ -25,24 +23,23 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedAccountReportDto;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedOperationReportAccountRowDto;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedReportTransactionRowDto;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionType;
-import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
-import uk.gov.hmcts.opal.repository.EnforcementRepository;
+import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 import uk.gov.hmcts.opal.service.report.operation.OperationDetailedReport;
-import uk.gov.hmcts.opal.service.report.operation.OperationReportByEnforcementService;
-import uk.gov.hmcts.opal.testdata.OperationReportByPaymentFiltersIntegrationTestData;
+import uk.gov.hmcts.opal.service.report.operation.PaymentReportService;
 import uk.gov.hmcts.opal.util.AgeUtil;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -50,25 +47,16 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Sql(scripts = "classpath:db/insertData/insert_into_enforcements.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_enforcements.sql", executionPhase = AFTER_TEST_CLASS)
-@Slf4j(topic = "opal.OperationReportByEnforcementServiceDetailedTest")
-@DisplayName("OperationReportByEnforcementServiceDetailedTest")
-public class OperationReportByEnforcementServiceDetailedTest extends AbstractIntegrationTest {
+@Slf4j(topic = "opal.PaymentDetailedReportServiceTest")
+@DisplayName("PaymentDetailedReportServiceTest")
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+public class PaymentDetailedReportServiceTest extends AbstractIntegrationTest {
 
-    @Autowired
-    private OperationReportByEnforcementService service;
-    @Autowired
-    private DefendantAccountRepository defendantAccountRepository;
-    @Autowired
-    private EnforcementRepository enforcementRepository;
-    @Autowired
-    private PaymentTermsRepository paymentTermsRepository;
-
-    // ----------------------------------------
-    // Helper
-    // ----------------------------------------
-    private ReportInstanceEntity reportWithFilters(String json) {
-        return OperationReportByPaymentFiltersIntegrationTestData.reportWithFilters(json);
-    }
+    private final PaymentReportService service;
+    private final DefendantAccountRepository defendantAccountRepository;
+    private final PaymentTermsRepository paymentTermsRepository;
+    private final DefendantTransactionRepository defendantTransactionRepository;
 
     private @NonNull Map<String, Long> getAccountNoToId() {
         return defendantAccountRepository.findAll().stream()
@@ -86,30 +74,24 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
         Assertions.assertThat(reportMetadata.getPdpoPartyIds()).doesNotHaveDuplicates();
     }
 
-    @JiraStory("PO-2255")
+    @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
-    @ParameterizedTest
-    @ValueSource(strings = {
-        "{\"reportType\": \"DETAILED\", \"businessUnitIds\": [77, 78]}",
-        "{\"businessUnitIds\": [77, 78]}"
-    })
-    @JiraTestKey("PO-7815")
-    @JiraTestKey(value = "PO-8655", name = "[1] json = \"{\\\"reportType\\\": \\\"DETAILED\\\"}\"")
-    @JiraTestKey(value = "PO-8656", name = "[2] json = \"{}\"")
-    @JiraTestKey(
-        value = "PO-8816",
-        name = "[1] json = \"{\\\"reportType\\\": \\\"DETAILED\\\", \\\"businessUnitIds\\\": [77, 78]}\""
-    )
-    @JiraTestKey(value = "PO-8817", name = "[2] json = \"{\\\"businessUnitIds\\\": [77, 78]}\"")
-    void generateReportData_filterDetailedReportType_returnSortedResultsOfDetailedReportType(
-        String json
-    ) {
+    @Test
+    @JiraTestKey("PO-8822")
+    void generateReportData_detailedReport_returnsSortedRows() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
-        given(reportInstance.getReportParameters()).willReturn(json);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "isPaymentMade": false,
+              "reportMode": "SINCE_DATE",
+              "sinceDate": "2026-06-01",
+              "reportType": "DETAILED",
+              "businessUnitIds": [77, 78]
+            }
+            """);
         //Act
-        OperationDetailedReport result =
-            (OperationDetailedReport) service.generateReportData(reportInstance);
+        OperationDetailedReport result = (OperationDetailedReport) service.generateReportData(reportInstance);
         //Assert
         List<DetailedAccountReportDto> reports =
             result.getDetailedReport().getAccountTransactionReports();
@@ -279,217 +261,21 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
                     "Suspense transfer | "
                 )
             );
-        Assertions.assertThat(report.getTransactionRows())
-            .filteredOn(transactionRow -> DefendantTransactionType.CONSOL.getLabel()
-                .equals(transactionRow.getTransactionType()))
-            .singleElement()
-            .satisfies(transactionRow ->
-                assertThat(transactionRow.getConsolidatedAccountNo()).isEqualTo("ConsolidatedAcc"));
         verifyMetadata(result);
     }
 
-    @JiraStory("PO-2255")
+    @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
-    @JiraTestKey("PO-7830")
-    void generateReportData_filterByEnforcementModeAll_returnAllSortedResults() {
-        //Arrange
-        String json = """
-            {
-              "reportEnforcementMode": "ALL",
-              "businessUnitIds": [77]
-            }
-            """;
-        //Act
-        OperationDetailedReport result =
-            (OperationDetailedReport) service.generateReportData(reportWithFilters(json));
-        //Assert
-        long totalAccounts = defendantAccountRepository.findAllByBusinessUnit_BusinessUnitId((short) 77).size();
-        assertThat(totalAccounts).isEqualTo(result.getNumberOfRecords());
-        List<DetailedAccountReportDto> reports =
-            result.getDetailedReport().getAccountTransactionReports();
-        assertThat(reports).isNotNull();
-        Assertions.assertThat(reports)
-            .extracting(report -> report.getAccountRow().getAccountNo())
-            .isSorted();
-        verifyMetadata(result);
-    }
-
-    @JiraStory("PO-2255")
-    @JiraEpic("PO-2248")
-    @Test
-    @JiraTestKey("PO-7826")
-    void generateReportData_filterByEnforcementModeNull_returnAllSortedResults() {
-        //Arrange
-        String json = """
-            {
-              "reportEnforcementMode": null,
-              "businessUnitIds": [77]
-            }
-            """;
-        //Act
-        OperationDetailedReport result = (OperationDetailedReport)
-            service.generateReportData(reportWithFilters(json));
-        //Assert
-        List<DetailedAccountReportDto> reports =
-            result.getDetailedReport().getAccountTransactionReports();
-        long totalAccounts = defendantAccountRepository.findAllByBusinessUnit_BusinessUnitId((short) 77).size();
-        assertThat(totalAccounts).isEqualTo(reports.size());
-        assertThat(reports).isNotNull();
-        Assertions.assertThat(reports)
-            .extracting(report -> report.getAccountRow().getAccountNo())
-            .isSorted();
-        verifyMetadata(result);
-    }
-
-    @JiraStory("PO-2255")
-    @JiraEpic("PO-2248")
-    @Test
-    @JiraTestKey("PO-7821")
-    void generateReportData_filterByEnforcementModeLastAction_returnLastActionSortedResults() {
-        //Arrange
-        LocalDateTime start = LocalDate.now().minusDays(2).atStartOfDay();
-        LocalDateTime end = LocalDate.now().plusDays(1).atStartOfDay();
-        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
-        DateTimeFormatter fmt = DateTimeFormatter.ISO_LOCAL_DATE;
-        given(reportInstance.getReportParameters()).willReturn("""
-            {
-              "reportEnforcementMode": "LAST_ACTION",
-              "enforcementAction": "ABDC",
-              "lastActionDateFrom": "%s",
-              "lastActionDateTo": "%s",
-              "businessUnitIds": [77, 78]
-            }
-            """.formatted(
-            start.format(fmt),
-            end.format(fmt)
-        ));
-
-        //Act
-        OperationDetailedReport result =
-            (OperationDetailedReport) service.generateReportData(reportInstance);
-        //Assert
-        List<DetailedAccountReportDto> reports =
-            result.getDetailedReport().getAccountTransactionReports();
-        Assertions.assertThat(reports)
-            .extracting(report -> report.getAccountRow().getAccountNo())
-            .isSorted();
-        Map<String, Long> accountNoToId = getAccountNoToId();
-        Assertions.assertThat(reports).allSatisfy(dto -> {
-            Long accountId = accountNoToId.get(dto.getAccountRow().getAccountNo());
-            Optional<EnforcementEntity> latest =
-                enforcementRepository.findTopByDefendantAccountIdOrderByPostedDateDescEnforcementIdDesc(accountId);
-            Assertions.assertThat(latest).isPresent();
-            latest.ifPresent(e -> Assertions.assertThat(e.getPostedDate())
-                .isAfterOrEqualTo(start)
-                .isBeforeOrEqualTo(end));
-        });
-        verifyMetadata(result);
-    }
-
-    @JiraStory("PO-2255")
-    @JiraEpic("PO-2248")
-    @Test
-    @JiraTestKey("PO-7811")
-    void generateReportData_filterByEnforcementModeRegf_returnRegfSortedResults() {
-        // Arrange
-        LocalDate from = LocalDate.of(2000, 1, 1);
-        LocalDate to = LocalDate.of(2000, 2, 2);
-        String json = """
-            {
-              "reportEnforcementMode": "REGF",
-              "regfDateFrom": "%s",
-              "regfDateTo": "%s",
-              "businessUnitIds": [77, 78]
-            }
-            """.formatted(from, to);
-        //Act
-        OperationDetailedReport result =
-            (OperationDetailedReport)
-                service.generateReportData(reportWithFilters(json));
-        // Assert
-        assertThat(result).isNotNull();
-        List<DetailedAccountReportDto> reports =
-            result.getDetailedReport().getAccountTransactionReports();
-        Assertions.assertThat(reports)
-            .extracting(report -> report.getAccountRow().getAccountNo())
-            .isSorted();
-
-        Map<String, Long> accountNoToId = getAccountNoToId();
-
-        Assertions.assertThat(reports).allSatisfy(dto -> {
-            Long accountId = accountNoToId.get(dto.getAccountRow().getAccountNo());
-            List<EnforcementEntity> regfEnforcements =
-                enforcementRepository.findByDefendantAccountIdAndResultId(accountId, "REGF");
-            Assertions.assertThat(regfEnforcements)
-                .as("Account %s should have REGF enforcement in range", dto.getAccountRow().getAccountNo())
-                .isNotEmpty()
-                .anySatisfy(e ->
-                    assertThat(e.getPostedDate().toLocalDate())
-                        .isBetween(from, to)
-                );
-        });
-        verifyMetadata(result);
-    }
-
-    @JiraStory("PO-2255")
-    @JiraEpic("PO-2248")
-    @Test
-    @JiraTestKey("PO-7818")
-    void generateReportData_filterByEnforcementDate_returnSortedResults() {
-        //Arrange
-        String json = """
-            {
-              "enforcementDateFrom": "2000-01-01",
-              "enforcementDateTo": "2000-02-02",
-              "businessUnitIds": [77, 78]
-            }
-            """;
-        //Act
-        OperationDetailedReport result = (OperationDetailedReport)
-            service.generateReportData(reportWithFilters(json));
-        //Assert
-        List<DetailedAccountReportDto> reports =
-            result.getDetailedReport().getAccountTransactionReports();
-        Assertions.assertThat(reports)
-            .extracting(report -> report.getAccountRow().getAccountNo())
-            .isSorted();
-        verifyMetadata(result);
-    }
-
-    @JiraStory("PO-2255")
-    @JiraEpic("PO-2248")
-    @Test
-    @JiraTestKey("PO-7827")
-    void generateReportData_filterByNotUnderEnforcement_returnResultsNotUnderEnforcement() {
-        //Arrange
-        String json = """
-            {
-              "enforcementMode": "NOT_UNDER_ENFORCEMENT",
-              "businessUnitIds": [77, 78]
-            }
-            """;
-        //Act
-        OperationDetailedReport result = (OperationDetailedReport)
-            service.generateReportData(reportWithFilters(json));
-        //Assert
-        List<DetailedAccountReportDto> reports =
-            result.getDetailedReport().getAccountTransactionReports();
-        Assertions.assertThat(reports)
-            .extracting(report -> report.getAccountRow().getAccountNo())
-            .isSorted();
-        verifyMetadata(result);
-    }
-
-    @JiraStory("PO-2255")
-    @JiraEpic("PO-2248")
-    @Test
-    @JiraTestKey("PO-7820")
+    @JiraTestKey("PO-8827")
     void generateReportData_filterByIncludeAdult_returnResultsOfAdults() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
             {
+              "isPaymentMade": false,
+              "reportMode": "SINCE_DATE",
+              "sinceDate": "1999-01-01",
               "includeAdult": true,
               "businessUnitIds": [77, 78]
             }
@@ -511,15 +297,18 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
         verifyMetadata(result);
     }
 
-    @JiraStory("PO-2255")
+    @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
-    @JiraTestKey("PO-7823")
+    @JiraTestKey("PO-8832")
     void generateReportData_filterByIncludeYouth_returnResultsOfYouth() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
             {
+              "isPaymentMade": false,
+              "reportMode": "SINCE_DATE",
+              "sinceDate": "1999-01-01",
               "includeYouth": true,
               "businessUnitIds": [77, 78]
             }
@@ -541,15 +330,18 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
         verifyMetadata(result);
     }
 
-    @JiraStory("PO-2255")
+    @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
-    @JiraTestKey("PO-7828")
-    void generateReportData_filterByIncludeCompany_returnResultsOfCompanies() {
+    @JiraTestKey("PO-8836")
+    void generateReportData_includeCompany_returnsCompanies() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
             {
+              "isPaymentMade": false,
+              "reportMode": "SINCE_DATE",
+              "sinceDate": "1999-01-01",
               "includeCompany": true,
               "businessUnitIds": [77, 78]
             }
@@ -570,15 +362,18 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
         verifyMetadata(result);
     }
 
-    @JiraStory("PO-2255")
+    @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
-    @JiraTestKey("PO-7829")
-    void generateReportData_filterByParentOrGuardian_returnResultsWithParentOrGuardian() {
+    @JiraTestKey("PO-8837")
+    void generateReportData_parentOrGuardian_returnsMatchingAccounts() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
             {
+              "isPaymentMade": false,
+              "reportMode": "SINCE_DATE",
+              "sinceDate": "1999-01-01",
               "onlyAccountsWithParentGuardian": true,
               "businessUnitIds": [77, 78]
             }
@@ -599,16 +394,15 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
         verifyMetadata(result);
     }
 
-    @JiraStory("PO-2255")
+    @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @ParameterizedTest
     @CsvSource({
         "WITH, true",
         "WITHOUT, false"
     })
-    @JiraTestKey("PO-7813")
-    @JiraTestKey(value = "PO-8653", name = "[1] collectionOrderChoice = \"WITH\", expectedValue = \"true\"")
-    @JiraTestKey(value = "PO-8654", name = "[2] collectionOrderChoice = \"WITHOUT\", expectedValue = \"false\"")
+    @JiraTestKey(value = "PO-8820", name = "[1] collectionOrderChoice = \"WITH\", expectedValue = \"true\"")
+    @JiraTestKey(value = "PO-8821", name = "[2] collectionOrderChoice = \"WITHOUT\", expectedValue = \"false\"")
     void generateReportData_filterByCollectionOrderChoice_returnResults(
         String collectionOrderChoice,
         boolean expectedValue
@@ -625,6 +419,9 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
 
         given(reportInstance.getReportParameters()).willReturn("""
             {
+              "isPaymentMade": false,
+              "reportMode": "SINCE_DATE",
+              "sinceDate": "2026-06-01",
               "collectionOrderChoice": "%s",
               "businessUnitIds": [77]
             }
@@ -642,16 +439,19 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
         verifyMetadata(result);
     }
 
-    @JiraStory("PO-2255")
+    @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
-    @JiraTestKey("PO-7812")
+    @JiraTestKey("PO-8818")
     void generateReportData_filterByAccountStatusLive_returnResults() {
         // Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
 
         given(reportInstance.getReportParameters()).willReturn("""
             {
+              "isPaymentMade": false,
+              "reportMode": "SINCE_DATE",
+              "sinceDate": "1999-01-01",
               "accountStatus": "LIVE",
               "businessUnitIds": [77, 78]
             }
@@ -678,16 +478,19 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
         verifyMetadata(result);
     }
 
-    @JiraStory("PO-2255")
+    @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
-    @JiraTestKey("PO-7822")
+    @JiraTestKey("PO-8828")
     void generateReportData_filterByAccountStatusClosed_returnResults() {
         // Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
 
         given(reportInstance.getReportParameters()).willReturn("""
             {
+              "isPaymentMade": false,
+              "reportMode": "SINCE_DATE",
+              "sinceDate": "1999-01-01",
               "accountStatus": "CLOSED",
               "businessUnitIds": [77, 78]
             }
@@ -714,15 +517,18 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
         verifyMetadata(result);
     }
 
-    @JiraStory("PO-2255")
+    @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
-    @JiraTestKey("PO-7824")
-    void generateReportData_filterByMinAndMaxBalance_returnSortedWithinMinAndMaxBalance() {
+    @JiraTestKey("PO-8833")
+    void generateReportData_minAndMaxBalance_returnsSortedMatches() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
             {
+              "isPaymentMade": false,
+              "reportMode": "SINCE_DATE",
+              "sinceDate": "1999-01-01",
               "minBalance": 400.00,
               "maxBalance": 600.00,
               "businessUnitIds": [77, 78]
@@ -743,15 +549,18 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
         verifyMetadata(result);
     }
 
-    @JiraStory("PO-2255")
+    @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
-    @JiraTestKey("PO-7819")
-    void generateReportData_filterByFirstPaymentOrPayByInNext7Days_returnsForAccountWithPaymentInNext7Days() {
+    @JiraTestKey("PO-8825")
+    void generateReportData_firstPaymentOrPayByInNext7Days_returnsMatches() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
             {
+              "isPaymentMade": false,
+              "reportMode": "SINCE_DATE",
+              "sinceDate": "2026-06-01",
               "firstPaymentOrPayByInNext7Days": "true",
               "businessUnitIds": [77, 78]
             }
@@ -795,15 +604,18 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
         verifyMetadata(result);
     }
 
-    @JiraStory("PO-2255")
+    @JiraStory("PO-2256")
     @JiraEpic("PO-2248")
     @Test
-    @JiraTestKey("PO-7817")
+    @JiraTestKey("PO-8823")
     void generateReportData_filterByNameRange_returnSortedWithinNameRange() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
             {
+              "isPaymentMade": false,
+              "reportMode": "SINCE_DATE",
+              "sinceDate": "1999-01-01",
               "lowerNameRange": "l",
               "upperNameRange": "l",
               "businessUnitIds": [77, 78]
@@ -821,5 +633,291 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
                 assertThat(name.substring(0, 1).toLowerCase()).isEqualTo("l"));
         verifyMetadata(result);
     }
-}
 
+    @JiraStory("PO-2256")
+    @JiraEpic("PO-2248")
+    @Test
+    @JiraTestKey("PO-8829")
+    void generateReportData_paymentMadeSinceDate_returnsSortedMatches() {
+        // Arrange
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "isPaymentMade": true,
+              "reportMode": "SINCE_DATE",
+              "sinceDate": "2026-05-14",
+              "businessUnitIds": [77, 78]
+            }
+            """);
+
+        LocalDate sinceDate = LocalDate.parse("2026-05-14");
+
+        // Act
+        OperationDetailedReport result = (OperationDetailedReport) service.generateReportData(reportInstance);
+
+        // Assert
+        List<DetailedAccountReportDto> reports =
+            result.getDetailedReport().getAccountTransactionReports();
+
+        Assertions.assertThat(reports)
+            .extracting(report -> report.getAccountRow().getAccountNo())
+            .isSorted();
+
+        Map<String, Long> accountNoToId = getAccountNoToId();
+
+        Assertions.assertThat(reports).allSatisfy(dto -> {
+            Long accountId = accountNoToId.get(dto.getAccountRow().getAccountNo());
+
+            List<DefendantTransactionEntity> payments =
+                defendantTransactionRepository.findByDefendantAccountId(accountId);
+
+            Assertions.assertThat(payments)
+                .anyMatch(transaction -> {
+                    boolean recordTypeMatches =
+                        AssociatedRecordType.DEFENDANT_ACCOUNTS.equals(
+                            transaction.getAssociatedRecordType());
+
+                    boolean transactionTypeMatches =
+                        DefendantTransactionType.PAYMNT.equals(
+                            transaction.getTransactionType())
+                            || DefendantTransactionType.CHEQUE.equals(
+                            transaction.getTransactionType());
+
+                    boolean postedDateMatches =
+                        !transaction.getPostedDate().isBefore(sinceDate);
+
+                    return recordTypeMatches
+                        && transactionTypeMatches
+                        && postedDateMatches;
+                });
+        });
+        verifyMetadata(result);
+    }
+
+    @JiraStory("PO-2256")
+    @JiraEpic("PO-2248")
+    @Test
+    @JiraTestKey("PO-8835")
+    void generateReportData_noPaymentMadeSinceDate_returnsMatches() {
+        // Arrange
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "isPaymentMade": false,
+              "reportMode": "SINCE_DATE",
+              "sinceDate": "2026-05-14",
+              "businessUnitIds": [77, 78]
+            }
+            """);
+        LocalDate sinceDate = LocalDate.parse("2026-05-14");
+        // Act
+        OperationDetailedReport result =
+            (OperationDetailedReport) service.generateReportData(reportInstance);
+        // Assert
+        List<DetailedAccountReportDto> reports =
+            result.getDetailedReport().getAccountTransactionReports();
+        Assertions.assertThat(reports)
+            .extracting(report -> report.getAccountRow().getAccountNo())
+            .isSorted();
+        Map<String, Long> accountNoToId = getAccountNoToId();
+        Assertions.assertThat(reports).allSatisfy(dto -> {
+            Long accountId = accountNoToId.get(dto.getAccountRow().getAccountNo());
+            List<DefendantTransactionEntity> payments =
+                defendantTransactionRepository.findByDefendantAccountId(accountId);
+            Assertions.assertThat(payments)
+                .noneMatch(transaction ->
+                    AssociatedRecordType.DEFENDANT_ACCOUNTS.equals(
+                        transaction.getAssociatedRecordType())
+                        && transaction.getStatus() != null
+                        && (DefendantTransactionType.PAYMNT.equals(transaction.getTransactionType())
+                        || DefendantTransactionType.CHEQUE.equals(transaction.getTransactionType()))
+                        && !transaction.getPostedDate().isBefore(sinceDate)
+                );
+        });
+        verifyMetadata(result);
+    }
+
+    @JiraStory("PO-2256")
+    @JiraEpic("PO-2248")
+    @Test
+    @JiraTestKey("PO-8824")
+    void generateReportData_noPaymentSinceLastEnforcement_returnsMatches() {
+        // Arrange
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "isPaymentMade": false,
+              "reportMode": "SINCE_LAST_ENFORCEMENT",
+              "sinceLastEnforcementAction": "ABDC",
+              "businessUnitIds": [77, 78]
+            }
+            """);
+        // Act
+        OperationDetailedReport result =
+            (OperationDetailedReport) service.generateReportData(reportInstance);
+        // Assert
+        //Seeded data contains AccountNo noPaymentsAfterEnf with payment before last enforcement and no payments after
+        List<DetailedAccountReportDto> reports = result.getDetailedReport().getAccountTransactionReports();
+        reports.stream()
+            .filter(r -> "noPaymentsAfterEnf".equals(r.getAccountRow().getAccountNo()))
+            .findFirst()
+            .orElseThrow();
+    }
+
+    @JiraStory("PO-2256")
+    @JiraEpic("PO-2248")
+    @Test
+    @JiraTestKey("PO-8834")
+    void generateReportData_regfPaymentMade_returnsExpectedRows() {
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "isPaymentMade": true,
+              "reportMode": "WITH_REGF",
+              "businessUnitIds": [77, 78]
+            }
+            """);
+        OperationDetailedReport result =
+            (OperationDetailedReport) service.generateReportData(reportInstance);
+
+        List<DetailedAccountReportDto> reports = result.getDetailedReport().getAccountTransactionReports();
+        Assertions.assertThat(reports)
+            .extracting(report -> report.getAccountRow().getAccountNo())
+            .contains("177A") //has payment after REGF
+            .doesNotContain("noPaymentsAfterEnf") //payment before but not after REGF
+            .doesNotContain("ConsolidatedAcc"); //no REGF enforcement
+    }
+
+    @JiraStory("PO-2256")
+    @JiraEpic("PO-2248")
+    @Test
+    @JiraTestKey("PO-8831")
+    void generateReportData_regfPaymentNotMade_returnsExpectedRows() {
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "isPaymentMade": false,
+              "reportMode": "WITH_REGF",
+              "businessUnitIds": [77, 78]
+            }
+            """);
+        OperationDetailedReport result =
+            (OperationDetailedReport) service.generateReportData(reportInstance);
+
+        List<DetailedAccountReportDto> reports = result.getDetailedReport().getAccountTransactionReports();
+        Assertions.assertThat(reports)
+            .extracting(report -> report.getAccountRow().getAccountNo())
+            .doesNotContain("177A") //has payment after REGF
+            .doesNotContain("ConsolidatedAcc") //no REGF enforcement
+            .contains("noPaymentsAfterEnf"); //payment before but not after REGF
+    }
+
+    @JiraStory("PO-2256")
+    @JiraEpic("PO-2248")
+    @Test
+    @JiraTestKey("PO-8819")
+    void generateReportData_regfAndBaseFilters_returnsExpectedRows() {
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "isPaymentMade": false,
+              "reportMode": "WITH_REGF",
+              "businessUnitIds": [77, 78],
+              "lowerNameRange": "l",
+              "upperNameRange": "l"
+            }
+            """);
+        OperationDetailedReport result =
+            (OperationDetailedReport) service.generateReportData(reportInstance);
+
+        List<DetailedAccountReportDto> reports = result.getDetailedReport().getAccountTransactionReports();
+        Assertions.assertThat(reports)
+            .extracting(report -> report.getAccountRow().getAccountNo())
+            .doesNotContain("177A") //has payment after REGF
+            .doesNotContain("ConsolidatedAcc") //no REGF enforcement
+            .doesNotContain("noPaymentsAfterEnf"); //meets all payment criteria but not name range
+    }
+
+    @JiraStory("PO-2256")
+    @JiraEpic("PO-2248")
+    @Test
+    @JiraTestKey("PO-8838")
+    void generateReportData_paymentSinceLastEnforcement_returnsExpectedRows() {
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "isPaymentMade": true,
+              "reportMode": "SINCE_LAST_ENFORCEMENT",
+              "sinceLastEnforcementAction": "ABDC",
+              "businessUnitIds": [77, 78]
+            }
+            """);
+        OperationDetailedReport result =
+            (OperationDetailedReport) service.generateReportData(reportInstance);
+
+        List<DetailedAccountReportDto> reports = result.getDetailedReport().getAccountTransactionReports();
+        Assertions.assertThat(reports)
+            .extracting(report -> report.getAccountRow().getAccountNo())
+            .contains("177A") //has payment after ABDC enforcement
+            .doesNotContain("ConsolidatedAcc") //has no payments after ABDC enforcement
+            .doesNotContain("noPaymentsAfterEnf"); //payment before but not after ABDC
+
+        verifyMetadata(result);
+    }
+
+    @JiraStory("PO-2256")
+    @JiraEpic("PO-2248")
+    @Test
+    @JiraTestKey("PO-8826")
+    void generateReportData_sinceLastEnforcementAndBaseFilters_returnsExpectedRows() {
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "isPaymentMade": true,
+              "reportMode": "SINCE_LAST_ENFORCEMENT",
+              "sinceLastEnforcementAction": "ABDC",
+              "businessUnitIds": [77, 78],
+              "lowerNameRange": "l",
+              "upperNameRange": "l"
+            }
+            """);
+        OperationDetailedReport result =
+            (OperationDetailedReport) service.generateReportData(reportInstance);
+
+        List<DetailedAccountReportDto> reports = result.getDetailedReport().getAccountTransactionReports();
+        Assertions.assertThat(reports)
+            .extracting(report -> report.getAccountRow().getAccountNo())
+            .doesNotContain("177A") //meets all payment criteria but not name range
+            .doesNotContain("ConsolidatedAcc") //has no payments after ABDC enforcement
+            .doesNotContain("noPaymentsAfterEnf"); //payment before but not after ABDC
+
+        verifyMetadata(result);
+    }
+
+    @JiraStory("PO-2256")
+    @JiraEpic("PO-2248")
+    @Test
+    @JiraTestKey("PO-8830")
+    void generateReportData_noPaymentSinceLastEnforcement_returnsExpectedRows() {
+        ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
+        given(reportInstance.getReportParameters()).willReturn("""
+            {
+              "isPaymentMade": false,
+              "reportMode": "SINCE_LAST_ENFORCEMENT",
+              "sinceLastEnforcementAction": "ABDC",
+              "businessUnitIds": [77, 78]
+            }
+            """);
+        OperationDetailedReport result =
+            (OperationDetailedReport) service.generateReportData(reportInstance);
+
+        List<DetailedAccountReportDto> reports = result.getDetailedReport().getAccountTransactionReports();
+        Assertions.assertThat(reports)
+            .extracting(report -> report.getAccountRow().getAccountNo())
+            .doesNotContain("177A") //has payment after ABDC enforcement
+            .contains("ConsolidatedAcc") //has no payments after ABDC enforcement
+            .contains("noPaymentsAfterEnf"); //payment before but not after ABDC
+
+        verifyMetadata(result);
+    }
+}

@@ -18,9 +18,9 @@ import uk.gov.hmcts.opal.dto.report.operation.OperationReportByPaymentFiltersDto
 import uk.gov.hmcts.opal.dto.report.operation.PaymentReportMode;
 
 @ExtendWith(MockitoExtension.class)
-class OperationReportByPaymentValidatorTest {
+class PaymentReportValidatorTest {
 
-    private final OperationReportByPaymentValidator validator = new OperationReportByPaymentValidator();
+    private final PaymentReportValidator validator = new PaymentReportValidator();
 
     @Mock
     private OperationReportByPaymentFiltersDto filters;
@@ -79,7 +79,7 @@ class OperationReportByPaymentValidatorTest {
     }
 
     @Test
-    void validate_whenSinceLastEnforcementActionUsedWithWrongMode_throwsIllegalArgumentException() {
+    void validate_sinceLastEnforcementWithWrongMode_throwsException() {
         when(filters.getBusinessUnitIds()).thenReturn(List.of(1L));
         when(filters.getIsPaymentMade()).thenReturn(true);
         when(filters.getReportMode()).thenReturn(PaymentReportMode.SINCE_DATE);
