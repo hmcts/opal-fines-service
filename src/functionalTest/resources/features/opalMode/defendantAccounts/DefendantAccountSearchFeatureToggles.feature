@@ -10,21 +10,21 @@ Feature: Defendant Account Search Feature Toggles
     Then the request is rejected with status 404
     And the response reports that the feature is disabled
 
-  @R1CWriteOffOff @JIRA-STORY:PO-3768 @JIRA-EPIC:PO-3685
-  Scenario: Basic search remains available when release 1c is disabled
+  @R1CWriteOffOff @R1B @R1COff @JIRA-STORY:PO-3768 @JIRA-EPIC:PO-3685
+  Scenario: Basic search remains available when release 1c write-off is disabled
     Given a searchable defendant account exists for feature-toggle search
     When I search the created defendant account without consolidation
     Then the basic defendant account search returns the created account
 
-  @R1CWriteOffOff @JIRA-STORY:PO-3768 @JIRA-EPIC:PO-3685
-  Scenario: Consolidated search is unavailable when release 1c is disabled
+  @R1CWriteOffOff @R1B @R1COff @JIRA-STORY:PO-3768 @JIRA-EPIC:PO-3685
+  Scenario: Consolidated search is unavailable when release 1c write-off is disabled
     Given a searchable defendant account exists for feature-toggle search
     When I search the created defendant account with consolidation
     Then the request is rejected with status 404
     And the response reports that the feature is disabled
 
-  @R1CWriteOff @JIRA-STORY:PO-3768 @JIRA-EPIC:PO-3685
-  Scenario: Consolidated search is available when release 1c is enabled
+  @R1CWriteOff @R1B @R1C @JIRA-STORY:PO-3768 @JIRA-EPIC:PO-3685
+  Scenario: Consolidated search is available when release 1c write-off is enabled
     Given a searchable defendant account exists for feature-toggle search
     When I search the created defendant account with consolidation
     Then the consolidated defendant account search returns the created account

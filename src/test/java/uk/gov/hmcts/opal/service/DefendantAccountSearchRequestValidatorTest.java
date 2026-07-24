@@ -52,8 +52,8 @@ class DefendantAccountSearchRequestValidatorTest {
             eq(SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_REQUEST)
         );
         verify(featureToggleApi, never()).isFeatureEnabledWithPropertyValueDefault(
-            eq(FeatureFlags.RELEASE_1C),
-            eq(FeatureFlags.RELEASE_1C_ENABLED_PROPERTY),
+            eq(FeatureFlags.RELEASE_1C_WRITE_OFF),
+            eq(FeatureFlags.RELEASE_1C_WRITE_OFF_ENABLED_PROPERTY),
             eq(false)
         );
     }
@@ -63,8 +63,8 @@ class DefendantAccountSearchRequestValidatorTest {
         // Arrange
         PostDefendantAccountSearchRequestDefendantAccount request = request(true);
         when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
-            FeatureFlags.RELEASE_1C,
-            FeatureFlags.RELEASE_1C_ENABLED_PROPERTY,
+            FeatureFlags.RELEASE_1C_WRITE_OFF,
+            FeatureFlags.RELEASE_1C_WRITE_OFF_ENABLED_PROPERTY,
             false
         )).thenReturn(true);
 
@@ -77,8 +77,8 @@ class DefendantAccountSearchRequestValidatorTest {
             eq(SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_REQUEST)
         );
         verify(featureToggleApi).isFeatureEnabledWithPropertyValueDefault(
-            FeatureFlags.RELEASE_1C,
-            FeatureFlags.RELEASE_1C_ENABLED_PROPERTY,
+            FeatureFlags.RELEASE_1C_WRITE_OFF,
+            FeatureFlags.RELEASE_1C_WRITE_OFF_ENABLED_PROPERTY,
             false
         );
     }
@@ -88,8 +88,8 @@ class DefendantAccountSearchRequestValidatorTest {
         // Arrange
         PostDefendantAccountSearchRequestDefendantAccount request = request(true);
         when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
-            FeatureFlags.RELEASE_1C,
-            FeatureFlags.RELEASE_1C_ENABLED_PROPERTY,
+            FeatureFlags.RELEASE_1C_WRITE_OFF,
+            FeatureFlags.RELEASE_1C_WRITE_OFF_ENABLED_PROPERTY,
             false
         )).thenReturn(false);
 
@@ -98,8 +98,8 @@ class DefendantAccountSearchRequestValidatorTest {
 
         // Assert
         verify(featureToggleApi).isFeatureEnabledWithPropertyValueDefault(
-            FeatureFlags.RELEASE_1C,
-            FeatureFlags.RELEASE_1C_ENABLED_PROPERTY,
+            FeatureFlags.RELEASE_1C_WRITE_OFF,
+            FeatureFlags.RELEASE_1C_WRITE_OFF_ENABLED_PROPERTY,
             false
         );
     }
