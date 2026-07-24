@@ -23,12 +23,12 @@ public class DefendantAccountSearchRequestValidator {
 
         if (Boolean.TRUE.equals(request.getConsolidationSearch())
             && !featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
-                FeatureFlags.RELEASE_1C,
-                FeatureFlags.RELEASE_1C_ENABLED_PROPERTY,
+                FeatureFlags.RELEASE_1C_WRITE_OFF,
+                FeatureFlags.RELEASE_1C_WRITE_OFF_ENABLED_PROPERTY,
                 false
             )) {
             throw new FeatureDisabledException(
-                "Feature release-1c is not enabled for defendant account consolidated search");
+                "Feature release-1c-write-off is not enabled for defendant account consolidated search");
         }
     }
 
