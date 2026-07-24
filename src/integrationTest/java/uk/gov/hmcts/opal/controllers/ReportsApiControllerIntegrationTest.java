@@ -5,6 +5,7 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectInternalServerErrorWithoutStatus;
 
 import java.util.Set;
 import java.util.stream.Stream;
@@ -15,18 +16,26 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlMergeMode;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.repository.ConfigurationItemRepository;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
+@SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
 class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/reports";
+    private static final String BU_WARNING_THRESHOLD_ITEM_NAME = "OPERATIONAL_REPORT_BU_WARNING_THRESHOLD";
+
+    @Autowired
+    private ConfigurationItemRepository configurationItemRepository;
 
 
     @BeforeEach
@@ -232,13 +241,35 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
 
         @ParameterizedTest
         @MethodSource("reportCases")
+        @DisplayName("Get report by ID - operational reports return 200 when report permission is set [@PO-7222]")
+        @JiraStory("PO-7222")
+        @JiraEpic("PO-2248")
+        void getReportById_whenOperationalReportHasPermission_returns200(String reportId) throws Exception {
+            mockMvc.perform(get(URL_BASE + "/" + reportId)
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.report_id").value(reportId))
+                .andExpect(jsonPath("$.permission").value(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.name()));
+        }
+
+        @ParameterizedTest
+        @MethodSource("reportCases")
         @DisplayName("Get report by ID - null permission returns forbidden [@PO-2250]")
+        @Sql(
+            scripts = "classpath:db/insertData/clear_operational_report_permissions.sql",
+            executionPhase = BEFORE_TEST_METHOD
+        )
+        @Sql(
+            scripts = "classpath:db/insertData/set_operational_report_permissions.sql",
+            executionPhase = AFTER_TEST_METHOD
+        )
         @JiraStory("PO-2250")
         @JiraEpic("PO-2248")
         @JiraTestKey(value = "PO-8604", name = "[1] reportId = \"operational_report_enforcement\"")
         @JiraTestKey(value = "PO-8605", name = "[2] reportId = \"operational_report_payment\"")
         void getReportById_whenReportPermissionIsNull_returns403(String reportId) throws Exception {
-            mockMvc.perform(get(URL_BASE + "/" + reportId))
+            mockMvc.perform(get(URL_BASE + "/" + reportId)
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.title").value("Forbidden"))
                 .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"))
@@ -254,7 +285,8 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @JiraTestKey("PO-7766")
         void getReportById_whenUserLacksPermission_returns403() throws Exception {
             userStateStub.setupWithNoPermissions();
-            mockMvc.perform(get(URL_BASE + "/operational_report_enforcement"))
+            mockMvc.perform(get(URL_BASE + "/operational_report_enforcement")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.title").value("Forbidden"))
                 .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"))
@@ -284,4 +316,106 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
+    @Nested
+    @Sql(
+        scripts = "classpath:db/insertData/set_operational_report_permissions.sql",
+        executionPhase = BEFORE_TEST_METHOD
+    )
+    @Sql(
+        scripts = "classpath:db/insertData/set_operational_report_permissions.sql",
+        executionPhase = AFTER_TEST_METHOD
+    )
+    class GetOperationalReportThresholdCases {
+
+        @ParameterizedTest
+        @MethodSource("uk.gov.hmcts.opal.controllers.ReportsApiControllerIntegrationTest#operationalReportCases")
+        @DisplayName("Get report by ID - operational reports include BU warning threshold [@PO-7225]")
+        @JiraStory("PO-7225")
+        @JiraEpic("PO-2248")
+        void getReportById_whenOperationalReport_returnsBuWarningThreshold(String reportId) throws Exception {
+            mockMvc.perform(get(URL_BASE + "/" + reportId)
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.report_parameters").isMap())
+                .andExpect(jsonPath("$.report_parameters.business_unit_warning_threshold").value(10));
+        }
+
+        @Test
+        @DisplayName("Get report by ID - non operational report does not include BU warning threshold [@PO-7225]")
+        @Sql(scripts = "classpath:db/insertData/insert_into_reports.sql", executionPhase = BEFORE_TEST_METHOD)
+        @Sql(scripts = "classpath:db/deleteData/delete_from_reports.sql", executionPhase = AFTER_TEST_METHOD)
+        @JiraStory("PO-7225")
+        @JiraEpic("PO-2248")
+        void getReportById_whenNonOperationalReport_returnsUnchangedParameters() throws Exception {
+            mockMvc.perform(get(URL_BASE + "/it_report_optional")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.report_parameters").isMap())
+                .andExpect(jsonPath("$.report_parameters").isEmpty())
+                .andExpect(jsonPath("$.report_parameters.business_unit_warning_threshold").doesNotExist());
+        }
+
+        @Test
+        @DisplayName("Get report by ID - missing BU warning threshold config returns 500 [@PO-7225]")
+        @Sql(
+            scripts = "classpath:db/insertData/missing_operational_report_bu_threshold.sql",
+            executionPhase = BEFORE_TEST_METHOD
+        )
+        @Sql(
+            scripts = "classpath:db/deleteData/reset_operational_report_bu_threshold.sql",
+            executionPhase = AFTER_TEST_METHOD
+        )
+        @JiraStory("PO-7225")
+        @JiraEpic("PO-2248")
+        void getReportById_whenThresholdConfigMissing_returns500() throws Exception {
+            mockMvc.perform(get(URL_BASE + "/operational_report_enforcement")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
+                .andExpect(status().isInternalServerError())
+                .andExpect(expectInternalServerErrorWithoutStatus(
+                    "Missing configuration item: OPERATIONAL_REPORT_BU_WARNING_THRESHOLD"
+                ))
+                .andExpect(jsonPath("$.retriable").value(false));
+        }
+
+        @ParameterizedTest(
+            name = "Get report by ID - invalid BU warning threshold ''{0}'' returns 500 [@PO-7225]"
+        )
+        @MethodSource("uk.gov.hmcts.opal.controllers.ReportsApiControllerIntegrationTest#invalidThresholdValues")
+        @Sql(
+            scripts = "classpath:db/deleteData/reset_operational_report_bu_threshold.sql",
+            executionPhase = AFTER_TEST_METHOD
+        )
+        @JiraStory("PO-7225")
+        @JiraEpic("PO-2248")
+        void getReportById_whenThresholdConfigInvalid_returns500(String invalidThresholdValue) throws Exception {
+            var threshold = configurationItemRepository
+                .findByItemNameAndBusinessUnitIdIsNull(BU_WARNING_THRESHOLD_ITEM_NAME)
+                .orElseThrow();
+            threshold.setItemValue(invalidThresholdValue);
+            configurationItemRepository.save(threshold);
+
+            mockMvc.perform(get(URL_BASE + "/operational_report_enforcement")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
+                .andExpect(status().isInternalServerError())
+                .andExpect(expectInternalServerErrorWithoutStatus(
+                    "Invalid positive integer configuration item: OPERATIONAL_REPORT_BU_WARNING_THRESHOLD"
+                ))
+                .andExpect(jsonPath("$.retriable").value(false));
+        }
+    }
+
+    static Stream<Arguments> operationalReportCases() {
+        return Stream.of(
+            Arguments.of("operational_report_enforcement"),
+            Arguments.of("operational_report_payment")
+        );
+    }
+
+    static Stream<Arguments> invalidThresholdValues() {
+        return Stream.of(
+            Arguments.of("not-an-integer"),
+            Arguments.of("0"),
+            Arguments.of("-1")
+        );
+    }
 }

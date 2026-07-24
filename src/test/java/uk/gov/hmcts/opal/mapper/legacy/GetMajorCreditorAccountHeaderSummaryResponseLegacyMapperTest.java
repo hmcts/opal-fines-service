@@ -48,7 +48,7 @@ class GetMajorCreditorAccountHeaderSummaryResponseLegacyMapperTest extends Abstr
         assertEquals("MJ", result.getMajorCreditor().getAccountReference().getAccountType().getValue());
         assertEquals("Major Creditor",
                      result.getMajorCreditor().getAccountReference().getDisplayName().getValue());
-        assertEquals("77", result.getBusinessUnitDetails().getBusinessUnitId());
+        assertEquals((short) 77, result.getBusinessUnitDetails().getBusinessUnitId());
         assertEquals("Camberwell Green", result.getBusinessUnitDetails().getBusinessUnitName());
         assertEquals("N", result.getBusinessUnitDetails().getWelshSpeaking());
         assertEquals(new BigDecimal("123.45"), result.getAwaitingPayout());

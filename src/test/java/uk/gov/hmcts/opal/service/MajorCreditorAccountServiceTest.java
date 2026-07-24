@@ -8,6 +8,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,7 +20,9 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
+import uk.gov.hmcts.opal.service.opal.history.majorcreditor.MajorCreditorHistoryService;
 import uk.gov.hmcts.opal.service.proxy.MajorCreditorAccountProxy;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,6 +33,9 @@ class MajorCreditorAccountServiceTest {
 
     @Mock
     private MajorCreditorAccountProxy majorCreditorAccountProxy;
+
+    @Mock
+    private MajorCreditorHistoryService majorCreditorHistoryService;
 
     @InjectMocks
     private MajorCreditorAccountService majorCreditorAccountService;
@@ -68,7 +75,7 @@ class MajorCreditorAccountServiceTest {
     @Test
     void getHeaderSummary_authorisedUserDelegatesToProxy() {
         UserState userState = mock(UserState.class);
-        GetMajorCreditorAccountHeaderSummaryResponse response = responseWithBusinessUnit("77");
+        GetMajorCreditorAccountHeaderSummaryResponse response = responseWithBusinessUnit((short) 77);
 
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
@@ -104,7 +111,7 @@ class MajorCreditorAccountServiceTest {
     @Test
     void getHeaderSummary_permissionInDifferentBusinessUnitThrowsForbidden() {
         UserState userState = mock(UserState.class);
-        GetMajorCreditorAccountHeaderSummaryResponse response = responseWithBusinessUnit("77");
+        GetMajorCreditorAccountHeaderSummaryResponse response = responseWithBusinessUnit((short) 77);
 
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
@@ -122,7 +129,43 @@ class MajorCreditorAccountServiceTest {
         verify(majorCreditorAccountProxy).getHeaderSummary(123L);
     }
 
-    private GetMajorCreditorAccountHeaderSummaryResponse responseWithBusinessUnit(String businessUnitId) {
+    @Test
+    void getHistory_authorisedUserDelegatesToHistoryService() {
+        UserState userState = mock(UserState.class);
+        LocalDate dateFrom = LocalDate.of(2026, 1, 1);
+        LocalDate dateTo = LocalDate.of(2026, 1, 31);
+        List<String> itemTypes = List.of("financial");
+        GetMajorCreditorHistoryResponse response = GetMajorCreditorHistoryResponse.builder().build();
+
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
+        when(majorCreditorHistoryService.getHistory(123L, dateFrom, dateTo, itemTypes)).thenReturn(response);
+
+        GetMajorCreditorHistoryResponse result =
+            majorCreditorAccountService.getHistory(123L, dateFrom, dateTo, itemTypes);
+
+        assertEquals(response, result);
+        verify(userStateService).getUserStateV1FromSecurityContext();
+        verify(majorCreditorHistoryService).getHistory(123L, dateFrom, dateTo, itemTypes);
+    }
+
+    @Test
+    void getHistory_withoutSearchAndViewAccountPermissionThrowsForbidden() {
+        UserState userState = mock(UserState.class);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
+            .thenReturn(false);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+
+        PermissionNotAllowedException exception = assertThrows(
+            PermissionNotAllowedException.class,
+            () -> majorCreditorAccountService.getHistory(123L, null, null, null)
+        );
+
+        assertThat(exception.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        verifyNoInteractions(majorCreditorHistoryService);
+    }
+
+    private GetMajorCreditorAccountHeaderSummaryResponse responseWithBusinessUnit(Short businessUnitId) {
         GetMajorCreditorAccountHeaderSummaryResponse response =
             new GetMajorCreditorAccountHeaderSummaryResponse();
         response.setBusinessUnitDetails(new BusinessUnitSummaryCommon().businessUnitId(businessUnitId));

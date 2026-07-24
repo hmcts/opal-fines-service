@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -45,6 +46,7 @@ import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.service.persistence.AliasRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
@@ -73,6 +75,9 @@ class OpalDefendantAccountServiceTest03 {
 
     @Mock
     private PartyRepositoryService partyRepositoryService;
+
+    @Mock
+    private DefendantAccountControlValidator defendantAccountControlValidator;
 
     // Service under test
     @InjectMocks
@@ -106,7 +111,8 @@ class OpalDefendantAccountServiceTest03 {
                 .thenAnswer(i -> null);
 
             assertThrows(IllegalArgumentException.class, () ->
-                service.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", "10", "tester", null));
+                service.replaceDefendantAccountParty(
+                    accountId, dapId, req, "\"1\"", "10", "tester", "Tester Name", null));
 
             verify(defendantAccountRepositoryService, never()).saveAndFlush(any());
         }
@@ -136,7 +142,7 @@ class OpalDefendantAccountServiceTest03 {
             .build();
 
         assertThrows(IllegalArgumentException.class, () ->
-            service.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", "10", "tester", null));
+            service.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", "10", "tester", "Tester Name", null));
 
         verify(defendantAccountRepositoryService, never()).saveAndFlush(any());
     }
@@ -155,9 +161,50 @@ class OpalDefendantAccountServiceTest03 {
 
         assertThrows(EntityNotFoundException.class, () ->
             service.replaceDefendantAccountParty(accountId, 1L,
-                DefendantAccountParty.builder().build(), "\"1\"", "10", "tester", null));
+                DefendantAccountParty.builder().build(), "\"1\"", "10", "tester", "Tester Name", null));
 
         verify(defendantAccountRepositoryService, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void replaceDefendantAccountParty_whenParentGuardianAccountControlsFail_throwsBeforeMutation() {
+        Long accountId = 100L;
+        Long dapId = 200L;
+
+        BusinessUnitEntity buEnt = BusinessUnitEntity.builder()
+            .businessUnitId((short) 10).build();
+
+        DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(dapId)
+            .associationType(AssociationType.PARENT_GUARDIAN)
+            .party(PartyEntity.builder().partyId(300L).build())
+            .build();
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(accountId)
+            .businessUnit(buEnt)
+            .parties(List.of(dap))
+            .versionNumber(1L)
+            .build();
+        UnprocessableException exception = new UnprocessableException("blocked");
+
+        when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
+        doThrow(exception).when(defendantAccountControlValidator).validateCanMutateParty(account);
+
+        try (MockedStatic<VersionUtils> vs = mockStatic(VersionUtils.class)) {
+            vs.when(() -> VersionUtils.verifyIfMatch(any(), anyString(), anyLong(), anyString()))
+                .thenAnswer(i -> null);
+
+            UnprocessableException result = assertThrows(UnprocessableException.class, () ->
+                service.replaceDefendantAccountParty(
+                    accountId, dapId, DefendantAccountParty.builder().build(), "\"1\"", "10", "tester", null));
+
+            assertEquals(exception, result);
+            verify(defendantAccountControlValidator).validateCanMutateParty(account);
+            verify(amendmentRepositoryService, never())
+                .auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
+            verify(defendantAccountRepositoryService, never()).saveAndFlush(any());
+        }
     }
 
     @Test
@@ -198,7 +245,8 @@ class OpalDefendantAccountServiceTest03 {
                 .thenAnswer(i -> null);
 
             GetDefendantAccountPartyResponse resp =
-                service.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", "10", "tester", null);
+                service.replaceDefendantAccountParty(
+                    accountId, dapId, req, "\"1\"", "10", "tester", "Tester Name", null);
 
             assertNotNull(resp);
 
@@ -245,7 +293,8 @@ class OpalDefendantAccountServiceTest03 {
                 .thenAnswer(i -> null);
 
             GetDefendantAccountPartyResponse resp =
-                service.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", "10", "tester", null);
+                service.replaceDefendantAccountParty(
+                    accountId, dapId, req, "\"1\"", "10", "tester", "Tester Name", null);
 
             assertNotNull(resp);
 
@@ -333,7 +382,7 @@ class OpalDefendantAccountServiceTest03 {
                 .thenAnswer(i -> null);
 
             GetDefendantAccountPartyResponse resp =
-                service.replaceDefendantAccountParty(accountId, dapId, req, ifMatch, bu, "tester", null);
+                service.replaceDefendantAccountParty(accountId, dapId, req, ifMatch, bu, "tester", "Tester Name", null);
 
             assertNotNull(resp);
             assertNotNull(resp.getDefendantAccountParty());
@@ -342,7 +391,7 @@ class OpalDefendantAccountServiceTest03 {
             verify(amendmentRepositoryService).auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
             verify(amendmentRepositoryService).auditFinaliseStoredProc(
                 eq(accountId), eq(RecordType.DEFENDANT_ACCOUNTS),
-                eq(Short.parseShort(bu)), eq("tester"), eq("tester"), any(), eq("ACCOUNT_ENQUIRY"));
+                eq(Short.parseShort(bu)), eq("tester"), eq("Tester Name"), any(), eq("ACCOUNT_ENQUIRY"));
 
             verify(party).setOrganisation(Boolean.TRUE);
             verify(party).setOrganisationName("ACME LTD");
@@ -369,7 +418,10 @@ class OpalDefendantAccountServiceTest03 {
         when(partyProxy.getPartyId()).thenReturn(300L);
 
         DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
-            .defendantAccountPartyId(dapId).party(partyProxy).build();
+            .defendantAccountPartyId(dapId)
+            .party(partyProxy)
+            .associationType(AssociationType.DEFENDANT)
+            .build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).versionNumber(1L).build();
@@ -393,13 +445,14 @@ class OpalDefendantAccountServiceTest03 {
                 .thenAnswer(i -> null);
 
             GetDefendantAccountPartyResponse resp =
-                service.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", bu, "tester", null);
+                service.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", bu, "tester", "Tester Name", null);
 
             assertNotNull(resp);
             assertNotNull(resp.getDefendantAccountParty());
             verify(partyRepositoryService, times(2)).findById(300L); // main + aliases
             verify(defendantAccountRepositoryService).saveAndFlush(account);
             verify(aliasRepoService, times(2)).findByPartyId(300L);
+            verify(defendantAccountControlValidator, never()).validateCanMutateParty(account);
         }
     }
 
@@ -450,7 +503,8 @@ class OpalDefendantAccountServiceTest03 {
                 .thenAnswer(i -> null);
 
             GetDefendantAccountPartyResponse resp =
-                service.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", "10", "tester", null);
+                service.replaceDefendantAccountParty(
+                    accountId, dapId, req, "\"1\"", "10", "tester", "Tester Name", null);
 
             assertNotNull(resp);
 
@@ -543,7 +597,8 @@ class OpalDefendantAccountServiceTest03 {
 
             // Act
             GetDefendantAccountPartyResponse resp =
-                service.replaceDefendantAccountParty(accountId, defendantDapId, req, "\"1\"", "10", "tester", null);
+                service.replaceDefendantAccountParty(
+                    accountId, defendantDapId, req, "\"1\"", "10", "tester", "Tester Name", null);
 
             // Assert
             assertNotNull(resp);

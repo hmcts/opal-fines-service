@@ -31,7 +31,6 @@
         "postcode": { "type": "string" },
         "business_unit_name": { "type": "string" },
         "business_unit_id": { "type": "string" },
-        "defendant_account_id": { "type": "string" },
         "account_balance": {
           "type": "number",
           "multipleOf": 0.01
@@ -45,9 +44,7 @@
         "address_line_1",
         "business_unit_name",
         "business_unit_id",
-        "defendant_account_id",
-        "account_balance",
-        "defendant"
+        "account_balance"
       ],
       "oneOf": [
         {
@@ -57,7 +54,7 @@
           }
         },
         {
-          "required": ["organisation", "firstnames"],
+          "required": ["organisation", "surname"],
           "properties": {
             "organisation": { "const": false }
           }
@@ -68,18 +65,25 @@
     "defendant": {
       "type": "object",
       "description": "Details of the defendant, which can be either an organisation or an individual.",
+      "required": ["defendant_account_id"],
+      "properties": {
+        "defendant_account_id": { "type": "string" },
+        "organisation_name": { "type": "string" },
+        "defendant_firstnames": { "type": "string" },
+        "defendant_surname": { "type": "string" }
+      },
       "oneOf": [
         {
           "required": ["organisation_name"],
           "properties": {
-            "organisation_name": { "type": "string" }
+            "defendant_surname": false,
+            "defendant_firstnames": false
           }
         },
         {
           "required": ["defendant_surname"],
           "properties": {
-            "defendant_firstnames": { "type": "string" },
-            "defendant_surname": { "type": "string" }
+            "organisation_name": false
           }
         }
       ],

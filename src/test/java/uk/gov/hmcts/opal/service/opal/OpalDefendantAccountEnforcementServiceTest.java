@@ -29,6 +29,7 @@ import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
@@ -39,6 +40,8 @@ import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.exception.UnprocessableException;
+import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
@@ -90,7 +93,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     private static final Short BUSINESS_UNIT_ID = 2002;
     private static final String BUSINESS_UNIT_USER_ID = "bu-user-123";
     private static final String IF_MATCH = "7";
-    private static final String USER_DISPLAY_NAME = "Test User";
+    private static final String USER_NAME = "test.user";
     private static final String PROSECUTOR_CASE_REFERENCE = "PCR-12345";
     private static final Long ENFORCEMENT_ID = 9876L;
     private static final String RESULT_ID_AS_STRING = "ABDC";
@@ -126,7 +129,10 @@ public class OpalDefendantAccountEnforcementServiceTest {
     private DefendantAccountRepositoryService defendantAccountRepositoryService;
 
     @Mock
-    private OpalDefendantAccountService opalDefendantAccountService;
+    private OpalDefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
+
+    @Mock
+    private DefendantAccountControlValidator defendantAccountControlValidator;
 
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -217,7 +223,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             eq("ACCOUNT_ENQUIRY"),
             eq(null),
             eq(BUSINESS_UNIT_USER_ID),
-            eq(USER_DISPLAY_NAME),
+            eq(USER_NAME),
             eq(null),
             eq(null),
             eq("{}"),
@@ -291,7 +297,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             eq("ACCOUNT_ENQUIRY"),
             eq((Integer) 14),
             eq(BUSINESS_UNIT_USER_ID),
-            eq(USER_DISPLAY_NAME),
+            eq(USER_NAME),
             eq("test reason"),
             eq(55L),
             eq(responsesJson),
@@ -305,7 +311,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     @Test
     public void testAddEnforcement_whenOnlyGivenReason_createsEnforcement() throws JacksonException {
         UserState userState = mock(UserState.class);
-        when(userState.getDisplayName()).thenReturn(USER_DISPLAY_NAME);
+        when(userState.getUserName()).thenReturn(USER_NAME);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
 
         DefendantAccountEntity defendant = mock(DefendantAccountEntity.class);
@@ -358,7 +364,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             eq("ACCOUNT_ENQUIRY"),
             eq(null),
             eq(BUSINESS_UNIT_USER_ID),
-            eq(USER_DISPLAY_NAME),
+            eq(USER_NAME),
             eq("test reason"),
             eq(null),
             eq(responsesJson),
@@ -372,7 +378,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     @Test
     public void testAddEnforcement_whenOnlyGivenJailDays_createsEnforcement() throws JacksonException {
         UserState userState = mock(UserState.class);
-        when(userState.getDisplayName()).thenReturn(USER_DISPLAY_NAME);
+        when(userState.getUserName()).thenReturn(USER_NAME);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
 
         DefendantAccountEntity defendant = mock(DefendantAccountEntity.class);
@@ -425,7 +431,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             eq("ACCOUNT_ENQUIRY"),
             eq((Integer) 14),
             eq(BUSINESS_UNIT_USER_ID),
-            eq(USER_DISPLAY_NAME),
+            eq(USER_NAME),
             eq(null),
             eq(null),
             eq(responsesJson),
@@ -439,7 +445,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     @Test
     public void testAddEnforcement_whenOnlyGivenEnforcer_createsEnforcement() throws JacksonException {
         UserState userState = mock(UserState.class);
-        when(userState.getDisplayName()).thenReturn(USER_DISPLAY_NAME);
+        when(userState.getUserName()).thenReturn(USER_NAME);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
 
         DefendantAccountEntity defendant = mock(DefendantAccountEntity.class);
@@ -492,7 +498,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             eq("ACCOUNT_ENQUIRY"),
             eq(null),
             eq(BUSINESS_UNIT_USER_ID),
-            eq(USER_DISPLAY_NAME),
+            eq(USER_NAME),
             eq(null),
             eq(55L),
             eq(responsesJson),
@@ -506,7 +512,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     @Test
     public void testAddEnforcement_whenOnlyGivenReleaseDate_createsEnforcement() throws JacksonException {
         UserState userState = mock(UserState.class);
-        when(userState.getDisplayName()).thenReturn(USER_DISPLAY_NAME);
+        when(userState.getUserName()).thenReturn(USER_NAME);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
 
         DefendantAccountEntity defendant = mock(DefendantAccountEntity.class);
@@ -559,7 +565,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             eq("ACCOUNT_ENQUIRY"),
             eq(null),
             eq(BUSINESS_UNIT_USER_ID),
-            eq(USER_DISPLAY_NAME),
+            eq(USER_NAME),
             eq(null),
             eq(null),
             eq(responsesJson),
@@ -573,7 +579,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     @Test
     public void testAddEnforcement_whenGivenPaymentTerms_callsPaymentTermsService() throws JacksonException {
         UserState userState = mock(UserState.class);
-        when(userState.getDisplayName()).thenReturn(USER_DISPLAY_NAME);
+        when(userState.getUserName()).thenReturn(USER_NAME);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
 
         DefendantAccountEntity defendant = mock(DefendantAccountEntity.class);
@@ -635,7 +641,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             eq("ACCOUNT_ENQUIRY"),
             eq(null),
             eq(BUSINESS_UNIT_USER_ID),
-            eq(USER_DISPLAY_NAME),
+            eq(USER_NAME),
             eq(null),
             eq(null),
             eq("{}"),
@@ -645,12 +651,12 @@ public class OpalDefendantAccountEnforcementServiceTest {
 
         assertCommonResponse(response);
 
-        verify(opalDefendantAccountService).addPaymentTermsPreservingLastEnforcement(
+        verify(defendantAccountPaymentTermsService).addPaymentTermsPreservingLastEnforcement(
             eq(DEFENDANT_ACCOUNT_ID),
             eq(BUSINESS_UNIT_ID.toString()),
             eq(BUSINESS_UNIT_USER_ID),
+            eq(USER_NAME),
             eq(IF_MATCH),
-            isNull(),
             ArgumentMatchers.any(AddDefendantAccountPaymentTermsRequest.class)
         );
     }
@@ -678,6 +684,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
         UserState userState = allPermissionsUser();
         LocalDate expectedLastMovementDate = LocalDate.of(2026, 4, 22);
         ArgumentCaptor<AddNoteRequest> addNoteRequestCaptor = ArgumentCaptor.forClass(AddNoteRequest.class);
+        ArgumentCaptor<AccountNoteContext> accountNoteContextCaptor = ArgumentCaptor.forClass(AccountNoteContext.class);
 
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(defendantAccountRepositoryService.findById(defendantAccountId)).thenReturn(defendantEntity);
@@ -720,7 +727,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
                 addNoteRequestCaptor.capture(),
                 eq(updatedIfMatch),
                 eq(userState),
-                eq(defendantEntity)
+                accountNoteContextCaptor.capture()
             );
             verifyNoInteractions(reportEntryService);
             verify(amendmentService).auditFinaliseStoredProc(
@@ -740,6 +747,12 @@ public class OpalDefendantAccountEnforcementServiceTest {
             assertEquals(String.valueOf(defendantAccountId), capturedNote.getRecordId());
             assertEquals("remove hold reason", capturedNote.getNoteText());
             assertEquals("AA", capturedNote.getNoteType());
+
+            AccountNoteContext capturedTarget = accountNoteContextCaptor.getValue();
+            assertEquals(DefendantAccountEntity.class, capturedTarget.accountClass());
+            assertEquals(defendantAccountId, capturedTarget.accountId());
+            assertEquals(businessUnitId, capturedTarget.businessUnitId());
+            assertEquals(AssociatedRecordType.DEFENDANT_ACCOUNTS, capturedTarget.associatedRecordType());
             versionUtils.verify(() -> VersionUtils.createETag(defendantEntity));
         }
     }
@@ -787,6 +800,58 @@ public class OpalDefendantAccountEnforcementServiceTest {
         verify(defendantAccountRepositoryService).findById(defendantAccountId);
         verifyNoInteractions(amendmentService, reportEntryService, notesProxy);
         verifyNoMoreInteractions(defendantAccountRepositoryService);
+    }
+
+    @Test
+    void removeEnforcementHold_whenAccountControlsFail_throwsBeforeMutation() {
+        Long defendantAccountId = 77L;
+        Short businessUnitId = 10;
+        String businessUnitUserId = "BU-USER-1";
+        String ifMatch = "\"7\"";
+
+        RemoveDefendantAccountEnforcementHoldRequest request =
+            RemoveDefendantAccountEnforcementHoldRequest.builder()
+                .reason("remove hold reason")
+                .build();
+
+        DefendantAccountEntity defendantEntity = DefendantAccountEntity.builder()
+            .defendantAccountId(defendantAccountId)
+            .lastEnforcement("NOENF")
+            .versionNumber(7L)
+            .build();
+        UnprocessableException exception = new UnprocessableException("blocked");
+
+        UserState userState = allPermissionsUser();
+
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(defendantAccountRepositoryService.findById(defendantAccountId)).thenReturn(defendantEntity);
+        doThrow(exception).when(defendantAccountControlValidator).validateCanRemoveEnforcementHold(defendantEntity);
+
+        try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
+            versionUtils.when(() -> VersionUtils.verifyIfMatch(
+                defendantEntity,
+                ifMatch,
+                defendantAccountId,
+                "removeEnforcementHold"
+            )).thenAnswer(invocation -> null);
+
+            UnprocessableException result = assertThrows(
+                UnprocessableException.class,
+                () -> service.removeEnforcementHold(
+                    defendantAccountId,
+                    businessUnitId,
+                    businessUnitUserId,
+                    ifMatch,
+                    request
+                )
+            );
+
+            assertEquals(exception, result);
+            verify(defendantAccountControlValidator).validateCanRemoveEnforcementHold(defendantEntity);
+            verifyNoInteractions(amendmentService, reportEntryService, notesProxy);
+            verify(defendantAccountRepositoryService, org.mockito.Mockito.never()).saveAndFlush(defendantEntity);
+            assertEquals("NOENF", defendantEntity.getLastEnforcement());
+        }
     }
 
     @Test
@@ -954,11 +1019,12 @@ public class OpalDefendantAccountEnforcementServiceTest {
         assertEquals(String.valueOf(DEFENDANT_ACCOUNT_ID), response.getDefendantAccountId());
         assertEquals(0, response.getVersion());
         assertEquals(String.valueOf(ENFORCEMENT_ID), response.getEnforcementId());
+        verify(defendantAccountRepositoryService).refresh(ArgumentMatchers.any(DefendantAccountEntity.class));
     }
 
     private void mockAuthorisedUser() {
         UserState userState = mock(UserState.class);
-        when(userState.getDisplayName()).thenReturn(USER_DISPLAY_NAME);
+        when(userState.getUserName()).thenReturn(USER_NAME);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
     }
 

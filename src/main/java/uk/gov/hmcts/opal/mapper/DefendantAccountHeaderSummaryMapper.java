@@ -51,15 +51,26 @@ public interface DefendantAccountHeaderSummaryMapper {
     @Mapping(target = "imposedAmount", source = "imposed")
     @Mapping(target = "arrearsAmount", source = "arrears")
     @Mapping(target = "paidAmount", source = "paid")
+    @Mapping(target = "accountBalance", source = ".")
     PaymentStateSummaryCommon toPaymentStateSummary(DefendantAccountHeaderViewEntity entity);
+
+    default BigDecimal toBalance(DefendantAccountHeaderViewEntity entity) {
+        if (entity.getImposed() == null) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal paidAmount = toZeroIfNull(entity.getPaid());
+        if (entity.getImposed().compareTo(BigDecimal.ZERO) > 0) {
+            return entity.getImposed().subtract(paidAmount);
+        }
+        return entity.getImposed().add(paidAmount);
+    }
 
     default AccountStatusReferenceCommon toAccountStatusReference(DefendantAccountStatus status) {
         if (status == null) {
             return null;
         }
-
         return AccountStatusReferenceCommon.builder()
-            .accountStatusCode(AccountStatusCodeEnum.fromValue(status.getLabel()))
+            .accountStatusCode(AccountStatusCodeEnum.fromValue(status.getCode()))
             .accountStatusDisplayName(status.getDisplayName())
             .build();
     }

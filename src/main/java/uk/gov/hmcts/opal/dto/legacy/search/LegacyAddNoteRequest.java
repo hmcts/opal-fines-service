@@ -7,6 +7,7 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import java.math.BigInteger;
 import lombok.Builder;
 import lombok.Data;
 
@@ -18,15 +19,15 @@ public class LegacyAddNoteRequest {
 
     @NotBlank
     @XmlElement(name = "business_unit_id", required = true)
-    private String businessUnitId;
+    private Short businessUnitId;
 
     @NotBlank
     @XmlElement(name = "business_unit_user_id", required = true)
-    private String businessUnitUserId;
+    private Long businessUnitUserId;
 
     @NotNull
     @XmlElement(name = "version", required = true)
-    private Long version;
+    private BigInteger version;
 
     @NotNull
     @Valid

@@ -11,6 +11,7 @@ import uk.gov.hmcts.opal.dto.history.DefendantTransactionTypeReference;
 import uk.gov.hmcts.opal.dto.history.PaymentMethodReference;
 import uk.gov.hmcts.opal.dto.history.WriteOffTypeReference;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
+import uk.gov.hmcts.opal.entity.PaymentMethod;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
 import uk.gov.hmcts.opal.entity.PaymentMethod;
 import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionStatus;

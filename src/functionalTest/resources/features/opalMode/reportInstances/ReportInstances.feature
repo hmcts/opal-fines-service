@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:report-instances @JIRA-LABEL:authorisation
+@Opal @JIRA-LABEL:report-instances @JIRA-LABEL:authorisation @R1CEnforcementOperationalReporting
 Feature: Report Instances
 
   #    POST :/reports-instances/{id} Test scenarios

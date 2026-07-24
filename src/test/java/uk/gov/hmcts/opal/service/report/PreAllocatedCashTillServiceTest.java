@@ -92,7 +92,7 @@ class PreAllocatedCashTillServiceTest {
         verify(reportInstanceRepository).save(reportInstanceCaptor.capture());
         ReportInstanceEntity savedReportInstance = reportInstanceCaptor.getValue();
         assertThat(savedReportInstance.getReport()).isSameAs(report);
-        assertThat(savedReportInstance.getBusinessUnit()).containsExactly(77);
+        assertThat(savedReportInstance.getBusinessUnit()).containsExactly((short) 77);
         assertThat(savedReportInstance.getRequestedBy()).isEqualTo(USER_ID);
         assertThat(savedReportInstance.getRequestedByName()).isEqualTo(USER_NAME);
         assertThat(savedReportInstance.getRequestedAt()).isEqualTo(REQUESTED_AT);

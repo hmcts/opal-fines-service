@@ -197,7 +197,7 @@ public class OpalDefendantAccountBuilders {
             return null;
         }
         return AccountStatusReference.builder()
-            .accountStatusCode(status.getLabel())
+            .accountStatusCode(status.getCode())
             .accountStatusDisplayName(status.getDisplayName())
             .build();
     }
@@ -207,7 +207,7 @@ public class OpalDefendantAccountBuilders {
             return null;
         }
         return AccountStatusReferenceCommon.builder()
-            .accountStatusCode(AccountStatusCodeEnum.fromValue(status.getLabel()))
+            .accountStatusCode(AccountStatusCodeEnum.fromValue(status.getCode()))
             .accountStatusDisplayName(status.getDisplayName())
             .build();
     }
@@ -348,7 +348,7 @@ public class OpalDefendantAccountBuilders {
             : null;
 
         LJA lja = LJA.builder()
-            .ljaId(null == entity.getLjaId() ? null : Integer.parseInt(entity.getLjaId()))
+            .ljaId(safeParseShort(entity.getLjaId()))
             .ljaName(entity.getLjaName())
             .build();
 
@@ -824,7 +824,7 @@ public class OpalDefendantAccountBuilders {
 
     static LJA buildLja(LocalJusticeAreaEntity entity) {
         return Optional.ofNullable(entity).map(lja -> LJA.builder()
-                .ljaId(Optional.ofNullable(lja.getLocalJusticeAreaId()).map(Short::intValue).orElse(null))
+                .ljaId(lja.getLocalJusticeAreaId())
                 .ljaCode(lja.getLjaCode())
                 .ljaName(Optional.ofNullable(lja.getName()).orElse(lja.getLjaCode()))
                 .build())
@@ -842,7 +842,7 @@ public class OpalDefendantAccountBuilders {
 
     static LocalJusticeAreaDefendantAccount buildLjaDefendantAccount(LocalJusticeAreaEntity entity) {
         return Optional.ofNullable(entity).map(lja -> LocalJusticeAreaDefendantAccount.builder()
-                .ljaId(Optional.ofNullable(lja.getLocalJusticeAreaId()).map(Short::intValue).orElse(null))
+                .ljaId(lja.getLocalJusticeAreaId())
                 .build())
             .orElse(null);
     }
@@ -867,7 +867,7 @@ public class OpalDefendantAccountBuilders {
         return Optional.ofNullable(court)
             .map(c -> CourtReferenceCommon.builder()
                 .courtId(c.getCourtId())
-                .courtCode(c.getCourtCode().intValue())
+                .courtCode(c.getCourtCode())
                 .courtName(c.getName())
                 .build())
             .orElse(null);
@@ -994,11 +994,11 @@ public class OpalDefendantAccountBuilders {
             ? null
             : override.getEnforcementOverrideResult().getEnforcementOverrideResultId();
         Long enforcerId = override.getEnforcer() == null ? null : override.getEnforcer().getEnforcerId();
-        Integer ljaId = override.getLja() == null ? null : override.getLja().getLjaId();
+        Short ljaId = override.getLja() == null ? null : override.getLja().getLjaId();
 
         entity.setEnforcementOverrideResultId(resultId);
         entity.setEnforcementOverrideEnforcerId(enforcerId);
-        entity.setEnforcementOverrideTfoLjaId(ljaId == null ? null : ljaId.shortValue());
+        entity.setEnforcementOverrideTfoLjaId(ljaId);
     }
 
     static Long safeParseLong(String s) {

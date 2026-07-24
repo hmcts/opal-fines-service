@@ -4,7 +4,7 @@ Feature: Results Reference Data
   Background:
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
-  @JIRA-STORY:PO-703 @JIRA-EPIC:PO-304 @JIRA-TEST-KEY:PO-5738
+  @JIRA-STORY:PO-703 @JIRA-EPIC:PO-304 @JIRA-TEST-KEY:PO-5738 @R1CReferenceData
   Scenario: All results are returned when no result id filter is supplied
     When I request results for identifiers ""
     Then 60 results are returned
@@ -37,7 +37,7 @@ Feature: Results Reference Data
       | imposition_creditor         | Any          |
       | imposition_allocation_order | 1            |
 
-  @JIRA-STORY:PO-703 @JIRA-EPIC:PO-304 @JIRA-TEST-KEY:PO-5739
+  @JIRA-STORY:PO-703 @JIRA-EPIC:PO-304 @JIRA-TEST-KEY:PO-5739 @R1CReferenceData
   Scenario: Only requested results are returned when result ids are supplied
     When I request results for identifiers "FO,ABDC"
     Then 2 results are returned
@@ -60,19 +60,27 @@ Feature: Results Reference Data
       | imposition_creditor         |                                         |
       | imposition_allocation_order |                                         |
 
-  @JIRA-STORY:PO-6425 @JIRA-EPIC:PO-1674 @JIRA-TEST-KEY:PO-7869
+  @JIRA-STORY:PO-6425 @JIRA-EPIC:PO-1674 @JIRA-TEST-KEY:PO-7869 @R1B
   Scenario: Result by ID includes employment data requirement flag
     When I request result with identifier "AEO"
     Then the result response contains
       | result_id                | AEO  |
       | requires_employment_data | true |
 
-  @JIRA-STORY:PO-3765 @Ignore @release-1b
+  @JIRA-STORY:PO-2985 @JIRA-EPIC:PO-2630 @R1B
+  Scenario: Result by ID can include Welsh text result parameters
+    When I request result with identifier "SC" including Welsh parameters
+    Then the result parameters contain the following entries in order
+      | name            | type | language_dependent | hint                                          |
+      | paymentterms    | text | true               |                                               |
+      | cy_paymentterms | text | true               | Provide a welsh version for the defendant    |
+
+  @JIRA-STORY:PO-3765 @Ignore @R1B
   Scenario: Result filtering is available when release-1b is enabled
     When I request results for identifiers "NBWT,NAP" using filter "enforcement_override" with value "true"
     Then 1 results are returned
 
-  @JIRA-STORY:PO-3765 @Ignore @release-1b
+  @JIRA-STORY:PO-3765 @Ignore @R1B
   Scenario: Result filtering is rejected when release-1b is disabled
     When I request results using filter "active" with value "true"
     Then the response status code is 404

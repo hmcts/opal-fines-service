@@ -15,7 +15,7 @@ buildscript {
   }
 
   dependencies {
-    classpath("org.flywaydb:flyway-database-postgresql:12.10.0")
+    classpath("org.flywaydb:flyway-database-postgresql:13.0.0")
     // Pin transitive Cucumber artifacts used by the Serenity Gradle plugin to avoid
     // Maven metadata range lookups on CI when Maven Central is rate limiting.
     classpath("io.cucumber:query:${cucumberQueryVersion}")
@@ -31,14 +31,14 @@ plugins {
   id 'com.github.ben-manes.versions' version '0.54.0'
   id 'org.sonarqube' version '7.3.1.8318'
   id 'uk.gov.hmcts.java' version '0.12.70'
-  id 'org.flywaydb.flyway' version '12.10.0'
+  id 'org.flywaydb.flyway' version '13.0.0'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '5.3.9'
-  id "org.openapi.generator" version "7.23.0"
+  id "org.openapi.generator" version "7.24.0"
 }
 
 ext {
   log4JVersion = "2.26.1"
-  serenityVersion = "5.3.10"
+  serenityVersion = "5.3.11"
   cucumberVersion = "7.23.0" // Keep the forced Cucumber version stable while aligning Serenity with the Gradle plugin
 }
 
@@ -140,23 +140,17 @@ def logPublishedHtmlReport = { String label, String reportDirectory ->
 }
 
 def syncFunctionalArtifacts = { String reportLabel, String rawReportDirectory, String outputDirectory, String cucumberJsonFileName ->
-  delete(rawReportDirectory)
   delete("${outputDirectory}/report")
+  delete("${outputDirectory}/zephyr")
 
-  if (file("${rootDir}/target/site/serenity").exists()) {
+  if (file(rawReportDirectory).exists()) {
     copy {
-      from("${rootDir}/target/site/serenity")
-      into(rawReportDirectory)
-    }
-    copy {
-      from("${rootDir}/target/site/serenity")
+      from(rawReportDirectory)
       into("${outputDirectory}/report")
     }
   }
 
   if (cucumberJsonFileName != null) {
-    delete("${outputDirectory}/zephyr/${cucumberJsonFileName}")
-
     def cucumberJsonFile = file("${rootDir}/target/zephyr-reports/${cucumberJsonFileName}")
     if (cucumberJsonFile.exists()) {
       copy {
@@ -250,7 +244,11 @@ openApiGenerate {
   apiPackage = "uk.gov.hmcts.opal.generated.".toString() + "http.api"
   modelPackage = "uk.gov.hmcts.opal.generated.".toString() + "model"
   importMappings = [
-    Nullable: "org.jspecify.annotations.Nullable"
+    Nullable: "org.jspecify.annotations.Nullable",
+    Short: "java.lang.Short"
+  ]
+  typeMappings = [
+    "integer+int16": "short"
   ]
   // Point to your customized mustache templates
   templateDir = "$rootDir/openapi/templates".toString()
@@ -338,9 +336,17 @@ tasks.register('functionalOpal', Test) {
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal"))
   testLogging.showStandardStreams = true
   environment("IS_LEGACY_MODE", "false")
+  systemProperty 'cucumber.plugin',
+    "net.serenitybdd.cucumber.core.plugin.SerenityReporterParallel,pretty,json:${rootDir}/target/zephyr-reports/cucumber-opal.json,timeline:${rootDir}/target/test-results/timeline"
   include '**/OpalTestRunner.class'
 
-  finalizedBy 'copyOpalCucumberJson'
+  finalizedBy 'copyOpalCucumberJson', 'mergeFunctionalResults', 'aggregate', 'copyFunctionalReport'
+}
+
+tasks.register('copyOpalCucumberJson', Copy) {
+  from("${rootDir}/target/zephyr-reports/cucumber-opal.json")
+  into("${rootDir}/functional-output/zephyr")
+  outputs.upToDateWhen { false }
 }
 
 tasks.register('functionalOpalTags', Test) {
@@ -352,6 +358,8 @@ tasks.register('functionalOpalTags', Test) {
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal-tags"))
   testLogging.showStandardStreams = true
   environment("IS_LEGACY_MODE", "false")
+  systemProperty 'cucumber.plugin',
+    "net.serenitybdd.cucumber.core.plugin.SerenityReporterParallel,pretty,json:${rootDir}/target/zephyr-reports/cucumber-opal-tags.json,timeline:${rootDir}/target/test-results/timeline"
 
   include '**/OpalTaggedTestRunner.class'
 
@@ -362,14 +370,103 @@ tasks.register('functionalOpalTags', Test) {
 
     if (cucumberTags == null || cucumberTags.toString().trim().isEmpty()) {
       throw new GradleException(
-        "Set TAGS or -Ptags when running functionalOpalTags, for example TAGS='@FeatureToggle and @R1BOff'"
+        "Set TAGS or -Ptags when running functionalOpalTags, for example TAGS='@R1BOff'"
       )
     }
 
     systemProperty 'cucumber.filter.tags', cucumberTags.toString()
   }
 
-  finalizedBy 'copyOpalTagsCucumberJson'
+  finalizedBy 'copyOpalTagsCucumberJson', 'mergeFunctionalOpalTagsResults', 'aggregate', 'copyDemoFunctionalReport',
+    'packageTaggedDemoFunctionalOutput'
+}
+
+tasks.register('functionalOpalTagsR1AOnly', Test) {
+  description = "Runs the demo R1A-only tagged Opal functional tests"
+  group = "Verification"
+  testClassesDirs = sourceSets.functionalTest.output.classesDirs
+  classpath = sourceSets.functionalTest.runtimeClasspath
+  outputs.upToDateWhen { false }
+  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal-tags-r1a-only"))
+  testLogging.showStandardStreams = true
+  environment("IS_LEGACY_MODE", "false")
+  systemProperty 'cucumber.plugin',
+    "net.serenitybdd.cucumber.core.plugin.SerenityReporterParallel,pretty,json:${rootDir}/target/zephyr-reports/cucumber-opal-tags.json,timeline:${rootDir}/target/test-results/timeline"
+
+  include '**/OpalTaggedTestRunner.class'
+
+  doFirst {
+    systemProperty 'cucumber.filter.tags', '@R1A and not @Smoke and not @Ignore'
+  }
+
+  finalizedBy 'copyR1AOnlyDemoCucumberJson', 'mergeFunctionalOpalTagsR1AOnlyResults', 'aggregate', 'copyR1AOnlyDemoFunctionalReport'
+}
+
+tasks.register('functionalOpalTagsR1AAndR1BOnly', Test) {
+  description = "Runs the demo R1A-and-R1B-only tagged Opal functional tests"
+  group = "Verification"
+  testClassesDirs = sourceSets.functionalTest.output.classesDirs
+  classpath = sourceSets.functionalTest.runtimeClasspath
+  outputs.upToDateWhen { false }
+  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal-tags-r1a-r1b-only"))
+  testLogging.showStandardStreams = true
+  environment("IS_LEGACY_MODE", "false")
+  systemProperty 'cucumber.plugin',
+    "net.serenitybdd.cucumber.core.plugin.SerenityReporterParallel,pretty,json:${rootDir}/target/zephyr-reports/cucumber-opal-tags.json,timeline:${rootDir}/target/test-results/timeline"
+
+  include '**/OpalTaggedTestRunner.class'
+
+  doFirst {
+    systemProperty 'cucumber.filter.tags', '(@R1A or @R1B) and not @Ignore'
+  }
+
+  finalizedBy 'copyR1AAndR1BDemoCucumberJson', 'mergeFunctionalOpalTagsR1AAndR1BOnlyResults', 'aggregate', 'copyR1AAndR1BDemoFunctionalReport'
+}
+
+tasks.register('functionalOpalTagsAllFlagsOff', Test) {
+  description = "Runs the demo all-flags-off tagged Opal functional tests"
+  group = "Verification"
+  testClassesDirs = sourceSets.functionalTest.output.classesDirs
+  classpath = sourceSets.functionalTest.runtimeClasspath
+  outputs.upToDateWhen { false }
+  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal-tags-all-flags-off"))
+  testLogging.showStandardStreams = true
+  environment("IS_LEGACY_MODE", "false")
+  systemProperty 'cucumber.plugin',
+    "net.serenitybdd.cucumber.core.plugin.SerenityReporterParallel,pretty,json:${rootDir}/target/zephyr-reports/cucumber-opal-tags.json,timeline:${rootDir}/target/test-results/timeline"
+
+  include '**/OpalTaggedTestRunner.class'
+
+  doFirst {
+    systemProperty 'cucumber.filter.tags',
+      '(@R1AOff or @R1BOff or @R1COff or @R1CWriteOffOff or @R1CEnforcementOperationalReportingOff or @R1CAdministrationOff or @R1CFinancialMovementsOff or @R1CAutoEnforcementOff or @R1CDataRetentionOff or @R1CAutoEnforcementConfigOff or @R1CRmFinancialMovementsOff or @R1CRmFinancialChecksOff or @R1CRmSuspenseOff or @R1CRmPaymentOff or @R1CRmAdminReportsOff or @R1CRmAccountActionsOff or @R1CChecksOff or @R1CSuspenseOff or @R1CPaymentOff or @R1CR1ATidyUpOff or @R1CReferenceDataOff or @R1CBankingInterfacesOff or @R1CCppEnforcementOff or @R1CCppOff or @R1CPrintingOff) and not @Ignore'
+  }
+
+  finalizedBy 'copyAllFlagsOffDemoCucumberJson', 'mergeFunctionalOpalTagsAllFlagsOffResults', 'aggregate', 'copyAllFlagsOffDemoFunctionalReport'
+}
+
+tasks.register('copyOpalTagsCucumberJson', Copy) {
+  from("${rootDir}/target/zephyr-reports/cucumber-opal-tags.json")
+  into("${rootDir}/functional-output-demo/zephyr")
+  outputs.upToDateWhen { false }
+}
+
+tasks.register('copyR1AOnlyDemoCucumberJson', Copy) {
+  from("${rootDir}/target/zephyr-reports/cucumber-opal-tags.json")
+  into("${rootDir}/functional-output-r1a-only-demo/zephyr")
+  outputs.upToDateWhen { false }
+}
+
+tasks.register('copyR1AAndR1BDemoCucumberJson', Copy) {
+  from("${rootDir}/target/zephyr-reports/cucumber-opal-tags.json")
+  into("${rootDir}/functional-output-r1a-r1b-only-demo/zephyr")
+  outputs.upToDateWhen { false }
+}
+
+tasks.register('copyAllFlagsOffDemoCucumberJson', Copy) {
+  from("${rootDir}/target/zephyr-reports/cucumber-opal-tags.json")
+  into("${rootDir}/functional-output-all-flags-off-demo/zephyr")
+  outputs.upToDateWhen { false }
 }
 
 tasks.register('functionalLegacy', Test) {
@@ -381,52 +478,70 @@ tasks.register('functionalLegacy', Test) {
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/legacy"))
   testLogging.showStandardStreams = true
   environment("IS_LEGACY_MODE", "true")
+  systemProperty 'cucumber.plugin',
+    "net.serenitybdd.cucumber.core.plugin.SerenityReporterParallel,pretty,json:${rootDir}/target/zephyr-reports/cucumber-legacy.json,timeline:${rootDir}/target/test-results/timeline"
 
   include '**/LegacyTestRunner.class'
   finalizedBy 'copyLegacyCucumberJson'
 }
+
+tasks.register('copyLegacyCucumberJson', Copy) {
+  from("${rootDir}/target/zephyr-reports/cucumber-legacy.json")
+  into("${rootDir}/functional-output-legacy/zephyr")
+  outputs.upToDateWhen { false }
+}
+
 tasks.register('copyFunctionalReport', Copy) {
   dependsOn 'aggregate'
   from("${rootDir}/target/site/serenity")
-  into("${rootDir}/functional-test-report")
+  into("${rootDir}/functional-output/report")
   doLast {
-    logPublishedHtmlReport("Functional Test Report", "${rootDir}/functional-test-report")
+    logPublishedHtmlReport("Functional Test Report", "${rootDir}/functional-output/report")
   }
 }
 tasks.register('copyDemoFunctionalReport', Copy) {
   dependsOn 'aggregate'
   from("${rootDir}/target/site/serenity")
-  into("${rootDir}/functional-test-report-demo")
+  into("${rootDir}/functional-output-demo/report")
   doLast {
-    logPublishedHtmlReport("Demo Functional Test Report", "${rootDir}/functional-test-report-demo")
+    logPublishedHtmlReport("Demo Functional Test Report", "${rootDir}/functional-output-demo/report")
   }
 }
-tasks.register('packageFunctionalOutput', Copy) {
-  dependsOn 'copyFunctionalReport', 'copyOpalCucumberJson'
-  into("${rootDir}/functional-output")
-  from("${rootDir}/functional-test-report") {
-    into("report")
+
+tasks.register('copyR1AOnlyDemoFunctionalReport', Copy) {
+  dependsOn 'aggregate'
+  from("${rootDir}/target/site/serenity")
+  into("${rootDir}/functional-output-r1a-only-demo/report")
+  doLast {
+    logPublishedHtmlReport("Demo R1A Functional Test Report", "${rootDir}/functional-output-r1a-only-demo/report")
   }
 }
-tasks.register('packageDemoFunctionalOutput', Copy) {
-  dependsOn 'copyDemoFunctionalReport', 'copyOpalTagsCucumberJson'
-  into("${rootDir}/functional-output-demo")
-  from("${rootDir}/functional-test-report-demo") {
-    into("report")
+
+tasks.register('copyR1AAndR1BDemoFunctionalReport', Copy) {
+  dependsOn 'aggregate'
+  from("${rootDir}/target/site/serenity")
+  into("${rootDir}/functional-output-r1a-r1b-only-demo/report")
+  doLast {
+    logPublishedHtmlReport("Demo R1A and R1B Functional Test Report", "${rootDir}/functional-output-r1a-r1b-only-demo/report")
+  }
+}
+
+tasks.register('copyAllFlagsOffDemoFunctionalReport', Copy) {
+  dependsOn 'aggregate'
+  from("${rootDir}/target/site/serenity")
+  into("${rootDir}/functional-output-all-flags-off-demo/report")
+  doLast {
+    logPublishedHtmlReport("Demo All Flags Off Functional Test Report", "${rootDir}/functional-output-all-flags-off-demo/report")
   }
 }
 tasks.register('packageTaggedDemoFunctionalOutput', Copy) {
   dependsOn 'copyDemoFunctionalReport', 'copyOpalTagsCucumberJson'
-  into("${rootDir}/functional-output-demo")
-  from("${rootDir}/functional-test-report-demo") {
-    into("report")
-  }
 }
 tasks.register('syncFunctionalArtifactsFromExistingResults') {
   doLast {
     syncFunctionalArtifacts(
       'Functional Test Report',
-      "${rootDir}/functional-test-report",
+      "${rootDir}/functional-output/report",
       "${rootDir}/functional-output",
       'cucumber-opal.json'
     )
@@ -436,9 +551,49 @@ tasks.register('syncTaggedFunctionalArtifactsFromExistingResults') {
   doLast {
     syncFunctionalArtifacts(
       'Demo Functional Test Report',
-      "${rootDir}/functional-test-report-demo",
+      "${rootDir}/functional-output-demo/report",
       "${rootDir}/functional-output-demo",
       'cucumber-opal-tags.json'
+    )
+  }
+}
+tasks.register('syncR1AOnlyTaggedFunctionalArtifactsFromExistingResults') {
+  doLast {
+    syncFunctionalArtifacts(
+      'Demo R1A Functional Test Report',
+      "${rootDir}/functional-output-r1a-only-demo/report",
+      "${rootDir}/functional-output-r1a-only-demo",
+      'cucumber-opal-tags.json'
+    )
+  }
+}
+tasks.register('syncR1AAndR1BTaggedFunctionalArtifactsFromExistingResults') {
+  doLast {
+    syncFunctionalArtifacts(
+      'Demo R1A and R1B Functional Test Report',
+      "${rootDir}/functional-output-r1a-r1b-only-demo/report",
+      "${rootDir}/functional-output-r1a-r1b-only-demo",
+      'cucumber-opal-tags.json'
+    )
+  }
+}
+tasks.register('syncAllFlagsOffTaggedFunctionalArtifactsFromExistingResults') {
+  doLast {
+    syncFunctionalArtifacts(
+      'Demo All Flags Off Functional Test Report',
+      "${rootDir}/functional-output-all-flags-off-demo/report",
+      "${rootDir}/functional-output-all-flags-off-demo",
+      'cucumber-opal-tags.json'
+    )
+  }
+}
+tasks.register('syncSmokeArtifactsFromExistingResults') {
+  doLast {
+    syncFunctionalArtifacts(
+      'Smoke Test Report',
+      "${rootDir}/smoke-test-report",
+      "${rootDir}/smoke-output",
+      'cucumber-smoke.json'
     )
   }
 }
@@ -455,21 +610,33 @@ tasks.register('packageIntegrationOutput', Copy) {
   }
 }
 tasks.register('mergeFunctionalResults', Copy) {
-  dependsOn 'functionalOpal'
   from layout.buildDirectory.dir("test-results/functional/opal")
   into layout.buildDirectory.dir("test-results/functional")
   include '*.xml'
 }
 tasks.register('mergeFunctionalWithTagsResults', Copy) {
-  dependsOn 'functionalOpal', 'functionalOpalTags'
   from layout.buildDirectory.dir("test-results/functional/opal")
   from layout.buildDirectory.dir("test-results/functional/opal-tags")
   into layout.buildDirectory.dir("test-results/functional")
   include '*.xml'
 }
 tasks.register('mergeFunctionalOpalTagsResults', Copy) {
-  dependsOn 'functionalOpalTags'
   from layout.buildDirectory.dir("test-results/functional/opal-tags")
+  into layout.buildDirectory.dir("test-results/functional")
+  include '*.xml'
+}
+tasks.register('mergeFunctionalOpalTagsR1AOnlyResults', Copy) {
+  from layout.buildDirectory.dir("test-results/functional/opal-tags-r1a-only")
+  into layout.buildDirectory.dir("test-results/functional")
+  include '*.xml'
+}
+tasks.register('mergeFunctionalOpalTagsR1AAndR1BOnlyResults', Copy) {
+  from layout.buildDirectory.dir("test-results/functional/opal-tags-r1a-r1b-only")
+  into layout.buildDirectory.dir("test-results/functional")
+  include '*.xml'
+}
+tasks.register('mergeFunctionalOpalTagsAllFlagsOffResults', Copy) {
+  from layout.buildDirectory.dir("test-results/functional/opal-tags-all-flags-off")
   into layout.buildDirectory.dir("test-results/functional")
   include '*.xml'
 }
@@ -481,7 +648,6 @@ tasks.register('functional') {
   tasks.mergeFunctionalResults.mustRunAfter functionalOpal
   tasks.aggregate.mustRunAfter functionalOpal
   tasks.copyFunctionalReport.mustRunAfter aggregate
-  finalizedBy 'packageFunctionalOutput'
 }
 
 tasks.register('functionalWithTags') {
@@ -505,9 +671,11 @@ tasks.register('smokeOpal', Test) {
   classpath = sourceSets.functionalTest.runtimeClasspath
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/smoke"))
   testLogging.showStandardStreams = true
+  systemProperty 'cucumber.plugin',
+    "net.serenitybdd.cucumber.core.plugin.SerenityReporterParallel,pretty,json:${rootDir}/target/zephyr-reports/cucumber-smoke.json,timeline:${rootDir}/target/test-results/timeline"
 
   include '**/SmokeTestRunner.class'
-  finalizedBy 'copySmokeCucumberJson'
+  finalizedBy 'copySmokeCucumberJson', 'aggregate', 'copySmokeReport', 'packageSmokeOutput'
 
 }
 tasks.register('copySmokeReport', Copy) {
@@ -519,7 +687,7 @@ tasks.register('copySmokeReport', Copy) {
   }
 }
 tasks.register('copySmokeCucumberJson', Copy) {
-  from("target/cucumber.json")
+  from("${rootDir}/target/zephyr-reports/cucumber-smoke.json")
   into("${rootDir}/smoke-output/zephyr")
   rename { "cucumber-smoke.json" }
   outputs.upToDateWhen { false }
@@ -558,20 +726,34 @@ tasks.named('aggregate') {
     tasks.named('functionalOpal'),
     tasks.named('functionalLegacy'),
     tasks.named('functionalOpalTags'),
+    tasks.named('functionalOpalTagsR1AOnly'),
+    tasks.named('functionalOpalTagsR1AAndR1BOnly'),
+    tasks.named('functionalOpalTagsAllFlagsOff'),
     tasks.named('smokeOpal'),
     tasks.named('mergeFunctionalResults'),
     tasks.named('mergeFunctionalWithTagsResults'),
-    tasks.named('mergeFunctionalOpalTagsResults')
+    tasks.named('mergeFunctionalOpalTagsResults'),
+    tasks.named('mergeFunctionalOpalTagsR1AOnlyResults'),
+    tasks.named('mergeFunctionalOpalTagsR1AAndR1BOnlyResults'),
+    tasks.named('mergeFunctionalOpalTagsAllFlagsOffResults')
   )
 }
 
 tasks.configureEach {
-  if (name in ['copyFunctionalReport', 'copyDemoFunctionalReport', 'copySmokeReport']) {
+  if (name in ['copyFunctionalReport', 'copyDemoFunctionalReport', 'copyR1AOnlyDemoFunctionalReport',
+               'copyR1AAndR1BDemoFunctionalReport',
+               'copyAllFlagsOffDemoFunctionalReport', 'copySmokeReport']) {
     mustRunAfter tasks.named('aggregate')
   } else if (name == 'copyOpalCucumberJson') {
     mustRunAfter tasks.named('functionalOpal')
   } else if (name == 'copyOpalTagsCucumberJson') {
     mustRunAfter tasks.named('functionalOpalTags')
+  } else if (name == 'copyR1AOnlyDemoCucumberJson') {
+    mustRunAfter tasks.named('functionalOpalTagsR1AOnly')
+  } else if (name == 'copyR1AAndR1BDemoCucumberJson') {
+    mustRunAfter tasks.named('functionalOpalTagsR1AAndR1BOnly')
+  } else if (name == 'copyAllFlagsOffDemoCucumberJson') {
+    mustRunAfter tasks.named('functionalOpalTagsAllFlagsOff')
   } else if (name == 'copyLegacyCucumberJson') {
     mustRunAfter tasks.named('functionalLegacy')
   } else if (name == 'copySmokeCucumberJson') {
@@ -627,7 +809,7 @@ jacocoTestCoverageVerification.dependsOn jacocoTestReport
 sonarqube {
   properties {
     property "sonar.projectName", "HMCTS :: opal-fines-service"
-    property "sonar.projectKey", "uk.gov.hmcts:opal-fines-service"
+    property "sonar.projectKey", "uk.gov.hmcts:opal-fines-service-v2"
     property "sonar.gradle.skipCompile", "true"
     property "sonar.exclusions", coverageExclusions.join(', ')
     property 'sonar.coverage.exclusions', "**/entity/**,**/model/*,**/exception/*,**/config/**,**/repository/jpa/*,**/opal/dto/*"
@@ -651,7 +833,8 @@ dependencyManagement {
   imports {
     mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.1.2'
     mavenBom "org.springframework.integration:spring-integration-bom:7.1.0"
-    mavenBom "io.netty:netty-bom:4.2.15.Final"
+    mavenBom "io.netty:netty-bom:4.2.16.Final"
+    mavenBom "com.fasterxml.jackson:jackson-bom:2.22.1"
   }
 
   dependencies {
@@ -680,16 +863,16 @@ repositories {
 
 ext['snakeyaml.version'] = '2.0'
 ext['tomcat.version'] = '10.1.42'
-ext['postgresql.version'] = '42.7.11'
+ext['postgresql.version'] = '42.7.13'
 
 
 dependencies {
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.3.19'
+  implementation 'uk.gov.hmcts:opal-common-lib:0.3.26'
 
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.2.1'
   testImplementation 'uk.gov.hmcts:zephyr-automation:1.2.1'
-  testImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.14.0'
+  testImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.15.0'
 
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.45"
   openapiImplementation "io.swagger.core.v3:swagger-models:2.2.52"
@@ -735,8 +918,8 @@ dependencies {
   implementation 'com.jayway.jsonpath:json-path:3.0.0'
 
   implementation 'org.openapitools:jackson-databind-nullable:0.2.10'
-  implementation 'org.flywaydb:flyway-core:12.10.0'
-  runtimeOnly 'org.flywaydb:flyway-database-postgresql:12.10.0', {
+  implementation 'org.flywaydb:flyway-core:13.0.0'
+  runtimeOnly 'org.flywaydb:flyway-database-postgresql:13.0.0', {
     exclude group: 'org.flywaydb', module: 'flyway-core'
   }
   implementation 'org.postgresql:postgresql'
@@ -744,7 +927,7 @@ dependencies {
   implementation 'tools.jackson.core:jackson-databind'
   compileOnly 'org.projectlombok:lombok:1.18.46'
   annotationProcessor 'org.projectlombok:lombok:1.18.46'
-  annotationProcessor 'org.hibernate.orm:hibernate-processor:7.4.4.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-processor:7.4.5.Final'
 
   implementation('uk.gov.hmcts:spring-exception-handler:1.0.2') {
     exclude group: 'com.microsoft.azure', module: 'applicationinsights-spring-boot-starter'
@@ -767,7 +950,7 @@ dependencies {
   implementation 'org.apache.xmlgraphics:fop-core:2.11'
   implementation 'org.apache.xmlgraphics:fop-events:2.11'
   implementation 'org.apache.xmlgraphics:xmlgraphics-commons:2.11'
-  implementation 'org.apache.pdfbox:pdfbox:3.0.7'
+  implementation 'org.apache.pdfbox:pdfbox:3.0.8'
   implementation 'net.sf.saxon:Saxon-HE:13.0'
 
   testImplementation 'com.github.java-json-tools:json-schema-validator:2.2.14'
@@ -777,7 +960,7 @@ dependencies {
     }
   }
 
-  testImplementation 'org.wiremock.integrations:wiremock-spring-boot:4.2.1'
+  testImplementation 'org.wiremock.integrations:wiremock-spring-boot:4.2.2'
 
   testImplementation 'org.springframework.boot:spring-boot-devtools'
   testImplementation 'org.springframework.boot:spring-boot-test'
@@ -788,16 +971,16 @@ dependencies {
   testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
   testImplementation 'org.testcontainers:testcontainers-postgresql'
   testImplementation 'com.redis:testcontainers-redis'
-  testImplementation 'io.rest-assured:rest-assured:6.0.0'
-  integrationTestImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.14.0'
+  testImplementation 'io.rest-assured:rest-assured:6.0.1'
+  integrationTestImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.15.0'
   testImplementation 'junit:junit:4.13.2'
-  testImplementation(platform('org.junit:junit-bom:6.1.1'))
+  testImplementation(platform('org.junit:junit-bom:6.1.2'))
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
   testImplementation 'org.springframework.boot:spring-boot-starter-test', {
     exclude group: 'junit', module: 'junit'
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
-  testImplementation 'org.junit.platform:junit-platform-suite:6.1.1'
+  testImplementation 'org.junit.platform:junit-platform-suite:6.1.2'
   testImplementation "io.cucumber:cucumber-junit-platform-engine:${cucumberVersion}"
 
   testImplementation "net.serenity-bdd:serenity-core:${serenityVersion}"
@@ -815,8 +998,8 @@ dependencies {
 
 
   //Added to override dependency version to resolve vulnerability
-  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.23'
-  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.23'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.24'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.24'
   implementation 'org.apache.commons:commons-lang3:3.20.0'
 
 

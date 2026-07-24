@@ -9,6 +9,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectBadRequest;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectBadRequestWithoutStatus;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -22,6 +24,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
@@ -75,7 +78,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
               "originator_name": "Police Force",
               "originator_id": 12345,
               "originator_type": "NEW",
-              "enforcement_court_id": 101,
+              "enforcement_court_id": 260000000048,
               "payment_card_request": true,
               "account_sentence_date": "2023-12-01",
               "defendant": {
@@ -108,7 +111,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
               "originator_name": "Police Force",
               "originator_id": 12345,
               "originator_type": "NEW",
-              "enforcement_court_id": 101,
+              "enforcement_court_id": 260000000048,
               "payment_card_request": true,
               "account_sentence_date": "2023-12-01",
               "defendant": {
@@ -312,9 +315,10 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 .content(request))
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.title").value("Bad Request"))
-            .andExpect(jsonPath("$.detail").value("The request does not conform to the required JSON schema"))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
+            .andExpect(expectBadRequestWithoutStatus(
+                "The request does not conform to the required JSON schema",
+                "https://hmcts.gov.uk/problems/json-schema-validation"
+            ));
     }
 
     @Test
@@ -331,9 +335,47 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 .content(request))
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.title").value("Bad Request"))
-            .andExpect(jsonPath("$.detail").value("The request does not conform to the required JSON schema"))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
+            .andExpect(expectBadRequestWithoutStatus(
+                "The request does not conform to the required JSON schema",
+                "https://hmcts.gov.uk/problems/json-schema-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("Create draft account - Should return 400 when reference validation fails and leave data unchanged")
+    @JiraStory("PO-973")
+    @JiraEpic("PO-2219")
+    void shouldReturn400WhenReferenceValidationFailsAndLeaveExistingDataUnchanged() throws Exception {
+        DraftAccountEntity before = getDraftAccount(5L);
+        long countBefore = draftAccountRepository.count();
+
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(invalidReferenceCreateRequestBody()))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedReferenceValidationErrorMessage(),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+
+        DraftAccountEntity after = getDraftAccount(5L);
+
+        assertEquals(countBefore, draftAccountRepository.count());
+        assertEquals(before.getAccount(), after.getAccount());
+        assertEquals(before.getAccountStatus(), after.getAccountStatus());
+        assertEquals(before.getVersionNumber(), after.getVersionNumber());
+        assertEquals(before.getAccountId(), after.getAccountId());
+        assertEquals(before.getAccountNumber(), after.getAccountNumber());
+        assertEquals(before.getStatusMessage(), after.getStatusMessage());
+        assertEquals(before.getSubmittedBy(), after.getSubmittedBy());
+        assertEquals(before.getSubmittedByName(), after.getSubmittedByName());
+        assertEquals(before.getValidatedBy(), after.getValidatedBy());
+        assertEquals(before.getValidatedByName(), after.getValidatedByName());
+        assertEquals(before.getAccountSnapshot(), after.getAccountSnapshot());
+        assertEquals(before.getTimelineData(), after.getTimelineData());
     }
 
     @Test
@@ -357,10 +399,10 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
 
         resultActions.andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.title").value("Bad Request"))
-            .andExpect(jsonPath("$.detail").value("The request does not conform to the required JSON schema"))
-            .andExpect(jsonPath("$.status").value(400))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
+            .andExpect(expectBadRequest(
+                "The request does not conform to the required JSON schema",
+                "https://hmcts.gov.uk/problems/json-schema-validation"
+            ));
     }
 
     @Test
@@ -573,7 +615,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 "originator_name": "Police Force",
                 "originator_id": 12345,
                 "originator_type": "NEW",
-                "enforcement_court_id": 101,
+                "enforcement_court_id": 260000000048,
                 "collection_order_made": true,
                 "collection_order_made_today": false,
                 "payment_card_request": true,
@@ -609,14 +651,14 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 "offences": [
                   {
                     "date_of_sentence": "2023-11-15",
-                    "imposing_court_id": 202,
-                    "offence_id": 1234,
+                    "imposing_court_id": 260000000048,
+                    "offence_id": 35014,
                     "impositions": [
                       {
-                        "result_id": "1",
+                        "result_id": "FO",
                         "amount_imposed": 500.00,
                         "amount_paid": 200.00,
-                        "major_creditor_id": 999
+                        "major_creditor_id": null
                       }
                     ]
                   }
@@ -641,6 +683,26 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
               "account_status": "Submitted",
               "version": 0
             }""";
+    }
+
+    private static String invalidReferenceCreateRequestBody() {
+        return validCreateRequestBody()
+            .replace("\"enforcement_court_id\": 260000000048", "\"enforcement_court_id\": 999999")
+            .replace("\"offence_id\": 35014", "\"offence_id\": 999998")
+            .replace("\"imposing_court_id\": 260000000048", "\"imposing_court_id\": 999997")
+            .replace("\"result_id\": \"FO\"", "\"result_id\": \"NOT-A-RESULT\"")
+            .replace("\"major_creditor_id\": null", "\"major_creditor_id\": 999996");
+    }
+
+    private static String expectedReferenceValidationErrorMessage() {
+        return """
+            Draft account reference validation failed with 5 error(s):
+             - $.enforcement_court_id: court id 999999 does not exist
+             - $.offences[0].offence_id: offence id 999998 does not exist
+             - $.offences[0].imposing_court_id: court id 999997 does not exist
+             - $.offences[0].impositions[0].result_id: result id NOT-A-RESULT does not exist
+             - $.offences[0].impositions[0].major_creditor_id: major creditor id 999996 does not exist
+            """.stripIndent().stripTrailing();
     }
 
     private static String invalidCreateRequestBody() {
@@ -678,7 +740,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 "originator_id": 123,
                 "originator_type": "NEW",
                 "prosecutor_case_reference": null,
-                "enforcement_court_id": 456,
+                "enforcement_court_id": 260000000048,
                 "collection_order_made": null,
                 "collection_order_made_today": null,
                 "collection_order_date": null,
@@ -722,11 +784,11 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 "offences": [
                   {
                     "date_of_sentence": "2025-10-01",
-                    "imposing_court_id": 789,
-                    "offence_id": 10,
+                    "imposing_court_id": 260000000048,
+                    "offence_id": 35014,
                     "impositions": [
                       {
-                        "result_id": "FINE",
+                        "result_id": "FO",
                         "amount_imposed": 100.00,
                         "amount_paid": 0.00,
                         "major_creditor_id": null,

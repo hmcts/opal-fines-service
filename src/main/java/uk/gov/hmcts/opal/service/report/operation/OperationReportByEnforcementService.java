@@ -17,23 +17,20 @@ import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
-import uk.gov.hmcts.opal.service.report.operation.mapper.CommonResultMapper;
-import uk.gov.hmcts.opal.service.report.operation.mapper.DetailedResultMapper;
-import uk.gov.hmcts.opal.service.report.operation.mapper.SummaryResultMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.jpa.EnforcementReportSpecs;
 import uk.gov.hmcts.opal.repository.jpa.OperationReportSpecs;
 import uk.gov.hmcts.opal.service.report.FileType;
-import uk.gov.hmcts.opal.service.report.ReportDataInterface;
 import uk.gov.hmcts.opal.service.report.ReportEnforcementMode;
 import uk.gov.hmcts.opal.service.report.ReportId;
 import uk.gov.hmcts.opal.service.report.ReportInterface;
-import uk.gov.hmcts.opal.service.report.ReportType;
+import uk.gov.hmcts.opal.service.report.operation.mapper.DetailedResultMapper;
+import uk.gov.hmcts.opal.service.report.operation.mapper.SummaryResultMapper;
 
 @Service
 @RequiredArgsConstructor
-public class OperationReportByEnforcementService implements ReportInterface<ReportDataInterface> {
+public class OperationReportByEnforcementService implements ReportInterface<OperationReportDataInterface> {
 
     private final DefendantAccountRepository defendantAccountRepository;
     private final EnforcementRepository enforcementRepository;
@@ -48,16 +45,12 @@ public class OperationReportByEnforcementService implements ReportInterface<Repo
     }
 
     @Override
-    public ReportDataInterface generateReportData(ReportInstanceEntity reportInstance) {
+    public OperationReportDataInterface generateReportData(ReportInstanceEntity reportInstance) {
 
         OperationReportByEnforcementFiltersDto filters = readFilters(reportInstance);
         validator.validate(filters);
         Specification<DefendantAccountEntity> accountSpec = OperationReportSpecs.accountFiltersSpec(filters);
         List<DefendantAccountEntity> accounts;
-        CommonResultMapper resultMapper =
-            filters.getReportType() == SUMMARY
-                ? summaryResultMapper
-                : detailedResultMapper;
 
         if (isNotFilteringOnEnforcementData(filters)) {
             accounts = defendantAccountRepository.findAll(accountSpec, Sort.by(ACCOUNT_NUMBER));
@@ -73,14 +66,17 @@ public class OperationReportByEnforcementService implements ReportInterface<Repo
                 accountSpec.and(OperationReportSpecs.defendantAccountIdsIn(accountIds)),
                 Sort.by(DefendantAccountEntity_.ACCOUNT_NUMBER));
         }
-        return resultMapper.map(accounts);
+        return filters.getReportType() == SUMMARY
+            ? summaryResultMapper.map(accounts)
+            : detailedResultMapper.map(accounts);
     }
 
     @Override
-    public Class<? extends ReportDataInterface> getStoredReportDataClass(ReportInstanceEntity reportInstance) {
+    public Class<? extends OperationReportDataInterface> getStoredReportDataClass(
+        ReportInstanceEntity reportInstance) {
         OperationReportByEnforcementFiltersDto filters = readFilters(reportInstance);
-        return filters.getReportType() == ReportType.SUMMARY
-            ? OperationByEnforcementSummaryReport.class
+        return filters.getReportType() == SUMMARY
+            ? OperationSummaryReport.class
             : OperationDetailedReport.class;
     }
 
@@ -104,7 +100,8 @@ public class OperationReportByEnforcementService implements ReportInterface<Repo
     }
 
     @Override
-    public byte[] convertReportDataToFileType(ReportInstanceEntity reportInstance, ReportDataInterface reportData,
+    public byte[] convertReportDataToFileType(ReportInstanceEntity reportInstance,
+        OperationReportDataInterface reportData,
         FileType fileType) {
         throw new UnsupportedOperationException();
     }

@@ -74,11 +74,11 @@ class BusinessUnitSummaryMapperTest {
         assertNotNull(businessUnitSummaryCommonList);
         assertEquals(2, businessUnitSummaryCommonList.size());
 
-        assertEquals("13", businessUnitSummaryCommonList.getFirst().getBusinessUnitId());
+        assertEquals((short) 13, businessUnitSummaryCommonList.getFirst().getBusinessUnitId());
         assertEquals("BU_13", businessUnitSummaryCommonList.getFirst().getBusinessUnitName());
         assertEquals("Y", businessUnitSummaryCommonList.getFirst().getWelshSpeaking());
 
-        assertEquals("41", businessUnitSummaryCommonList.get(1).getBusinessUnitId());
+        assertEquals((short) 41, businessUnitSummaryCommonList.get(1).getBusinessUnitId());
         assertEquals("BU_41", businessUnitSummaryCommonList.get(1).getBusinessUnitName());
         assertEquals("N", businessUnitSummaryCommonList.get(1).getWelshSpeaking());
     }

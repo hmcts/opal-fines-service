@@ -85,7 +85,7 @@ public class CashListReportAssembler {
 
         return baseEntry(entryNumber, payment)
             .type(SUSPENSE_REPORT_TYPE)
-            .suspense(suspenseItem.getSuspenseItemType())
+            .suspense(suspenseItem.getSuspenseItemType().name())
             .accountNumber(SUSPENSE_ACCOUNT_NUMBER)
             .name(String.valueOf(suspenseItem.getSuspenseItemNumber()))
             .nameAdditionalInformation(toAdditionalInformation(payment))

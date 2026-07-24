@@ -107,7 +107,7 @@ class DefendantAccountSearchRequestValidatorTest {
     private PostDefendantAccountSearchRequestDefendantAccount request(boolean consolidationSearch) {
         return PostDefendantAccountSearchRequestDefendantAccount.builder()
             .activeAccountsOnly(true)
-            .businessUnitIds(List.of(78))
+            .businessUnitIds(List.of((short) 78))
             .consolidationSearch(consolidationSearch)
             .referenceNumber(new DefendantAccountSearchReferenceNumberDefendantAccount()
                 .organisation(false)

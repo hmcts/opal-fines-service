@@ -4,15 +4,15 @@
   "title": "creditorTransactionStatusReference",
   "type": "object",
   "required": [
-    "creditorTransactionStatus",
-    "creditorTransactionStatusDisplayName"
+    "creditor_transaction_status",
+    "creditor_transaction_status_display_name"
   ],
   "properties": {
-    "creditorTransactionStatus": {
+    "creditor_transaction_status": {
       "type": "string",
       "enum": ["R", "P", "D", "X", "C"]
     },
-    "creditorTransactionStatusDisplayName": {
+    "creditor_transaction_status_display_name": {
       "type": "string"
     }
   },

@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectBadRequestWithoutStatus;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -150,9 +151,10 @@ class MinorCreditorApiControllerFeatureFlagLocalEnabledIntegrationTest
 
         result.andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.title").value("Bad Request"))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/illegal-argument"))
-            .andExpect(jsonPath("$.detail").value("Invalid arguments were provided in the request"));
+            .andExpect(expectBadRequestWithoutStatus(
+                "Invalid arguments were provided in the request",
+                "https://hmcts.gov.uk/problems/illegal-argument"
+            ));
     }
 
     @Test
@@ -175,9 +177,10 @@ class MinorCreditorApiControllerFeatureFlagLocalEnabledIntegrationTest
 
         result.andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.title").value("Bad Request"))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/illegal-argument"))
-            .andExpect(jsonPath("$.detail").value("Invalid arguments were provided in the request"));
+            .andExpect(expectBadRequestWithoutStatus(
+                "Invalid arguments were provided in the request",
+                "https://hmcts.gov.uk/problems/illegal-argument"
+            ));
     }
 
     private PatchMinorCreditorAccountRequest patchMinorCreditorAccountRequest() {

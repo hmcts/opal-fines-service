@@ -88,7 +88,7 @@ class DefendantAccountImpositionMapperTest {
         assertEquals("IG5510", mapped.getOffence().getCode());
         assertEquals("Imposition Graph Offence", mapped.getOffence().getTitle());
         assertEquals(551001L, mapped.getImposedBy().getCourtId());
-        assertEquals(101, mapped.getImposedBy().getCourtCode());
+        assertEquals((short) 101, mapped.getImposedBy().getCourtCode());
         assertEquals("Graph Test Court", mapped.getImposedBy().getCourtName());
     }
 
@@ -350,6 +350,36 @@ class DefendantAccountImpositionMapperTest {
         assertNull(mapper.toBalance(null));
         assertNull(mapper.toOffenceReference(null));
         assertNull(mapper.toImposedByReference(null));
+    }
+
+    @Test
+    void toImposition_shouldCalculateBalanceCorrectlyWhenImposedAmountIsNegative() {
+        DefendantAccountImpositionData impositionData =
+            new DefendantAccountImpositionData(551002L, 7L, DefendantAccountType.FINES,
+                551005L, null, null, null, 551004L,
+                null, null, null, null,
+                null, null, null,
+                null, null, null, new BigDecimal("-50.00"),
+                new BigDecimal("10.00"), 5510L, " ", null,
+                "\t", null, null, null, null);
+
+        DefendantAccountImpositionCommon result = mapper.toImposition(impositionData);
+        assertEquals(new BigDecimal("-40.00"), result.getBalance());
+    }
+
+    @Test
+    void toImposition_shouldCalculateBalanceCorrectlyWhenImposedAmountIsPositive() {
+        DefendantAccountImpositionData impositionData =
+            new DefendantAccountImpositionData(551002L, 7L, DefendantAccountType.FINES,
+                551005L, null, null, null, 551004L,
+                null, null, null, null,
+                null, null, null,
+                null, null, null, new BigDecimal("50.00"),
+                new BigDecimal("10.00"), 5510L, " ", null,
+                "\t", null, null, null, null);
+
+        DefendantAccountImpositionCommon result = mapper.toImposition(impositionData);
+        assertEquals(new BigDecimal("40.00"), result.getBalance());
     }
 
     private DefendantAccountImpositionData impositionData(

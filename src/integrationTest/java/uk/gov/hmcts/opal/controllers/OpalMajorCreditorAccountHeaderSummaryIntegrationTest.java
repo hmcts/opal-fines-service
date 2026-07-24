@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectEntityNotFound;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -70,6 +71,7 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
     @DisplayName("PO-2131 INT.05 - Opal repeated request returns consistent body and ETag")
     @JiraStory("PO-2131")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-8779")
     void getHeaderSummary_repeatedRequestReturnsConsistentResponse() throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions((short) 77, SEARCH_AND_VIEW_ACCOUNTS);
@@ -97,6 +99,7 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
     @DisplayName("PO-2131 INT.06 - Opal permission in matching business unit returns 200")
     @JiraStory("PO-2131")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-8778")
     void getHeaderSummary_permissionInMatchingBusinessUnitReturns200() throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions((short) 77, SEARCH_AND_VIEW_ACCOUNTS);
@@ -113,6 +116,7 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
     @DisplayName("PO-2131 INT.07 - Opal valid token without permission returns 403")
     @JiraStory("PO-2131")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-8777")
     void getHeaderSummary_withoutPermissionReturns403() throws Exception {
         userStateStub.setupWithNoPermissions();
 
@@ -127,6 +131,7 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
     @DisplayName("PO-2131 INT.07 - Opal permission in non-matching business unit returns 403")
     @JiraStory("PO-2131")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-8782")
     void getHeaderSummary_permissionInDifferentBusinessUnitReturns403() throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions((short) 10, SEARCH_AND_VIEW_ACCOUNTS);
@@ -154,10 +159,7 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
             .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(header().doesNotExist(HttpHeaders.ETAG))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
-            .andExpect(jsonPath("$.title").value("Entity Not Found"))
-            .andExpect(jsonPath("$.status").value(404))
-            .andExpect(jsonPath("$.detail").value("The requested entity could not be found"))
+            .andExpect(expectEntityNotFound())
             .andExpect(jsonPath("$.retriable").value(false))
             .andExpect(jsonPath("$.major_creditor").doesNotExist())
             .andExpect(jsonPath("$.business_unit_details").doesNotExist());
@@ -174,6 +176,7 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
     @DisplayName("PO-2131 INT.08 - Opal missing token returns 403")
     @JiraStory("PO-2131")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-8780")
     void getHeaderSummary_missingTokenReturnsForbidden() throws Exception {
         userStateStub.setupWithNoPermissions();
 
@@ -190,6 +193,7 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
     @DisplayName("PO-2131 INT.08 - Opal invalid token returns 403")
     @JiraStory("PO-2131")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-8781")
     void getHeaderSummary_invalidTokenReturnsForbidden() throws Exception {
         mockMvc.perform(get(URL, 10770000000041L)
                 .accept(MediaType.APPLICATION_JSON)
@@ -243,14 +247,14 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
                                                String title,
                                                String detail,
                                                String type) {
-        assertEquals(Set.of("type", "title", "status", "detail", "instance", "operation_id", "retriable", "reason"),
+        assertEquals(Set.of("type", "title", "status", "detail", "instance", "operation_id", "retriable"),
             fieldNames(problem));
         assertEquals(statusCode, problem.get("status").asInt());
         assertEquals(title, problem.get("title").asText());
         assertEquals(detail, problem.get("detail").asText());
         assertEquals(type, problem.get("type").asText());
         assertFalse(problem.get("retriable").asBoolean());
-        assertTrue(problem.get("reason").asText().matches(".+"));
+        assertFalse(problem.has("reason"));
         assertTrue(problem.get("operation_id").asText().matches(".+"));
         assertTrue(problem.get("instance").asText().matches("https://hmcts.gov.uk/problems/instance/.+"));
     }

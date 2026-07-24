@@ -7,11 +7,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import tools.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
@@ -267,5 +267,28 @@ class DefendantAccountHeaderSummaryMapperTest {
         assertTrue(json.contains("\"defendant_account_party_id\""));
         assertTrue(json.contains("\"party_details\""));
         assertTrue(json.contains("\"account_number\""));
+    }
+
+    @Test
+    void toDto_shouldCalculateBalanceCorrectlyWhenImposedAmountIsNegative() {
+        DefendantAccountHeaderViewEntity accountHeaderView =
+            DefendantAccountHeaderViewEntity.builder()
+                .imposed(new BigDecimal("-50.00"))
+                .paid(new BigDecimal("10.00"))
+                .build();
+
+        DefendantAccountHeaderSummary dto = mapper.toDto(accountHeaderView);
+        assertEquals(new BigDecimal("-40.00"), dto.getResponse().getPaymentStateSummary().getAccountBalance());
+    }
+
+    @Test
+    void toDto_shouldCalculateBalanceCorrectlyWhenImposedAmountIsPositive() {
+        DefendantAccountHeaderViewEntity accountHeaderView = DefendantAccountHeaderViewEntity.builder()
+            .imposed(new BigDecimal("50.00"))
+            .paid(new BigDecimal("10"))
+            .build();
+
+        DefendantAccountHeaderSummary dto = mapper.toDto(accountHeaderView);
+        assertEquals(new BigDecimal("40.00"), dto.getResponse().getPaymentStateSummary().getAccountBalance());
     }
 }

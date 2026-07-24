@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.report;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -41,6 +42,7 @@ import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 import uk.gov.hmcts.opal.service.report.operation.OperationDetailedReport;
 import uk.gov.hmcts.opal.service.report.operation.OperationReportByEnforcementService;
+import uk.gov.hmcts.opal.testdata.OperationReportByPaymentFiltersIntegrationTestData;
 import uk.gov.hmcts.opal.util.AgeUtil;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -65,9 +67,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
     // Helper
     // ----------------------------------------
     private ReportInstanceEntity reportWithFilters(String json) {
-        ReportInstanceEntity instance = new ReportInstanceEntity();
-        instance.setReportParameters(json);
-        return instance;
+        return OperationReportByPaymentFiltersIntegrationTestData.reportWithFilters(json);
     }
 
     private @NonNull Map<String, Long> getAccountNoToId() {
@@ -96,7 +96,14 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
     @JiraTestKey("PO-7815")
     @JiraTestKey(value = "PO-8655", name = "[1] json = \"{\\\"reportType\\\": \\\"DETAILED\\\"}\"")
     @JiraTestKey(value = "PO-8656", name = "[2] json = \"{}\"")
-    void generateReportData_filterDetailedReportType_returnSortedResultsOfDetailedReportType(String json) {
+    @JiraTestKey(
+        value = "PO-8816",
+        name = "[1] json = \"{\\\"reportType\\\": \\\"DETAILED\\\", \\\"businessUnitIds\\\": [77, 78]}\""
+    )
+    @JiraTestKey(value = "PO-8817", name = "[2] json = \"{\\\"businessUnitIds\\\": [77, 78]}\"")
+    void generateReportData_filterDetailedReportType_returnSortedResultsOfDetailedReportType(
+        String json
+    ) {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn(json);
@@ -158,7 +165,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
             () -> assertThat(account.getParentOrGuardian()).isEqualTo("N")
         );
 
-        Assertions.assertThat(report.getTransactionRows()).containsExactly(
+        Assertions.assertThat(report.getTransactionRows()).contains(
             DetailedReportTransactionRowDto.builder()
                 .accountNo("177A")
                 .consolidatedAccountNo("ConsolidatedAcc")
@@ -166,6 +173,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
                 .transactionType(DefendantTransactionType.CONSOL.getLabel())
                 .transactionUserId("enforcement.test")
                 .transactionAmount(new BigDecimal("123.45"))
+                .transactionDetails("Account consolidated | 77 | Amount credited to master account")
                 .build(),
             DetailedReportTransactionRowDto.builder()
                 .accountNo("177A")
@@ -174,8 +182,109 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
                 .transactionType(DefendantTransactionType.PAYMNT.getLabel())
                 .transactionUserId("enforcement.test")
                 .transactionAmount(new BigDecimal("50.00"))
+                .transactionDetails("Payment received | Credit Transfer")
                 .build()
         );
+
+        Assertions.assertThat(report.getTransactionRows())
+            .hasSize(21)
+            .extracting(
+                DetailedReportTransactionRowDto::getTransactionType,
+                DetailedReportTransactionRowDto::getTransactionDetails
+            )
+            .containsExactlyInAnyOrder(
+                tuple(
+                    DefendantTransactionType.CONSOL.getLabel(),
+                    "Account consolidated | 77 | Amount credited to master account"
+                ),
+                tuple(
+                    DefendantTransactionType.PAYMNT.getLabel(),
+                    "Payment received | Credit Transfer"
+                ),
+                tuple(
+                    DefendantTransactionType.CANCHQ.getLabel(),
+                    "Cheque cancelled | Cheque number: CHQ1003"
+                ),
+                tuple(
+                    DefendantTransactionType.CHEQUE.getLabel(),
+                    "Cheque issued | Cheque number: CHQ1004 | Dishonoured 2026-05-14T10:15:30"
+                ),
+                tuple(
+                    DefendantTransactionType.CHEQUE.getLabel(),
+                    "Cheque issued | Cheque number: Not yet written | Cancelled 2026-05-14T10:20:30"
+                ),
+                tuple(
+                    DefendantTransactionType.DISHCQ.getLabel(),
+                    "Cheque dishonoured | FCOMP 50.00 Created: 2023-11-03T16:05:10 | 1"
+                ),
+                tuple(
+                    "FR_SUS",
+                    "Transfer from suspense | SUS-1007"
+                ),
+                tuple(
+                    DefendantTransactionType.MADJ.getLabel(),
+                    "Manual adjustment | MADJ-1008"
+                ),
+                tuple(
+                    DefendantTransactionType.PAYMNT.getLabel(),
+                    "Payment received | Credit Transfer | Payment by credit transfer | PR1009"
+                ),
+                tuple(
+                    DefendantTransactionType.REPSUS.getLabel(),
+                    "Repayment from suspense | REP-1010"
+                ),
+                tuple(
+                    DefendantTransactionType.REVPAY.getLabel(),
+                    "Payment reversed | FCPC 50.00 Created: 2023-11-03T16:05:10 | 2"
+                ),
+                tuple(
+                    DefendantTransactionType.RICHEQ.getLabel(),
+                    "Cheque reissued | Cheque number: CHQ1012 | Dishonoured 2026-05-14T10:55:30"
+                ),
+                tuple(
+                    DefendantTransactionType.RVWOFF.getLabel(),
+                    "Write-off reversed Reinstated after review"
+                ),
+                tuple(
+                    DefendantTransactionType.TFO.getLabel(),
+                    "TFO out | Transferred to: Central Office Kingston-upon-Thames Mags Court"
+                ),
+                tuple(
+                    "TFO_IN",
+                    "TFO in | Received from: Kingston-upon-Thames Mags Court"
+                ),
+                tuple(
+                    DefendantTransactionType.WRTOFF.getLabel(),
+                    "Write-off | 2023-11-03T16:05:10 | FCOST 50.00 Created: 2023-11-03T16:05:10 | 3"
+                        + " | Unknown whereabouts | Written off after judgment"
+                ),
+                tuple(
+                    DefendantTransactionType.WRTOFF.getLabel(),
+                    "Write-off | Transferred out - 77"
+                ),
+                tuple(
+                    DefendantTransactionType.WRTOFF.getLabel(),
+                    "Write-off | "
+                ),
+                tuple(
+                    DefendantTransactionType.XFER.getLabel(),
+                    "Suspense transfer | Cheque cancelled to suspense"
+                ),
+                tuple(
+                    DefendantTransactionType.XFER.getLabel(),
+                    "Suspense transfer | Cheque cancelled to Central Fund"
+                ),
+                tuple(
+                    DefendantTransactionType.XFER.getLabel(),
+                    "Suspense transfer | "
+                )
+            );
+        Assertions.assertThat(report.getTransactionRows())
+            .filteredOn(transactionRow -> DefendantTransactionType.CONSOL.getLabel()
+                .equals(transactionRow.getTransactionType()))
+            .singleElement()
+            .satisfies(transactionRow ->
+                assertThat(transactionRow.getConsolidatedAccountNo()).isEqualTo("ConsolidatedAcc"));
         verifyMetadata(result);
     }
 
@@ -192,7 +301,7 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
             }
             """;
         //Act
-        OperationDetailedReport  result =
+        OperationDetailedReport result =
             (OperationDetailedReport) service.generateReportData(reportWithFilters(json));
         //Assert
         long totalAccounts = defendantAccountRepository.findAllByBusinessUnit_BusinessUnitId((short) 77).size();
@@ -713,5 +822,4 @@ public class OperationReportByEnforcementServiceDetailedTest extends AbstractInt
         verifyMetadata(result);
     }
 }
-
 

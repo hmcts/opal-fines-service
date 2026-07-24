@@ -5,11 +5,14 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 
 @ActiveProfiles({"integration", "legacy"})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -31,6 +34,25 @@ public class LegacyNotesIntegrationTest extends NotesIntegrationTest {
     @JiraTestKey("PO-5957")
     void testSearchDefendantAccount_NoAccountsFound() throws Exception {
         super.legacyTestAddNote500Error(log);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("nonNotesPermissions")
+    @JiraStory("PO-1566")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-5959")
+    void testLegacyNotes_Forbidden(FinesPermission permission) throws Exception {
+        super.postNotes_UserWithoutPermission(permission);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("businessUnitAuthorizationScenarios")
+    @JiraStory("PO-1566")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-5960")
+    void testLegacyNotes_BusinessUnitAuthorization(BusinessUnitAuthorizationScenario scenario)
+        throws Exception {
+        super.postNotes_BusinessUnitAuthorization(scenario);
     }
 
 }

@@ -120,8 +120,10 @@ launchdarkly:
   file:
     - ${LAUNCH_DARKLY_FILE:bin/utils/launchdarkly-flags.json}
   default-flag-values:
-    release-1a: ${RELEASE_1A_ENABLED:true}
+    release-1a: ${RELEASE_1A_ENABLED:false}
     release-1b: ${RELEASE_1B_ENABLED:false}
+    release-1c: ${RELEASE_1C_ENABLED:false}
+    release-1c-auto-enforcement-config: ${RELEASE_1C_AUTO_ENFORCEMENT_CONFIG_ENABLED:false}
     release-1c-write-off: ${RELEASE_1C_WRITE_OFF_ENABLED:false}
     release-1c-enforcement-operational-reporting: ${RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_ENABLED:true}
     is-legacy-mode: ${IS_LEGACY_MODE:false}

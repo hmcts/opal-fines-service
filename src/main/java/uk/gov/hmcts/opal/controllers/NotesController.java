@@ -32,14 +32,12 @@ public class NotesController {
     @Operation(summary = "adds a note to an entity")
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<String> addNote(
-        @RequestBody
-        AddNoteRequest request,
-        @RequestHeader("If-Match") String ifMatch) {
+        @RequestBody AddNoteRequest request,
+        @RequestHeader("If-Match") String ifMatch,
+        @RequestHeader("Business-Unit-Id") Short businessUnitId) {
 
         log.debug(":POST:postDefendantAccountSearch: query: \n{}", request.toPrettyJson());
-
-        String response =
-            notesService.addNote(request, ifMatch);
+        String response = notesService.addNote(request, ifMatch, businessUnitId);
 
         return buildCreatedResponse(response);
     }

@@ -11,10 +11,18 @@ public final class FeatureFlags {
     public static final String RELEASE_1C_WRITE_OFF = "release-1c-write-off";
     public static final String RELEASE_1C_WRITE_OFF_ENABLED_PROPERTY =
         DEFAULT_VALUE_PROPERTY_PREFIX + RELEASE_1C_WRITE_OFF;
+    public static final String RELEASE_1C_ENABLED_PROPERTY = DEFAULT_VALUE_PROPERTY_PREFIX + RELEASE_1C;
+    public static final String RELEASE_1C_PAYMENT = RELEASE_1C + "-payment";
+    public static final String RELEASE_1C_PAYMENT_ENABLED_PROPERTY = DEFAULT_VALUE_PROPERTY_PREFIX + RELEASE_1C_PAYMENT;
     public static final String RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING =
         RELEASE_1C + "-enforcement-operational-reporting";
     public static final String RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_ENABLED_PROPERTY =
         DEFAULT_VALUE_PROPERTY_PREFIX + RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING;
+    public static final String RELEASE_1C_AUTO_ENFORCEMENT_CONFIG =
+        RELEASE_1C + "-auto-enforcement-config";
+    public static final String RELEASE_1C_AUTO_ENFORCEMENT_CONFIG_ENABLED_PROPERTY =
+        DEFAULT_VALUE_PROPERTY_PREFIX + RELEASE_1C_AUTO_ENFORCEMENT_CONFIG;
+
 
     private FeatureFlags() {
     }

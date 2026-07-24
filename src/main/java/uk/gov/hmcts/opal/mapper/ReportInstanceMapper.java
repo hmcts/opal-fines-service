@@ -3,8 +3,8 @@ package uk.gov.hmcts.opal.mapper;
 import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.READY;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Map;
+import java.util.Optional;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
@@ -12,16 +12,16 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus;
 import uk.gov.hmcts.opal.entity.report.SupportedFileType;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
-import uk.gov.hmcts.opal.generated.model.StatusReports;
-import uk.gov.hmcts.opal.generated.model.UserByNameDetailsCommon;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceReports;
 import uk.gov.hmcts.opal.generated.model.ReportReferenceReports;
+import uk.gov.hmcts.opal.generated.model.StatusReports;
+import uk.gov.hmcts.opal.generated.model.UserByNameDetailsCommon;
 import uk.gov.hmcts.opal.mapper.common.BusinessUnitSummaryMapper;
 import uk.gov.hmcts.opal.mapper.helper.JsonMapperHelper;
 
@@ -65,12 +65,12 @@ public interface ReportInstanceMapper {
     @Mapping(target = "name", source = "requestedByName")
     UserByNameDetailsCommon mapRequestedBy(ReportInstanceEntity instance);
 
-    default List<BusinessUnitSummaryCommon> mapBusinessUnits(List<Integer> businessUnitIds) {
+    default List<BusinessUnitSummaryCommon> mapBusinessUnits(List<Short> businessUnitIds) {
         if (businessUnitIds == null) {
             return List.of();
         }
         return businessUnitIds.stream()
-            .map(id -> new BusinessUnitSummaryCommon().businessUnitId(String.valueOf(id)))
+            .map(id -> new BusinessUnitSummaryCommon().businessUnitId(id))
             .toList();
     }
 

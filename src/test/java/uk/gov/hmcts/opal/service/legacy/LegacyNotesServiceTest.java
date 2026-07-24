@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.math.BigInteger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -27,8 +28,9 @@ import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyNote;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.service.AccountNoteContext;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyNotesServiceTest {
@@ -60,16 +62,15 @@ class LegacyNotesServiceTest {
         )).thenReturn(resp);
 
         AddNoteRequest req = addReq("77", "hello");
-        DefendantAccountEntity account = accountWithBu((short) 1);
         when(user.getUserId()).thenReturn(999L);
 
-        String id = service.addNote(req, "1", user, account);
+        String id = service.addNote(req, "1", user, targetWithBu((short) 1));
         assertEquals("77", id);
 
         LegacyAddNoteRequest sent = reqCap.getValue();
-        assertEquals("1", sent.getBusinessUnitId());
-        assertEquals("999", sent.getBusinessUnitUserId());
-        assertEquals(1L, sent.getVersion());
+        assertEquals((short) 1, sent.getBusinessUnitId());
+        assertEquals(999, sent.getBusinessUnitUserId());
+        assertEquals(BigInteger.valueOf(1L), sent.getVersion());
 
         LegacyNote sentNote = sent.getActivityNote();
         assertNotNull(sentNote);
@@ -107,10 +108,9 @@ class LegacyNotesServiceTest {
         )).thenReturn(resp);
 
         AddNoteRequest req = addReq("77", "boom");
-        DefendantAccountEntity account = accountWithBu((short) 5);
         when(user.getUserId()).thenReturn(1L);
 
-        String id = service.addNote(req, "1", user, account);
+        String id = service.addNote(req, "1", user, targetWithBu((short) 5));
         assertEquals("77", id);
 
         verify(gatewayService).postToGateway(
@@ -143,10 +143,9 @@ class LegacyNotesServiceTest {
         )).thenReturn(resp);
 
         AddNoteRequest req = addReq("77", "world");
-        DefendantAccountEntity account = accountWithBu((short) 9);
         when(user.getUserId()).thenReturn(42L);
 
-        String id = service.addNote(req, "1", user, account);
+        String id = service.addNote(req, "1", user, targetWithBu((short) 9));
         assertEquals("77", id);
 
         verify(gatewayService).postToGateway(
@@ -179,10 +178,9 @@ class LegacyNotesServiceTest {
         )).thenReturn(resp);
 
         AddNoteRequest req = addReq("77", "meh");
-        DefendantAccountEntity account = accountWithBu((short) 3);
         when(user.getUserId()).thenReturn(5L);
 
-        String id = service.addNote(req, "7", user, account);
+        String id = service.addNote(req, "7", user, targetWithBu((short) 3));
         assertEquals("77", id);
 
         verify(gatewayService).postToGateway(
@@ -196,14 +194,13 @@ class LegacyNotesServiceTest {
 
     // ---------- helpers ----------
 
-    private static BusinessUnitEntity bu(short id) {
-        return BusinessUnitEntity.builder().businessUnitId(id).build();
-    }
-
-    private static DefendantAccountEntity accountWithBu(short buId) {
-        DefendantAccountEntity acc = new DefendantAccountEntity();
-        acc.setBusinessUnit(bu(buId));
-        return acc;
+    private static AccountNoteContext targetWithBu(short buId) {
+        return new AccountNoteContext(
+            DefendantAccountEntity.class,
+            77L,
+            buId,
+            AssociatedRecordType.DEFENDANT_ACCOUNTS
+        );
     }
 
     private static AddNoteRequest addReq(String recordId, String text) {

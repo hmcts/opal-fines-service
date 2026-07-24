@@ -10,12 +10,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
@@ -30,6 +30,17 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.repository.AllocationRepository;
+import uk.gov.hmcts.opal.repository.AmendmentRepository;
+import uk.gov.hmcts.opal.repository.ChequeRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
+import uk.gov.hmcts.opal.repository.ImpositionRepository;
+import uk.gov.hmcts.opal.repository.NoteRepository;
+import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
+import uk.gov.hmcts.opal.repository.ReportEntryRepository;
+import uk.gov.hmcts.opal.repository.ReportRepository;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -40,9 +51,38 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @SuppressWarnings("java:S1874")
 class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
 
-    // Limit JdbcTemplate use to narrow test setup or persistence-side-effect checks.
     @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private AllocationRepository allocationRepository;
+
+    @Autowired
+    private AmendmentRepository amendmentRepository;
+
+    @Autowired
+    private ChequeRepository chequeRepository;
+
+    @Autowired
+    private DefendantAccountPartiesRepository defendantAccountPartiesRepository;
+
+    @Autowired
+    private DefendantAccountRepository defendantAccountRepository;
+
+    @Autowired
+    private DefendantTransactionRepository defendantTransactionRepository;
+
+    @Autowired
+    private ImpositionRepository impositionRepository;
+
+    @Autowired
+    private NoteRepository noteRepository;
+
+    @Autowired
+    private PaymentTermsRepository paymentTermsRepository;
+
+    @Autowired
+    private ReportEntryRepository reportEntryRepository;
+
+    @Autowired
+    private ReportRepository reportRepository;
 
     @MockitoBean
     private DynamicConfigService dynamicConfigService;
@@ -143,52 +183,22 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6281")
     void shouldDeleteDefendantAccountAndAssociatedData() throws Exception {
+        long defendantAccountId = 1001L;
+        String associatedRecordId = String.valueOf(defendantAccountId);
+
         // Pre-check that data exists
-        assertThat(count(
-            "defendant_accounts",
-            "defendant_account_id = 1001"
-        )).isEqualTo(1);
-        assertThat(count(
-            "defendant_account_parties",
-            "defendant_account_id = 1001"
-        )).isGreaterThan(0);
-        assertThat(count(
-            "payment_terms",
-            "defendant_account_id = 1001"
-        )).isGreaterThan(0);
-        assertThat(count(
-            "reports",
-            "report_id = '10001'"
-        )).isGreaterThan(0);
-        assertThat(count(
-            "report_entries",
-             "associated_record_id = '1001'"
-        )).isGreaterThan(0);
-        assertThat(count(
-            "defendant_transactions",
-            "defendant_account_id = 1001")
-        ).isGreaterThan(0);
-        assertThat(count(
-            "impositions",
-            "defendant_account_id = 1001")
-        ).isGreaterThan(0);
-        assertThat(count(
-            "notes",
-            "associated_record_id = '1001'"
-        )).isGreaterThan(0);
-        assertThat(count(
-            "amendments",
-            "associated_record_id = '1001'"
-        )).isGreaterThan(0);
-        assertThat(count(
-            "allocations",
-            "imposition_id IN (SELECT imposition_id FROM impositions WHERE defendant_account_id = 1001)")
-        ).isGreaterThan(0);
-        assertThat(count(
-            "cheques",
-            "defendant_transaction_id "
-                + "IN (SELECT defendant_transaction_id FROM defendant_transactions WHERE defendant_account_id = 1001)")
-        ).isGreaterThan(0);
+        assertThat(defendantAccountRepository.existsById(defendantAccountId)).isTrue();
+        assertThat(defendantAccountPartiesRepository.countByDefendantAccount_DefendantAccountId(defendantAccountId))
+            .isPositive();
+        assertThat(paymentTermsRepository.countByDefendantAccount_DefendantAccountId(defendantAccountId)).isPositive();
+        assertThat(reportRepository.existsById("10001")).isTrue();
+        assertThat(reportEntryRepository.countByAssociatedRecordId(associatedRecordId)).isPositive();
+        assertThat(defendantTransactionRepository.countByDefendantAccountId(defendantAccountId)).isPositive();
+        assertThat(impositionRepository.countByDefendantAccountId(defendantAccountId)).isPositive();
+        assertThat(noteRepository.countByAssociatedRecordId(associatedRecordId)).isPositive();
+        assertThat(amendmentRepository.countByAssociatedRecordId(associatedRecordId)).isPositive();
+        assertThat(allocationRepository.countByImposition_DefendantAccountId(defendantAccountId)).isPositive();
+        assertThat(countChequesByDefendantAccountId(defendantAccountId)).isPositive();
 
         // When: call the deletion endpoint
         ResultActions actions = mockMvc.perform(delete("/testing-support/defendant-accounts/1001"));
@@ -200,30 +210,23 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
         actions.andExpect(status().isNoContent());
 
         // Post-check that all related data is gone
-        assertThat(count("defendant_accounts", "defendant_account_id = 1001")).isZero();
-        assertThat(count("defendant_account_parties", "defendant_account_id = 1001")).isZero();
-        assertThat(count("payment_terms", "defendant_account_id = 1001")).isZero();
-        assertThat(count("reports", "report_id = '10001'")).as("Rows in Reports should not be deleted").isEqualTo(1);
-        assertThat(count("report_entries", "associated_record_id = '1001'")
-        ).isZero();
-        assertThat(count("defendant_transactions", "defendant_account_id = 1001")).isZero();
-        assertThat(count("impositions", "defendant_account_id = 1001")).isZero();
-        assertThat(count("notes", "associated_record_id = '1001'")).isZero();
-        assertThat(count("amendments", "associated_record_id = '1001'")).isZero();
-
-        assertThat(count(
-            "allocations",
-            "imposition_id IN (SELECT imposition_id FROM impositions WHERE defendant_account_id = 1001)"))
+        assertThat(defendantAccountRepository.existsById(defendantAccountId)).isFalse();
+        assertThat(defendantAccountPartiesRepository.countByDefendantAccount_DefendantAccountId(defendantAccountId))
             .isZero();
-        assertThat(count(
-            "cheques",
-            "defendant_transaction_id "
-                + "IN (SELECT defendant_transaction_id FROM defendant_transactions WHERE defendant_account_id = 1001)"))
-            .isZero();
+        assertThat(paymentTermsRepository.countByDefendantAccount_DefendantAccountId(defendantAccountId)).isZero();
+        assertThat(reportRepository.existsById("10001")).as("Rows in Reports should not be deleted").isTrue();
+        assertThat(reportEntryRepository.countByAssociatedRecordId(associatedRecordId)).isZero();
+        assertThat(defendantTransactionRepository.countByDefendantAccountId(defendantAccountId)).isZero();
+        assertThat(impositionRepository.countByDefendantAccountId(defendantAccountId)).isZero();
+        assertThat(noteRepository.countByAssociatedRecordId(associatedRecordId)).isZero();
+        assertThat(amendmentRepository.countByAssociatedRecordId(associatedRecordId)).isZero();
+        assertThat(allocationRepository.countByImposition_DefendantAccountId(defendantAccountId)).isZero();
+        assertThat(countChequesByDefendantAccountId(defendantAccountId)).isZero();
     }
 
-    private int count(String table, String whereClause) {
-        return jdbcTemplate.queryForObject("SELECT COUNT(*) "
-                                               + "FROM " + table + " WHERE " + whereClause, Integer.class);
+    private long countChequesByDefendantAccountId(long defendantAccountId) {
+        List<Long> transactionIds = defendantTransactionRepository
+            .findDefendantAccountTransactionIdsByDefendantAccountId(defendantAccountId);
+        return transactionIds.isEmpty() ? 0 : chequeRepository.countByDefendantTransactionIdIn(transactionIds);
     }
 }

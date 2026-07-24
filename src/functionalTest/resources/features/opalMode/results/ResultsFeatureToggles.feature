@@ -1,16 +1,16 @@
-@Opal @FeatureToggle @JIRA-LABEL:reference-data
+@Opal @JIRA-LABEL:reference-data
 Feature: Results Feature Toggles
 
   Background:
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
-  @R1AOff @JIRA-STORY:PO-3765 @JIRA-STORY:PO-3754 @JIRA-EPIC:PO-3685
+  @R1AOff @JIRA-STORY:PO-3765 @JIRA-STORY:PO-3754 @JIRA-EPIC:PO-3685 @JIRA-TEST-KEY:PO-8855
   Scenario: Results endpoint is unavailable when release 1a is disabled
     When I request results for identifiers "FO,ABDC"
     Then the request is rejected with status 404
     And the response reports that the feature is disabled
 
-  @R1A @R1BOff @JIRA-STORY:PO-3765 @JIRA-EPIC:PO-3685 @JIRA-TEST-KEY:PO-8391
+  @R1BOff @JIRA-STORY:PO-3765 @JIRA-EPIC:PO-3685 @JIRA-TEST-KEY:PO-8391
   Scenario: Results remain available without filters when release 1b is disabled
     When I request results for identifiers "FO,ABDC"
     Then 2 results are returned
@@ -33,7 +33,7 @@ Feature: Results Feature Toggles
       | imposition_creditor         |                                         |
       | imposition_allocation_order |                                         |
 
-  @R1A @R1BOff @JIRA-STORY:PO-3765 @JIRA-EPIC:PO-3685 @JIRA-TEST-KEY:PO-8392
+  @R1BOff @JIRA-STORY:PO-3765 @JIRA-EPIC:PO-3685 @JIRA-TEST-KEY:PO-8392
   Scenario: Results filters are unavailable when release 1b is disabled
     When I request results for identifiers "FO,FCOMP,ABDC" with the following filters
       | active                  | true  |
@@ -44,7 +44,7 @@ Feature: Results Feature Toggles
     Then the request is rejected with status 404
     And the response reports that the feature is disabled
 
-  @R1A @R1B @JIRA-STORY:PO-3765 @JIRA-EPIC:PO-3685
+  @R1B @JIRA-STORY:PO-3765 @JIRA-EPIC:PO-3685
   Scenario: Results filters are available when release 1b is enabled
     When I request results for identifiers "FO,FCOMP,ABDC" with the following filters
       | active                  | true  |

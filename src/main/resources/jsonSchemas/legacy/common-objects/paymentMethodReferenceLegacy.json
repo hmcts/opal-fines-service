@@ -3,13 +3,13 @@
   "$id": "https://example.com/schemas/paymentMethodReference.json",
   "title": "paymentMethodReference",
   "type": "object",
-  "required": ["paymentMethod", "paymentMethodDisplayName"],
+  "required": ["payment_method", "payment_method_display_name"],
   "properties": {
-    "paymentMethod": {
+    "payment_method": {
       "type": "string",
       "enum": ["NC", "CQ", "CT", "PO"]
     },
-    "paymentMethodDisplayName": {
+    "payment_method_display_name": {
       "type": "string"
     }
   },

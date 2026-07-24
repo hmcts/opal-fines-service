@@ -20,11 +20,15 @@ public enum FinesPermission implements PermissionDescriptor {
     CHECK_VALIDATE_DRAFT_ACCOUNTS(5L, "Check and Validate Draft Accounts"),
     SEARCH_AND_VIEW_ACCOUNTS(6L, "Search and View Accounts"),
     ACCOUNT_MAINTENANCE(7L, "Account Maintenance"),
-    VIEW_CREDITOR_BACS(11L, "View Creditor BACS"),
+    ADD_ACCOUNT_ACTIVITY_NOTES(8L, "Add account activity notes"),
     AMEND_PAYMENT_TERMS(9L, "Amend Payment Terms"),
     ENTER_ENFORCEMENT(10L, "Enter Enforcement"),
+    VIEW_CREDITOR_BACS(11L, "View Creditor BACS"),
     CONSOLIDATE(13L, "Consolidate"),
-    ADD_AND_REMOVE_PAYMENT_HOLD(14L, "Add and Remove payment hold");
+    // TODO verify this ID mirrors opal-user-service Permissions.ADD_AND_REMOVE_PAYMENT_HOLD ?
+    ADD_AND_REMOVE_PAYMENT_HOLD(14L, "Add and Remove payment hold"), // TODO - should this be 12L?
+    PROCESS_AND_ALLOCATE_PAYMENTS(16L, "Process and Allocate Payments"),
+    AUTO_ENFORCEMENT(17L, "Auto Enforcement");
 
     /**
      * Convenience aggregate used by parts of the service that require both draft account permissions.
