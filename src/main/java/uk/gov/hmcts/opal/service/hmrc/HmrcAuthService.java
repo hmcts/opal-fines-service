@@ -35,7 +35,7 @@ public class HmrcAuthService {
         this.url = url;
     }
 
-    @Cacheable(value = CacheNames.HMRC_AUTH_SERVICE)
+    @Cacheable(CacheNames.HMRC_AUTH_SERVICE)
     public HMRCAuthToken getAuthToken() {
         URI uri = buildUri();
 
