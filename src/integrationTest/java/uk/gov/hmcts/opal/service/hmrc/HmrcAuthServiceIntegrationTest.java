@@ -1,13 +1,16 @@
 package uk.gov.hmcts.opal.service.hmrc;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -17,10 +20,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
-import org.springframework.http.MediaType;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.config.cache.CacheNames;
 import uk.gov.hmcts.opal.service.hmrc.response.HMRCAuthToken;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @Slf4j(topic = "opal.HmrcAuthServiceIntegrationTest")
 @DisplayName("HMRC Auth Service Integration Test")
@@ -38,22 +42,46 @@ public class HmrcAuthServiceIntegrationTest
         "xxxx-test-token-xxxx", "bearer", 14400, "test-scope1+test-scope2"
     );
 
+    private HMRCAuthToken hmrcAuthToken2 = new HMRCAuthToken(
+        "xxxx-2-test-token-2-xxxx", "bearer", 14400, "test-scope1+test-scope2"
+    );
+
+    private boolean clearAuthServiceCache() {
+        return cacheManager.getCache(CacheNames.HMRC_AUTH_SERVICE).invalidate();
+    }
+
+    private static final String WIREMOCK_SCENARIO = "GET HMRC auth token test";
+    private static final String WIREMOCK_STATE__ONE_CALL_MADE = "One call made";
+
     @Override
     @BeforeEach
     public void beforeEach() {
-        cacheManager.getCache(CacheNames.HMRC_AUTH_SERVICE).clear();
+        clearAuthServiceCache();
 
         stubFor(get(urlPathEqualTo("/oauth/token"))
             .withQueryParam("client_id", equalTo("test-hmrc-client-id"))
             .withQueryParam("client_secret", equalTo("test-hmrc-client-secret"))
             .withQueryParam("grant_type", equalTo("client_credentials"))
             .withQueryParam("scope", equalTo("test-scope1 test-scope2"))
-            .willReturn(aResponse()
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                .withBody(objectMapper.writeValueAsString(hmrcAuthToken))));
+            .inScenario(WIREMOCK_SCENARIO)
+            .whenScenarioStateIs(STARTED)
+            .willReturn(okJson(objectMapper.writeValueAsString(hmrcAuthToken)))
+            .willSetStateTo(WIREMOCK_STATE__ONE_CALL_MADE));
+
+        stubFor(get(urlPathEqualTo("/oauth/token"))
+            .withQueryParam("client_id", equalTo("test-hmrc-client-id"))
+            .withQueryParam("client_secret", equalTo("test-hmrc-client-secret"))
+            .withQueryParam("grant_type", equalTo("client_credentials"))
+            .withQueryParam("scope", equalTo("test-scope1 test-scope2"))
+            .inScenario(WIREMOCK_SCENARIO)
+            .whenScenarioStateIs(WIREMOCK_STATE__ONE_CALL_MADE)
+            .willReturn(okJson(objectMapper.writeValueAsString(hmrcAuthToken2))));
     }
 
     @Test
+    @DisplayName("Correctly calls HMRC endpoint and returns correct DTO (INT.01 - INT.06 - INT.07)")
+    @JiraStory("PO-2383")
+    @JiraEpic("PO-1421")
     void correctlyCallsHmrcEndpointAndReturnsDto() {
 
         HMRCAuthToken returnedAuthToken = hmrcAuthService.getAuthToken();
@@ -69,7 +97,10 @@ public class HmrcAuthServiceIntegrationTest
 
 
     @Test
-    void multipleCallsToHmrcEndpoint_UtilisesCache() {
+    @DisplayName("Multiple calls reuse cache with no external call to HMRC (INT.03 - INT.10)")
+    @JiraStory("PO-2383")
+    @JiraEpic("PO-1421")
+    void multipleCalls_UtilisesCache_NoExternalCall() {
         HMRCAuthToken token1 = hmrcAuthService.getAuthToken();
         HMRCAuthToken token2 = hmrcAuthService.getAuthToken();
         HMRCAuthToken token3 = hmrcAuthService.getAuthToken();
@@ -85,5 +116,20 @@ public class HmrcAuthServiceIntegrationTest
             () -> assertEquals(token1.getScope(), token2.getScope()),
             () -> assertEquals(token1.getScope(), token3.getScope())
         );
+    }
+
+    @Test
+    @DisplayName("Correctly calls HMRC endpoint multiple times when cache cleared (INT.02)")
+    @JiraStory("PO-2383")
+    @JiraEpic("PO-1421")
+    void correctlyCallsHmrcEndpointMultipleTimes() throws InterruptedException {
+
+        HMRCAuthToken token1 = hmrcAuthService.getAuthToken();
+        Thread.sleep(500); // Sleeping to give time for the cache to exist in Redis
+        assertTrue(clearAuthServiceCache());
+        HMRCAuthToken token2 = hmrcAuthService.getAuthToken();
+
+        WireMock.verify(2, getRequestedFor(urlPathEqualTo("/oauth/token")));
+        assertNotEquals(token1.getAccessToken(), token2.getAccessToken());
     }
 }
