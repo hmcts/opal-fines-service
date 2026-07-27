@@ -156,7 +156,11 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
         }
     }
 
-    private static <T> void checkResponseForError(Response<T> response, String method, boolean useLegacyGatewayException) {
+    private static <T> void checkResponseForError(
+        Response<T> response,
+        String method,
+        boolean useLegacyGatewayException
+    ) {
         if (response.isError()) {
             log.error(":{}: Legacy Gateway response: HTTP Response Code {}", method, response.code);
             if (response.isException()) {
