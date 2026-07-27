@@ -4,7 +4,6 @@ import java.net.URI;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -24,10 +23,10 @@ public class HmrcAuthService {
     private final String url;
 
     public HmrcAuthService(RestClient restClient,
-        @Value("hmrc.auth.client-id") String clientId,
-        @Value("hmrc.auth.client-secret") String clientSecret,
-        @Value("hmrc.auth.scope") String scope,
-        @Value("hmrc.auth.url") String url) {
+        @Value("${hmrc.auth.client-id}") String clientId,
+        @Value("${hmrc.auth.client-secret}") String clientSecret,
+        @Value("${hmrc.auth.scope}") String scope,
+        @Value("${hmrc.auth.url}") String url) {
 
         this.restClient = restClient;
         this.clientId = clientId;
@@ -43,9 +42,9 @@ public class HmrcAuthService {
         return restClient.get()
             .uri(uri)
             .retrieve()
-            .onStatus(HttpStatusCode::isError, ((req, res) -> {
-                log.error("Error requesting HMRC auth token: {} {}", res.getStatusCode(), res.getStatusText());
-            }))
+//            .onStatus(HttpStatusCode::isError, ((req, res) -> {
+//                log.error("Error requesting HMRC auth token: {} {}", res.getStatusCode(), res.getStatusText());
+//            }))
             .body(HMRCAuthToken.class);
     }
 
