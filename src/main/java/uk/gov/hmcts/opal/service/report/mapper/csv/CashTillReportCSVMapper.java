@@ -1,78 +1,41 @@
-package uk.gov.hmcts.opal.service.report;
+package uk.gov.hmcts.opal.service.report.mapper.csv;
 
 import static uk.gov.hmcts.opal.service.report.CommonReportHelper.escapeCsv;
 import static uk.gov.hmcts.opal.service.report.CommonReportHelper.formatMoney;
-import static uk.gov.hmcts.opal.service.report.CommonReportHelper.formatReportDate;
-import static uk.gov.hmcts.opal.service.report.CommonReportHelper.formatReceiptValue;
 import static uk.gov.hmcts.opal.service.report.CommonReportHelper.validateMoney;
 import static uk.gov.hmcts.opal.service.report.CommonReportHelper.validateRequired;
 import static uk.gov.hmcts.opal.service.report.CommonReportHelper.validateText;
 import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.COMMA;
+import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.EMPTY_STRING;
 import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.NEW_LINE;
-import static uk.gov.hmcts.opal.service.report.FileType.CSV;
-import static uk.gov.hmcts.opal.service.report.ReportId.CASH_TILL;
 
-import jakarta.persistence.EntityNotFoundException;
-import java.nio.charset.StandardCharsets;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Service;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.PropertyNamingStrategies;
-import tools.jackson.databind.annotation.JsonNaming;
-import uk.gov.hmcts.opal.entity.PaymentInEntity;
-import uk.gov.hmcts.opal.entity.PaymentInEntity_;
-import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
-import uk.gov.hmcts.opal.entity.TillEntity;
-import uk.gov.hmcts.opal.repository.PaymentInRepository;
-import uk.gov.hmcts.opal.repository.TillRepository;
-import uk.gov.hmcts.opal.repository.jpa.PaymentInSpecs;
+import org.springframework.stereotype.Component;
+import uk.gov.hmcts.opal.service.report.CashTillReportData;
+import uk.gov.hmcts.opal.service.report.CashTillReportRow;
 
-@Service
-@RequiredArgsConstructor
-public class CashTillReportService implements ReportInterface<CashTillReportData> {
+@Component
+public class CashTillReportCSVMapper implements ReportCSVMapper<CashTillReportData> {
 
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final String REPORT_NAME = "Cash Till report";
-    private static final Sort PAYMENT_DATE_DESC = Sort.by(Sort.Direction.DESC, PaymentInEntity_.PAYMENT_DATE);
-    private static final String CASH_TILL_REPORT_PARAMETERS_ERROR = "Failed to parse Cash Till report parameters";
-
-    private final ObjectMapper objectMapper;
-    private final TillRepository tillRepository;
-    private final PaymentInRepository paymentInRepository;
-    private final CashTillReportDataMapper reportDataMapper;
-
-    @Override
-    public ReportId getReportId() {
-        return CASH_TILL;
-    }
+    private static final List<String> HEADINGS = List.of(
+        CashTillField.BUSINESS_UNIT.label(), CashTillField.CASH_TILL_NUMBER.label(),
+        CashTillField.CASHIER.label(), CashTillField.DATE.label(), CashTillField.TYPE.label(),
+        CashTillField.DETAILS.label(), CashTillField.PAYMENT_TYPE.label(), CashTillField.AMOUNT.label(),
+        CashTillField.RECEIPT.label(), CashTillField.BALANCE.label());
+    private static final String AUTO_CASH_INPUT_SUFFIX = " - Auto cash input";
+    private static final String ALLOCATED_PAYMENT_PREFIX = "*";
 
     @Override
-    public CashTillReportData generateReportData(ReportInstanceEntity reportInstance) {
-        CashTillReportParameters parameters = readParameters(reportInstance);
-        long tillId = requireTillId(parameters);
-        TillEntity till = tillRepository.findById(tillId)
-            .orElseThrow(() -> new EntityNotFoundException("Cash Till report till not found for till_id " + tillId));
-        List<PaymentInEntity> payments = paymentInRepository.findAll(
-            paymentSearch(parameters, tillId),
-            PAYMENT_DATE_DESC);
-        return reportDataMapper.map(parameters.isAllocatedReport(), till, payments);
-    }
-
-    @Override
-    public Class<? extends CashTillReportData> getStoredReportDataClass(ReportInstanceEntity reportInstance) {
+    public Class<CashTillReportData> getReportDataType() {
         return CashTillReportData.class;
     }
 
     @Override
-    public byte[] convertReportDataToFileType(ReportInstanceEntity reportInstance, CashTillReportData reportData,
-        FileType fileType) {
-        throw new IllegalArgumentException("Cash Till report only supports CSV conversion");
-    }
-
+    public String reportToCSVString(CashTillReportData reportData) {
         validateReportData(reportData);
         StringBuilder csv = new StringBuilder(String.join(COMMA, HEADINGS)).append(NEW_LINE);
         reportData.getRows().stream()
@@ -80,7 +43,7 @@ public class CashTillReportService implements ReportInterface<CashTillReportData
             .map(row -> toCsvRow(reportData, row))
             .forEach(row -> csv.append(row).append(NEW_LINE));
 
-        return csv.toString().getBytes(StandardCharsets.UTF_8);
+        return csv.toString();
     }
 
     private static String toCsvRow(CashTillReportData reportData, CashTillReportRow row) {
@@ -88,12 +51,12 @@ public class CashTillReportService implements ReportInterface<CashTillReportData
             escapeCsv(row.getBusinessUnit()),
             escapeCsv(row.getCashTillNumber()),
             escapeCsv(row.getCashier()),
-            escapeCsv(formatReportDate(row.getPaymentDateTime())),
+            escapeCsv(DATE_FORMATTER.format(row.getPaymentDateTime())),
             escapeCsv(row.getDestinationType().toValue()),
             escapeCsv(formatDetails(reportData, row)),
             escapeCsv(row.getPaymentMethod().toValue()),
             escapeCsv(formatMoney(row.getAmount())),
-            escapeCsv(formatReceiptValue(row.getReceipt())),
+            escapeCsv(Boolean.TRUE.equals(row.getReceipt()) ? "R" : EMPTY_STRING),
             escapeCsv(formatMoney(row.getBalance()))));
     }
 
@@ -165,35 +128,6 @@ public class CashTillReportService implements ReportInterface<CashTillReportData
 
         private String label() {
             return label;
-        }
-    }
-
-    private static Specification<PaymentInEntity> paymentSearch(CashTillReportParameters parameters, long tillId) {
-        return PaymentInSpecs.equalsTillId(tillId);
-    }
-
-    private CashTillReportParameters readParameters(ReportInstanceEntity reportInstance) {
-        if (reportInstance == null) {
-            throw new IllegalArgumentException("Cash Till report instance is required");
-        }
-        try {
-            return objectMapper.readValue(reportInstance.getReportParameters(), CashTillReportParameters.class);
-        } catch (Exception e) {
-            throw new IllegalArgumentException(CASH_TILL_REPORT_PARAMETERS_ERROR, e);
-        }
-    }
-
-    private static long requireTillId(CashTillReportParameters parameters) {
-        return Optional.ofNullable(parameters.tillId())
-            .filter(tillId -> tillId > 0)
-            .orElseThrow(() -> new IllegalArgumentException("Cash Till report till_id is required"));
-    }
-
-    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-    private record CashTillReportParameters(Long tillId, Boolean allocatedReport) {
-
-        private boolean isAllocatedReport() {
-            return Boolean.TRUE.equals(allocatedReport);
         }
     }
 }
