@@ -1,5 +1,8 @@
 package uk.gov.hmcts.opal.service.report.mapper.csv;
 
+import static uk.gov.hmcts.opal.service.report.CommonReportHelper.formatMoney;
+import static uk.gov.hmcts.opal.service.report.CommonReportHelper.getDataValue;
+
 import java.util.List;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedAccountReportDto;
@@ -103,15 +106,15 @@ public class EnforcementDetailedCSVMapper
             getDataValue(accountRow.getDateOfHearing()),
             getDataValue(accountRow.getImposingCourt()),
             getDataValue(accountRow.getPaymentTerms()),
-            getDataValue(accountRow.getAmountImposed()),
-            getDataValue(accountRow.getBalance()),
-            getDataValue(accountRow.getArrearsTotal()),
-            getDataValue(accountRow.getFineImpositions()),
-            getDataValue(accountRow.getCostImpositions()),
-            getDataValue(accountRow.getCompensationImpositions()),
-            getDataValue(accountRow.getCriminalCourtsChargeImpositions()),
-            getDataValue(accountRow.getVictimSurchargeImpositions()),
-            getDataValue(accountRow.getOtherImpositions()),
+            getDataValue(formatMoney(accountRow.getAmountImposed())),
+            getDataValue(formatMoney(accountRow.getBalance())),
+            getDataValue(formatMoney(accountRow.getArrearsTotal())),
+            getDataValue(formatMoney(accountRow.getFineImpositions())),
+            getDataValue(formatMoney(accountRow.getCostImpositions())),
+            getDataValue(formatMoney(accountRow.getCompensationImpositions())),
+            getDataValue(formatMoney(accountRow.getCriminalCourtsChargeImpositions())),
+            getDataValue(formatMoney(accountRow.getVictimSurchargeImpositions())),
+            getDataValue(formatMoney(accountRow.getOtherImpositions())),
             getDataValue(accountRow.getProsecutorCaseReference())
         );
     }
@@ -125,7 +128,7 @@ public class EnforcementDetailedCSVMapper
             getDataValue(transactionRow.getTransactionType()),
             getDataValue(transactionRow.getTransactionDetails()),
             getDataValue(transactionRow.getTransactionUserId()),
-            getDataValue(transactionRow.getTransactionAmount())
+            getDataValue(formatMoney(transactionRow.getTransactionAmount()))
         );
     }
 

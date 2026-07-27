@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.report;
 
 import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.COMMA;
 import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.DOUBLE_QUOTE;
+import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.EMPTY_STRING;
 import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.NEW_LINE;
 
 import java.math.BigDecimal;
@@ -11,6 +12,11 @@ public final class CommonReportHelper {
 
     private CommonReportHelper() {
         // utility class
+
+    }
+
+    public static String getDataValue(Object value) {
+        return value != null ? value.toString() : EMPTY_STRING;
     }
 
     public static String formatMoney(BigDecimal value) {
