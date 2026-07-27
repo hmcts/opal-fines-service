@@ -88,6 +88,9 @@ class GetReportInstanceContentServiceTest {
     private ReportInterface<ReportDataInterface> reportInterfaceImplementation;
 
     @Mock
+    private ReportCSVService csvService;
+
+    @Mock
     private OpalJwtAuthenticationToken authToken;
 
     private GetReportInstanceContentService getReportInstanceContentService;
@@ -98,6 +101,13 @@ class GetReportInstanceContentServiceTest {
 
     @BeforeEach
     void setUp() {
+        getReportInstanceContentService = new GetReportInstanceContentService(
+            reportInstanceRepository,
+            reportRegistry,
+            reportBlobStore,
+            mapper,
+            csvService
+        );
         mock_authenticationContext();
         reportInstance = createReportInstanceEntity(
             REPORT_ID,
@@ -209,8 +219,7 @@ class GetReportInstanceContentServiceTest {
             byte[] expected = "a,b".getBytes();
             when(reportInstanceFileRepository.findByReportInstanceIdAndFileType(1L, SupportedFileType.CSV))
                 .thenReturn(Optional.empty());
-            when(reportInterfaceImplementation.convertReportDataToFileType(reportInstance, reportData, CSV))
-                .thenReturn(expected);
+            when(csvService.convertReportDtoToCSV(reportData)).thenReturn(expected);
             when(reportBlobStore.storeReport(any())).thenReturn(GENERATED_FILE_LOCATION);
 
             Object actual = getReportInstanceContentService.getReportInstanceContent(1L, CSV);
@@ -231,7 +240,8 @@ class GetReportInstanceContentServiceTest {
                 () -> assertEquals(LocalDateTime.now(clock), fileEntity.getValue().getCreatedTimestamp()),
                 () -> assertEquals(LocalDateTime.now(clock), fileEntity.getValue().getLastAccessedTimestamp()),
                 () -> verify(reportInterfaceImplementation, never()).generateReportData(reportInstance),
-                () -> verify(reportInterfaceImplementation)
+                () -> verify(csvService).convertReportDtoToCSV(reportData),
+                () -> verify(reportInterfaceImplementation, never())
                     .convertReportDataToFileType(reportInstance, reportData, CSV)
             );
         }
