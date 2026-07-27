@@ -22,6 +22,7 @@ import uk.gov.hmcts.opal.common.controllers.advice.OpalProblemDetailFactory;
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
+import uk.gov.hmcts.opal.exception.LegacyGatewayException;
 import uk.gov.hmcts.opal.exception.MissingMappingTypeException;
 import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
@@ -198,6 +199,22 @@ public class GlobalExceptionHandler {
             Optional.ofNullable(ex.getStatusText()).filter(text -> !text.isBlank()).orElse(ex.getMessage()),
             "http-client-error",
             false,
+            ex
+        );
+
+        return responseWithProblemDetail(status, problemDetail);
+    }
+
+    @ExceptionHandler(LegacyGatewayException.class)
+    public ResponseEntity<ProblemDetail> handleLegacyGatewayException(LegacyGatewayException ex) {
+        HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
+
+        ProblemDetail problemDetail = createProblemDetail(
+            status,
+            status.getReasonPhrase(),
+            Optional.ofNullable(ex.getStatusText()).filter(text -> !text.isBlank()).orElse(ex.getMessage()),
+            "legacy-gateway-error",
+            status == HttpStatus.SERVICE_UNAVAILABLE,
             ex
         );
 

@@ -18,7 +18,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
@@ -30,6 +29,7 @@ import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountAtAGlanceLegacyRespon
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse;
 import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
+import uk.gov.hmcts.opal.exception.LegacyGatewayException;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHistoryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountAtAGlanceResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper;
@@ -129,8 +129,8 @@ class LegacyMajorCreditorAccountServiceTest {
             new RuntimeException("Gateway error")
         ));
 
-        HttpServerErrorException exception = assertThrows(
-            HttpServerErrorException.class,
+        LegacyGatewayException exception = assertThrows(
+            LegacyGatewayException.class,
             () -> legacyMajorCreditorAccountService.getHeaderSummary(123L)
         );
 
@@ -155,8 +155,8 @@ class LegacyMajorCreditorAccountServiceTest {
             null
         ));
 
-        HttpServerErrorException exception = assertThrows(
-            HttpServerErrorException.class,
+        LegacyGatewayException exception = assertThrows(
+            LegacyGatewayException.class,
             () -> legacyMajorCreditorAccountService.getHeaderSummary(123L)
         );
 
@@ -220,8 +220,8 @@ class LegacyMajorCreditorAccountServiceTest {
             new RuntimeException("Gateway error")
         ));
 
-        HttpServerErrorException exception = assertThrows(
-            HttpServerErrorException.class,
+        LegacyGatewayException exception = assertThrows(
+            LegacyGatewayException.class,
             () -> legacyMajorCreditorAccountService.getHistory(123L, null, null, null)
         );
 
@@ -279,8 +279,8 @@ class LegacyMajorCreditorAccountServiceTest {
             new RuntimeException("Gateway error")
         ));
 
-        HttpServerErrorException exception = assertThrows(
-            HttpServerErrorException.class,
+        LegacyGatewayException exception = assertThrows(
+            LegacyGatewayException.class,
             () -> legacyMajorCreditorAccountService.getAtAGlance(123L)
         );
 

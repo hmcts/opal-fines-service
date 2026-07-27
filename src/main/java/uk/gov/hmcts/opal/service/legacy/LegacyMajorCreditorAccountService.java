@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,7 @@ import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyRe
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse.MajorCreditorLegacy;
 import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
+import uk.gov.hmcts.opal.exception.LegacyGatewayException;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHistoryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountAtAGlanceResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper;
@@ -52,13 +54,12 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
     @Override
     public GetMajorCreditorAccountAtAGlanceResponse getAtAGlance(Long majorCreditorAccountId) {
         Response<GetMajorCreditorAccountAtAGlanceLegacyResponse> response =
-            gatewayService.postToGateway(
+            postToGateway(
                 GET_MAJOR_CREDITOR_ACCOUNT_AT_A_GLANCE,
                 GetMajorCreditorAccountAtAGlanceLegacyResponse.class,
                 GetMajorCreditorAccountAtAGlanceLegacyRequest.builder()
                     .creditorAccountId(String.valueOf(majorCreditorAccountId))
-                    .build(),
-                null
+                    .build()
             );
 
         checkResponseForError(response, "getAtAGlance");
@@ -72,13 +73,12 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
     @Override
     public GetMajorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long majorCreditorAccountId) {
         Response<GetMajorCreditorAccountHeaderSummaryLegacyResponse> response =
-            gatewayService.postToGateway(
+            postToGateway(
                 GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY,
                 GetMajorCreditorAccountHeaderSummaryLegacyResponse.class,
                 GetMajorCreditorAccountHeaderSummaryLegacyRequest.builder()
                     .creditorAccountId(String.valueOf(majorCreditorAccountId))
-                    .build(),
-                null
+                    .build()
             );
 
         checkResponseForError(response, "getHeaderSummary");
@@ -100,11 +100,10 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
         List<String> itemTypes
     ) {
         Response<GetMajorCreditorAccountHistoryLegacyResponse> response =
-            gatewayService.postToGateway(
+            postToGateway(
                 GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
                 GetMajorCreditorAccountHistoryLegacyResponse.class,
-                createGetMajorCreditorAccountHistoryRequest(majorCreditorAccountId, dateFrom, dateTo, itemTypes),
-                null
+                createGetMajorCreditorAccountHistoryRequest(majorCreditorAccountId, dateFrom, dateTo, itemTypes)
             );
 
         checkResponseForError(response, "getHistory");
@@ -147,6 +146,14 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
             .toList();
     }
 
+    private <T, R> Response<T> postToGateway(String procedureName, Class<T> responseType, R request) {
+        try {
+            return gatewayService.postToGateway(procedureName, responseType, request, null);
+        } catch (HttpServerErrorException ex) {
+            throw createGatewayException(ex);
+        }
+    }
+
     private static <T> void checkResponseForError(Response<T> response, String method) {
         if (response.isError()) {
             log.error(":{}: Legacy Gateway response: HTTP Response Code {}", method, response.code);
@@ -162,6 +169,13 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
         } else if (response.isSuccessful()) {
             log.info(":{}: Legacy Gateway response: Success.", method);
         }
+    }
+
+    private static LegacyGatewayException createGatewayException(HttpServerErrorException exception) {
+        String statusText = Optional.ofNullable(exception.getStatusText())
+            .filter(text -> !text.isBlank())
+            .orElse(exception.getMessage());
+        return new LegacyGatewayException(exception.getStatusCode(), statusText, exception);
     }
 
     private static RuntimeException createGatewayException(
@@ -186,12 +200,6 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
             );
         }
 
-        return HttpServerErrorException.create(
-            responseStatus,
-            statusText,
-            HttpHeaders.EMPTY,
-            body,
-            StandardCharsets.UTF_8
-        );
+        return new LegacyGatewayException(responseStatus, statusText, exception);
     }
 }
