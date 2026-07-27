@@ -1,57 +1,38 @@
 package uk.gov.hmcts.opal.service.hmrc;
 
-import java.net.URI;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.opal.config.cache.CacheNames;
+import uk.gov.hmcts.opal.service.hmrc.creds.HMRCAuthTokenCreds;
 import uk.gov.hmcts.opal.service.hmrc.response.HMRCAuthToken;
 
 @Service
 @Slf4j(topic = "opal.HmrcAuthService")
 public class HmrcAuthService {
 
-    private static final String GRANT_TYPE = "client_credentials";
-
     private final RestClient restClient;
-    private final String clientId;
-    private final String clientSecret;
-    private final String scope;
+    private final HMRCAuthTokenCreds creds;
     private final String url;
 
     public HmrcAuthService(RestClient restClient,
-        @Value("${hmrc.auth.client-id}") String clientId,
-        @Value("${hmrc.auth.client-secret}") String clientSecret,
-        @Value("${hmrc.auth.scope}") String scope,
+        HMRCAuthTokenCreds creds,
         @Value("${hmrc.auth.url}") String url) {
 
         this.restClient = restClient;
-        this.clientId = clientId;
-        this.clientSecret = clientSecret;
-        this.scope = scope;
+        this.creds = creds;
         this.url = url;
     }
 
     @Cacheable(CacheNames.HMRC_AUTH_SERVICE)
     public HMRCAuthToken getAuthToken() {
-        URI uri = buildUri();
 
-        return restClient.get()
-            .uri(uri)
+        return restClient.post()
+            .uri(url)
+            .body(creds)
             .retrieve()
             .body(HMRCAuthToken.class);
-    }
-
-    private URI buildUri() {
-        return UriComponentsBuilder.fromUriString(url)
-            .queryParam("client_id", clientId)
-            .queryParam("client_secret", clientSecret)
-            .queryParam("grant_type", GRANT_TYPE)
-            .queryParam("scope", scope)
-            .build()
-            .toUri();
     }
 }
