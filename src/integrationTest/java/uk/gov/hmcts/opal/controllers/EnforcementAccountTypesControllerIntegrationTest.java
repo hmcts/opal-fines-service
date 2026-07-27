@@ -28,7 +28,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @DisplayName("Enforcement Account Types Integration Test")
 public class EnforcementAccountTypesControllerIntegrationTest extends AbstractIntegrationTest {
 
-    private static final String URL = "/enforcement-accounts-types/";
+    private static final String URL = "/enforcement-accounts-types";
 
     @TestPropertySource(properties = {
         "launchdarkly.enabled=false",

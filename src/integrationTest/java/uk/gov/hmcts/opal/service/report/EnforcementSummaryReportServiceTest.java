@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.jspecify.annotations.NonNull;
@@ -23,7 +24,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.ResultId;
@@ -36,7 +37,7 @@ import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
-import uk.gov.hmcts.opal.service.report.operation.OperationReportByEnforcementService;
+import uk.gov.hmcts.opal.service.report.operation.EnforcementReportService;
 import uk.gov.hmcts.opal.service.report.operation.OperationSummaryReport;
 import uk.gov.hmcts.opal.util.AgeUtil;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -45,22 +46,17 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Sql(scripts = "classpath:db/insertData/insert_into_enforcements.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_enforcements.sql", executionPhase = AFTER_TEST_CLASS)
-@Slf4j(topic = "opal.OperationReportByEnforcementServiceSummaryTest")
-@DisplayName("OperationReportByEnforcementServiceSummaryTest")
-public class OperationReportByEnforcementServiceSummaryTest extends AbstractIntegrationTest {
+@Slf4j(topic = "opal.EnforcementSummaryReportServiceTest")
+@DisplayName("EnforcementSummaryReportServiceTest")
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+public class EnforcementSummaryReportServiceTest extends AbstractIntegrationTest {
 
-    @Autowired
-    private OperationReportByEnforcementService service;
-    @Autowired
-    private DefendantAccountRepository defendantAccountRepository;
-    @Autowired
-    private EnforcementRepository enforcementRepository;
-    @Autowired
-    private PaymentTermsRepository paymentTermsRepository;
+    private final EnforcementReportService service;
+    private final DefendantAccountRepository defendantAccountRepository;
+    private final EnforcementRepository enforcementRepository;
+    private final PaymentTermsRepository paymentTermsRepository;
 
-    // ----------------------------------------
-    // Helper
-    // ----------------------------------------
     private ReportInstanceEntity reportWithFilters(String json) {
         ReportInstanceEntity instance = new ReportInstanceEntity();
         instance.setReportParameters(json);
@@ -88,7 +84,7 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
     @JiraEpic("PO-2248")
     @Test
     @JiraTestKey("PO-7852")
-    void generateReportData_filterSummaryReportType_returnSortedResultsOfSummaryReportType() {
+    void generateReportData_summaryReport_returnsSortedRows() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
@@ -178,7 +174,7 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
     @JiraEpic("PO-2248")
     @Test
     @JiraTestKey("PO-7851")
-    void generateReportData_filterByEnforcementModeAll_returnAllSortedResults() {
+    void generateReportData_enforcementModeAll_returnsSortedRows() {
         //Arrange
         String json = """
             {
@@ -206,7 +202,7 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
     @JiraEpic("PO-2248")
     @Test
     @JiraTestKey("PO-7846")
-    void generateReportData_filterByEnforcementModeNull_returnAllSortedResults() {
+    void generateReportData_nullEnforcementMode_returnsSortedRows() {
         //Arrange
         String json = """
             {
@@ -233,7 +229,7 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
     @JiraEpic("PO-2248")
     @Test
     @JiraTestKey("PO-7835")
-    void generateReportData_filterByEnforcementModeLastActionWithNoEnforcementAction_throwsError() {
+    void generateReportData_lastActionWithoutAction_throwsError() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
@@ -251,7 +247,7 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
     @JiraEpic("PO-2248")
     @Test
     @JiraTestKey("PO-7844")
-    void generateReportData_filterByEnforcementModeLastActionWithoutDates_returnLastActionSortedResults() {
+    void generateReportData_lastActionWithoutDates_returnsSortedRows() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
@@ -288,7 +284,7 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
     @JiraEpic("PO-2248")
     @Test
     @JiraTestKey("PO-7841")
-    void generateReportData_filterByEnforcementModeLastActionWithDates_returnLastActionSortedResultsBetweenDates() {
+    void generateReportData_lastActionWithDates_returnsSortedRows() {
         //Arrange
         LocalDateTime start = LocalDate.now().minusDays(2).atStartOfDay();
         LocalDateTime end = LocalDate.now().plusDays(1).atStartOfDay();
@@ -336,7 +332,7 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
     @JiraEpic("PO-2248")
     @Test
     @JiraTestKey("PO-7850")
-    void generateReportData_filterByEnforcementModeRegfWithDates_returnRegfSortedResults() {
+    void generateReportData_regfWithDates_returnsSortedRows() {
         LocalDate from = LocalDate.of(2000, 1, 1);
         LocalDate to = LocalDate.of(2000, 2, 2);
         String json = """
@@ -381,7 +377,7 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
     @JiraEpic("PO-2248")
     @Test
     @JiraTestKey("PO-7831")
-    void generateReportData_filterByEnforcementModeRegf_returnRegfSortedResults() {
+    void generateReportData_regfMode_returnsSortedRows() {
         String json = """
             {
               "reportEnforcementMode": "REGF",
@@ -458,7 +454,7 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
     @JiraEpic("PO-2248")
     @Test
     @JiraTestKey("PO-7847")
-    void generateReportData_filterByNotUnderEnforcement_returnResultsNotUnderEnforcement() {
+    void generateReportData_notUnderEnforcement_returnsMatches() {
         //Arrange
         String json = """
             {
@@ -559,7 +555,7 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
     @JiraEpic("PO-2248")
     @Test
     @JiraTestKey("PO-7848")
-    void generateReportData_filterByIncludeCompany_returnResultsOfCompanies() {
+    void generateReportData_includeCompany_returnsCompanies() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
@@ -589,7 +585,7 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
     @JiraEpic("PO-2248")
     @Test
     @JiraTestKey("PO-7849")
-    void generateReportData_filterByParentOrGuardian_returnResultsWithParentOrGuardian() {
+    void generateReportData_parentOrGuardian_returnsMatchingAccounts() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
@@ -737,7 +733,7 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
     @JiraEpic("PO-2248")
     @Test
     @JiraTestKey("PO-7843")
-    void generateReportData_filterByMinAndMaxBalance_returnSortedWithinMinAndMaxBalance() {
+    void generateReportData_minAndMaxBalance_returnsSortedMatches() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""
@@ -767,7 +763,7 @@ public class OperationReportByEnforcementServiceSummaryTest extends AbstractInte
     @JiraEpic("PO-2248")
     @Test
     @JiraTestKey("PO-7838")
-    void generateReportData_filterByFirstPaymentOrPayByInNext7Days_returnsForAccountWithPaymentInNext7Days() {
+    void generateReportData_firstPaymentOrPayByInNext7Days_returnsMatches() {
         //Arrange
         ReportInstanceEntity reportInstance = mock(ReportInstanceEntity.class);
         given(reportInstance.getReportParameters()).willReturn("""

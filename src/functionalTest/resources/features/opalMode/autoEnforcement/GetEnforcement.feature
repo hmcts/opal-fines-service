@@ -1,5 +1,5 @@
 @Opal @JIRA-LABEL:auto-enforcement-config
-Feature: Auto Enforcement Config
+Feature: Get Auto Enforcement Config
 
   @JIRA-STORY:PO-2434 @JIRA-EPIC:PO-2433
   Scenario: E2E.01 – Happy path returns all enforcement account types

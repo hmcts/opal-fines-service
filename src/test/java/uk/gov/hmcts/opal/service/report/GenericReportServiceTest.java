@@ -202,7 +202,7 @@ class GenericReportServiceTest {
     }
 
     @Test
-    void generateReportInstanceContent_reportIdNotFound_throwsExceptionAndDoesNotSaveAnEmptyEntity() {
+    void generateReportInstanceContent_unknownReportId_throwsWithoutEmptySave() {
         //Arrange
         when(reportInstanceRepository.findById(any())).thenThrow(EntityNotFoundException.class);
         //Act
@@ -639,7 +639,7 @@ class GenericReportServiceTest {
         }
 
         @Test
-        void whenBusinessUnitsNotProvided_filtersOnlyAccessibleBusinessUnits_happyPath() {
+        void whenNoBusinessUnitsProvided_filtersToAccessibleUnits_happyPath() {
             when(reportInstanceSearchService.findRequestedReportElseThrowError(PERMITTED_REPORT_ID))
                 .thenReturn(report);
             when(reportInstanceSearchService.validateBusinessUnitIds(null)).thenReturn(List.of((short) 10, (short) 20));
@@ -664,7 +664,7 @@ class GenericReportServiceTest {
         }
 
         @Test
-        void whenNoPermittedReportBusinessUnitMappingExists_emptyListIsReturned_happyPath() {
+        void whenNoPermittedReportBusinessUnitMappingExists_returnsEmptyList_happyPath() {
             when(reportInstanceSearchService.findPermittedReports()).thenReturn(List.of(restrictedReport));
             when(reportInstanceSearchService.validateBusinessUnitIds(null)).thenReturn(List.of((short) 10));
             mock_permittedReportForBusinessUnits(Map.of());
