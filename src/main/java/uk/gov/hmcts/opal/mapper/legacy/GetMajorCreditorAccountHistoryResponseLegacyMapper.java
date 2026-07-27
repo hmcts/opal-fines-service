@@ -46,8 +46,6 @@ public interface GetMajorCreditorAccountHistoryResponseLegacyMapper {
                 .toList());
     }
 
-    @Mapping(target = "postedDetails", source = "postedDetails")
-    @Mapping(target = "type", source = "type")
     @Mapping(target = "details", expression = "java(mapDetails(item.getType(), item.getDetails()))")
     MajorCreditorHistoryItemHistory toHistoryItem(LegacyMajorCreditorHistoryItem item);
 
