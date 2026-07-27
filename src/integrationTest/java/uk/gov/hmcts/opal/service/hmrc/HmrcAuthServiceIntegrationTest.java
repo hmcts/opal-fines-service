@@ -16,28 +16,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.MediaType;
-import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.config.cache.CacheKeys;
+import uk.gov.hmcts.opal.config.cache.CacheNames;
 import uk.gov.hmcts.opal.service.hmrc.response.HMRCAuthToken;
 
 @Slf4j(topic = "opal.HmrcAuthServiceIntegrationTest")
 @DisplayName("HMRC Auth Service Integration Test")
 @WireMockTest(httpPort = 8080)
-//@EnableWireMock({
-//    @ConfigureWireMock(
-//        port = 8888)
-//})
 public class HmrcAuthServiceIntegrationTest
     extends AbstractIntegrationTest { // TODO do i want to be inheriting from this?
 
     @Autowired
-    private StringRedisTemplate redisTemplate;
-
-    @Autowired
-    private RestClient restClient;
+    private CacheManager cacheManager;
 
     @Autowired
     private HmrcAuthService hmrcAuthService;
@@ -49,7 +41,7 @@ public class HmrcAuthServiceIntegrationTest
     @Override
     @BeforeEach
     public void beforeEach() {
-        redisTemplate.delete(CacheKeys.HMRC_AUTH_TOKEN);
+        cacheManager.getCache(CacheNames.HMRC_AUTH_SERVICE).clear();
 
         stubFor(get(urlPathEqualTo("/oauth/token"))
             .withQueryParam("client_id", equalTo("test-hmrc-client-id"))
@@ -77,7 +69,7 @@ public class HmrcAuthServiceIntegrationTest
 
 
     @Test
-    void multipleCallsToHmrcEndpoint_UtiliseCache() {
+    void multipleCallsToHmrcEndpoint_UtilisesCache() {
         HMRCAuthToken returnedAuthToken1 = hmrcAuthService.getAuthToken();
 
         HMRCAuthToken returnedAuthToken2 = hmrcAuthService.getAuthToken();

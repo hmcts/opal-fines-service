@@ -7,7 +7,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
-import uk.gov.hmcts.opal.config.cache.CacheKeys;
+import uk.gov.hmcts.opal.config.cache.CacheNames;
 import uk.gov.hmcts.opal.service.hmrc.response.HMRCAuthToken;
 
 @Service
@@ -35,7 +35,7 @@ public class HmrcAuthService {
         this.url = url;
     }
 
-    @Cacheable(value = "HmrcAuthService", key = "'" + CacheKeys.HMRC_AUTH_TOKEN + "'")
+    @Cacheable(value = CacheNames.HMRC_AUTH_SERVICE)
     public HMRCAuthToken getAuthToken() {
         URI uri = buildUri();
 
