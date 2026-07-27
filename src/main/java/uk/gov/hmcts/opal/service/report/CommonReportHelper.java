@@ -12,7 +12,6 @@ public final class CommonReportHelper {
 
     private CommonReportHelper() {
         // utility class
-
     }
 
     public static String getDataValue(Object value) {
