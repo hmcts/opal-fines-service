@@ -18,12 +18,12 @@ class DefendantAccountStatusTest {
     }
 
     @Test
-    void getLabel_mapsAllSupportedStatuses() {
-        assertEquals("L", DefendantAccountStatus.LIVE.getLabel());
-        assertEquals("TO", DefendantAccountStatus.TRANSFER_OUT_PENDING.getLabel());
-        assertEquals("TS", DefendantAccountStatus.TRANSFER_OUT_TO_NI_SCOTLAND.getLabel());
-        assertEquals("TA", DefendantAccountStatus.TRANSFER_OUT_ACKNOWLEDGED.getLabel());
-        assertEquals("CS", DefendantAccountStatus.ACCOUNT_CONSOLIDATED.getLabel());
-        assertEquals("WO", DefendantAccountStatus.ACCOUNT_WRITTEN_OFF.getLabel());
+    void getCode_mapsAllSupportedStatuses() {
+        assertEquals("L", DefendantAccountStatus.LIVE.getCode());
+        assertEquals("TO", DefendantAccountStatus.TRANSFER_OUT_PENDING.getCode());
+        assertEquals("TS", DefendantAccountStatus.TRANSFER_OUT_TO_NI_SCOTLAND.getCode());
+        assertEquals("TA", DefendantAccountStatus.TRANSFER_OUT_ACKNOWLEDGED.getCode());
+        assertEquals("CS", DefendantAccountStatus.ACCOUNT_CONSOLIDATED.getCode());
+        assertEquals("WO", DefendantAccountStatus.ACCOUNT_WRITTEN_OFF.getCode());
     }
 }

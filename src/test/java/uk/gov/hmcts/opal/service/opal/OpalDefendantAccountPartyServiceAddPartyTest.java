@@ -41,6 +41,7 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.service.persistence.AliasRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
@@ -69,6 +70,9 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
 
     @Mock
     private PartyRepositoryService partyRepositoryService;
+
+    @Mock
+    private DefendantAccountControlValidator defendantAccountControlValidator;
 
     // Service under test
     @InjectMocks
@@ -199,8 +203,6 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
             .defendantAccountId(accountId).businessUnit(buWrong).versionNumber(1L).build();
 
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
-        doThrow(new EntityNotFoundException("Defendant Account not found in business unit " + businessUnitId))
-            .when(defendantAccountRepositoryService).validateAccountExistsInBusinessUnit(account, businessUnitId);
         AddDefendantAccountPartyRequest request = validOrganisationRequest();
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
@@ -209,7 +211,25 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
 
         assertEquals("Defendant Account not found in business unit " + businessUnitId, exception.getMessage());
         verify(defendantAccountRepositoryService).findById(accountId);
-        verify(defendantAccountRepositoryService).validateAccountExistsInBusinessUnit(account, businessUnitId);
+        verifyNoAddSideEffects();
+    }
+
+    @Test
+    void addDefendantAccountParty_whenAccountControlsFail_throwsBeforeMutation() {
+        Long accountId = 100L;
+        String businessUnitId = "10";
+        DefendantAccountEntity account = defendantAccount(accountId, Short.parseShort(businessUnitId), 1L);
+        UnprocessableException exception = new UnprocessableException("blocked");
+
+        when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
+        doThrow(exception).when(defendantAccountControlValidator).validateCanMutateParty(account);
+
+        UnprocessableException result = assertThrows(UnprocessableException.class, () ->
+            service.addDefendantAccountParty(
+                accountId, businessUnitId, "bu-user-1", "tester", "\"1\"", validOrganisationRequest()));
+
+        assertEquals(exception, result);
+        verify(defendantAccountControlValidator).validateCanMutateParty(account);
         verifyNoAddSideEffects();
     }
 
@@ -284,7 +304,6 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
 
         assertEquals("Defendant Account not found with id: " + accountId, exception.getMessage());
         verify(defendantAccountRepositoryService).findById(accountId);
-        verify(defendantAccountRepositoryService, never()).validateAccountExistsInBusinessUnit(any(), any());
         verifyNoAddSideEffects();
     }
 
@@ -302,7 +321,6 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
                 accountId, businessUnitId, "bu-user-1", "tester", "Tester Name", "\"4\"", request));
 
         verify(defendantAccountRepositoryService).findById(accountId);
-        verify(defendantAccountRepositoryService).validateAccountExistsInBusinessUnit(account, businessUnitId);
         verifyNoAddSideEffects();
     }
 

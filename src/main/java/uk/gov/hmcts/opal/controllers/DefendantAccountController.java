@@ -96,7 +96,7 @@ public class DefendantAccountController {
         log.debug(":POST: :addPaymentTerms: for defendant id: {}", defendantAccountId);
 
         return buildResponse(
-            defendantAccountService.addPaymentTerms(defendantAccountId,
+            defendantAccountPaymentTermsService.addPaymentTerms(defendantAccountId,
                 businessUnitId,
                 ifMatch,
                 addPaymentTermsRequest));

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -18,6 +19,46 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Slf4j(topic = "opal.OpalDefendantsPaymentCardIntegrationTest")
 class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
+
+    @Test
+    @DisplayName("OPAL: Add Payment Card Request - account controls return 422 for blocked last enforcement")
+    @JiraStory("PO-5757")
+    @JiraEpic("PO-2990")
+    void opalAddPaymentCardRequest_returns422_whenBlockedByAccountControls() throws Exception {
+        // Arrange
+        long defendantAccountId = 991199L;
+        Integer currentVersion = versionFor(defendantAccountId);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
+        headers.add("Business-Unit-Id", "78");
+        headers.add("Business-Unit-User-Id", "TEST_USER_123");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
+
+        // Act
+        ResultActions result = mockMvc.perform(
+            post("/defendant-accounts/991199/payment-card-request")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}")
+        );
+
+        log.info(":opalAddPaymentCardRequest_accountControls body:\n{}",
+                 ToJsonString.toPrettyJson(result.andReturn().getResponse().getContentAsString()));
+
+        // Assert
+        result.andExpect(status().isUnprocessableEntity())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Unprocessable Content"))
+            .andExpect(jsonPath("$.status").value(422))
+            .andExpect(jsonPath("$.detail").value(
+                "Defendant account update blocked: Payment card request last enforcement check failed because "
+                    + "last_enforcement is ABDC."))
+            .andExpect(jsonPath("$.retriable").value(false));
+
+        assertEquals(currentVersion, versionFor(defendantAccountId));
+    }
 
     @Test
     @DisplayName("OPAL: Add Payment Card Request – Happy Path [@PO-1719]")

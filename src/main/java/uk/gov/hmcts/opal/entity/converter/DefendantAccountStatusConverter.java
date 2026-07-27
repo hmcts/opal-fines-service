@@ -12,7 +12,7 @@ public class DefendantAccountStatusConverter implements AttributeConverter<Defen
         if (attribute == null) {
             return null;
         }
-        return attribute.getLabel();
+        return attribute.getCode();
     }
 
     @Override
@@ -20,6 +20,6 @@ public class DefendantAccountStatusConverter implements AttributeConverter<Defen
         if (dbData == null) {
             return null;
         }
-        return DefendantAccountStatus.getByLabel(dbData);
+        return DefendantAccountStatus.getByCode(dbData);
     }
 }

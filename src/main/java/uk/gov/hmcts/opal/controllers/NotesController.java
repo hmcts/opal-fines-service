@@ -34,7 +34,7 @@ public class NotesController {
     public ResponseEntity<String> addNote(
         @RequestBody AddNoteRequest request,
         @RequestHeader("If-Match") String ifMatch,
-        @RequestHeader("Business_Unit_ID") Short businessUnitId) {
+        @RequestHeader("Business-Unit-Id") Short businessUnitId) {
 
         log.debug(":POST:postDefendantAccountSearch: query: \n{}", request.toPrettyJson());
         String response = notesService.addNote(request, ifMatch, businessUnitId);

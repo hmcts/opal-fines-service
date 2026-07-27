@@ -425,7 +425,9 @@ class DefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsInteg
         result.andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
-            .andExpect(jsonPath("$.status").value(404));
+            .andExpect(jsonPath("$.status").value(404))
+            .andExpect(jsonPath("$.detail").value("The requested entity could not be found"))
+            .andExpect(jsonPath("$.reason").doesNotExist());
     }
 
     @Test

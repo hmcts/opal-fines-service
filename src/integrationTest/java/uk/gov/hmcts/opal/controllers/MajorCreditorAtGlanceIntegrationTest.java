@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doThrow;
@@ -14,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectEntityNotFound;
 
 import jakarta.persistence.QueryTimeoutException;
 import java.io.InputStream;
@@ -246,10 +248,7 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
         actions.andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(header().doesNotExist(HttpHeaders.ETAG))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
-            .andExpect(jsonPath("$.title").value("Entity Not Found"))
-            .andExpect(jsonPath("$.status").value(404))
-            .andExpect(jsonPath("$.detail").value("The requested entity could not be found"))
+            .andExpect(expectEntityNotFound())
             .andExpect(jsonPath("$.retriable").value(false));
 
         JsonNode problem = objectMapper.readTree(actions.andReturn().getResponse().getContentAsString());
@@ -384,14 +383,14 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
                                                String detail,
                                                String type,
                                                boolean retriable) {
-        assertEquals(Set.of("type", "title", "status", "detail", "instance", "operation_id", "retriable", "reason"),
+        assertEquals(Set.of("type", "title", "status", "detail", "instance", "operation_id", "retriable"),
             fieldNames(problem));
         assertEquals(statusCode, problem.get("status").asInt());
         assertEquals(title, problem.get("title").asText());
         assertEquals(detail, problem.get("detail").asText());
         assertEquals(type, problem.get("type").asText());
         assertEquals(retriable, problem.get("retriable").asBoolean());
-        assertTrue(problem.get("reason").asText().matches(".+"));
+        assertFalse(problem.has("reason"));
         assertTrue(problem.get("operation_id").asText().matches(".+"));
         assertTrue(problem.get("instance").asText().matches("https://hmcts.gov.uk/problems/instance/.+"));
     }

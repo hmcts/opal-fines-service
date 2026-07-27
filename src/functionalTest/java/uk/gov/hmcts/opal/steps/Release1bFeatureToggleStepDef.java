@@ -12,6 +12,7 @@ import org.json.JSONObject;
 public class Release1bFeatureToggleStepDef extends BaseStepDef {
 
     private static final String DEFENDANT_ACCOUNTS_URI = "/defendant-accounts";
+    private static final String MAPPINGS_URI = "/mappings";
     private static final String MINOR_CREDITOR_ACCOUNTS_URI = "/minor-creditor-accounts";
     private static final String NOTES_URI = "/notes";
     private static final String RESULTS_URI = "/results";
@@ -115,6 +116,8 @@ public class Release1bFeatureToggleStepDef extends BaseStepDef {
                 callGet(MINOR_CREDITOR_ACCOUNTS_URI + "/" + PLACEHOLDER_MINOR_CREDITOR_ACCOUNT_ID + "/at-a-glance");
             case "Get Minor Creditor Account" ->
                 callGet(MINOR_CREDITOR_ACCOUNTS_URI + "/" + PLACEHOLDER_MINOR_CREDITOR_ACCOUNT_ID);
+            case "Get Mappings" ->
+                callGet(MAPPINGS_URI + "/defendant-account-status");
             default -> throw new IllegalArgumentException("Unknown release-1b gated endpoint: " + endpointName);
         }
     }

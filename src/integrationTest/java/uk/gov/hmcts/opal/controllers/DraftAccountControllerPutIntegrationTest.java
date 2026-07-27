@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectBadRequestWithoutStatus;
 
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -471,9 +472,10 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 .content(invalidReferenceReplaceRequestBody(0L)))
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.title").value("Bad Request"))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/invalid-reference-validation"))
-            .andExpect(jsonPath("$.detail").value(expectedReferenceValidationErrorMessage()));
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedReferenceValidationErrorMessage(),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
 
         DraftAccountEntity after = getDraftAccount(5L);
 

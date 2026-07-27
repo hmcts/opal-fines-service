@@ -49,6 +49,12 @@
       "enabled": false
     },
     {
+      "description": "opal-logging-service-integration-lib updates are coordinated manually across consuming services",
+      "matchManagers": ["gradle"],
+      "matchPackageNames": ["uk.gov.hmcts:opal-logging-service-integration-lib"],
+      "enabled": false
+    },
+    {
       "description": "Group Tomcat embed dependencies",
       "matchManagers": ["gradle"],
       "matchPackageNames": [

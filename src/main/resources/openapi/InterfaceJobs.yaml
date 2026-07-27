@@ -19,14 +19,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/create_interface_jobs_request'
+              $ref: '#/components/schemas/InterfaceJobsCreateRequest'
       responses:
         "201":
           description: Interface jobs created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/create_interface_jobs_response'
+                $ref: '#/components/schemas/InterfaceJobsCreateResponse'
         "400":
           description: Bad request
           content:
@@ -71,7 +71,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/process_interface_jobs_request'
+              $ref: '#/components/schemas/InterfaceJobsProcessRequest'
       responses:
         "202":
           description: Interface jobs accepted for asynchronous processing
@@ -171,7 +171,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/interface_job_summary_response'
+                $ref: '#/components/schemas/InterfaceJobsSummaryResponse'
         "400":
           description: Bad request
           content:
@@ -225,7 +225,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/processed_file_summary_response'
+                $ref: '#/components/schemas/InterfaceJobsProcessedFileSummaryResponse'
         "400":
           description: Bad request
           content:
@@ -265,7 +265,7 @@ paths:
 
 components:
   schemas:
-    create_interface_jobs_request:
+    InterfaceJobsCreateRequest:
       type: object
       additionalProperties: false
       required:
@@ -275,9 +275,9 @@ components:
           type: array
           minItems: 1
           items:
-            $ref: '#/components/schemas/create_interface_job'
+            $ref: '#/components/schemas/InterfaceJobsCreateItem'
 
-    create_interface_job:
+    InterfaceJobsCreateItem:
       type: object
       additionalProperties: false
       required:
@@ -293,7 +293,7 @@ components:
           minLength: 1
           description: DB Mapping - interface_files.file_name
         source:
-          $ref: '#/components/schemas/interface_file_source'
+          $ref: '#/components/schemas/InterfaceJobsFileSource'
           description: DB Mapping - interface_files.source
         records:
           type: string
@@ -312,7 +312,7 @@ components:
           format: date-time
           description: DB Mapping - interface_files.created_datetime
 
-    create_interface_jobs_response:
+    InterfaceJobsCreateResponse:
       type: object
       additionalProperties: false
       required:
@@ -322,9 +322,9 @@ components:
           type: array
           minItems: 1
           items:
-            $ref: '#/components/schemas/create_interface_job_response'
+            $ref: '#/components/schemas/InterfaceJobsCreateResponseItem'
 
-    create_interface_job_response:
+    InterfaceJobsCreateResponseItem:
       type: object
       additionalProperties: false
       required:
@@ -334,7 +334,7 @@ components:
           $ref: './types.yaml#/components/schemas/BigInt'
           description: DB Mapping - interface_jobs.interface_job_id
 
-    process_interface_jobs_request:
+    InterfaceJobsProcessRequest:
       type: object
       additionalProperties: false
       required:
@@ -344,9 +344,9 @@ components:
           type: array
           minItems: 1
           items:
-            $ref: '#/components/schemas/process_interface_job'
+            $ref: '#/components/schemas/InterfaceJobsProcessItem'
 
-    process_interface_job:
+    InterfaceJobsProcessItem:
       type: object
       additionalProperties: false
       required:
@@ -365,7 +365,7 @@ components:
           type: boolean
           description: DB Mapping - interface_files.override_inhibits
 
-    processed_file_summary_response:
+    InterfaceJobsProcessedFileSummaryResponse:
       type: object
       additionalProperties: false
       required:
@@ -400,9 +400,9 @@ components:
         interface_messages:
           type: array
           items:
-            $ref: '#/components/schemas/interface_message'
+            $ref: '#/components/schemas/InterfaceJobsMessage'
 
-    interface_message:
+    InterfaceJobsMessage:
       type: object
       additionalProperties: false
       required:
@@ -419,13 +419,13 @@ components:
           additionalProperties: true
           description: DB Mapping - interface_messages.message_data
         message_type:
-          $ref: '#/components/schemas/interface_message_type'
+          $ref: '#/components/schemas/InterfaceJobsMessageType'
           description: DB Mapping - interface_messages.message_type
         message_text:
           type: string
           description: DB Mapping - interface_messages.message_text
 
-    interface_job_summary_response:
+    InterfaceJobsSummaryResponse:
       type: object
       additionalProperties: false
       required:
@@ -434,9 +434,9 @@ components:
         interface_jobs:
           type: array
           items:
-            $ref: '#/components/schemas/interface_job_summary'
+            $ref: '#/components/schemas/InterfaceJobsSummaryItem'
 
-    interface_job_summary:
+    InterfaceJobsSummaryItem:
       type: object
       additionalProperties: false
       required:
@@ -455,7 +455,7 @@ components:
         file_name:
           type: string
         source:
-          $ref: '#/components/schemas/interface_file_source'
+          $ref: '#/components/schemas/InterfaceJobsFileSource'
         business_unit_name:
           type: string
         completed_datetime:
@@ -465,9 +465,9 @@ components:
           type: string
           format: date-time
         status:
-          $ref: '#/components/schemas/interface_job_status'
+          $ref: '#/components/schemas/InterfaceJobsJobStatus'
 
-    interface_file_source:
+    InterfaceJobsFileSource:
       type: string
       enum:
         - NATWEST
@@ -481,7 +481,7 @@ components:
         - MARSTON
         - OTHER
 
-    interface_message_type:
+    InterfaceJobsMessageType:
       type: string
       enum:
         - Exception
@@ -489,7 +489,7 @@ components:
         - Warning
         - Info
 
-    interface_job_status:
+    InterfaceJobsJobStatus:
       type: string
       enum:
         - CREATED

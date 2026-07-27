@@ -40,7 +40,7 @@ public class ReportParameterValidatorTest {
     }
 
     @Test
-    void validateReportInstanceParameterValues_allSupportedParameterTypesValid_returnsTrue() {
+    void validate_allSupportedTypesValid_returnsTrue() {
         List<String> checkboxList = List.of("one", "two");
         List<String> radioList = List.of("one");
         when(objectMapper.convertValue(checkboxList,
@@ -78,7 +78,7 @@ public class ReportParameterValidatorTest {
     }
 
     @Test
-    void validateReportInstanceParameterValues_nullParametersWithMandatoryParameters_returnsFalse() {
+    void validate_nullParametersWithMandatoryParameters_returnsFalse() {
         when(report.getReportParameters()).thenReturn(List.of(
             parameter("text-param", "text-60", true, null, null, null)
         ));
@@ -89,7 +89,7 @@ public class ReportParameterValidatorTest {
     }
 
     @Test
-    void validateReportInstanceParameterValues_nullParametersWithNoMandatoryParameters_returnsTrue() {
+    void validate_nullParametersWithNoMandatoryParameters_returnsTrue() {
         when(report.getReportParameters()).thenReturn(List.of(
             parameter("text-param", "text-60", false, null, null, null)
         ));
@@ -100,7 +100,7 @@ public class ReportParameterValidatorTest {
     }
 
     @Test
-    void validateReportInstanceParameterValues_emptyParametersWithNoMandatoryParameters_returnsTrue() {
+    void validate_emptyParametersWithNoMandatoryParameters_returnsTrue() {
         when(report.getReportParameters()).thenReturn(List.of(
             parameter("text-param", "text-60", false, null, null, null)
         ));
@@ -111,7 +111,7 @@ public class ReportParameterValidatorTest {
     }
 
     @Test
-    void validateReportInstanceParameterValues_emptyParametersWithMandatoryParameters_returnsFalse() {
+    void validate_emptyParametersWithMandatoryParameters_returnsFalse() {
         when(report.getReportParameters()).thenReturn(List.of(
             parameter("text-param", "text-60", true, null, null, null)
         ));
@@ -122,7 +122,7 @@ public class ReportParameterValidatorTest {
     }
 
     @Test
-    void validateReportInstanceParameterValues_unknownParameterName_throwsException() {
+    void validate_unknownParameterName_throwsException() {
         when(report.getReportParameters()).thenReturn(List.of(
             parameter("text-param", "text-60", false, null, null, null)
         ));
@@ -133,7 +133,7 @@ public class ReportParameterValidatorTest {
     }
 
     @Test
-    void validateReportInstanceParameterValues_unknownParameterType_throwsException() {
+    void validate_unknownParameterType_throwsException() {
         when(report.getReportParameters()).thenReturn(List.of(
             parameter("text-param", "unknown-type", false, null, null, null)
         ));
@@ -144,7 +144,7 @@ public class ReportParameterValidatorTest {
     }
 
     @Test
-    void validateReportInstanceParameterValues_dateValueIsNotString_returnsFalse() {
+    void validate_dateValueIsNotString_returnsFalse() {
         when(report.getReportParameters()).thenReturn(List.of(
             parameter("date-param", "date", false, null, null, null)
         ));
@@ -156,7 +156,7 @@ public class ReportParameterValidatorTest {
     }
 
     @Test
-    void validateReportInstanceParameterValues_dateValueWithinConfiguredRange_returnsFalse() {
+    void validate_dateValueWithinConfiguredRange_returnsFalse() {
         when(report.getReportParameters()).thenReturn(List.of(
             parameter("date-param", "date", false, "2026-01-01", "2026-12-31", null)
         ));
@@ -168,7 +168,7 @@ public class ReportParameterValidatorTest {
     }
 
     @Test
-    void validateReportInstanceParameterValues_dateValueCannotBeParsed_throwsException() {
+    void validate_dateValueCannotBeParsed_throwsException() {
         when(report.getReportParameters()).thenReturn(List.of(
             parameter("date-param", "date", false, null, null, null)
         ));
@@ -180,7 +180,7 @@ public class ReportParameterValidatorTest {
     }
 
     @Test
-    void validateReportInstanceParameterValues_decimalValueIsNotDouble_returnsFalse() {
+    void validate_decimalValueIsNotDouble_returnsFalse() {
         when(report.getReportParameters()).thenReturn(List.of(
             parameter("decimal-param", "decimal-2dp", false, null, null, null)
         ));
@@ -192,7 +192,7 @@ public class ReportParameterValidatorTest {
     }
 
     @Test
-    void validateReportInstanceParameterValues_decimalValueOutsideRange_returnsFalse() {
+    void validate_decimalValueOutsideRange_returnsFalse() {
         when(report.getReportParameters()).thenReturn(List.of(
             parameter("decimal-param", "decimal-2dp", false, 1.0, 10.0, null)
         ));
@@ -204,7 +204,7 @@ public class ReportParameterValidatorTest {
     }
 
     @Test
-    void validateReportInstanceParameterValues_integerValueIsNotInteger_returnsFalse() {
+    void validate_integerValueIsNotInteger_returnsFalse() {
         when(report.getReportParameters()).thenReturn(List.of(
             parameter("integer-param", "integer", false, null, null, null)
         ));
@@ -216,7 +216,7 @@ public class ReportParameterValidatorTest {
     }
 
     @Test
-    void validateReportInstanceParameterValues_integerValueOutsideRange_returnsFalse() {
+    void validate_integerValueOutsideRange_returnsFalse() {
         when(report.getReportParameters()).thenReturn(List.of(
             parameter("integer-param", "integer", false, 1L, 10L, null)
         ));
@@ -228,7 +228,7 @@ public class ReportParameterValidatorTest {
     }
 
     @Test
-    void validateReportInstanceParameterValues_menuHasTooManyValues_returnsFalse() {
+    void validate_menuHasTooManyValues_returnsFalse() {
         List<String> menuChoiceList = List.of("one", "two");
         when(objectMapper.convertValue(menuChoiceList,
             TypeFactory.createDefaultInstance().constructCollectionType(List.class, String.class)))
@@ -245,7 +245,7 @@ public class ReportParameterValidatorTest {
     }
 
     @Test
-    void validateReportInstanceParameterValues_menuHasTooFewValues_returnsFalse() {
+    void validate_menuHasTooFewValues_returnsFalse() {
         List<String> menuChoiceList = List.of();
         when(objectMapper.convertValue(menuChoiceList,
             TypeFactory.createDefaultInstance().constructCollectionType(List.class, String.class)))
@@ -261,7 +261,7 @@ public class ReportParameterValidatorTest {
     }
 
     @Test
-    void validateReportInstanceParameterValues_menuHasInvalidOption_returnsFalse() {
+    void validate_menuHasInvalidOption_returnsFalse() {
         List<String> menuChoiceList = List.of("three");
         when(objectMapper.convertValue(menuChoiceList,
             TypeFactory.createDefaultInstance().constructCollectionType(List.class, String.class)))
@@ -278,7 +278,7 @@ public class ReportParameterValidatorTest {
     }
 
     @Test
-    void validateReportInstanceParameterValues_menuValueCannotBeConverted_returnsFalse() {
+    void validate_menuValueCannotBeConverted_returnsFalse() {
         Object notAList = new Object();
         when(objectMapper
             .convertValue(notAList,
@@ -296,7 +296,7 @@ public class ReportParameterValidatorTest {
     }
 
     @Test
-    void validateReportInstanceParameterValues_textValueIsNotString_returnsFalse() {
+    void validate_textValueIsNotString_returnsFalse() {
         when(report.getReportParameters()).thenReturn(List.of(
             parameter("text-param", "text-60", false, null, null, null)
         ));
@@ -308,7 +308,7 @@ public class ReportParameterValidatorTest {
     }
 
     @Test
-    void validateReportInstanceParameterValues_textValueShorterThanMin_returnsFalse() {
+    void validate_textValueShorterThanMin_returnsFalse() {
         when(report.getReportParameters()).thenReturn(List.of(
             parameter("text-param", "text-100", false, 5, 100, null)
         ));
@@ -320,7 +320,7 @@ public class ReportParameterValidatorTest {
     }
 
     @Test
-    void validateReportInstanceParameterValues_textValueLongerThanMax_returnsFalse() {
+    void validate_textValueLongerThanMax_returnsFalse() {
         when(report.getReportParameters()).thenReturn(List.of(
             parameter("text-param", "text-1000", false, 0, 5, null)
         ));

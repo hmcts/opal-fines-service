@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -24,6 +25,45 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Slf4j(topic = "opal.OpalDefendantsPatchIntegrationTest")
 class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
+
+    @Test
+    @DisplayName("OPAL: PATCH Update Defendant Account - account controls return 422 for protected field change")
+    @JiraStory("PO-5757")
+    @JiraEpic("PO-2990")
+    void patch_updateProtectedField_returns422_whenBlockedByAccountControls() throws Exception {
+        // Arrange
+        long defendantAccountId = 9077L;
+        Integer currentVersion = versionFor(defendantAccountId);
+        HttpHeaders headers = authorisedHeaders("good_token", "78", "\"" + currentVersion + "\"");
+
+        // Act
+        ResultActions result = mockMvc.perform(
+            patch(URL_BASE + "/9077")
+                .headers(headers)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "collection_order": {
+                        "collection_order_flag": false
+                      }
+                    }
+                    """));
+
+        log.info(":patch_updateProtectedField_accountControls body:\n{}",
+                 ToJsonString.toPrettyJson(result.andReturn().getResponse().getContentAsString()));
+
+        // Assert
+        result.andExpect(status().isUnprocessableEntity())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Unprocessable Content"))
+            .andExpect(jsonPath("$.status").value(422))
+            .andExpect(jsonPath("$.detail").value(
+                "Defendant account update blocked: Account Status Check failed because account_status is CS."))
+            .andExpect(jsonPath("$.retriable").value(false));
+
+        assertEquals(currentVersion, versionFor(defendantAccountId));
+    }
 
     @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - Happy Path [@PO-1565]")

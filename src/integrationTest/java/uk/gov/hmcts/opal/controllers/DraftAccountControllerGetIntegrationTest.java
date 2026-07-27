@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectBadRequest;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -686,12 +687,10 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
 
         resultActions.andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.title").value("Bad Request"))
-            .andExpect(jsonPath("$.detail")
-                .value("Invalid arguments were provided in the request"))
-            .andExpect(jsonPath("$.status").value(400))
-            .andExpect(jsonPath("$.type")
-                .value("https://hmcts.gov.uk/problems/illegal-argument"));
+            .andExpect(expectBadRequest(
+                "Invalid arguments were provided in the request",
+                "https://hmcts.gov.uk/problems/illegal-argument"
+            ));
     }
 
 }

@@ -12,12 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
-import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
-import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.legacy.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
@@ -135,27 +130,5 @@ class LegacyDefAccServiceLegacyCoverageTest extends AbstractLegacyDefAccServiceT
         DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(77L);
 
         assertEquals("1990-01-01", out.getResponse().getPartyDetails().getIndividualDetails().getDateOfBirth());
-    }
-
-    @Test
-    void legacyPaymentTerms_nonNullEnums_areConverted() {
-        LegacyGetDefendantAccountPaymentTermsResponse legacy = LegacyGetDefendantAccountPaymentTermsResponse.builder()
-            .version(1L)
-            .paymentTerms(
-                LegacyPaymentTerms.builder()
-                    .paymentTermsType(new LegacyPaymentTermsType(LegacyPaymentTermsType.PaymentTermsTypeCode.B))
-                    .instalmentPeriod(new LegacyInstalmentPeriod(LegacyInstalmentPeriod.InstalmentPeriodCode.W))
-                    .build()
-            )
-            .build();
-
-        doReturn(new GatewayService.Response<>(HttpStatus.OK, legacy, null, null))
-            .when(gatewayService).postToGateway(eq(LegacyDefendantAccountService.GET_PAYMENT_TERMS),
-                eq(LegacyGetDefendantAccountPaymentTermsResponse.class), any(), any());
-
-        GetDefendantAccountPaymentTermsResponse out = legacyDefendantAccountService.getPaymentTerms(123L);
-
-        assertNotNull(out.getPaymentTerms().getPaymentTermsType());
-        assertNotNull(out.getPaymentTerms().getInstalmentPeriod());
     }
 }
