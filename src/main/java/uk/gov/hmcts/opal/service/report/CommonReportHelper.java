@@ -17,6 +17,11 @@ public final class CommonReportHelper {
 
     private CommonReportHelper() {
         // utility class
+
+    }
+
+    public static String getDataValue(Object value) {
+        return value != null ? value.toString() : EMPTY_STRING;
     }
 
     public static String formatMoney(BigDecimal value) {

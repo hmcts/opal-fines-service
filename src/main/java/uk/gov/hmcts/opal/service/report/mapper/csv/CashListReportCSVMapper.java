@@ -1,12 +1,13 @@
 package uk.gov.hmcts.opal.service.report.mapper.csv;
 
+import static uk.gov.hmcts.opal.service.report.CommonReportHelper.formatMoney;
+import static uk.gov.hmcts.opal.service.report.CommonReportHelper.getDataValue;
 import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.NEW_LINE;
 
 import java.util.List;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.service.report.CashListReportData;
 import uk.gov.hmcts.opal.service.report.CashListReportData.CashListEntry;
-import uk.gov.hmcts.opal.service.report.CommonReportHelper;
 
 @Component
 public class CashListReportCSVMapper implements ReportCSVMapper<CashListReportData> {
@@ -25,7 +26,7 @@ public class CashListReportCSVMapper implements ReportCSVMapper<CashListReportDa
             sb.append(dataListToFullCSVRow(convertDataRow(entryNumber++, cashListEntry)));
         }
         sb.append("Total").append(NEW_LINE);
-        sb.append(cashListReportData.getTotal().toString());
+        sb.append(getDataValue(formatMoney(cashListReportData.getTotal()))).append(NEW_LINE);
         return sb.toString();
     }
 
@@ -42,12 +43,12 @@ public class CashListReportCSVMapper implements ReportCSVMapper<CashListReportDa
 
     private List<String> convertDataRow(int entryNumber, CashListEntry cashListEntry) {
         return List.of(String.valueOf(entryNumber),
-            cashListEntry.getType(),
-            cashListEntry.getSuspense(),
-            cashListEntry.getAccountNumber(),
-            cashListEntry.getName(),
-            cashListEntry.getNameAdditionalInformation(),
-            cashListEntry.getPaymentMethod(),
-            cashListEntry.getAmount().toString());
+            getDataValue(cashListEntry.getType()),
+            getDataValue(cashListEntry.getSuspense()),
+            getDataValue(cashListEntry.getAccountNumber()),
+            getDataValue(cashListEntry.getName()),
+            getDataValue(cashListEntry.getNameAdditionalInformation()),
+            getDataValue(cashListEntry.getPaymentMethod()),
+            getDataValue(formatMoney(cashListEntry.getAmount())));
     }
 }
