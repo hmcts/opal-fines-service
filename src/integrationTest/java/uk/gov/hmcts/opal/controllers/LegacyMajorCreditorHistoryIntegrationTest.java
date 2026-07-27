@@ -40,12 +40,12 @@ import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyRequest;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyCreditorTransactionStatusReference;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyCreditorTransactionTypeReference;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyMajorCreditorHistoryDetails;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyMajorCreditorHistoryItem;
+import uk.gov.hmcts.opal.dto.legacy.MajorCreditorHistoryLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.MajorCreditorHistoryLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.MajorCreditorHistoryLegacyResponse.LegacyTransactionStatusReference;
+import uk.gov.hmcts.opal.dto.legacy.MajorCreditorHistoryLegacyResponse.LegacyTransactionTypeReference;
+import uk.gov.hmcts.opal.dto.legacy.MajorCreditorHistoryLegacyResponse.LegacyHistoryDetails;
+import uk.gov.hmcts.opal.dto.legacy.MajorCreditorHistoryLegacyResponse.LegacyHistoryItem;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -108,7 +108,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             .andExpect(jsonPath("$.historyItems[0].details.defendantAccountId").value(99000000000001L))
             .andExpect(jsonPath("$.historyItems[1].details.transactionType.transactionType").value("MADJ"));
 
-        GetMajorCreditorAccountHistoryLegacyRequest request = captureLegacyRequest();
+        MajorCreditorHistoryLegacyRequest request = captureLegacyRequest();
         assertThat(request.getCreditorAccountId()).isEqualTo(String.valueOf(MAJOR_CREDITOR_ACCOUNT_ID));
         assertThat(request.getFromDate()).isNull();
         assertThat(request.getToDate()).isNull();
@@ -126,7 +126,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.historyItems", hasSize(3)));
 
-        GetMajorCreditorAccountHistoryLegacyRequest request = captureLegacyRequest();
+        MajorCreditorHistoryLegacyRequest request = captureLegacyRequest();
         assertThat(request.getFromDate()).hasToString("2026-01-25");
         assertThat(request.getToDate()).hasToString("2026-01-31");
         assertThat(request.getItemTypes()).containsExactly("Note");
@@ -261,7 +261,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     private void stubLegacyResponse() {
         when(gatewayService.postToGateway(
             eq(GET_MAJOR_CREDITOR_ACCOUNT_HISTORY),
-            eq(GetMajorCreditorAccountHistoryLegacyResponse.class),
+            eq(MajorCreditorHistoryLegacyResponse.class),
             any(),
             isNull()
         )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse(), null, null));
@@ -270,18 +270,18 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     private void stubGatewayException(RuntimeException exception) {
         when(gatewayService.postToGateway(
             eq(GET_MAJOR_CREDITOR_ACCOUNT_HISTORY),
-            eq(GetMajorCreditorAccountHistoryLegacyResponse.class),
+            eq(MajorCreditorHistoryLegacyResponse.class),
             any(),
             isNull()
         )).thenThrow(exception);
     }
 
-    private GetMajorCreditorAccountHistoryLegacyRequest captureLegacyRequest() {
-        ArgumentCaptor<GetMajorCreditorAccountHistoryLegacyRequest> requestCaptor =
-            ArgumentCaptor.forClass(GetMajorCreditorAccountHistoryLegacyRequest.class);
+    private MajorCreditorHistoryLegacyRequest captureLegacyRequest() {
+        ArgumentCaptor<MajorCreditorHistoryLegacyRequest> requestCaptor =
+            ArgumentCaptor.forClass(MajorCreditorHistoryLegacyRequest.class);
         verify(gatewayService).postToGateway(
             eq(GET_MAJOR_CREDITOR_ACCOUNT_HISTORY),
-            eq(GetMajorCreditorAccountHistoryLegacyResponse.class),
+            eq(MajorCreditorHistoryLegacyResponse.class),
             requestCaptor.capture(),
             isNull()
         );
@@ -300,8 +300,8 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
         return mockMvc.perform(request);
     }
 
-    private GetMajorCreditorAccountHistoryLegacyResponse legacyResponse() {
-        return GetMajorCreditorAccountHistoryLegacyResponse.builder()
+    private MajorCreditorHistoryLegacyResponse legacyResponse() {
+        return MajorCreditorHistoryLegacyResponse.builder()
             .version(7L)
             .historyItems(List.of(
                 historyItem("MJUSR2", "Major User Two", "MJF002", "PAYMNT", "Payment",
@@ -314,7 +314,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             .build();
     }
 
-    private LegacyMajorCreditorHistoryItem historyItem(
+    private LegacyHistoryItem historyItem(
         String postedBy,
         String postedByName,
         String paymentReference,
@@ -323,17 +323,17 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
         LocalDateTime postedDate,
         BigDecimal amount
     ) {
-        return LegacyMajorCreditorHistoryItem.builder()
+        return LegacyHistoryItem.builder()
             .postedDetails(new LegacyPostedDetails(postedDate, postedBy, postedByName))
             .type("Financial")
             .amount(amount)
-            .details(LegacyMajorCreditorHistoryDetails.builder()
-                .transactionType(LegacyCreditorTransactionTypeReference.builder()
+            .details(LegacyHistoryDetails.builder()
+                .transactionType(LegacyTransactionTypeReference.builder()
                     .transactionType(transactionType)
                     .transactionTypeDisplayName(transactionTypeDisplayName)
                     .build())
                 .paymentReference(paymentReference)
-                .status(LegacyCreditorTransactionStatusReference.builder()
+                .status(LegacyTransactionStatusReference.builder()
                     .creditorTransactionStatus("R")
                     .creditorTransactionStatusDisplayName("Reversed")
                     .build())

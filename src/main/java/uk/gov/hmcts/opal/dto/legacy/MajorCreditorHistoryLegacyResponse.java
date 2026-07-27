@@ -23,7 +23,7 @@ import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 @AllArgsConstructor
 @XmlRootElement(name = "response")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class GetMajorCreditorAccountHistoryLegacyResponse implements ToXmlString {
+public class MajorCreditorHistoryLegacyResponse implements ToXmlString {
 
     @XmlElement(name = "version")
     private Long version;
@@ -31,14 +31,14 @@ public class GetMajorCreditorAccountHistoryLegacyResponse implements ToXmlString
     @JsonProperty("history_items")
     @XmlElementWrapper(name = "history_items")
     @XmlElement(name = "history_items_element")
-    private List<LegacyMajorCreditorHistoryItem> historyItems;
+    private List<LegacyHistoryItem> historyItems;
 
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     @XmlAccessorType(XmlAccessType.FIELD)
-    public static class LegacyMajorCreditorHistoryItem {
+    public static class LegacyHistoryItem {
 
         @JsonProperty("posted_details")
         @XmlElement(name = "posted_details")
@@ -50,7 +50,7 @@ public class GetMajorCreditorAccountHistoryLegacyResponse implements ToXmlString
 
         @JsonProperty("details")
         @XmlElement(name = "details")
-        private LegacyMajorCreditorHistoryDetails details;
+        private LegacyHistoryDetails details;
 
         @JsonProperty("amount")
         @XmlElement(name = "amount")
@@ -62,11 +62,11 @@ public class GetMajorCreditorAccountHistoryLegacyResponse implements ToXmlString
     @NoArgsConstructor
     @AllArgsConstructor
     @XmlAccessorType(XmlAccessType.FIELD)
-    public static class LegacyMajorCreditorHistoryDetails {
+    public static class LegacyHistoryDetails {
 
         @JsonProperty("transaction_type")
         @XmlElement(name = "transaction_type")
-        private LegacyCreditorTransactionTypeReference transactionType;
+        private LegacyTransactionTypeReference transactionType;
 
         @JsonProperty("payment_reference")
         @XmlElement(name = "payment_reference")
@@ -74,7 +74,7 @@ public class GetMajorCreditorAccountHistoryLegacyResponse implements ToXmlString
 
         @JsonProperty("status")
         @XmlElement(name = "status")
-        private LegacyCreditorTransactionStatusReference status;
+        private LegacyTransactionStatusReference status;
 
         @JsonProperty("status_date")
         @XmlElement(name = "status_date")
@@ -111,7 +111,7 @@ public class GetMajorCreditorAccountHistoryLegacyResponse implements ToXmlString
     @NoArgsConstructor
     @AllArgsConstructor
     @XmlAccessorType(XmlAccessType.FIELD)
-    public static class LegacyCreditorTransactionTypeReference {
+    public static class LegacyTransactionTypeReference {
 
         @JsonProperty("transaction_type")
         @XmlElement(name = "transaction_type")
@@ -127,7 +127,7 @@ public class GetMajorCreditorAccountHistoryLegacyResponse implements ToXmlString
     @NoArgsConstructor
     @AllArgsConstructor
     @XmlAccessorType(XmlAccessType.FIELD)
-    public static class LegacyCreditorTransactionStatusReference {
+    public static class LegacyTransactionStatusReference {
 
         @JsonProperty("creditor_transaction_status")
         @XmlElement(name = "creditor_transaction_status")

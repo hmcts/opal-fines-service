@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class GetMajorCreditorAccountHistoryLegacyRequest {
+public class MajorCreditorHistoryLegacyRequest {
 
     @JsonProperty("creditor_account_id")
     private String creditorAccountId;

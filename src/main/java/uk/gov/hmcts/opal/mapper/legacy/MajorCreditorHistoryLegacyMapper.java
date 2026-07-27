@@ -12,12 +12,12 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyRequest;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyCreditorTransactionStatusReference;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyCreditorTransactionTypeReference;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyMajorCreditorHistoryDetails;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyMajorCreditorHistoryItem;
+import uk.gov.hmcts.opal.dto.legacy.MajorCreditorHistoryLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.MajorCreditorHistoryLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.MajorCreditorHistoryLegacyResponse.LegacyTransactionStatusReference;
+import uk.gov.hmcts.opal.dto.legacy.MajorCreditorHistoryLegacyResponse.LegacyTransactionTypeReference;
+import uk.gov.hmcts.opal.dto.legacy.MajorCreditorHistoryLegacyResponse.LegacyHistoryDetails;
+import uk.gov.hmcts.opal.dto.legacy.MajorCreditorHistoryLegacyResponse.LegacyHistoryItem;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.CreditorTransactionDetailsHistory;
@@ -30,22 +30,22 @@ import uk.gov.hmcts.opal.generated.model.NoteDetailsHistory;
 import uk.gov.hmcts.opal.generated.model.PostedDetailsCommon;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
-public interface GetMajorCreditorAccountHistoryResponseLegacyMapper {
+public interface MajorCreditorHistoryLegacyMapper {
 
-    default GetMajorCreditorHistoryResponse toOpal(GetMajorCreditorAccountHistoryLegacyResponse legacy) {
+    default GetMajorCreditorHistoryResponse toOpal(MajorCreditorHistoryLegacyResponse legacy) {
         return GetMajorCreditorHistoryResponse.builder()
             .payload(toPayload(legacy))
             .version(toVersion(legacy))
             .build();
     }
 
-    default GetMajorCreditorAccountHistoryLegacyRequest toLegacyRequest(
+    default MajorCreditorHistoryLegacyRequest toLegacyRequest(
         Long majorCreditorAccountId,
         LocalDate dateFrom,
         LocalDate dateTo,
         List<String> itemTypes
     ) {
-        return GetMajorCreditorAccountHistoryLegacyRequest.builder()
+        return MajorCreditorHistoryLegacyRequest.builder()
             .creditorAccountId(String.valueOf(majorCreditorAccountId))
             .fromDate(dateFrom)
             .toDate(dateTo)
@@ -53,10 +53,10 @@ public interface GetMajorCreditorAccountHistoryResponseLegacyMapper {
             .build();
     }
 
-    default GetMajorCreditorHistory200Response toPayload(GetMajorCreditorAccountHistoryLegacyResponse legacy) {
+    default GetMajorCreditorHistory200Response toPayload(MajorCreditorHistoryLegacyResponse legacy) {
         return new GetMajorCreditorHistory200Response()
             .historyItems(Optional.ofNullable(legacy)
-                .map(GetMajorCreditorAccountHistoryLegacyResponse::getHistoryItems)
+                .map(MajorCreditorHistoryLegacyResponse::getHistoryItems)
                 .orElse(List.of()).stream()
                 .sorted(legacyHistoryItemComparator())
                 .map(this::toHistoryItem)
@@ -64,28 +64,28 @@ public interface GetMajorCreditorAccountHistoryResponseLegacyMapper {
     }
 
     @Mapping(target = "details", expression = "java(mapDetails(item.getType(), item.getDetails()))")
-    MajorCreditorHistoryItemHistory toHistoryItem(LegacyMajorCreditorHistoryItem item);
+    MajorCreditorHistoryItemHistory toHistoryItem(LegacyHistoryItem item);
 
-    CreditorTransactionDetailsHistory toDetails(LegacyMajorCreditorHistoryDetails details);
+    CreditorTransactionDetailsHistory toDetails(LegacyHistoryDetails details);
 
     PostedDetailsCommon toPostedDetails(LegacyPostedDetails postedDetails);
 
     CreditorTransactionTypeReferenceCommon toTransactionTypeReference(
-        LegacyCreditorTransactionTypeReference legacy);
+        LegacyTransactionTypeReference legacy);
 
     CreditorTransactionStatusReferenceCommon toTransactionStatusReference(
-        LegacyCreditorTransactionStatusReference legacy);
+        LegacyTransactionStatusReference legacy);
 
-    default BigInteger toVersion(GetMajorCreditorAccountHistoryLegacyResponse legacy) {
+    default BigInteger toVersion(MajorCreditorHistoryLegacyResponse legacy) {
         return Optional.ofNullable(legacy)
-            .map(GetMajorCreditorAccountHistoryLegacyResponse::getVersion)
+            .map(MajorCreditorHistoryLegacyResponse::getVersion)
             .map(BigInteger::valueOf)
             .orElse(BigInteger.ONE);
     }
 
     default MajorCreditorHistoryItemHistoryDetails mapDetails(
         String type,
-        LegacyMajorCreditorHistoryDetails details
+        LegacyHistoryDetails details
     ) {
         if (type == null || details == null) {
             return null;
@@ -139,31 +139,31 @@ public interface GetMajorCreditorAccountHistoryResponseLegacyMapper {
             .toList();
     }
 
-    default Comparator<LegacyMajorCreditorHistoryItem> legacyHistoryItemComparator() {
+    default Comparator<LegacyHistoryItem> legacyHistoryItemComparator() {
         return Comparator.comparing(
-                GetMajorCreditorAccountHistoryResponseLegacyMapper::postedDate,
+                MajorCreditorHistoryLegacyMapper::postedDate,
                 Comparator.nullsLast(Comparator.reverseOrder())
             )
-            .thenComparing(LegacyMajorCreditorHistoryItem::getType, Comparator.nullsLast(Comparator.naturalOrder()))
+            .thenComparing(LegacyHistoryItem::getType, Comparator.nullsLast(Comparator.naturalOrder()))
             .thenComparing(
-                GetMajorCreditorAccountHistoryResponseLegacyMapper::paymentReference,
+                MajorCreditorHistoryLegacyMapper::paymentReference,
                 Comparator.nullsLast(Comparator.naturalOrder())
             )
             .thenComparing(
-                GetMajorCreditorAccountHistoryResponseLegacyMapper::associatedRecordId,
+                MajorCreditorHistoryLegacyMapper::associatedRecordId,
                 Comparator.nullsLast(Comparator.naturalOrder())
             );
     }
 
-    private static LocalDateTime postedDate(LegacyMajorCreditorHistoryItem item) {
+    private static LocalDateTime postedDate(LegacyHistoryItem item) {
         return item == null || item.getPostedDetails() == null ? null : item.getPostedDetails().getPostedDate();
     }
 
-    private static String paymentReference(LegacyMajorCreditorHistoryItem item) {
+    private static String paymentReference(LegacyHistoryItem item) {
         return item == null || item.getDetails() == null ? null : item.getDetails().getPaymentReference();
     }
 
-    private static String associatedRecordId(LegacyMajorCreditorHistoryItem item) {
+    private static String associatedRecordId(LegacyHistoryItem item) {
         return item == null || item.getDetails() == null ? null : item.getDetails().getAssociatedRecordId();
     }
 }

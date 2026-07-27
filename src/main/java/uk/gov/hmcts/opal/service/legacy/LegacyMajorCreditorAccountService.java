@@ -17,7 +17,7 @@ import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.MajorCreditorHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountAtAGlanceLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountAtAGlanceLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyRequest;
@@ -25,7 +25,7 @@ import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyRe
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse.MajorCreditorLegacy;
 import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.exception.LegacyGatewayException;
-import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHistoryResponseLegacyMapper;
+import uk.gov.hmcts.opal.mapper.legacy.MajorCreditorHistoryLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountAtAGlanceResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.service.iface.MajorCreditorAccountServiceInterface;
@@ -45,7 +45,7 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
     private final GatewayService gatewayService;
     private final GetMajorCreditorAccountAtAGlanceResponseLegacyMapper atAGlanceResponseMapper;
     private final GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
-    private final GetMajorCreditorAccountHistoryResponseLegacyMapper historyResponseMapper;
+    private final MajorCreditorHistoryLegacyMapper historyResponseMapper;
 
     @Override
     public GetMajorCreditorAccountAtAGlanceResponse getAtAGlance(Long majorCreditorAccountId) {
@@ -97,10 +97,10 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
         LocalDate dateTo,
         List<String> itemTypes
     ) {
-        Response<GetMajorCreditorAccountHistoryLegacyResponse> response =
+        Response<MajorCreditorHistoryLegacyResponse> response =
             postToGateway(
                 GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
-                GetMajorCreditorAccountHistoryLegacyResponse.class,
+                MajorCreditorHistoryLegacyResponse.class,
                 historyResponseMapper.toLegacyRequest(majorCreditorAccountId, dateFrom, dateTo, itemTypes)
             );
 
