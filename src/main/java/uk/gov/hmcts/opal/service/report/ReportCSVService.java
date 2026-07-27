@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.report;
 
+import java.nio.charset.StandardCharsets;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,6 @@ public class ReportCSVService {
             throw new UnprocessableException("Report cannot be converted to CSV format.");
         }
         String csv = reportCSVMapper.reportToCSVString(reportDataInterface);
-        return csv.getBytes();
+        return csv.getBytes(StandardCharsets.UTF_8);
     }
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.service.report.CashListReportData;
 import uk.gov.hmcts.opal.service.report.CashListReportData.CashListEntry;
+import uk.gov.hmcts.opal.service.report.CommonReportHelper;
 
 @Component
 public class CashListReportCSVMapper implements ReportCSVMapper<CashListReportData> {
@@ -40,7 +41,7 @@ public class CashListReportCSVMapper implements ReportCSVMapper<CashListReportDa
     }
 
     private List<String> convertDataRow(int entryNumber, CashListEntry cashListEntry) {
-        return List.of(""+entryNumber,
+        return List.of(String.valueOf(entryNumber),
             cashListEntry.getType(),
             cashListEntry.getSuspense(),
             cashListEntry.getAccountNumber(),
