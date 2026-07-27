@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService.GET_MAJOR_CREDITOR_ACCOUNT_AT_A_GLANCE;
 import static uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService.GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY;
@@ -188,6 +189,8 @@ class LegacyMajorCreditorAccountServiceTest {
             expectedRequest,
             null
         )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse));
+        when(historyResponseMapper.toLegacyRequest(123L, dateFrom, dateTo, List.of("note"))).thenReturn(
+            expectedRequest);
         when(historyResponseMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
 
         GetMajorCreditorHistoryResponse result =
@@ -220,6 +223,7 @@ class LegacyMajorCreditorAccountServiceTest {
             null,
             new RuntimeException("Gateway error")
         ));
+        when(historyResponseMapper.toLegacyRequest(123L, null, null, null)).thenReturn(expectedRequest);
 
         LegacyGatewayException exception = assertThrows(
             LegacyGatewayException.class,
@@ -227,7 +231,8 @@ class LegacyMajorCreditorAccountServiceTest {
         );
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
-        verifyNoInteractions(historyResponseMapper);
+        verify(historyResponseMapper).toLegacyRequest(123L, null, null, null);
+        verifyNoMoreInteractions(historyResponseMapper);
     }
 
     @Test
@@ -249,6 +254,8 @@ class LegacyMajorCreditorAccountServiceTest {
             expectedRequest,
             null
         )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse));
+        when(historyResponseMapper.toLegacyRequest(123L, null, null, List.of("financial,note"))).thenReturn(
+            expectedRequest);
         when(historyResponseMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
 
         GetMajorCreditorHistoryResponse result =

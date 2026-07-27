@@ -3,13 +3,16 @@ package uk.gov.hmcts.opal.mapper.legacy;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
+import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyCreditorTransactionStatusReference;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyCreditorTransactionTypeReference;
@@ -33,6 +36,20 @@ public interface GetMajorCreditorAccountHistoryResponseLegacyMapper {
         return GetMajorCreditorHistoryResponse.builder()
             .payload(toPayload(legacy))
             .version(toVersion(legacy))
+            .build();
+    }
+
+    default GetMajorCreditorAccountHistoryLegacyRequest toLegacyRequest(
+        Long majorCreditorAccountId,
+        LocalDate dateFrom,
+        LocalDate dateTo,
+        List<String> itemTypes
+    ) {
+        return GetMajorCreditorAccountHistoryLegacyRequest.builder()
+            .creditorAccountId(String.valueOf(majorCreditorAccountId))
+            .fromDate(dateFrom)
+            .toDate(dateTo)
+            .itemTypes(toLegacyHistoryItemTypes(itemTypes))
             .build();
     }
 
@@ -99,6 +116,27 @@ public interface GetMajorCreditorAccountHistoryResponseLegacyMapper {
 
     default LocalDate toLocalDate(LocalDateTime dateTime) {
         return dateTime == null ? null : dateTime.toLocalDate();
+    }
+
+    default List<String> toLegacyHistoryItemTypes(List<String> itemTypes) {
+        List<String> legacyItemTypes = queryValues(itemTypes).stream()
+            .map(HistoryItemType::fromValue)
+            .map(HistoryItemType::getResponseValue)
+            .toList();
+
+        return legacyItemTypes.isEmpty() ? null : legacyItemTypes;
+    }
+
+    default List<String> queryValues(List<String> itemTypes) {
+        if (itemTypes == null) {
+            return List.of();
+        }
+
+        return itemTypes.stream()
+            .flatMap(rawValue -> rawValue == null ? Stream.of("") : Arrays.stream(rawValue.split(",", -1)))
+            .map(String::trim)
+            .filter(itemType -> !itemType.isEmpty())
+            .toList();
     }
 
     default Comparator<LegacyMajorCreditorHistoryItem> legacyHistoryItemComparator() {

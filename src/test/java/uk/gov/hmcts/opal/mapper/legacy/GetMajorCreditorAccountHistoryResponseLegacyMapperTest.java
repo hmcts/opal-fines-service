@@ -5,10 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyCreditorTransactionStatusReference;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyCreditorTransactionTypeReference;
@@ -27,6 +29,36 @@ class GetMajorCreditorAccountHistoryResponseLegacyMapperTest extends AbstractMap
 
     @Autowired
     private GetMajorCreditorAccountHistoryResponseLegacyMapper mapper;
+
+    @Test
+    void toLegacyRequest_mapsRequestValuesAndItemTypes() {
+        GetMajorCreditorAccountHistoryLegacyRequest result = mapper.toLegacyRequest(
+            123L,
+            LocalDate.of(2026, 1, 1),
+            LocalDate.of(2026, 1, 31),
+            List.of("financial,note")
+        );
+
+        assertEquals("123", result.getCreditorAccountId());
+        assertEquals(LocalDate.of(2026, 1, 1), result.getFromDate());
+        assertEquals(LocalDate.of(2026, 1, 31), result.getToDate());
+        assertEquals(List.of("Financial", "Note"), result.getItemTypes());
+    }
+
+    @Test
+    void toLegacyRequest_mapsEmptyItemTypesToNull() {
+        GetMajorCreditorAccountHistoryLegacyRequest result = mapper.toLegacyRequest(
+            123L,
+            null,
+            null,
+            List.of(" ")
+        );
+
+        assertEquals("123", result.getCreditorAccountId());
+        assertEquals(null, result.getFromDate());
+        assertEquals(null, result.getToDate());
+        assertEquals(null, result.getItemTypes());
+    }
 
     @Test
     void toOpal_mapsLegacyHistoryResponse() {

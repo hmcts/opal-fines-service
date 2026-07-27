@@ -3,10 +3,8 @@ package uk.gov.hmcts.opal.service.legacy;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -19,8 +17,6 @@ import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
-import uk.gov.hmcts.opal.dto.history.HistoryItemType;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountAtAGlanceLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountAtAGlanceLegacyResponse;
@@ -105,47 +101,12 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
             postToGateway(
                 GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
                 GetMajorCreditorAccountHistoryLegacyResponse.class,
-                createGetMajorCreditorAccountHistoryRequest(majorCreditorAccountId, dateFrom, dateTo, itemTypes)
+                historyResponseMapper.toLegacyRequest(majorCreditorAccountId, dateFrom, dateTo, itemTypes)
             );
 
         checkResponseForError(response, "getHistory", true);
 
         return historyResponseMapper.toOpal(response.responseEntity);
-    }
-
-    static GetMajorCreditorAccountHistoryLegacyRequest createGetMajorCreditorAccountHistoryRequest(
-        Long majorCreditorAccountId,
-        LocalDate dateFrom,
-        LocalDate dateTo,
-        List<String> itemTypes
-    ) {
-        return GetMajorCreditorAccountHistoryLegacyRequest.builder()
-            .creditorAccountId(String.valueOf(majorCreditorAccountId))
-            .fromDate(dateFrom)
-            .toDate(dateTo)
-            .itemTypes(toLegacyHistoryItemTypes(itemTypes))
-            .build();
-    }
-
-    private static List<String> toLegacyHistoryItemTypes(List<String> itemTypes) {
-        List<String> legacyItemTypes = queryValues(itemTypes).stream()
-            .map(HistoryItemType::fromValue)
-            .map(HistoryItemType::getResponseValue)
-            .toList();
-
-        return legacyItemTypes.isEmpty() ? null : legacyItemTypes;
-    }
-
-    private static List<String> queryValues(List<String> itemTypes) {
-        if (itemTypes == null) {
-            return List.of();
-        }
-
-        return itemTypes.stream()
-            .flatMap(rawValue -> rawValue == null ? Stream.of("") : Arrays.stream(rawValue.split(",", -1)))
-            .map(String::trim)
-            .filter(itemType -> !itemType.isEmpty())
-            .toList();
     }
 
     private <T, R> Response<T> postToGateway(String procedureName, Class<T> responseType, R request) {
