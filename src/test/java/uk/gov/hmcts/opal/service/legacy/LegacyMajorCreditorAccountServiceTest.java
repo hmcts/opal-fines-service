@@ -18,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
@@ -129,8 +130,8 @@ class LegacyMajorCreditorAccountServiceTest {
             new RuntimeException("Gateway error")
         ));
 
-        LegacyGatewayException exception = assertThrows(
-            LegacyGatewayException.class,
+        HttpServerErrorException exception = assertThrows(
+            HttpServerErrorException.class,
             () -> legacyMajorCreditorAccountService.getHeaderSummary(123L)
         );
 
@@ -155,8 +156,8 @@ class LegacyMajorCreditorAccountServiceTest {
             null
         ));
 
-        LegacyGatewayException exception = assertThrows(
-            LegacyGatewayException.class,
+        HttpServerErrorException exception = assertThrows(
+            HttpServerErrorException.class,
             () -> legacyMajorCreditorAccountService.getHeaderSummary(123L)
         );
 
@@ -279,8 +280,8 @@ class LegacyMajorCreditorAccountServiceTest {
             new RuntimeException("Gateway error")
         ));
 
-        LegacyGatewayException exception = assertThrows(
-            LegacyGatewayException.class,
+        HttpServerErrorException exception = assertThrows(
+            HttpServerErrorException.class,
             () -> legacyMajorCreditorAccountService.getAtAGlance(123L)
         );
 
