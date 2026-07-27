@@ -42,9 +42,6 @@ public class HmrcAuthService {
         return restClient.get()
             .uri(uri)
             .retrieve()
-//            .onStatus(HttpStatusCode::isError, ((req, res) -> {
-//                log.error("Error requesting HMRC auth token: {} {}", res.getStatusCode(), res.getStatusText());
-//            }))
             .body(HMRCAuthToken.class);
     }
 
