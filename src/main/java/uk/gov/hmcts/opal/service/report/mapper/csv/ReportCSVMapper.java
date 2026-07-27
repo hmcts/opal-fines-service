@@ -1,8 +1,6 @@
 package uk.gov.hmcts.opal.service.report.mapper.csv;
 
 import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.COMMA;
-import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.DOUBLE_QUOTE;
-import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.EMPTY_STRING;
 import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.NEW_LINE;
 
 import java.util.List;
