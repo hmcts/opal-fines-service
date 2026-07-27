@@ -70,4 +70,5 @@ hmrc:
     client-id: test-hmrc-client-id
     client-secret: test-hmrc-client-secret
     scope: test-scope1+test-scope2
+    grant-type: client_credentials
     url: http://localhost:8080/oauth/token

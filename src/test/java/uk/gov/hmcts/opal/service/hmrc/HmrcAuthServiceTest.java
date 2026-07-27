@@ -6,7 +6,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.net.URI;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,9 +14,10 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClient.RequestHeadersSpec;
-import org.springframework.web.client.RestClient.RequestHeadersUriSpec;
+import org.springframework.web.client.RestClient.RequestBodySpec;
+import org.springframework.web.client.RestClient.RequestBodyUriSpec;
 import org.springframework.web.client.RestClient.ResponseSpec;
+import uk.gov.hmcts.opal.service.hmrc.creds.HMRCAuthTokenCreds;
 import uk.gov.hmcts.opal.service.hmrc.response.HMRCAuthToken;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,39 +28,46 @@ public class HmrcAuthServiceTest {
     private String clientId = "TEST_CLIENT_ID";
     private String clientSecret = "TEST_CLIENT_SECRET";
     private String scope = "TEST_SCOPE_1+TEST_SCOPE_2";
+    private String grantType = "client_credentials";
 
     private String url = "https://test.com/auth";
 
     @Captor
-    private ArgumentCaptor<URI> uriCaptor;
+    private ArgumentCaptor<String> uriCaptor;
+    @Captor
+    private ArgumentCaptor<HMRCAuthTokenCreds> hmrcAuthCredsCaptor;
 
     private HmrcAuthService service;
 
     @BeforeEach
     void beforeEach() {
-        service = new HmrcAuthService(restClient, clientId, clientSecret, scope, url);
+        var creds = new HMRCAuthTokenCreds(clientId, clientSecret, scope, grantType);
+        service = new HmrcAuthService(restClient, creds, url);
     }
 
     @Test
     @SuppressWarnings("unchecked")
     void getAuthToken_buildsUrlCorrectly() {
-        RequestHeadersUriSpec requestHeadersUriSpec = mock(RequestHeadersUriSpec.class);
-        RequestHeadersSpec requestHeadersSpec = mock(RequestHeadersSpec.class);
+        RequestBodyUriSpec requestBodyUriSpec = mock(RequestBodyUriSpec.class);
+        RequestBodySpec requestBodySpec = mock(RequestBodySpec.class);
+        RequestBodySpec requestBodySpec2 = mock(RequestBodySpec.class);
         ResponseSpec responseSpec = mock(ResponseSpec.class);
-        when(restClient.get()).thenReturn(requestHeadersUriSpec);
-        when(requestHeadersUriSpec.uri(any(URI.class))).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
+        when(restClient.post()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(any(String.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.body(any(HMRCAuthTokenCreds.class))).thenReturn(requestBodySpec2);
+        when(requestBodySpec2.retrieve()).thenReturn(responseSpec);
         when(responseSpec.body(HMRCAuthToken.class)).thenReturn(mock(HMRCAuthToken.class));
 
         service.getAuthToken();
 
-        verify(requestHeadersUriSpec).uri(uriCaptor.capture());
-        URI uri = uriCaptor.getValue();
-        String query = uri.getQuery();
-        assertThat(uri.getScheme() + "://" + uri.getHost() + uri.getPath()).isEqualTo(url);
-        assertThat(query).contains("client_id=" + clientId);
-        assertThat(query).contains("client_secret=" + clientSecret);
-        assertThat(query).contains("scope=" + scope);
-        assertThat(query).contains("grant_type=client_credentials");
+        verify(requestBodyUriSpec).uri(uriCaptor.capture());
+        assertThat(uriCaptor.getValue()).isEqualTo(url);
+
+        verify(requestBodySpec).body(hmrcAuthCredsCaptor.capture());
+        HMRCAuthTokenCreds creds = hmrcAuthCredsCaptor.getValue();
+        assertThat(creds.getClientId()).isEqualTo(clientId);
+        assertThat(creds.getClientSecret()).isEqualTo(clientSecret);
+        assertThat(creds.getScope()).isEqualTo(scope);
+        assertThat(creds.getGrantType()).isEqualTo(grantType);
     }
 }
