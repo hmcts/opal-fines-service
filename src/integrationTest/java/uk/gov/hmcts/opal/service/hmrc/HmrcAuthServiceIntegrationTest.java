@@ -70,16 +70,20 @@ public class HmrcAuthServiceIntegrationTest
 
     @Test
     void multipleCallsToHmrcEndpoint_UtilisesCache() {
-        HMRCAuthToken returnedAuthToken1 = hmrcAuthService.getAuthToken();
-
-        HMRCAuthToken returnedAuthToken2 = hmrcAuthService.getAuthToken();
+        HMRCAuthToken token1 = hmrcAuthService.getAuthToken();
+        HMRCAuthToken token2 = hmrcAuthService.getAuthToken();
+        HMRCAuthToken token3 = hmrcAuthService.getAuthToken();
 
         WireMock.verify(1, getRequestedFor(urlPathEqualTo("/oauth/token")));
         assertAll(
-            () -> assertEquals(returnedAuthToken1.getAccessToken(), returnedAuthToken2.getAccessToken()),
-            () -> assertEquals(returnedAuthToken1.getTokenType(), returnedAuthToken2.getTokenType()),
-            () -> assertEquals(returnedAuthToken1.getExpiresIn(), returnedAuthToken2.getExpiresIn()),
-            () -> assertEquals(returnedAuthToken1.getScope(), returnedAuthToken2.getScope())
+            () -> assertEquals(token1.getAccessToken(), token2.getAccessToken()),
+            () -> assertEquals(token1.getAccessToken(), token3.getAccessToken()),
+            () -> assertEquals(token1.getTokenType(), token2.getTokenType()),
+            () -> assertEquals(token1.getTokenType(), token3.getTokenType()),
+            () -> assertEquals(token1.getExpiresIn(), token2.getExpiresIn()),
+            () -> assertEquals(token1.getExpiresIn(), token3.getExpiresIn()),
+            () -> assertEquals(token1.getScope(), token2.getScope()),
+            () -> assertEquals(token1.getScope(), token3.getScope())
         );
     }
 }
