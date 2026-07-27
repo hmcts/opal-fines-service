@@ -144,6 +144,8 @@ public class OpalDefendantAccountBuilders {
             buildOrganisationAliasesFromEntities(aliases);
         List<IndividualAlias> individualAliases =
             buildIndividualAliasesFromEntities(aliases);
+        String dateOfBirth = party.getBirthDate() != null ? party.getBirthDate().toString() : null;
+        String age = party.getAge() != null ? party.getAge().toString() : null;
 
         return PartyDetails.builder()
             .partyId(String.valueOf(party.getPartyId()))
@@ -162,8 +164,8 @@ public class OpalDefendantAccountBuilders {
                     .title(party.getTitle())
                     .forenames(party.getForenames())
                     .surname(party.getSurname())
-                    .dateOfBirth(String.valueOf(party.getBirthDate()))
-                    .age(String.valueOf(party.getAge()))
+                    .dateOfBirth(dateOfBirth)
+                    .age(age)
                     .nationalInsuranceNumber(party.getNiNumber())
                     .individualAliases(individualAliases.isEmpty() ? null : individualAliases)
                     .build()

@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,6 +24,7 @@ import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
@@ -197,6 +199,19 @@ class OpalDefendantAccountBuildersTest {
         DefendantAccountHeaderViewEntity e = new DefendantAccountHeaderViewEntity();
         PartyDetails details = OpalDefendantAccountBuilders.buildPartyDetails(e);
         assertNotNull(details);
+    }
+
+    @Test
+    void buildPartyDetails_preservesNullDateOfBirthAndAge() {
+        PartyEntity party = PartyEntity.builder()
+            .partyId(88L)
+            .organisation(false)
+            .build();
+
+        PartyDetails details = OpalDefendantAccountBuilders.buildPartyDetails(party, List.of());
+
+        assertNull(details.getIndividualDetails().getDateOfBirth());
+        assertNull(details.getIndividualDetails().getAge());
     }
 
     @Test
