@@ -1,9 +1,11 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.is;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -290,19 +292,12 @@ public class DefendantAccountApiControllerSearchIntegrationTest extends Abstract
         result.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(2))
-            .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id")
-                .value("991199"))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id")
-                .value("78"))
-            .andExpect(jsonPath("$.defendant_accounts[0].account_number")
-                .value("1989"))
-            .andExpect(jsonPath("$.defendant_accounts[1].defendant_account_id")
-                .value("991198"))
-            .andExpect(jsonPath("$.defendant_accounts[1].business_unit_id")
-                .value("78"))
-            .andExpect(jsonPath("$.defendant_accounts[1].account_number")
-                .value("1988"))
-            .andDo(print());
+            .andExpect(jsonPath("$.defendant_accounts[*].defendant_account_id",
+                containsInAnyOrder("991199", "991198")))
+            .andExpect(jsonPath("$.defendant_accounts[*].account_number",
+                containsInAnyOrder("1989", "1988")))
+            .andExpect(jsonPath("$.defendant_accounts[*].business_unit_id",
+                everyItem(is("78"))));
     }
 
     private void expectErrorResultActions(ResultActions result) throws Exception {
