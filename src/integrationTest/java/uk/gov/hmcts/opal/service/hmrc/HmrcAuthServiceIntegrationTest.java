@@ -53,14 +53,14 @@ public class HmrcAuthServiceIntegrationTest extends AbstractIntegrationTest {
         "xxxx-2-test-token-2-xxxx", "bearer", 14400, "test-scope1+test-scope2"
     );
 
-    private boolean clearAuthServiceCache() {
-        return cacheManager.getCache(CacheNames.HMRC_AUTH_SERVICE).invalidate();
-    }
-
     private static final String WIREMOCK_HMRC_AUTH_SCENARIO = "GET HMRC auth token test";
     private static final String WIREMOCK_STATE__ONE_CALL_MADE = "One call made";
     private static final String WIREMOCK_STATE__SERVER_ERROR = "Server error";
     private static final String WIREMOCK_STATE__CLIENT_ERROR = "Client error";
+
+    private boolean clearAuthServiceCache() {
+        return cacheManager.getCache(CacheNames.HMRC_AUTH_SERVICE).invalidate();
+    }
 
     @Override
     @BeforeEach
@@ -126,9 +126,9 @@ public class HmrcAuthServiceIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-2383")
     @JiraEpic("PO-1421")
     void multipleCalls_UtilisesCache_NoExternalCall() {
-        HmrcAuthToken token1 = hmrcAuthService.getAuthToken();
-        HmrcAuthToken token2 = hmrcAuthService.getAuthToken();
-        HmrcAuthToken token3 = hmrcAuthService.getAuthToken();
+        final HmrcAuthToken token1 = hmrcAuthService.getAuthToken();
+        final HmrcAuthToken token2 = hmrcAuthService.getAuthToken();
+        final HmrcAuthToken token3 = hmrcAuthService.getAuthToken();
 
         WireMock.verify(1, postRequestedFor(urlPathEqualTo("/oauth/token")));
         assertAll(
