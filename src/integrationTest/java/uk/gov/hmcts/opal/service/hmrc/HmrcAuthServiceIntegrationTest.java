@@ -1,9 +1,9 @@
 package uk.gov.hmcts.opal.service.hmrc;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.config.cache.CacheNames;
+import uk.gov.hmcts.opal.service.hmrc.creds.HMRCAuthTokenCreds;
 import uk.gov.hmcts.opal.service.hmrc.response.HMRCAuthToken;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -38,6 +39,9 @@ public class HmrcAuthServiceIntegrationTest
     @Autowired
     private HmrcAuthService hmrcAuthService;
 
+    @Autowired
+    private HMRCAuthTokenCreds hmrcAuthCreds;
+
     private HMRCAuthToken hmrcAuthToken = new HMRCAuthToken(
         "xxxx-test-token-xxxx", "bearer", 14400, "test-scope1+test-scope2"
     );
@@ -50,7 +54,7 @@ public class HmrcAuthServiceIntegrationTest
         return cacheManager.getCache(CacheNames.HMRC_AUTH_SERVICE).invalidate();
     }
 
-    private static final String WIREMOCK_SCENARIO = "GET HMRC auth token test";
+    private static final String WIREMOCK_HMRC_AUTH_SCENARIO = "GET HMRC auth token test";
     private static final String WIREMOCK_STATE__ONE_CALL_MADE = "One call made";
 
     @Override
@@ -58,22 +62,18 @@ public class HmrcAuthServiceIntegrationTest
     public void beforeEach() {
         clearAuthServiceCache();
 
-        stubFor(get(urlPathEqualTo("/oauth/token"))
-            .withQueryParam("client_id", equalTo("test-hmrc-client-id"))
-            .withQueryParam("client_secret", equalTo("test-hmrc-client-secret"))
-            .withQueryParam("grant_type", equalTo("client_credentials"))
-            .withQueryParam("scope", equalTo("test-scope1 test-scope2"))
-            .inScenario(WIREMOCK_SCENARIO)
+        String payloadJson = objectMapper.writeValueAsString(hmrcAuthCreds);
+
+        stubFor(post(urlPathEqualTo("/oauth/token"))
+            .withRequestBody(equalToJson(payloadJson))
+            .inScenario(WIREMOCK_HMRC_AUTH_SCENARIO)
             .whenScenarioStateIs(STARTED)
             .willReturn(okJson(objectMapper.writeValueAsString(hmrcAuthToken)))
             .willSetStateTo(WIREMOCK_STATE__ONE_CALL_MADE));
 
-        stubFor(get(urlPathEqualTo("/oauth/token"))
-            .withQueryParam("client_id", equalTo("test-hmrc-client-id"))
-            .withQueryParam("client_secret", equalTo("test-hmrc-client-secret"))
-            .withQueryParam("grant_type", equalTo("client_credentials"))
-            .withQueryParam("scope", equalTo("test-scope1 test-scope2"))
-            .inScenario(WIREMOCK_SCENARIO)
+        stubFor(post(urlPathEqualTo("/oauth/token"))
+            .withRequestBody(equalToJson(payloadJson))
+            .inScenario(WIREMOCK_HMRC_AUTH_SCENARIO)
             .whenScenarioStateIs(WIREMOCK_STATE__ONE_CALL_MADE)
             .willReturn(okJson(objectMapper.writeValueAsString(hmrcAuthToken2))));
     }
@@ -92,7 +92,7 @@ public class HmrcAuthServiceIntegrationTest
             () -> assertEquals(hmrcAuthToken.getExpiresIn(), returnedAuthToken.getExpiresIn()),
             () -> assertEquals(hmrcAuthToken.getScope(), returnedAuthToken.getScope())
         );
-        WireMock.verify(1, getRequestedFor(urlPathEqualTo("/oauth/token")));
+        WireMock.verify(1, postRequestedFor(urlPathEqualTo("/oauth/token")));
     }
 
 
@@ -105,7 +105,7 @@ public class HmrcAuthServiceIntegrationTest
         HMRCAuthToken token2 = hmrcAuthService.getAuthToken();
         HMRCAuthToken token3 = hmrcAuthService.getAuthToken();
 
-        WireMock.verify(1, getRequestedFor(urlPathEqualTo("/oauth/token")));
+        WireMock.verify(1, postRequestedFor(urlPathEqualTo("/oauth/token")));
         assertAll(
             () -> assertEquals(token1.getAccessToken(), token2.getAccessToken()),
             () -> assertEquals(token1.getAccessToken(), token3.getAccessToken()),
@@ -129,7 +129,7 @@ public class HmrcAuthServiceIntegrationTest
         assertTrue(clearAuthServiceCache());
         HMRCAuthToken token2 = hmrcAuthService.getAuthToken();
 
-        WireMock.verify(2, getRequestedFor(urlPathEqualTo("/oauth/token")));
+        WireMock.verify(2, postRequestedFor(urlPathEqualTo("/oauth/token")));
         assertNotEquals(token1.getAccessToken(), token2.getAccessToken());
     }
 }
