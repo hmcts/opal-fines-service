@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public class HMRCAuthToken {
+public class HmrcAuthToken {
 
     private String accessToken;
     private String tokenType;

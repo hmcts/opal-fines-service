@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.hmrc.creds;
+package uk.gov.hmcts.opal.service.hmrc;
 
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
@@ -6,9 +6,9 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Getter
-public class HMRCAuthTokenCreds {
+public class HmrcAuthCreds {
 
-    public HMRCAuthTokenCreds(@Value("${hmrc.auth.client-id}") String clientId,
+    public HmrcAuthCreds(@Value("${hmrc.auth.client-id}") String clientId,
         @Value("${hmrc.auth.client-secret}") String clientSecret,
         @Value("${hmrc.auth.scope}") String scope,
         @Value("${hmrc.auth.grant-type}") String grantType) {

@@ -17,8 +17,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClient.RequestBodySpec;
 import org.springframework.web.client.RestClient.RequestBodyUriSpec;
 import org.springframework.web.client.RestClient.ResponseSpec;
-import uk.gov.hmcts.opal.service.hmrc.creds.HMRCAuthTokenCreds;
-import uk.gov.hmcts.opal.service.hmrc.response.HMRCAuthToken;
+import uk.gov.hmcts.opal.service.hmrc.response.HmrcAuthToken;
 
 @ExtendWith(MockitoExtension.class)
 public class HmrcAuthServiceTest {
@@ -29,13 +28,13 @@ public class HmrcAuthServiceTest {
     private String clientSecret = "TEST_CLIENT_SECRET";
     private String scope = "TEST_SCOPE_1+TEST_SCOPE_2";
     private String grantType = "client_credentials";
-    private HMRCAuthTokenCreds creds = new HMRCAuthTokenCreds(clientId, clientSecret, scope, grantType);
+    private HmrcAuthCreds creds = new HmrcAuthCreds(clientId, clientSecret, scope, grantType);
     private String url = "https://test.com/auth";
 
     @Captor
     private ArgumentCaptor<String> uriCaptor;
     @Captor
-    private ArgumentCaptor<HMRCAuthTokenCreds> hmrcAuthCredsCaptor;
+    private ArgumentCaptor<HmrcAuthCreds> hmrcAuthCredsCaptor;
 
     private HmrcAuthService service;
 
@@ -53,9 +52,9 @@ public class HmrcAuthServiceTest {
         ResponseSpec responseSpec = mock(ResponseSpec.class);
         when(restClient.post()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(any(String.class))).thenReturn(requestBodySpec);
-        when(requestBodySpec.body(any(HMRCAuthTokenCreds.class))).thenReturn(requestBodySpec2);
+        when(requestBodySpec.body(any(HmrcAuthCreds.class))).thenReturn(requestBodySpec2);
         when(requestBodySpec2.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.body(HMRCAuthToken.class)).thenReturn(mock(HMRCAuthToken.class));
+        when(responseSpec.body(HmrcAuthToken.class)).thenReturn(mock(HmrcAuthToken.class));
 
         service.getAuthToken();
 
@@ -63,7 +62,7 @@ public class HmrcAuthServiceTest {
         assertThat(uriCaptor.getValue()).isEqualTo(url);
 
         verify(requestBodySpec).body(hmrcAuthCredsCaptor.capture());
-        HMRCAuthTokenCreds creds = hmrcAuthCredsCaptor.getValue();
+        HmrcAuthCreds creds = hmrcAuthCredsCaptor.getValue();
         assertThat(creds.getClientId()).isEqualTo(clientId);
         assertThat(creds.getClientSecret()).isEqualTo(clientSecret);
         assertThat(creds.getScope()).isEqualTo(scope);
