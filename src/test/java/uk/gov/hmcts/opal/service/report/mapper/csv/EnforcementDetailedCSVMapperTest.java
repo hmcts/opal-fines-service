@@ -12,7 +12,7 @@ import uk.gov.hmcts.opal.dto.report.operation.DetailedReportDto;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedReportTransactionRowDto;
 import uk.gov.hmcts.opal.service.report.operation.OperationDetailedReport;
 
-class OperationByEnforcementReportDetailedCSVMapperTest {
+class EnforcementDetailedCSVMapperTest {
 
     private static final String TRANSACTION_VALUE = "TRANSACTION";
     private static final String DETAIL = "DETAIL";
@@ -67,8 +67,7 @@ class OperationByEnforcementReportDetailedCSVMapperTest {
     private static final String TXN_USER_ID_2 = "user-2";
     private static final BigDecimal TXN_AMOUNT_2 = new BigDecimal("56.78");
 
-    private final OperationByEnforcementReportDetailedCSVMapper mapper =
-        new OperationByEnforcementReportDetailedCSVMapper();
+    private final EnforcementDetailedCSVMapper mapper = new EnforcementDetailedCSVMapper();
 
     @Test
     void reportToCSVString_withNoAccounts_returnsOnlyHeaders() {

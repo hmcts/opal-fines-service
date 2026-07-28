@@ -7,7 +7,7 @@ import uk.gov.hmcts.opal.dto.report.operation.OperationReportByPaymentFiltersDto
 import uk.gov.hmcts.opal.dto.report.operation.PaymentReportMode;
 
 @Component
-public class OperationReportByPaymentValidator {
+public class PaymentReportValidator {
 
     public void validate(OperationReportByPaymentFiltersDto filters) {
         List<String> validationErrors = new ArrayList<>();

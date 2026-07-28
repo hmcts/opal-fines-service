@@ -17,7 +17,7 @@ import uk.gov.hmcts.opal.service.report.operation.OperationDetailedReport;
  * - next account (etc.)
  */
 @Component
-public class OperationByEnforcementReportDetailedCSVMapper
+public class EnforcementDetailedCSVMapper
     implements ReportCSVMapper<OperationDetailedReport> {
 
     @Override
