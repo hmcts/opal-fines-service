@@ -45,11 +45,11 @@ public class HmrcAuthServiceIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private HmrcAuthCreds hmrcAuthCreds;
 
-    private HmrcAuthToken hmrcAuthToken = new HmrcAuthToken(
+    private final HmrcAuthToken hmrcAuthToken = new HmrcAuthToken(
         "xxxx-test-token-xxxx", "bearer", 14400, "test-scope1+test-scope2"
     );
 
-    private HmrcAuthToken hmrcAuthToken2 = new HmrcAuthToken(
+    private final HmrcAuthToken hmrcAuthToken2 = new HmrcAuthToken(
         "xxxx-2-test-token-2-xxxx", "bearer", 14400, "test-scope1+test-scope2"
     );
 
