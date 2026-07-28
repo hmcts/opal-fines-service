@@ -19,6 +19,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
+import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
 import uk.gov.hmcts.opal.repository.jpa.EnforcementReportSpecs;
 import uk.gov.hmcts.opal.repository.jpa.OperationReportSpecs;
 import uk.gov.hmcts.opal.service.report.FileType;
@@ -63,7 +64,7 @@ public class EnforcementReportService implements ReportInterface<OperationReport
                 .distinct()
                 .toList();
             accounts = defendantAccountRepository.findAll(
-                accountSpec.and(OperationReportSpecs.defendantAccountIdsIn(accountIds)),
+                accountSpec.and(DefendantAccountSpecs.idsIn(accountIds)),
                 Sort.by(DefendantAccountEntity_.ACCOUNT_NUMBER));
         }
         return filters.getReportType() == SUMMARY
@@ -92,8 +93,7 @@ public class EnforcementReportService implements ReportInterface<OperationReport
         try {
             return objectMapper.readValue(
                 reportInstance.getReportParameters(),
-                OperationReportByEnforcementFiltersDto.class
-            );
+                OperationReportByEnforcementFiltersDto.class);
         } catch (Exception e) {
             throw new RuntimeException("Failed to parse report filters", e);
         }
