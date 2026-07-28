@@ -34,8 +34,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @Slf4j(topic = "opal.HmrcAuthServiceIntegrationTest")
 @DisplayName("HMRC Auth Service Integration Test")
 @WireMockTest(httpPort = 8080)
-public class HmrcAuthServiceIntegrationTest
-    extends AbstractIntegrationTest { // TODO do i want to be inheriting from this?
+public class HmrcAuthServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private CacheManager cacheManager;
