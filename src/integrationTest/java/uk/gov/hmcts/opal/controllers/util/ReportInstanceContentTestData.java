@@ -4,7 +4,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 public final class ReportInstanceContentTestData {
 
-
     public static final String CASH_TILL_STORED_REPORT_JSON = """
         {
           "reportData": {
@@ -32,7 +31,49 @@ public final class ReportInstanceContentTestData {
         }
         """;
 
-    public static byte[] storedReportBytes = CASH_TILL_STORED_REPORT_JSON.getBytes(UTF_8);
+    public static final String CASH_LIST_STORED_REPORT_JSON = """
+        {
+          "reportData": {
+            "tillDetails": {
+              "tillId": 99000000343100,
+              "tillNumber": 9010,
+              "ownedBy": "L080JG",
+              "businessUnitId": 1777,
+              "businessUnitName": "Cash List Business Unit",
+              "businessUnitCode": "CLST"
+            },
+            "entries": [
+              {
+                "entry": 1,
+                "type": "FA",
+                "suspense": null,
+                "accountNumber": "ACC123",
+                "name": "DOE Jane",
+                "nameAdditionalInformation": null,
+                "paymentMethod": "NC",
+                "amount": 125.50
+              },
+              {
+                "entry": 2,
+                "type": "SA",
+                "suspense": "UN",
+                "accountNumber": "Suspense Ref",
+                "name": "1",
+                "nameAdditionalInformation": "Auto - Suspense payment",
+                "paymentMethod": "CT",
+                "amount": 40.00
+              }
+            ],
+            "total": 165.50,
+            "reportMetaData": {
+              "pdpoPartyIds": []
+            }
+          }
+        }
+        """;
+
+    public static final byte[] cashTillStoredReportBytes = CASH_TILL_STORED_REPORT_JSON.getBytes(UTF_8);
+    public static final byte[] cashListStoredReportBytes = CASH_LIST_STORED_REPORT_JSON.getBytes(UTF_8);
 
     private ReportInstanceContentTestData() {
     }
