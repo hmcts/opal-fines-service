@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.mapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.entity.InterfaceFileEntity;
@@ -19,8 +20,8 @@ class InterfaceJobMapperTest {
 
     @Test
     void toSummaryResponse_mapsJobAndFileFields() {
-        LocalDateTime completedDateTime = LocalDateTime.of(2026, 7, 1, 10, 30);
-        LocalDateTime createdDateTime = LocalDateTime.of(2026, 7, 1, 10, 0);
+        LocalDateTime completedDateTime = LocalDateTime.of(2026, Month.JULY, 1, 10, 30);
+        LocalDateTime createdDateTime = LocalDateTime.of(2026, Month.JULY, 1, 10, 0);
         InterfaceJobEntity interfaceJob = InterfaceJobEntity.builder()
             .interfaceJobId(123L)
             .businessUnit(BusinessUnitEntity.builder().businessUnitName("Luton").build())
