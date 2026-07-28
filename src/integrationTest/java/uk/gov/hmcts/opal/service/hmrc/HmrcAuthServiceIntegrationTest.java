@@ -4,12 +4,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -20,6 +22,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
+import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.config.cache.CacheNames;
 import uk.gov.hmcts.opal.service.hmrc.creds.HMRCAuthTokenCreds;
@@ -56,6 +59,7 @@ public class HmrcAuthServiceIntegrationTest
 
     private static final String WIREMOCK_HMRC_AUTH_SCENARIO = "GET HMRC auth token test";
     private static final String WIREMOCK_STATE__ONE_CALL_MADE = "One call made";
+    private static final String WIREMOCK_STATE__SERVER_ERROR = "Server error";
 
     @Override
     @BeforeEach
@@ -76,6 +80,12 @@ public class HmrcAuthServiceIntegrationTest
             .inScenario(WIREMOCK_HMRC_AUTH_SCENARIO)
             .whenScenarioStateIs(WIREMOCK_STATE__ONE_CALL_MADE)
             .willReturn(okJson(objectMapper.writeValueAsString(hmrcAuthToken2))));
+
+        stubFor(post(urlPathEqualTo("/oauth/token"))
+            .withRequestBody(equalToJson(payloadJson))
+            .inScenario(WIREMOCK_HMRC_AUTH_SCENARIO)
+            .whenScenarioStateIs(WIREMOCK_STATE__SERVER_ERROR)
+            .willReturn(serverError()));
     }
 
     @Test
@@ -131,5 +141,15 @@ public class HmrcAuthServiceIntegrationTest
 
         WireMock.verify(2, postRequestedFor(urlPathEqualTo("/oauth/token")));
         assertNotEquals(token1.getAccessToken(), token2.getAccessToken());
+    }
+
+    @Test
+    @DisplayName("Throws HttpServerErrorException when Server Error reported by HMRC endpoint (INT.08)")
+    @JiraStory("PO-2383")
+    @JiraEpic("PO-1421")
+    void throwsCorrectExceptionOnHMRCServerError() {
+
+        WireMock.setScenarioState(WIREMOCK_HMRC_AUTH_SCENARIO, WIREMOCK_STATE__SERVER_ERROR);
+        assertThrows(HttpServerErrorException.class, () -> hmrcAuthService.getAuthToken());
     }
 }
