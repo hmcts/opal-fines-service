@@ -4,13 +4,13 @@ import feign.RequestInterceptor;
 import feign.RequestTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.opal.service.hmrc.HMRCAuthentication;
+import uk.gov.hmcts.opal.service.hmrc.HmrcAuthentication;
 
 @Component
 public class FeignRequestInterceptor implements RequestInterceptor {
 
-    @Autowired(required=false) //TODO: remove required=false once this interface has an implementation.
-    private HMRCAuthentication auth;
+    @Autowired(required = false) //TODO: remove 'required = false' once this interface has an implementation.
+    private HmrcAuthentication auth;
 
     @Override
     public void apply(RequestTemplate template) {
