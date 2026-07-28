@@ -29,7 +29,7 @@ public class HmrcAuthServiceTest {
     private String clientSecret = "TEST_CLIENT_SECRET";
     private String scope = "TEST_SCOPE_1+TEST_SCOPE_2";
     private String grantType = "client_credentials";
-
+    private HMRCAuthTokenCreds creds = new HMRCAuthTokenCreds(clientId, clientSecret, scope, grantType);
     private String url = "https://test.com/auth";
 
     @Captor
@@ -41,7 +41,6 @@ public class HmrcAuthServiceTest {
 
     @BeforeEach
     void beforeEach() {
-        var creds = new HMRCAuthTokenCreds(clientId, clientSecret, scope, grantType);
         service = new HmrcAuthService(restClient, creds, url);
     }
 
