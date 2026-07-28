@@ -237,6 +237,15 @@ tasks.register("bundleOpenApi", JavaExec) {
   args = ["$rootDir/src/main/resources/openapi", layout.buildDirectory.file("openapi-bundled.yaml").get().asFile.absolutePath]
 }
 
+tasks.register("bundleOpenApiHMRC", JavaExec) {
+  dependsOn 'compileOpenapiJava'
+  classpath = sourceSets.openapi.runtimeClasspath
+  group = "openapi"
+  description = "Bundle multiple OpenAPI HMRC API YAML files into one"
+  mainClass = 'uk.gov.hmcts.opal.openapi.OpenApiBundler'
+  args = ["$rootDir/src/main/resources/openapi/hmrc", layout.buildDirectory.file("openapi-hmrc-bundled.yaml").get().asFile.absolutePath]
+}
+
 openApiGenerate {
   generatorName = "spring"
   inputSpec = layout.buildDirectory.file("openapi-bundled.yaml").get().asFile.absolutePath
@@ -270,6 +279,42 @@ openApiGenerate {
     generateBuilders                    : "true"
   ]
 }
+
+tasks.register('openApiGenerateFeignClients', org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+  generatorName = 'spring'
+  library = 'spring-cloud'
+  inputSpec = layout.buildDirectory.dir("openapi-hmrc-bundled.yaml").get().asFile.absolutePath
+  outputDir = layout.buildDirectory.dir("generated/openapi").get().asFile.absolutePath
+  apiPackage = "uk.gov.hmcts.opal.hmrc.generated.".toString() + "http.api"
+  modelPackage = "uk.gov.hmcts.opal.hmrc.generated.".toString() + "model"
+  importMappings = [
+    Nullable: "org.jspecify.annotations.Nullable",
+    Short: "java.lang.Short"
+  ]
+  typeMappings = [
+    "integer+int16": "short"
+  ]
+  // Point to your customized mustache templates
+  templateDir = "$rootDir/openapi/templates".toString()
+  generateApiTests = false
+  generateModelTests = false
+  skipOperationExample = true
+  openapiNormalizer = [
+    REF_AS_PARENT_IN_ALLOF: "true"
+  ]
+  configOptions = [
+    dateLibrary                         : "java8-localdatetime",
+    interfaceOnly                       : "true",
+    useTags                             : "true",
+    useSpringBoot4                      : "true",
+    containerDefaultToNull              : "true",
+    generatedConstructorWithRequiredArgs: "false",
+    useBeanValidation                   : "true",
+    useLombokAnnotations                : "true",
+    generateBuilders                    : "true"
+  ]
+}
+
 // (Temp?) Fix to solve the issue:
 // Toolchain from `executable` property does not match toolchain from `javaLauncher` property.
 gradle.taskGraph.whenReady { taskGraph ->
@@ -1075,8 +1120,24 @@ tasks.named("openApiGenerate") {
     }
   }
 }
+tasks.named("openApiGenerateFeignClients") {
+  dependsOn 'bundleOpenApiHMRC'
+  doLast {
+    def generatedJavaDir = layout.buildDirectory.dir("generated/openapi/src/main/java").get().asFile
+    fileTree(generatedJavaDir).matching {
+      include '**/*.java'
+    }.each { generatedFile ->
+      generatedFile.text = generatedFile.text.replace(
+              'import org.springframework.lang.Nullable;',
+              'import org.jspecify.annotations.Nullable;'
+      )
+    }
+  }
+}
+
 tasks.named("compileJava") {
   dependsOn 'openApiGenerate'
+  dependsOn 'openApiGenerateFeignClients'
 }
 
 apply from: "$rootDir/gradle/zephyr.gradle"
