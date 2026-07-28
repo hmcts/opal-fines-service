@@ -25,8 +25,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.config.cache.CacheNames;
-import uk.gov.hmcts.opal.service.hmrc.creds.HMRCAuthTokenCreds;
-import uk.gov.hmcts.opal.service.hmrc.response.HMRCAuthToken;
+import uk.gov.hmcts.opal.service.hmrc.response.HmrcAuthToken;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -43,13 +42,13 @@ public class HmrcAuthServiceIntegrationTest
     private HmrcAuthService hmrcAuthService;
 
     @Autowired
-    private HMRCAuthTokenCreds hmrcAuthCreds;
+    private HmrcAuthCreds hmrcAuthCreds;
 
-    private HMRCAuthToken hmrcAuthToken = new HMRCAuthToken(
+    private HmrcAuthToken hmrcAuthToken = new HmrcAuthToken(
         "xxxx-test-token-xxxx", "bearer", 14400, "test-scope1+test-scope2"
     );
 
-    private HMRCAuthToken hmrcAuthToken2 = new HMRCAuthToken(
+    private HmrcAuthToken hmrcAuthToken2 = new HmrcAuthToken(
         "xxxx-2-test-token-2-xxxx", "bearer", 14400, "test-scope1+test-scope2"
     );
 
@@ -94,7 +93,7 @@ public class HmrcAuthServiceIntegrationTest
     @JiraEpic("PO-1421")
     void correctlyCallsHmrcEndpointAndReturnsDto() {
 
-        HMRCAuthToken returnedAuthToken = hmrcAuthService.getAuthToken();
+        HmrcAuthToken returnedAuthToken = hmrcAuthService.getAuthToken();
 
         assertAll(
             () -> assertEquals(hmrcAuthToken.getAccessToken(), returnedAuthToken.getAccessToken()),
@@ -111,9 +110,9 @@ public class HmrcAuthServiceIntegrationTest
     @JiraStory("PO-2383")
     @JiraEpic("PO-1421")
     void multipleCalls_UtilisesCache_NoExternalCall() {
-        HMRCAuthToken token1 = hmrcAuthService.getAuthToken();
-        HMRCAuthToken token2 = hmrcAuthService.getAuthToken();
-        HMRCAuthToken token3 = hmrcAuthService.getAuthToken();
+        HmrcAuthToken token1 = hmrcAuthService.getAuthToken();
+        HmrcAuthToken token2 = hmrcAuthService.getAuthToken();
+        HmrcAuthToken token3 = hmrcAuthService.getAuthToken();
 
         WireMock.verify(1, postRequestedFor(urlPathEqualTo("/oauth/token")));
         assertAll(
@@ -134,10 +133,10 @@ public class HmrcAuthServiceIntegrationTest
     @JiraEpic("PO-1421")
     void correctlyCallsHmrcEndpointMultipleTimes() throws InterruptedException {
 
-        HMRCAuthToken token1 = hmrcAuthService.getAuthToken();
+        HmrcAuthToken token1 = hmrcAuthService.getAuthToken();
         Thread.sleep(500); // Sleeping to give time for the cache to exist in Redis
         assertTrue(clearAuthServiceCache());
-        HMRCAuthToken token2 = hmrcAuthService.getAuthToken();
+        HmrcAuthToken token2 = hmrcAuthService.getAuthToken();
 
         WireMock.verify(2, postRequestedFor(urlPathEqualTo("/oauth/token")));
         assertNotEquals(token1.getAccessToken(), token2.getAccessToken());
