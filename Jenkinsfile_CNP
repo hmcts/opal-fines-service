@@ -185,7 +185,13 @@ withPipeline(type, product, component) {
   if (!env.OPAL_USER_SERVICE_API_URL && !env.CHANGE_ID) {
     env.OPAL_USER_SERVICE_API_URL = 'https://opal-user-service.staging.platform.hmcts.net'
   }
-  enableSlackNotifications('#opal-builds')
+
+  // master fails we want a notification on slack
+  onMaster {
+    enableSlackNotifications('#opal-builds')
+  }
+
+
   before('akschartsinstall') {
     onPR {
       determineDevEnvironmentDeployment()
