@@ -61,7 +61,7 @@ public class HmrcAuthServiceIntegrationTest
     private static final String WIREMOCK_HMRC_AUTH_SCENARIO = "GET HMRC auth token test";
     private static final String WIREMOCK_STATE__ONE_CALL_MADE = "One call made";
     private static final String WIREMOCK_STATE__SERVER_ERROR = "Server error";
-    private static final String WIREMOCK_STATE__CLIENT_ERROR = "Server error";
+    private static final String WIREMOCK_STATE__CLIENT_ERROR = "Client error";
 
     @Override
     @BeforeEach
