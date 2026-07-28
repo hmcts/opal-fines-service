@@ -205,8 +205,8 @@ logging-service:
 
 hmrc:
   auth:
-    client-id: ${OPAL_HMRC_AUTH_CLIENT_ID:TODO}
-    client-secret: ${OPAL_HMRC_AUTH_CLIENT_SECRET:TODO}
-    scope: ${OPAL_HMRC_AUTH_CLIENT_ID:TODO}
-    grant-type: ${OPAL_HMRC_AUTH_GRANT_TYPE:TODO}
-    url: ${OPAL_HMRC_AUTH_URL:https://localhost:4400}
+    client-id: ${OPAL_HMRC_AUTH_CLIENT_ID}
+    client-secret: ${OPAL_HMRC_AUTH_CLIENT_SECRET}
+    scope: ${OPAL_HMRC_AUTH_CLIENT_ID}
+    grant-type: ${OPAL_HMRC_AUTH_GRANT_TYPE}
+    url: ${OPAL_HMRC_AUTH_URL}
