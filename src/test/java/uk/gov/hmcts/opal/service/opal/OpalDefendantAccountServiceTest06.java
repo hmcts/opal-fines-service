@@ -68,6 +68,8 @@ class OpalDefendantAccountServiceTest06 {
             .title("Mr")
             .forenames("Amy")
             .surname("Pond")
+            .parentGuardianForenames("Rory")
+            .parentGuardianSurname("Williams")
             .addressLine1("1 Main St")
             .postcode("AB12CD")
             .businessUnitName("BU")
@@ -99,6 +101,8 @@ class OpalDefendantAccountServiceTest06 {
         assertEquals("ACC1", dto.getAccountNumber());
         assertEquals("LEVY", dto.getLastEnforcementAction());
         assertEquals(0, dto.getAccountBalance().compareTo(new BigDecimal("12.34")));
+        assertEquals("Rory", dto.getParentGuardianFirstnames());
+        assertEquals("Williams", dto.getParentGuardianSurname());
 
         // Aliases: alias1, alias2, alias5 should be present
         List<AliasDto> aliases = dto.getAliases();
@@ -372,10 +376,8 @@ class OpalDefendantAccountServiceTest06 {
 
         AccountSearchDto dto = AccountSearchDto.builder().consolidationSearch(true).build();
 
-        UnprocessableException ex = assertThrows(
-            UnprocessableException.class,
-            () -> service.searchDefendantAccounts(dto)
-        );
+        UnprocessableException ex = assertThrows(UnprocessableException.class,
+            () -> service.searchDefendantAccounts(dto));
 
         assertEquals("Search generated more than 100 results. Please refine your search and try again.",
             ex.getDetailedReason());
