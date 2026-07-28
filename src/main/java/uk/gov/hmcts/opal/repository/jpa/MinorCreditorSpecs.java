@@ -1,37 +1,38 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
+import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.equalNormalized;
+import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.hasText;
+import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.likeStartsWithNormalized;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
+import uk.gov.hmcts.opal.dto.Creditor;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity_;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-
-import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.hasText;
-import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.likeStartsWithNormalized;
-import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.equalNormalized;
-
 @Component
-public class MinorCreditorSpecs {
+public class MinorCreditorSpecs extends EntitySpecs<MinorCreditorEntity> {
 
     public Specification<MinorCreditorEntity> findBySearchCriteria(MinorCreditorSearch criteria) {
         if (criteria == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Search criteria must be provided");
         }
 
-        List<Specification<MinorCreditorEntity>> parts = new ArrayList<>();
-
-        byBusinessUnitIds(criteria).ifPresent(parts::add);
-        byCreditorAccountNumber(criteria).ifPresent(parts::add);
-        parts.addAll(byCreditorTextFields(criteria));
-
-        return combineAnd(parts);
+        return combineAnd(specificationList(
+            byBusinessUnitIds(criteria),
+            byCreditorAccountNumber(criteria),
+            byOrganisationName(criteria),
+            byForenames(criteria),
+            bySurname(criteria),
+            byAddressLine1(criteria),
+            byPostcode(criteria)
+        ));
     }
 
     private Optional<Specification<MinorCreditorEntity>> byBusinessUnitIds(MinorCreditorSearch c) {
@@ -41,76 +42,79 @@ public class MinorCreditorSpecs {
                 .map(i -> (short) i.intValue())
                 .toList())
             .filter(ids -> !ids.isEmpty())
-            .map(ids -> (root, q, cb) -> root.get(MinorCreditorEntity_.BUSINESS_UNIT_ID).in(ids));
+            .map(MinorCreditorSpecs::businessUnitIdsIn);
     }
 
     private Optional<Specification<MinorCreditorEntity>> byCreditorAccountNumber(MinorCreditorSearch c) {
         return Optional.ofNullable(c.getAccountNumber())
             .filter(SpecificationUtils::hasText)
             .map(SpecificationUtils::stripCheckLetter)
-            .map(prefix -> (Specification<MinorCreditorEntity>)
-                (root, q, cb) -> likeStartsWithNormalized(root, cb, MinorCreditorEntity_.ACCOUNT_NUMBER, prefix));
+            .map(MinorCreditorSpecs::accountNumberStartsWith);
     }
 
-    private List<Specification<MinorCreditorEntity>> byCreditorTextFields(MinorCreditorSearch c) {
+    private Optional<Specification<MinorCreditorEntity>> byOrganisationName(MinorCreditorSearch c) {
         return Optional.ofNullable(c.getCreditor())
-            .map(cred -> {
-                List<Specification<MinorCreditorEntity>> out = new ArrayList<>();
-
-                // Organisation name
-                addTextFilterIfPresent(
-                    out,
-                    MinorCreditorEntity_.ORGANISATION_NAME,
-                    cred.getOrganisationName(),
-                    Boolean.TRUE.equals(cred.getExactMatchOrganisationName())
-                );
-
-                // Forenames
-                addTextFilterIfPresent(
-                    out,
-                    MinorCreditorEntity_.FORENAMES,
-                    cred.getForenames(),
-                    Boolean.TRUE.equals(cred.getExactMatchForenames())
-                );
-
-                // Surname
-                addTextFilterIfPresent(
-                    out,
-                    MinorCreditorEntity_.SURNAME,
-                    cred.getSurname(),
-                    Boolean.TRUE.equals(cred.getExactMatchSurname())
-                );
-
-                // Address & Postcode (no exact flags; keep starts-with)
-                addStartsWithIfPresent(out, MinorCreditorEntity_.ADDRESS_LINE1, cred.getAddressLine1());
-                addStartsWithIfPresent(out, MinorCreditorEntity_.POST_CODE,     cred.getPostcode());
-
-                return out;
-            })
-            .orElseGet(List::of);
+            .filter(creditor -> hasText(creditor.getOrganisationName()))
+            .map(creditor -> textMatches(
+                MinorCreditorEntity_.ORGANISATION_NAME,
+                creditor.getOrganisationName(),
+                creditor.getExactMatchOrganisationName()
+            ));
     }
 
-    private void addTextFilterIfPresent(List<Specification<MinorCreditorEntity>> acc,
-                                        String attribute,
-                                        String value,
-                                        boolean exactMatch) {
-        if (!hasText(value)) {
-            return;
-        }
-
-        if (exactMatch) {
-            acc.add((root, q, cb) -> equalNormalized(root, cb, attribute, value));
-        } else {
-            acc.add((root, q, cb) -> likeStartsWithNormalized(root, cb, attribute, value));
-        }
+    private Optional<Specification<MinorCreditorEntity>> byForenames(MinorCreditorSearch c) {
+        return Optional.ofNullable(c.getCreditor())
+            .filter(creditor -> hasText(creditor.getForenames()))
+            .map(creditor -> textMatches(
+                MinorCreditorEntity_.FORENAMES,
+                creditor.getForenames(),
+                creditor.getExactMatchForenames()
+            ));
     }
 
-    private void addStartsWithIfPresent(List<Specification<MinorCreditorEntity>> acc,
-                                        String attribute,
-                                        String value) {
-        if (hasText(value)) {
-            acc.add((root, q, cb) -> likeStartsWithNormalized(root, cb, attribute, value));
-        }
+    private Optional<Specification<MinorCreditorEntity>> bySurname(MinorCreditorSearch c) {
+        return Optional.ofNullable(c.getCreditor())
+            .filter(creditor -> hasText(creditor.getSurname()))
+            .map(creditor -> textMatches(
+                MinorCreditorEntity_.SURNAME,
+                creditor.getSurname(),
+                creditor.getExactMatchSurname()
+            ));
+    }
+
+    private Optional<Specification<MinorCreditorEntity>> byAddressLine1(MinorCreditorSearch c) {
+        return Optional.ofNullable(c.getCreditor())
+            .map(Creditor::getAddressLine1)
+            .filter(SpecificationUtils::hasText)
+            .map(value -> startsWith(MinorCreditorEntity_.ADDRESS_LINE1, value));
+    }
+
+    private Optional<Specification<MinorCreditorEntity>> byPostcode(MinorCreditorSearch c) {
+        return Optional.ofNullable(c.getCreditor())
+            .map(Creditor::getPostcode)
+            .filter(SpecificationUtils::hasText)
+            .map(value -> startsWith(MinorCreditorEntity_.POST_CODE, value));
+    }
+
+    public static Specification<MinorCreditorEntity> businessUnitIdsIn(List<Short> businessUnitIds) {
+        return (root, query, builder) -> root.get(MinorCreditorEntity_.BUSINESS_UNIT_ID).in(businessUnitIds);
+    }
+
+    public static Specification<MinorCreditorEntity> accountNumberStartsWith(String accountNumberPrefix) {
+        return startsWith(MinorCreditorEntity_.ACCOUNT_NUMBER, accountNumberPrefix);
+    }
+
+    public static Specification<MinorCreditorEntity> textMatches(
+        String attributeName, String value, Boolean exactMatch) {
+
+        return Boolean.TRUE.equals(exactMatch)
+            ? (root, query, builder) -> equalNormalized(root, builder, attributeName, value)
+            : startsWith(attributeName, value);
+    }
+
+    public static Specification<MinorCreditorEntity> startsWith(String attributeName, String value) {
+
+        return (root, query, builder) -> likeStartsWithNormalized(root, builder, attributeName, value);
     }
 
     /** AND all parts; require at least one filter to avoid full scans. */
@@ -118,8 +122,7 @@ public class MinorCreditorSpecs {
         if (parts == null || parts.isEmpty()) {
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
-                "Search request must include at least one filter"
-            );
+                "Search request must include at least one filter");
         }
         return parts.stream().reduce(Specification.allOf(), Specification::and);
     }
