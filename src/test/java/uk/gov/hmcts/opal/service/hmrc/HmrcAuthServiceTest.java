@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.service.hmrc;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -44,15 +43,14 @@ public class HmrcAuthServiceTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void getAuthToken_callsHmrcEndpointCorrectly() {
         RequestBodyUriSpec requestBodyUriSpec = mock(RequestBodyUriSpec.class);
         RequestBodySpec requestBodySpec = mock(RequestBodySpec.class);
         RequestBodySpec requestBodySpec2 = mock(RequestBodySpec.class);
         ResponseSpec responseSpec = mock(ResponseSpec.class);
         when(restClient.post()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri(any(String.class))).thenReturn(requestBodySpec);
-        when(requestBodySpec.body(any(HmrcAuthCreds.class))).thenReturn(requestBodySpec2);
+        when(requestBodyUriSpec.uri(url)).thenReturn(requestBodySpec);
+        when(requestBodySpec.body(creds)).thenReturn(requestBodySpec2);
         when(requestBodySpec2.retrieve()).thenReturn(responseSpec);
         when(responseSpec.body(HmrcAuthToken.class)).thenReturn(mock(HmrcAuthToken.class));
 
