@@ -5,6 +5,7 @@ bruno/environments/local.env
 *.class
 bin/main/application.yaml
 smoke-test-report
+smoke-output
 functional-test-report
 functional-output
 functional-output-demo
