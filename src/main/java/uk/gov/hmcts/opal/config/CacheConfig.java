@@ -51,7 +51,7 @@ public class CacheConfig {
     private Duration redisTtlDuration;
 
     @Value("${opal.redis.hmrc-auth-token-ttl-duration}")
-    private Duration redisHmrcAUTHTokenTtlDuration;
+    private Duration redisHmrcAuthTokenTtlDuration;
 
     @Bean
     @ConditionalOnProperty(name = "opal.redis.enabled", havingValue = "true")
@@ -62,8 +62,8 @@ public class CacheConfig {
         // disabling maintenance notifications as these were showing as errors on application insights
         LettuceClientConfigurationBuilder clientConfigurationBuilder = LettuceClientConfiguration.builder()
             .clientOptions(ClientOptions.builder()
-                               .maintNotificationsConfig(MaintNotificationsConfig.disabled())
-                               .build());
+                .maintNotificationsConfig(MaintNotificationsConfig.disabled())
+                .build());
         if (redisURI.isSsl()) {
             clientConfigurationBuilder.useSsl();
         }
@@ -99,7 +99,7 @@ public class CacheConfig {
             .serializeValuesWith(SerializationPair.fromSerializer(redisValueSerializer()));
 
         RedisCacheConfiguration hmrcAuthCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
-            .entryTtl(redisHmrcAUTHTokenTtlDuration)
+            .entryTtl(redisHmrcAuthTokenTtlDuration)
             .serializeKeysWith(SerializationPair.fromSerializer(redisKeySerializer()))
             .serializeValuesWith(SerializationPair.fromSerializer(redisValueSerializer()));
 
@@ -143,7 +143,7 @@ public class CacheConfig {
         log.info("Redis Enabled: {}", redisEnabled);
         log.info("Redis Url: {}", redisUrl);
         log.info("Redis TTL (duration): {}", redisTtlDuration);
-        log.info("Redis HMRC Token TTL (duration): {}", redisHmrcAUTHTokenTtlDuration);
+        log.info("Redis HMRC Token TTL (duration): {}", redisHmrcAuthTokenTtlDuration);
         if (cacheManager != null) {
             log.info("Cache Manager: {}", cacheManager.getClass().getName());
             if (cacheManager instanceof RedisCacheManager) {
