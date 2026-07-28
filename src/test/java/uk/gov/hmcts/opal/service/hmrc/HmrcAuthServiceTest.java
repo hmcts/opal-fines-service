@@ -45,7 +45,7 @@ public class HmrcAuthServiceTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void getAuthToken_buildsUrlCorrectly() {
+    void getAuthToken_callsHmrcEndpointCorrectly() {
         RequestBodyUriSpec requestBodyUriSpec = mock(RequestBodyUriSpec.class);
         RequestBodySpec requestBodySpec = mock(RequestBodySpec.class);
         RequestBodySpec requestBodySpec2 = mock(RequestBodySpec.class);
