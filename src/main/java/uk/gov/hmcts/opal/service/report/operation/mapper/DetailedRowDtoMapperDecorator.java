@@ -19,6 +19,7 @@ import uk.gov.hmcts.opal.service.persistence.PaymentTermsRepositoryService;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 
 @Setter
+@SuppressWarnings("java:S6813")
 public class DetailedRowDtoMapperDecorator
     implements DetailedRowDtoMapper {
 

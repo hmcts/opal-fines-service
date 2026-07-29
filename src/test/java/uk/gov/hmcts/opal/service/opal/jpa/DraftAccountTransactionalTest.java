@@ -676,7 +676,7 @@ class DraftAccountTransactionalTest {
         when(draftAccountRepository.findById(any())).thenReturn(Optional.of(entity));
 
         // Act
-        DraftAccountEntity result = draftAccountTransactional.updateStatus(entity, DraftAccountStatus.PUBLISHING_FAILED,
+        draftAccountTransactional.updateStatus(entity, DraftAccountStatus.PUBLISHING_FAILED,
             draftAccountTransactional
         );
 

@@ -16,6 +16,7 @@ import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 
 @Mapper(componentModel = "spring")
+@SuppressWarnings("java:S6813")
 public abstract class DetailedTransactionRowMapper
     implements CommonMappingHelper {
 

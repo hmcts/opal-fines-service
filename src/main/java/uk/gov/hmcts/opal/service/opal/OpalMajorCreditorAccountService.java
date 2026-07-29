@@ -100,6 +100,7 @@ public class OpalMajorCreditorAccountService implements MajorCreditorAccountServ
         return address;
     }
 
+    @SuppressWarnings("java:S2447")
     private Boolean mapPayByBacs(String bacsDetails) {
         if (BACS_DETAILS_PROVIDED.equals(bacsDetails)) {
             return true;

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.time.LocalDate;
+import java.time.Month;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.generated.model.CollectionOrderCommon;
@@ -58,7 +59,7 @@ public class UpdateDefendantAccountRequestMapperTest {
     void mapCollectionOrder_whenFlagFalse_clearsDate() {
         CollectionOrderCommon src = CollectionOrderCommon.builder()
             .collectionOrderFlag(false)
-            .collectionOrderDate(LocalDate.of(2025, 1, 1))
+            .collectionOrderDate(LocalDate.of(2025, Month.JANUARY, 1))
             .build();
 
         var result = mapper.map(src);
