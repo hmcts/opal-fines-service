@@ -5,7 +5,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountType;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class DefendantAccountTypeConverterTest {
+class DefendantAccountTypeConverterTest {
 
     @Test
     void testConversions() {

@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -40,8 +41,8 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
     void createGetDefendantAccountHistoryRequest_mapsFilterToLegacyRequest() {
         // Arrange
         DefendantAccountHistoryFilter filter = DefendantAccountHistoryFilter.builder()
-            .dateFrom(LocalDate.of(2026, 5, 11))
-            .dateTo(LocalDate.of(2026, 5, 12))
+            .dateFrom(LocalDate.of(2026, Month.MAY, 11))
+            .dateTo(LocalDate.of(2026, Month.MAY, 12))
             .itemTypes(List.of(HistoryItemType.ENFORCEMENT, HistoryItemType.PAYMENT_TERMS, HistoryItemType.NOTE))
             .build();
 
@@ -51,8 +52,8 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
 
         // Assert
         assertEquals("99000000000001", request.getDefendantAccountId());
-        assertEquals(LocalDate.of(2026, 5, 11), request.getFromDate());
-        assertEquals(LocalDate.of(2026, 5, 12), request.getToDate());
+        assertEquals(LocalDate.of(2026, Month.MAY, 11), request.getFromDate());
+        assertEquals(LocalDate.of(2026, Month.MAY, 12), request.getToDate());
         assertEquals(List.of("Enforcement", "Payment Terms", "Note"), request.getItemTypes());
     }
 
@@ -78,8 +79,8 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
         DefendantAccountHistoryFilter filter = DefendantAccountHistoryFilter.builder()
-            .dateFrom(LocalDate.of(2026, 5, 11))
-            .dateTo(LocalDate.of(2026, 5, 12))
+            .dateFrom(LocalDate.of(2026, Month.MAY, 11))
+            .dateTo(LocalDate.of(2026, Month.MAY, 12))
             .itemTypes(List.of(HistoryItemType.ENFORCEMENT, HistoryItemType.NOTE))
             .build();
 
@@ -101,7 +102,8 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
         assertEquals("PAY123",
             ((DefendantTransactionDetails) out.getHistoryItems().get(0).getDetails()).getPaymentReference());
         assertEquals(new BigDecimal("-25.50"), out.getHistoryItems().get(0).getAmount());
-        assertEquals(LocalDateTime.of(2026, 5, 12, 10, 15), out.getHistoryItems().get(0).getEventDateTime());
+        assertEquals(LocalDateTime.of(2026, Month.MAY, 12, 10, 15),
+                     out.getHistoryItems().get(0).getEventDateTime());
         assertEquals(HistoryItemType.AMENDMENT, out.getHistoryItems().get(4).getType());
 
         ArgumentCaptor<GetDefendantAccountHistoryLegacyRequest> requestCaptor =
@@ -157,11 +159,11 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
                 .enforcementAction("HST01")
                 .daysInDefault(14)
                 .warrantNumber("WR123")
-                .hearingDate(LocalDate.of(2026, 6, 1))
+                .hearingDate(LocalDate.of(2026, Month.JUNE, 1))
                 .hearingCourt(CourtReference.builder().courtId(44L).courtName("North Court").build())
                 .caseNumber("CASE-1")
                 .reason("Reason text")
-                .earliestDateOfRelease(LocalDate.of(2026, 7, 1))
+                .earliestDateOfRelease(LocalDate.of(2026, Month.JULY, 1))
                 .build())
             .build();
     }
@@ -182,10 +184,10 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
             .type("Payment terms")
             .details(LegacyDefendantAccountHistoryDetails.builder()
                 .daysInDefault(7)
-                .dateDaysInDefaultImposed(LocalDate.of(2026, 5, 12))
+                .dateDaysInDefaultImposed(LocalDate.of(2026, Month.MAY, 12))
                 .reasonForExtension("Extension reason")
                 .paymentTermsType(new LegacyPaymentTermsType(LegacyPaymentTermsType.PaymentTermsTypeCode.I))
-                .effectiveDate(LocalDate.of(2026, 5, 20))
+                .effectiveDate(LocalDate.of(2026, Month.MAY, 20))
                 .instalmentPeriod(new LegacyInstalmentPeriod(LegacyInstalmentPeriod.InstalmentPeriodCode.M))
                 .lumpSumAmount(new BigDecimal("100.00"))
                 .instalmentAmount(new BigDecimal("25.00"))
@@ -217,12 +219,12 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
                     .defendantTransactionStatus("P")
                     .defendantTransactionStatusDisplayName("Partially-reversed")
                     .build())
-                .statusDate(LocalDateTime.of(2026, 5, 12, 10, 20))
+                .statusDate(LocalDateTime.of(2026, Month.MAY, 12, 10, 20))
                 .associatedRecordType("defendant_accounts")
                 .associatedRecordId("262200")
                 .accountNumber("262200A")
                 .sendingCourt("North Court")
-                .impositionDate(LocalDate.of(2026, 5, 12))
+                .impositionDate(LocalDate.of(2026, Month.MAY, 12))
                 .impositionCode("HST01")
                 .amountImposed(new BigDecimal("-125.00"))
                 .build())

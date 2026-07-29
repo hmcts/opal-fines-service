@@ -14,6 +14,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.Optional;
@@ -46,7 +47,7 @@ class PreAllocatedCashTillServiceTest {
     private static final Long REPORT_INSTANCE_ID = 1234L;
     private static final Long USER_ID = 987L;
     private static final String USER_NAME = "report.user";
-    private static final LocalDateTime REQUESTED_AT = LocalDateTime.of(2026, 6, 23, 10, 15, 30);
+    private static final LocalDateTime REQUESTED_AT = LocalDateTime.of(2026, Month.JUNE, 23, 10, 15, 30);
 
     private final Clock clock = Clock.fixed(Instant.parse("2026-06-23T10:15:30Z"), ZoneOffset.UTC);
     private final ObjectMapper objectMapper = JsonMapper.builder().build();

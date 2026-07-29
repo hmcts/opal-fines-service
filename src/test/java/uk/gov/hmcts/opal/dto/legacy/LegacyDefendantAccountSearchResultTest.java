@@ -9,6 +9,7 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.Month;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -23,7 +24,7 @@ class LegacyDefendantAccountSearchResultTest {
         assertEquals("accountNo", accountEnquiryDto.getAccountNumber());
         assertEquals("Mr John Smith", accountEnquiryDto.getFullName());
         assertEquals("Scotland", accountEnquiryDto.getAddressLine1());
-        assertEquals(LocalDate.of(1977, 6, 26), accountEnquiryDto.getBirthDate());
+        assertEquals(LocalDate.of(1977, Month.JUNE, 26), accountEnquiryDto.getBirthDate());
         assertEquals(BigDecimal.valueOf(1000), accountEnquiryDto.getAccountBalance());
         assertEquals("9", accountEnquiryDto.getBusinessUnitId());
 
