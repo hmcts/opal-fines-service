@@ -304,14 +304,15 @@ feignClientList.each {
     ]
     configOptions = [
             dateLibrary                         : "java8-localdatetime",
-            interfaceOnly                       : "true",
             useTags                             : "true",
             useSpringBoot4                      : "true",
             containerDefaultToNull              : "true",
             generatedConstructorWithRequiredArgs: "false",
             useBeanValidation                   : "true",
             useLombokAnnotations                : "true",
-            generateBuilders                    : "true"
+            generateBuilders                    : "true",
+            useFeignClientUrl                   : "true",
+            feign                               : "true"
     ]
   }
 }
