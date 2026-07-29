@@ -2,6 +2,8 @@ package uk.gov.hmcts.opal.service.opal.history.defendant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -61,7 +63,7 @@ class DefendantAccountHistoryServiceTest {
     @Test
     void getHistory_returnsMappedResponseForIncludedSourcesOnly() {
         DefendantAccountHistoryService service = buildService();
-        DefendantAccountEntity defendantAccount = org.mockito.Mockito.mock(DefendantAccountEntity.class);
+        DefendantAccountEntity defendantAccount = mock(DefendantAccountEntity.class);
         when(defendantAccount.getVersion()).thenReturn(BigInteger.valueOf(3));
         when(defendantAccountRepositoryService.findByDefendantAccountId(262200L))
             .thenReturn(Optional.of(defendantAccount));
@@ -70,7 +72,7 @@ class DefendantAccountHistoryServiceTest {
         );
 
         AccountHistoryItem noteItem = AccountHistoryItem.builder()
-            .postedDetails(org.mockito.Mockito.mock(AccountHistoryPostedDetails.class))
+            .postedDetails(mock(AccountHistoryPostedDetails.class))
             .type(AccountHistoryItemType.NOTE)
             .details(AccountHistoryNoteDetails.builder()
                 .noteText("History note")
@@ -79,22 +81,22 @@ class DefendantAccountHistoryServiceTest {
             .sourceId(44L)
             .build();
 
-        when(noteSource.supports(org.mockito.ArgumentMatchers.any())).thenReturn(true);
+        when(noteSource.supports(any())).thenReturn(true);
         when(noteSource.getItemType())
             .thenReturn(AccountHistoryItemType.NOTE);
-        when(noteSource.fetch(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any()))
+        when(noteSource.fetch(any(), any()))
             .thenReturn(List.of(noteItem));
 
-        when(amendmentSource.supports(org.mockito.ArgumentMatchers.any())).thenReturn(true);
+        when(amendmentSource.supports(any())).thenReturn(true);
         when(amendmentSource.getItemType())
             .thenReturn(AccountHistoryItemType.AMENDMENT);
-        when(enforcementSource.supports(org.mockito.ArgumentMatchers.any())).thenReturn(true);
+        when(enforcementSource.supports(any())).thenReturn(true);
         when(enforcementSource.getItemType())
             .thenReturn(AccountHistoryItemType.ENFORCEMENT);
-        when(paymentTermsSource.supports(org.mockito.ArgumentMatchers.any())).thenReturn(true);
+        when(paymentTermsSource.supports(any())).thenReturn(true);
         when(paymentTermsSource.getItemType())
             .thenReturn(AccountHistoryItemType.PAYMENT_TERMS);
-        when(transactionSource.supports(org.mockito.ArgumentMatchers.any())).thenReturn(true);
+        when(transactionSource.supports(any())).thenReturn(true);
         when(transactionSource.getItemType())
             .thenReturn(AccountHistoryItemType.FINANCIAL);
 
@@ -111,15 +113,15 @@ class DefendantAccountHistoryServiceTest {
         assertEquals(NoteDetails.builder().noteText("History note").build(),
             response.getHistoryItems().get(0).getDetails());
 
-        verify(noteSource).fetch(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+        verify(noteSource).fetch(any(), any());
         verify(amendmentSource, never())
-            .fetch(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+            .fetch(any(), any());
         verify(enforcementSource, never())
-            .fetch(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+            .fetch(any(), any());
         verify(paymentTermsSource, never())
-            .fetch(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+            .fetch(any(), any());
         verify(transactionSource, never())
-            .fetch(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+            .fetch(any(), any());
     }
 
     @Test

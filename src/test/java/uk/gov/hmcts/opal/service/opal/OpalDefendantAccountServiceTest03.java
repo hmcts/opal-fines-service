@@ -194,10 +194,11 @@ class OpalDefendantAccountServiceTest03 {
         try (MockedStatic<VersionUtils> vs = mockStatic(VersionUtils.class)) {
             vs.when(() -> VersionUtils.verifyIfMatch(any(), anyString(), anyLong(), anyString()))
                 .thenAnswer(i -> null);
+            DefendantAccountParty party = DefendantAccountParty.builder().build();
 
             UnprocessableException result = assertThrows(UnprocessableException.class, () ->
                 service.replaceDefendantAccountParty(
-                    accountId, dapId, DefendantAccountParty.builder().build(), "\"1\"", "10", "tester", null));
+                    accountId, dapId, party, "\"1\"", "10", "tester", null));
 
             assertEquals(exception, result);
             verify(defendantAccountControlValidator).validateCanMutateParty(account);

@@ -180,7 +180,7 @@ class PaymentReportServiceTest {
         verify(defendantAccountRepository).findAll(
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(),
             any(Sort.class));
-        verify(detailedResultMapper).map(eq(accounts));
+        verify(detailedResultMapper).map(accounts);
     }
 
     @Test
@@ -204,7 +204,7 @@ class PaymentReportServiceTest {
         assertThat(result).isSameAs(mappedDetailedReport);
         verify(defendantAccountRepository).findAll(
             ArgumentMatchers.<Specification<DefendantAccountEntity>>any(), any(Sort.class));
-        verify(detailedResultMapper).map(eq(accounts));
+        verify(detailedResultMapper).map(accounts);
     }
 
     @Nested
@@ -237,7 +237,7 @@ class PaymentReportServiceTest {
 
             assertAll(
                 () -> assertThat(result).isSameAs(mappedSummaryReport),
-                () -> verify(summaryResultMapper).map(eq(accounts)),
+                () -> verify(summaryResultMapper).map(accounts),
                 () -> verifyNoInteractions(detailedResultMapper));
         }
 
@@ -252,7 +252,7 @@ class PaymentReportServiceTest {
 
             assertAll(
                 () -> assertThat(result).isSameAs(mappedSummaryReport),
-                () -> verify(summaryResultMapper).map(eq(accounts)),
+                () -> verify(summaryResultMapper).map(accounts),
                 () -> verifyNoInteractions(detailedResultMapper));
         }
     }
