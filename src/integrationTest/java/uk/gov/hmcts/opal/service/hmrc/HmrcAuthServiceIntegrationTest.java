@@ -149,10 +149,10 @@ public class HmrcAuthServiceIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1421")
     void correctlyCallsHmrcEndpointMultipleTimes() throws InterruptedException {
 
-        HmrcAuthToken token1 = hmrcAuthService.getAuthToken();
+        final HmrcAuthToken token1 = hmrcAuthService.getAuthToken();
         Thread.sleep(500); // Sleeping to give time for the cache to exist in Redis
         assertTrue(clearAuthServiceCache());
-        HmrcAuthToken token2 = hmrcAuthService.getAuthToken();
+        final HmrcAuthToken token2 = hmrcAuthService.getAuthToken();
 
         WireMock.verify(2, postRequestedFor(urlPathEqualTo("/oauth/token")));
         assertNotEquals(token1.getAccessToken(), token2.getAccessToken());
