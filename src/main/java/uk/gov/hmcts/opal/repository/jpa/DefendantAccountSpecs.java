@@ -347,10 +347,12 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
     public static Predicate accountNumberStartsWithCheckLetterPredicate(From<?, DefendantAccountEntity> from,
         CriteriaBuilder builder, String accountNumber) {
 
-        return likeStartsWithNormalized(
-            builder,
-            from.get(DefendantAccountEntity_.accountNumber),
-            SpecificationUtils.stripCheckLetter(accountNumber));
+        return notBlankValue(SpecificationUtils.stripCheckLetter(accountNumber))
+            .map(strippedAccountNumber -> likeStartsWithNormalized(
+                builder,
+                from.get(DefendantAccountEntity_.accountNumber),
+                strippedAccountNumber))
+            .orElseGet(builder::conjunction);
     }
 
     public Specification<DefendantAccountEntity> filterByPcrExact(AccountSearchDto dto) {
