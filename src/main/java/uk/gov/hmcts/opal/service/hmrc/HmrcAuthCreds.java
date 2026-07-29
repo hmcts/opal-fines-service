@@ -8,6 +8,11 @@ import org.springframework.stereotype.Component;
 @Getter
 public class HmrcAuthCreds {
 
+    private final String clientId;
+    private final String clientSecret;
+    private final String scope;
+    private final String grantType;
+    
     public HmrcAuthCreds(@Value("${hmrc.auth.client-id}") String clientId,
         @Value("${hmrc.auth.client-secret}") String clientSecret,
         @Value("${hmrc.auth.scope}") String scope,
@@ -18,9 +23,4 @@ public class HmrcAuthCreds {
         this.scope = scope;
         this.grantType = grantType;
     }
-
-    private final String clientId;
-    private final String clientSecret;
-    private final String scope;
-    private final String grantType;
 }
