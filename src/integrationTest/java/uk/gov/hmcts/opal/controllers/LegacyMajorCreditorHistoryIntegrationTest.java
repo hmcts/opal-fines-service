@@ -215,15 +215,15 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     }
 
     @Test
-    @DisplayName("PO-2659 returns 503 when legacy gateway is unavailable")
+    @DisplayName("PO-2659 returns 500 when legacy gateway is unavailable")
     @JiraStory("PO-2659")
     @JiraEpic("PO-2655")
-    void getHistory_whenLegacyGatewayUnavailableReturns503() throws Exception {
+    void getHistory_whenLegacyGatewayUnavailableReturns500() throws Exception {
         stubGatewayException(HttpServerErrorException.create(
             HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable", HttpHeaders.EMPTY, null, null));
 
         getHistory()
-            .andExpect(status().isServiceUnavailable())
+            .andExpect(status().isInternalServerError())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
     }
 

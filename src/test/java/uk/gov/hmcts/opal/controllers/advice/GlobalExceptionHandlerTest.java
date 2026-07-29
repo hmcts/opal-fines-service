@@ -28,7 +28,6 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
-import uk.gov.hmcts.opal.exception.LegacyGatewayException;
 import uk.gov.hmcts.opal.exception.MissingMappingTypeException;
 import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
@@ -167,23 +166,6 @@ class GlobalExceptionHandlerTest {
         assertEquals("Not Found", response.getBody().getTitle());
         assertEquals("Not Found!", response.getBody().getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/http-client-error"), response.getBody().getType());
-    }
-
-    @Test
-    void handleLegacyGatewayException_returnsUpstreamStatus() {
-        LegacyGatewayException ex = new LegacyGatewayException(
-            HttpStatusCode.valueOf(503),
-            "Legacy gateway unavailable",
-            new RuntimeException("Gateway error")
-        );
-
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleLegacyGatewayException(ex);
-
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
-        assertEquals("Service Unavailable", response.getBody().getTitle());
-        assertEquals("Legacy gateway unavailable", response.getBody().getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/legacy-gateway-error"), response.getBody().getType());
-        assertEquals(true, response.getBody().getProperties().get("retriable"));
     }
 
     @Test

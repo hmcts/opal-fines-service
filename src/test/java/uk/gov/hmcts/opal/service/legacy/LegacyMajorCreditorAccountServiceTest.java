@@ -31,7 +31,6 @@ import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyRe
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
-import uk.gov.hmcts.opal.exception.LegacyGatewayException;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountAtAGlanceResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHistoryRequestLegacyMapper;
@@ -135,13 +134,12 @@ class LegacyMajorCreditorAccountServiceTest {
             new RuntimeException("Gateway error")
         ));
 
-        LegacyGatewayException exception = assertThrows(
-            LegacyGatewayException.class,
+        HttpServerErrorException exception = assertThrows(
+            HttpServerErrorException.class,
             () -> legacyMajorCreditorAccountService.getHeaderSummary(123L)
         );
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
-        assertEquals("Gateway error", exception.getStatusText());
         verifyNoInteractions(headerSummaryResponseMapper);
     }
 
@@ -162,13 +160,12 @@ class LegacyMajorCreditorAccountServiceTest {
             null
         ));
 
-        LegacyGatewayException exception = assertThrows(
-            LegacyGatewayException.class,
+        HttpServerErrorException exception = assertThrows(
+            HttpServerErrorException.class,
             () -> legacyMajorCreditorAccountService.getHeaderSummary(123L)
         );
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
-        assertEquals("Legacy gateway returned failure", exception.getStatusText());
         verifyNoInteractions(headerSummaryResponseMapper);
     }
 
@@ -183,8 +180,8 @@ class LegacyMajorCreditorAccountServiceTest {
             null
         )).thenThrow(new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE, "Gateway unavailable"));
 
-        LegacyGatewayException exception = assertThrows(
-            LegacyGatewayException.class,
+        HttpServerErrorException exception = assertThrows(
+            HttpServerErrorException.class,
             () -> legacyMajorCreditorAccountService.getHeaderSummary(123L)
         );
 
@@ -204,8 +201,8 @@ class LegacyMajorCreditorAccountServiceTest {
             null
         )).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND, "Account not found"));
 
-        LegacyGatewayException exception = assertThrows(
-            LegacyGatewayException.class,
+        HttpClientErrorException exception = assertThrows(
+            HttpClientErrorException.class,
             () -> legacyMajorCreditorAccountService.getHeaderSummary(123L)
         );
 
@@ -274,13 +271,43 @@ class LegacyMajorCreditorAccountServiceTest {
         ));
         when(historyRequestMapper.toLegacyRequest(123L, null, null)).thenReturn(expectedRequest);
 
-        LegacyGatewayException exception = assertThrows(
-            LegacyGatewayException.class,
+        HttpServerErrorException exception = assertThrows(
+            HttpServerErrorException.class,
             () -> legacyMajorCreditorAccountService.getHistory(123L, null, null, null)
         );
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
-        assertEquals("Gateway error", exception.getStatusText());
+        verify(historyRequestMapper).toLegacyRequest(123L, null, null);
+        verifyNoInteractions(historyResponseMapper);
+    }
+
+    @Test
+    void getHistory_handlesGatewayClientErrorResponse() {
+        GetMajorCreditorAccountHistoryLegacyRequest expectedRequest =
+            GetMajorCreditorAccountHistoryLegacyRequest.builder()
+                .creditorAccountId("123")
+                .itemTypes(List.of("Financial"))
+                .build();
+
+        when(gatewayService.postToGateway(
+            GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
+            GetMajorCreditorAccountHistoryLegacyResponse.class,
+            expectedRequest,
+            null
+        )).thenReturn(new GatewayService.Response<>(
+            HttpStatus.NOT_FOUND,
+            GetMajorCreditorAccountHistoryLegacyResponse.builder().build(),
+            null,
+            new RuntimeException("Gateway error")
+        ));
+        when(historyRequestMapper.toLegacyRequest(123L, null, null)).thenReturn(expectedRequest);
+
+        HttpClientErrorException exception = assertThrows(
+            HttpClientErrorException.class,
+            () -> legacyMajorCreditorAccountService.getHistory(123L, null, null, null)
+        );
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
         verify(historyRequestMapper).toLegacyRequest(123L, null, null);
         verifyNoInteractions(historyResponseMapper);
     }
@@ -302,13 +329,12 @@ class LegacyMajorCreditorAccountServiceTest {
             new RuntimeException("Gateway error")
         ));
 
-        LegacyGatewayException exception = assertThrows(
-            LegacyGatewayException.class,
+        HttpServerErrorException exception = assertThrows(
+            HttpServerErrorException.class,
             () -> legacyMajorCreditorAccountService.getAtAGlance(123L)
         );
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
-        assertEquals("Gateway error", exception.getStatusText());
         verifyNoInteractions(atAGlanceResponseMapper);
     }
 
