@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -7,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -98,19 +98,19 @@ class DefendantAccountPaymentTermsServiceTest {
     }
 
     @Test
-    void addPaymentCardRequest_derivesBusinessUnitUserIdFromUserState() {
+    void addPaymentCardRequest_derivesBusinessUnitUserIdAndPostedByNameFromUserState() {
         // arrange
         Long defendantAccountId = 77L;
         String businessUnitId = "10";
-        String headerBusinessUnitUserId = "HEADER_USER";
         String derivedBusinessUnitUserId = "USER01";
         String ifMatch = "\"1\"";
         AddPaymentCardRequestResponse proxyResponse = new AddPaymentCardRequestResponse(defendantAccountId);
 
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS)).thenReturn(true);
         when(userState.getBusinessUnitUserForBusinessUnit((short) 10)).thenReturn(Optional.of(
             BusinessUnitUser.builder().businessUnitUserId(derivedBusinessUnitUserId).build()));
+        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.AMEND_PAYMENT_TERMS))
+            .thenReturn(true);
         when(userState.getUserName()).thenReturn("normal@users.com");
         when(defendantAccountPaymentTermsServiceProxy.addPaymentCardRequest(
             defendantAccountId, businessUnitId, derivedBusinessUnitUserId, "normal@users.com", ifMatch))
@@ -118,14 +118,17 @@ class DefendantAccountPaymentTermsServiceTest {
 
         // act
         AddPaymentCardRequestResponse result = defendantAccountPaymentTermsService.addPaymentCardRequest(
-            defendantAccountId, businessUnitId, headerBusinessUnitUserId, ifMatch);
+            defendantAccountId, businessUnitId, ifMatch);
 
         // assert
         assertSame(proxyResponse, result);
+        verify(userStateService).getUserStateV1FromSecurityContext();
+        verify(userState).getBusinessUnitUserForBusinessUnit((short) 10);
+        verify(userState).hasBusinessUnitUserWithPermission((short) 10, FinesPermission.AMEND_PAYMENT_TERMS);
+        verify(userState).getUserName();
         verify(defendantAccountPaymentTermsServiceProxy).addPaymentCardRequest(
             defendantAccountId, businessUnitId, derivedBusinessUnitUserId, "normal@users.com", ifMatch);
-        verify(defendantAccountPaymentTermsServiceProxy, never()).addPaymentCardRequest(
-            defendantAccountId, businessUnitId, headerBusinessUnitUserId, "normal@users.com", ifMatch);
+        verifyNoMoreInteractions(userStateService, userState, defendantAccountPaymentTermsServiceProxy);
     }
 
     @Test
@@ -189,11 +192,14 @@ class DefendantAccountPaymentTermsServiceTest {
 
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUserForBusinessUnit((short) 78)).thenReturn(Optional.of(businessUnitUser));
-        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS)).thenReturn(true);
+        when(userState.hasBusinessUnitUserWithPermission((short) 78, FinesPermission.AMEND_PAYMENT_TERMS))
+            .thenReturn(true);
+        when(userState.getUserName()).thenReturn("normal@users.com");
         when(defendantAccountPaymentTermsServiceProxy.addPaymentCardRequest(
             defendantAccountId,
             businessUnitId,
             businessUnitUserId,
+            "normal@users.com",
             ifMatch
         )).thenReturn(proxyResponse);
 
@@ -208,11 +214,13 @@ class DefendantAccountPaymentTermsServiceTest {
         assertSame(proxyResponse, result);
         verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).getBusinessUnitUserForBusinessUnit((short) 78);
-        verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS);
+        verify(userState).hasBusinessUnitUserWithPermission((short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
+        verify(userState).getUserName();
         verify(defendantAccountPaymentTermsServiceProxy).addPaymentCardRequest(
             defendantAccountId,
             businessUnitId,
             businessUnitUserId,
+            "normal@users.com",
             ifMatch
         );
         verifyNoMoreInteractions(userStateService, userState, defendantAccountPaymentTermsServiceProxy);
@@ -248,15 +256,29 @@ class DefendantAccountPaymentTermsServiceTest {
     }
 
     @Test
-    void addPaymentCardRequest_businessUnitUserWithoutPermission_throws403AndDoesNotCallProxy() {
+    void addPaymentCardRequest_permissionInDifferentBusinessUnit_throws403AndDoesNotCallProxy() {
         // Arrange
-        BusinessUnitUser businessUnitUser = BusinessUnitUser.builder()
-            .businessUnitUserId("L080JG")
+        UserState userWithPermissionInDifferentBusinessUnit = UserState.builder()
+            .userId(500000000L)
+            .userName("normal@users.com")
+            .businessUnitUser(Set.of(
+                BusinessUnitUser.builder()
+                    .businessUnitId((short) 78)
+                    .businessUnitUserId("L078JG")
+                    .permissions(Set.of())
+                    .build(),
+                BusinessUnitUser.builder()
+                    .businessUnitId((short) 77)
+                    .businessUnitUserId("L077JG")
+                    .permissions(Set.of(Permission.builder()
+                        .permissionId(FinesPermission.AMEND_PAYMENT_TERMS.getId())
+                        .permissionName(FinesPermission.AMEND_PAYMENT_TERMS.getDescription())
+                        .build()))
+                    .build()))
             .build();
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUserForBusinessUnit((short) 78)).thenReturn(Optional.of(businessUnitUser));
-        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS)).thenReturn(false);
+        when(userStateService.getUserStateV1FromSecurityContext())
+            .thenReturn(userWithPermissionInDifferentBusinessUnit);
 
         // Act
         PermissionNotAllowedException ex = assertThrows(
@@ -266,10 +288,9 @@ class DefendantAccountPaymentTermsServiceTest {
 
         // Assert
         assertThat(ex.getPermission()).containsExactly(FinesPermission.AMEND_PAYMENT_TERMS);
+        assertEquals((short) 78, ex.getBusinessUnitId());
         verify(userStateService).getUserStateV1FromSecurityContext();
-        verify(userState).getBusinessUnitUserForBusinessUnit((short) 78);
-        verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS);
         verifyNoInteractions(defendantAccountPaymentTermsServiceProxy);
-        verifyNoMoreInteractions(userStateService, userState);
+        verifyNoMoreInteractions(userStateService);
     }
 }
