@@ -19,12 +19,12 @@ import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountAtAGlanceLegacyRespon
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse.MajorCreditorLegacy;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.exception.LegacyGatewayException;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountAtAGlanceResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper;
+import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHistoryRequestLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHistoryResponseLegacyMapper;
 import uk.gov.hmcts.opal.service.iface.MajorCreditorAccountServiceInterface;
 
@@ -39,11 +39,11 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
         "LIBRA.get_major_creditor_account_header_summary";
     public static final String GET_MAJOR_CREDITOR_ACCOUNT_HISTORY =
         "LIBRA.get_major_creditor_account_history";
-    private static final List<String> MAJOR_CREDITOR_HISTORY_ITEM_TYPES = List.of("Financial");
 
     private final GatewayService gatewayService;
     private final GetMajorCreditorAccountAtAGlanceResponseLegacyMapper atAGlanceResponseMapper;
     private final GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
+    private final GetMajorCreditorAccountHistoryRequestLegacyMapper historyRequestMapper;
     private final GetMajorCreditorAccountHistoryResponseLegacyMapper historyResponseMapper;
 
     @Override
@@ -98,25 +98,12 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
             postToGateway(
                 GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
                 GetMajorCreditorAccountHistoryLegacyResponse.class,
-                createGetMajorCreditorAccountHistoryRequest(majorCreditorAccountId, dateFrom, dateTo)
+                historyRequestMapper.toLegacyRequest(majorCreditorAccountId, dateFrom, dateTo)
             );
 
         checkResponseForError(response, "getHistory");
 
         return historyResponseMapper.toOpal(response.responseEntity);
-    }
-
-    static GetMajorCreditorAccountHistoryLegacyRequest createGetMajorCreditorAccountHistoryRequest(
-        Long majorCreditorAccountId,
-        LocalDate dateFrom,
-        LocalDate dateTo
-    ) {
-        return GetMajorCreditorAccountHistoryLegacyRequest.builder()
-            .creditorAccountId(String.valueOf(majorCreditorAccountId))
-            .fromDate(dateFrom)
-            .toDate(dateTo)
-            .itemTypes(MAJOR_CREDITOR_HISTORY_ITEM_TYPES)
-            .build();
     }
 
     private <T, R> Response<T> postToGateway(String procedureName, Class<T> responseType, R request) {

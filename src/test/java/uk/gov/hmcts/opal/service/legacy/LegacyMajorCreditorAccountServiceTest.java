@@ -34,6 +34,7 @@ import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.exception.LegacyGatewayException;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountAtAGlanceResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper;
+import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHistoryRequestLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHistoryResponseLegacyMapper;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,6 +48,9 @@ class LegacyMajorCreditorAccountServiceTest {
 
     @Mock
     private GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
+
+    @Mock
+    private GetMajorCreditorAccountHistoryRequestLegacyMapper historyRequestMapper;
 
     @Mock
     private GetMajorCreditorAccountHistoryResponseLegacyMapper historyResponseMapper;
@@ -233,12 +237,14 @@ class LegacyMajorCreditorAccountServiceTest {
             expectedRequest,
             null
         )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse));
+        when(historyRequestMapper.toLegacyRequest(123L, dateFrom, dateTo)).thenReturn(expectedRequest);
         when(historyResponseMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
 
         GetMajorCreditorHistoryResponse result =
             legacyMajorCreditorAccountService.getHistory(123L, dateFrom, dateTo, List.of("note"));
 
         assertEquals(mappedResponse, result);
+        verify(historyRequestMapper).toLegacyRequest(123L, dateFrom, dateTo);
         verify(gatewayService).postToGateway(
             GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
             GetMajorCreditorAccountHistoryLegacyResponse.class,
@@ -266,6 +272,7 @@ class LegacyMajorCreditorAccountServiceTest {
             null,
             new RuntimeException("Gateway error")
         ));
+        when(historyRequestMapper.toLegacyRequest(123L, null, null)).thenReturn(expectedRequest);
 
         LegacyGatewayException exception = assertThrows(
             LegacyGatewayException.class,
@@ -274,6 +281,7 @@ class LegacyMajorCreditorAccountServiceTest {
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
         assertEquals("Gateway error", exception.getStatusText());
+        verify(historyRequestMapper).toLegacyRequest(123L, null, null);
         verifyNoInteractions(historyResponseMapper);
     }
 
@@ -302,20 +310,6 @@ class LegacyMajorCreditorAccountServiceTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
         assertEquals("Gateway error", exception.getStatusText());
         verifyNoInteractions(atAGlanceResponseMapper);
-    }
-
-    @Test
-    void createGetMajorCreditorAccountHistoryRequest_forcesFinancialItemType() {
-        LocalDate dateFrom = LocalDate.of(2026, 1, 1);
-        LocalDate dateTo = LocalDate.of(2026, 1, 31);
-
-        GetMajorCreditorAccountHistoryLegacyRequest result =
-            LegacyMajorCreditorAccountService.createGetMajorCreditorAccountHistoryRequest(123L, dateFrom, dateTo);
-
-        assertEquals("123", result.getCreditorAccountId());
-        assertEquals(dateFrom, result.getFromDate());
-        assertEquals(dateTo, result.getToDate());
-        assertEquals(List.of("Financial"), result.getItemTypes());
     }
 
     private GetMajorCreditorAccountHeaderSummaryLegacyResponse legacyResponse() {
