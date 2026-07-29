@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers;
 
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
@@ -12,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
 
 import java.util.List;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,7 +21,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
+import uk.gov.hmcts.opal.repository.ReportRepository;
 import uk.gov.hmcts.opal.service.report.GenericReportService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -30,10 +34,14 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String REPORT_ID = "it_report_instances";
+    private static final String UNCONFIGURED_REPORT_ID = "it_report_instances_noperm";
     private static final String URL_BASE = "/report-instances";
 
     @MockitoSpyBean
     private GenericReportService genericReportService;
+
+    @MockitoSpyBean
+    private ReportRepository reportRepository;
 
     @BeforeEach
     void setUp() {
@@ -187,6 +195,30 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
                     jsonPath("$").isArray(),
                     jsonPath("$.length()").value(3),
                     jsonPath("$[0].report_id").value(REPORT_ID)
+                );
+        }
+
+        @Test
+        @JiraStory("PO-9147")
+        @JiraEpic("PO-2248")
+        void whenUnconfiguredReportExists_itIsNotReturned_happyPath() throws Exception {
+            doReturn(List.of(
+                ReportEntity.builder()
+                    .reportId(REPORT_ID)
+                    .permission(SEARCH_AND_VIEW_ACCOUNTS)
+                    .build(),
+                ReportEntity.builder()
+                    .reportId(UNCONFIGURED_REPORT_ID)
+                    .build()
+            )).when(reportRepository).findAll();
+
+            mockMvc.perform(authorisedGet())
+                .andExpectAll(
+                    status().isOk(),
+                    content().contentTypeCompatibleWith(APPLICATION_JSON),
+                    jsonPath("$").isArray(),
+                    jsonPath("$.length()").value(3),
+                    jsonPath("$[*].report_id", Matchers.not(Matchers.hasItem(UNCONFIGURED_REPORT_ID)))
                 );
         }
 

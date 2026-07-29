@@ -28,7 +28,8 @@ public class ReportInstanceSearchService {
     public List<ReportEntity> findPermittedReports() {
         OpalJwtAuthenticationToken authToken = getOpalJwtAuthenticationTokenForCurrentUser();
         return reportRepository.findAll().stream()
-            .filter(report -> authToken.hasPermission(report.getPermission().toCommonPermission()))
+            .filter(report -> report.getPermission() != null
+                && authToken.hasPermission(report.getPermission().toCommonPermission()))
             .toList();
     }
 
