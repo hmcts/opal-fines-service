@@ -30,6 +30,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.context.SecurityContext;
@@ -70,19 +71,15 @@ class GetReportInstanceContentServiceTest {
     @Mock
     private OpalJwtAuthenticationToken authToken;
 
+    @InjectMocks
     private GetReportInstanceContentService getReportInstanceContentService;
+
     private ReportInstanceEntity reportInstance;
     private TestReportData reportData;
     private StoredReportContent storedReportContent;
 
     @BeforeEach
     void setUp() {
-        getReportInstanceContentService = new GetReportInstanceContentService(
-            reportInstanceRepository,
-            reportRegistry,
-            reportBlobStore,
-            mapper
-        );
         mock_authenticationContext();
         reportInstance = createReportInstanceEntity(
             REPORT_ID,

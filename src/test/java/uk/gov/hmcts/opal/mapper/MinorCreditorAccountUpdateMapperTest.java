@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
+import java.time.Month;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.entity.PartyEntity;
@@ -26,7 +27,7 @@ class MinorCreditorAccountUpdateMapperTest {
             .title("Mr")
             .forenames("John")
             .surname("Smith")
-            .birthDate(LocalDate.of(1990, 1, 1))
+            .birthDate(LocalDate.of(1990, Month.JANUARY, 1))
             .age((short) 34)
             .niNumber("QQ123456C")
             .organisationName("Old Org")
@@ -93,7 +94,7 @@ class MinorCreditorAccountUpdateMapperTest {
         assertEquals("Ms", party.getTitle());
         assertEquals("Jane", party.getForenames());
         assertEquals("Doe", party.getSurname());
-        assertEquals(LocalDate.of(2001, 2, 3), party.getBirthDate());
+        assertEquals(LocalDate.of(2001, Month.FEBRUARY, 3), party.getBirthDate());
         assertEquals((short) 23, party.getAge());
         assertEquals("QQ654321C", party.getNiNumber());
         assertEquals("2 New Street", party.getAddressLine1());
