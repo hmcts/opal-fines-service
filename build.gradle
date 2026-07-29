@@ -237,15 +237,6 @@ tasks.register("bundleOpenApi", JavaExec) {
   args = ["$rootDir/src/main/resources/openapi", layout.buildDirectory.file("openapi-bundled.yaml").get().asFile.absolutePath]
 }
 
-tasks.register("bundleOpenApiHMRC", JavaExec) {
-  dependsOn 'compileOpenapiJava'
-  classpath = sourceSets.openapi.runtimeClasspath
-  group = "openapi"
-  description = "Bundle multiple OpenAPI HMRC API YAML files into one"
-  mainClass = 'uk.gov.hmcts.opal.openapi.OpenApiBundler'
-  args = ["$rootDir/src/main/resources/openapi/hmrc", layout.buildDirectory.file("openapi-hmrc-bundled.yaml").get().asFile.absolutePath]
-}
-
 openApiGenerate {
   generatorName = "spring"
   inputSpec = layout.buildDirectory.file("openapi-bundled.yaml").get().asFile.absolutePath
@@ -294,7 +285,7 @@ feignClientList.each {
     library = 'spring-cloud'
     inputSpec = "$rootDir/src/main/resources/openapi/hmrc/".toString() + "${apiName}.yaml"
     outputDir = layout.buildDirectory.dir("generated/openapi").get().asFile.absolutePath
-    apiPackage = "uk.gov.hmcts.opal.hmrc.generated.".toString() + "${apiName}.http.api"
+    apiPackage = "uk.gov.hmcts.opal.hmrc.generated.".toString() + "${apiName}.client"
     modelPackage = "uk.gov.hmcts.opal.hmrc.generated.".toString() + "${apiName}.model"
     importMappings = [
             Nullable: "org.jspecify.annotations.Nullable",
@@ -1131,13 +1122,18 @@ tasks.named("openApiGenerate") {
     }
   }
 }
-
-tasks.named("compileJava") {
-  dependsOn 'openApiGenerate'
+tasks.register('generateFeignClients') {
   feignClientList.each {
     def apiName = it.getName().replace(".yaml", "")
     dependsOn 'openApiGenerateFeignClients'+apiName
   }
+  description = "Generates feign clients for HMRC apis"
+  group = "openapi tools"
+}
+
+tasks.named("compileJava") {
+  dependsOn 'openApiGenerate'
+  dependsOn 'generateFeignClients'
 }
 
 apply from: "$rootDir/gradle/zephyr.gradle"
