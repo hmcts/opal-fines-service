@@ -98,12 +98,8 @@ public class MinorCreditorHistoryFixtureService {
         jdbcTemplate.update("DELETE FROM impositions WHERE creditor_account_id = ?", creditorAccountId);
         jdbcTemplate.update("DELETE FROM creditor_accounts WHERE creditor_account_id = ?", creditorAccountId);
 
-        if (partyId != null) {
-            jdbcTemplate.update("DELETE FROM parties WHERE party_id = ?", partyId);
-        }
-        if (defendantAccountId != null) {
-            jdbcTemplate.update("DELETE FROM defendant_accounts WHERE defendant_account_id = ?", defendantAccountId);
-        }
+        jdbcTemplate.update("DELETE FROM parties WHERE party_id = ?", partyId);
+        jdbcTemplate.update("DELETE FROM defendant_accounts WHERE defendant_account_id = ?", defendantAccountId);
     }
 
     private long nextVal(String sequenceName) {

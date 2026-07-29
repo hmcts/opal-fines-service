@@ -80,6 +80,7 @@ import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -849,7 +850,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             assertEquals(exception, result);
             verify(defendantAccountControlValidator).validateCanRemoveEnforcementHold(defendantEntity);
             verifyNoInteractions(amendmentService, reportEntryService, notesProxy);
-            verify(defendantAccountRepositoryService, org.mockito.Mockito.never()).saveAndFlush(defendantEntity);
+            verify(defendantAccountRepositoryService, never()).saveAndFlush(defendantEntity);
             assertEquals("NOENF", defendantEntity.getLastEnforcement());
         }
     }
@@ -965,7 +966,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
                 uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS
             );
             verify(defendantAccountRepositoryService).saveAndFlush(defendantEntity);
-            verify(amendmentService, org.mockito.Mockito.never()).auditFinaliseStoredProc(
+            verify(amendmentService, never()).auditFinaliseStoredProc(
                 eq(defendantAccountId),
                 eq(uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS),
                 eq(businessUnitId),

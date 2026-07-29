@@ -10,6 +10,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,11 +54,11 @@ class MajorCreditorHistoryServiceTest {
 
     @Test
     void getHistory_usesAbstractHistoryFlowAndMapsGeneratedResponse() {
-        LocalDate dateFrom = LocalDate.of(2026, 1, 1);
-        LocalDate dateTo = LocalDate.of(2026, 1, 31);
+        LocalDate dateFrom = LocalDate.of(2026, Month.JANUARY, 1);
+        LocalDate dateTo = LocalDate.of(2026, Month.JANUARY, 31);
         AccountHistoryItem historyItem = AccountHistoryItem.builder()
             .postedDetails(AccountHistoryPostedDetails.builder()
-                .postedDate(LocalDateTime.of(2026, 1, 2, 10, 15))
+                .postedDate(LocalDateTime.of(2026, Month.JANUARY, 2, 10, 15))
                 .postedBy("user1")
                 .postedByName("User One")
                 .build())
@@ -66,13 +67,13 @@ class MajorCreditorHistoryServiceTest {
                 .transactionType("PAYMNT")
                 .paymentReference("PAY123")
                 .status("C")
-                .statusDate(LocalDateTime.of(2026, 1, 3, 9, 0))
+                .statusDate(LocalDateTime.of(2026, Month.JANUARY, 3, 9, 0))
                 .accountNumber("MC123")
                 .defendantAccountNumber("DA123")
                 .defendantAccountId(44L)
                 .build())
             .amount(BigDecimal.TEN)
-            .eventDateTime(LocalDateTime.of(2026, 1, 2, 10, 15))
+            .eventDateTime(LocalDateTime.of(2026, Month.JANUARY, 2, 10, 15))
             .sourceId(99L)
             .build();
 
@@ -92,7 +93,7 @@ class MajorCreditorHistoryServiceTest {
         assertEquals(1, response.getPayload().getHistoryItems().size());
         MajorCreditorHistoryItemHistory generatedItem = response.getPayload().getHistoryItems().get(0);
         assertEquals(MajorCreditorHistoryItemHistory.TypeEnum.FINANCIAL, generatedItem.getType());
-        assertEquals(LocalDate.of(2026, 1, 2), generatedItem.getPostedDetails().getPostedDate());
+        assertEquals(LocalDate.of(2026, Month.JANUARY, 2), generatedItem.getPostedDetails().getPostedDate());
         assertEquals(BigDecimal.TEN, generatedItem.getAmount());
         assertEquals("PAY123", generatedItem.getDetails().getPaymentReference());
         assertEquals("MC123", generatedItem.getDetails().getAccountNumber());
