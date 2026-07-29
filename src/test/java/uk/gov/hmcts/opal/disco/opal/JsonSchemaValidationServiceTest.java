@@ -133,8 +133,7 @@ class JsonSchemaValidationServiceTest {
         {
           "submitted_at": "2025-06-09T14:00:00Z",
           "submitted_by_email": "john.doe@example.com"
-        }
-            """;
+        }""";
 
         Set<String> messages = jsonSchemaValidationService
             .validate(validJson, "formatValidationSchema.json");
@@ -150,8 +149,7 @@ class JsonSchemaValidationServiceTest {
           "test_short_id": 123,
           "test_date_time": "2025-06-09T14:00:00Z",
           "test_text_1": "required"
-        }
-            """;
+        }""";
 
         assertTrue(jsonSchemaValidationService.isValid(validJson, "testSchema.json"));
     }
@@ -162,8 +160,7 @@ class JsonSchemaValidationServiceTest {
         {
           "submitted_at": "09/06/2025 2PM",
           "submitted_by_email": "not-an-email"
-        }
-            """;
+        }""";
 
         Set<String> messages = jsonSchemaValidationService
             .validate(invalidJson, "formatValidationSchema.json");
@@ -362,6 +359,116 @@ class JsonSchemaValidationServiceTest {
             """;
 
         assertTrue(jsonSchemaValidationService.isValid(validJson, SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_RESPONSE));
+    }
+
+    @Test
+    void testMinorCreditorAccountSearchRequest_withForenamesWithoutSurname_shouldFail() {
+        String invalidJson = """
+            {
+              "business_unit_ids": [77],
+              "active_accounts_only": true,
+              "creditor": {
+                "forenames": "John",
+                "organisation": false
+              }
+            }
+            """;
+
+        assertFalse(jsonSchemaValidationService.isValid(
+            invalidJson,
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST
+        ));
+    }
+
+    @Test
+    void testMinorCreditorAccountSearchRequest_withAccountNumber_shouldPass() {
+        String validJson = """
+        {
+              "business_unit_ids": [77],
+              "active_accounts_only": true,
+              "account_number": "12345678A"
+        }""";
+
+        assertTrue(jsonSchemaValidationService.isValid(
+            validJson,
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST
+        ));
+    }
+
+    @Test
+    void testMinorCreditorAccountSearchRequest_withSurnameOnly_shouldPass() {
+        String validJson = """
+            {
+              "business_unit_ids": [77],
+              "active_accounts_only": true,
+              "creditor": {
+                "surname": "Smith",
+                "organisation": false
+              }
+            }
+            """;
+
+        assertTrue(jsonSchemaValidationService.isValid(
+            validJson,
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST
+        ));
+    }
+
+    @Test
+    void testMinorCreditorAccountSearchRequest_withOrganisationNameOnly_shouldPass() {
+        String validJson = """
+            {
+              "business_unit_ids": [77],
+              "active_accounts_only": true,
+              "creditor": {
+                "organisation_name": "Acme Ltd",
+                "organisation": true
+              }
+            }
+            """;
+
+        assertTrue(jsonSchemaValidationService.isValid(
+            validJson,
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST
+        ));
+    }
+
+    @Test
+    void testMinorCreditorAccountSearchRequest_withAddressLine1Only_shouldPass() {
+        String validJson = """
+            {
+               "business_unit_ids": [77],
+               "active_accounts_only": true,
+               "creditor": {
+                 "address_line_1": "1 High Street",
+                 "organisation": false
+               }
+             }
+            """;
+
+        assertTrue(jsonSchemaValidationService.isValid(
+            validJson,
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST
+        ));
+    }
+
+    @Test
+    void testMinorCreditorAccountSearchRequest_withPostcodeOnly_shouldPass() {
+        String validJson = """
+            {
+               "business_unit_ids": [77],
+               "active_accounts_only": true,
+               "creditor": {
+                 "postcode": "AB1 2CD",
+                 "organisation": false
+               }
+             }
+            """;
+
+        assertTrue(jsonSchemaValidationService.isValid(
+            validJson,
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST
+        ));
     }
 
 }

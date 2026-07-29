@@ -2,14 +2,30 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://opal-fines-service/postMinorCreditorAccountsSearchRequest.json",
   "type": "object",
-  "required": [
-    "business_unit_ids",
-    "active_accounts_only",
-    "account_number",
-    "creditor"],
+  "allOf": [
+    {
+      "required": [
+        "active_accounts_only"
+      ]
+    },
+    {
+      "oneOf": [
+        {
+          "required": [
+            "account_number"
+          ]
+        },
+        {
+          "required": [
+            "creditor"
+          ]
+        }
+      ]
+    }
+  ],
   "properties": {
     "business_unit_ids": {
-      "type": ["array",null],
+      "type": ["array", "null"],
       "description": "One or more business unit IDs",
       "minItems": 1,
       "items": {
@@ -22,7 +38,7 @@
       "description": "Indicator if active accounts only are to be included in the search"
     },
     "account_number": {
-      "type": ["string",null],
+      "type": ["string", "null"],
       "description": "The account number for financial records."
     },
     "creditor": {
@@ -32,25 +48,17 @@
   },
   "$defs": {
     "creditor": {
-      "type": ["object",null],
+      "type": ["object", "null"],
       "required": [
-        "address_line_1",
-        "postcode",
-        "organisation",
-        "organisation_name",
-        "exact_match_organisation_name",
-        "forenames",
-        "surname",
-        "exact_match_surname",
-        "exact_match_forenames"
+        "organisation"
       ],
       "properties": {
         "address_line_1": {
-          "type": ["string",null],
+          "type": ["string", "null"],
           "description": "Address Line 1"
         },
         "postcode": {
-          "type": ["string",null],
+          "type": ["string", "null"],
           "description": "The postcode associated with the creditor"
         },
         "organisation_name": {
@@ -58,7 +66,7 @@
           "description": "Name of the organisation"
         },
         "exact_match_organisation_name": {
-          "type": ["boolean", null],
+          "type": ["boolean", "null"],
           "description": "Apply exact match for organisation name"
         },
         "forenames": {
@@ -86,17 +94,65 @@
         {
           "properties": {
             "organisation": { "const": true },
-            "forenames": {"const": null},
-            "surname": {"const": null},
-            "exact_match_surname": {"const": null},
-            "exact_match_forenames": {"const": null}
-          }
+            "forenames": false,
+            "surname": false,
+            "exact_match_surname": false,
+            "exact_match_forenames": false
+          },
+          "anyOf": [
+            {
+              "required": [
+                "organisation_name"
+              ]
+            },
+            {
+              "required": [
+                "address_line_1"
+              ]
+            },
+            {
+              "required": [
+                "postcode"
+              ]
+            }
+          ]
         },
         {
           "properties": {
             "organisation": { "const": false },
             "organisation_name": {"const": null},
             "exact_match_organisation_name": {"const": null}
+          },
+          "anyOf": [
+            {
+              "required": [
+                "surname"
+              ]
+            },
+            {
+              "required": [
+                "address_line_1"
+              ]
+            },
+            {
+              "required": [
+                "postcode"
+              ]
+            }
+          ]
+        }
+      ],
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "forenames"
+            ]
+          },
+          "then": {
+            "required": [
+              "surname"
+            ]
           }
         }
       ],
