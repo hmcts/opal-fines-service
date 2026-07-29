@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -18,6 +19,7 @@ import static uk.gov.hmcts.opal.testdata.ReportInstanceTestData.report;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -37,6 +39,7 @@ import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.repository.ReportRepository;
@@ -78,9 +81,13 @@ class ReportInstanceSearchServiceTest {
     }
 
     private void setAuthenticatedUserWithPermissions(FinesPermission... permissions) {
-        for (FinesPermission permission : permissions) {
-            when(authToken.hasPermission(permission.toCommonPermission())).thenReturn(true);
-        }
+        Set<Permission> permittedPermissions = java.util.Arrays.stream(permissions)
+            .map(FinesPermission::toCommonPermission)
+            .collect(java.util.stream.Collectors.toSet());
+
+        when(authToken.hasPermission(any(Permission.class))).thenAnswer(invocation ->
+            permittedPermissions.contains(invocation.getArgument(0))
+        );
     }
 
     private void setBusinessUnitUsers(BusinessUnitUser... businessUnitUsers) {
@@ -109,6 +116,49 @@ class ReportInstanceSearchServiceTest {
 
             assertAll(
                 () -> assertIterableEquals(List.of(permittedReport), result),
+                () -> verify(reportRepository).findAll()
+            );
+        }
+
+        @Test
+        void whenReportsIncludeNullPermission_ignoresUnconfiguredReports_happyPath() {
+            ReportEntity permittedReport = report(REPORT_ID, SEARCH_AND_VIEW_ACCOUNTS);
+            ReportEntity nullPermissionReport = report("R2", null);
+            when(reportRepository.findAll()).thenReturn(List.of(permittedReport, nullPermissionReport));
+            setAuthenticatedUserWithPermissions(SEARCH_AND_VIEW_ACCOUNTS);
+
+            List<ReportEntity> result = reportInstanceSearchService.findPermittedReports();
+
+            assertAll(
+                () -> assertIterableEquals(List.of(permittedReport), result),
+                () -> verify(reportRepository).findAll(),
+                () -> verify(authToken).hasPermission(SEARCH_AND_VIEW_ACCOUNTS.toCommonPermission())
+            );
+        }
+
+        @Test
+        void whenNoReportsArePermitted_returnsEmptyList_happyPath() {
+            ReportEntity nullPermissionReport = report("R2", null);
+            ReportEntity unpermittedReport = report("R3", ACCOUNT_MAINTENANCE);
+            when(reportRepository.findAll()).thenReturn(List.of(nullPermissionReport, unpermittedReport));
+            setAuthenticatedUserWithPermissions(SEARCH_AND_VIEW_ACCOUNTS);
+
+            List<ReportEntity> result = reportInstanceSearchService.findPermittedReports();
+
+            assertAll(
+                () -> assertThat(result).isEmpty(),
+                () -> verify(reportRepository).findAll()
+            );
+        }
+
+        @Test
+        void whenNoReportsExist_returnsEmptyList_happyPath() {
+            when(reportRepository.findAll()).thenReturn(List.of());
+
+            List<ReportEntity> result = reportInstanceSearchService.findPermittedReports();
+
+            assertAll(
+                () -> assertThat(result).isEmpty(),
                 () -> verify(reportRepository).findAll()
             );
         }
