@@ -1100,6 +1100,7 @@ flyway {
 }
 checkstyle {
   checkstyleMain.exclude '**uk/gov/hmcts/opal/generated/**'
+  checkstyleMain.exclude '**uk/gov/hmcts/opal/hmrc/generated/**'
 }
 tasks.register('migratePostgresDatabase', FlywayMigrateTask) {
   baselineOnMigrate = true
