@@ -109,57 +109,40 @@ class ReportInstanceSearchServiceTest {
         void whenReportsHaveMixedPermissions_returnsOnlyPermittedReports_happyPath() {
             ReportEntity permittedReport = report(REPORT_ID, SEARCH_AND_VIEW_ACCOUNTS);
             ReportEntity unpermittedReport = report("R2", ACCOUNT_MAINTENANCE);
-            when(reportRepository.findAll()).thenReturn(List.of(permittedReport, unpermittedReport));
+            when(reportRepository.findAllByPermissionIsNotNull()).thenReturn(List.of(permittedReport, unpermittedReport));
             setAuthenticatedUserWithPermissions(SEARCH_AND_VIEW_ACCOUNTS);
 
             List<ReportEntity> result = reportInstanceSearchService.findPermittedReports();
 
             assertAll(
                 () -> assertIterableEquals(List.of(permittedReport), result),
-                () -> verify(reportRepository).findAll()
-            );
-        }
-
-        @Test
-        void whenReportsIncludeNullPermission_ignoresUnconfiguredReports_happyPath() {
-            ReportEntity permittedReport = report(REPORT_ID, SEARCH_AND_VIEW_ACCOUNTS);
-            ReportEntity nullPermissionReport = report("R2", null);
-            when(reportRepository.findAll()).thenReturn(List.of(permittedReport, nullPermissionReport));
-            setAuthenticatedUserWithPermissions(SEARCH_AND_VIEW_ACCOUNTS);
-
-            List<ReportEntity> result = reportInstanceSearchService.findPermittedReports();
-
-            assertAll(
-                () -> assertIterableEquals(List.of(permittedReport), result),
-                () -> verify(reportRepository).findAll(),
-                () -> verify(authToken).hasPermission(SEARCH_AND_VIEW_ACCOUNTS.toCommonPermission())
+                () -> verify(reportRepository).findAllByPermissionIsNotNull()
             );
         }
 
         @Test
         void whenNoReportsArePermitted_returnsEmptyList_happyPath() {
-            ReportEntity nullPermissionReport = report("R2", null);
             ReportEntity unpermittedReport = report("R3", ACCOUNT_MAINTENANCE);
-            when(reportRepository.findAll()).thenReturn(List.of(nullPermissionReport, unpermittedReport));
+            when(reportRepository.findAllByPermissionIsNotNull()).thenReturn(List.of(unpermittedReport));
             setAuthenticatedUserWithPermissions(SEARCH_AND_VIEW_ACCOUNTS);
 
             List<ReportEntity> result = reportInstanceSearchService.findPermittedReports();
 
             assertAll(
                 () -> assertThat(result).isEmpty(),
-                () -> verify(reportRepository).findAll()
+                () -> verify(reportRepository).findAllByPermissionIsNotNull()
             );
         }
 
         @Test
         void whenNoReportsExist_returnsEmptyList_happyPath() {
-            when(reportRepository.findAll()).thenReturn(List.of());
+            when(reportRepository.findAllByPermissionIsNotNull()).thenReturn(List.of());
 
             List<ReportEntity> result = reportInstanceSearchService.findPermittedReports();
 
             assertAll(
                 () -> assertThat(result).isEmpty(),
-                () -> verify(reportRepository).findAll()
+                () -> verify(reportRepository).findAllByPermissionIsNotNull()
             );
         }
     }
