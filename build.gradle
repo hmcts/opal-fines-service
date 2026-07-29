@@ -1,5 +1,6 @@
 import org.flywaydb.gradle.task.FlywayMigrateTask
 import java.util.concurrent.TimeUnit
+import groovy.io.FileType
 
 buildscript {
   ext {
@@ -271,7 +272,6 @@ openApiGenerate {
   ]
 }
 
-import groovy.io.FileType
 def feignClientList = []
 def dir = new File("$rootDir/src/main/resources/openapi/hmrc/".toString())
 dir.eachFileRecurse(FileType.FILES) { file ->
