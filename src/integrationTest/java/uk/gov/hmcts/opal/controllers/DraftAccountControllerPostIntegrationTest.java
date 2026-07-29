@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -379,6 +380,25 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     }
 
     @Test
+    @DisplayName("Create draft account - Should return 400 when imposition result is not an imposition")
+    @JiraStory("PO-5747")
+    @JiraEpic("PO-5741")
+    void shouldReturn400WhenImpositionResultIsNotAnImposition() throws Exception {
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(nonImpositionResultCreateRequestBody()))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Bad Request"))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/invalid-reference-validation"))
+            .andExpect(jsonPath("$.detail").value(containsString("$.offences[0].impositions[0].result_id")))
+            .andExpect(jsonPath("$.detail").value(containsString("result id COLLO is not an imposition result")));
+
+    }
+
+    @Test
     @DisplayName("Create draft account - Should return 400 Bad Request [@PO-973, @PO-691]")
     @JiraStory("PO-973")
     @JiraStory("PO-691")
@@ -683,6 +703,11 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
               "account_status": "Submitted",
               "version": 0
             }""";
+    }
+
+    private static String nonImpositionResultCreateRequestBody() {
+        return validCreateRequestBody()
+            .replace("\"result_id\": \"FO\"", "\"result_id\": \"COLLO\"");
     }
 
     private static String invalidReferenceCreateRequestBody() {
