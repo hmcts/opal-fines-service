@@ -1,12 +1,13 @@
 package uk.gov.hmcts.opal.util;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -121,6 +122,6 @@ class JsonPathUtilTest {
 
         LocalDate actual = JsonPathUtil.safeReadLocalDate(context, "$.localDateField");
 
-        assertEquals(LocalDate.of(2024, 3, 1), actual);
+        assertEquals(LocalDate.of(2024, Month.MARCH, 1), actual);
     }
 }

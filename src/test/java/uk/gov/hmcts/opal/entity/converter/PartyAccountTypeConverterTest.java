@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.entity.PartyAccountType;
 
-public class PartyAccountTypeConverterTest {
+class PartyAccountTypeConverterTest {
 
     private final PartyAccountTypeConverter converter = new PartyAccountTypeConverter();
 

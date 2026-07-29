@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.disco.opal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.function.Function;
@@ -12,7 +13,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
@@ -31,6 +31,7 @@ import uk.gov.hmcts.opal.repository.LogAuditDetailRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -71,7 +72,7 @@ class LogAuditDetailServiceTest {
     @Test
     void testSearchLogAuditDetails() {
         // Arrange
-        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        SpecificationFluentQuery sfq = mock(SpecificationFluentQuery.class);
 
         LogAuditDetailEntity logAuditDetailEntity = LogAuditDetailEntity.builder().build();
         Page<LogAuditDetailEntity> mockPage = new PageImpl<>(List.of(logAuditDetailEntity), Pageable.unpaged(), 999L);
@@ -102,7 +103,7 @@ class LogAuditDetailServiceTest {
 
         ArgumentCaptor<LogAuditDetailEntity> captor = ArgumentCaptor.forClass(LogAuditDetailEntity.class);
         verify(logAuditDetailRepository).save(captor.capture());
-        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), captor.getValue().getLogTimestamp());
+        assertEquals(LocalDateTime.of(2026, Month.MAY, 7, 10, 15), captor.getValue().getLogTimestamp());
     }
 
 

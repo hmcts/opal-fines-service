@@ -35,7 +35,7 @@ import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 
 @ExtendWith(MockitoExtension.class)
-public class OpalDefendantAccountPaymentTermsServiceTest {
+class OpalDefendantAccountPaymentTermsServiceTest {
     private static final LocalDateTime TEST_POSTED_DATE = LocalDateTime.of(2026, Month.JUNE, 11, 10, 0);
 
     @Mock
@@ -129,7 +129,6 @@ public class OpalDefendantAccountPaymentTermsServiceTest {
         ResultEntity resultEntityLite = new ResultEntity();
         resultEntityLite.setResultId(String.valueOf(55L));
         resultEntityLite.setExtendTtpPreserveLastEnf(Boolean.FALSE);
-        //when(resultRepository.findById(Long.valueOf("55"))).thenReturn(Optional.of(resultEntityLite));
 
         when(resultService.getResultById("55")).thenReturn(resultEntityLite);
 

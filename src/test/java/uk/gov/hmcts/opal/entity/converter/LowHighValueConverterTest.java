@@ -12,7 +12,7 @@ import org.mockito.MockedStatic;
 import uk.gov.hmcts.opal.entity.LowHighValue;
 
 
-public class LowHighValueConverterTest {
+class LowHighValueConverterTest {
 
     private LowHighValueConverter converter = new LowHighValueConverter();
 
