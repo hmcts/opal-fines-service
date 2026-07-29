@@ -643,11 +643,11 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     private void assertWelshParameterPair(JsonNode parameters, int originalIndex, String name, String type) {
         JsonNode original = parameters.get(originalIndex);
-        JsonNode welsh = parameters.get(originalIndex + 1);
 
         assertEquals(name, original.path("name").asString());
         assertEquals(type, original.path("type").asString());
         assertTrue(original.path("language_dependent").asBoolean());
+        JsonNode welsh = parameters.get(originalIndex + 1);
         assertEquals("cy_" + name, welsh.path("name").asString());
         assertEquals(type, welsh.path("type").asString());
         assertEquals("Provide a welsh version for the defendant", welsh.path("hint").asString());
