@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.mapper.history;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
@@ -20,7 +21,7 @@ class AmendmentEntityHistoryMapperTest {
             .businessUnitId((short) 78)
             .associatedRecordType(AssociatedRecordType.DEFENDANT_ACCOUNTS)
             .associatedRecordId("262200")
-            .amendedDate(LocalDateTime.of(2026, 1, 1, 10, 15))
+            .amendedDate(LocalDateTime.of(2026, Month.JANUARY, 1, 10, 15))
             .amendedBy("opal-user")
             .amendedByName("Opal User")
             .fieldCode((short) 1)

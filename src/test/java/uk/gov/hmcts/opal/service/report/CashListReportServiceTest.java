@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.report;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -103,8 +104,7 @@ class CashListReportServiceTest {
         assertThatThrownBy(() -> service.generateReportData(reportInstance("{\"till_id\":\"" + TILL_ID + "\"}")))
             .isInstanceOf(EntityNotFoundException.class)
             .hasMessage("Cash List report till not found for till_id: " + TILL_ID);
-        verify(cashListReportAssembler, never()).toReportData(org.mockito.Mockito.any(), org.mockito.Mockito.any(),
-            org.mockito.Mockito.any());
+        verify(cashListReportAssembler, never()).toReportData(any(), any(), any());
     }
 
     @Test
@@ -115,8 +115,7 @@ class CashListReportServiceTest {
         assertThatThrownBy(() -> service.generateReportData(reportInstance("{\"till_id\":" + TILL_ID + "}")))
             .isInstanceOf(EntityNotFoundException.class)
             .hasMessage("Cash List report business unit not found for till_id: " + TILL_ID);
-        verify(cashListReportAssembler, never()).toReportData(org.mockito.Mockito.any(), org.mockito.Mockito.any(),
-            org.mockito.Mockito.any());
+        verify(cashListReportAssembler, never()).toReportData(any(), any(), any());
     }
 
     @Test

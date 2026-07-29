@@ -76,7 +76,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
     @BeforeEach
     void openMocks() {
-        gatewayService = Mockito.spy(new LegacyGatewayService(gatewayProperties, restClient));
+        gatewayService = spy(new LegacyGatewayService(gatewayProperties, restClient));
         legacyDefendantAccountPartyService = new LegacyDefendantAccountPartyService(
             gatewayService,
             mapper,
@@ -298,23 +298,6 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
                 DefendantAccountParty.builder()
                     .defendantAccountPartyType("Defendant")
                     .isDebtor(true)
-                    .build()
-            )
-            .build();
-
-        AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
-            .version(2)
-            .defendantAccountParty(
-                DefendantAccountPartyLegacy.builder()
-                    .defendantAccountPartyType("Defendant")
-                    .isDebtor(true)
-                    .partyDetails(
-                        PartyDetailsLegacy.builder()
-                            .partyId("300")
-                            .organisationFlag(true)
-                            .organisationDetails(null)
-                            .build()
-                    )
                     .build()
             )
             .build();
@@ -1389,23 +1372,6 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
     @Test
     void replaceDefendantAccountParty_exceptionBranch_rethrows() {
-
-        LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
-            .version(2)
-            .defendantAccountParty(
-                DefendantAccountPartyLegacy.builder()
-                    .defendantAccountPartyType("Defendant")
-                    .isDebtor(true)
-                    .partyDetails(
-                        PartyDetailsLegacy.builder()
-                            .partyId("300")
-                            .organisationFlag(true)
-                            .organisationDetails(null)
-                            .build()
-                    )
-                    .build()
-            )
-            .build();
 
         // We no longer return a response; instead we make the gateway throw a RuntimeException
         Class<LegacyReplaceDefendantAccountPartyResponse> respType = LegacyReplaceDefendantAccountPartyResponse.class;

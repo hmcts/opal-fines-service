@@ -11,6 +11,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
@@ -28,7 +29,6 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountType;
-import uk.gov.hmcts.opal.entity.PaymentMethod;
 
 @ExtendWith(MockitoExtension.class)
 class CashListReportAssemblerTest {
@@ -40,13 +40,13 @@ class CashListReportAssemblerTest {
     @Mock
     private CashListPaymentLinkService cashListPaymentLinkService;
 
+    @InjectMocks
     private CashListReportAssembler assembler;
     private BusinessUnitEntity businessUnit;
     private TillEntity till;
 
     @BeforeEach
     void setUp() {
-        assembler = new CashListReportAssembler(cashListPaymentLinkService);
         businessUnit = BusinessUnitEntity.builder()
             .businessUnitId((short) 77)
             .businessUnitName("London Collection Unit")
