@@ -147,7 +147,11 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
         String statusText = Optional.ofNullable(exception.getStatusText())
             .filter(text -> !text.isBlank())
             .orElse(exception.getMessage());
-        return new LegacyGatewayException(exception.getStatusCode(), statusText, exception);
+        return new LegacyGatewayException(
+            exception.getStatusCode(),
+            statusText,
+            exception
+        );
     }
 
     private static LegacyGatewayException createGatewayException(
