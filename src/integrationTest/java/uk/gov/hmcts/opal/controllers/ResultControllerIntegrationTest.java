@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.controllers;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -21,6 +22,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -123,6 +125,44 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
                     + "\"hint\":\"Provide a welsh version for the defendant\",\"language_dependent\":true},"
                     + "{\"name\":\"sample_name_2\",\"type\":\"text\",\"hint\":\"some hint 2\","
                     + "\"language_dependent\":false}]"));
+    }
+
+    @Test
+    @DisplayName("PO-9108 Get result by ID duplicates all supported Welsh parameter types")
+    @JiraStory("PO-9108")
+    @JiraEpic("PO-2630")
+    @Sql(
+        scripts = "classpath:db/insertData/insert_into_results_po_9108.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    @Sql(
+        scripts = "classpath:db/deleteData/delete_from_results_po_9108.sql",
+        executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD
+    )
+    void getResultById_whenIncludeWelshTrue_duplicatesAllSupportedParameterTypes() throws Exception {
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "/PO9108?include_welsh=true"));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.result_id").value("PO9108"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        JsonNode parameters = ToJsonString.toJsonNode(
+            ToJsonString.toJsonNode(body).path("result_parameters").asString()
+        );
+
+        assertEquals(20, parameters.size());
+        assertWelshParameterPair(parameters, 0, "text60", "text-60");
+        assertWelshParameterPair(parameters, 2, "text100", "text-100");
+        assertWelshParameterPair(parameters, 4, "text1000", "text-1000");
+        assertWelshParameterPair(parameters, 6, "effective_date", "date");
+        assertWelshParameterPair(parameters, 8, "days", "integer");
+        assertWelshParameterPair(parameters, 10, "amount", "decimal");
+        assertWelshParameterPair(parameters, 12, "radio_choice", "menu-radio");
+        assertWelshParameterPair(parameters, 14, "checkbox_choice", "menu-checkbox");
+        assertWelshParameterPair(parameters, 16, "autocomplete_choice", "menu-autocomplete");
+        assertEquals("not_translated", parameters.get(18).path("name").asString());
+        assertEquals("enforcer", parameters.get(19).path("name").asString());
     }
 
     @Test
@@ -599,6 +639,22 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andReturn()
             .getResponse()
             .getContentAsString();
+    }
+
+    private void assertWelshParameterPair(JsonNode parameters, int originalIndex, String name, String type) {
+        JsonNode original = parameters.get(originalIndex);
+        JsonNode welsh = parameters.get(originalIndex + 1);
+
+        assertEquals(name, original.path("name").asString());
+        assertEquals(type, original.path("type").asString());
+        assertTrue(original.path("language_dependent").asBoolean());
+        assertEquals("cy_" + name, welsh.path("name").asString());
+        assertEquals(type, welsh.path("type").asString());
+        assertEquals("Provide a welsh version for the defendant", welsh.path("hint").asString());
+        assertTrue(welsh.path("language_dependent").asBoolean());
+        assertEquals(original.get("min"), welsh.get("min"));
+        assertEquals(original.get("max"), welsh.get("max"));
+        assertEquals(original.get("options"), welsh.get("options"));
     }
 
 }
