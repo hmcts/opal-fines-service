@@ -14,7 +14,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityNotFoundException;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -26,8 +25,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler.PaymentCardRequestAlreadyExistsException;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.RecordType;
@@ -228,16 +228,16 @@ class OpalDefendantAccountServicePaymentCardTest {
     void addPaymentCardRequest_permissionDenied_throws403() {
         //Arrange
         DefendantAccountPaymentTermsServiceProxy proxy = mock(DefendantAccountPaymentTermsServiceProxy.class);
+        BusinessUnitService businessUnitService = mock(BusinessUnitService.class);
 
-        UserState userState = mock(UserState.class);
-        when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(userState);
-        when(userState.getBusinessUnitUserForBusinessUnit((short) 10))
-            .thenReturn(Optional.of(BusinessUnitUser.builder().businessUnitUserId("USR").build()));
-        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.AMEND_PAYMENT_TERMS))
+        UserStateV2 userState = mock(UserStateV2.class);
+        DomainBusinessUnitUsers businessUnitUsers = mock(DomainBusinessUnitUsers.class);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
+        when(userState.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(businessUnitUsers);
+        when(businessUnitUsers.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.AMEND_PAYMENT_TERMS))
             .thenReturn(false);
 
-        var svc = new DefendantAccountPaymentTermsService(proxy, userStateService);
+        var svc = new DefendantAccountPaymentTermsService(proxy, userStateService, businessUnitService);
 
         //Act
         PermissionNotAllowedException ex = assertThrows(
@@ -249,28 +249,33 @@ class OpalDefendantAccountServicePaymentCardTest {
         assertThat(ex.getPermission()).containsExactly(FinesPermission.AMEND_PAYMENT_TERMS);
         assertEquals((short) 10, ex.getBusinessUnitId());
 
-        verifyNoInteractions(proxy);
+        verifyNoInteractions(proxy, businessUnitService);
     }
 
     @Test
-    void addPaymentCardRequest_missingBusinessUnitUser_throws401Exception() {
+    void addPaymentCardRequest_missingBusinessUnitUser_throws403Exception() {
         //Arrange
         DefendantAccountPaymentTermsServiceProxy proxy = mock(DefendantAccountPaymentTermsServiceProxy.class);
+        BusinessUnitService businessUnitService = mock(BusinessUnitService.class);
 
-        UserState userState = mock(UserState.class);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUserForBusinessUnit((short) 10)).thenReturn(Optional.empty());
+        UserStateV2 userState = mock(UserStateV2.class);
+        DomainBusinessUnitUsers businessUnitUsers = mock(DomainBusinessUnitUsers.class);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
+        when(userState.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(businessUnitUsers);
+        when(businessUnitUsers.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.AMEND_PAYMENT_TERMS))
+            .thenReturn(false);
 
-        var svc = new DefendantAccountPaymentTermsService(proxy, userStateService);
+        var svc = new DefendantAccountPaymentTermsService(proxy, userStateService, businessUnitService);
 
         //Act
-        BusinessUnitUserNotFoundException ex = assertThrows(
-            BusinessUnitUserNotFoundException.class,
+        PermissionNotAllowedException ex = assertThrows(
+            PermissionNotAllowedException.class,
             () -> svc.addPaymentCardRequest(1L, "10", "\"1\"")
         );
 
         //Assert
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.AMEND_PAYMENT_TERMS);
         assertThat(ex.getBusinessUnitId()).isEqualTo((short) 10);
-        verifyNoInteractions(proxy);
+        verifyNoInteractions(proxy, businessUnitService);
     }
 }
