@@ -39,14 +39,6 @@ public class BusinessUnitService {
             .orElseThrow(() -> new EntityNotFoundException("Business Unit not found with id: " + businessUnitId));
     }
 
-    /**
-     * Shared lookup for business unit user id
-     *
-     * @param businessUnitUsers
-     * @param businessUnitId
-     * @param permission
-     * @return
-     */
     public String getBusinessUnitUserIdForBusinessUnit(
         DomainBusinessUnitUsers businessUnitUsers, short businessUnitId, PermissionDescriptor permission) {
 
