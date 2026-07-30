@@ -14,7 +14,7 @@ Feature: Update Auto Enforcement Config
       | YH                       |
       | YL                       |
 
-  @JIRA-STORY:PO-2435 @JIRA-EPIC:PO-2433 @EnforcementDataRevert
+  @JIRA-STORY:PO-2435 @JIRA-EPIC:PO-2433 @EnforcementDataRevert @JIRA-TEST-KEY:PO-9527
   Scenario: E2E.01 – Update multiple enforcement account types
     When I update the following enforcement account type minimum balances
       | enforcement_account_type | minimum_balance |
@@ -37,24 +37,24 @@ Feature: Update Auto Enforcement Config
       | YH                       | 500             |
       | YL                       | 400             |
 
-  @JIRA-STORY:PO-2435 @JIRA-EPIC:PO-2433
+  @JIRA-STORY:PO-2435 @JIRA-EPIC:PO-2433 @JIRA-TEST-KEY:PO-9528
   Scenario: E2E.02 – Reject a null minimum balance update for a low-path enforcement account type
     When I update enforcement account type "COLL" to have a null minimum balance
     Then the request is rejected with status 422
     And enforcement account type "COLL" should remain unchanged
 
-  @JIRA-STORY:PO-2435 @JIRA-EPIC:PO-2433
+  @JIRA-STORY:PO-2435 @JIRA-EPIC:PO-2433 @JIRA-TEST-KEY:PO-9529
   Scenario: E2E.03 – Reject an enforcement account type update with a mismatched version
     When I update enforcement account type "AH" using an outdated version
     Then the request is rejected with status 409
     And enforcement account type "COLL" should remain unchanged
 
-  @JIRA-STORY:PO-2435 @JIRA-EPIC:PO-2433
+  @JIRA-STORY:PO-2435 @JIRA-EPIC:PO-2433 @JIRA-TEST-KEY:PO-9530
   Scenario: E2E.04 – Reject an update for an enforcement account type that does not exist
     When I update an enforcement account type that does not exist
     Then the request is rejected with status 404
 
-  @JIRA-STORY:PO-2435 @JIRA-EPIC:PO-2433
+  @JIRA-STORY:PO-2435 @JIRA-EPIC:PO-2433 @JIRA-TEST-KEY:PO-9531
   Scenario: E2E.04 – Reject an enforcement account type update without the required permission
     When I am testing as the "opal-test-2@dev.platform.hmcts.net" user
     And I update the following enforcement account type minimum balances
