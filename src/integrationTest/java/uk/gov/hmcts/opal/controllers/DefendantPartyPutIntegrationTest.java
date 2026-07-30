@@ -42,6 +42,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
     @DisplayName("OPAL: PUT Replace DAP - account controls return 422 for P/G replacement")
     @JiraStory("PO-5757")
     @JiraEpic("PO-2990")
+    @JiraTestKey("PO-9387")
     void put_replaceParentGuardian_returns422_whenBlockedByAccountControls() throws Exception {
         long defendantAccountId = 20010L;
         Integer currentVersion = versionFor(defendantAccountId);

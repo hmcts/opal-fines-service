@@ -174,6 +174,7 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get court reference data uses cache on repeated identical request")
     @JiraStory("PO-7248")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-9384")
     void testGetCourtRefData_usesCacheOnRepeatedRequest() throws Exception {
         clearInvocations(courtLiteRepository);
 
