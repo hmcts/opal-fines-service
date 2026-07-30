@@ -13,6 +13,7 @@ import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
@@ -20,11 +21,10 @@ import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
-import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
-import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
@@ -73,9 +73,9 @@ public class DefendantAccountService {
     }
 
     public DefendantAccountHistoryResponse getHistory(Long defendantAccountId,
-                                                      LocalDate dateFrom,
-                                                      LocalDate dateTo,
-                                                      List<String> itemTypes) {
+        LocalDate dateFrom,
+        LocalDate dateTo,
+        List<String> itemTypes) {
         log.debug(":getHistory:");
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
@@ -126,7 +126,7 @@ public class DefendantAccountService {
             .toList();
     }
 
-    public DefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId) {
+    public GetDefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId) {
         log.debug(":getAtAGlance");
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
@@ -151,9 +151,9 @@ public class DefendantAccountService {
     }
 
     public UpdateDefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
-                                                           String businessUnitId,
-                                                           UpdateDefendantAccountRequestPayload request,
-                                                           String ifMatch) {
+        String businessUnitId,
+        UpdateDefendantAccountRequestPayload request,
+        String ifMatch) {
         log.debug(":updateDefendantAccount:");
 
         if (ifMatch == null) {

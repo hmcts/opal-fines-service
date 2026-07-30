@@ -16,6 +16,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import org.openapitools.jackson.nullable.JsonNullable;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -51,7 +53,6 @@ import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails.VehicleDetailsBuilder;
 import uk.gov.hmcts.opal.dto.common.VehicleFixedPenaltyDetails;
-import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AliasDto;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.AliasEntity;
@@ -76,20 +77,39 @@ import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
+import uk.gov.hmcts.opal.generated.model.AddressDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.CollectionOrderCommon;
 import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
+import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommonStrict;
 import uk.gov.hmcts.opal.generated.model.CourtReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementActionDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementCourtDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideCommon;
+import uk.gov.hmcts.opal.generated.model.EnforcementOverrideCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultReferenceCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverviewDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcerReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.EnforcerReferenceCommonStrict;
+import uk.gov.hmcts.opal.generated.model.EnforcementStatusSummaryCommonStrict;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse.DefendantAccountTypeEnum;
+import uk.gov.hmcts.opal.generated.model.IndividualAliasCommonStrict;
+import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.InstalmentPeriodCommonStrict;
+import uk.gov.hmcts.opal.generated.model.LanguagePreferenceCommonStrict;
+import uk.gov.hmcts.opal.generated.model.LanguagePreferencesCommonStrict;
+import uk.gov.hmcts.opal.generated.model.LastEnforcementActionCommonStrict;
 import uk.gov.hmcts.opal.generated.model.LjaReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.LjaReferenceCommonStrict;
 import uk.gov.hmcts.opal.generated.model.LocalJusticeAreaDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.OrganisationAliasCommon;
+import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PaymentTermsSummaryCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PaymentTermsTypeCommonStrict;
 import uk.gov.hmcts.opal.generated.model.ResultReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.ResultResponsesCommon;
 import uk.gov.hmcts.opal.util.DateTimeUtils;
@@ -901,25 +921,326 @@ public class OpalDefendantAccountBuilders {
             : 0;
     }
 
-    static DefendantAccountAtAGlanceResponse buildAtAGlanceResponse(
+    static GetDefendantAccountAtAGlanceResponse buildAtAGlanceResponse(
         DefendantAccountSummaryViewEntity entity) {
 
         if (null == entity) {
             return null;
         }
 
-        return DefendantAccountAtAGlanceResponse.builder()
+        return GetDefendantAccountAtAGlanceResponse.builder()
+            .payload(buildAtAGlancePayload(entity))
+            .version(entity.getVersion())
+            .build();
+    }
+
+    static AtAGlanceResponseDefendantAccount buildAtAGlancePayload(
+        DefendantAccountSummaryViewEntity entity) {
+
+        return AtAGlanceResponseDefendantAccount.builder()
             .defendantAccountId(entity.getDefendantAccountId().toString())
             .accountNumber(entity.getAccountNumber())
-            .debtorType(entity.getDebtorType())
+            .debtorType(AtAGlanceResponseDefendantAccount.DebtorTypeEnum.fromValue(
+                entity.getDebtorType()))
             .isYouth(isYouth(entity.getBirthDate(), entity.getAge()))
-            .partyDetails(buildPartyDetails(entity))
-            .addressDetails(buildAddress(entity))
-            .languagePreferences(buildLanguagePreferences(entity))
-            .paymentTermsSummary(buildPaymentTerms(entity))
-            .enforcementStatus(buildEnforcementStatusSummary(entity))
-            .commentsAndNotes(buildCommentsAndNotes(entity))
-            .version(entity.getVersion())
+            .partyDetails(toStrictPartyDetails(buildPartyDetails(entity)))
+            .address(toStrictAddressDetails(buildAddress(entity)))
+            .languagePreferences(toStrictLanguagePreferences(buildLanguagePreferences(entity)))
+            .paymentTerms(toStrictPaymentTerms(buildPaymentTerms(entity)))
+            .enforcementStatus(toStrictEnforcementStatus(buildEnforcementStatusSummary(entity)))
+            .commentsAndNotes(toStrictCommentsAndNotes(buildCommentsAndNotes(entity)))
+            .build();
+    }
+
+    static PartyDetailsCommonStrict toStrictPartyDetails(PartyDetails source) {
+        if (source == null) {
+            return null;
+        }
+
+        validateAtAGlancePartyDetails(source);
+
+        return PartyDetailsCommonStrict.builder()
+            .partyId(source.getPartyId())
+            .organisationFlag(source.getOrganisationFlag())
+            .organisationDetails(source.getOrganisationDetails() == null
+                ? JsonNullable.undefined()
+                : JsonNullable.of(toStrictOrganisationDetails(source.getOrganisationDetails())))
+            .individualDetails(source.getIndividualDetails() == null
+                ? JsonNullable.undefined()
+                : JsonNullable.of(toStrictIndividualDetails(source.getIndividualDetails())))
+            .build();
+    }
+
+    static void validateAtAGlancePartyDetails(PartyDetails source) {
+        boolean isOrganisation = Boolean.TRUE.equals(source.getOrganisationFlag());
+        boolean hasOrganisationDetails = source.getOrganisationDetails() != null;
+        boolean hasIndividualDetails = source.getIndividualDetails() != null;
+
+        if (isOrganisation && !hasOrganisationDetails) {
+            throw new IllegalStateException(
+                "At-a-glance party details are invalid: organisation_details is required when organisation_flag=true");
+        }
+
+        if (!isOrganisation && !hasIndividualDetails) {
+            throw new IllegalStateException(
+                "At-a-glance party details are invalid: individual_details is required when organisation_flag=false");
+        }
+
+        if (isOrganisation && hasIndividualDetails) {
+            throw new IllegalStateException(
+                "At-a-glance party details are invalid: individual_details must be null when organisation_flag=true");
+        }
+
+        if (!isOrganisation && hasOrganisationDetails) {
+            throw new IllegalStateException(
+                "At-a-glance party details are invalid: organisation_details must be null when "
+                    + "organisation_flag=false");
+        }
+    }
+
+    static OrganisationAliasCommon toOrganisationAliasCommon(OrganisationAlias source) {
+        if (source == null) {
+            return null;
+        }
+
+        return OrganisationAliasCommon.builder()
+            .aliasId(source.getAliasId())
+            .sequenceNumber(source.getSequenceNumber())
+            .organisationName(source.getOrganisationName())
+            .build();
+    }
+
+    static OrganisationDetailsCommonStrict toStrictOrganisationDetails(OrganisationDetails source) {
+        if (source == null) {
+            return null;
+        }
+
+        return OrganisationDetailsCommonStrict.builder()
+            .organisationName(source.getOrganisationName())
+            .organisationAliases(source.getOrganisationAliases() == null
+                ? JsonNullable.undefined()
+                : JsonNullable.of(source.getOrganisationAliases().stream()
+                    .map(OpalDefendantAccountBuilders::toOrganisationAliasCommon)
+                    .toList()))
+            .build();
+    }
+
+    static IndividualDetailsCommonStrict toStrictIndividualDetails(IndividualDetails source) {
+        if (source == null) {
+            return null;
+        }
+
+        return IndividualDetailsCommonStrict.builder()
+            .title(JsonNullable.of(source.getTitle()))
+            .forenames(JsonNullable.of(source.getForenames()))
+            .surname(source.getSurname())
+            .dateOfBirth(JsonNullable.of(source.getDateOfBirth()))
+            .age(JsonNullable.of(source.getAge()))
+            .nationalInsuranceNumber(JsonNullable.of(source.getNationalInsuranceNumber()))
+            .individualAliases(source.getIndividualAliases() == null
+                ? JsonNullable.of(List.of())
+                : JsonNullable.of(source.getIndividualAliases().stream()
+                    .map(OpalDefendantAccountBuilders::toStrictIndividualAlias)
+                    .toList()))
+            .build();
+    }
+
+    static IndividualAliasCommonStrict toStrictIndividualAlias(IndividualAlias source) {
+        if (source == null) {
+            return null;
+        }
+
+        return IndividualAliasCommonStrict.builder()
+            .aliasId(source.getAliasId())
+            .sequenceNumber(source.getSequenceNumber())
+            .surname(source.getSurname())
+            .forenames(JsonNullable.of(source.getForenames()))
+            .build();
+    }
+
+    static AddressDetailsCommonStrict toStrictAddressDetails(AddressDetails source) {
+        if (source == null) {
+            return null;
+        }
+
+        return AddressDetailsCommonStrict.builder()
+            .addressLine1(source.getAddressLine1())
+            .addressLine2(JsonNullable.of(source.getAddressLine2()))
+            .addressLine3(JsonNullable.of(source.getAddressLine3()))
+            .addressLine4(JsonNullable.of(source.getAddressLine4()))
+            .addressLine5(JsonNullable.of(source.getAddressLine5()))
+            .postcode(JsonNullable.of(source.getPostcode()))
+            .build();
+    }
+
+    static LanguagePreferencesCommonStrict toStrictLanguagePreferences(LanguagePreferences source) {
+        if (source == null) {
+            return null;
+        }
+
+        return LanguagePreferencesCommonStrict.builder()
+            .documentLanguagePreference(toStrictLanguagePreference(source.getDocumentLanguagePreference()))
+            .hearingLanguagePreference(toStrictLanguagePreference(source.getHearingLanguagePreference()))
+            .build();
+    }
+
+    static LanguagePreferenceCommonStrict toStrictLanguagePreference(LanguagePreference source) {
+        if (source == null || source.getLanguageCode() == null) {
+            return null;
+        }
+
+        return LanguagePreferenceCommonStrict.builder()
+            .languageCode(LanguagePreferenceCommonStrict.LanguageCodeEnum.fromValue(source.getLanguageCode()))
+            .languageDisplayName(
+                LanguagePreferenceCommonStrict.LanguageDisplayNameEnum.fromValue(source.getLanguageDisplayName()))
+            .build();
+    }
+
+    static PaymentTermsSummaryCommonStrict toStrictPaymentTerms(PaymentTermsSummary source) {
+        if (source == null) {
+            return null;
+        }
+
+        return PaymentTermsSummaryCommonStrict.builder()
+            .paymentTermsType(toStrictPaymentTermsType(source.getPaymentTermsType()))
+            .effectiveDate(JsonNullable.of(source.getEffectiveDate()))
+            .instalmentPeriod(source.getInstalmentPeriod() == null
+                ? JsonNullable.undefined()
+                : JsonNullable.of(toStrictInstalmentPeriod(source.getInstalmentPeriod())))
+            .lumpSumAmount(JsonNullable.of(source.getLumpSumAmount()))
+            .instalmentAmount(JsonNullable.of(source.getInstalmentAmount()))
+            .build();
+    }
+
+    static PaymentTermsTypeCommonStrict toStrictPaymentTermsType(PaymentTermsType source) {
+        if (source == null || source.getPaymentTermsTypeCode() == null) {
+            return null;
+        }
+
+        return PaymentTermsTypeCommonStrict.builder()
+            .paymentTermsTypeCode(PaymentTermsTypeCommonStrict.PaymentTermsTypeCodeEnum.fromValue(
+                source.getPaymentTermsTypeCode().name()))
+            .paymentTermsTypeDisplayName(
+                PaymentTermsTypeCommonStrict.PaymentTermsTypeDisplayNameEnum.fromValue(
+                    source.getPaymentTermsTypeDisplayName()))
+            .build();
+    }
+
+    static InstalmentPeriodCommonStrict toStrictInstalmentPeriod(InstalmentPeriod source) {
+        if (source == null || source.getInstalmentPeriodCode() == null) {
+            return null;
+        }
+
+        return InstalmentPeriodCommonStrict.builder()
+            .instalmentPeriodCode(InstalmentPeriodCommonStrict.InstalmentPeriodCodeEnum.fromValue(
+                source.getInstalmentPeriodCode().name()))
+            .instalmentPeriodDisplayName(
+                InstalmentPeriodCommonStrict.InstalmentPeriodDisplayNameEnum.fromValue(
+                    source.getInstalmentPeriodDisplayName()))
+            .build();
+    }
+
+    static EnforcementStatusSummaryCommonStrict toStrictEnforcementStatus(EnforcementStatusSummary source) {
+        if (source == null) {
+            return null;
+        }
+
+        return EnforcementStatusSummaryCommonStrict.builder()
+            .lastEnforcementAction(source.getLastEnforcementAction() == null
+                ? JsonNullable.undefined()
+                : JsonNullable.of(toStrictLastEnforcementAction(source.getLastEnforcementAction())))
+            .collectionOrderMade(source.getCollectionOrderMade())
+            .defaultDaysInJail(JsonNullable.of(source.getDefaultDaysInJail()))
+            .enforcementOverride(source.getEnforcementOverride() == null
+                ? JsonNullable.undefined()
+                : JsonNullable.of(toStrictEnforcementOverride(source.getEnforcementOverride())))
+            .lastMovementDate(JsonNullable.of(source.getLastMovementDate()))
+            .build();
+    }
+
+    static LastEnforcementActionCommonStrict toStrictLastEnforcementAction(LastEnforcementAction source) {
+        if (source == null) {
+            return null;
+        }
+
+        return LastEnforcementActionCommonStrict.builder()
+            .lastEnforcementActionId(source.getLastEnforcementActionId())
+            .lastEnforcementActionTitle(JsonNullable.of(source.getLastEnforcementActionTitle()))
+            .build();
+    }
+
+    static EnforcementOverrideCommonStrict toStrictEnforcementOverride(EnforcementOverride source) {
+        if (source == null) {
+            return null;
+        }
+
+        return EnforcementOverrideCommonStrict.builder()
+            .enforcementOverrideResult(source.getEnforcementOverrideResult() == null
+                ? JsonNullable.undefined()
+                : JsonNullable.of(toStrictEnforcementOverrideResult(source.getEnforcementOverrideResult())))
+            .enforcer(source.getEnforcer() == null
+                ? JsonNullable.undefined()
+                : JsonNullable.of(toStrictEnforcerReference(source.getEnforcer())))
+            .lja(source.getLja() == null ? JsonNullable.undefined() : JsonNullable.of(toStrictLja(source.getLja())))
+            .build();
+    }
+
+    static EnforcementOverrideResultReferenceCommonStrict toStrictEnforcementOverrideResult(
+        EnforcementOverrideResult source) {
+        if (source == null) {
+            return null;
+        }
+
+        return EnforcementOverrideResultReferenceCommonStrict.builder()
+            .enforcementOverrideResultId(source.getEnforcementOverrideId())
+            .enforcementOverrideResultTitle(source.getEnforcementOverrideTitle())
+            .build();
+    }
+
+    static EnforcerReferenceCommon toEnforcerReferenceCommon(Enforcer source) {
+        if (source == null) {
+            return null;
+        }
+
+        return EnforcerReferenceCommon.builder()
+            .enforcerId(source.getEnforcerId())
+            .enforcerName(source.getEnforcerName())
+            .build();
+    }
+
+    static EnforcerReferenceCommonStrict toStrictEnforcerReference(Enforcer source) {
+        if (source == null) {
+            return null;
+        }
+
+        return EnforcerReferenceCommonStrict.builder()
+            .enforcerId(source.getEnforcerId())
+            .enforcerName(source.getEnforcerName())
+            .build();
+    }
+
+    static LjaReferenceCommonStrict toStrictLja(LJA source) {
+        if (source == null) {
+            return null;
+        }
+
+        return LjaReferenceCommonStrict.builder()
+            .ljaId(source.getLjaId() == null ? null : source.getLjaId().longValue())
+            .ljaCode(JsonNullable.of(source.getLjaCode()))
+            .ljaName(source.getLjaName())
+            .build();
+    }
+
+    static CommentsAndNotesCommonStrict toStrictCommentsAndNotes(CommentsAndNotes source) {
+        if (source == null) {
+            return null;
+        }
+
+        return CommentsAndNotesCommonStrict.builder()
+            .accountComment(JsonNullable.of(source.getAccountNotesAccountComments()))
+            .freeTextNote1(JsonNullable.of(source.getAccountNotesFreeTextNote1()))
+            .freeTextNote2(JsonNullable.of(source.getAccountNotesFreeTextNote2()))
+            .freeTextNote3(JsonNullable.of(source.getAccountNotesFreeTextNote3()))
             .build();
     }
 
