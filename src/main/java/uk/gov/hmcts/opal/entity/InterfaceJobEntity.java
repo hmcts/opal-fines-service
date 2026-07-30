@@ -1,6 +1,13 @@
 package uk.gov.hmcts.opal.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.BUSINESS_UNIT_ID;
+import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.DB_PROC_NAME;
+import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.INTERFACE_JOB_ID;
+import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.JPA_PROC_NAME;
+import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.POSTED_BY;
+import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.POSTED_BY_NAME;
+import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.TILL_ID;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -11,8 +18,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedStoredProcedureQuery;
+import jakarta.persistence.ParameterMode;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.StoredProcedureParameter;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,6 +43,13 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@NamedStoredProcedureQuery(name = JPA_PROC_NAME, procedureName = DB_PROC_NAME, parameters = {
+    @StoredProcedureParameter(mode = ParameterMode.IN, name = INTERFACE_JOB_ID, type = Long.class),
+    @StoredProcedureParameter(mode = ParameterMode.IN, name = BUSINESS_UNIT_ID, type = Short.class),
+    @StoredProcedureParameter(mode = ParameterMode.IN, name = POSTED_BY, type = String.class),
+    @StoredProcedureParameter(mode = ParameterMode.IN, name = POSTED_BY_NAME, type = String.class),
+    @StoredProcedureParameter(mode = ParameterMode.OUT, name = TILL_ID, type = Long.class)
+})
 public class InterfaceJobEntity {
 
     @Id
