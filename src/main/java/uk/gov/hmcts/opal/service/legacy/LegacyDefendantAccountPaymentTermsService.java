@@ -5,8 +5,10 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
+import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
@@ -24,11 +26,8 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
-import uk.gov.hmcts.opal.exception.BusinessUnitUserNotFoundException;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPaymentTermsServiceInterface;
 import uk.gov.hmcts.opal.util.VersionUtils;
-
-import java.math.BigInteger;
 
 @Service
 @RequiredArgsConstructor
@@ -317,7 +316,8 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
 
     private String requireBusinessUnitUserId(String businessUnitUserId, String businessUnitId) {
         if (businessUnitUserId == null || businessUnitUserId.isBlank()) {
-            throw new BusinessUnitUserNotFoundException(Short.parseShort(businessUnitId));
+            throw new PermissionNotAllowedException(
+                Short.parseShort(businessUnitId), FinesPermission.AMEND_PAYMENT_TERMS);
         }
         return businessUnitUserId;
     }

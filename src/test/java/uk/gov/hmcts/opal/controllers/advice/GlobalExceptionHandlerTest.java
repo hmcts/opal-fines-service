@@ -35,7 +35,6 @@ import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
-import uk.gov.hmcts.opal.exception.BusinessUnitUserNotFoundException;
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
@@ -69,22 +68,6 @@ class GlobalExceptionHandlerTest {
         assertEquals("Missing Required Header", pd.getTitle());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/missing-header"), pd.getType());
         assertEquals(false, pd.getProperties().get("retriable"));
-    }
-
-    @Test
-    void handleBusinessUnitUserNotFound_unauthorized() {
-        BusinessUnitUserNotFoundException ex = new BusinessUnitUserNotFoundException((short) 78);
-        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleBusinessUnitUserNotFoundException(ex);
-
-        assertEquals(HttpStatus.UNAUTHORIZED, r.getStatusCode());
-        ProblemDetail pd = r.getBody();
-        assertEquals(HttpStatus.UNAUTHORIZED.value(), pd.getStatus());
-        assertEquals("Unauthorized", pd.getTitle());
-        assertEquals("User does not have a business unit user for business unit: 78", pd.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/unauthorized"), pd.getType());
-        assertEquals(false, pd.getProperties().get("retriable"));
-        assertEquals((short) 78, pd.getProperties().get("businessUnitId"));
-        assertEquals(MediaType.APPLICATION_PROBLEM_JSON, r.getHeaders().getContentType());
     }
 
     static class TestMissingHeaderClass {

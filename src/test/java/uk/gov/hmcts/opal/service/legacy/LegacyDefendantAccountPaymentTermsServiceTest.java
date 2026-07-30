@@ -34,9 +34,11 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpServerErrorException;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
+import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
@@ -48,7 +50,6 @@ import uk.gov.hmcts.opal.dto.legacy.AddPaymentTermsLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
-import uk.gov.hmcts.opal.exception.BusinessUnitUserNotFoundException;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 
 @ExtendWith(MockitoExtension.class)
@@ -145,18 +146,19 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
     @ParameterizedTest
     @NullAndEmptySource
     @ValueSource(strings = " ")
-    void addPaymentCardRequest_legacy_missingBusinessUnitUserId_throws401BeforeGateway(String businessUnitUserId) {
+    void addPaymentCardRequest_legacy_missingBusinessUnitUserId_throws403BeforeGateway(String businessUnitUserId) {
         // Arrange
 
         // Act
-        BusinessUnitUserNotFoundException ex = assertThrows(
-            BusinessUnitUserNotFoundException.class,
+        PermissionNotAllowedException ex = assertThrows(
+            PermissionNotAllowedException.class,
             () -> legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(
                 123L, "78", businessUnitUserId, "Tester Name", "4")
         );
 
         // Assert
-        assertEquals((short) 78, ex.getBusinessUnitId());
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.AMEND_PAYMENT_TERMS);
+        assertThat(ex.getBusinessUnitId()).isEqualTo((short) 78);
         verify(gatewayService, never()).postToGateway(any(), any(), any(), any());
     }
 
