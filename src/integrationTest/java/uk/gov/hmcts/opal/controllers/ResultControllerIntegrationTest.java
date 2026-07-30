@@ -109,6 +109,7 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2985 Get result by ID duplicates Welsh result parameters when requested")
     @JiraStory("PO-2985")
     @JiraEpic("PO-2630")
+    @JiraTestKey("PO-9515")
     void getResultById_whenIncludeWelshTrue_returnsWelshResultParameters() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/DDDDDD?include_welsh=true"));
 
@@ -139,6 +140,7 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
         scripts = "classpath:db/deleteData/delete_from_results_po_9108.sql",
         executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD
     )
+    @JiraTestKey("PO-9516")
     void getResultById_whenIncludeWelshTrue_duplicatesAllSupportedParameterTypes() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/PO9108?include_welsh=true"));
 
@@ -623,6 +625,7 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get result by ID uses cache on repeated identical request")
     @JiraStory("PO-7248")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-9514")
     void testGetResultById_usesCacheOnRepeatedRequest() throws Exception {
         clearInvocations(resultRepository);
 

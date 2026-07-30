@@ -23,7 +23,7 @@ Feature: Defendant Account Search Feature Toggles
     Then the request is rejected with status 404
     And the response reports that the feature is disabled
 
-  @R1CWriteOff @JIRA-STORY:PO-3768 @JIRA-EPIC:PO-3685
+  @R1CWriteOff @JIRA-STORY:PO-3768 @JIRA-EPIC:PO-3685 @JIRA-TEST-KEY:PO-9540
   Scenario: Consolidated search is available when release 1c is enabled
     Given a searchable defendant account exists for feature-toggle search
     When I search the created defendant account with consolidation

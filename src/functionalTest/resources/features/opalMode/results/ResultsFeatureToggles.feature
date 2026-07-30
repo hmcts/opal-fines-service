@@ -44,7 +44,7 @@ Feature: Results Feature Toggles
     Then the request is rejected with status 404
     And the response reports that the feature is disabled
 
-  @R1B @JIRA-STORY:PO-3765 @JIRA-EPIC:PO-3685
+  @R1B @JIRA-STORY:PO-3765 @JIRA-EPIC:PO-3685 @JIRA-TEST-KEY:PO-9562
   Scenario: Results filters are available when release 1b is enabled
     When I request results for identifiers "FO,FCOMP,ABDC" with the following filters
       | active                  | true  |
