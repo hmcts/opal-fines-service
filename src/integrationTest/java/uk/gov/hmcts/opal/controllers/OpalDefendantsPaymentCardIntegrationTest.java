@@ -91,10 +91,10 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
     }
 
     @Test
-    @DisplayName("OPAL: Add Payment Card Request – Unauthorized when user has no business-unit user [@PO-6449]")
+    @DisplayName("OPAL: Add Payment Card Request – Forbidden when user has no business-unit user [@PO-6449]")
     @JiraStory("PO-6449")
     @JiraEpic("PO-977")
-    void opalAddPaymentCardRequest_Unauthorized_NoBusinessUnitUser() throws Exception {
+    void opalAddPaymentCardRequest_Forbidden_NoBusinessUnitUser() throws Exception {
         userStateStub.setupWithNoPermissions();
 
         HttpHeaders headers = new HttpHeaders();
@@ -109,10 +109,10 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("{}")
             )
-            .andExpect(status().isUnauthorized())
+            .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/unauthorized"))
-            .andExpect(jsonPath("$.status").value(401))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"))
+            .andExpect(jsonPath("$.status").value(403))
             .andExpect(jsonPath("$.businessUnitId").value(78))
             .andExpect(jsonPath("$.retriable").value(false));
     }
@@ -175,11 +175,11 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
     }
 
     @Test
-    @DisplayName("OPAL: Add Payment Card Request – Unauthorized when missing auth header [@PO-1719]")
+    @DisplayName("OPAL: Add Payment Card Request – Forbidden when missing auth header [@PO-1719]")
     @JiraStory("PO-1719")
     @JiraEpic("PO-977")
     @JiraTestKey("PO-6038")
-    void opalAddPaymentCardRequest_Unauthorized() throws Exception {
+    void opalAddPaymentCardRequest_Forbidden() throws Exception {
         userStateStub.setupWithNoPermissions();
 
         mockMvc.perform(
@@ -189,7 +189,7 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .contentType(MediaType.APPLICATION_JSON)
             )
-            .andExpect(status().isUnauthorized())
+            .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.retriable").value(false));
     }
