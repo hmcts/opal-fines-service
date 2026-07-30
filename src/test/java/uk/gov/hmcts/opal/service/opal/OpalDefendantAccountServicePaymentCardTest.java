@@ -34,7 +34,6 @@ import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.exception.BusinessUnitUserNotFoundException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.UserStateService;
@@ -127,13 +126,14 @@ class OpalDefendantAccountServicePaymentCardTest {
     @ParameterizedTest
     @NullAndEmptySource
     @ValueSource(strings = " ")
-    void addPaymentCardRequest_missingBusinessUnitUserId_throws401BeforeMutation(String businessUnitUserId) {
-        BusinessUnitUserNotFoundException ex = assertThrows(
-            BusinessUnitUserNotFoundException.class,
+    void addPaymentCardRequest_missingBusinessUnitUserId_throws403BeforeMutation(String businessUnitUserId) {
+        PermissionNotAllowedException ex = assertThrows(
+            PermissionNotAllowedException.class,
             () -> service.addPaymentCardRequest(1L, "10", businessUnitUserId, "John Smith", "\"1\"")
         );
 
-        assertEquals((short) 10, ex.getBusinessUnitId());
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.AMEND_PAYMENT_TERMS);
+        assertThat(ex.getBusinessUnitId()).isEqualTo((short) 10);
         verifyNoInteractions(
             defendantAccountRepositoryService,
             defendantAccountControlValidator,

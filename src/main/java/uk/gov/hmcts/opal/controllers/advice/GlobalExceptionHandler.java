@@ -21,7 +21,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.common.controllers.advice.OpalProblemDetailFactory;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.exception.BusinessUnitUserNotFoundException;
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
@@ -53,23 +52,6 @@ public class GlobalExceptionHandler {
             ex
         );
         return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
-    }
-
-    @ExceptionHandler(BusinessUnitUserNotFoundException.class)
-    public ResponseEntity<ProblemDetail> handleBusinessUnitUserNotFoundException(
-        BusinessUnitUserNotFoundException ex) {
-
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.UNAUTHORIZED,
-            "Unauthorized",
-            ex.getMessage(),
-            "unauthorized",
-            false,
-            ex
-        );
-        problemDetail.setProperty("businessUnitId", ex.getBusinessUnitId());
-
-        return responseWithProblemDetail(HttpStatus.UNAUTHORIZED, problemDetail);
     }
 
     @ExceptionHandler(RequiredPermissionException.class)
