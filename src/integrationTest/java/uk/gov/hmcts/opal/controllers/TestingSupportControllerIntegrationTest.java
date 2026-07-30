@@ -30,12 +30,14 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.repository.AllocationRepository;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.repository.ChequeRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
+import uk.gov.hmcts.opal.repository.DocumentInstanceRepository;
 import uk.gov.hmcts.opal.repository.ImpositionRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
@@ -68,6 +70,9 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private DefendantTransactionRepository defendantTransactionRepository;
+
+    @Autowired
+    private DocumentInstanceRepository documentInstanceRepository;
 
     @Autowired
     private ImpositionRepository impositionRepository;
@@ -195,6 +200,10 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
         assertThat(reportEntryRepository.countByAssociatedRecordId(associatedRecordId)).isPositive();
         assertThat(defendantTransactionRepository.countByDefendantAccountId(defendantAccountId)).isPositive();
         assertThat(impositionRepository.countByDefendantAccountId(defendantAccountId)).isPositive();
+        assertThat(documentInstanceRepository.countByAssociatedRecordTypeAndAssociatedRecordId(
+            AssociatedRecordType.DEFENDANT_ACCOUNTS.getLabel(),
+            associatedRecordId
+        )).isPositive();
         assertThat(noteRepository.countByAssociatedRecordId(associatedRecordId)).isPositive();
         assertThat(amendmentRepository.countByAssociatedRecordId(associatedRecordId)).isPositive();
         assertThat(allocationRepository.countByImposition_DefendantAccountId(defendantAccountId)).isPositive();
@@ -218,6 +227,10 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
         assertThat(reportEntryRepository.countByAssociatedRecordId(associatedRecordId)).isZero();
         assertThat(defendantTransactionRepository.countByDefendantAccountId(defendantAccountId)).isZero();
         assertThat(impositionRepository.countByDefendantAccountId(defendantAccountId)).isZero();
+        assertThat(documentInstanceRepository.countByAssociatedRecordTypeAndAssociatedRecordId(
+            AssociatedRecordType.DEFENDANT_ACCOUNTS.getLabel(),
+            associatedRecordId
+        )).isZero();
         assertThat(noteRepository.countByAssociatedRecordId(associatedRecordId)).isZero();
         assertThat(amendmentRepository.countByAssociatedRecordId(associatedRecordId)).isZero();
         assertThat(allocationRepository.countByImposition_DefendantAccountId(defendantAccountId)).isZero();

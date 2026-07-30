@@ -29,6 +29,10 @@ VALUES ('TSTRES', 'Test Result', 'Result', true, true,
         false, false, false, false,
         false, false, false, false);
 
+INSERT INTO documents (document_id, recipient, document_language, priority)
+VALUES ('TTPLET', 'DEF', 'EN', '0')
+ON CONFLICT (document_id) DO NOTHING;
+
 -- Insert the main defendant account
 INSERT INTO defendant_accounts (defendant_account_id, business_unit_id, account_number,
                                 imposed_hearing_date, imposing_court_id, amount_imposed,
@@ -152,3 +156,12 @@ INSERT INTO amendments (amendment_id, business_unit_id, associated_record_type,
 VALUES (1, 78, 'defendant_accounts', 1001,
         '2025-10-27 15:50:42.498414+00', '01000000A', 1,
         'L', 'C', '11111111A', 'UPD');
+
+INSERT INTO document_instances (
+    document_instance_id, document_id, business_unit_id, generated_date, generated_by,
+    associated_record_type, associated_record_id, status, printed_date, document_content
+)
+VALUES (
+    9110, 'TTPLET', 78, '2025-10-27 15:51:42.498414+00', '01000000A',
+    'defendant_accounts', '1001', 'New', NULL, '<doc><account>1001</account></doc>'
+);
