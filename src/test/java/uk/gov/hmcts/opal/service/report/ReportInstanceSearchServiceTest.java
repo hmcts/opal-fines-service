@@ -109,7 +109,8 @@ class ReportInstanceSearchServiceTest {
         void whenReportsHaveMixedPermissions_returnsOnlyPermittedReports_happyPath() {
             ReportEntity permittedReport = report(REPORT_ID, SEARCH_AND_VIEW_ACCOUNTS);
             ReportEntity unpermittedReport = report("R2", ACCOUNT_MAINTENANCE);
-            when(reportRepository.findAllByPermissionIsNotNull()).thenReturn(List.of(permittedReport, unpermittedReport));
+            when(reportRepository.findAllByPermissionIsNotNull()).thenReturn(
+                List.of(permittedReport, unpermittedReport));
             setAuthenticatedUserWithPermissions(SEARCH_AND_VIEW_ACCOUNTS);
 
             List<ReportEntity> result = reportInstanceSearchService.findPermittedReports();
