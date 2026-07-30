@@ -111,22 +111,22 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 @Slf4j(topic = "opal.LegacyDefendantAccountService")
 public class LegacyDefendantAccountService implements DefendantAccountServiceInterface {
 
-    public static final String GET_HEADER_SUMMARY = "LIBRA.get_header_summary";
+    public static final String GET_HEADER_SUMMARY = "getDefendantAccountHeaderSummary";
     public static final String GET_DEFENDANT_ACCOUNT_HISTORY = "LIBRA.get_defendant_account_history";
     public static final String SEARCH_DEFENDANT_ACCOUNTS = "searchDefendantAccounts";
-    public static final String GET_PAYMENT_TERMS = "LIBRA.get_payment_terms";
-    public static final String ADD_PAYMENT_TERMS = "LIBRA.add_payment_terms";
-    public static final String GET_DEFENDANT_AT_A_GLANCE = "LIBRA.getDefendantAtAGlance";
+    public static final String GET_PAYMENT_TERMS = "getDefendantAccountPaymentTerms";
+    public static final String ADD_PAYMENT_TERMS = "addDefendantAccountPaymentTerms";
+    public static final String GET_DEFENDANT_AT_A_GLANCE = "getDefendantAccountAtAGlance";
     public static final String ADD_ENFORCEMENT = "LIBRA.addEnforcement";
     public static final String GET_CONSOLIDATED_ACCOUNTS = "LIBRA.get_consolidated_accounts";
 
-    public static final String GET_DEFENDANT_ACCOUNT_PARTY = "LIBRA.get_defendant_account_party";
-    public static final String ADD_DEFENDANT_ACCOUNT_PARTY = "LIBRA.add_defendant_account_party";
-    public static final String REPLACE_DEFENDANT_ACCOUNT_PARTY = "LIBRA.replace_defendant_account_party";
-    public static final String PATCH_DEFENDANT_ACCOUNT = "LIBRA.patchDefendantAccount";
-    public static final String GET_ENFORCEMENT_STATUS = "LIBRA.of_get_defendant_account_enf_status";
+    public static final String GET_DEFENDANT_ACCOUNT_PARTY = "getDefendantAccountParty";
+    public static final String ADD_DEFENDANT_ACCOUNT_PARTY = "addDefendantAccountParty";
+    public static final String REPLACE_DEFENDANT_ACCOUNT_PARTY = "replaceDefendantAccountParty";
+    public static final String PATCH_DEFENDANT_ACCOUNT = "updateDefendantAccount";
+    public static final String GET_ENFORCEMENT_STATUS = "getDefendantAccountEnforcementStatus";
 
-    public static final String ADD_PAYMENT_CARD_REQUEST = "LIBRA.of_add_defendant_account_pcr";
+    public static final String ADD_PAYMENT_CARD_REQUEST = "addDefendantAccountPaymentCard";
 
     private final GatewayService gatewayService;
     private final LegacyGatewayProperties legacyGatewayProperties;

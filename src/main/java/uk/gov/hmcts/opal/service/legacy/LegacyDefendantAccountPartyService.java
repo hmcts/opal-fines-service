@@ -48,10 +48,10 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 @Slf4j(topic = "opal.LegacyDefendantAccountPartyService")
 public class LegacyDefendantAccountPartyService implements DefendantAccountPartyServiceInterface {
 
-    public static final String GET_DEFENDANT_ACCOUNT_PARTY = "LIBRA.get_defendant_account_party";
-    public static final String REPLACE_DEFENDANT_ACCOUNT_PARTY = "LIBRA.replace_defendant_account_party";
-    public static final String ADD_DEFENDANT_ACCOUNT_PARTY = "LIBRA.add_defendant_account_party";
-    public static final String REMOVE_DEFENDANT_ACCOUNT_PARTY = "LIBRA.remove_defendant_account_party";
+    public static final String GET_DEFENDANT_ACCOUNT_PARTY = "getDefendantAccountParty";
+    public static final String REPLACE_DEFENDANT_ACCOUNT_PARTY = "replaceDefendantAccountParty";
+    public static final String ADD_DEFENDANT_ACCOUNT_PARTY = "addDefendantAccountParty";
+    public static final String REMOVE_DEFENDANT_ACCOUNT_PARTY = "removeDefendantAccountParty";
 
     /* ---- Services ---- */
     private final GatewayService gatewayService;
