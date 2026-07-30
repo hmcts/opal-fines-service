@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.controllers.advice;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.mock;
 
 import feign.FeignException;
 import feign.Request;
@@ -28,7 +27,6 @@ import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.exception.BusinessUnitUserNotFoundException;
@@ -48,8 +46,7 @@ import uk.gov.hmcts.opal.exception.UnsupportedMappingTypeException;
 
 class GlobalExceptionHandlerTest {
 
-    private final GlobalExceptionHandler globalExceptionHandler =
-        new GlobalExceptionHandler(mock(AccessTokenService.class));
+    private final GlobalExceptionHandler globalExceptionHandler = new GlobalExceptionHandler();
 
     // ---------- Simple false (non-retriable) buckets ----------
 
