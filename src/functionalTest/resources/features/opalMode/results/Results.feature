@@ -75,6 +75,14 @@ Feature: Results Reference Data
       | paymentterms    | text | true               |                                               |
       | cy_paymentterms | text | true               | Provide a welsh version for the defendant    |
 
+  @JIRA-STORY:PO-9108 @JIRA-EPIC:PO-2630 @R1B
+  Scenario: Result by ID can include Welsh date result parameters
+    When I request result with identifier "CLAMPO" including Welsh parameters
+    Then the result parameters contain the following entries in order
+      | name             | type | language_dependent | hint                                          |
+      | effectivedate    | date | true               |                                               |
+      | cy_effectivedate | date | true               | Provide a welsh version for the defendant    |
+
   @JIRA-STORY:PO-3765 @Ignore @R1B
   Scenario: Result filtering is available when release-1b is enabled
     When I request results for identifiers "NBWT,NAP" using filter "enforcement_override" with value "true"
