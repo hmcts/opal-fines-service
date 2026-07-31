@@ -26,6 +26,7 @@ import uk.gov.hmcts.opal.generated.model.MinorCreditorHistoryItemHistory;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorHistoryItemHistoryDetails;
 import uk.gov.hmcts.opal.generated.model.NoteDetailsHistory;
 import uk.gov.hmcts.opal.generated.model.PostedDetailsCommon;
+import uk.gov.hmcts.opal.util.HistoryValueMaskingUtil;
 
 @Component
 public class LegacyMinorCreditorHistoryMapper {
@@ -103,8 +104,12 @@ public class LegacyMinorCreditorHistoryMapper {
         return switch (sourceType) {
             case AMENDMENT -> new AmendmentTypeCommon()
                 .attributeName(details.getAttributeName())
-                .oldValue(details.getOldValue())
-                .newValue(details.getNewValue());
+                .oldValue(HistoryValueMaskingUtil.maskIfBacsAmendment(
+                    details.getAttributeName(),
+                    details.getOldValue()))
+                .newValue(HistoryValueMaskingUtil.maskIfBacsAmendment(
+                    details.getAttributeName(),
+                    details.getNewValue()));
             case FINANCIAL -> new CreditorTransactionDetailsHistory()
                 .transactionType(toCreditorTransactionType(details.getTransactionType()))
                 .paymentReference(details.getPaymentReference())

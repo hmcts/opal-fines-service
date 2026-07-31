@@ -148,6 +148,30 @@ class MinorCreditorHistoryLegacyMapperTest {
     }
 
     @Test
+    void toOpal_masksBacsAmendmentValues() {
+        // Arrange
+        LegacyGetMinorCreditorAccountHistoryResponse legacy = LegacyGetMinorCreditorAccountHistoryResponse.builder()
+            .historyItems(List.of(amendmentItem(
+                LocalDate.of(2026, 2, 1),
+                "BACS Account Number",
+                "12345678",
+                "87654321"
+            )))
+            .build();
+
+        // Act
+        GetMinorCreditorHistoryResponse result = mapper.toOpal(legacy);
+
+        // Assert
+        AmendmentTypeCommon details = assertInstanceOf(
+            AmendmentTypeCommon.class,
+            result.getPayload().getHistoryItems().getFirst().getDetails()
+        );
+        assertEquals("******78", details.getOldValue());
+        assertEquals("******21", details.getNewValue());
+    }
+
+    @Test
     void toOpal_mapsNoteDetails() {
         // Arrange
         LegacyGetMinorCreditorAccountHistoryResponse legacy = LegacyGetMinorCreditorAccountHistoryResponse.builder()
