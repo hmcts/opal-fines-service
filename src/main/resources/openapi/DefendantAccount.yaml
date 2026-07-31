@@ -633,7 +633,7 @@ paths:
           content:
             application/json+problem:
               schema:
-               $ref: './common.yaml#/components/schemas/ProblemDetail'
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
         401:
           description: Unauthorized
           content:
@@ -661,15 +661,15 @@ paths:
         500:
           description: Internal server error
           content:
-           application/json+problem:
-             schema:
+            application/json+problem:
+              schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         503:
           description: Service unavailable
           content:
-           application/json+problem:
-             schema:
-               $ref: './common.yaml#/components/schemas/ProblemDetail'
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
   /defendant-accounts/{id}/history:
     get:
       tags:
@@ -790,11 +790,15 @@ components:
           type: string
           description: DB Mapping - defendant_accounts.account_number
         account_balance:
-          type: number
+          type:
+            - number
+            - 'null'
           multipleOf: 0.01
           description: DB Mapping - defendant_accounts.account_balance
         account_status_code:
-          type: string
+          type:
+            - string
+            - 'null'
           enum:
             - L
             - C
@@ -805,7 +809,9 @@ components:
             - WO
           description: DB Mapping - defendant_accounts.account_status
         account_status_name:
-          type: string
+          type:
+            - string
+            - 'null'
           description: Derived display name from defendant_accounts.account_status
         debtor_type:
           type: string
@@ -1087,13 +1093,13 @@ components:
             - $ref: '#/components/schemas/enforcementOverrideResult'
           nullable: true
         enforcer:
-            allOf:
-              - $ref: '#/components/schemas/enforcer'
-            nullable: true
+          allOf:
+            - $ref: '#/components/schemas/enforcer'
+          nullable: true
         lja:
-            allOf:
-              - $ref: '#/components/schemas/localJusticeArea'
-            nullable: true
+          allOf:
+            - $ref: '#/components/schemas/localJusticeArea'
+          nullable: true
     enforcementOverrideResult:
       type: object
       properties:
