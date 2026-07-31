@@ -341,7 +341,8 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.report_parameters").isMap())
-                .andExpect(jsonPath("$.report_parameters.business_unit_warning_threshold").value(10));
+                .andExpect(jsonPath("$.report_parameters.business_unit_warning_threshold")
+                    .value(10));
         }
 
         @Test
@@ -393,9 +394,12 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         )
         @JiraStory("PO-7225")
         @JiraEpic("PO-2248")
-        @JiraTestKey(value = "PO-9508", name = "Get report by ID - invalid BU warning threshold '\"not-an-integer\"' returns 500 [@PO-7225]")
-        @JiraTestKey(value = "PO-9509", name = "Get report by ID - invalid BU warning threshold '\"0\"' returns 500 [@PO-7225]")
-        @JiraTestKey(value = "PO-9510", name = "Get report by ID - invalid BU warning threshold '\"-1\"' returns 500 [@PO-7225]")
+        @JiraTestKey(value = "PO-9508", name = "Get report by ID - invalid BU warning threshold"
+            + " '\"not-an-integer\"' returns 500 [@PO-7225]")
+        @JiraTestKey(value = "PO-9509", name = "Get report by ID - invalid BU warning threshold"
+            + " '\"0\"' returns 500 [@PO-7225]")
+        @JiraTestKey(value = "PO-9510", name = "Get report by ID - invalid BU warning threshold"
+            + " '\"-1\"' returns 500 [@PO-7225]")
         void getReportById_whenThresholdConfigInvalid_returns500(String invalidThresholdValue) throws Exception {
             var threshold = configurationItemRepository
                 .findByItemNameAndBusinessUnitIdIsNull(BU_WARNING_THRESHOLD_ITEM_NAME)
