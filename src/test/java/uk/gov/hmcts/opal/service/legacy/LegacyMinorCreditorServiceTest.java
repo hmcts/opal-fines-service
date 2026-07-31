@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -35,12 +36,17 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceReques
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryRequest;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyCreditorAccountPaymentDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsResponse;
+import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
+import uk.gov.hmcts.opal.generated.model.GetMinorCreditorHistory200Response;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
@@ -48,6 +54,7 @@ import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.mapper.legacy.GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyMinorCreditorAccountResponseMapper;
+import uk.gov.hmcts.opal.mapper.legacy.LegacyMinorCreditorHistoryMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateMinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateMinorCreditorAccountRequestMapper;
 import uk.gov.hmcts.opal.mapper.response.GetMinorCreditorAccountAtAGlanceResponseMapper;
@@ -77,8 +84,58 @@ class LegacyMinorCreditorServiceTest {
     @Mock
     private LegacyUpdateMinorCreditorAccountResponseMapper updateMinorCreditorAccountResponseMapper;
 
+    @Mock
+    private LegacyMinorCreditorHistoryMapper minorCreditorHistoryMapper;
+
     @InjectMocks
     private LegacyMinorCreditorService legacyMinorCreditorService;
+
+    @Test
+    void getMinorCreditorHistory_shouldCallGatewayAndReturnMappedResponse() {
+        // Arrange
+        MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(
+            LocalDate.of(2026, 1, 1),
+            LocalDate.of(2026, 1, 31),
+            List.of("amendment,note")
+        );
+        LegacyGetMinorCreditorAccountHistoryRequest request =
+            LegacyGetMinorCreditorAccountHistoryRequest.builder()
+                .creditorAccountId("101")
+                .fromDate(LocalDate.of(2026, 1, 1))
+                .toDate(LocalDate.of(2026, 1, 31))
+                .itemTypes(List.of("Amendment", "Note"))
+                .build();
+        LegacyGetMinorCreditorAccountHistoryResponse legacyResponse =
+            LegacyGetMinorCreditorAccountHistoryResponse.builder().build();
+        GatewayService.Response<LegacyGetMinorCreditorAccountHistoryResponse> gatewayResponse =
+            new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
+        GetMinorCreditorHistoryResponse mappedResponse = GetMinorCreditorHistoryResponse.builder()
+            .payload(new GetMinorCreditorHistory200Response().historyItems(List.of()))
+            .build();
+
+        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters)).thenReturn(request);
+        when(gatewayService.postToGateway(
+            "LIBRA.get_minor_creditor_account_history",
+            LegacyGetMinorCreditorAccountHistoryResponse.class,
+            request,
+            null
+        )).thenReturn(gatewayResponse);
+        when(minorCreditorHistoryMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
+
+        // Act
+        GetMinorCreditorHistoryResponse result = legacyMinorCreditorService.getMinorCreditorHistory(101L, filters);
+
+        // Assert
+        assertSame(mappedResponse, result);
+        verify(minorCreditorHistoryMapper).toLegacyRequest(101L, filters);
+        verify(gatewayService).postToGateway(
+            "LIBRA.get_minor_creditor_account_history",
+            LegacyGetMinorCreditorAccountHistoryResponse.class,
+            request,
+            null
+        );
+        verify(minorCreditorHistoryMapper).toOpal(legacyResponse);
+    }
 
     @Test
     void searchMinorCreditors_shouldMapLegacyResponseToDto() {
