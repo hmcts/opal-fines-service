@@ -35,6 +35,7 @@ import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
+import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.ImpositionService;
 
@@ -46,6 +47,9 @@ class DefendantAccountApiControllerTest {
 
     @Mock
     private ImpositionService impositionService;
+
+    @Mock
+    DefendantAccountEnforcementService defendantAccountEnforcementService;
 
     @Mock
     private DefendantAccountHistoryResponseMapper defendantAccountHistoryResponseMapper;
@@ -123,7 +127,7 @@ class DefendantAccountApiControllerTest {
         Long defendantId = 1L;
         EnforcementStatus status = EnforcementStatus.builder()
             .build();
-        when(defendantAccountService.getEnforcementStatus(defendantId))
+        when(defendantAccountEnforcementService.getEnforcementStatus(defendantId))
             .thenReturn(status);
 
         ResponseEntity<GetEnforcementStatusResponse> response =
@@ -131,7 +135,7 @@ class DefendantAccountApiControllerTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertSame(status, response.getBody());
-        verify(defendantAccountService).getEnforcementStatus(defendantId);
+        verify(defendantAccountEnforcementService).getEnforcementStatus(defendantId);
     }
 
     @Test

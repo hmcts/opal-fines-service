@@ -27,6 +27,7 @@ import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefen
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
+import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.ImpositionService;
 import uk.gov.hmcts.opal.util.VersionUtils;
@@ -39,6 +40,7 @@ public class DefendantAccountApiController implements DefendantAccountApi {
     private final DefendantAccountService defendantAccountService;
     private final DefendantAccountHistoryResponseMapper defendantAccountHistoryResponseMapper;
     private final ImpositionService impositionService;
+    private final DefendantAccountEnforcementService defendantAccountEnforcementService;
 
     @Override
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
@@ -77,7 +79,7 @@ public class DefendantAccountApiController implements DefendantAccountApi {
     public ResponseEntity<GetEnforcementStatusResponse> getEnforcementStatus(Long id) {
         log.debug(":GET:getDefendantAccountEnforcementStatus: for defendant id: {}", id);
 
-        return buildResponse(defendantAccountService.getEnforcementStatus(id));
+        return buildResponse(defendantAccountEnforcementService.getEnforcementStatus(id));
     }
 
     @Override
