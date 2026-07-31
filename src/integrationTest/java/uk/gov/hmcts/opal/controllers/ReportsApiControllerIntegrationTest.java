@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectInternalServerErrorWithoutStatus;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -183,7 +184,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
             String body = actions.andReturn().getResponse().getContentAsString();
             Set<String> actualFields = objectMapper.readTree(body).properties()
                 .stream()
-                .map(entry -> entry.getKey())
+                .map(Map.Entry::getKey)
                 .collect(java.util.stream.Collectors.toSet());
 
             actions.andExpect(status().isOk());
