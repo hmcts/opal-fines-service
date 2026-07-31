@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.entity.PaymentMethod;
@@ -23,14 +24,14 @@ class DefendantTransactionEntityHistoryMapperTest {
         DefendantTransactionEntity entity = DefendantTransactionEntity.builder()
             .defendantTransactionId(123L)
             .defendantAccountId(262200L)
-            .postedDate(LocalDate.of(2026, 1, 6))
+            .postedDate(LocalDate.of(2026, Month.JANUARY, 6))
             .postedBy("opal-user")
             .postedByUsername("Opal User")
             .transactionType(DefendantTransactionType.PAYMNT)
             .transactionAmount(BigDecimal.TEN)
             .paymentMethod(PaymentMethod.NC)
             .status(DefendantTransactionStatus.P)
-            .statusDate(LocalDateTime.of(2026, 1, 7, 11, 0))
+            .statusDate(LocalDateTime.of(2026, Month.JANUARY, 7, 11, 0))
             .writeOffCode(DefendantTransactionWriteOffCode.TRNOUT)
             .text("detail")
             .build();
@@ -53,10 +54,10 @@ class DefendantTransactionEntityHistoryMapperTest {
         DefendantTransactionEntity entity = DefendantTransactionEntity.builder()
             .defendantTransactionId(124L)
             .defendantAccountId(262200L)
-            .postedDate(LocalDate.of(2026, 1, 6))
+            .postedDate(LocalDate.of(2026, Month.JANUARY, 6))
             .transactionType(DefendantTransactionType.TFO_IN)
             .status(DefendantTransactionStatus.C)
-            .statusDate(LocalDateTime.of(2026, 1, 7, 11, 0))
+            .statusDate(LocalDateTime.of(2026, Month.JANUARY, 7, 11, 0))
             .build();
 
         var historyItem = mapper.toHistoryItem(entity);

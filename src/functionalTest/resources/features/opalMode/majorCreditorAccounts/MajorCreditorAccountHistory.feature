@@ -1,13 +1,13 @@
 @Opal @JIRA-LABEL:account-enquiry
 Feature: Major Creditor Account History
 
-  @JIRA-STORY:PO-2654 @JIRA-EPIC:PO-2233
+  @JIRA-STORY:PO-2654 @JIRA-EPIC:PO-2233 @JIRA-TEST-KEY:PO-9542
   Scenario: E2E.01 Happy path history retrieval
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I request major creditor account history for the created major creditor account
     Then the major creditor account history response is returned as documented
 
-  @JIRA-STORY:PO-2654 @JIRA-EPIC:PO-2233
+  @JIRA-STORY:PO-2654 @JIRA-EPIC:PO-2233 @JIRA-TEST-KEY:PO-9543
   Scenario: E2E.02 Filter contract and idempotence
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I request major creditor account history for the created major creditor account with query "dateFrom=2020-01-01"
@@ -22,14 +22,14 @@ Feature: Major Creditor Account History
     When I request major creditor account history for the created major creditor account twice
     Then the repeated major creditor account history responses are identical
 
-  @JIRA-STORY:PO-2654 @JIRA-EPIC:PO-2233 @JIRA-NFR:PO-2507
+  @JIRA-STORY:PO-2654 @JIRA-EPIC:PO-2233 @JIRA-NFR:PO-2507 @JIRA-TEST-KEY:PO-9544
   Scenario: E2E.03 Authentication and authorization
     When I request major creditor account history for the created major creditor account without a token
     Then the major creditor account history request is rejected as unauthorized
     When the "opal-test-2@dev.platform.hmcts.net" user requests major creditor account history for the created major creditor account
     Then the major creditor account history request is rejected as forbidden
 
-  @JIRA-STORY:PO-2654 @JIRA-EPIC:PO-2233
+  @JIRA-STORY:PO-2654 @JIRA-EPIC:PO-2233 @JIRA-TEST-KEY:PO-9545
   Scenario: E2E.04 Not found behaviour
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I request major creditor account history for a non-existent major creditor account

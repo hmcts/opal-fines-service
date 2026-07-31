@@ -25,6 +25,7 @@ import uk.gov.hmcts.opal.service.report.operation.OperationSummaryReport;
 import uk.gov.hmcts.opal.service.report.operation.PaymentReportService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Sql(scripts = "classpath:db/insertData/insert_into_enforcements.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_enforcements.sql", executionPhase = AFTER_TEST_CLASS)
@@ -43,6 +44,7 @@ class PaymentSummaryReportServiceTest extends AbstractIntegrationTest {
         @JiraStory("PO-2285")
         @JiraEpic("PO-2248")
         @Test
+        @JiraTestKey("PO-9519")
         void whenSummarySinceDate_thenReturnsSortedResultsAndTotals_happyPath() {
             OperationSummaryReport result =
                 (OperationSummaryReport) service.generateReportData(
@@ -67,6 +69,7 @@ class PaymentSummaryReportServiceTest extends AbstractIntegrationTest {
         @JiraStory("PO-2285")
         @JiraEpic("PO-2248")
         @Test
+        @JiraTestKey("PO-9521")
         void summaryRegfPaymentMade_returnsExpectedRows() {
             OperationSummaryReport result =
                 (OperationSummaryReport) service.generateReportData(
@@ -84,6 +87,7 @@ class PaymentSummaryReportServiceTest extends AbstractIntegrationTest {
         @JiraStory("PO-2285")
         @JiraEpic("PO-2248")
         @Test
+        @JiraTestKey("PO-9520")
         void summarySinceLastEnforcementPaymentNotMade_returnsExpectedRows() {
             OperationSummaryReport result =
                 (OperationSummaryReport) service.generateReportData(

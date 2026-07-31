@@ -871,6 +871,8 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-8937: parent/guardian names are returned")
     @JiraStory("PO-8937")
     @JiraEpic("PO-2821")
+    @JiraTestKey(value = "PO-9449", name = "consolidated=false")
+    @JiraTestKey(value = "PO-9450", name = "consolidated=true")
     void postSearch_returnsParentGuardianNames(boolean consolidation) throws Exception {
         ResultActions actions = mockMvc.perform(
             post(DEFENDANTS_SEARCH_URL)

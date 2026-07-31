@@ -244,6 +244,8 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Get report by ID - operational reports return 200 when report permission is set [@PO-7222]")
         @JiraStory("PO-7222")
         @JiraEpic("PO-2248")
+        @JiraTestKey(value = "PO-9512", name = "[1] reportId = \"operational_report_enforcement\"")
+        @JiraTestKey(value = "PO-9513", name = "[2] reportId = \"operational_report_payment\"")
         void getReportById_whenOperationalReportHasPermission_returns200(String reportId) throws Exception {
             mockMvc.perform(get(URL_BASE + "/" + reportId)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
@@ -332,12 +334,15 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Get report by ID - operational reports include BU warning threshold [@PO-7225]")
         @JiraStory("PO-7225")
         @JiraEpic("PO-2248")
+        @JiraTestKey(value = "PO-9505", name = "[1] reportId = \"operational_report_enforcement\"")
+        @JiraTestKey(value = "PO-9506", name = "[2] reportId = \"operational_report_payment\"")
         void getReportById_whenOperationalReport_returnsBuWarningThreshold(String reportId) throws Exception {
             mockMvc.perform(get(URL_BASE + "/" + reportId)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.report_parameters").isMap())
-                .andExpect(jsonPath("$.report_parameters.business_unit_warning_threshold").value(10));
+                .andExpect(jsonPath("$.report_parameters.business_unit_warning_threshold")
+                    .value(10));
         }
 
         @Test
@@ -346,6 +351,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @Sql(scripts = "classpath:db/deleteData/delete_from_reports.sql", executionPhase = AFTER_TEST_METHOD)
         @JiraStory("PO-7225")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-9507")
         void getReportById_whenNonOperationalReport_returnsUnchangedParameters() throws Exception {
             mockMvc.perform(get(URL_BASE + "/it_report_optional")
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
@@ -367,6 +373,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         )
         @JiraStory("PO-7225")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-9511")
         void getReportById_whenThresholdConfigMissing_returns500() throws Exception {
             mockMvc.perform(get(URL_BASE + "/operational_report_enforcement")
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
@@ -387,6 +394,12 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         )
         @JiraStory("PO-7225")
         @JiraEpic("PO-2248")
+        @JiraTestKey(value = "PO-9508", name = "Get report by ID - invalid BU warning threshold"
+            + " '\"not-an-integer\"' returns 500 [@PO-7225]")
+        @JiraTestKey(value = "PO-9509", name = "Get report by ID - invalid BU warning threshold"
+            + " '\"0\"' returns 500 [@PO-7225]")
+        @JiraTestKey(value = "PO-9510", name = "Get report by ID - invalid BU warning threshold"
+            + " '\"-1\"' returns 500 [@PO-7225]")
         void getReportById_whenThresholdConfigInvalid_returns500(String invalidThresholdValue) throws Exception {
             var threshold = configurationItemRepository
                 .findByItemNameAndBusinessUnitIdIsNull(BU_WARNING_THRESHOLD_ITEM_NAME)

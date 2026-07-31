@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.MockedConstruction;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ClassPathResource;
 import tools.jackson.databind.JsonNode;
@@ -21,6 +20,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class JsonSchemaValidationServiceTest {
@@ -56,10 +58,10 @@ class JsonSchemaValidationServiceTest {
 
     @Test
     void testIsValid_failReadSchema() {
-        try (MockedConstruction<ClassPathResource> ignored = Mockito.mockConstruction(ClassPathResource.class,
+        try (MockedConstruction<ClassPathResource> ignored = mockConstruction(ClassPathResource.class,
             (mock, context) -> {
-                Mockito.when(mock.exists()).thenReturn(true);
-                Mockito.when(mock.getURI()).thenThrow(new IOException("Cannot read schema"));
+                when(mock.exists()).thenReturn(true);
+                when(mock.getURI()).thenThrow(new IOException("Cannot read schema"));
             })) {
 
             SchemaConfigurationException sce = assertThrows(
@@ -198,8 +200,8 @@ class JsonSchemaValidationServiceTest {
 
     @Test
     void testIsValid_jsonNodeValidationException_shouldReturnFalse() {
-        JsonNode jsonNode = Mockito.mock(JsonNode.class);
-        Mockito.when(jsonNode.toString()).thenThrow(new RuntimeException("Cannot serialise node"));
+        JsonNode jsonNode = mock(JsonNode.class);
+        when(jsonNode.toString()).thenThrow(new RuntimeException("Cannot serialise node"));
 
         assertFalse(jsonSchemaValidationService.isValid(jsonNode, "testSchema.json"));
     }

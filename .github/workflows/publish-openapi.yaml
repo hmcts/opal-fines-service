@@ -6,7 +6,7 @@ on:
 
 jobs:
   publish-openapi:
-    uses: hmcts/workflow-publish-openapi-spec/.github/workflows/publish-openapi.yml@v1
+    uses: hmcts/workflow-publish-openapi-spec/.github/workflows/publish-openapi.yml@caa170cb8dd959f12c1c0374f80021336daacfa2
     secrets:
       SWAGGER_PUBLISHER_API_TOKEN: ${{ secrets.SWAGGER_PUBLISHER_API_TOKEN }}
     with:

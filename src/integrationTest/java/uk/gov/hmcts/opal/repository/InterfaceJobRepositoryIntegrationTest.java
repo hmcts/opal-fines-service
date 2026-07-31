@@ -24,6 +24,7 @@ import uk.gov.hmcts.opal.repository.jpa.InterfaceJobSpecs;
 import uk.gov.hmcts.opal.service.opal.InterfaceJobService.InterfaceJobSearchCriteria;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @DisplayName("Interface Job Repository Integration Tests")
@@ -41,6 +42,7 @@ class InterfaceJobRepositoryIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2574")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-9517")
     void shouldFilterInterfaceJobSummaryBySearchCriteria() {
         InterfaceJobSearchCriteria searchCriteria = InterfaceJobSearchCriteria.builder()
             .permittedBusinessUnitIds(List.of((short) 2574))
@@ -69,6 +71,7 @@ class InterfaceJobRepositoryIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2574")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-9518")
     void shouldReturnNoInterfaceJobsWhenBusinessUnitsAreNotPermitted() {
         InterfaceJobSearchCriteria searchCriteria = InterfaceJobSearchCriteria.builder()
             .permittedBusinessUnitIds(List.of((short) 9999))

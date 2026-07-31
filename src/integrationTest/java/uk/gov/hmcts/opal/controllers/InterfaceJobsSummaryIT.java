@@ -30,6 +30,7 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @TestPropertySource(properties = {
@@ -54,6 +55,7 @@ class InterfaceJobsSummaryIT extends AbstractIntegrationTest {
     @DisplayName("PO-2574 INT.01 - Returns permitted summary")
     @JiraStory("PO-2574")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-9404")
     void returnsSummary() throws Exception {
         when(userStateService.getPermittedBusinessUnitIds(
             LUTON_AND_CARDIFF, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(LUTON_AND_CARDIFF);
@@ -78,6 +80,7 @@ class InterfaceJobsSummaryIT extends AbstractIntegrationTest {
     @DisplayName("PO-2574 INT.02 - Filters by permission")
     @JiraStory("PO-2574")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-9398")
     void filtersByPermission() throws Exception {
         when(userStateService.getPermittedBusinessUnitIds(
             LUTON_AND_CARDIFF, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(LUTON_ONLY);
@@ -98,6 +101,7 @@ class InterfaceJobsSummaryIT extends AbstractIntegrationTest {
     @DisplayName("PO-2574 INT.03 - Filters by status")
     @JiraStory("PO-2574")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-9401")
     void filtersByStatus() throws Exception {
         when(userStateService.getPermittedBusinessUnitIds(
             LUTON_AND_CARDIFF, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(LUTON_AND_CARDIFF);
@@ -117,6 +121,7 @@ class InterfaceJobsSummaryIT extends AbstractIntegrationTest {
     @DisplayName("PO-2574 INT.04 - Filters by completed date")
     @JiraStory("PO-2574")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-9397")
     void filtersByCompletedDate() throws Exception {
         when(userStateService.getPermittedBusinessUnitIds(
             LUTON_AND_CARDIFF, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(LUTON_AND_CARDIFF);
@@ -136,6 +141,7 @@ class InterfaceJobsSummaryIT extends AbstractIntegrationTest {
     @DisplayName("PO-2574 INT.05 - Filters by interface and BU")
     @JiraStory("PO-2574")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-9400")
     void filtersByInterfaceAndBu() throws Exception {
         when(userStateService.getPermittedBusinessUnitIds(
             CARDIFF_ONLY, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(CARDIFF_ONLY);
@@ -155,6 +161,7 @@ class InterfaceJobsSummaryIT extends AbstractIntegrationTest {
     @DisplayName("PO-2574 INT.06 - Returns joined data")
     @JiraStory("PO-2574")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-9402")
     void returnsJoinedData() throws Exception {
         when(userStateService.getPermittedBusinessUnitIds(
             LUTON_ONLY, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(LUTON_ONLY);
@@ -177,6 +184,7 @@ class InterfaceJobsSummaryIT extends AbstractIntegrationTest {
     @DisplayName("PO-2574 INT.07 - Returns documented fields")
     @JiraStory("PO-2574")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-9396")
     void returnsDocumentedFields() throws Exception {
         when(userStateService.getPermittedBusinessUnitIds(
             LUTON_ONLY, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(LUTON_ONLY);
@@ -207,6 +215,7 @@ class InterfaceJobsSummaryIT extends AbstractIntegrationTest {
     @DisplayName("PO-2574 INT.08 - Rejects invalid parameters")
     @JiraStory("PO-2574")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-9399")
     void rejectsInvalidStatus() throws Exception {
         when(userStateService.getPermittedBusinessUnitIds(
             LUTON_ONLY, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(LUTON_ONLY);
@@ -223,6 +232,7 @@ class InterfaceJobsSummaryIT extends AbstractIntegrationTest {
     @DisplayName("PO-2574 INT.09 - Uses row-level permissions")
     @JiraStory("PO-2574")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-9405")
     void usesRowLevelPermissions() throws Exception {
         when(userStateService.getPermittedBusinessUnitIds(
             LUTON_AND_CARDIFF, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(List.of());
@@ -243,6 +253,7 @@ class InterfaceJobsSummaryIT extends AbstractIntegrationTest {
     @DisplayName("PO-2574 INT.10 - Returns deterministic response")
     @JiraStory("PO-2574")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-9403")
     void returnsDeterministicResponse() throws Exception {
         when(userStateService.getPermittedBusinessUnitIds(
             LUTON_ONLY, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(LUTON_ONLY);

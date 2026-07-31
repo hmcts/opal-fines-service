@@ -91,7 +91,6 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
         Short businessUnitId = 10;
         String businessUnitUserId = "BU-USER";
         String ifMatch = "3";
-        String auth = "Bearer abc";
         AddDefendantAccountEnforcementRequest req =
             mock(AddDefendantAccountEnforcementRequest.class);
 
@@ -126,7 +125,6 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
         Short businessUnitId = 10;
         String businessUnitUserId = "BU-USER";
         String ifMatch = "3";
-        String auth = "Bearer abc";
         AddDefendantAccountEnforcementRequest req =
             mock(AddDefendantAccountEnforcementRequest.class);
 
@@ -160,7 +158,6 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
         Short businessUnitId = (short) 10;
         String businessUnitUserId = "BU-USER";
         String ifMatch = "\"7\"";
-        String auth = "Bearer abc";
 
         RemoveDefendantAccountEnforcementHoldRequest req =
             RemoveDefendantAccountEnforcementHoldRequest.builder().build();
