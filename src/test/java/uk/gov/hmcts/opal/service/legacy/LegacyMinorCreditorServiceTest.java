@@ -142,6 +142,113 @@ class LegacyMinorCreditorServiceTest {
     }
 
     @Test
+    void getMinorCreditorHistory_shouldHandleGatewayException() {
+        // Arrange
+        MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(null, null, null);
+        LegacyGetMinorCreditorAccountHistoryRequest request =
+            LegacyGetMinorCreditorAccountHistoryRequest.builder()
+                .creditorAccountId("101")
+                .build();
+        GatewayService.Response<LegacyGetMinorCreditorAccountHistoryResponse> gatewayResponse =
+            new GatewayService.Response<>(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                null,
+                null,
+                new RuntimeException("Gateway error")
+            );
+        GetMinorCreditorHistoryResponse mappedResponse = GetMinorCreditorHistoryResponse.builder()
+            .payload(new GetMinorCreditorHistory200Response().historyItems(List.of()))
+            .build();
+
+        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters)).thenReturn(request);
+        when(gatewayService.postToGateway(
+            "LIBRA.get_minor_creditor_account_history",
+            LegacyGetMinorCreditorAccountHistoryResponse.class,
+            request,
+            null
+        )).thenReturn(gatewayResponse);
+        when(minorCreditorHistoryMapper.toOpal(null)).thenReturn(mappedResponse);
+
+        // Act
+        GetMinorCreditorHistoryResponse result =
+            assertDoesNotThrow(() -> legacyMinorCreditorService.getMinorCreditorHistory(101L, filters));
+
+        // Assert
+        assertSame(mappedResponse, result);
+        verify(minorCreditorHistoryMapper).toOpal(null);
+    }
+
+    @Test
+    void getMinorCreditorHistory_shouldHandleLegacyFailure() {
+        // Arrange
+        MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(null, null, null);
+        LegacyGetMinorCreditorAccountHistoryRequest request =
+            LegacyGetMinorCreditorAccountHistoryRequest.builder()
+                .creditorAccountId("101")
+                .build();
+        LegacyGetMinorCreditorAccountHistoryResponse legacyResponse =
+            LegacyGetMinorCreditorAccountHistoryResponse.builder().historyItems(List.of()).build();
+        GatewayService.Response<LegacyGetMinorCreditorAccountHistoryResponse> gatewayResponse =
+            new GatewayService.Response<>(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                legacyResponse,
+                "<legacy-failure/>",
+                null
+            );
+        GetMinorCreditorHistoryResponse mappedResponse = GetMinorCreditorHistoryResponse.builder()
+            .payload(new GetMinorCreditorHistory200Response().historyItems(List.of()))
+            .build();
+
+        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters)).thenReturn(request);
+        when(gatewayService.postToGateway(
+            "LIBRA.get_minor_creditor_account_history",
+            LegacyGetMinorCreditorAccountHistoryResponse.class,
+            request,
+            null
+        )).thenReturn(gatewayResponse);
+        when(minorCreditorHistoryMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
+
+        // Act
+        GetMinorCreditorHistoryResponse result =
+            assertDoesNotThrow(() -> legacyMinorCreditorService.getMinorCreditorHistory(101L, filters));
+
+        // Assert
+        assertSame(mappedResponse, result);
+        verify(minorCreditorHistoryMapper).toOpal(legacyResponse);
+    }
+
+    @Test
+    void getMinorCreditorHistory_shouldDelegateNullLegacyPayload() {
+        // Arrange
+        MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(null, null, null);
+        LegacyGetMinorCreditorAccountHistoryRequest request =
+            LegacyGetMinorCreditorAccountHistoryRequest.builder()
+                .creditorAccountId("101")
+                .build();
+        GatewayService.Response<LegacyGetMinorCreditorAccountHistoryResponse> gatewayResponse =
+            new GatewayService.Response<>(HttpStatus.OK, null, null, null);
+        GetMinorCreditorHistoryResponse mappedResponse = GetMinorCreditorHistoryResponse.builder()
+            .payload(new GetMinorCreditorHistory200Response().historyItems(List.of()))
+            .build();
+
+        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters)).thenReturn(request);
+        when(gatewayService.postToGateway(
+            "LIBRA.get_minor_creditor_account_history",
+            LegacyGetMinorCreditorAccountHistoryResponse.class,
+            request,
+            null
+        )).thenReturn(gatewayResponse);
+        when(minorCreditorHistoryMapper.toOpal(null)).thenReturn(mappedResponse);
+
+        // Act
+        GetMinorCreditorHistoryResponse result = legacyMinorCreditorService.getMinorCreditorHistory(101L, filters);
+
+        // Assert
+        assertSame(mappedResponse, result);
+        verify(minorCreditorHistoryMapper).toOpal(null);
+    }
+
+    @Test
     void searchMinorCreditors_shouldMapLegacyResponseToDto() {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of((short) 1))
