@@ -129,6 +129,61 @@ class MinorCreditorHistoryLegacyMapperTest {
     }
 
     @Test
+    void toOpal_preservesDuplicateItemsAndOrdersSameDayItemsDeterministically() {
+        // Arrange
+        LocalDate postedDate = LocalDate.of(2026, 3, 1);
+        LegacyGetMinorCreditorAccountHistoryResponse legacy = LegacyGetMinorCreditorAccountHistoryResponse.builder()
+            .historyItems(List.of(
+                financialItem(postedDate, "PAYMNT", "C", BigDecimal.valueOf(10L), "PAY-1"),
+                amendmentItem(postedDate, "Hold Pay Out", "false", "true"),
+                financialItem(postedDate, "PAYMNT", "C", BigDecimal.valueOf(20L), "PAY-2"),
+                amendmentItem(postedDate, "Hold Pay Out", "true", "false"),
+                noteItem(postedDate, "Same-day note")
+            ))
+            .build();
+
+        // Act
+        GetMinorCreditorHistoryResponse result = mapper.toOpal(legacy);
+
+        // Assert
+        List<MinorCreditorHistoryItemHistory> historyItems = result.getPayload().getHistoryItems();
+        assertEquals(5, historyItems.size());
+        assertEquals(MinorCreditorHistoryItemHistory.TypeEnum.AMENDMENT, historyItems.get(0).getType());
+        assertEquals(MinorCreditorHistoryItemHistory.TypeEnum.AMENDMENT, historyItems.get(1).getType());
+        assertEquals(MinorCreditorHistoryItemHistory.TypeEnum.FINANCIAL, historyItems.get(2).getType());
+        assertEquals(MinorCreditorHistoryItemHistory.TypeEnum.FINANCIAL, historyItems.get(3).getType());
+        assertEquals(MinorCreditorHistoryItemHistory.TypeEnum.NOTE, historyItems.get(4).getType());
+
+        AmendmentTypeCommon firstAmendment = assertInstanceOf(
+            AmendmentTypeCommon.class,
+            historyItems.get(0).getDetails()
+        );
+        AmendmentTypeCommon secondAmendment = assertInstanceOf(
+            AmendmentTypeCommon.class,
+            historyItems.get(1).getDetails()
+        );
+        assertEquals("false", firstAmendment.getOldValue());
+        assertEquals("true", firstAmendment.getNewValue());
+        assertEquals("true", secondAmendment.getOldValue());
+        assertEquals("false", secondAmendment.getNewValue());
+
+        CreditorTransactionDetailsHistory firstFinancial = assertInstanceOf(
+            CreditorTransactionDetailsHistory.class,
+            historyItems.get(2).getDetails()
+        );
+        CreditorTransactionDetailsHistory secondFinancial = assertInstanceOf(
+            CreditorTransactionDetailsHistory.class,
+            historyItems.get(3).getDetails()
+        );
+        assertEquals("PAY-1", firstFinancial.getPaymentReference());
+        assertEquals("PAY-2", secondFinancial.getPaymentReference());
+
+        List<MinorCreditorHistoryItemHistory> repeatedHistoryItems = mapper.toOpal(legacy).getPayload()
+            .getHistoryItems();
+        assertEquals(historyItems, repeatedHistoryItems);
+    }
+
+    @Test
     void toOpal_mapsAmendmentDetails() {
         // Arrange
         LegacyGetMinorCreditorAccountHistoryResponse legacy = LegacyGetMinorCreditorAccountHistoryResponse.builder()
@@ -263,6 +318,16 @@ class MinorCreditorHistoryLegacyMapperTest {
         String status,
         BigDecimal amount) {
 
+        return financialItem(postedDate, transactionType, status, amount, "PAY-1");
+    }
+
+    private LegacyMinorCreditorAccountHistoryItem financialItem(
+        LocalDate postedDate,
+        String transactionType,
+        String status,
+        BigDecimal amount,
+        String paymentReference) {
+
         return LegacyMinorCreditorAccountHistoryItem.builder()
             .postedDetails(postedDetails(postedDate))
             .type("Financial")
@@ -271,7 +336,7 @@ class MinorCreditorHistoryLegacyMapperTest {
                     .transactionType(transactionType)
                     .transactionTypeDisplayName("Ignored display name")
                     .build())
-                .paymentReference("PAY-1")
+                .paymentReference(paymentReference)
                 .status(LegacyCreditorTransactionStatusReference.builder()
                     .creditorTransactionStatus(status)
                     .creditorTransactionStatusDisplayName("Ignored status")
