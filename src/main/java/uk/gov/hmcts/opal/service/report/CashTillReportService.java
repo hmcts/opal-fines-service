@@ -2,18 +2,18 @@ package uk.gov.hmcts.opal.service.report;
 
 import static uk.gov.hmcts.opal.service.report.CommonReportHelper.escapeCsv;
 import static uk.gov.hmcts.opal.service.report.CommonReportHelper.formatMoney;
+import static uk.gov.hmcts.opal.service.report.CommonReportHelper.formatReportDate;
+import static uk.gov.hmcts.opal.service.report.CommonReportHelper.formatReceiptValue;
 import static uk.gov.hmcts.opal.service.report.CommonReportHelper.validateMoney;
 import static uk.gov.hmcts.opal.service.report.CommonReportHelper.validateRequired;
 import static uk.gov.hmcts.opal.service.report.CommonReportHelper.validateText;
 import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.COMMA;
-import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.EMPTY_STRING;
 import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.NEW_LINE;
 import static uk.gov.hmcts.opal.service.report.FileType.CSV;
 import static uk.gov.hmcts.opal.service.report.ReportId.CASH_TILL;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.nio.charset.StandardCharsets;
-import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -36,7 +36,6 @@ import uk.gov.hmcts.opal.repository.jpa.PaymentInSpecs;
 @RequiredArgsConstructor
 public class CashTillReportService implements ReportInterface<CashTillReportData> {
 
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final String REPORT_NAME = "Cash Till report";
     private static final Sort PAYMENT_DATE_DESC = Sort.by(Sort.Direction.DESC, PaymentInEntity_.PAYMENT_DATE);
     private static final List<String> HEADINGS = List.of(
@@ -97,12 +96,12 @@ public class CashTillReportService implements ReportInterface<CashTillReportData
             escapeCsv(row.getBusinessUnit()),
             escapeCsv(row.getCashTillNumber()),
             escapeCsv(row.getCashier()),
-            escapeCsv(DATE_FORMATTER.format(row.getPaymentDateTime())),
+            escapeCsv(formatReportDate(row.getPaymentDateTime())),
             escapeCsv(row.getDestinationType().toValue()),
             escapeCsv(formatDetails(reportData, row)),
             escapeCsv(row.getPaymentMethod().toValue()),
             escapeCsv(formatMoney(row.getAmount())),
-            escapeCsv(Boolean.TRUE.equals(row.getReceipt()) ? "R" : EMPTY_STRING),
+            escapeCsv(formatReceiptValue(row.getReceipt())),
             escapeCsv(formatMoney(row.getBalance()))));
     }
 
