@@ -4,6 +4,7 @@ package uk.gov.hmcts.opal.service.opal;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
@@ -36,6 +37,18 @@ public class ResultService {
     private final ResultSpecs resultSpecs;
     private static final String WELSH_PARAMETER_PREFIX = "cy_";
     private static final String WELSH_PARAMETER_HINT = "Provide a welsh version for the defendant";
+    private static final Set<String> WELSH_PARAMETER_TYPES = Set.of(
+        "text",
+        "text-60",
+        "text-100",
+        "text-1000",
+        "date",
+        "integer",
+        "decimal",
+        "menu-radio",
+        "menu-checkbox",
+        "menu-autocomplete"
+    );
 
     @Transactional(readOnly = true)
     public ResultEntity getResultById(String resultId) {
@@ -85,7 +98,7 @@ public class ResultService {
 
     private boolean isWelshParameterRequired(JsonNode parameter) {
         return parameter.isObject()
-            && "text".equals(parameter.path("type").asText())
+            && WELSH_PARAMETER_TYPES.contains(parameter.path("type").asText())
             && parameter.path("language_dependent").asBoolean(false);
     }
 

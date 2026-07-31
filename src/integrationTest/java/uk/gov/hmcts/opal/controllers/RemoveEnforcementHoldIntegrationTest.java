@@ -33,6 +33,7 @@ class RemoveEnforcementHoldIntegrationTest extends AbstractOpalDefendantsIntegra
     @DisplayName("Remove enforcement hold returns 422 when blocked by account controls")
     @JiraStory("PO-5757")
     @JiraEpic("PO-2990")
+    @JiraTestKey("PO-9494")
     void removeEnforcementHold_returns422_whenBlockedByAccountControls() throws Exception {
         // Arrange
         long defendantAccountId = 9077L;
