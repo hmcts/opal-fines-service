@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
 @DisplayName("Defendant Account Summary View Legacy Integration Test")
@@ -29,6 +30,7 @@ public class LegacyDefendantAccountSummaryViewIntegrationTest extends AbstractIn
     @JiraEpic("PO-2332")
     @JiraStory("PO-2336")
     @DisplayName("PO-2336 INT.01 - Get defendant account header summary maps has_consolidated_accounts to true")
+    @JiraTestKey("PO-9417")
     void int01_getDefendantAccountHeaderSummary_mapsHasConsolidatedAccountsTrue() throws Exception {
         ResultActions resultActions = mockMvc.perform(
             get(DEFENDANT_ACCOUNTS_SUMMARY_URL, 77L)
@@ -62,6 +64,7 @@ public class LegacyDefendantAccountSummaryViewIntegrationTest extends AbstractIn
     @JiraEpic("PO-2332")
     @JiraStory("PO-2336")
     @DisplayName("PO-2336 INT.02 - Get defendant account header summary maps has_consolidated_accounts to false")
+    @JiraTestKey("PO-9416")
     void int02_getDefendantAccountHeaderSummary_mapsHasConsolidatedAccountsFalse() throws Exception {
         ResultActions resultActions = mockMvc.perform(
             get(DEFENDANT_ACCOUNTS_SUMMARY_URL, 10001L)
@@ -94,6 +97,7 @@ public class LegacyDefendantAccountSummaryViewIntegrationTest extends AbstractIn
     @JiraEpic("PO-2332")
     @JiraStory("PO-2336")
     @DisplayName("PO-2336 INT.05 - Valid token without the correct permission returns 403 response")
+    @JiraTestKey("PO-9415")
     void int05_getDefendantAccountHeaderSummary_returns403Response() throws Exception {
         ResultActions resultActions = mockMvc.perform(
             get(DEFENDANT_ACCOUNTS_SUMMARY_URL, 77L)
@@ -114,6 +118,7 @@ public class LegacyDefendantAccountSummaryViewIntegrationTest extends AbstractIn
     @JiraEpic("PO-2332")
     @JiraStory("PO-2336")
     @DisplayName("PO-2336 INT.07 - not found defendant account header summary returns 404 response")
+    @JiraTestKey("PO-9414")
     void int07_getDefendantAccountHeaderSummary_returns404Response() throws Exception {
         ResultActions resultActions = mockMvc.perform(
             get(DEFENDANT_ACCOUNTS_SUMMARY_URL, 999999L)

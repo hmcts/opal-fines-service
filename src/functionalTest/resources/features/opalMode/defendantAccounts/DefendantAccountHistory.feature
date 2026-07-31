@@ -65,7 +65,7 @@ Feature: Defendant Account History
     Then the defendant account history error response matches the standard problem detail contract for status 404
     And the defendant account history error response does not leak internal details
 
-  @cleanUpData @JIRA-STORY:PO-2623 @JIRA-EPIC:PO-2621
+  @cleanUpData @JIRA-STORY:PO-2623 @JIRA-EPIC:PO-2621 @JIRA-TEST-KEY:PO-9539
   Scenario: Representative p_audit_finalise caller still exposes audit identity through history
     Given a defendant account with history exists for submitted by "DEFHST004"
     When I request defendant account history for the created defendant account with query "itemTypes=amendment"

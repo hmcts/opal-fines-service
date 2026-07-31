@@ -149,6 +149,7 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Major creditor reference data uses cache on repeated identical request")
     @JiraStory("PO-7248")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-9436")
     void testGetMajorCreditorsRefData_usesCacheOnRepeatedRequest() throws Exception {
         clearInvocations(majorCreditorRepository);
 

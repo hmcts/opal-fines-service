@@ -15,6 +15,7 @@ import org.springframework.test.context.TestPropertySource;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @TestPropertySource(properties = {
@@ -28,6 +29,7 @@ class MappingsControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("GET /mappings/{type} returns defendant account status mappings")
     @JiraStory("PO-3871")
     @JiraEpic("PO-3372")
+    @JiraTestKey("PO-9439")
     void getMappings_returnsSupportedDefendantAccountStatusMappings() throws Exception {
         mockMvc.perform(get("/mappings/defendant-account-status"))
             .andExpect(status().isOk())
@@ -49,6 +51,7 @@ class MappingsControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("GET /mappings/{type} returns 400 with supported types for unsupported mapping type")
     @JiraStory("PO-3871")
     @JiraEpic("PO-3372")
+    @JiraTestKey("PO-9438")
     void getMappings_whenTypeIsUnsupported_returnsBadRequest() throws Exception {
         mockMvc.perform(get("/mappings/unsupported-type"))
             .andExpect(status().isBadRequest())
@@ -67,6 +70,7 @@ class MappingsControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("GET /mappings returns 400 when mapping type is missing")
     @JiraStory("PO-3871")
     @JiraEpic("PO-3372")
+    @JiraTestKey("PO-9437")
     void getMappings_whenTypeIsMissing_returnsBadRequest() throws Exception {
         mockMvc.perform(get("/mappings"))
             .andExpect(status().isBadRequest())

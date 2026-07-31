@@ -8,9 +8,9 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.dto.report.operation.SummaryOperationReportRowDto;
@@ -31,12 +31,8 @@ class CommonRowMappingHelperTest {
     @Mock
     private DebtorDetailRepositoryService debtorService;
 
+    @InjectMocks
     private CommonRowMappingHelper helper;
-
-    @BeforeEach
-    void setUp() {
-        helper = new CommonRowMappingHelper(debtorService);
-    }
 
     @Test
     void pickPrimaryParty_returnsDefendantPartyWhenPresent() {

@@ -326,7 +326,7 @@ public class GlobalExceptionHandler {
 
         private final String resourceType;
         private final String resourceId;
-        private final Versioned versioned;
+        private final transient Versioned versioned;
 
         public PaymentCardRequestAlreadyExistsException(String resourceType, String resourceId, Versioned versioned) {
             super("A payment card request already exists for this account.");

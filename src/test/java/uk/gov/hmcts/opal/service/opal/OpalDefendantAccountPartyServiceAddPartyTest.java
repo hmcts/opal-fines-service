@@ -223,10 +223,11 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
 
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
         doThrow(exception).when(defendantAccountControlValidator).validateCanMutateParty(account);
+        AddDefendantAccountPartyRequest request = validOrganisationRequest();
 
         UnprocessableException result = assertThrows(UnprocessableException.class, () ->
             service.addDefendantAccountParty(
-                accountId, businessUnitId, "bu-user-1", "tester", "\"1\"", validOrganisationRequest()));
+                accountId, businessUnitId, "bu-user-1", "tester", "\"1\"", request));
 
         assertEquals(exception, result);
         verify(defendantAccountControlValidator).validateCanMutateParty(account);
