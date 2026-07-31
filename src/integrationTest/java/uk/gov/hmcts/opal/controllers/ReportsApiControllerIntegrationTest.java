@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectInternalServerErrorWithoutStatus;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -183,7 +184,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
             String body = actions.andReturn().getResponse().getContentAsString();
             Set<String> actualFields = objectMapper.readTree(body).properties()
                 .stream()
-                .map(entry -> entry.getKey())
+                .map(Map.Entry::getKey)
                 .collect(java.util.stream.Collectors.toSet());
 
             actions.andExpect(status().isOk());
@@ -393,9 +394,17 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         )
         @JiraStory("PO-7225")
         @JiraEpic("PO-2248")
-        @JiraTestKey(value = "PO-9508", name = "Get report by ID - invalid BU warning threshold '\"not-an-integer\"' returns 500 [@PO-7225]")
-        @JiraTestKey(value = "PO-9509", name = "Get report by ID - invalid BU warning threshold '\"0\"' returns 500 [@PO-7225]")
-        @JiraTestKey(value = "PO-9510", name = "Get report by ID - invalid BU warning threshold '\"-1\"' returns 500 [@PO-7225]")
+        @JiraTestKey(
+            value = "PO-9508",
+            name = "Get report by ID - invalid BU warning threshold '\"not-an-integer\"' returns 500 "
+                + "[@PO-7225]"
+        )
+        @JiraTestKey(
+            value = "PO-9509", name = "Get report by ID - invalid BU warning threshold '\"0\"' returns 500 [@PO-7225]"
+        )
+        @JiraTestKey(
+            value = "PO-9510", name = "Get report by ID - invalid BU warning threshold '\"-1\"' returns 500 [@PO-7225]"
+        )
         void getReportById_whenThresholdConfigInvalid_returns500(String invalidThresholdValue) throws Exception {
             var threshold = configurationItemRepository
                 .findByItemNameAndBusinessUnitIdIsNull(BU_WARNING_THRESHOLD_ITEM_NAME)
