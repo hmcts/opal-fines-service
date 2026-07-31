@@ -1,10 +1,11 @@
 package uk.gov.hmcts.opal.service.hmrc;
 
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@Component
+@ConfigurationProperties("hmrc.auth")
+@RequiredArgsConstructor
 @Getter
 public class HmrcAuthCreds {
 
@@ -12,15 +13,4 @@ public class HmrcAuthCreds {
     private final String clientSecret;
     private final String scope;
     private final String grantType;
-    
-    public HmrcAuthCreds(@Value("${hmrc.auth.client-id}") String clientId,
-        @Value("${hmrc.auth.client-secret}") String clientSecret,
-        @Value("${hmrc.auth.scope}") String scope,
-        @Value("${hmrc.auth.grant-type}") String grantType) {
-
-        this.clientId = clientId;
-        this.clientSecret = clientSecret;
-        this.scope = scope;
-        this.grantType = grantType;
-    }
 }
