@@ -125,8 +125,9 @@ public class HmrcAuthServiceIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Multiple calls reuse cache with no external call to HMRC (INT.03 - INT.10)")
     @JiraStory("PO-2383")
     @JiraEpic("PO-1421")
-    void multipleCalls_UtilisesCache_OneExternalCall() {
+    void multipleCalls_UtilisesCache_OneExternalCall() throws InterruptedException {
         final HmrcAuthToken token1 = hmrcAuthService.getAuthToken();
+        Thread.sleep(500); // Sleeping to give time for the cache to exist in Redis
         final HmrcAuthToken token2 = hmrcAuthService.getAuthToken();
         final HmrcAuthToken token3 = hmrcAuthService.getAuthToken();
 
