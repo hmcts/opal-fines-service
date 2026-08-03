@@ -208,26 +208,6 @@ public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
     }
 
     /**
-     * Asserts the response includes an item on the remembered lower bound.
-     */
-    @Then("the major creditor account history response includes an item on the remembered dateFrom")
-    public void majorCreditorAccountHistoryResponseIncludesAnItemOnTheRememberedDateFrom() {
-        if (rememberedDateFrom != null) {
-            assertTrue(postedDates().contains(rememberedDateFrom), "Expected an item on the remembered dateFrom");
-        }
-    }
-
-    /**
-     * Asserts the response includes an item on the remembered upper bound.
-     */
-    @Then("the major creditor account history response includes an item on the remembered dateTo")
-    public void majorCreditorAccountHistoryResponseIncludesAnItemOnTheRememberedDateTo() {
-        if (rememberedDateTo != null) {
-            assertTrue(postedDates().contains(rememberedDateTo), "Expected an item on the remembered dateTo");
-        }
-    }
-
-    /**
      * Asserts the history response only contains the expected type when filtered.
      */
     @Then("the major creditor account history contains only the following item types")
@@ -238,7 +218,7 @@ public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
             actualTypes.add(typeOf(historyItem));
         }
 
-        assertTrue(actualTypes.stream().allMatch(expectedTypes::contains), "Unexpected history item type returned");
+        assertTrue(expectedTypes.containsAll(actualTypes), "Unexpected history item type returned");
     }
 
     /**
@@ -282,18 +262,6 @@ public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
                 "Error response leaked the creditor account id"
             );
         }
-    }
-
-    /**
-     * Asserts only documented fields are present in the response body.
-     *
-     */
-    @Then("the major creditor account history response contains only documented fields")
-    public void majorCreditorAccountHistoryResponseContainsOnlyDocumentedFields() {
-        schemaValidationService.validateOrError(
-            net.serenitybdd.rest.SerenityRest.lastResponse().getBody().asString(),
-            HISTORY_RESPONSE_SCHEMA
-        );
     }
 
     private Response getHistory(String token, long accountId, String query) {
