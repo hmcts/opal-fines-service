@@ -1,0 +1,156 @@
+openapi: 3.1.1
+
+info:
+  title: Opal Fines Service - Results
+  version: 1.0.0
+  description: APIs for retrieving result reference data.
+
+paths:
+  /results/{id}:
+    get:
+      tags:
+        - Results
+      summary: Get result by ID
+      description: Returns the full result definition for the supplied result ID.
+      operationId: getResultById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique result identifier.
+          schema:
+            type: string
+        - name: include_welsh
+          in: query
+          required: false
+          description: Whether Welsh result parameters should be included.
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Result found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetResultByIdResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Result not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+components:
+  schemas:
+    GetResultByIdResponse:
+      title: Get Result by ID response
+      type: object
+      additionalProperties: false
+      required:
+        - result_id
+        - result_title
+        - result_title_cy
+        - result_type
+        - active
+        - imposition
+        - enforcement
+        - enforcement_override
+        - further_enforcement_warn
+        - further_enforcement_disallow
+        - enforcement_hold
+        - requires_enforcer
+        - generates_hearing
+        - collection_order
+        - extend_ttp_disallow
+        - extend_ttp_preserve_last_enf
+        - prevent_payment_card
+        - lists_monies
+        - generates_warrant
+        - manual_enforcement
+      properties:
+        result_id:
+          type: string
+        result_title:
+          type: string
+        result_title_cy:
+          type: string
+        result_type:
+          type: string
+        active:
+          type: boolean
+        imposition_allocation_priority:
+          type: integer
+          format: int16
+        imposition_creditor:
+          type: string
+        imposition:
+          type: boolean
+        imposition_category:
+          type: string
+        imposition_accruing:
+          type: boolean
+        enforcement:
+          type: boolean
+        enforcement_override:
+          type: boolean
+        further_enforcement_warn:
+          type: boolean
+        further_enforcement_disallow:
+          type: boolean
+        enforcement_hold:
+          type: boolean
+        requires_enforcer:
+          type: boolean
+        generates_hearing:
+          type: boolean
+        collection_order:
+          type: boolean
+        extend_ttp_disallow:
+          type: boolean
+        extend_ttp_preserve_last_enf:
+          type: boolean
+        prevent_payment_card:
+          type: boolean
+        lists_monies:
+          type: boolean
+        result_parameters:
+          type: string
+        requires_employment_data:
+          type: boolean
+        allow_payment_terms:
+          type: boolean
+        allow_additional_action:
+          type: boolean
+        generates_warrant:
+          type: boolean
+        requires_lja:
+          type: boolean
+        manual_enforcement:
+          type: boolean
+        enf_next_permitted_actions:
+          type: string
