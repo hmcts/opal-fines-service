@@ -61,6 +61,10 @@
           "type": ["string", "null"],
           "description": "The postcode associated with the creditor"
         },
+        "organisation": {
+          "type": "boolean",
+          "description": "Indicates if the creditor is an organisation (true) or an individual (false)"
+        },
         "organisation_name": {
           "type": ["string", "null"],
           "description": "Name of the organisation"
@@ -69,13 +73,13 @@
           "type": ["boolean", "null"],
           "description": "Apply exact match for organisation name"
         },
-        "forenames": {
-          "type": ["string", "null"],
-          "description": "Forenames of the individual"
-        },
         "surname": {
           "type": ["string", "null"],
           "description": "Surname of the individual"
+        },
+        "forenames": {
+          "type": ["string", "null"],
+          "description": "Forenames of the individual"
         },
         "exact_match_surname": {
           "type": ["boolean", "null"],
@@ -84,20 +88,16 @@
         "exact_match_forenames": {
           "type": ["boolean", "null"],
           "description": "Apply exact match for forenames"
-        },
-        "organisation": {
-          "type": "boolean",
-          "description": "Indicates if the creditor is an organisation (true) or an individual (false)"
         }
       },
       "oneOf": [
         {
           "properties": {
             "organisation": { "const": true },
-            "forenames": false,
-            "surname": false,
-            "exact_match_surname": false,
-            "exact_match_forenames": false
+            "forenames": { "const": null },
+            "surname": { "const":  null },
+            "exact_match_surname": { "const": null },
+            "exact_match_forenames": {"const":  null }
           },
           "anyOf": [
             {
@@ -139,21 +139,31 @@
                 "postcode"
               ]
             }
+          ],
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "forenames": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "forenames"
+                ]
+              },
+              "then": {
+                "required": [
+                  "surname"
+                ],
+                "properties": {
+                  "surname": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
           ]
-        }
-      ],
-      "allOf": [
-        {
-          "if": {
-            "required": [
-              "forenames"
-            ]
-          },
-          "then": {
-            "required": [
-              "surname"
-            ]
-          }
         }
       ],
       "additionalProperties": false

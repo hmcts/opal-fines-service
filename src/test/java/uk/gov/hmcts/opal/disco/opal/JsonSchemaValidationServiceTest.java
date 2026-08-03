@@ -362,14 +362,14 @@ class JsonSchemaValidationServiceTest {
     }
 
     @Test
-    void testMinorCreditorAccountSearchRequest_withForenamesWithoutSurname_shouldFail() {
+    void testMinorCreditorAccountsSearchRequest_withForenamesWithoutSurname_shouldFail() {
         String invalidJson = """
             {
-              "business_unit_ids": [77],
               "active_accounts_only": true,
               "creditor": {
+                "organisation": false,
                 "forenames": "John",
-                "organisation": false
+                "address_line_1": "1 High Street"
               }
             }
             """;
@@ -383,11 +383,11 @@ class JsonSchemaValidationServiceTest {
     @Test
     void testMinorCreditorAccountSearchRequest_withAccountNumber_shouldPass() {
         String validJson = """
-        {
-              "business_unit_ids": [77],
+            {
               "active_accounts_only": true,
               "account_number": "12345678A"
-        }""";
+            }
+            """;
 
         assertTrue(jsonSchemaValidationService.isValid(
             validJson,
@@ -396,14 +396,13 @@ class JsonSchemaValidationServiceTest {
     }
 
     @Test
-    void testMinorCreditorAccountSearchRequest_withSurnameOnly_shouldPass() {
+    void testMinorCreditorAccountsSearchRequest_withSurnameOnly_shouldPass() {
         String validJson = """
             {
-              "business_unit_ids": [77],
               "active_accounts_only": true,
               "creditor": {
-                "surname": "Smith",
-                "organisation": false
+                "organisation": false,
+                "surname": "Smith"
               }
             }
             """;
@@ -415,14 +414,13 @@ class JsonSchemaValidationServiceTest {
     }
 
     @Test
-    void testMinorCreditorAccountSearchRequest_withOrganisationNameOnly_shouldPass() {
+    void testMinorCreditorAccountsSearchRequest_withOrganisationNameOnly_shouldPass() {
         String validJson = """
             {
-              "business_unit_ids": [77],
               "active_accounts_only": true,
               "creditor": {
-                "organisation_name": "Acme Ltd",
-                "organisation": true
+                "organisation": true,
+                "organisation_name": "Acme Ltd"
               }
             }
             """;
@@ -434,16 +432,15 @@ class JsonSchemaValidationServiceTest {
     }
 
     @Test
-    void testMinorCreditorAccountSearchRequest_withAddressLine1Only_shouldPass() {
+    void testMinorCreditorAccountsSearchRequest_withAddressLine1Only_shouldPass() {
         String validJson = """
             {
-               "business_unit_ids": [77],
-               "active_accounts_only": true,
-               "creditor": {
-                 "address_line_1": "1 High Street",
-                 "organisation": false
-               }
-             }
+              "active_accounts_only": true,
+              "creditor": {
+                "organisation": false,
+                "address_line_1": "1 High Street"
+              }
+            }
             """;
 
         assertTrue(jsonSchemaValidationService.isValid(
@@ -453,16 +450,15 @@ class JsonSchemaValidationServiceTest {
     }
 
     @Test
-    void testMinorCreditorAccountSearchRequest_withPostcodeOnly_shouldPass() {
+    void testMinorCreditorAccountsSearchRequest_withPostcodeOnly_shouldPass() {
         String validJson = """
             {
-               "business_unit_ids": [77],
-               "active_accounts_only": true,
-               "creditor": {
-                 "postcode": "AB1 2CD",
-                 "organisation": false
-               }
-             }
+              "active_accounts_only": true,
+              "creditor": {
+                "organisation": false,
+                "postcode": "AB1 2CD"
+              }
+            }
             """;
 
         assertTrue(jsonSchemaValidationService.isValid(

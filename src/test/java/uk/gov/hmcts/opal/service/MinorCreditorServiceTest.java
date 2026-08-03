@@ -55,6 +55,9 @@ class MinorCreditorServiceTest {
     @Mock
     MinorCreditorSearchProxy minorCreditorSearchProxy;
 
+    @Mock
+    MinorCreditorSearchRequestValidator minorCreditorSearchRequestValidator;
+
     @InjectMocks
     private MinorCreditorService minorCreditorService;
 
