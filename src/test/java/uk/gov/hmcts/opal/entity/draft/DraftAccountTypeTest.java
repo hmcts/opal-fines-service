@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
-public class DraftAccountTypeTest {
+class DraftAccountTypeTest {
 
     @Test
     void getByLabel_shouldReturnEnum_forKnownLabel() {

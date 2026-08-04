@@ -7,9 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.dto.Payment;
 
-public class PaymentMapperTest {
+class PaymentMapperTest {
     @Test
-    public void testPaymentIsNull() {
+    void testPaymentIsNull() {
         PaymentMapper mapper = Mappers.getMapper(PaymentMapper.class);
         Payment payment = mapper.toDto(null);
 

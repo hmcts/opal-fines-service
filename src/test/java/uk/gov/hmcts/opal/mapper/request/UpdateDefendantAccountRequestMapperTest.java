@@ -9,7 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.generated.model.CollectionOrderCommon;
 
-public class UpdateDefendantAccountRequestMapperTest {
+class UpdateDefendantAccountRequestMapperTest {
     // The mapper is an interface with a default method, so we need to use the implementation class
     private final UpdateDefendantAccountRequestMapper mapper = new UpdateDefendantAccountRequestMapperImpl();
 
