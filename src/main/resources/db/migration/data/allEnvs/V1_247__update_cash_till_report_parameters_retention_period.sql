@@ -16,4 +16,5 @@
 UPDATE reports
    SET report_parameters = '[{"name":"till_id","prompt":"Till ID","type":"integer","mandatory":true,"min":1},{"name":"allocated_report","prompt":"Allocated report","type":"boolean","mandatory":false}]'
       ,retention_period = 'P14D'
+      ,permission = 'SEARCH_AND_VIEW_ACCOUNTS'
  WHERE report_id = 'cash_till';
