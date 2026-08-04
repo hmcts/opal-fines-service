@@ -308,16 +308,16 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @JiraStory("PO-1915")
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6187")
-    void patchMinorCreditor_withoutHoldPermission_returns403() throws Exception {
-        super.patchMinorCreditor_withoutHoldPermission_returns403();
+    void patchMinorCreditor_withMinorCreditorMaintenancePermission_returns200() throws Exception {
+        super.patchMinorCreditor_withMinorCreditorMaintenancePermission_returns200();
     }
 
     @Test
     @JiraStory("PO-1915")
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6179")
-    void patchMinorCreditor_withoutAccountMaintenancePermission_returns403() throws Exception {
-        super.patchMinorCreditor_withoutAccountMaintenancePermission_returns403();
+    void patchMinorCreditor_withoutMinorCreditorMaintenancePermission_returns403() throws Exception {
+        super.patchMinorCreditor_withoutMinorCreditorMaintenancePermission_returns403();
     }
 
     @Test
@@ -326,14 +326,6 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @JiraTestKey("PO-6212")
     void patchMinorCreditor_missingAuthHeader_returns403() throws Exception {
         super.patchMinorCreditor_missingAuthHeader_returns403();
-    }
-
-    @Test
-    @JiraStory("PO-1915")
-    @JiraEpic("PO-812")
-    @JiraTestKey("PO-7659")
-    void patchMinorCreditor_withoutViewCreditorBacsPermission_returns403() throws Exception {
-        super.patchMinorCreditor_withoutViewCreditorBacsPermission_returns403();
     }
 
     @Test
