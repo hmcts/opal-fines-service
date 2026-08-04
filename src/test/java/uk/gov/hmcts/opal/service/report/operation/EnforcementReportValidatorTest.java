@@ -16,10 +16,9 @@ import uk.gov.hmcts.opal.dto.ResultId;
 import uk.gov.hmcts.opal.dto.report.operation.OperationReportByEnforcementFiltersDto;
 import uk.gov.hmcts.opal.service.report.ReportEnforcementMode;
 
-class OperationReportByEnforcementValidatorTest {
+class EnforcementReportValidatorTest {
 
-    private final OperationReportByEnforcementValidator validator =
-        new OperationReportByEnforcementValidator();
+    private final EnforcementReportValidator validator = new EnforcementReportValidator();
 
     @Test
     void validate_whenNoRelevantFilters_doesNotThrow() {

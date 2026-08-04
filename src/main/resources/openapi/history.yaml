@@ -80,8 +80,12 @@ components:
           description: History item type.
           enum:
             - Financial
+            - Note
         details:
-          $ref: '#/components/schemas/creditorTransactionDetails'
+          oneOf:
+            - $ref: '#/components/schemas/noteDetails'
+            - $ref: '#/components/schemas/creditorTransactionDetails'
+          description: History item details
         amount:
           $ref: './types.yaml#/components/schemas/monetaryNegativeOrPositive'
 

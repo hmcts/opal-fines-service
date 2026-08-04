@@ -23,12 +23,13 @@ import uk.gov.hmcts.opal.generated.model.EnforcementAccountTypeCommon;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementAccountTypes200Response;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Slf4j(topic = "opal.EnforcementAccountTypesControllerIntegrationTest")
 @DisplayName("Enforcement Account Types Integration Test")
 public class EnforcementAccountTypesControllerIntegrationTest extends AbstractIntegrationTest {
 
-    private static final String URL = "/enforcement-accounts-types/";
+    private static final String URL = "/enforcement-accounts-types";
 
     @TestPropertySource(properties = {
         "launchdarkly.enabled=false",
@@ -41,6 +42,7 @@ public class EnforcementAccountTypesControllerIntegrationTest extends AbstractIn
         @DisplayName("PO-2434 - INT.01 & INT.06 – Return all enforcement account types")
         @JiraStory("PO-2434")
         @JiraEpic("PO-2433")
+        @JiraTestKey("PO-9391")
         void returnsAllEnforcementAccountTypes_200() throws Exception {
             setupAuthorisedUser();
             ResultActions result = mockMvc.perform(
@@ -78,6 +80,7 @@ public class EnforcementAccountTypesControllerIntegrationTest extends AbstractIn
         @DisplayName("PO-2434 - INT.07 – Forbidden without Auto Enforcement permission")
         @JiraStory("PO-2434")
         @JiraEpic("PO-2433")
+        @JiraTestKey("PO-9390")
         void forbiddenWithoutAutoEnforcementPermission() throws Exception {
             userStateStub.setupWithNoPermissions();
             ResultActions result = mockMvc.perform(
@@ -94,6 +97,7 @@ public class EnforcementAccountTypesControllerIntegrationTest extends AbstractIn
         @DisplayName("PO-2434 - INT.04 & INT.06 – Deterministic and idempotent GET")
         @JiraStory("PO-2434")
         @JiraEpic("PO-2433")
+        @JiraTestKey("PO-9392")
         void deterministicAndIdempotentGET() throws Exception {
             setupAuthorisedUser();
             String responseBody1 = callGetAndReturnContentAsString();
@@ -127,6 +131,7 @@ public class EnforcementAccountTypesControllerIntegrationTest extends AbstractIn
         @DisplayName("PO-2434 - Feature flag off test")
         @JiraStory("PO-2434")
         @JiraEpic("PO-2433")
+        @JiraTestKey("PO-9393")
         void getAllEnforcementAccountTypes_FeatureOff_404() throws Exception {
             setupAuthorisedUser();
             ResultActions result = mockMvc.perform(

@@ -7,14 +7,14 @@ import static net.serenitybdd.rest.SerenityRest.then;
 import static org.hamcrest.Matchers.equalTo;
 
 /**
- * Defines feature-toggle request steps for release-1c defendant account search behaviour.
+ * Defines feature-toggle request steps for release-1c-write-off defendant account search behaviour.
  */
 public class Release1cFeatureToggleStepDef extends BaseStepDef {
 
     private static final String DEFENDANT_ACCOUNT_SEARCH_URI = "/defendant-accounts/search";
 
     /**
-     * Calls defendant account search with the release-1c consolidated search parameter enabled.
+     * Calls defendant account search with the release-1c-write-off consolidated search parameter enabled.
      */
     @When("I call the defendant account search endpoint with consolidated search enabled")
     public void callDefendantAccountSearchWithConsolidatedSearchEnabled() {
@@ -22,7 +22,7 @@ public class Release1cFeatureToggleStepDef extends BaseStepDef {
     }
 
     /**
-     * Calls defendant account search without requesting release-1c consolidated search behaviour.
+     * Calls defendant account search without requesting release-1c-write-off consolidated search behaviour.
      */
     @When("I call the defendant account search endpoint without consolidated search")
     public void callDefendantAccountSearchWithoutConsolidatedSearch() {
@@ -30,9 +30,9 @@ public class Release1cFeatureToggleStepDef extends BaseStepDef {
     }
 
     /**
-     * Asserts that the latest problem response reports a release-1c feature-toggle rejection.
+     * Asserts that the latest problem response reports a release-1c-write-off feature-toggle rejection.
      */
-    @Then("the release 1c feature-disabled response is returned")
+    @Then("the release 1c write-off feature-disabled response is returned")
     public void release1cFeatureDisabledResponseIsReturned() {
         then()
             .log().ifValidationFails()

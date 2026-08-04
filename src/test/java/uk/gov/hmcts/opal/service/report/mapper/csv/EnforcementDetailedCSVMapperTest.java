@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedAccountReportDto;
@@ -12,7 +13,7 @@ import uk.gov.hmcts.opal.dto.report.operation.DetailedReportDto;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedReportTransactionRowDto;
 import uk.gov.hmcts.opal.service.report.operation.OperationDetailedReport;
 
-class OperationByEnforcementReportDetailedCSVMapperTest {
+class EnforcementDetailedCSVMapperTest {
 
     private static final String TRANSACTION_VALUE = "TRANSACTION";
     private static final String DETAIL = "DETAIL";
@@ -20,7 +21,7 @@ class OperationByEnforcementReportDetailedCSVMapperTest {
     private static final String COMPANY = "Y";
     private static final String ACCOUNT_NO = "ACCT-1";
     private static final String DEFENDANT_NAME = "Defendant Name";
-    private static final LocalDate DATE_OF_BIRTH = LocalDate.of(1980, 1, 2);
+    private static final LocalDate DATE_OF_BIRTH = LocalDate.of(1980, Month.JANUARY, 2);
     private static final String ADDRESS1 = "Line 1";
     private static final String ADDRESS2 = "Line 2";
     private static final String ADDRESS3 = "Line 3";
@@ -36,8 +37,8 @@ class OperationByEnforcementReportDetailedCSVMapperTest {
     private static final String EMPLOYER_TEL = "01234567890";
     private static final String EMPLOYER_EMAIL = "employer@example.com";
     private static final String COLLECTION_ORDER = "Y";
-    private static final LocalDate LAST_MOVEMENT_DATE = LocalDate.of(2026, 6, 1);
-    private static final LocalDate DATE_OF_HEARING = LocalDate.of(2026, 6, 10);
+    private static final LocalDate LAST_MOVEMENT_DATE = LocalDate.of(2026, Month.JUNE, 1);
+    private static final LocalDate DATE_OF_HEARING = LocalDate.of(2026, Month.JUNE, 10);
     private static final String IMPOSING_COURT = "Court 1";
     private static final String PAYMENT_TERMS = "Monthly";
     private static final BigDecimal AMOUNT_IMPOSED = new BigDecimal("100.10");
@@ -53,7 +54,7 @@ class OperationByEnforcementReportDetailedCSVMapperTest {
 
     private static final String TXN_ACCOUNT_NO_1 = "ACCT-1";
     private static final String TXN_CONSOLIDATED_ACCOUNT_NO_1 = "CON-1";
-    private static final LocalDate TXN_DATE_1 = LocalDate.of(2026, 6, 11);
+    private static final LocalDate TXN_DATE_1 = LocalDate.of(2026, Month.JUNE, 11);
     private static final String TXN_TYPE_1 = "PAYMENT";
     private static final String TXN_DETAILS_1 = "Payment for enforcement action";
     private static final String TXN_USER_ID_1 = "user-1";
@@ -61,14 +62,13 @@ class OperationByEnforcementReportDetailedCSVMapperTest {
 
     private static final String TXN_ACCOUNT_NO_2 = "ACCT-2";
     private static final String TXN_CONSOLIDATED_ACCOUNT_NO_2 = "CON-2";
-    private static final LocalDate TXN_DATE_2 = LocalDate.of(2026, 6, 12);
+    private static final LocalDate TXN_DATE_2 = LocalDate.of(2026, Month.JUNE, 12);
     private static final String TXN_TYPE_2 = "ADJUSTMENT";
     private static final String TXN_DETAILS_2 = "Adjustment made after review";
     private static final String TXN_USER_ID_2 = "user-2";
     private static final BigDecimal TXN_AMOUNT_2 = new BigDecimal("56.78");
 
-    private final OperationByEnforcementReportDetailedCSVMapper mapper =
-        new OperationByEnforcementReportDetailedCSVMapper();
+    private final EnforcementDetailedCSVMapper mapper = new EnforcementDetailedCSVMapper();
 
     @Test
     void reportToCSVString_withNoAccounts_returnsOnlyHeaders() {

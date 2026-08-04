@@ -13,6 +13,7 @@ import org.springframework.test.context.TestPropertySource;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @TestPropertySource(properties = {
@@ -27,6 +28,7 @@ class InterfaceJobsSummaryFlagIT extends AbstractIntegrationTest {
     @DisplayName("PO-2574 INT.11 - Handles disabled feature")
     @JiraStory("PO-2574")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-9395")
     void handlesDisabledFeature() throws Exception {
         mockMvc.perform(get(URL)
                 .queryParam("business_unit_ids", "2574"))

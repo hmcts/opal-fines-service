@@ -98,7 +98,7 @@ BEGIN
         account_number,
         creditor_account_type,
         prosecution_service,
-        from_suspense,
+        repayment,
         hold_payout,
         pay_by_bacs,
         major_creditor_id
@@ -130,7 +130,7 @@ BEGIN
         account_number = EXCLUDED.account_number,
         creditor_account_type = EXCLUDED.creditor_account_type,
         prosecution_service = EXCLUDED.prosecution_service,
-        from_suspense = EXCLUDED.from_suspense,
+        repayment = EXCLUDED.repayment,
         hold_payout = EXCLUDED.hold_payout,
         pay_by_bacs = EXCLUDED.pay_by_bacs,
         major_creditor_id = EXCLUDED.major_creditor_id;
@@ -260,7 +260,7 @@ BEGIN
         account_number,
         creditor_account_type,
         prosecution_service,
-        from_suspense,
+        repayment,
         hold_payout,
         pay_by_bacs,
         major_creditor_id
@@ -327,7 +327,7 @@ BEGIN
         account_number,
         creditor_account_type,
         prosecution_service,
-        from_suspense,
+        repayment,
         hold_payout,
         pay_by_bacs
     ) VALUES (

@@ -10,29 +10,32 @@ import static uk.gov.hmcts.opal.testdata.OperationReportByPaymentFiltersIntegrat
 import static uk.gov.hmcts.opal.testdata.OperationReportByPaymentFiltersIntegrationTestData.reportWithFilters;
 
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.report.operation.SummaryOperationReportRowDto;
 import uk.gov.hmcts.opal.dto.report.operation.SummaryReportTotalsRowDto;
-import uk.gov.hmcts.opal.service.report.operation.OperationReportByPaymentService;
 import uk.gov.hmcts.opal.service.report.operation.OperationSummaryReport;
+import uk.gov.hmcts.opal.service.report.operation.PaymentReportService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Sql(scripts = "classpath:db/insertData/insert_into_enforcements.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_enforcements.sql", executionPhase = AFTER_TEST_CLASS)
-@Slf4j(topic = "opal.OperationReportByPaymentServiceSummaryTest")
-@DisplayName("OperationReportByPaymentServiceSummaryTest")
-class OperationReportByPaymentServiceSummaryTest extends AbstractIntegrationTest {
+@Slf4j(topic = "opal.PaymentSummaryReportServiceTest")
+@DisplayName("PaymentSummaryReportServiceTest")
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+class PaymentSummaryReportServiceTest extends AbstractIntegrationTest {
 
-    @Autowired
-    private OperationReportByPaymentService service;
+    private final PaymentReportService service;
 
     @Nested
     @DisplayName("GenerateReportData")
@@ -41,6 +44,7 @@ class OperationReportByPaymentServiceSummaryTest extends AbstractIntegrationTest
         @JiraStory("PO-2285")
         @JiraEpic("PO-2248")
         @Test
+        @JiraTestKey("PO-9519")
         void whenSummarySinceDate_thenReturnsSortedResultsAndTotals_happyPath() {
             OperationSummaryReport result =
                 (OperationSummaryReport) service.generateReportData(
@@ -65,7 +69,8 @@ class OperationReportByPaymentServiceSummaryTest extends AbstractIntegrationTest
         @JiraStory("PO-2285")
         @JiraEpic("PO-2248")
         @Test
-        void whenSummaryWithRegfAndPaymentMade_thenReturnsExpectedResults_happyPath() {
+        @JiraTestKey("PO-9521")
+        void summaryRegfPaymentMade_returnsExpectedRows() {
             OperationSummaryReport result =
                 (OperationSummaryReport) service.generateReportData(
                     reportWithFilters(SUMMARY_WITH_REGF_PAYMENT_MADE_JSON));
@@ -82,7 +87,8 @@ class OperationReportByPaymentServiceSummaryTest extends AbstractIntegrationTest
         @JiraStory("PO-2285")
         @JiraEpic("PO-2248")
         @Test
-        void whenSummarySinceLastEnforcementAndPaymentNotMade_thenReturnsExpectedResults_happyPath() {
+        @JiraTestKey("PO-9520")
+        void summarySinceLastEnforcementPaymentNotMade_returnsExpectedRows() {
             OperationSummaryReport result =
                 (OperationSummaryReport) service.generateReportData(
                     reportWithFilters(SUMMARY_SINCE_LAST_ENFORCEMENT_PAYMENT_NOT_MADE_JSON));

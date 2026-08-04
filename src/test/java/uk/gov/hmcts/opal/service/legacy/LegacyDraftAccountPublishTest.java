@@ -9,7 +9,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.system.OutputCaptureExtension;
@@ -41,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -67,7 +67,7 @@ class LegacyDraftAccountPublishTest {
 
     @BeforeEach
     void openMocks() throws Exception {
-        gatewayService = Mockito.spy(new LegacyGatewayService(gatewayProperties, restClient));
+        gatewayService = spy(new LegacyGatewayService(gatewayProperties, restClient));
         injectGatewayService(legacyDraftAccountPublish, gatewayService);
     }
 
@@ -256,7 +256,7 @@ class LegacyDraftAccountPublishTest {
     @Test
     void testPublishDefendantAccount_exceptionResponse() throws Exception {
 
-        GatewayService mockGatewayService = Mockito.mock(GatewayService.class);
+        GatewayService mockGatewayService = mock(GatewayService.class);
         injectGatewayService(legacyDraftAccountPublish, mockGatewayService);
 
         BusinessUnitUser buu = BusinessUnitUser.builder()
@@ -291,7 +291,7 @@ class LegacyDraftAccountPublishTest {
     @Test
     void testPublishDefendantAccount_interruptedException() throws Exception {
 
-        GatewayService mockGatewayService = Mockito.mock(GatewayService.class);
+        GatewayService mockGatewayService = mock(GatewayService.class);
         injectGatewayService(legacyDraftAccountPublish, mockGatewayService);
 
         BusinessUnitUser buu = BusinessUnitUser.builder()
@@ -331,7 +331,7 @@ class LegacyDraftAccountPublishTest {
     @Test
     void testPublishDefendantAccount_executionException() throws Exception {
 
-        GatewayService mockGatewayService = Mockito.mock(GatewayService.class);
+        GatewayService mockGatewayService = mock(GatewayService.class);
         injectGatewayService(legacyDraftAccountPublish, mockGatewayService);
 
         BusinessUnitUser buu = BusinessUnitUser.builder()

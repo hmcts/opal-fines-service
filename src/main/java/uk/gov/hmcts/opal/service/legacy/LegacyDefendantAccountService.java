@@ -309,6 +309,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             : BusinessUnitSummaryCommon.builder()
               .businessUnitId(Short.valueOf(response.getBusinessUnitSummary().getBusinessUnitId()))
               .businessUnitName(response.getBusinessUnitSummary().getBusinessUnitName())
+              .businessUnitCode(response.getBusinessUnitSummary().getBusinessUnitCode())
               .welshSpeaking("N")
               .build();
 

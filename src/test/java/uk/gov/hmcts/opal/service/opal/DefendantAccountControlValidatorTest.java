@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.Month;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -99,13 +100,13 @@ class DefendantAccountControlValidatorTest {
     void isProtectedUpdate_returnsTrueWhenProtectedFieldChanges() {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .collectionOrder(false)
-            .collectionOrderEffectiveDate(LocalDate.of(2025, 1, 1))
+            .collectionOrderEffectiveDate(LocalDate.of(2025, Month.JANUARY, 1))
             .build();
         UpdateDefendantAccountRequest request = UpdateDefendantAccountRequest.builder()
             .payload(UpdateDefendantAccountRequestPayload.builder()
                 .collectionOrder(CollectionOrderCommon.builder()
                     .collectionOrderFlag(true)
-                    .collectionOrderDate(LocalDate.of(2025, 1, 1))
+                    .collectionOrderDate(LocalDate.of(2025, Month.JANUARY, 1))
                     .build())
                 .build())
             .build();
@@ -118,13 +119,13 @@ class DefendantAccountControlValidatorTest {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .enforcingCourt(CourtEntity.builder().courtId(100L).build())
             .collectionOrder(true)
-            .collectionOrderEffectiveDate(LocalDate.of(2025, 1, 1))
+            .collectionOrderEffectiveDate(LocalDate.of(2025, Month.JANUARY, 1))
             .build();
         UpdateDefendantAccountRequest request = UpdateDefendantAccountRequest.builder()
             .payload(UpdateDefendantAccountRequestPayload.builder()
                 .collectionOrder(CollectionOrderCommon.builder()
                     .collectionOrderFlag(true)
-                    .collectionOrderDate(LocalDate.of(2025, 1, 1))
+                    .collectionOrderDate(LocalDate.of(2025, Month.JANUARY, 1))
                     .build())
                 .build())
             .build();

@@ -6,6 +6,7 @@ import jakarta.persistence.LockModeType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -55,8 +56,9 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 @RequiredArgsConstructor
 public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
-    private static final LocalDateTime MIN_HISTORY_POSTED_DATE = LocalDateTime.of(1, 1, 1, 0, 0);
-    private static final LocalDateTime MAX_HISTORY_POSTED_DATE = LocalDateTime.of(9999, 12, 31, 23, 59, 59);
+    private static final LocalDateTime MIN_HISTORY_POSTED_DATE = LocalDateTime.of(1, Month.JANUARY, 1, 0, 0);
+    private static final LocalDateTime MAX_HISTORY_POSTED_DATE = LocalDateTime.of(9999, Month.DECEMBER, 31, 23, 59, 59);
+    private static final String MINOR_CREDITOR_ACCOUNT_NOT_FOUND = "Minor creditor account not found: ";
 
     private final MinorCreditorRepository minorCreditorRepository;
     private final MinorCreditorAccountHeaderRepository minorCreditorAccountHeaderRepository;
@@ -89,7 +91,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
         CreditorAccountEntity creditorAccount = creditorAccountRepository.findById(minorCreditorAccountId)
             .orElseThrow(() -> new EntityNotFoundException(
-                "Minor creditor account not found: " + minorCreditorAccountId
+                MINOR_CREDITOR_ACCOUNT_NOT_FOUND + minorCreditorAccountId
             ));
 
         if (creditorAccount.getCreditorAccountType() == null || !creditorAccount.getCreditorAccountType()
@@ -115,7 +117,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
         CreditorAccountEntity creditorAccount = creditorAccountRepository.findById(minorCreditorAccountId)
             .orElseThrow(() -> new EntityNotFoundException(
-                "Minor creditor account not found: " + minorCreditorAccountId
+                MINOR_CREDITOR_ACCOUNT_NOT_FOUND + minorCreditorAccountId
             ));
 
         if (creditorAccount.getCreditorAccountType() == null || !creditorAccount.getCreditorAccountType()
@@ -181,7 +183,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
         MinorCreditorAccountAtAGlanceEntity minorCreditorEntity =
             minorCreditorAccountAtAGlanceRepository.findById(minorCreditorId)
             .orElseThrow(() -> new EntityNotFoundException(
-                "Minor creditor account not found: " + minorCreditorId
+                MINOR_CREDITOR_ACCOUNT_NOT_FOUND + minorCreditorId
             ));
         PartyEntity partyEntity = partyRepository.findById(minorCreditorEntity.getPartyId())
             .orElseThrow(() -> new EntityNotFoundException(
@@ -205,7 +207,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
         MinorCreditorAccountHeaderEntity entity =
             minorCreditorAccountHeaderRepository.findById(minorCreditorAccountId)
                 .orElseThrow(() -> new EntityNotFoundException(
-                    "Minor creditor account not found: " + minorCreditorAccountId
+                    MINOR_CREDITOR_ACCOUNT_NOT_FOUND + minorCreditorAccountId
                 ));
 
         long partyId = entity.getPartyId();
@@ -232,7 +234,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
         CreditorAccountEntity creditorAccount = creditorAccountRepository
             .findByCreditorAccountIdAndBusinessUnitId(minorCreditorAccountId, businessUnitId)
             .orElseThrow(() -> new EntityNotFoundException(
-                "Minor creditor account not found: " + minorCreditorAccountId));
+                MINOR_CREDITOR_ACCOUNT_NOT_FOUND + minorCreditorAccountId));
 
         if (creditorAccount.getCreditorAccountType() == null || !creditorAccount.getCreditorAccountType()
             .isMinorCreditor()) {
