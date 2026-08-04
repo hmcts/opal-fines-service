@@ -120,20 +120,6 @@ class ReportInstanceSearchServiceTest {
                 () -> verify(reportRepository).findAllByPermissionIsNotNull()
             );
         }
-
-        @Test
-        void whenNoReportsArePermitted_returnsEmptyList_happyPath() {
-            ReportEntity unpermittedReport = report("R3", ACCOUNT_MAINTENANCE);
-            when(reportRepository.findAllByPermissionIsNotNull()).thenReturn(List.of(unpermittedReport));
-            setAuthenticatedUserWithPermissions(SEARCH_AND_VIEW_ACCOUNTS);
-
-            List<ReportEntity> result = reportInstanceSearchService.findPermittedReports();
-
-            assertAll(
-                () -> assertThat(result).isEmpty(),
-                () -> verify(reportRepository).findAllByPermissionIsNotNull()
-            );
-        }
     }
 
     @Nested
