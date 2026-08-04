@@ -17,6 +17,7 @@ import static uk.gov.hmcts.opal.testdata.ReportInstanceTestData.businessUnitUser
 import static uk.gov.hmcts.opal.testdata.ReportInstanceTestData.report;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -81,13 +82,12 @@ class ReportInstanceSearchServiceTest {
     }
 
     private void setAuthenticatedUserWithPermissions(FinesPermission... permissions) {
-        Set<Permission> permittedPermissions = java.util.Arrays.stream(permissions)
+        Set<Permission> permittedPermissions = Arrays.stream(permissions)
             .map(FinesPermission::toCommonPermission)
             .collect(java.util.stream.Collectors.toSet());
 
         when(authToken.hasPermission(any(Permission.class))).thenAnswer(invocation ->
-            permittedPermissions.contains(invocation.getArgument(0))
-        );
+            permittedPermissions.contains(invocation.getArgument(0)));
     }
 
     private void setBusinessUnitUsers(BusinessUnitUser... businessUnitUsers) {
