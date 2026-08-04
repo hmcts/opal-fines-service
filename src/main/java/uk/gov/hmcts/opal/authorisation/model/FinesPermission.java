@@ -28,7 +28,8 @@ public enum FinesPermission implements PermissionDescriptor {
     // TODO verify this ID mirrors opal-user-service Permissions.ADD_AND_REMOVE_PAYMENT_HOLD ?
     ADD_AND_REMOVE_PAYMENT_HOLD(14L, "Add and Remove payment hold"), // TODO - should this be 12L?
     PROCESS_AND_ALLOCATE_PAYMENTS(16L, "Process and Allocate Payments"),
-    AUTO_ENFORCEMENT(17L, "Auto Enforcement");
+    AUTO_ENFORCEMENT(17L, "Auto Enforcement"),
+    ACCOUNT_MAINTENANCE_MINOR_CREDITOR(20L, "Account Maintenance - Minor Creditor");
 
     /**
      * Convenience aggregate used by parts of the service that require both draft account permissions.
