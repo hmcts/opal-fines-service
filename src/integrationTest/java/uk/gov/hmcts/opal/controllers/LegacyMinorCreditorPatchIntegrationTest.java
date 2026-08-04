@@ -222,9 +222,7 @@ class LegacyMinorCreditorPatchIntegrationTest extends MinorCreditorControllerInt
 
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
-                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
-                FinesPermission.ACCOUNT_MAINTENANCE,
-                FinesPermission.VIEW_CREDITOR_BACS);
+            FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR);
     }
 
     private ResultActions performLegacyPatch(long creditorAccountId, String ifMatch) throws Exception {
