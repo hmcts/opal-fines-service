@@ -278,8 +278,11 @@ public class OpalDefendantAccountEnforcementService
                         resultRepositoryService.getResultById(entity.getEnforcementOverrideResultId()).orElse(null)))
                 .enforcer(OpalDefendantAccountBuilders.buildEnforcer(
                     enforcerRepositoryService.findById(entity.getEnforcementOverrideEnforcerId()).orElse(null)))
-                .lja(OpalDefendantAccountBuilders.buildLja(
-                    localJusticeAreaRepositoryService.getLjaById(entity.getEnforcementOverrideTfoLjaId()).orElse(null)))
+                .lja(entity.getEnforcementOverrideTfoLjaId() == null
+                    ? null
+                    : OpalDefendantAccountBuilders.buildLja(
+                        localJusticeAreaRepositoryService.getLjaById(
+                            entity.getEnforcementOverrideTfoLjaId()).orElse(null)))
                 .build();
         }
     }

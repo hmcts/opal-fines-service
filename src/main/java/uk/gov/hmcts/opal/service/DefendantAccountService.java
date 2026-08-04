@@ -9,12 +9,8 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
-import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
-import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
@@ -138,18 +134,6 @@ public class DefendantAccountService {
         }
     }
 
-    public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(
-        Long defendantAccountId) {
-
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
-
-        if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
-            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        }
-
-        return defendantAccountServiceProxy.getDefendantAccountFixedPenalty(defendantAccountId);
-    }
-
     public UpdateDefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
                                                            String businessUnitId,
                                                            UpdateDefendantAccountRequestPayload request,
@@ -202,42 +186,6 @@ public class DefendantAccountService {
             );
         } else {
             throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
-        }
-    }
-
-    public EnforcementStatus getEnforcementStatus(Long defendantAccountId) {
-
-        log.debug(":getEnforcementStatus:");
-
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
-
-        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
-            return defendantAccountServiceProxy.getEnforcementStatus(defendantAccountId);
-        } else {
-            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        }
-    }
-
-    public AddEnforcementResponse addEnforcement(Long defendantAccountId,
-        String businessUnitId,
-        String ifMatch,
-        AddDefendantAccountEnforcementRequest request) {
-
-        log.debug(":addEnforcement:");
-
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
-
-        String businessUnitUserId = userState.getBusinessUnitUserForBusinessUnit(Short.parseShort(businessUnitId))
-            .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
-            .filter(id -> !id.isBlank())
-            .orElse(null);
-
-        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT)) {
-            return defendantAccountServiceProxy.addEnforcement(
-                defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, request
-            );
-        } else {
-            throw new PermissionNotAllowedException(FinesPermission.ENTER_ENFORCEMENT);
         }
     }
 }

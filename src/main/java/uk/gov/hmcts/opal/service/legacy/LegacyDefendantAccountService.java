@@ -1,7 +1,5 @@
 package uk.gov.hmcts.opal.service.legacy;
 
-import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountBuilders.toEnforcementStatusResponse;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -9,7 +7,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -20,16 +17,9 @@ import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
-import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
-import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
-import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
-import uk.gov.hmcts.opal.dto.ResultResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.common.AddressDetails;
@@ -47,29 +37,21 @@ import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
-import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyRequest;
-import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountSearchCriteria;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountConsolidatedAccountsResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
-import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountResponse;
-import uk.gov.hmcts.opal.dto.legacy.ResultResponsesLegacy;
-import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
-import uk.gov.hmcts.opal.dto.legacy.common.LjaReference;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
@@ -92,10 +74,7 @@ import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMappe
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 import uk.gov.hmcts.opal.repository.jpa.SpecificationUtils;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
-import uk.gov.hmcts.opal.service.opal.CourtService;
-import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 import uk.gov.hmcts.opal.service.opal.history.HistoryItemOrderingService;
-import uk.gov.hmcts.opal.util.VersionUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -115,14 +94,11 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public static final String ADD_DEFENDANT_ACCOUNT_PARTY = "LIBRA.add_defendant_account_party";
     public static final String REPLACE_DEFENDANT_ACCOUNT_PARTY = "LIBRA.replace_defendant_account_party";
     public static final String PATCH_DEFENDANT_ACCOUNT = "LIBRA.patchDefendantAccount";
-    public static final String GET_ENFORCEMENT_STATUS = "LIBRA.of_get_defendant_account_enf_status";
 
     public static final String ADD_PAYMENT_CARD_REQUEST = "LIBRA.of_add_defendant_account_pcr";
 
     private final GatewayService gatewayService;
     private final LegacyGatewayProperties legacyGatewayProperties;
-    private final CourtService courtService;
-    private final LocalJusticeAreaService ljaService;
     private final HistoryItemOrderingService historyItemOrderingService;
 
     /* ---- Mappers ---- */
@@ -387,41 +363,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         return BigDecimal.ZERO;
     }
 
-    private GetDefendantAccountPaymentTermsResponse toPaymentTermsResponse(
-        LegacyGetDefendantAccountPaymentTermsResponse legacy) {
-
-        if (legacy == null) {
-            return null;
-        }
-
-        return GetDefendantAccountPaymentTermsResponse.builder()
-            .version(Optional.ofNullable(legacy.getVersion())
-                .map(v -> BigInteger.valueOf(v.longValue()))
-                .orElse(BigInteger.ONE))
-            .paymentTerms(toPaymentTerms(legacy.getPaymentTerms()))
-            .paymentCardLastRequested(legacy.getPaymentCardLastRequested())
-            .lastEnforcement(legacy.getLastEnforcement())
-            .build();
-    }
-
-    private static PaymentTerms toPaymentTerms(LegacyPaymentTerms legacy) {
-        if (legacy == null) {
-            return null;
-        }
-        return PaymentTerms.builder()
-            .daysInDefault(legacy.getDaysInDefault())
-            .dateDaysInDefaultImposed(legacy.getDateDaysInDefaultImposed())
-            .extension(legacy.isExtension())
-            .reasonForExtension(legacy.getReasonForExtension())
-            .paymentTermsType(toPaymentTermsType(legacy.getPaymentTermsType()))
-            .effectiveDate(legacy.getEffectiveDate())
-            .instalmentPeriod(toInstalmentPeriod(legacy.getInstalmentPeriod()))
-            .lumpSumAmount(legacy.getLumpSumAmount())
-            .instalmentAmount(legacy.getInstalmentAmount())
-            .postedDetails(toPostedDetails(legacy.getPostedDetails()))
-            .build();
-    }
-
     static PaymentTermsType toPaymentTermsType(LegacyPaymentTermsType legacy) {
         if (legacy == null) {
             return null;
@@ -454,22 +395,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         return InstalmentPeriod.builder()
             .instalmentPeriodCode(code)
             .build();
-    }
-
-    private static PostedDetails toPostedDetails(LegacyPostedDetails legacy) {
-        if (legacy == null) {
-            return null;
-        }
-
-        return PostedDetails.builder()
-            .postedDate(legacy.getPostedDate())
-            .postedBy(legacy.getPostedBy())
-            .postedByName(legacy.getPostedByName())
-            .build();
-    }
-
-    private static <T, R> R mapSafe(T obj, Function<T, R> f) {
-        return obj == null ? null : f.apply(obj);
     }
 
     @Override
@@ -682,12 +607,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     }
 
     @Override
-    //TODO: Remove method, duplicated in refactored class
-    public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(Long defendantAccountId) {
-        throw new UnsupportedOperationException("Legacy GetDefendantAccountFixedPenalty not implemented yet");
-    }
-
-    @Override
     public UpdateDefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
         String businessUnitId,
         @NonNull UpdateDefendantAccountRequest request,
@@ -710,70 +629,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         checkResponseForError(gwResponse, "updateDefendantAccount");
 
         return legacyUpdateDefendantAccountResponseMapper.toUpdateDefendantAccountResponse(gwResponse.responseEntity);
-    }
-
-    @Override
-    //TODO: Remove method, duplicated in refactored class
-    public AddEnforcementResponse addEnforcement(Long defendantAccountId, String businessUnitId,
-        String businessUnitUserId, String ifMatch, AddDefendantAccountEnforcementRequest request) {
-
-        // build legacy request object
-        AddDefendantAccountEnforcementLegacyRequest legacyRequest =
-            AddDefendantAccountEnforcementLegacyRequest.builder()
-                .defendantAccountId(String.valueOf(defendantAccountId))
-                .businessUnitId(businessUnitId)
-                .businessUnitUserId(businessUnitUserId)
-                .version(VersionUtils.extractBigInteger(ifMatch).intValue())
-                .resultId(request != null && request.getResultId() != null ? request.getResultId().value() : null)
-                .enforcementResultResponses(
-                    mapResultResponses(request != null ? request.getEnforcementResultResponses() : null))
-                .paymentTerms(mapPaymentTerms(request != null ? request.getPaymentTerms() : null))
-                .build();
-
-        Response<AddDefendantAccountEnforcementLegacyResponse> response = gatewayService.postToGateway(
-            ADD_ENFORCEMENT, AddDefendantAccountEnforcementLegacyResponse.class,
-            legacyRequest, null);
-
-        checkResponseForError(response, "AddEnforcement");
-
-        AddDefendantAccountEnforcementLegacyResponse enforcementResponse = response.responseEntity;
-
-        return AddEnforcementResponse.builder().enforcementId(enforcementResponse.getEnforcementId())
-            .defendantAccountId(enforcementResponse.getDefendantAccountId()).version(enforcementResponse.getVersion())
-            .build();
-
-    }
-
-    private List<ResultResponsesLegacy> mapResultResponses(List<ResultResponse> responses) {
-        if (responses == null || responses.isEmpty()) {
-            return Collections.emptyList();
-        }
-        return responses.stream()
-            .filter(Objects::nonNull)
-            .map(r -> ResultResponsesLegacy.builder()
-                .parameterName(r.getParameterName())
-                .response(r.getResponse())
-                .build())
-            .collect(Collectors.toList());
-    }
-
-    private LegacyPaymentTerms mapPaymentTerms(PaymentTerms pt) {
-        if (pt == null) {
-            return null;
-        }
-
-        return LegacyPaymentTerms.builder()
-            .daysInDefault(pt.getDaysInDefault())
-            .dateDaysInDefaultImposed(pt.getDateDaysInDefaultImposed())
-            .extension(pt.isExtension())
-            .reasonForExtension(pt.getReasonForExtension())
-            .paymentTermsType(mapLegacyPaymentTermsType(pt.getPaymentTermsType()))
-            .effectiveDate(pt.getEffectiveDate())
-            .instalmentPeriod(mapLegacyInstalmentPeriod(pt.getInstalmentPeriod()))
-            .lumpSumAmount(pt.getLumpSumAmount())
-            .instalmentAmount(pt.getInstalmentAmount())
-            .postedDetails(mapLegacyPostedDetails(pt.getPostedDetails()))
-            .build();
     }
 
     LegacyPostedDetails mapLegacyPostedDetails(PostedDetails pd) {
@@ -829,52 +684,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             case "F" -> LegacyInstalmentPeriod.InstalmentPeriodCode.F;
             default -> throw new IllegalArgumentException("Unknown InstalmentPeriod code: " + code);
         };
-    }
-
-
-    @Override
-    //TODO: Remove method, duplicated in refactored class
-    public EnforcementStatus getEnforcementStatus(Long defendantAccountId) {
-        log.debug(":getEnforcementStatus: id: {}", defendantAccountId);
-
-        try {
-
-            Response<LegacyGetDefendantAccountEnforcementStatusResponse> response = gatewayService.postToGateway(
-                GET_ENFORCEMENT_STATUS, LegacyGetDefendantAccountEnforcementStatusResponse.class,
-                createGetDefendantAccountRequest(defendantAccountId.toString()), null);
-
-            checkResponseForError(response, "getEnforcementStatus");
-
-            LegacyGetDefendantAccountEnforcementStatusResponse enforcementStatus = response.responseEntity;
-            populateCourtCode(enforcementStatus);
-            populateLjaCode(enforcementStatus);
-            return toEnforcementStatusResponse(enforcementStatus);
-
-        } catch (RuntimeException e) {
-            log.error(":getEnforcementStatus: problem with call to Legacy: {}", e.getClass().getName());
-            log.error(":getEnforcementStatus:", e);
-            throw e;
-        }
-    }
-
-    private void populateCourtCode(LegacyGetDefendantAccountEnforcementStatusResponse enforcementStatus) {
-        Optional.ofNullable(enforcementStatus)
-            .map(es -> es.getEnforcementOverview())
-            .map(eo -> eo.getEnforcementCourt()).ifPresent(this::populateCourtCode);
-    }
-
-    private void populateCourtCode(CourtReference courtRef) {
-        courtRef.setCourtCode(courtService.getCourtById(courtRef.getCourtId()).getCourtCode());
-    }
-
-    private void populateLjaCode(LegacyGetDefendantAccountEnforcementStatusResponse enforcementStatus) {
-        Optional.ofNullable(enforcementStatus)
-            .map(es -> es.getEnforcementOverride())
-            .map(eo -> eo.getLja()).ifPresent(this::populateLjaCode);
-    }
-
-    private void populateLjaCode(LjaReference ljaRef) {
-        ljaRef.setLjaCode(ljaService.getLocalJusticeAreaById(ljaRef.getLjaId()).getLjaCode());
     }
 
     private static <T> void checkResponseForError(Response<T> response, String method) {
