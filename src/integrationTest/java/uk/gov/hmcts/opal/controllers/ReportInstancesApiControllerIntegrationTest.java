@@ -218,8 +218,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
                     content().contentTypeCompatibleWith(APPLICATION_JSON),
                     jsonPath("$").isArray(),
                     jsonPath("$.length()").value(3),
-                    jsonPath("$[*].report_id", Matchers.not(Matchers.hasItem(UNCONFIGURED_REPORT_ID)))
-                );
+                    jsonPath("$[*].report_id", Matchers.not(Matchers.hasItem(UNCONFIGURED_REPORT_ID))));
         }
 
         @Test
