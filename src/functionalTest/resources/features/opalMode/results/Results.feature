@@ -73,7 +73,7 @@ Feature: Results Reference Data
     Then the result parameters contain the following entries in order
       | name            | type | language_dependent | hint                                          |
       | paymentterms    | text | true               |                                               |
-      | cy_paymentterms | text | true               | Provide a welsh version for the defendant    |
+      | cy_paymentterms | text | true               | Provide a welsh version for the defendant     |
 
   @JIRA-STORY:PO-9108 @JIRA-EPIC:PO-2630 @R1B @JIRA-TEST-KEY:PO-9561
   Scenario: Result by ID can include Welsh date result parameters
