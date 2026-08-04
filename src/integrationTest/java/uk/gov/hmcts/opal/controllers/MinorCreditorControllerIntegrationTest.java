@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -1075,7 +1074,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("authorization", userStateStub.getBearerToken()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2))).andDo(print())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
             .andExpect(jsonPath("$.creditor_accounts[*].firstnames")
                 .value(hasItems("John", "Jane"))); // Should return both "John Smith" and "Jane Smithson"
     }
