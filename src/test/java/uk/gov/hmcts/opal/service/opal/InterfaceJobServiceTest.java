@@ -1,8 +1,10 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -24,14 +26,20 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.entity.InterfaceFileEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateItem;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateRequest;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateResponse;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateResponseItem;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsFileSource;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsJobStatus;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsSummaryItem;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsSummaryResponse;
 import uk.gov.hmcts.opal.mapper.InterfaceJobMapper;
+import uk.gov.hmcts.opal.repository.InterfaceFileRepository;
 import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.InterfaceJobService.InterfaceJobSearchCriteria;
@@ -43,13 +51,92 @@ class InterfaceJobServiceTest {
     private InterfaceJobRepository interfaceJobRepository;
 
     @Mock
+    private InterfaceFileRepository interfaceFileRepository;
+
+    @Mock
     private InterfaceJobMapper interfaceJobMapper;
+
+    @Mock
+    private BusinessUnitService businessUnitService;
 
     @Mock
     private UserStateService userStateService;
 
     @InjectMocks
     private InterfaceJobService interfaceJobService;
+
+    @Test
+    void create_savesJobsAndFiles() {
+        LocalDateTime createdDateTime = LocalDateTime.of(2026, 7, 14, 10, 0);
+        InterfaceJobsCreateItem requestItem = InterfaceJobsCreateItem.builder()
+            .fileName("auto-payments-in.dat")
+            .source(InterfaceJobsFileSource.NATWEST)
+            .records("[{\"account\":\"123\"}]")
+            .businessUnitId((short) 77)
+            .interfaceName("Auto Payments In")
+            .createdDatetime(createdDateTime)
+            .build();
+        InterfaceJobsCreateRequest request = InterfaceJobsCreateRequest.builder()
+            .interfaceJobs(List.of(requestItem))
+            .build();
+        BusinessUnitEntity businessUnit = BusinessUnitEntity.builder().businessUnitId((short) 77).build();
+        InterfaceJobEntity unsavedJob = InterfaceJobEntity.builder().businessUnit(businessUnit).build();
+        InterfaceJobEntity savedJob = InterfaceJobEntity.builder()
+            .interfaceJobId(123L)
+            .businessUnit(businessUnit)
+            .build();
+        InterfaceFileEntity unsavedFile = InterfaceFileEntity.builder()
+            .interfaceJob(savedJob)
+            .fileName("auto-payments-in.dat")
+            .records("[{\"account\":\"123\"}]")
+            .build();
+        InterfaceJobsCreateResponseItem createResponse = InterfaceJobsCreateResponseItem.builder()
+            .interfaceJobId(123L)
+            .build();
+
+        when(userStateService.getPermittedBusinessUnitIds(
+            List.of((short) 77), FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(List.of((short) 77));
+        when(businessUnitService.getBusinessUnit((short) 77)).thenReturn(businessUnit);
+        when(interfaceJobMapper.toJobEntity(requestItem, businessUnit)).thenReturn(unsavedJob);
+        when(interfaceJobRepository.save(unsavedJob)).thenReturn(savedJob);
+        when(interfaceJobMapper.toFileEntity(requestItem, savedJob)).thenReturn(unsavedFile);
+        when(interfaceJobMapper.toCreateResponse(savedJob)).thenReturn(createResponse);
+
+        InterfaceJobsCreateResponse result = interfaceJobService.create(request);
+
+        assertEquals(List.of(createResponse), result.getInterfaceJobs());
+        verify(userStateService).getPermittedBusinessUnitIds(
+            List.of((short) 77), FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
+        verify(businessUnitService).getBusinessUnit((short) 77);
+        verify(interfaceJobRepository).save(unsavedJob);
+        verify(interfaceFileRepository).save(unsavedFile);
+        verify(interfaceJobMapper).toCreateResponse(savedJob);
+    }
+
+    @Test
+    void create_rejectsUserWithoutPermission() {
+        InterfaceJobsCreateItem requestItem = InterfaceJobsCreateItem.builder()
+            .businessUnitId((short) 77)
+            .build();
+        InterfaceJobsCreateRequest request = InterfaceJobsCreateRequest.builder()
+            .interfaceJobs(List.of(requestItem))
+            .build();
+
+        when(userStateService.getPermittedBusinessUnitIds(
+            List.of((short) 77), FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(List.of());
+
+        PermissionNotAllowedException exception = assertThrows(
+            PermissionNotAllowedException.class, () -> interfaceJobService.create(request));
+
+        assertEquals("[PROCESS_AND_ALLOCATE_PAYMENTS] permission(s) are not enabled for the user in business unit: 77",
+            exception.getMessage());
+        verify(userStateService).getPermittedBusinessUnitIds(
+            List.of((short) 77), FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
+        verify(businessUnitService, never()).getBusinessUnit((short) 77);
+        verifyNoInteractions(interfaceJobRepository);
+        verifyNoInteractions(interfaceFileRepository);
+        verifyNoInteractions(interfaceJobMapper);
+    }
 
     @Test
     void getSummary_returnsEmptyResponseWhenUserHasNoPermittedBusinessUnits() {

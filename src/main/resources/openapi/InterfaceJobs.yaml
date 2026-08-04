@@ -21,7 +21,7 @@ paths:
             schema:
               $ref: '#/components/schemas/InterfaceJobsCreateRequest'
       responses:
-        "201":
+        "200":
           description: Interface jobs created
           content:
             application/json:
