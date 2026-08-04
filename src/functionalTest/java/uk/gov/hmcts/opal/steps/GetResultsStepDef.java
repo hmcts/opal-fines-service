@@ -157,7 +157,8 @@ public class GetResultsStepDef extends BaseStepDef {
 
         assertTrue(
             containsExpectedSequence(actualParameters, expectedParameters),
-            "Expected result parameter sequence was not found"
+            "Expected result parameter sequence was not found. Expected sequence: "
+                + expectedParameters + ". Actual result_parameters: " + actualParameters
         );
     }
 
