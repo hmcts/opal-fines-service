@@ -5,7 +5,6 @@ import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -130,8 +129,7 @@ public class MinorCreditorControllerSearchIntegrationTest extends AbstractIntegr
         ResultActions result = mockMvc.perform(post(MINOR_CREDITOR_SEARCH_URL)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header(AUTHORISATION_HEADER, userStateStub.getBearerToken())
-                .contentType(APPLICATION_JSON).content(search.toJson()))
-            .andDo(print());
+                .contentType(APPLICATION_JSON).content(search.toJson()));
 
         expectOkResponse(result);
     }
