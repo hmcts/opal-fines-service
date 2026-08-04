@@ -414,15 +414,16 @@ ON CONFLICT (defendant_account_id) DO UPDATE
 
 INSERT INTO payment_terms
 ( payment_terms_id, defendant_account_id, posted_date, posted_by
-, terms_type_code, effective_date, instalment_period, instalment_amount, instalment_lump_sum
+, posted_by_name, terms_type_code, effective_date, instalment_period, instalment_amount, instalment_lump_sum
 , jail_days, extension, account_balance, active)
-VALUES ( 0077, 0077, '2023-11-03 16:05:10', '01000000A'
+VALUES ( 0077, 0077, '2023-11-03 16:05:10', '01000000A', 'Payment Report User'
        , 'B', '2025-10-12 00:00:00', 'W', NULL, NULL
        , 120, 'N', 700.58, true)
 ON CONFLICT (payment_terms_id) DO UPDATE
       SET defendant_account_id = EXCLUDED.defendant_account_id,
       posted_date = EXCLUDED.posted_date,
       posted_by = EXCLUDED.posted_by,
+      posted_by_name = EXCLUDED.posted_by_name,
       terms_type_code = EXCLUDED.terms_type_code,
       effective_date = EXCLUDED.effective_date,
       instalment_period = EXCLUDED.instalment_period,
@@ -432,6 +433,35 @@ ON CONFLICT (payment_terms_id) DO UPDATE
       extension = EXCLUDED.extension,
       account_balance = EXCLUDED.account_balance,
       active = EXCLUDED.active;
+
+INSERT INTO notes (
+    note_id,
+    note_type,
+    associated_record_type,
+    associated_record_id,
+    note_text,
+    posted_date,
+    posted_by,
+    posted_by_name
+)
+VALUES (
+    77001,
+    'AA',
+    'defendant_accounts',
+    '77',
+    'Detailed report note',
+    TIMESTAMP '2026-05-14 11:45:30',
+    '01000000A',
+    'Payment Report User'
+)
+ON CONFLICT (note_id) DO UPDATE
+    SET note_type = EXCLUDED.note_type,
+        associated_record_type = EXCLUDED.associated_record_type,
+        associated_record_id = EXCLUDED.associated_record_id,
+        note_text = EXCLUDED.note_text,
+        posted_date = EXCLUDED.posted_date,
+        posted_by = EXCLUDED.posted_by,
+        posted_by_name = EXCLUDED.posted_by_name;
 
 
 INSERT INTO defendant_account_parties (
@@ -504,7 +534,7 @@ VALUES
         'CT'
     ),
     (
-        10003,
+        100003,
         79,
         DATE '2000-05-14',
         'enforcement.test',
@@ -821,7 +851,7 @@ VALUES
         NULL,
         'defendant_transactions',
         'X-4',
-        NULL
+        'CT'
     )
     ON CONFLICT (defendant_transaction_id)
     DO UPDATE SET
@@ -849,6 +879,10 @@ INSERT INTO enforcements (
     result_id,
     reason,
     warrant_reference,
+    jail_days,
+    earliest_release_date,
+    hearing_date,
+    case_reference,
     hearing_court_id,
     posted_by_name
 )
@@ -860,6 +894,10 @@ VALUES (
            'REGF',
            'Test enforcement',
            '001/25/00001',
+           NULL,
+           NULL,
+           NULL,
+           NULL,
            1,
            'opal-test'
        ),
@@ -871,6 +909,10 @@ VALUES (
            'ABDC',
            'Test enforcement',
            '001/25/00001',
+           NULL,
+           NULL,
+           NULL,
+           NULL,
            1,
            'opal-test'
        ),
@@ -882,6 +924,10 @@ VALUES (
            'ABDC',
            'Test enforcement',
            '001/25/00001',
+           NULL,
+           NULL,
+           NULL,
+           NULL,
            1,
            'opal-test'
        ),
@@ -893,6 +939,10 @@ VALUES (
            'ABDC',
            'Test enforcement',
            '001/25/00001',
+           NULL,
+           NULL,
+           NULL,
+           NULL,
            1,
            'opal-test'
        ),
@@ -904,6 +954,25 @@ VALUES (
            'REGF',
            'Test enforcement',
            '001/25/00001',
+           NULL,
+           NULL,
+           NULL,
+           NULL,
+           1,
+           'opal-test'
+       ),
+       (
+           6,
+           77,
+           TIMESTAMP '2026-05-14 10:30:30',
+           'L080JG',
+           'ABDC',
+           'Test enforcement',
+           '001/25/00001',
+           10,
+           TIMESTAMP '2026-05-14 09:00:00',
+           TIMESTAMP '2026-05-14 10:00:00',
+           'CASE-77',
            1,
            'opal-test'
        )
@@ -914,6 +983,10 @@ ON CONFLICT (enforcement_id) DO UPDATE
         result_id = EXCLUDED.result_id,
         reason = EXCLUDED.reason,
         warrant_reference = EXCLUDED.warrant_reference,
+        jail_days = EXCLUDED.jail_days,
+        earliest_release_date = EXCLUDED.earliest_release_date,
+        hearing_date = EXCLUDED.hearing_date,
+        case_reference = EXCLUDED.case_reference,
         hearing_court_id = EXCLUDED.hearing_court_id,
         posted_by_name = EXCLUDED.posted_by_name;
 

@@ -345,6 +345,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("Create draft account - Should return 400 when reference validation fails and leave data unchanged")
     @JiraStory("PO-973")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-9388")
     void shouldReturn400WhenReferenceValidationFailsAndLeaveExistingDataUnchanged() throws Exception {
         DraftAccountEntity before = getDraftAccount(5L);
         long countBefore = draftAccountRepository.count();

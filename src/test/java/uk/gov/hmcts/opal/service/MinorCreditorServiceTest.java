@@ -17,6 +17,7 @@ import static org.mockito.Mockito.when;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
@@ -139,7 +140,7 @@ class MinorCreditorServiceTest {
         assertEquals(response, result);
         assertEquals(true, result.getPayment().getPayByBacs());
         assertEquals("123456", result.getPayment().getSortCode());
-        verify(minorCreditorSearchProxy).getMinorCreditorAccount(eq(id));
+        verify(minorCreditorSearchProxy).getMinorCreditorAccount(id);
     }
 
     @Test
@@ -163,8 +164,8 @@ class MinorCreditorServiceTest {
     void getMinorCreditorHistory_withPermission_delegatesToProxy() {
         // Arrange
         Long id = 123L;
-        LocalDate dateFrom = LocalDate.of(2026, 1, 1);
-        LocalDate dateTo = LocalDate.of(2026, 1, 31);
+        LocalDate dateFrom = LocalDate.of(2026, Month.JANUARY, 1);
+        LocalDate dateTo = LocalDate.of(2026, Month.JANUARY, 31);
         List<String> itemTypes = List.of("amendment", "note");
         GetMinorCreditorHistoryResponse response = GetMinorCreditorHistoryResponse.builder()
             .version(BigInteger.ONE)
@@ -185,8 +186,10 @@ class MinorCreditorServiceTest {
             ArgumentCaptor.forClass(MinorCreditorHistoryFilters.class);
         verify(userStateService).getUserStateV1FromSecurityContext();
         verify(minorCreditorSearchProxy).getMinorCreditorHistory(eq(id), filtersCaptor.capture());
-        assertEquals(LocalDateTime.of(2026, 1, 1, 0, 0), filtersCaptor.getValue().postedFromInclusive());
-        assertEquals(LocalDateTime.of(2026, 2, 1, 0, 0), filtersCaptor.getValue().postedToExclusive());
+        assertEquals(LocalDateTime.of(2026, Month.JANUARY, 1, 0, 0),
+            filtersCaptor.getValue().postedFromInclusive());
+        assertEquals(LocalDateTime.of(2026, Month.FEBRUARY, 1, 0, 0),
+            filtersCaptor.getValue().postedToExclusive());
         assertThat(filtersCaptor.getValue().itemTypes()).containsExactlyInAnyOrder(
             MinorCreditorHistoryItemType.AMENDMENT,
             MinorCreditorHistoryItemType.NOTE
@@ -205,7 +208,7 @@ class MinorCreditorServiceTest {
         PermissionNotAllowedException ex = Assertions.assertThrows(
             PermissionNotAllowedException.class,
             () -> minorCreditorService.getMinorCreditorHistory(
-                123L, LocalDate.of(2026, 1, 1), null, List.of("note"))
+                123L, LocalDate.of(2026, Month.JANUARY, 1), null, List.of("note"))
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verifyNoInteractions(minorCreditorSearchProxy);
@@ -255,8 +258,8 @@ class MinorCreditorServiceTest {
             IllegalArgumentException.class,
             () -> minorCreditorService.getMinorCreditorHistory(
                 123L,
-                LocalDate.of(2026, 2, 1),
-                LocalDate.of(2026, 1, 31),
+                LocalDate.of(2026, Month.FEBRUARY, 1),
+                LocalDate.of(2026, Month.JANUARY, 31),
                 null)
         );
         assertEquals("dateFrom must be on or before dateTo", result.getMessage());

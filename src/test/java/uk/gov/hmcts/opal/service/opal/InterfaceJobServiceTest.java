@@ -2,11 +2,13 @@ package uk.gov.hmcts.opal.service.opal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.function.Function;
 import org.junit.jupiter.api.Test;
@@ -14,7 +16,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -74,8 +75,8 @@ class InterfaceJobServiceTest {
     @Test
     void getSummary_returnsMappedSummariesForPermittedBusinessUnits() {
         List<Short> requestedBusinessUnitIds = List.of((short) 10, (short) 20);
-        LocalDateTime completedDateFrom = LocalDateTime.of(2026, 7, 1, 9, 0);
-        LocalDateTime completedDateTo = LocalDateTime.of(2026, 7, 2, 17, 0);
+        LocalDateTime completedDateFrom = LocalDateTime.of(2026, Month.JULY, 1, 9, 0);
+        LocalDateTime completedDateTo = LocalDateTime.of(2026, Month.JULY, 2, 17, 0);
         InterfaceJobSearchCriteria searchCriteria = InterfaceJobSearchCriteria.builder()
             .businessUnitIds(requestedBusinessUnitIds)
             .statuses(List.of("COMPLETED"))
@@ -94,7 +95,7 @@ class InterfaceJobServiceTest {
         Page<InterfaceJobEntity> mockPage = new PageImpl<>(List.of(interfaceJob), Pageable.unpaged(), 1);
 
         SpecificationFluentQuery<InterfaceJobEntity> fluentQuery =
-            (SpecificationFluentQuery<InterfaceJobEntity>) Mockito.mock(SpecificationFluentQuery.class);
+            (SpecificationFluentQuery<InterfaceJobEntity>) mock(SpecificationFluentQuery.class);
         ArgumentCaptor<Sort> sortCaptor = ArgumentCaptor.forClass(Sort.class);
         when(fluentQuery.sortBy(sortCaptor.capture())).thenReturn(fluentQuery);
         when(fluentQuery.page(Pageable.unpaged())).thenReturn(mockPage);

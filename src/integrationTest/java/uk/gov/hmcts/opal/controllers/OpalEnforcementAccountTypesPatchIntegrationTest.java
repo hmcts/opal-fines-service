@@ -30,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static uk.gov.hmcts.opal.common.dto.ToJsonString.toJsonString;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 
 @ActiveProfiles({"integration", "opal"})
@@ -83,6 +84,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
         @DisplayName("OPAL: PATCH Enforcement Account Types - Update single enforcement account type")
         @JiraStory("PO-2435")
         @JiraEpic("PO-2433")
+        @JiraTestKey("PO-9459")
         void patch_updatesSingleObjectOnly() throws Exception {
             authorizeWithPermission(); // Auto enforcement permission
 
@@ -119,6 +121,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
         @DisplayName("OPAL: PATCH Enforcement Account Types - Update multiple enforcement account types")
         @JiraStory("PO-2435")
         @JiraEpic("PO-2433")
+        @JiraTestKey("PO-9460")
         void patch_updatesMultipleObjects() throws Exception {
             authorizeWithPermission(); // Auto enforcement permission
 
@@ -163,6 +166,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
         @DisplayName("OPAL: PATCH Enforcement Account Types - Updating a Low value to NULL min balance should error")
         @JiraStory("PO-2435")
         @JiraEpic("PO-2433")
+        @JiraTestKey("PO-9453")
         void patch_updatingALowValueToHaveNullMinimumBalanceShouldError() throws Exception {
             authorizeWithPermission(); // Auto enforcement permission
 
@@ -199,6 +203,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
         @DisplayName("OPAL: PATCH Enforcement Account Types - Updating a high value to NULL min balance returns ok")
         @JiraStory("PO-2435")
         @JiraEpic("PO-2433")
+        @JiraTestKey("PO-9457")
         void patch_highPathNullBalanceAllowed() throws Exception {
             authorizeWithPermission(); // Auto enforcement permission
 
@@ -233,6 +238,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
         @DisplayName("OPAL: PATCH Enforcement Account Types - Version number mismatch should result in no update")
         @JiraStory("PO-2435")
         @JiraEpic("PO-2433")
+        @JiraTestKey("PO-9455")
         void patch_versionNumberMisMatch() throws Exception {
             authorizeWithPermission(); // Auto enforcement permission
 
@@ -271,6 +277,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
         @DisplayName("OPAL: PATCH Enforcement Account Types - Enforcement Account Type not found")
         @JiraStory("PO-2435")
         @JiraEpic("PO-2433")
+        @JiraTestKey("PO-9452")
         void patch_enforcementAccountTypeNotFound() throws Exception {
             authorizeWithPermission(); // Auto enforcement permission
 
@@ -305,6 +312,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
         @DisplayName("OPAL: PATCH Enforcement Account Types - Invalid permissions returns an error")
         @JiraStory("PO-2435")
         @JiraEpic("PO-2433")
+        @JiraTestKey("PO-9454")
         void patch_invalidPermissionReturnsError() throws Exception {
             authoriseNoPermissions(); // Auto enforcement permission
 
@@ -341,6 +349,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
         @DisplayName("OPAL: PATCH Enforcement Account Types - Transaction rolled back on mixed success")
         @JiraStory("PO-2435")
         @JiraEpic("PO-2433")
+        @JiraTestKey("PO-9451")
         void patch_rollsbackOnMixedSuccessNullMinBalance() throws Exception {
             authorizeWithPermission(); // Auto enforcement permission
 
@@ -391,6 +400,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
         @DisplayName("OPAL: PATCH Enforcement Account Types - Transaction rolled back on mixed success")
         @JiraStory("PO-2435")
         @JiraEpic("PO-2433")
+        @JiraTestKey("PO-9458")
         void patch_rollsbackOnMixedSuccessVersionMismatch() throws Exception {
             authorizeWithPermission(); // Auto enforcement permission
 
@@ -441,6 +451,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
         @DisplayName("OPAL: PATCH Enforcement Account Types - Negative minimum balance is rejected")
         @JiraStory("PO-2435")
         @JiraEpic("PO-2433")
+        @JiraTestKey("PO-9456")
         void patch_minBalanceNumericValidation() throws Exception {
             authorizeWithPermission(); // Auto enforcement permission
 
@@ -487,6 +498,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
         @DisplayName("PO-2435 - Feature flag off test")
         @JiraStory("PO-2435")
         @JiraEpic("PO-2433")
+        @JiraTestKey("PO-9461")
         void getAllEnforcementAccountTypes_FeatureOff_404() throws Exception {
             authorizeWithPermission(); // Auto enforcement permission
 

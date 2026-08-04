@@ -7,7 +7,6 @@ import static uk.gov.hmcts.opal.service.report.ReportType.SUMMARY;
 
 import java.util.List;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -19,18 +18,17 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
+import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
 import uk.gov.hmcts.opal.repository.jpa.EnforcementReportSpecs;
 import uk.gov.hmcts.opal.repository.jpa.OperationReportSpecs;
-import uk.gov.hmcts.opal.service.report.FileType;
+import uk.gov.hmcts.opal.service.report.ReportCSVService;
 import uk.gov.hmcts.opal.service.report.ReportEnforcementMode;
 import uk.gov.hmcts.opal.service.report.ReportId;
-import uk.gov.hmcts.opal.service.report.ReportInterface;
 import uk.gov.hmcts.opal.service.report.operation.mapper.DetailedResultMapper;
 import uk.gov.hmcts.opal.service.report.operation.mapper.SummaryResultMapper;
 
 @Service
-@RequiredArgsConstructor
-public class EnforcementReportService implements ReportInterface<OperationReportDataInterface> {
+public class EnforcementReportService extends AbstractOperationReportService {
 
     private final DefendantAccountRepository defendantAccountRepository;
     private final EnforcementRepository enforcementRepository;
@@ -38,6 +36,20 @@ public class EnforcementReportService implements ReportInterface<OperationReport
     private final DetailedResultMapper detailedResultMapper;
     private final ObjectMapper objectMapper;
     private final EnforcementReportValidator validator;
+
+    public EnforcementReportService(DefendantAccountRepository defendantAccountRepository,
+        EnforcementRepository enforcementRepository, SummaryResultMapper summaryResultMapper,
+        DetailedResultMapper detailedResultMapper, ObjectMapper objectMapper, EnforcementReportValidator validator,
+        ReportCSVService reportCSVService) {
+
+        super(reportCSVService);
+        this.defendantAccountRepository = defendantAccountRepository;
+        this.enforcementRepository = enforcementRepository;
+        this.summaryResultMapper = summaryResultMapper;
+        this.detailedResultMapper = detailedResultMapper;
+        this.objectMapper = objectMapper;
+        this.validator = validator;
+    }
 
     @Override
     public ReportId getReportId() {
@@ -63,12 +75,11 @@ public class EnforcementReportService implements ReportInterface<OperationReport
                 .distinct()
                 .toList();
             accounts = defendantAccountRepository.findAll(
-                accountSpec.and(OperationReportSpecs.defendantAccountIdsIn(accountIds)),
+                accountSpec.and(DefendantAccountSpecs.idsIn(accountIds)),
                 Sort.by(DefendantAccountEntity_.ACCOUNT_NUMBER));
         }
         return filters.getReportType() == SUMMARY
-            ? summaryResultMapper.map(accounts)
-            : detailedResultMapper.map(accounts);
+            ? summaryResultMapper.map(accounts) : detailedResultMapper.map(accounts);
     }
 
     @Override
@@ -76,8 +87,7 @@ public class EnforcementReportService implements ReportInterface<OperationReport
         ReportInstanceEntity reportInstance) {
         OperationReportByEnforcementFiltersDto filters = readFilters(reportInstance);
         return filters.getReportType() == SUMMARY
-            ? OperationSummaryReport.class
-            : OperationDetailedReport.class;
+            ? OperationSummaryReport.class : OperationDetailedReport.class;
     }
 
     private static boolean isNotFilteringOnEnforcementData(OperationReportByEnforcementFiltersDto filters) {
@@ -92,18 +102,9 @@ public class EnforcementReportService implements ReportInterface<OperationReport
         try {
             return objectMapper.readValue(
                 reportInstance.getReportParameters(),
-                OperationReportByEnforcementFiltersDto.class
-            );
+                OperationReportByEnforcementFiltersDto.class);
         } catch (Exception e) {
             throw new RuntimeException("Failed to parse report filters", e);
         }
     }
-
-    @Override
-    public byte[] convertReportDataToFileType(ReportInstanceEntity reportInstance,
-        OperationReportDataInterface reportData,
-        FileType fileType) {
-        throw new UnsupportedOperationException();
-    }
-
 }

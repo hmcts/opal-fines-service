@@ -19,7 +19,7 @@ Feature: Defendant Account Consolidated Accounts
     When I request consolidated accounts for the real master defendant account
     Then the consolidated accounts response is an empty array
 
-  @JIRA-STORY:PO-2333 @JIRA-EPIC:PO-2332
+  @JIRA-STORY:PO-2333 @JIRA-EPIC:PO-2332 @JIRA-TEST-KEY:PO-9535
   Scenario: E2E.03 Non-existent master account returns not found
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I request consolidated accounts for a non-existent defendant account
@@ -29,7 +29,7 @@ Feature: Defendant Account Consolidated Accounts
     And the consolidated accounts error detail contains the requested defendant account id
     And the consolidated accounts error is non-retriable
 
-  @JIRA-STORY:PO-2333 @JIRA-EPIC:PO-2332
+  @JIRA-STORY:PO-2333 @JIRA-EPIC:PO-2332 @JIRA-TEST-KEY:PO-9536
   Scenario: E2E.04 User without Search and View Accounts permission is forbidden
     Given I am testing as the "opal-test-2@dev.platform.hmcts.net" user
     When I request consolidated accounts for defendant account 999999999
@@ -47,9 +47,13 @@ Feature: Defendant Account Consolidated Accounts
     And the consolidated accounts error title contains "Unauthorized"
     And the consolidated accounts error is non-retriable
 
+    @JIRA-TEST-KEY:PO-9537
     Examples:
       | authentication_state |
       | without a token      |
+    @JIRA-TEST-KEY:PO-9538
+    Examples:
+      | authentication_state |
       | with an invalid token |
 
   # NOTE: Blocked until Consolidation 2 data and a cross-BU permissioned user/account

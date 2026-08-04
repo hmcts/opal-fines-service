@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.Month;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
@@ -17,9 +18,9 @@ import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
 
 class DefendantTransactionDetailsServiceTest {
 
-    private static final LocalDateTime POSTED_DATE = LocalDateTime.of(2024, 1, 2, 10, 15);
-    private static final LocalDateTime IMPOSED_DATE = LocalDateTime.of(2024, 1, 1, 9, 30);
-    private static final LocalDateTime STATUS_DATE = LocalDateTime.of(2024, 1, 3, 11, 45);
+    private static final LocalDateTime POSTED_DATE = LocalDateTime.of(2024, Month.JANUARY, 2, 10, 15);
+    private static final LocalDateTime IMPOSED_DATE = LocalDateTime.of(2024, Month.JANUARY, 1, 9, 30);
+    private static final LocalDateTime STATUS_DATE = LocalDateTime.of(2024, Month.JANUARY, 3, 11, 45);
     private static final String ACCOUNT_NUMBER = "ACC-123";
     private static final String ORIGINATOR_NAME = "Originator Court";
 

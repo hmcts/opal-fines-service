@@ -80,6 +80,7 @@ import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -216,19 +217,19 @@ public class OpalDefendantAccountEnforcementServiceTest {
         );
 
         verify(enforcementRepositoryService).addDefendantAccountEnforcement(
-            eq(RESULT_ID_AS_STRING),
-            eq(DEFENDANT_ACCOUNT_ID),
-            eq(BUSINESS_UNIT_ID),
-            eq(PROSECUTOR_CASE_REFERENCE),
-            eq("ACCOUNT_ENQUIRY"),
-            eq(null),
-            eq(BUSINESS_UNIT_USER_ID),
-            eq(USER_NAME),
-            eq(null),
-            eq(null),
-            eq("{}"),
-            eq(null),
-            eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
+            RESULT_ID_AS_STRING,
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            PROSECUTOR_CASE_REFERENCE,
+            "ACCOUNT_ENQUIRY",
+            null,
+            BUSINESS_UNIT_USER_ID,
+            USER_NAME,
+            null,
+            null,
+            "{}",
+            null,
+            VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
 
         assertCommonResponse(response);
@@ -290,19 +291,19 @@ public class OpalDefendantAccountEnforcementServiceTest {
         ));
 
         verify(enforcementRepositoryService).addDefendantAccountEnforcement(
-            eq(RESULT_ID_AS_STRING),
-            eq(DEFENDANT_ACCOUNT_ID),
-            eq(BUSINESS_UNIT_ID),
-            eq(PROSECUTOR_CASE_REFERENCE),
-            eq("ACCOUNT_ENQUIRY"),
-            eq((Integer) 14),
-            eq(BUSINESS_UNIT_USER_ID),
-            eq(USER_NAME),
-            eq("test reason"),
-            eq(55L),
-            eq(responsesJson),
-            eq(LocalDateTime.of(2026,5,1,0,0,0)),
-            eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
+            RESULT_ID_AS_STRING,
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            PROSECUTOR_CASE_REFERENCE,
+            "ACCOUNT_ENQUIRY",
+            14,
+            BUSINESS_UNIT_USER_ID,
+            USER_NAME,
+            "test reason",
+            55L,
+            responsesJson,
+            LocalDateTime.of(2026, 5, 1, 0, 0, 0),
+            VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
 
         assertCommonResponse(response);
@@ -357,19 +358,19 @@ public class OpalDefendantAccountEnforcementServiceTest {
         ));
 
         verify(enforcementRepositoryService).addDefendantAccountEnforcement(
-            eq(RESULT_ID_AS_STRING),
-            eq(DEFENDANT_ACCOUNT_ID),
-            eq(BUSINESS_UNIT_ID),
-            eq(PROSECUTOR_CASE_REFERENCE),
-            eq("ACCOUNT_ENQUIRY"),
-            eq(null),
-            eq(BUSINESS_UNIT_USER_ID),
-            eq(USER_NAME),
-            eq("test reason"),
-            eq(null),
-            eq(responsesJson),
-            eq(null),
-            eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
+            RESULT_ID_AS_STRING,
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            PROSECUTOR_CASE_REFERENCE,
+            "ACCOUNT_ENQUIRY",
+            null,
+            BUSINESS_UNIT_USER_ID,
+            USER_NAME,
+            "test reason",
+            null,
+            responsesJson,
+            null,
+            VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
 
         assertCommonResponse(response);
@@ -424,19 +425,19 @@ public class OpalDefendantAccountEnforcementServiceTest {
         ));
 
         verify(enforcementRepositoryService).addDefendantAccountEnforcement(
-            eq(RESULT_ID_AS_STRING),
-            eq(DEFENDANT_ACCOUNT_ID),
-            eq(BUSINESS_UNIT_ID),
-            eq(PROSECUTOR_CASE_REFERENCE),
-            eq("ACCOUNT_ENQUIRY"),
-            eq((Integer) 14),
-            eq(BUSINESS_UNIT_USER_ID),
-            eq(USER_NAME),
-            eq(null),
-            eq(null),
-            eq(responsesJson),
-            eq(null),
-            eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
+            RESULT_ID_AS_STRING,
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            PROSECUTOR_CASE_REFERENCE,
+            "ACCOUNT_ENQUIRY",
+            14,
+            BUSINESS_UNIT_USER_ID,
+            USER_NAME,
+            null,
+            null,
+            responsesJson,
+            null,
+            VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
 
         assertCommonResponse(response);
@@ -491,19 +492,19 @@ public class OpalDefendantAccountEnforcementServiceTest {
         ));
 
         verify(enforcementRepositoryService).addDefendantAccountEnforcement(
-            eq(RESULT_ID_AS_STRING),
-            eq(DEFENDANT_ACCOUNT_ID),
-            eq(BUSINESS_UNIT_ID),
-            eq(PROSECUTOR_CASE_REFERENCE),
-            eq("ACCOUNT_ENQUIRY"),
-            eq(null),
-            eq(BUSINESS_UNIT_USER_ID),
-            eq(USER_NAME),
-            eq(null),
-            eq(55L),
-            eq(responsesJson),
-            eq(null),
-            eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
+            RESULT_ID_AS_STRING,
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            PROSECUTOR_CASE_REFERENCE,
+            "ACCOUNT_ENQUIRY",
+            null,
+            BUSINESS_UNIT_USER_ID,
+            USER_NAME,
+            null,
+            55L,
+            responsesJson,
+            null,
+            VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
 
         assertCommonResponse(response);
@@ -558,19 +559,19 @@ public class OpalDefendantAccountEnforcementServiceTest {
         ));
 
         verify(enforcementRepositoryService).addDefendantAccountEnforcement(
-            eq(RESULT_ID_AS_STRING),
-            eq(DEFENDANT_ACCOUNT_ID),
-            eq(BUSINESS_UNIT_ID),
-            eq(PROSECUTOR_CASE_REFERENCE),
-            eq("ACCOUNT_ENQUIRY"),
-            eq(null),
-            eq(BUSINESS_UNIT_USER_ID),
-            eq(USER_NAME),
-            eq(null),
-            eq(null),
-            eq(responsesJson),
-            eq(LocalDateTime.of(2026,5,1,0,0,0)),
-            eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
+            RESULT_ID_AS_STRING,
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            PROSECUTOR_CASE_REFERENCE,
+            "ACCOUNT_ENQUIRY",
+            null,
+            BUSINESS_UNIT_USER_ID,
+            USER_NAME,
+            null,
+            null,
+            responsesJson,
+            LocalDateTime.of(2026, 5, 1, 0, 0, 0),
+            VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
 
         assertCommonResponse(response);
@@ -849,7 +850,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             assertEquals(exception, result);
             verify(defendantAccountControlValidator).validateCanRemoveEnforcementHold(defendantEntity);
             verifyNoInteractions(amendmentService, reportEntryService, notesProxy);
-            verify(defendantAccountRepositoryService, org.mockito.Mockito.never()).saveAndFlush(defendantEntity);
+            verify(defendantAccountRepositoryService, never()).saveAndFlush(defendantEntity);
             assertEquals("NOENF", defendantEntity.getLastEnforcement());
         }
     }
@@ -965,7 +966,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
                 uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS
             );
             verify(defendantAccountRepositoryService).saveAndFlush(defendantEntity);
-            verify(amendmentService, org.mockito.Mockito.never()).auditFinaliseStoredProc(
+            verify(amendmentService, never()).auditFinaliseStoredProc(
                 eq(defendantAccountId),
                 eq(uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS),
                 eq(businessUnitId),

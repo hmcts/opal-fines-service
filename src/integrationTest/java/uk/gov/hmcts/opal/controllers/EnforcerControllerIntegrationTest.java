@@ -148,6 +148,7 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get Enforcer Ref Data uses cache on repeated identical request")
     @JiraStory("PO-7248")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-9394")
     void testGetEnforcerRefData_usesCacheOnRepeatedRequest() throws Exception {
         clearInvocations(enforcerRepository);
 

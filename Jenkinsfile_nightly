@@ -382,6 +382,10 @@ withNightlyPipeline(type, product, component) {
   configureTestEnvironment(testEnvironments.staging)
   //enableFullFunctionalTest(600)
 
+  onMaster {
+    enableSlackNotifications('#opal-nightly-builds')
+  }
+
   afterAlways('DependencyCheckNightly') {
     echo 'Integration:' + params.Integration
     echo 'Functional:' + params.Functional

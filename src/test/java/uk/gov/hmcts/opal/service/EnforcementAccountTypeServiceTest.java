@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
@@ -78,7 +77,7 @@ public class EnforcementAccountTypeServiceTest {
     }
 
     private void withData(long id, LowHighValue accountTypePath, long version) {
-        when(repository.findById(eq(id))).thenReturn(Optional.of(
+        when(repository.findById(id)).thenReturn(Optional.of(
             EnforcementAccountTypeEntity.builder()
                 .enforcementAccountTypeId(id)
                 .enforcementAccountType(EnforcementAccountType.ADULT_NO_COLLECTION_ORDER_HIGH)
@@ -124,8 +123,8 @@ public class EnforcementAccountTypeServiceTest {
         withPermission();
 
         EnforcementAccountTypeEntity mockEntity = mock(EnforcementAccountTypeEntity.class);
-        when(repository.findById(eq(0L))).thenReturn(Optional.of(mockEntity));
-        when(repository.findAllById(eq(List.of(0L)))).thenReturn(List.of(mockEntity));
+        when(repository.findById(0L)).thenReturn(Optional.of(mockEntity));
+        when(repository.findAllById(List.of(0L))).thenReturn(List.of(mockEntity));
         when(mockEntity.getVersion()).thenReturn(BigInteger.ZERO);
         List<PatchEnforcementAccountTypeRequestInner> request = List.of(
             mock(PatchEnforcementAccountTypeRequestInner.class)
@@ -143,7 +142,7 @@ public class EnforcementAccountTypeServiceTest {
             PatchEnforcementAccountTypeRequestInner.builder().id(1L).build()
         );
 
-        when(repository.findById(eq(1L))).thenReturn(Optional.empty());
+        when(repository.findById(1L)).thenReturn(Optional.empty());
 
         EntityNotFoundException e = assertThrows(
             EntityNotFoundException.class,
@@ -152,7 +151,7 @@ public class EnforcementAccountTypeServiceTest {
         assertEquals("Enforcement account type not found", e.getMessage());
 
         verifyNoInteractions(mapper);
-        verify(repository).findById(eq(1L));
+        verify(repository).findById(1L);
         verifyNoMoreInteractions(repository);
     }
 
@@ -195,7 +194,7 @@ public class EnforcementAccountTypeServiceTest {
             e.getDetailedReason()
         );
 
-        verify(repository).findById(eq(1L));
+        verify(repository).findById(1L);
         verifyNoMoreInteractions(repository);
         verifyNoInteractions(mapper);
     }
@@ -218,7 +217,7 @@ public class EnforcementAccountTypeServiceTest {
         );
         assertEquals("Can not set minimum balance to a negative value", e.getDetailedReason());
 
-        verify(repository).findById(eq(1L));
+        verify(repository).findById(1L);
         verifyNoMoreInteractions(repository);
         verifyNoInteractions(mapper);
     }
@@ -247,7 +246,7 @@ public class EnforcementAccountTypeServiceTest {
             e.getMessage()
         );
 
-        verify(repository).findById(eq(1L));
+        verify(repository).findById(1L);
         verifyNoMoreInteractions(repository);
         verifyNoInteractions(mapper);
     }

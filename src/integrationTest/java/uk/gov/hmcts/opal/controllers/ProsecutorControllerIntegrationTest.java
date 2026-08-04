@@ -114,6 +114,7 @@ class ProsecutorControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get Prosecutors as Reference Data uses cache on repeated identical request")
     @JiraStory("PO-7248")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-9487")
     void testGetProsecutorsRefData_usesCacheOnRepeatedRequest() throws Exception {
         clearInvocations(prosecutorRepository);
 
