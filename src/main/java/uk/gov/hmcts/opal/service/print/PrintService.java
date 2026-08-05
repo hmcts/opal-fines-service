@@ -45,7 +45,7 @@ import uk.gov.hmcts.opal.repository.print.PrintJobRepository;
 @Getter
 @RequiredArgsConstructor
 @Slf4j(topic = "opal.PrintService")
-@ConditionalOnProperty(prefix = "opal.common.poc", name = "enabled", havingValue = "true")
+@ConditionalOnProperty(prefix = "opal.testing-support-endpoints", name = "enabled", havingValue = "true")
 public class PrintService {
 
     private final FopFactory fopFactory = FopFactory.newInstance(new File(".").toURI());

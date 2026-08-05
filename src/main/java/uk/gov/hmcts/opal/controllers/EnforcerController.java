@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,6 +28,7 @@ import uk.gov.hmcts.opal.service.opal.EnforcerService;
 @RequestMapping("/enforcers")
 @Slf4j(topic = "opal.EnforcerController")
 @Tag(name = "Enforcer Controller")
+@ConditionalOnProperty(prefix = "opal.testing-support-endpoints", name = "enabled", havingValue = "true")
 public class EnforcerController {
 
     private final EnforcerService enforcerService;

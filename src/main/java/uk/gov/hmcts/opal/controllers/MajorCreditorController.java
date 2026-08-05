@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,16 +49,6 @@ public class MajorCreditorController {
         return buildResponse(response);
     }
 
-    @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Searches MajorCreditors based upon criteria in request body")
-    public ResponseEntity<List<MajorCreditorEntity>> postMajorCreditorsSearch(
-        @RequestBody MajorCreditorSearchDto criteria) {
-        log.debug(":POST:postMajorCreditorsSearch: query: \n{}", criteria);
-
-        List<MajorCreditorEntity> response = majorCreditorService.searchMajorCreditors(criteria);
-
-        return buildResponse(response);
-    }
 
     @GetMapping
     @Operation(summary = "Returns MajorCreditors as reference data with an optional filter applied")

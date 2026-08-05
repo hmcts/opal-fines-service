@@ -36,13 +36,9 @@ public class MinorCreditorController {
 
     private final MinorCreditorService minorCreditorService;
 
-    // Only used for the 'DELETE' endpoint, used in testing
-    private final OpalCreditorAccountService opalCreditorAccountService;
 
-    public MinorCreditorController(MinorCreditorService minorCreditorService,
-                                   OpalCreditorAccountService opalCreditorAccountService) {
+    public MinorCreditorController(MinorCreditorService minorCreditorService) {
         this.minorCreditorService = minorCreditorService;
-        this.opalCreditorAccountService = opalCreditorAccountService;
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -56,25 +52,6 @@ public class MinorCreditorController {
             .searchMinorCreditors(criteria);
 
         return buildResponse(response);
-    }
-
-    @Hidden
-    @DeleteMapping(value = "/{minorCreditorId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Deletes the Minor Creditor for the given minorCreditorId.")
-    @ConditionalOnProperty(prefix = "opal.testing-support-endpoints", name = "enabled", havingValue = "true")
-    public ResponseEntity<String> deleteMinorCreditorById(
-        @PathVariable Long minorCreditorId,
-        @RequestHeader(value = "If-Match") String ifMatch,
-        @RequestParam("ignore_missing") Optional<Boolean> ignoreMissing) {
-        log.warn("TEST ENDPOINT: Request to delete creditor account {} and all associated data", minorCreditorId);
-
-        // Note: This endpoint is used for testing only, so the 'If-Match' check is not actually used.
-        boolean checkExisted = !(ignoreMissing.orElse(false));
-        log.debug(":DELETE:deleteMinorCreditorById: Delete Draft Account: {}{}", minorCreditorId,
-                  checkExisted ? "" : ", ignore if missing");
-
-        return buildResponse(opalCreditorAccountService
-                                 .deleteCreditorAccount((minorCreditorId), checkExisted));
     }
 
     @GetMapping(value = "/{minorCreditorId}/header-summary", produces = MediaType.APPLICATION_JSON_VALUE)
