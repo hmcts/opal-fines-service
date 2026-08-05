@@ -51,7 +51,7 @@ BEGIN
 
     INSERT INTO creditor_accounts (
         creditor_account_id, business_unit_id, account_number, creditor_account_type,
-        prosecution_service, from_suspense, hold_payout, pay_by_bacs
+        prosecution_service, repayment, hold_payout, pay_by_bacs
     ) VALUES (
         v_creditor_account_id, v_business_unit_id, 'UTCA999911', 'CF',
         FALSE, FALSE, FALSE, FALSE
@@ -122,7 +122,7 @@ BEGIN
 
     INSERT INTO creditor_accounts (
         creditor_account_id, business_unit_id, account_number, creditor_account_type,
-        prosecution_service, from_suspense, hold_payout, pay_by_bacs
+        prosecution_service, repayment, hold_payout, pay_by_bacs
     ) VALUES (
         v_creditor_account_id, v_business_unit_id, 'UTCA999912', 'CF',
         FALSE, FALSE, FALSE, FALSE
@@ -193,7 +193,7 @@ BEGIN
 
     INSERT INTO creditor_accounts (
         creditor_account_id, business_unit_id, account_number, creditor_account_type,
-        prosecution_service, from_suspense, hold_payout, pay_by_bacs
+        prosecution_service, repayment, hold_payout, pay_by_bacs
     ) VALUES (
         v_creditor_account_id, v_business_unit_id, 'UTCA999913', 'CF',
         FALSE, FALSE, FALSE, FALSE
@@ -264,7 +264,7 @@ BEGIN
 
     INSERT INTO creditor_accounts (
         creditor_account_id, business_unit_id, account_number, creditor_account_type,
-        prosecution_service, from_suspense, hold_payout, pay_by_bacs
+        prosecution_service, repayment, hold_payout, pay_by_bacs
     ) VALUES (
         v_creditor_account_id, v_business_unit_id, 'UTCA999914', 'CF',
         FALSE, FALSE, FALSE, FALSE
@@ -423,7 +423,7 @@ BEGIN
 
     INSERT INTO creditor_accounts (
         creditor_account_id, business_unit_id, account_number, creditor_account_type,
-        prosecution_service, from_suspense, hold_payout, pay_by_bacs
+        prosecution_service, repayment, hold_payout, pay_by_bacs
     ) VALUES (
         v_creditor_account_id, v_business_unit_id, 'UTCA999919', 'CF',
         FALSE, FALSE, FALSE, FALSE
@@ -501,7 +501,7 @@ BEGIN
 
     INSERT INTO creditor_accounts (
         creditor_account_id, business_unit_id, account_number, creditor_account_type,
-        prosecution_service, from_suspense, hold_payout, pay_by_bacs
+        prosecution_service, repayment, hold_payout, pay_by_bacs
     ) VALUES (
         v_creditor_account_id, v_business_unit_id, 'UTCA999920', 'CF',
         FALSE, FALSE, FALSE, FALSE

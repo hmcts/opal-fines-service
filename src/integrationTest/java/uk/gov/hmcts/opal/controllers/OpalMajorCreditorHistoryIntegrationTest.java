@@ -28,6 +28,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {
@@ -60,6 +61,7 @@ class OpalMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2654 INT.01 returns all ordered major creditor transactions including duplicate actions")
     @JiraStory("PO-2654")
     @JiraEpic("PO-2655")
+    @JiraTestKey("PO-9467")
     void getHistory_returnsOrderedFinancialHistoryAndEtag() throws Exception {
         ResultActions result = getHistory();
 
@@ -93,6 +95,7 @@ class OpalMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2654 INT.05 applies dateFrom inclusively to all supported history items")
     @JiraStory("PO-2654")
     @JiraEpic("PO-2655")
+    @JiraTestKey("PO-9465")
     void getHistory_appliesDateFromInclusively() throws Exception {
         ResultActions result = getHistory("dateFrom", "2026-01-25");
 
@@ -109,6 +112,7 @@ class OpalMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2654 INT.06 applies dateTo inclusively to all supported history items")
     @JiraStory("PO-2654")
     @JiraEpic("PO-2655")
+    @JiraTestKey("PO-9464")
     void getHistory_appliesDateToInclusively() throws Exception {
         ResultActions result = getHistory("dateTo", "2026-01-25");
 
@@ -124,6 +128,7 @@ class OpalMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("GET major creditor history combines the financial item type and date range filters")
     @JiraStory("PO-2654")
     @JiraEpic("PO-2655")
+    @JiraTestKey("PO-9462")
     void getHistory_appliesFinancialItemTypeAndDateFilters() throws Exception {
         ResultActions result = getHistory(
             "itemTypes", "financial",
@@ -144,6 +149,7 @@ class OpalMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2654 INT.10 requires Search and View Accounts permission in at least one business unit")
     @JiraStory("PO-2654")
     @JiraEpic("PO-2655")
+    @JiraTestKey("PO-9466")
     void getHistory_enforcesPermissionAcrossBusinessUnits() throws Exception {
         userStateStub.setupWithNoPermissions();
 
@@ -163,6 +169,7 @@ class OpalMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2654 INT.11 returns only fields documented for major creditor financial history")
     @JiraStory("PO-2654")
     @JiraEpic("PO-2655")
+    @JiraTestKey("PO-9468")
     void getHistory_returnsOnlyDocumentedFields() throws Exception {
         getHistory().andExpect(status().isOk())
             .andExpect(jsonPath("$", allOf(aMapWithSize(1), hasKey("historyItems"))))
@@ -198,6 +205,7 @@ class OpalMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2654 INT.12 repeated GETs return identical content and deterministic tie ordering")
     @JiraStory("PO-2654")
     @JiraEpic("PO-2655")
+    @JiraTestKey("PO-9463")
     void getHistory_isDeterministicForStableData() throws Exception {
         String firstResponse = getHistory()
             .andExpect(status().isOk())

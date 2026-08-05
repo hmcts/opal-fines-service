@@ -20,6 +20,7 @@ public class OpalDefendantEnforcementIntegrationTest extends DefendantEnforcemen
     @Test
     @JiraStory("PO-5757")
     @JiraEpic("PO-2990")
+    @JiraTestKey("PO-9443")
     public void testAddEnforcement_withFullRequestAndBlockedAccountControls_returns422AndRollsBack() throws Exception {
         super.postEnforcementImpl_fullRequest_blockedByAccountControls(log);
     }
@@ -27,6 +28,7 @@ public class OpalDefendantEnforcementIntegrationTest extends DefendantEnforcemen
     @Test
     @JiraStory("PO-5757")
     @JiraEpic("PO-2990")
+    @JiraTestKey("PO-9444")
     public void testAddEnforcement_withMinimumRequestAndBlockedAccountControls_returns422AndRollsBack()
         throws Exception {
         super.postEnforcementImpl_minimumRequest_blockedByAccountControls(log);

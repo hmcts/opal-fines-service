@@ -1,7 +1,9 @@
 package uk.gov.hmcts.opal.service;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -10,9 +12,9 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
-import uk.gov.hmcts.opal.service.opal.history.majorcreditor.MajorCreditorHistoryService;
 import uk.gov.hmcts.opal.service.proxy.MajorCreditorAccountProxy;
 
 @Service
@@ -22,7 +24,6 @@ public class MajorCreditorAccountService {
 
     private final UserStateService userStateService;
     private final MajorCreditorAccountProxy majorCreditorAccountProxy;
-    private final MajorCreditorHistoryService majorCreditorHistoryService;
 
     public GetMajorCreditorAccountAtAGlanceResponse getAtAGlance(Long majorCreditorAccountId) {
         log.debug(":getAtAGlance: id={}", majorCreditorAccountId);
@@ -69,7 +70,39 @@ public class MajorCreditorAccountService {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }
 
-        return majorCreditorHistoryService.getHistory(majorCreditorAccountId, dateFrom, dateTo, itemTypes);
+        validateHistoryFilters(dateFrom, dateTo, itemTypes);
+
+        return majorCreditorAccountProxy.getHistory(majorCreditorAccountId, dateFrom, dateTo, itemTypes);
+    }
+
+    private static void validateHistoryFilters(LocalDate dateFrom, LocalDate dateTo, List<String> itemTypes) {
+        if (dateFrom != null && dateTo != null && dateFrom.isAfter(dateTo)) {
+            throw new IllegalArgumentException("dateFrom must be on or before dateTo");
+        }
+
+        List<HistoryItemType> parsedItemTypes = queryValues(itemTypes).stream()
+            .map(HistoryItemType::fromValue)
+            .toList();
+
+        List<HistoryItemType> unsupportedItemTypes = parsedItemTypes.stream()
+            .filter(itemType -> itemType != HistoryItemType.FINANCIAL && itemType != HistoryItemType.NOTE)
+            .toList();
+
+        if (!unsupportedItemTypes.isEmpty()) {
+            throw new IllegalArgumentException("itemTypes must contain only financial, note");
+        }
+    }
+
+    private static List<String> queryValues(List<String> itemTypes) {
+        if (itemTypes == null) {
+            return List.of();
+        }
+
+        return itemTypes.stream()
+            .flatMap(rawValue -> rawValue == null ? Stream.of("") : Arrays.stream(rawValue.split(",", -1)))
+            .map(String::trim)
+            .filter(itemType -> !itemType.isEmpty())
+            .toList();
     }
 
     private static Short getBusinessUnitId(BusinessUnitSummaryCommon businessUnitDetails) {

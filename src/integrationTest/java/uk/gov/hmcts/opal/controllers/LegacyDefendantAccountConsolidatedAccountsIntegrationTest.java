@@ -50,6 +50,7 @@ import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
 @DisplayName("Legacy Defendant Account Consolidated Accounts Integration Tests")
@@ -86,6 +87,7 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
     @DisplayName("PO-2335 Legacy: INT.01 returns consolidated child accounts from legacy gateway")
     @JiraStory("PO-2335")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-9413")
     void getConsolidatedAccounts_whenLegacyMode_returnsGatewayPayload() throws Exception {
         ArgumentCaptor<LegacyGetDefendantAccountRequest> requestCaptor =
             ArgumentCaptor.forClass(LegacyGetDefendantAccountRequest.class);
@@ -124,6 +126,7 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
     @DisplayName("PO-2335 Legacy: INT.05 permits user with Search and View Accounts in the same business unit")
     @JiraStory("PO-2335")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-9411")
     void getConsolidatedAccounts_whenPermissionInSameBusinessUnit_returnsOk() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 78, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
@@ -138,6 +141,7 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
     @DisplayName("PO-2335 Legacy: INT.06 permits user with Search and View Accounts in a different business unit")
     @JiraStory("PO-2335")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-9406")
     void getConsolidatedAccounts_whenPermissionInDifferentBusinessUnit_returnsOk() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
@@ -152,6 +156,7 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
     @DisplayName("PO-2335 Legacy: INT.03 returns empty array when legacy has no child accounts")
     @JiraStory("PO-2335")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-9409")
     void getConsolidatedAccounts_whenLegacyReturnsNoChildren_returnsEmptyArray() throws Exception {
         when(gatewayService.postToGateway(
             eq(LegacyDefendantAccountService.GET_CONSOLIDATED_ACCOUNTS),
@@ -178,6 +183,7 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
     @DisplayName("PO-2335 Legacy: INT.04 returns 404 when legacy gateway returns not found")
     @JiraStory("PO-2335")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-9408")
     void getConsolidatedAccounts_whenLegacyGatewayReturnsNotFound_returnsNotFound() throws Exception {
         when(gatewayService.postToGateway(
             eq(LegacyDefendantAccountService.GET_CONSOLIDATED_ACCOUNTS),
@@ -200,6 +206,7 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
     @DisplayName("PO-2335 Legacy: INT.07 returns 403 when user lacks Search and View Accounts")
     @JiraStory("PO-2335")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-9412")
     void getConsolidatedAccounts_whenUserLacksPermission_returnsForbidden() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.noPermissionsUser());
 
@@ -218,6 +225,7 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
     @DisplayName("PO-2335 Legacy: INT.08 returns 401 when credentials are missing")
     @JiraStory("PO-2335")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-9407")
     void getConsolidatedAccounts_whenCredentialsMissing_returnsUnauthorized() throws Exception {
         doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
             .when(userStateService).getUserStateV1FromSecurityContext();
@@ -236,6 +244,7 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
     @DisplayName("PO-2335 Legacy: INT.09 returns only documented consolidated account fields")
     @JiraStory("PO-2335")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-9410")
     void getConsolidatedAccounts_returnsOnlyDocumentedFields() throws Exception {
         when(gatewayService.postToGateway(
             eq(LegacyDefendantAccountService.GET_CONSOLIDATED_ACCOUNTS),

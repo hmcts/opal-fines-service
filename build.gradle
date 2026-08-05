@@ -1,5 +1,6 @@
 import org.flywaydb.gradle.task.FlywayMigrateTask
 import java.util.concurrent.TimeUnit
+import groovy.io.FileType
 
 buildscript {
   ext {
@@ -28,7 +29,7 @@ plugins {
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.1.7'
   id 'org.springframework.boot' version '4.1.0'
-  id 'com.github.ben-manes.versions' version '0.54.0'
+  id 'com.github.ben-manes.versions' version '0.59.0'
   id 'org.sonarqube' version '7.3.1.8318'
   id 'uk.gov.hmcts.java' version '0.12.70'
   id 'org.flywaydb.flyway' version '13.0.0'
@@ -276,6 +277,52 @@ openApiGenerate {
     generateBuilders                    : "true"
   ]
 }
+
+def feignClientList = []
+def dir = new File("$rootDir/src/main/resources/openapi/hmrc/".toString())
+dir.eachFileRecurse(FileType.FILES) { file ->
+  if (file.getName().endsWith(".yaml"))
+    feignClientList << file
+}
+feignClientList.each {
+  def apiName = it.getName().replace(".yaml", "")
+  tasks.register('openApiGenerateFeignClients'+apiName, org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+    generatorName = 'spring'
+    library = 'spring-cloud'
+    inputSpec = "$rootDir/src/main/resources/openapi/hmrc/".toString() + "${apiName}.yaml"
+    outputDir = layout.buildDirectory.dir("generated/openapi").get().asFile.absolutePath
+    apiPackage = "uk.gov.hmcts.opal.hmrc.generated.".toString() + "${apiName}.client"
+    modelPackage = "uk.gov.hmcts.opal.hmrc.generated.".toString() + "${apiName}.model"
+    importMappings = [
+            Nullable: "org.jspecify.annotations.Nullable",
+            Short   : "java.lang.Short"
+    ]
+    typeMappings = [
+            "integer+int16": "short"
+    ]
+    // Point to your customized mustache templates
+    templateDir = "$rootDir/openapi/templates".toString()
+    generateApiTests = false
+    generateModelTests = false
+    skipOperationExample = true
+    openapiNormalizer = [
+            REF_AS_PARENT_IN_ALLOF: "true"
+    ]
+    configOptions = [
+            dateLibrary                         : "java8-localdatetime",
+            useTags                             : "true",
+            useSpringBoot4                      : "true",
+            containerDefaultToNull              : "true",
+            generatedConstructorWithRequiredArgs: "false",
+            useBeanValidation                   : "true",
+            useLombokAnnotations                : "true",
+            generateBuilders                    : "true",
+            useFeignClientUrl                   : "true",
+            feign                               : "true"
+    ]
+  }
+}
+
 // (Temp?) Fix to solve the issue:
 // Toolchain from `executable` property does not match toolchain from `javaLauncher` property.
 gradle.taskGraph.whenReady { taskGraph ->
@@ -933,7 +980,7 @@ dependencies {
   implementation 'com.networknt:json-schema-validator:1.5.9'
   implementation 'com.jayway.jsonpath:json-path:3.0.0'
 
-  implementation 'org.openapitools:jackson-databind-nullable:0.2.10'
+  implementation 'org.openapitools:jackson-databind-nullable:0.2.11'
   implementation 'org.flywaydb:flyway-core:13.0.0'
   runtimeOnly 'org.flywaydb:flyway-database-postgresql:13.0.0', {
     exclude group: 'org.flywaydb', module: 'flyway-core'
@@ -1061,6 +1108,8 @@ flyway {
 }
 checkstyle {
   checkstyleMain.exclude '**uk/gov/hmcts/opal/generated/**'
+  checkstyleMain.exclude '**uk/gov/hmcts/opal/hmrc/generated/**'
+  checkstyleMain.exclude '**org/openapitools/configuration/**'
 }
 tasks.register('migratePostgresDatabase', FlywayMigrateTask) {
   baselineOnMigrate = true
@@ -1091,8 +1140,18 @@ tasks.named("openApiGenerate") {
     }
   }
 }
+tasks.register('generateFeignClients') {
+  feignClientList.each {
+    def apiName = it.getName().replace(".yaml", "")
+    dependsOn 'openApiGenerateFeignClients'+apiName
+  }
+  description = "Generates feign clients for HMRC apis"
+  group = "openapi tools"
+}
+
 tasks.named("compileJava") {
   dependsOn 'openApiGenerate'
+  dependsOn 'generateFeignClients'
 }
 
 apply from: "$rootDir/gradle/zephyr.gradle"
