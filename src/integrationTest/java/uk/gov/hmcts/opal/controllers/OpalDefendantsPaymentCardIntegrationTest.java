@@ -78,6 +78,7 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
             post("/defendant-accounts/901/payment-card-request")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
+                .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}")
         );
@@ -88,6 +89,30 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
         result.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.defendant_account_id").value(901));
+    }
+
+    @Test
+    @DisplayName("OPAL: Add Payment Card Request – Happy Path when Accept header is omitted [@PO-6449]")
+    @JiraStory("PO-6449")
+    @JiraEpic("PO-977")
+    void opalAddPaymentCardRequest_HappyWithoutAcceptHeader() throws Exception {
+        Integer currentVersion = versionFor(333L);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
+        headers.add("Business-Unit-Id", "78");
+        headers.add("If-Match", "\"" + currentVersion + "\"");
+
+        mockMvc.perform(
+                post("/defendant-accounts/333/payment-card-request")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{}")
+            )
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_id").value(333));
     }
 
     @Test
