@@ -113,7 +113,7 @@ public class TestingSupportController {
     }
 
     /**
-     * From {@link MajorCreditorController}
+     * From {@link MajorCreditorController}.
      * @param criteria search criteria
      * @return list of MajorCreditorEntities
      */
@@ -129,7 +129,7 @@ public class TestingSupportController {
     }
 
     /**
-     * From {@link BusinessUnitController}
+     * From {@link BusinessUnitController}.
      * @param criteria search criteria
      * @return a list of BusinessUnitEntities
      */
@@ -145,11 +145,11 @@ public class TestingSupportController {
     }
 
     /**
-     * From {@link MinorCreditorController}
+     * From {@link MinorCreditorController}.
      * @param minorCreditorId path param
      * @param ifMatch header
      * @param ignoreMissing query param
-     * @return
+     * @return json string stating what was deleted
      */
     @Hidden
     @DeleteMapping(value = "/minor-creditor-accounts/{minorCreditorId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -170,7 +170,7 @@ public class TestingSupportController {
     }
 
     /**
-     * From {@link DraftAccountController}
+     * From {@link DraftAccountController}.
      * @param criteria search criteria
      * @return a list of DraftAccountResponseDtos
      */
@@ -185,7 +185,7 @@ public class TestingSupportController {
     }
 
     /**
-     * From {@link DraftAccountController}
+     * From {@link DraftAccountController}.
      * @param draftAccountId id path param
      * @param ifMatch header (not used)
      * @param ignoreMissing query param
@@ -210,7 +210,7 @@ public class TestingSupportController {
     }
 
     /**
-     * From {@link LocalJusticeAreaController}
+     * From {@link LocalJusticeAreaController}.
      * @param criteria search criteria
      * @return a list of LocalJusticeAreaEntities
      */
