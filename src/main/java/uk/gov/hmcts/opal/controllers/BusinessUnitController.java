@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -51,17 +52,6 @@ public class BusinessUnitController {
         log.debug(":GET:getBusinessUnitById: businessUnitId: {}", businessUnitId);
 
         BusinessUnitEntity response = businessUnitService.getBusinessUnit(businessUnitId);
-
-        return buildResponse(response);
-    }
-
-    @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Searches BusinessUnits based upon criteria in request body")
-    public ResponseEntity<List<BusinessUnitEntity>> postBusinessUnitsSearch(
-        @RequestBody BusinessUnitSearchDto criteria) {
-        log.debug(":POST:postBusinessUnitsSearch: query: \n{}", criteria);
-
-        List<BusinessUnitEntity> response = businessUnitService.searchBusinessUnits(criteria);
 
         return buildResponse(response);
     }

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
 @Service
-@ConditionalOnProperty(prefix = "opal.common.poc", name = "enabled", havingValue = "true")
+@ConditionalOnProperty(prefix = "opal.testing-support-endpoints", name = "enabled", havingValue = "true")
 public class AsyncPrintJobProcessor {
 
     private final PrintService printService;

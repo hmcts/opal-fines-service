@@ -84,15 +84,6 @@ public class DraftAccountController {
                 optionalNotSubmittedBys, accountStatusDateFrom, accountStatusDateTo));
     }
 
-    @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Searches Draft Accounts based upon criteria in request body")
-    public ResponseEntity<List<DraftAccountResponseDto>> postDraftAccountsSearch(
-        @RequestBody DraftAccountSearchDto criteria) {
-
-        log.debug(":POST:postDraftAccountsSearch: query: \n{}", criteria);
-
-        return buildResponse(draftAccountService.searchDraftAccounts(criteria));
-    }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Creates a Draft Account Entity in the DB based upon data in request body")
@@ -109,24 +100,6 @@ public class DraftAccountController {
         return buildCreatedResponse(draftAccountService.submitDraftAccount(dto));
     }
 
-    @Hidden
-    @DeleteMapping(value = "/{draftAccountId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Deletes the Draft Account for the given draftAccountId.")
-    @ConditionalOnProperty(prefix = "opal.testing-support-endpoints", name = "enabled", havingValue = "true")
-    public ResponseEntity<String> deleteDraftAccountById(
-        @PathVariable Long draftAccountId,
-        @RequestHeader(value = "If-Match", required = false) String ifMatch,
-        @RequestParam("ignore_missing") Optional<Boolean> ignoreMissing) {
-
-        // Note: This endpoint is used for testing only, so the 'If-Match' check is not actually used.
-        boolean checkExisted = !(ignoreMissing.orElse(false));
-
-        log.debug(":DELETE:deleteDraftAccountById: Delete Draft Account: {}{}", draftAccountId,
-            checkExisted ? "" : ", ignore if missing");
-
-        return buildResponse(draftAccountService.deleteDraftAccount((draftAccountId), checkExisted));
-
-    }
 
     @PutMapping(value = "/{draftAccountId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Replaces an existing Draft Account Entity in the DB with data in request body")

@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,16 +51,7 @@ public class LocalJusticeAreaController {
         return buildResponse(response);
     }
 
-    @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Searches LocalJusticeAreas based upon criteria in request body")
-    public ResponseEntity<List<LocalJusticeAreaEntity>> postLocalJusticeAreasSearch(
-        @RequestBody LocalJusticeAreaSearchDto criteria) {
-        log.debug(":POST:postLocalJusticeAreasSearch: query: \n{}", criteria);
 
-        List<LocalJusticeAreaEntity> response = opalLocalJusticeAreaService.searchLocalJusticeAreas(criteria);
-
-        return buildResponse(response);
-    }
 
     @GetMapping
     @Operation(summary = "Returns Local Justice Area as reference data with an optional filter applied")
