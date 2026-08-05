@@ -2,7 +2,7 @@
  * {{description}}{{^description}}{{classname}}{{/description}}{{#isDeprecated}}
  * @deprecated{{/isDeprecated}}
  */
-@{{jacksonPackage}}.annotation.JsonInclude({{jacksonPackage}}.annotation.JsonInclude.Include.ALWAYS)
+@{{jacksonPackage}}.annotation.JsonInclude({{jacksonPackage}}.annotation.JsonInclude.Include.{{#vendorExtensions.x-json-include}}{{.}}{{/vendorExtensions.x-json-include}}{{^vendorExtensions.x-json-include}}ALWAYS{{/vendorExtensions.x-json-include}})
 {{>additionalModelTypeAnnotations}}
 {{#isDeprecated}}
 @Deprecated

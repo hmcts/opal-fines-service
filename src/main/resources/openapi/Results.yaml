@@ -71,6 +71,7 @@ components:
       title: Get Result by ID response
       type: object
       additionalProperties: false
+      x-json-include: NON_NULL
       required:
         - result_id
         - result_title
@@ -146,6 +147,7 @@ components:
           type: boolean
         allow_additional_action:
           type: boolean
+          x-extra-annotation: '@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS)'
         generates_warrant:
           type: boolean
         requires_lja:

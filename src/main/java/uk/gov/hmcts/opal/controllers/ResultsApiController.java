@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_ENABLED_PROPERTY;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -10,7 +12,6 @@ import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.generated.http.api.ResultsApi;
 import uk.gov.hmcts.opal.generated.model.GetResultByIdResponseResults;
 import uk.gov.hmcts.opal.service.opal.ResultService;
-import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @RestController
 @Slf4j(topic = "opal.ResultsApiController")
@@ -20,10 +21,7 @@ public class ResultsApiController implements ResultsApi {
     private final ResultService resultService;
 
     @Override
-    @FeatureToggle(
-        feature = FeatureFlags.RELEASE_1B,
-        defaultValueProperty = FeatureFlags.RELEASE_1B_ENABLED_PROPERTY
-    )
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<GetResultByIdResponseResults> getResultById(String id, Boolean includeWelsh) {
 
         log.debug(":GET:getResultById: resultId: {}, includeWelsh: {}", id, includeWelsh);
