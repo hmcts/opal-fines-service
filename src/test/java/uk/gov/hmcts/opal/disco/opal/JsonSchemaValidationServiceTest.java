@@ -135,7 +135,8 @@ class JsonSchemaValidationServiceTest {
         {
           "submitted_at": "2025-06-09T14:00:00Z",
           "submitted_by_email": "john.doe@example.com"
-        }""";
+        }
+            """;
 
         Set<String> messages = jsonSchemaValidationService
             .validate(validJson, "formatValidationSchema.json");
@@ -151,7 +152,8 @@ class JsonSchemaValidationServiceTest {
           "test_short_id": 123,
           "test_date_time": "2025-06-09T14:00:00Z",
           "test_text_1": "required"
-        }""";
+        }
+            """;
 
         assertTrue(jsonSchemaValidationService.isValid(validJson, "testSchema.json"));
     }
@@ -162,7 +164,8 @@ class JsonSchemaValidationServiceTest {
         {
           "submitted_at": "09/06/2025 2PM",
           "submitted_by_email": "not-an-email"
-        }""";
+        }
+            """;
 
         Set<String> messages = jsonSchemaValidationService
             .validate(invalidJson, "formatValidationSchema.json");
@@ -677,8 +680,7 @@ class JsonSchemaValidationServiceTest {
 
         assertFalse(jsonSchemaValidationService.isValid(
             invalidJson,
-            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST
-        ));
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST));
     }
 
     @Test
@@ -692,8 +694,7 @@ class JsonSchemaValidationServiceTest {
 
         assertTrue(jsonSchemaValidationService.isValid(
             validJson,
-            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST
-        ));
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST));
     }
 
     @Test
@@ -710,8 +711,7 @@ class JsonSchemaValidationServiceTest {
 
         assertTrue(jsonSchemaValidationService.isValid(
             validJson,
-            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST
-        ));
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST));
     }
 
     @Test
@@ -728,8 +728,7 @@ class JsonSchemaValidationServiceTest {
 
         assertTrue(jsonSchemaValidationService.isValid(
             validJson,
-            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST
-        ));
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST));
     }
 
     @Test
@@ -746,8 +745,7 @@ class JsonSchemaValidationServiceTest {
 
         assertTrue(jsonSchemaValidationService.isValid(
             validJson,
-            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST
-        ));
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST));
     }
 
     @Test
@@ -764,8 +762,7 @@ class JsonSchemaValidationServiceTest {
 
         assertTrue(jsonSchemaValidationService.isValid(
             validJson,
-            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST
-        ));
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST));
     }
 
     private void assertDefendantAccountsSearchRequestIsValid(String defendantJson) {
