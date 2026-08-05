@@ -18,8 +18,6 @@ public class BearerTokenStepDef extends BaseStepDef {
 
     static Logger log = LoggerFactory.getLogger(BearerTokenStepDef.class.getName());
     public static final String DEFAULT_USER = "opal-test@dev.platform.hmcts.net";
-    private static final int MAX_TOKEN_FETCH_ATTEMPTS = 3;
-    private static final long TOKEN_FETCH_RETRY_DELAY_MILLIS = 1_000L;
     private static final ThreadLocal<String> TOKEN = new ThreadLocal<>();
     private static final ThreadLocal<String> ALT_TOKEN = new ThreadLocal<>();
 
@@ -61,49 +59,20 @@ public class BearerTokenStepDef extends BaseStepDef {
      * @return access token returned by the user-service test-support endpoint.
      */
     private static String fetchToken(String user) {
-        TestHttpResponse response = null;
-
-        for (int attempt = 1; attempt <= MAX_TOKEN_FETCH_ATTEMPTS; attempt++) {
-            response = TestHttpClient.get(
-                getUserServiceUrl() + "/testing-support/token/user",
-                Map.of(
-                    "Accept", "*/*",
-                    "Content-Type", "application/json",
-                    "X-User-Email", user
-                )
-            );
-
-            if (response.statusCode() == 200 || !isRetryableTokenFetchStatus(response.statusCode())) {
-                break;
-            }
-
-            if (attempt < MAX_TOKEN_FETCH_ATTEMPTS) {
-                log.warn(
-                    "Failed to fetch access token for user {} with status {}. Retrying attempt {} of {}.",
-                    user, response.statusCode(), attempt + 1, MAX_TOKEN_FETCH_ATTEMPTS
-                );
-                sleepBeforeTokenFetchRetry();
-            }
-        }
+        TestHttpResponse response = TestHttpClient.get(
+            getUserServiceUrl() + "/testing-support/token/user",
+            Map.of(
+                "Accept", "*/*",
+                "Content-Type", "application/json",
+                "X-User-Email", user
+            )
+        );
 
         if (response.statusCode() != 200) {
             throw new IllegalStateException("Failed to fetch access token, status: " + response.statusCode());
         }
 
         return response.jsonPath("access_token");
-    }
-
-    private static boolean isRetryableTokenFetchStatus(int statusCode) {
-        return statusCode >= 500;
-    }
-
-    private static void sleepBeforeTokenFetchRetry() {
-        try {
-            Thread.sleep(TOKEN_FETCH_RETRY_DELAY_MILLIS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IllegalStateException("Interrupted while waiting to retry token fetch", e);
-        }
     }
 
     /**
