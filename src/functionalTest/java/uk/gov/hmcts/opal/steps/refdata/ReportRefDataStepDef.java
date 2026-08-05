@@ -145,6 +145,46 @@ public class ReportRefDataStepDef {
     }
 
     /**
+     * Asserts that the cash till report definition reflects the migrated parameter schema and
+     * retention period.
+     */
+    @Then("the cash till report definition contains the migrated report parameters and retention period")
+    public void cashTillReportDefinitionContainsMigratedReportParametersAndRetentionPeriod() {
+        String body = then().extract().body().asString();
+        JsonNode root = OBJECT_MAPPER.readTree(body);
+
+        then().assertThat().statusCode(200);
+        assertEquals("cash_till", root.path("report_id").asString(), "Unexpected report_id returned");
+        assertEquals("PT336H", root.path("retention_period").asString(), "Unexpected retention_period returned");
+        assertTrue(root.path("report_parameters").isObject(), "report_parameters should be an object");
+        assertEquals(2, root.path("report_parameters").size(), "Unexpected number of report parameters");
+
+        JsonNode tillId = root.path("report_parameters").path("till_id");
+        assertEquals("till_id", tillId.path("name").asText(), "Unexpected first report parameter name");
+        assertEquals("Till ID", tillId.path("prompt").asText(), "Unexpected first report parameter prompt");
+        assertEquals("integer", tillId.path("type").asText(), "Unexpected first report parameter type");
+        assertTrue(tillId.path("mandatory").asBoolean(), "till_id should be mandatory");
+        assertEquals(1, tillId.path("min").asInt(), "Unexpected till_id minimum value");
+        assertTrue(tillId.path("min").isInt(), "till_id minimum should be an integer");
+        assertTrue(tillId.path("mandatory").isBoolean(), "till_id mandatory should be a boolean");
+
+        JsonNode allocatedReport = root.path("report_parameters").path("allocated_report");
+        assertEquals(
+            "allocated_report",
+            allocatedReport.path("name").asText(),
+            "Unexpected second report parameter name"
+        );
+        assertEquals(
+            "Allocated report",
+            allocatedReport.path("prompt").asText(),
+            "Unexpected second report parameter prompt"
+        );
+        assertEquals("boolean", allocatedReport.path("type").asText(), "Unexpected second report parameter type");
+        assertFalse(allocatedReport.path("mandatory").asBoolean(), "allocated_report should not be mandatory");
+        assertTrue(allocatedReport.path("mandatory").isBoolean(), "allocated_report mandatory should be a boolean");
+    }
+
+    /**
      * Asserts that the latest report-definition error response matches the shared ProblemDetail
      * top-level contract for the expected status.
      *
