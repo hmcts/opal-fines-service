@@ -4,6 +4,7 @@ import static uk.gov.hmcts.opal.util.VersionUtils.createETag;
 
 import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Optional;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseEntity.BodyBuilder;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpClientErrorException;
@@ -320,6 +322,54 @@ public class GlobalExceptionHandler {
         Optional.ofNullable(versioned).ifPresent(value -> builder.eTag(createETag(value)));
         return builder.body(problemDetail);
     }
+
+    /**
+     * Exception Handler for testing support endpoints, some endpoint have similar paths (e.g. GET /business-units/{id}
+     * and POST /business-units/search) and will therefore throw the HttpRequestMethodNotSupportedException instead of
+     * the expected 404 not found.
+     * @param ex HttpRequestMethodNotSupportedException
+     * @param request HttpServletRequest
+     * @return ProblemDetail either a 404 not found or 405 method not allowed
+     */
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ProblemDetail> handleMethodNotSupportedException(
+        HttpRequestMethodNotSupportedException ex,
+        HttpServletRequest request) {
+
+        if (isDisabledTestingSupportEndpoint(request.getRequestURI())) {
+            ProblemDetail problemDetail = createProblemDetail(
+                HttpStatus.NOT_FOUND,
+                "Not Found",
+                "The requested endpoint could not be found",
+                "not-found",
+                false,
+                ex
+            );
+
+            return responseWithProblemDetail(HttpStatus.NOT_FOUND, problemDetail);
+        }
+
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.METHOD_NOT_ALLOWED,
+            "Method Not Allowed",
+            ex.getMessage(),
+            "method-not-allowed",
+            false,
+            ex
+        );
+
+        return responseWithProblemDetail(HttpStatus.METHOD_NOT_ALLOWED, problemDetail);
+    }
+
+    private boolean isDisabledTestingSupportEndpoint(String path) {
+        return path.equals("/business-units/search")
+            || path.equals("/draft-accounts/search")
+            || path.matches("/draft-accounts/[^/]+")
+            || path.equals("/local-justice-areas/search")
+            || path.equals("/major-creditors/search")
+            || path.matches("/minor-creditor-accounts/[^/]+");
+    }
+
 
     @Getter
     public static class PaymentCardRequestAlreadyExistsException extends RuntimeException {
