@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.mapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.LocalDate;
+import java.time.Month;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.entity.defendantaccount.ConsolidatedAccountEntity;
@@ -14,7 +15,7 @@ class ConsolidatedAccountMapperTest {
 
     @Test
     void toResponse_mapsViewFieldsToResponseFields() {
-        LocalDate dateImposed = LocalDate.of(2026, 1, 21);
+        LocalDate dateImposed = LocalDate.of(2026, Month.JANUARY, 21);
         ConsolidatedAccountEntity entity = ConsolidatedAccountEntity.builder()
             .childAccountId(123L)
             .childAccountNumber("ACC123")

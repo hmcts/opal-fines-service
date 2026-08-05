@@ -234,7 +234,7 @@ class ReportInstanceSearchServiceTest {
     class FindPermittedReportForBusinessUnits {
 
         @Test
-        void whenBusinessUnitsMatchReportPermissions_returnsReportToBusinessUnitMap_happyPath() {
+        void whenBusinessUnitsMatchPermissions_returnsReportUnitMap_happyPath() {
             ReportEntity searchReport = report("search", SEARCH_AND_VIEW_ACCOUNTS);
             ReportEntity maintenanceReport = report("maintain", ACCOUNT_MAINTENANCE);
 

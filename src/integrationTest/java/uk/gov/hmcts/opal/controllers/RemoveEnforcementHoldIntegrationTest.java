@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectEntityNotFound;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,7 @@ class RemoveEnforcementHoldIntegrationTest extends AbstractOpalDefendantsIntegra
     @DisplayName("Remove enforcement hold returns 422 when blocked by account controls")
     @JiraStory("PO-5757")
     @JiraEpic("PO-2990")
+    @JiraTestKey("PO-9494")
     void removeEnforcementHold_returns422_whenBlockedByAccountControls() throws Exception {
         // Arrange
         long defendantAccountId = 9077L;
@@ -175,10 +177,7 @@ class RemoveEnforcementHoldIntegrationTest extends AbstractOpalDefendantsIntegra
 
         resultActions.andExpect(status().isNotFound())
             .andExpect(content().contentType(APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
-            .andExpect(jsonPath("$.title").value("Entity Not Found"))
-            .andExpect(jsonPath("$.status").value(404))
-            .andExpect(jsonPath("$.detail").value("The requested entity could not be found"))
+            .andExpect(expectEntityNotFound())
             .andExpect(jsonPath("$.retriable").value(false));
     }
 

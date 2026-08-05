@@ -13,6 +13,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.REQUESTED;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectBadRequest;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectEntityNotFound;
 
 import java.util.HashMap;
 import java.util.List;
@@ -293,11 +295,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
 
         resultActions.andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.type")
-                .value("https://hmcts.gov.uk/problems/entity-not-found"))
-            .andExpect(jsonPath("$.title").value("Entity Not Found"))
-            .andExpect(jsonPath("$.status").value(404))
-            .andExpect(jsonPath("$.detail").value("The requested entity could not be found"))
+            .andExpect(expectEntityNotFound())
             .andExpect(jsonPath("$.retriable").value(false));
     }
 
@@ -347,12 +345,10 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
 
         resultActions.andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.type")
-                .value("https://hmcts.gov.uk/problems/message-not-readable"))
-            .andExpect(jsonPath("$.title").value("Bad Request"))
-            .andExpect(jsonPath("$.status").value(400))
-            .andExpect(jsonPath("$.detail").value(
-                "The request body could not be read. It may be missing or invalid JSON."))
+            .andExpect(expectBadRequest(
+                "The request body could not be read. It may be missing or invalid JSON.",
+                "https://hmcts.gov.uk/problems/message-not-readable"
+            ))
             .andExpect(jsonPath("$.retriable").value(false));
     }
 

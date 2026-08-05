@@ -27,6 +27,7 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
     @DisplayName("OPAL: Add Payment Terms - account controls return 422 for blocked last enforcement")
     @JiraStory("PO-5757")
     @JiraEpic("PO-2990")
+    @JiraTestKey("PO-9447")
     void test_Opal_AddPaymentTerms_returns422_whenBlockedByAccountControls() throws Exception {
         // Arrange
         authorise((short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
@@ -93,6 +94,7 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
     @DisplayName("OPAL: Add Payment Terms - account controls return 422 with all failed checks")
     @JiraStory("PO-5757")
     @JiraEpic("PO-2990")
+    @JiraTestKey("PO-9448")
     void test_Opal_AddPaymentTerms_returns422_withAllAccountControlFailures() throws Exception {
         // Arrange
         authorise((short) 78, FinesPermission.AMEND_PAYMENT_TERMS);

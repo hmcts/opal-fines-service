@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.testdata.ReportTestData.createComplexReportParameters;
 
@@ -131,7 +132,7 @@ class JsonMapperHelperTest {
         void parseJsonToMap_whenObjectMapperThrowsJacksonException_shouldThrowIllegalArgumentException()
             throws JacksonException {
 
-            ObjectMapper objectMapper = org.mockito.Mockito.mock(ObjectMapper.class);
+            ObjectMapper objectMapper = mock(ObjectMapper.class);
             JsonMapperHelper helper = new JsonMapperHelper(objectMapper);
             String json = "{\"key\":\"value\"}";
             JacksonException parseException = new JacksonException("bad json") {

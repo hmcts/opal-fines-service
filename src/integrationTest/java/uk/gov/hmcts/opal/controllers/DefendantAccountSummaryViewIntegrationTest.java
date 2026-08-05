@@ -69,6 +69,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
             .andExpect(jsonPath("$.payment_state_summary").exists())
             .andExpect(jsonPath("$.party_details").exists())
             .andExpect(jsonPath("$.business_unit_summary").exists())
+            .andExpect(jsonPath("$.business_unit_summary.business_unit_code").value("NE"))
             .andExpect(jsonPath("$.defendant_account_party_id").value("77"))
             .andExpect(jsonPath("$.is_youth").value(false))
             .andExpect(jsonPath("$.has_consolidated_accounts").value(false))

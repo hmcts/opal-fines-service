@@ -8,12 +8,12 @@ import static uk.gov.hmcts.opal.entity.AssociatedRecordType.DEFENDANT_ACCOUNTS;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
@@ -38,12 +38,8 @@ class CashListPaymentLinkServiceTest {
     @Mock
     private SuspenseItemRepository suspenseItemRepository;
 
+    @InjectMocks
     private CashListPaymentLinkService service;
-
-    @BeforeEach
-    void setUp() {
-        service = new CashListPaymentLinkService(defendantAccountRepositoryService, suspenseItemRepository);
-    }
 
     @Test
     void getDefendantAccount_loadsDefendantAccountByAssociatedRecordId() {

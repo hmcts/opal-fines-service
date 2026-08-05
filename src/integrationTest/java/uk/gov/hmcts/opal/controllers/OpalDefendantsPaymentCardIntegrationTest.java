@@ -24,6 +24,7 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
     @DisplayName("OPAL: Add Payment Card Request - account controls return 422 for blocked last enforcement")
     @JiraStory("PO-5757")
     @JiraEpic("PO-2990")
+    @JiraTestKey("PO-9446")
     void opalAddPaymentCardRequest_returns422_whenBlockedByAccountControls() throws Exception {
         // Arrange
         long defendantAccountId = 991199L;
