@@ -9,10 +9,13 @@ public class SchemaPaths {
     public static final String PAYMENT_TERMS = "opal/payment-terms";
     public static final String REFERENCE_DATA = "opal/reference-data";
     public static final String TIMELINE = "opal/timeline";
+    public static final String INTERFACE_JOBS = "opal/interface-jobs";
     public static final String LEGACY = "legacy";
     public static final String ADD_DRAFT_ACCOUNT_REQUEST = DRAFT_ACCOUNT + "/addDraftAccountRequest.json";
     public static final String REPLACE_DRAFT_ACCOUNT_REQUEST = DRAFT_ACCOUNT + "/replaceDraftAccountRequest.json";
     public static final String UPDATE_DRAFT_ACCOUNT_REQUEST = DRAFT_ACCOUNT + "/updateDraftAccountRequest.json";
+    public static final String PROCESS_INTERFACE_JOBS_REQUEST = INTERFACE_JOBS
+        + "/processInterfaceJobsRequest.json";
 
     public static final String GET_LJA_REF_DATA_RESPONSE = REFERENCE_DATA + "/getLJARefDataResponse.json";
 
