@@ -82,6 +82,68 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
     }
 
     @Test
+    @JiraStory("PO-2969")
+    @DisplayName("PO-2969 INT.03 - Get header summary returns TFO originator fields and collection order")
+    void int03_getHeaderSummary_returnsTfoOriginatorFieldsAndCollectionOrder() throws Exception {
+
+        ResultActions resultActions = mockMvc.perform(
+            get("/defendant-accounts/77/header-summary")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+        );
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(APPLICATION_JSON))
+            .andExpect(jsonPath("$.account_number").value("177A"))
+            .andExpect(jsonPath("$.originator_type").value("TFO"))
+            .andExpect(jsonPath("$.originator_name").value("Kingston-upon-Thames Mags Court"))
+            .andExpect(jsonPath("$.collection_order").value(true))
+            .andExpect(jsonPath("$.prosecutor_case_reference").value("090A"))
+            .andExpect(jsonPath("$.payment_state_summary").exists())
+            .andExpect(jsonPath("$.party_details").exists());
+    }
+
+    @Test
+    @JiraStory("PO-2969")
+    @DisplayName("PO-2969 INT.04 - Get header summary returns NEW originator fields and collection order")
+    void int04_getHeaderSummary_returnsNewOriginatorFieldsAndCollectionOrder() throws Exception {
+
+        ResultActions resultActions = mockMvc.perform(
+            get("/defendant-accounts/990001/header-summary")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+        );
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_id").value("990001"))
+            .andExpect(jsonPath("$.originator_type").value("NEW"))
+            .andExpect(jsonPath("$.originator_name").value("Header Summary New Originator"))
+            .andExpect(jsonPath("$.collection_order").value(false))
+            .andExpect(jsonPath("$.has_consolidated_accounts").value(true));
+    }
+
+    @Test
+    @JiraStory("PO-2969")
+    @DisplayName("PO-2969 INT.05 - Get header summary returns FP originator fields and collection order")
+    void int05_getHeaderSummary_returnsFpOriginatorFieldsAndCollectionOrder() throws Exception {
+
+        ResultActions resultActions = mockMvc.perform(
+            get("/defendant-accounts/10001/header-summary")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+        );
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_id").value("10001"))
+            .andExpect(jsonPath("$.originator_type").value("FP"))
+            .andExpect(jsonPath("$.originator_name").value("Brentwood Mags Court"))
+            .andExpect(jsonPath("$.collection_order").value(true))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(true));
+    }
+
+    @Test
     @JiraEpic("PO-2332")
     @JiraStory("PO-2334")
     @DisplayName("PO-2629 INT.08 - Get defendant account header summary returns forbidden response")
