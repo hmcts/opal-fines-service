@@ -265,6 +265,45 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
         );
     }
 
+    @Test
+    @DisplayName("Patch draft account - delete should log successful security event")
+    @JiraStory("PO-2570")
+    @JiraEpic("PO-2808")
+    void testPatchDraftAccount_delete_logsSecurityEventSuccess() throws Exception {
+        Long draftAccountId = 6L;
+
+        ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
+            .header("If-Match", "0")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(validUpdateRequestBody("78", "Deleted", "A")));
+
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testPatchDraftAccount_delete_logsSecurityEventSuccess: Response body:\n{}",
+            ToJsonString.toPrettyJson(response));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string("ETag", "\"1\""))
+            .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
+            .andExpect(jsonPath("$.account_status").value("Deleted"))
+            .andExpect(jsonPath("$.timeline_data").isArray());
+
+        verify(securityEventLoggingService, times(1)).logEvent(
+            eq("Business Function - Deletion of Draft Account"),
+            eq("Success"),
+            eq((short) 78),
+            eq("Deletion"),
+            any(LocalDateTime.class),
+            eq(Map.of(
+                "UserIdentifier", 500000000L,
+                "DraftAccountIdentifier", draftAccountId,
+                "DraftAccountSubmittedByUserIdentifier", "user_003"
+            ))
+        );
+    }
+
 
     @Test
     @DisplayName("Patch draft account - user with CREATE_MANAGE permission should be forbidden [@PO-1820]")

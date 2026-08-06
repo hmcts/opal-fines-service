@@ -56,6 +56,7 @@ public class DraftAccountService {
     public static final String ACCOUNT_DELETED_MESSAGE_FORMAT = """
         { "message": "Draft Account '%s' deleted"}""";
     public static final String EVENT_ACCOUNT_APPROVAL = "Business Function - Approval of Draft Account";
+    public static final String EVENT_ACCOUNT_DELETION = "Business Function - Deletion of Draft Account";
 
     private final DraftAccountTransactional draftAccountTransactional;
 
@@ -147,9 +148,13 @@ public class DraftAccountService {
 
     public String deleteDraftAccount(long draftAccountId, boolean checkExisted) {
         try {
+            DraftAccountEntity draftAccount = draftAccountTransactional.getDraftAccount(draftAccountId);
             boolean deleted =  draftAccountTransactional.deleteDraftAccount(draftAccountId, draftAccountTransactional);
             if (deleted) {
                 log.debug(":deleteDraftAccount: Deleted Draft Account: {}", draftAccountId);
+                UserState userState = userStateService.getUserStateV1FromSecurityContext();
+                logDeletionSuccess(draftAccount.getBusinessUnit().getBusinessUnitId(), userState.getUserId(),
+                    draftAccountId, draftAccount.getSubmittedBy());
             }
         } catch (UnexpectedRollbackException | EntityNotFoundException ure) {
             if (checkExisted) {
@@ -240,6 +245,11 @@ public class DraftAccountService {
 
             loggingService.pdplForDraftAccount(updatedEntity, Action.RESUBMIT, userState);
 
+            if (updatedEntity.getAccountStatus().isDeleted()) {
+                logDeletionSuccess(dto.getBusinessUnitId(), userState.getUserId(), draftAccountId,
+                    updatedEntity.getSubmittedBy());
+            }
+
             if (updatedEntity.getAccountStatus().isPublishingPending()) {
                 log.info(":updateDraftAccount: publishing: ");
                 DraftAccountEntity entity = accountPublishProxy.publishDefendantAccount(
@@ -260,6 +270,14 @@ public class DraftAccountService {
             "DraftAccountIdentifier", accountId,
             "DraftAccountSubmittedByUserIdentifier", submittedBy);;
         securityEventLoggingService.logEvent(EVENT_ACCOUNT_APPROVAL, "Success", buId, "Approval",
+            LocalDateTime.now(clock), data);
+    }
+
+    private void logDeletionSuccess(Short buId, Long deletingUserId, Long accountId, String submittedBy) {
+        Map<String, Object> data = MapUtils.ofNullable("UserIdentifier", deletingUserId,
+            "DraftAccountIdentifier", accountId,
+            "DraftAccountSubmittedByUserIdentifier", submittedBy);
+        securityEventLoggingService.logEvent(EVENT_ACCOUNT_DELETION, "Success", buId, "Deletion",
             LocalDateTime.now(clock), data);
     }
 
