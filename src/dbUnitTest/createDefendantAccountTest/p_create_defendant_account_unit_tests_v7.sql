@@ -1215,8 +1215,8 @@ BEGIN
     ASSERT (SELECT major_creditor_id FROM creditor_accounts WHERE minor_creditor_party_id = v_party_id_minor_creditor) IS NULL
          , 'CREDITOR_ACCOUNTS - major_creditor_id should be NULL';
     --ASSERT (SELECT minor_creditor_party_id FROM creditor_accounts WHERE minor_creditor_party_id = v_party_id_minor_creditor) = '', 'CREDITOR_ACCOUNTS - minor_creditor_party_id should match';
-    ASSERT (SELECT from_suspense FROM creditor_accounts WHERE minor_creditor_party_id = v_party_id_minor_creditor) = FALSE
-         , 'CREDITOR_ACCOUNTS - from_suspense should be FALSE';
+    ASSERT (SELECT repayment FROM creditor_accounts WHERE minor_creditor_party_id = v_party_id_minor_creditor) = FALSE
+         , 'CREDITOR_ACCOUNTS - repayment should be FALSE';
     ASSERT (SELECT hold_payout FROM creditor_accounts WHERE minor_creditor_party_id = v_party_id_minor_creditor) = FALSE
          , 'CREDITOR_ACCOUNTS - hold_payout should match';
     ASSERT (SELECT pay_by_bacs FROM creditor_accounts WHERE minor_creditor_party_id = v_party_id_minor_creditor) = TRUE

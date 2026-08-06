@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -17,29 +18,45 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
+import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
+import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
+import uk.gov.hmcts.opal.dto.common.EnforcementOverrideResult;
+import uk.gov.hmcts.opal.dto.common.EnforcementStatusSummary;
+import uk.gov.hmcts.opal.dto.common.Enforcer;
+import uk.gov.hmcts.opal.dto.common.IndividualAlias;
+import uk.gov.hmcts.opal.dto.common.IndividualDetails;
+import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
+import uk.gov.hmcts.opal.dto.common.LJA;
+import uk.gov.hmcts.opal.dto.common.LanguagePreference;
 import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
+import uk.gov.hmcts.opal.dto.common.LastEnforcementAction;
+import uk.gov.hmcts.opal.dto.common.OrganisationAlias;
+import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
-import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.common.PaymentTermsSummary;
+import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.entity.PartyEntity;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
+import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.Language;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
-import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.EnforcementActionDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcerDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
-import uk.gov.hmcts.opal.generated.model.EnforcementActionDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.LocalJusticeAreaDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.ResultResponsesCommon;
 
 @ExtendWith(MockitoExtension.class)
@@ -330,14 +347,15 @@ class OpalDefendantAccountBuildersTest {
             .accountNote3("Note3")
             .build();
 
-        DefendantAccountAtAGlanceResponse response = OpalDefendantAccountBuilders.buildAtAGlanceResponse(entity);
+        GetDefendantAccountAtAGlanceResponse response = OpalDefendantAccountBuilders.buildAtAGlanceResponse(entity);
 
         assertNotNull(response);
-        assertEquals("1", response.getDefendantAccountId());
-        assertEquals("ACC123", response.getAccountNumber());
-        assertEquals("Defendant", response.getDebtorType());
-        assertTrue(response.getIsYouth());
-        assertNotNull(response.getPartyDetails());
+        assertNotNull(response.getPayload());
+        assertEquals("1", response.getPayload().getDefendantAccountId());
+        assertEquals("ACC123", response.getPayload().getAccountNumber());
+        assertEquals("Defendant", response.getPayload().getDebtorType().getValue());
+        assertTrue(response.getPayload().getIsYouth());
+        assertNotNull(response.getPayload().getPartyDetails());
     }
 
     @Test
@@ -365,14 +383,112 @@ class OpalDefendantAccountBuildersTest {
             .accountNote3("Note3")
             .build();
 
-        DefendantAccountAtAGlanceResponse response = OpalDefendantAccountBuilders.buildAtAGlanceResponse(entity);
+        GetDefendantAccountAtAGlanceResponse response = OpalDefendantAccountBuilders.buildAtAGlanceResponse(entity);
 
         assertNotNull(response);
-        assertEquals("1", response.getDefendantAccountId());
-        assertEquals("ACC123", response.getAccountNumber());
-        assertEquals("Defendant", response.getDebtorType());
-        assertTrue(response.getIsYouth());
-        assertNotNull(response.getPartyDetails());
+        assertNotNull(response.getPayload());
+        assertEquals("1", response.getPayload().getDefendantAccountId());
+        assertEquals("ACC123", response.getPayload().getAccountNumber());
+        assertEquals("Defendant", response.getPayload().getDebtorType().getValue());
+        assertTrue(response.getPayload().getIsYouth());
+        assertNotNull(response.getPayload().getPartyDetails());
+    }
+
+    @Test
+    void toStrictPartyDetails_mapsOrganisationBranch() {
+        PartyDetails source = PartyDetails.builder()
+            .partyId("123")
+            .organisationFlag(true)
+            .organisationDetails(OrganisationDetails.builder()
+                .organisationName("Acme Ltd")
+                .organisationAliases(java.util.List.of(OrganisationAlias.builder()
+                    .aliasId("ORG-1")
+                    .sequenceNumber(1)
+                    .organisationName("Acme Trading")
+                    .build()))
+                .build())
+            .build();
+
+        PartyDetailsCommonStrict out = OpalDefendantAccountBuilders.toStrictPartyDetails(source);
+
+        assertEquals("123", out.getPartyId());
+        assertTrue(out.getOrganisationFlag());
+        assertTrue(out.getOrganisationDetails().isPresent());
+        assertEquals("Acme Ltd", out.getOrganisationDetails().get().getOrganisationName());
+        assertTrue(out.getOrganisationDetails().get().getOrganisationAliases().isPresent());
+        assertEquals("ORG-1", out.getOrganisationDetails().get().getOrganisationAliases().get().get(0).getAliasId());
+        assertFalse(out.getIndividualDetails().isPresent());
+    }
+
+    @Test
+    void toStrictPartyDetails_mapsIndividualBranch() {
+        PartyDetails source = PartyDetails.builder()
+            .partyId("456")
+            .organisationFlag(false)
+            .individualDetails(IndividualDetails.builder()
+                .title("Mr")
+                .forenames("John")
+                .surname("Smith")
+                .dateOfBirth(null)
+                .age("34")
+                .nationalInsuranceNumber("QQ123456C")
+                .individualAliases(java.util.List.of(IndividualAlias.builder()
+                    .aliasId("IND-1")
+                    .sequenceNumber(2)
+                    .surname("Smith")
+                    .forenames("John")
+                    .build()))
+                .build())
+            .build();
+
+        PartyDetailsCommonStrict out = OpalDefendantAccountBuilders.toStrictPartyDetails(source);
+
+        assertEquals("456", out.getPartyId());
+        assertFalse(out.getOrganisationFlag());
+        assertFalse(out.getOrganisationDetails().isPresent());
+        assertTrue(out.getIndividualDetails().isPresent());
+        assertEquals("Mr", out.getIndividualDetails().get().getTitle().get());
+        assertTrue(out.getIndividualDetails().get().getDateOfBirth().isPresent());
+        assertNull(out.getIndividualDetails().get().getDateOfBirth().get());
+        assertEquals("IND-1", out.getIndividualDetails().get().getIndividualAliases().get().get(0).getAliasId());
+    }
+
+    @Test
+    void validateAtAGlancePartyDetails_rejectsMissingOrganisationDetails() {
+        PartyDetails source = PartyDetails.builder()
+            .partyId("123")
+            .organisationFlag(true)
+            .build();
+
+        IllegalStateException ex = assertThrows(
+            IllegalStateException.class,
+            () -> OpalDefendantAccountBuilders.validateAtAGlancePartyDetails(source)
+        );
+
+        assertEquals(
+            "At-a-glance party details are invalid: organisation_details is required when organisation_flag=true",
+            ex.getMessage()
+        );
+    }
+
+    @Test
+    void validateAtAGlancePartyDetails_rejectsBothBranchesPresent() {
+        PartyDetails source = PartyDetails.builder()
+            .partyId("456")
+            .organisationFlag(false)
+            .organisationDetails(OrganisationDetails.builder().organisationName("Wrong").build())
+            .individualDetails(IndividualDetails.builder().surname("Smith").build())
+            .build();
+
+        IllegalStateException ex = assertThrows(
+            IllegalStateException.class,
+            () -> OpalDefendantAccountBuilders.validateAtAGlancePartyDetails(source)
+        );
+
+        assertEquals(
+            "At-a-glance party details are invalid: organisation_details must be null when organisation_flag=false",
+            ex.getMessage()
+        );
     }
 
     private DefendantAccountSummaryViewEntity mockDasv(Boolean organisation,
@@ -548,6 +664,199 @@ class OpalDefendantAccountBuildersTest {
 
         assertEquals(2, OpalDefendantAccountBuilders.buildOrganisationAliasesList(org).size());
         assertTrue(OpalDefendantAccountBuilders.buildIndividualAliasesList(org).isEmpty());
+    }
+
+    @Test
+    void buildAtAGlanceResponse_returnsNull_forNullEntity() {
+        assertNull(OpalDefendantAccountBuilders.buildAtAGlanceResponse(null));
+    }
+
+    @Test
+    void toStrictPartyDetails_returnsNull_forNullSource() {
+        assertNull(OpalDefendantAccountBuilders.toStrictPartyDetails(null));
+    }
+
+    @Test
+    void validateAtAGlancePartyDetails_rejectsMissingIndividualDetails() {
+        PartyDetails source = PartyDetails.builder()
+            .partyId("456")
+            .organisationFlag(false)
+            .build();
+
+        IllegalStateException ex = assertThrows(
+            IllegalStateException.class,
+            () -> OpalDefendantAccountBuilders.validateAtAGlancePartyDetails(source)
+        );
+
+        assertEquals(
+            "At-a-glance party details are invalid: individual_details is required when organisation_flag=false",
+            ex.getMessage()
+        );
+    }
+
+    @Test
+    void validateAtAGlancePartyDetails_rejectsUnexpectedIndividualDetailsForOrganisation() {
+        PartyDetails source = PartyDetails.builder()
+            .partyId("123")
+            .organisationFlag(true)
+            .organisationDetails(OrganisationDetails.builder().organisationName("Acme Ltd").build())
+            .individualDetails(IndividualDetails.builder().surname("Smith").build())
+            .build();
+
+        IllegalStateException ex = assertThrows(
+            IllegalStateException.class,
+            () -> OpalDefendantAccountBuilders.validateAtAGlancePartyDetails(source)
+        );
+
+        assertEquals(
+            "At-a-glance party details are invalid: individual_details must be null when organisation_flag=true",
+            ex.getMessage()
+        );
+    }
+
+    @Test
+    void strictHelpers_handleNullInputs() {
+        assertNull(OpalDefendantAccountBuilders.toOrganisationAliasCommon(null));
+        assertNull(OpalDefendantAccountBuilders.toStrictOrganisationDetails(null));
+        assertNull(OpalDefendantAccountBuilders.toStrictIndividualDetails(null));
+        assertNull(OpalDefendantAccountBuilders.toStrictIndividualAlias(null));
+        assertNull(OpalDefendantAccountBuilders.toStrictAddressDetails(null));
+        assertNull(OpalDefendantAccountBuilders.toStrictLanguagePreferences(null));
+        assertNull(OpalDefendantAccountBuilders.toStrictLanguagePreference(null));
+        assertNull(OpalDefendantAccountBuilders.toStrictPaymentTerms(null));
+        assertNull(OpalDefendantAccountBuilders.toStrictPaymentTermsType(null));
+        assertNull(OpalDefendantAccountBuilders.toStrictInstalmentPeriod(null));
+        assertNull(OpalDefendantAccountBuilders.toStrictEnforcementStatus(null));
+        assertNull(OpalDefendantAccountBuilders.toStrictLastEnforcementAction(null));
+        assertNull(OpalDefendantAccountBuilders.toStrictEnforcementOverride(null));
+        assertNull(OpalDefendantAccountBuilders.toStrictEnforcementOverrideResult(null));
+        assertNull(OpalDefendantAccountBuilders.toEnforcerReferenceCommon(null));
+        assertNull(OpalDefendantAccountBuilders.toStrictLja(null));
+        assertNull(OpalDefendantAccountBuilders.toStrictCommentsAndNotes(null));
+    }
+
+    @Test
+    void toStrictLanguagePreference_returnsNull_whenCodeMissing() {
+        LanguagePreference source = LanguagePreference.builder().build();
+
+        assertNull(OpalDefendantAccountBuilders.toStrictLanguagePreference(source));
+    }
+
+    @Test
+    void strictHelpers_mapOptionalAndUndefinedBranches() {
+        OrganisationDetails organisation = OrganisationDetails.builder()
+            .organisationName("Acme Ltd")
+            .organisationAliases(null)
+            .build();
+        var strictOrganisation = OpalDefendantAccountBuilders.toStrictOrganisationDetails(organisation);
+        assertFalse(strictOrganisation.getOrganisationAliases().isPresent());
+
+        IndividualDetails individual = IndividualDetails.builder()
+            .title("Ms")
+            .forenames("Ada")
+            .surname("Lovelace")
+            .dateOfBirth("1815-12-10")
+            .age("36")
+            .nationalInsuranceNumber(null)
+            .individualAliases(null)
+            .build();
+        var strictIndividual = OpalDefendantAccountBuilders.toStrictIndividualDetails(individual);
+        assertTrue(strictIndividual.getIndividualAliases().isPresent());
+        assertTrue(strictIndividual.getIndividualAliases().get().isEmpty());
+
+        LanguagePreferences preferences = LanguagePreferences.builder()
+            .documentLanguagePreference(LanguagePreference.builder()
+                .languageCode(LanguagePreference.LanguageCode.EN)
+                .build())
+            .hearingLanguagePreference(LanguagePreference.builder()
+                .languageCode(LanguagePreference.LanguageCode.CY)
+                .build())
+            .build();
+        assertEquals("EN", OpalDefendantAccountBuilders.toStrictLanguagePreferences(preferences)
+            .getDocumentLanguagePreference().get().getLanguageCode().getValue());
+    }
+
+    @Test
+    void strictPaymentTermsAndEnforcementHelpers_mapUndefinedBranches() {
+        PaymentTermsSummary paymentTerms = PaymentTermsSummary.builder()
+            .paymentTermsType(PaymentTermsType.builder()
+                .paymentTermsTypeCode(PaymentTermsType.PaymentTermsTypeCode.I)
+                .build())
+            .instalmentPeriod(null)
+            .effectiveDate(LocalDate.of(2026, 7, 28))
+            .lumpSumAmount(new BigDecimal("100.00"))
+            .instalmentAmount(new BigDecimal("10.00"))
+            .build();
+        var strictPaymentTerms = OpalDefendantAccountBuilders.toStrictPaymentTerms(paymentTerms);
+        assertFalse(strictPaymentTerms.getInstalmentPeriod().isPresent());
+
+        EnforcementStatusSummary enforcementStatus = EnforcementStatusSummary.builder()
+            .lastEnforcementAction(null)
+            .collectionOrderMade(Boolean.TRUE)
+            .defaultDaysInJail(7)
+            .enforcementOverride(null)
+            .lastMovementDate(LocalDate.of(2026, 7, 28))
+            .build();
+        var strictEnforcement = OpalDefendantAccountBuilders.toStrictEnforcementStatus(enforcementStatus);
+        assertFalse(strictEnforcement.getLastEnforcementAction().isPresent());
+        assertFalse(strictEnforcement.getEnforcementOverride().isPresent());
+
+        assertNull(OpalDefendantAccountBuilders.toStrictPaymentTermsType(
+            PaymentTermsType.builder().build()));
+        assertNull(OpalDefendantAccountBuilders.toStrictInstalmentPeriod(
+            InstalmentPeriod.builder().build()));
+    }
+
+    @Test
+    void strictEnforcementHelpers_mapNestedValues() {
+        EnforcementOverride override = EnforcementOverride.builder()
+            .enforcementOverrideResult(EnforcementOverrideResult.builder()
+                .enforcementOverrideId("EO1")
+                .enforcementOverrideTitle("Manual override")
+                .build())
+            .enforcer(Enforcer.builder()
+                .enforcerId(11L)
+                .enforcerName("Enforcer Name")
+                .build())
+            .lja(LJA.builder()
+                .ljaId((short) 12)
+                .ljaCode(null)
+                .ljaName("Central LJA")
+                .build())
+            .build();
+
+        var strictOverride = OpalDefendantAccountBuilders.toStrictEnforcementOverride(override);
+        assertTrue(strictOverride.getEnforcementOverrideResult().isPresent());
+        assertEquals("EO1", strictOverride.getEnforcementOverrideResult().get().getEnforcementOverrideResultId());
+        assertTrue(strictOverride.getEnforcer().isPresent());
+        assertEquals(11L, strictOverride.getEnforcer().get().getEnforcerId());
+        assertTrue(strictOverride.getLja().isPresent());
+        assertTrue(strictOverride.getLja().get().getLjaCode().isPresent());
+        assertNull(strictOverride.getLja().get().getLjaCode().get());
+
+        LastEnforcementAction action = LastEnforcementAction.builder()
+            .lastEnforcementActionId("REM")
+            .lastEnforcementActionTitle("Reminder")
+            .build();
+        assertEquals("REM", OpalDefendantAccountBuilders.toStrictLastEnforcementAction(action)
+            .getLastEnforcementActionId());
+    }
+
+    @Test
+    void toStrictCommentsAndNotes_mapsNullableStrings() {
+        CommentsAndNotes source = CommentsAndNotes.builder()
+            .accountNotesAccountComments("Comment")
+            .accountNotesFreeTextNote1("N1")
+            .accountNotesFreeTextNote2(null)
+            .accountNotesFreeTextNote3("N3")
+            .build();
+
+        var out = OpalDefendantAccountBuilders.toStrictCommentsAndNotes(source);
+        assertEquals("Comment", out.getAccountComment().get());
+        assertEquals("N1", out.getFreeTextNote1().get());
+        assertTrue(out.getFreeTextNote2().isPresent());
+        assertNull(out.getFreeTextNote2().get());
+        assertEquals("N3", out.getFreeTextNote3().get());
     }
 
     private AccountSearchDto emptyCriteria() {

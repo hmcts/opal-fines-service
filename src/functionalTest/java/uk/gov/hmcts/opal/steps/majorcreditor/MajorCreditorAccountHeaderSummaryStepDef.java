@@ -40,6 +40,7 @@ public class MajorCreditorAccountHeaderSummaryStepDef extends BaseStepDef {
         "display_name"
     );
     private static final Set<String> BUSINESS_UNIT_FIELDS = Set.of(
+        "business_unit_code",
         "business_unit_id",
         "business_unit_name",
         "welsh_speaking"

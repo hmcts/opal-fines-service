@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.Comparator;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
@@ -28,7 +29,7 @@ public interface LegacyConsolidatedAccountMapper {
         return Optional.ofNullable(accounts)
             .orElse(Collections.emptyList())
             .stream()
-            .filter(account -> account != null)
+            .filter(Objects::nonNull)
             .map(this::toResponse)
             .sorted(Comparator.comparing(ConsolidatedAccountDefendantAccount::getAccountId,
                                          Comparator.nullsLast(Comparator.naturalOrder())))

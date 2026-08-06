@@ -57,6 +57,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
             .businessUnitSummary(BusinessUnitSummaryCommon.builder()
                                      .businessUnitId((short) 1)
                                      .businessUnitName("Test BU")
+                                     .businessUnitCode("0046")
                                      .welshSpeaking("N")
                                      .build())
             .paymentStateSummary(PaymentStateSummaryCommon.builder()
@@ -82,6 +83,8 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
             actual.getResponse().getAccountStatusReference().getAccountStatusCode());
         assertEquals(expected.getBusinessUnitSummary().getBusinessUnitName(),
             actual.getResponse().getBusinessUnitSummary().getBusinessUnitName());
+        assertEquals(expected.getBusinessUnitSummary().getBusinessUnitCode(),
+            actual.getResponse().getBusinessUnitSummary().getBusinessUnitCode());
         assertEquals(expected.getPaymentStateSummary().getImposedAmount(),
             actual.getResponse().getPaymentStateSummary().getImposedAmount());
     }
@@ -481,6 +484,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
                 uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary.builder()
                     .businessUnitId("1")
                     .businessUnitName("Test BU")
+                    .businessUnitCode("0046")
                     .welshSpeaking("N")
                     .build()
             )

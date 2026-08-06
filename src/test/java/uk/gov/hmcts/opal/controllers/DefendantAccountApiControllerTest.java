@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.controllers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
@@ -12,6 +11,7 @@ import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_ENABLED_PROPERTY;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,10 +23,12 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
+import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchReferenceNumberDefendantAccount;
@@ -107,6 +109,32 @@ class DefendantAccountApiControllerTest {
     }
 
     @Test
+    void given_validRequest_when_getDefendantAccountAtAGlance_then_returnsOkResponseWithEtag() {
+        Long defendantId = 77L;
+        AtAGlanceResponseDefendantAccount payload =
+            AtAGlanceResponseDefendantAccount.builder()
+                .defendantAccountId("77")
+                .accountNumber("177A")
+                .debtorType(AtAGlanceResponseDefendantAccount.DebtorTypeEnum.DEFENDANT)
+                .isYouth(false)
+                .build();
+        GetDefendantAccountAtAGlanceResponse serviceResponse = GetDefendantAccountAtAGlanceResponse.builder()
+            .payload(payload)
+            .version(BigInteger.valueOf(5))
+            .build();
+
+        when(defendantAccountService.getAtAGlance(defendantId)).thenReturn(serviceResponse);
+
+        ResponseEntity<AtAGlanceResponseDefendantAccount> response =
+            defendantAccountApiController.getDefendantAccountAtAGlance(defendantId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("\"5\"", response.getHeaders().getETag());
+        assertSame(payload, response.getBody());
+        verify(defendantAccountService).getAtAGlance(defendantId);
+    }
+
+    @Test
     void getConsolidatedAccounts_isProtectedByRelease1BFeatureToggle() throws NoSuchMethodException {
         Method method = DefendantAccountApiController.class.getMethod(
             "getConsolidatedAccounts", Long.class);
@@ -168,7 +196,7 @@ class DefendantAccountApiControllerTest {
             .build();
         GetDefendantAccountHistoryResponse generatedResponse = new GetDefendantAccountHistoryResponse();
 
-        when(defendantAccountService.getHistory(eq(defendantId), eq(null), eq(null), eq(List.of())))
+        when(defendantAccountService.getHistory(defendantId, null, null, List.of()))
             .thenReturn(historyResponse);
         when(defendantAccountHistoryResponseMapper.toGeneratedResponse(historyResponse))
             .thenReturn(generatedResponse);
@@ -179,25 +207,25 @@ class DefendantAccountApiControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("\"1\"", response.getHeaders().getETag());
         assertSame(generatedResponse, response.getBody());
-        verify(defendantAccountService).getHistory(eq(defendantId), eq(null), eq(null), eq(List.of()));
+        verify(defendantAccountService).getHistory(defendantId, null, null, List.of());
         verify(defendantAccountHistoryResponseMapper).toGeneratedResponse(historyResponse);
     }
 
     @Test
     void given_queryValues_when_getDefendantAccountHistory_then_delegatesRawValuesToService() {
         Long defendantId = 1L;
-        LocalDate dateFrom = LocalDate.of(2026, 1, 1);
-        LocalDate dateTo = LocalDate.of(2026, 1, 31);
+        LocalDate dateFrom = LocalDate.of(2026, Month.JANUARY, 1);
+        LocalDate dateTo = LocalDate.of(2026, Month.JANUARY, 31);
         List<String> itemTypes = List.of("note,paymentTerms", "enforcement");
         DefendantAccountHistoryResponse historyResponse = DefendantAccountHistoryResponse.builder().build();
-        when(defendantAccountService.getHistory(eq(defendantId), eq(dateFrom), eq(dateTo), eq(itemTypes)))
+        when(defendantAccountService.getHistory(defendantId, dateFrom, dateTo, itemTypes))
             .thenReturn(historyResponse);
         when(defendantAccountHistoryResponseMapper.toGeneratedResponse(historyResponse))
             .thenReturn(new GetDefendantAccountHistoryResponse());
 
         defendantAccountApiController.getDefendantAccountHistory(defendantId, dateFrom, dateTo, itemTypes);
 
-        verify(defendantAccountService).getHistory(eq(defendantId), eq(dateFrom), eq(dateTo), eq(itemTypes));
+        verify(defendantAccountService).getHistory(defendantId, dateFrom, dateTo, itemTypes);
         verify(defendantAccountHistoryResponseMapper).toGeneratedResponse(historyResponse);
     }
 

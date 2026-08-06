@@ -1,10 +1,18 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,15 +27,6 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.UserStateService;
-
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BusinessUnitControllerTest {
@@ -102,8 +101,8 @@ class BusinessUnitControllerTest {
     @Test
     void testGetBusinessUnitsRefData_Permission_Success() {
         // Arrange
-        UserStateV2 userState = Mockito.mock(UserStateV2.class);
-        DomainBusinessUnitUsers domainBusinessUnitUsers = Mockito.mock(DomainBusinessUnitUsers.class);
+        UserStateV2 userState = mock(UserStateV2.class);
+        DomainBusinessUnitUsers domainBusinessUnitUsers = mock(DomainBusinessUnitUsers.class);
         BusinessUnitReferenceData entity = createBusinessUnitReferenceData();
         List<BusinessUnitReferenceData> businessUnitList = List.of(entity);
 
@@ -130,8 +129,8 @@ class BusinessUnitControllerTest {
     @Test
     void testGetBusinessUnitsRefData_Permission_Empty() {
         // Arrange
-        UserStateV2 userState = Mockito.mock(UserStateV2.class);
-        DomainBusinessUnitUsers domainBusinessUnitUsers = Mockito.mock(DomainBusinessUnitUsers.class);
+        UserStateV2 userState = mock(UserStateV2.class);
+        DomainBusinessUnitUsers domainBusinessUnitUsers = mock(DomainBusinessUnitUsers.class);
         BusinessUnitReferenceData entity = createBusinessUnitReferenceData();
         List<BusinessUnitReferenceData> businessUnitList = List.of(entity);
 

@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,8 +52,8 @@ class MinorCreditorApiControllerTest {
     void given_validRequest_when_getMinorCreditorHistory_then_returnsOkResponseWithETag() {
         // Arrange
         Long minorCreditorAccountId = 1L;
-        LocalDate dateFrom = LocalDate.of(2026, 1, 1);
-        LocalDate dateTo = LocalDate.of(2026, 1, 31);
+        LocalDate dateFrom = LocalDate.of(2026, Month.JANUARY, 1);
+        LocalDate dateTo = LocalDate.of(2026, Month.JANUARY, 31);
         List<String> itemTypes = List.of("amendment", "note");
         GetMinorCreditorHistory200Response payload = new GetMinorCreditorHistory200Response()
             .historyItems(List.of());

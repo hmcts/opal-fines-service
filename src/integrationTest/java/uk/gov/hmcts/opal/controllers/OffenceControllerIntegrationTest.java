@@ -345,6 +345,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get offence reference data uses cache on repeated identical request")
     @JiraStory("PO-7248")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-9441")
     void testGetOffenceReferenceData_usesCacheOnRepeatedRequest() throws Exception {
         clearInvocations(offenceRepository);
 
@@ -359,6 +360,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Post offence search uses cache on repeated identical request")
     @JiraStory("PO-7248")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-9442")
     void testPostOffencesSearch_usesCacheOnRepeatedRequest() throws Exception {
         clearInvocations(offenceRepository);
 

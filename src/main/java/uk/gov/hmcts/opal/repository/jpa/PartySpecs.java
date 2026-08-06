@@ -1,14 +1,18 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
+import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.equalNormalized;
+import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.likeStartsWithNormalized;
+
 import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
+import java.time.LocalDate;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.PartySearchDto;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity_;
-
-import java.time.LocalDate;
 
 public class PartySpecs extends EntitySpecs<PartyEntity> {
 
@@ -55,7 +59,7 @@ public class PartySpecs extends EntitySpecs<PartyEntity> {
     }
 
     public static Predicate likeForenamesPredicate(From<?, PartyEntity> from, CriteriaBuilder builder,
-                                                   String forenames) {
+        String forenames) {
         return likeWildcardPredicate(from.get(PartyEntity_.forenames), builder, forenames);
     }
 
@@ -64,7 +68,7 @@ public class PartySpecs extends EntitySpecs<PartyEntity> {
     }
 
     public static Predicate equalsDateOfBirthPredicate(From<?, PartyEntity> from, CriteriaBuilder builder,
-                                                       LocalDate dob) {
+        LocalDate dob) {
         return builder.equal(from.get(PartyEntity_.birthDate), dob);
     }
 
@@ -76,20 +80,25 @@ public class PartySpecs extends EntitySpecs<PartyEntity> {
         return likeWildcardPredicate(from.get(PartyEntity_.niNumber), builder, niNumber);
     }
 
+    public static Predicate niNumberStartsWithPredicate(From<?, PartyEntity> from, CriteriaBuilder builder,
+        String niNumber) {
+
+        return likeStartsWithNormalized(builder, from.get(PartyEntity_.niNumber), niNumber);
+    }
+
     private static Specification<PartyEntity> likeAnyAddressLine(String addressLine) {
         return (root, query, builder) -> likeAnyAddressLinesPredicate(root, builder, addressLine);
     }
 
     public static Predicate likeAnyAddressLinesPredicate(From<?, PartyEntity> from, CriteriaBuilder builder,
-                                                         String addressLine) {
+        String addressLine) {
         String addressLinePattern = "%" + addressLine.toLowerCase() + "%";
         return builder.or(
             likeAddressLine1Predicate(from, builder, addressLinePattern),
             likeAddressLine2Predicate(from, builder, addressLinePattern),
             likeAddressLine3Predicate(from, builder, addressLinePattern),
             likeAddressLine4Predicate(from, builder, addressLinePattern),
-            likeAddressLine5Predicate(from, builder, addressLinePattern)
-        );
+            likeAddressLine5Predicate(from, builder, addressLinePattern));
     }
 
     private static Predicate likeAddressLine1Predicate(
@@ -117,12 +126,42 @@ public class PartySpecs extends EntitySpecs<PartyEntity> {
         return likeLowerCaseBothPredicate(from.get(PartyEntity_.addressLine5), builder, addressLinePattern);
     }
 
+    public static Predicate addressLine1StartsWithPredicate(From<?, PartyEntity> from, CriteriaBuilder builder,
+        String addressLine1) {
+
+        return likeStartsWithNormalized(builder, from.get(PartyEntity_.addressLine1), addressLine1);
+    }
+
     public static Specification<PartyEntity> likePostcode(String postcode) {
         return (root, query, builder) -> likePostcodePredicate(root, builder, postcode);
     }
 
     public static Predicate likePostcodePredicate(From<?, PartyEntity> from, CriteriaBuilder builder, String postcode) {
         return likeWildcardPredicate(from.get(PartyEntity_.postcode), builder, postcode);
+    }
+
+    public static Predicate postcodeStartsWithPredicate(From<?, PartyEntity> from, CriteriaBuilder builder,
+        String postcode) {
+
+        return likeStartsWithNormalized(builder, from.get(PartyEntity_.postcode), postcode);
+    }
+
+    public static Predicate dateOfBirthStartsWithPredicate(From<?, PartyEntity> from, CriteriaBuilder builder,
+        LocalDate dateOfBirth) {
+
+        Expression<String> dateOfBirthExpression = builder.function(
+            "to_char", String.class,
+            from.get(PartyEntity_.birthDate),
+            builder.literal("YYYY-MM-DD"));
+        return builder.like(dateOfBirthExpression, dateOfBirth + "%");
+    }
+
+    public static Predicate namePredicate(CriteriaBuilder builder, Path<String> path, String value,
+        Boolean exactMatch) {
+
+        return Boolean.TRUE.equals(exactMatch)
+            ? equalNormalized(builder, path, value)
+            : likeStartsWithNormalized(builder, path, value);
     }
 
 }

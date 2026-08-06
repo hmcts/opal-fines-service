@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.mapper.history;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.dto.history.EnforcementDetails;
@@ -22,12 +23,12 @@ class EnforcementEntityHistoryMapperTest {
             .build();
         EnforcementEntity entity = EnforcementEntity.builder()
             .enforcementId(123L)
-            .postedDate(LocalDateTime.of(2026, 1, 1, 10, 15))
+            .postedDate(LocalDateTime.of(2026, Month.JANUARY, 1, 10, 15))
             .postedBy("opal-user")
             .postedByUsername("Opal User")
             .resultId("BWTD")
             .hearingCourt(hearingCourt)
-            .hearingDate(LocalDateTime.of(2025, 10, 23, 9, 30))
+            .hearingDate(LocalDateTime.of(2025, Month.OCTOBER, 23, 9, 30))
             .caseReference("2500000198")
             .build();
 

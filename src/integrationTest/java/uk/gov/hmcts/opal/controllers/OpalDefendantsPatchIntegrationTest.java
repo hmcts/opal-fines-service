@@ -30,6 +30,7 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     @DisplayName("OPAL: PATCH Update Defendant Account - account controls return 422 for protected field change")
     @JiraStory("PO-5757")
     @JiraEpic("PO-2990")
+    @JiraTestKey("PO-9445")
     void patch_updateProtectedField_returns422_whenBlockedByAccountControls() throws Exception {
         // Arrange
         long defendantAccountId = 9077L;
