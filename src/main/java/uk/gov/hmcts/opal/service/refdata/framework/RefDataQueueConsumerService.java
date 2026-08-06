@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -15,6 +14,8 @@ import tools.jackson.databind.ObjectMapper;
 @Component
 @Slf4j(topic = "opal.RefDataQueueConsumer")
 public class RefDataQueueConsumerService {
+
+    private static final String REF_DATA_UPDATE_MESSAGE_SCHEMA = "ref-data/RefDataUpdateMessage.json";
 
     private final ObjectMapper objectMapper;
     private final SchemaValidationService schemaValidationService;
@@ -33,7 +34,7 @@ public class RefDataQueueConsumerService {
     public void consume(String messagePayload) {
         try {
             JsonNode messageNode = readMessageNode(messagePayload);
-            schemaValidationService.validateOrError(messageNode, SchemaPaths.REF_DATA_UPDATE_MESSAGE);
+            schemaValidationService.validateOrError(messageNode, REF_DATA_UPDATE_MESSAGE_SCHEMA);
 
             RefDataUpdateHandler<?, ?> handler = resolveHandler(messageNode);
             dispatch(handler, messageNode.get("payload"));
