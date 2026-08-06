@@ -197,10 +197,9 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     /**
      * Asserts the latest history response is ordered newest first by posted date.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
      */
     @Then("the minor creditor account history is ordered newest first")
-    public void minorCreditorHistoryIsOrderedNewestFirst() throws Exception {
+    public void minorCreditorHistoryIsOrderedNewestFirst() {
         LocalDate previous = null;
         for (JsonNode historyItem : historyItems()) {
             LocalDate current = postedDateOf(historyItem);
@@ -217,10 +216,9 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     /**
      * Asserts the unfiltered response includes fixture data outside the remembered filter range.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
      */
     @Then("the minor creditor account history includes records outside the remembered date range")
-    public void minorCreditorHistoryIncludesRecordsOutsideRememberedDateRange() throws Exception {
+    public void minorCreditorHistoryIncludesRecordsOutsideRememberedDateRange() {
         assertExcludedDate();
 
         assertTrue(
@@ -232,10 +230,9 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     /**
      * Asserts the filtered response excludes fixture data outside the remembered filter range.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
      */
     @Then("the minor creditor account history excludes records outside the remembered date range")
-    public void minorCreditorHistoryExcludesRecordsOutsideRememberedDateRange() throws Exception {
+    public void minorCreditorHistoryExcludesRecordsOutsideRememberedDateRange() {
         assertExcludedDate();
 
         for (JsonNode historyItem : historyItems()) {
@@ -248,10 +245,9 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
      * Asserts the latest history response contains only the supplied item types.
      *
      * @param dataTable expected item type values.
-     * @throws Exception if the response body cannot be parsed as JSON.
      */
     @Then("the minor creditor account history contains only the following item types")
-    public void minorCreditorHistoryContainsOnlyTheFollowingItemTypes(DataTable dataTable) throws Exception {
+    public void minorCreditorHistoryContainsOnlyTheFollowingItemTypes(DataTable dataTable) {
         Set<String> expectedTypes = new LinkedHashSet<>(dataTable.asList(String.class));
         Set<String> actualTypes = new LinkedHashSet<>();
         for (JsonNode historyItem : historyItems()) {
@@ -265,10 +261,9 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
      * Asserts the latest history response excludes the supplied item types.
      *
      * @param dataTable item type values that must not be returned.
-     * @throws Exception if the response body cannot be parsed as JSON.
      */
     @Then("the minor creditor account history excludes the following item types")
-    public void minorCreditorHistoryExcludesTheFollowingItemTypes(DataTable dataTable) throws Exception {
+    public void minorCreditorHistoryExcludesTheFollowingItemTypes(DataTable dataTable) {
         Set<String> excludedTypes = new LinkedHashSet<>(dataTable.asList(String.class));
         for (JsonNode historyItem : historyItems()) {
             assertFalse(
@@ -281,10 +276,9 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     /**
      * Asserts every returned item is on or after the remembered dateFrom boundary.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
      */
     @Then("the minor creditor account history response contains only items on or after the remembered dateFrom")
-    public void minorCreditorHistoryContainsOnlyItemsOnOrAfterRememberedDateFrom() throws Exception {
+    public void minorCreditorHistoryContainsOnlyItemsOnOrAfterRememberedDateFrom() {
         assertRememberedDateRange();
         for (JsonNode historyItem : historyItems()) {
             assertFalse(
@@ -297,10 +291,9 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     /**
      * Asserts every returned item is on or before the remembered dateTo boundary.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
      */
     @Then("the minor creditor account history response contains only items on or before the remembered dateTo")
-    public void minorCreditorHistoryContainsOnlyItemsOnOrBeforeRememberedDateTo() throws Exception {
+    public void minorCreditorHistoryContainsOnlyItemsOnOrBeforeRememberedDateTo() {
         assertRememberedDateRange();
         for (JsonNode historyItem : historyItems()) {
             assertFalse(
@@ -409,7 +402,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
         return items;
     }
 
-    private Map<String, Long> typeCounts() throws Exception {
+    private Map<String, Long> typeCounts() {
         Map<String, Long> counts = new LinkedHashMap<>();
         for (JsonNode historyItem : historyItems()) {
             counts.merge(typeOf(historyItem), 1L, Long::sum);
