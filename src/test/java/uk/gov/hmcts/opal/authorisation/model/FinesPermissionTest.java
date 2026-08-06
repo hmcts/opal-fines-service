@@ -35,6 +35,26 @@ class FinesPermissionTest {
         );
     }
 
+    @Test
+    void whenOperationalReportPermissionsRequested_returnsConfiguredMetadata_happyPath() {
+        assertAll(
+            () -> assertAll(
+                () -> assertEquals(18L, FinesPermission.OPERATIONAL_REPORT_ENFORCEMENT.getId()),
+                () -> assertEquals(
+                    "Operational report (by enforcement)",
+                    FinesPermission.OPERATIONAL_REPORT_ENFORCEMENT.getDescription()
+                )
+            ),
+            () -> assertAll(
+                () -> assertEquals(19L, FinesPermission.OPERATIONAL_REPORT_PAYMENT.getId()),
+                () -> assertEquals(
+                    "Operational report (by payment)",
+                    FinesPermission.OPERATIONAL_REPORT_PAYMENT.getDescription()
+                )
+            )
+        );
+    }
+
     @Nested
     class FromString {
 
