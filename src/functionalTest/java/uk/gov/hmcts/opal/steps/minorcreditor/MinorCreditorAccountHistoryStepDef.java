@@ -10,8 +10,8 @@ import io.cucumber.java.en.When;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.http.HttpHeaders;
+import uk.gov.hmcts.opal.actions.minorcreditor.MinorCreditorHistoryFixtureActions;
 import uk.gov.hmcts.opal.assertions.CommonResponseAssertions;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static net.serenitybdd.rest.SerenityRest.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -39,12 +38,12 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String HISTORY_PATH = "/minor-creditor-accounts/%d/history";
-    private static final String HISTORY_FIXTURE_PATH = "/testing-support/minor-creditor-history";
     private static final String HISTORY_TEST_USER = "opal-test@dev.platform.hmcts.net";
     private static final String HISTORY_RESPONSE_SCHEMA =
         "opal/minor-creditor/getMinorCreditorHistoryResponse.json";
     private static final Set<String> HISTORY_TYPES = Set.of("Amendment", "Financial", "Note");
 
+    private final MinorCreditorHistoryFixtureActions fixtureActions = new MinorCreditorHistoryFixtureActions();
     private final CommonResponseAssertions responseAssertions = new CommonResponseAssertions();
     private final JsonSchemaValidationService schemaValidationService = new JsonSchemaValidationService();
 
@@ -63,10 +62,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
         }
 
         try {
-            Response response = given()
-                .accept("*/*")
-                .when()
-                .delete(getTestUrl() + HISTORY_FIXTURE_PATH + "/" + createdMinorCreditorAccountId);
+            Response response = fixtureActions.deleteFixture(createdMinorCreditorAccountId);
 
             assertTrue(
                 response.statusCode() == 204 || response.statusCode() == 404,
@@ -88,13 +84,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     public void minorCreditorAccountWithRepresentativeHistoryExists(String submittedBy) throws JSONException {
         actAsHistoryTestUser();
 
-        Response response = given()
-            .accept("*/*")
-            .contentType("application/json")
-            .body(new JSONObject().put("reference", submittedBy).toString())
-            .when()
-            .post(getTestUrl() + HISTORY_FIXTURE_PATH);
-
+        Response response = fixtureActions.createFixture(submittedBy);
         responseAssertions.assertStatus(response, 200);
 
         JsonNode body = readJson(response);
@@ -365,7 +355,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     }
 
     private void getHistory(String token, long accountId, String query) {
-        RequestSpecification request = given()
+        RequestSpecification request = net.serenitybdd.rest.SerenityRest.given()
             .accept("*/*")
             .contentType("application/json");
 
