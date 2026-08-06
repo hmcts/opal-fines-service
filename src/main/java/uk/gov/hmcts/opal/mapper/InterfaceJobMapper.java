@@ -32,6 +32,7 @@ public interface InterfaceJobMapper {
     @Mapping(target = "source", source = "request.source")
     @Mapping(target = "records", source = "request.records")
     @Mapping(target = "recordCount", ignore = true)
+    @Mapping(target = "overrideInhibits", ignore = true)
     InterfaceFileEntity toFileEntity(InterfaceJobsCreateItem request, InterfaceJobEntity interfaceJob);
 
     @Mapping(target = "interfaceJobId", source = "interfaceJobId")

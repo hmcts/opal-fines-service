@@ -21,6 +21,7 @@ import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.common.controllers.advice.OpalProblemDetailFactory;
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
+import uk.gov.hmcts.opal.exception.InterfaceJobQueueException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.MissingMappingTypeException;
 import uk.gov.hmcts.opal.exception.MissingReportServiceException;
@@ -186,6 +187,19 @@ public class GlobalExceptionHandler {
         problemDetail.setProperty("supported_types", ex.getSupportedTypes());
 
         return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
+    }
+
+    @ExceptionHandler(InterfaceJobQueueException.class)
+    public ResponseEntity<ProblemDetail> handleInterfaceJobQueueException(InterfaceJobQueueException ex) {
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.SERVICE_UNAVAILABLE,
+            "Service Unavailable",
+            "The interface job queue is currently unavailable",
+            "interface-job-queue-unavailable",
+            true,
+            ex
+        );
+        return responseWithProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, problemDetail);
     }
 
     @ExceptionHandler(HttpClientErrorException.class)

@@ -42,6 +42,9 @@ public class InterfaceFileEntity {
     @JoinColumn(name = "interface_job_id", nullable = false)
     private InterfaceJobEntity interfaceJob;
 
+    @Column(name = "override_inhibits", nullable = false)
+    private boolean overrideInhibits;
+
     @Column(name = "file_name", length = 200, nullable = false)
     private String fileName;
 

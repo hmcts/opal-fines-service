@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.repository;
 
+import java.util.List;
 import java.util.function.Function;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -17,4 +18,7 @@ public interface InterfaceJobRepository extends JpaRepository<InterfaceJobEntity
     <S extends InterfaceJobEntity, R> R findBy(
         Specification<InterfaceJobEntity> specification,
         Function<? super JpaSpecificationExecutor.SpecificationFluentQuery<S>, R> queryFunction);
+
+    @EntityGraph(attributePaths = {"businessUnit", "interfaceFiles"})
+    List<InterfaceJobEntity> findAllByInterfaceJobIdIn(List<Long> interfaceJobIds);
 }
