@@ -87,7 +87,7 @@ public class OpalDefendantAccountPaymentTermsServiceTest {
         account.setDefendantAccountId(defendantAccountId);
         account.setBusinessUnit(bu);
         account.setLastEnforcement(String.valueOf(55L));
-        account.setVersionNumber(BigInteger.ONE);
+        account.setVersionNumber(1L);
 
         // Request DTO (minimal)
         PaymentTerms paymentTermsDto = new PaymentTerms();
@@ -165,7 +165,7 @@ public class OpalDefendantAccountPaymentTermsServiceTest {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(defendantAccountId)
             .businessUnit(bu)
-            .versionNumber(BigInteger.ONE)
+            .versionNumber(1L)
             .build();
 
         when(defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(defendantAccountId))
@@ -219,7 +219,7 @@ public class OpalDefendantAccountPaymentTermsServiceTest {
         account.setDefendantAccountId(defendantAccountId);
         account.setBusinessUnit(bu);
         account.setLastEnforcement("55");
-        account.setVersionNumber(BigInteger.ONE);
+        account.setVersionNumber(1L);
         PaymentTerms paymentTermsDto = new PaymentTerms();
         AddDefendantAccountPaymentTermsRequest request = new AddDefendantAccountPaymentTermsRequest();
         request.setPaymentTerms(paymentTermsDto);
@@ -272,7 +272,7 @@ public class OpalDefendantAccountPaymentTermsServiceTest {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(defendantAccountId)
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 10).build())
-            .versionNumber(BigInteger.ONE)
+            .versionNumber(1L)
             .build();
         UnprocessableException exception = new UnprocessableException("blocked");
 

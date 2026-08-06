@@ -56,7 +56,7 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
         account = new DefendantAccountEntity();
         account.setDefendantAccountId(1L);
         account.setBusinessUnit(businessUnit);
-        account.setVersionNumber(BigInteger.ONE);
+        account.setVersionNumber(1L);
         account.setProsecutorCaseReference("CASE-REF");
 
         PartyEntity party = PartyEntity.builder().partyId(99L).build();
@@ -72,7 +72,7 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
     void removeDefendantAccountParty_whenValidRequest_deletesAssociationAndReturnsVersion() {
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
         when(defendantAccountRepositoryService.saveAndFlush(account)).thenAnswer(invocation -> {
-            account.setVersionNumber(BigInteger.valueOf(2L));
+            account.setVersionNumber(2L);
             return account;
         });
         doNothing().when(amendmentRepositoryService)

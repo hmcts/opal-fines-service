@@ -88,7 +88,7 @@ class OpalDefendantAccountServiceCoreTest {
     void getConsolidatedAccounts_whenMasterExists_returnsWrappedPayloadWithMasterVersion() {
         Long defendantAccountId = 123L;
         DefendantAccountEntity masterAccount = DefendantAccountEntity.builder()
-            .versionNumber(BigInteger.valueOf(12L))
+            .versionNumber(2L)
             .build();
         ConsolidatedAccountEntity consolidatedAccount = ConsolidatedAccountEntity.builder()
             .masterAccountId(defendantAccountId)
@@ -188,7 +188,7 @@ class OpalDefendantAccountServiceCoreTest {
         return DefendantAccountEntity.builder()
             .defendantAccountId(accountId)
             .originatorName("Kingston-upon-Thames Mags Court")
-            .versionNumber(BigInteger.ONE)
+            .versionNumber(1L)
             .build();
     }
 

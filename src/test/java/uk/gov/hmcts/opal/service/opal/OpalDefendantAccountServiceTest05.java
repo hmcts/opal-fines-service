@@ -69,7 +69,7 @@ class OpalDefendantAccountServiceTest05 {
             .parties(List.of(dap))
             .businessUnit(BusinessUnitEntity.builder()
                 .businessUnitId((short) 1).build())
-            .versionNumber(BigInteger.ZERO)
+            .versionNumber(0L)
             .build();
 
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
@@ -133,7 +133,7 @@ class OpalDefendantAccountServiceTest05 {
             .defendantAccountId(2L).parties(List.of(dap))
             .businessUnit(BusinessUnitEntity.builder()
                 .businessUnitId((short) 1).build())
-            .versionNumber(BigInteger.ZERO).build();
+            .versionNumber(0L).build();
 
         when(defendantAccountRepositoryService.findById(2L)).thenReturn(account);
 
@@ -205,7 +205,7 @@ class OpalDefendantAccountServiceTest05 {
             .parties(List.of(dap))
             .businessUnit(BusinessUnitEntity.builder()
                 .businessUnitId((short) 1).build())
-            .versionNumber(BigInteger.ZERO)
+            .versionNumber(0L)
             .build();
 
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
@@ -260,7 +260,7 @@ class OpalDefendantAccountServiceTest05 {
             .parties(List.of(dap))
             .businessUnit(BusinessUnitEntity.builder()
                 .businessUnitId((short) 1).build())
-            .versionNumber(BigInteger.ZERO)
+            .versionNumber(0L)
             .build();
 
         when(defendantAccountRepositoryService.findById(2L)).thenReturn(account);

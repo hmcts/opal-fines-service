@@ -92,7 +92,7 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(accountId)
             .businessUnit(buEnt)
-            .versionNumber(BigInteger.ONE)
+            .versionNumber(1L)
             .build();
 
         account.setParties(new java.util.ArrayList<>());
@@ -201,7 +201,7 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
             .businessUnitId((short) 77).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buWrong).versionNumber(BigInteger.ONE).build();
+            .defendantAccountId(accountId).businessUnit(buWrong).versionNumber(1L).build();
 
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
         AddDefendantAccountPartyRequest request = validOrganisationRequest();
@@ -343,7 +343,7 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
         return DefendantAccountEntity.builder()
             .defendantAccountId(accountId)
             .businessUnit(BusinessUnitEntity.builder().businessUnitId(businessUnitId).build())
-            .versionNumber(BigInteger.valueOf(version))
+            .versionNumber(version)
             .build();
     }
 

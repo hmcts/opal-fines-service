@@ -75,12 +75,12 @@ class DefendantAccountRepositoryServiceTest {
         // arrange
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(10L)
-            .versionNumber(BigInteger.valueOf(1L))
+            .versionNumber(1L)
             .build();
 
         DefendantAccountEntity savedAccount = DefendantAccountEntity.builder()
             .defendantAccountId(10L)
-            .versionNumber(BigInteger.valueOf(2L))
+            .versionNumber(2L)
             .build();
 
         when(defendantAccountRepository.saveAndFlush(account))
@@ -100,12 +100,12 @@ class DefendantAccountRepositoryServiceTest {
         // arrange
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(5L)
-            .versionNumber(BigInteger.valueOf(1L))
+            .versionNumber(1L)
             .build();
 
         DefendantAccountEntity savedAccount = DefendantAccountEntity.builder()
             .defendantAccountId(5L)
-            .versionNumber(BigInteger.valueOf(1L))
+            .versionNumber(1L)
             .build();
 
         when(defendantAccountRepository.save(account))

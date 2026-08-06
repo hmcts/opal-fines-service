@@ -885,7 +885,7 @@ class OpalDefendantAccountBuildersTest {
         return DefendantAccountEntity.builder()
             .defendantAccountId(accountId)
             .originatorName("Kingston-upon-Thames Mags Court")
-              .versionNumber(BigInteger.ONE)
+              .versionNumber(1L)
             .build();
     }
 

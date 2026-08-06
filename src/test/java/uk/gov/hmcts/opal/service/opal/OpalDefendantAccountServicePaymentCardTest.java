@@ -66,7 +66,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(accountId)
             .businessUnit(bu)
-            .versionNumber(BigInteger.ONE)
+            .versionNumber(1L)
             .build();
 
         when(defendantAccountRepositoryService.findById(accountId))
@@ -96,7 +96,7 @@ class OpalDefendantAccountServicePaymentCardTest {
     void addPaymentCardRequest_failsWhenPcrAlreadyExists() {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 10).build())
-            .versionNumber(BigInteger.ONE)
+            .versionNumber(1L)
             .build();
 
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
@@ -111,7 +111,7 @@ class OpalDefendantAccountServicePaymentCardTest {
     void addPaymentCardRequest_failsWhenBusinessUnitMismatch() {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 77).build())
-            .versionNumber(BigInteger.ONE)
+            .versionNumber(1L)
             .build();
 
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
@@ -125,7 +125,7 @@ class OpalDefendantAccountServicePaymentCardTest {
     void addPaymentCardRequest_allowsNullBusinessUnitUserId_whenUserNotInBusinessUnit() {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 10).build())
-            .versionNumber(BigInteger.ONE)
+            .versionNumber(1L)
             .build();
 
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
@@ -144,7 +144,7 @@ class OpalDefendantAccountServicePaymentCardTest {
     void addPaymentCardRequest_versionConflictThrows() {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 10).build())
-            .versionNumber(BigInteger.valueOf(5L))  // expected If-Match
+            .versionNumber(5L)  // expected If-Match
             .build();
 
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
@@ -158,7 +158,7 @@ class OpalDefendantAccountServicePaymentCardTest {
     void addPaymentCardRequest_newSignature_failsWhenBusinessUnitMismatch() {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 20).build())
-            .versionNumber(BigInteger.ONE)
+            .versionNumber(1L)
             .build();
 
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
@@ -175,7 +175,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(1L)
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 10).build())
-            .versionNumber(BigInteger.ONE)
+            .versionNumber(1L)
             .build();
         UnprocessableException exception = new UnprocessableException("blocked");
 
@@ -201,7 +201,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(accountId)
             .businessUnit(bu)
-            .versionNumber(BigInteger.ONE)
+            .versionNumber(1L)
             .build();
 
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
