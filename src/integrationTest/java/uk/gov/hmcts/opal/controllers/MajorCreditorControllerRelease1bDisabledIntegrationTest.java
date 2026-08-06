@@ -1,5 +1,13 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
@@ -13,29 +21,11 @@ import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-@ActiveProfiles({ "integration" })
-@TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1b=false"
-})
+@ActiveProfiles({"integration"})
+@TestPropertySource(properties = {"launchdarkly.enabled=false", "launchdarkly.default-flag-values.release-1b=false"})
 @DisplayName("Major Creditor Controller Release 1B Disabled Integration Test")
-@Sql(
-    scripts = "classpath:db/insertData/insert_into_creditor_accounts.sql",
-    executionPhase = BEFORE_TEST_METHOD
-)
-@Sql(
-    scripts = "classpath:db/deleteData/delete_from_creditor_accounts.sql",
-    executionPhase = AFTER_TEST_METHOD
-)
+@Sql(scripts = "classpath:db/insertData/insert_into_creditor_accounts.sql", executionPhase = BEFORE_TEST_METHOD)
+@Sql(scripts = "classpath:db/deleteData/delete_from_creditor_accounts.sql", executionPhase = AFTER_TEST_METHOD)
 public class MajorCreditorControllerRelease1bDisabledIntegrationTest extends AbstractIntegrationTest {
 
     private static final String MAJOR_CREDITORS_URL = "/major-creditors";
@@ -55,8 +45,7 @@ public class MajorCreditorControllerRelease1bDisabledIntegrationTest extends Abs
     void testGetMajorCreditorsRefData_WhenRelease1bDisabled() throws Exception {
         ResultActions result = mockMvc.perform(get(MAJOR_CREDITORS_URL)
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-            .header(AUTHORISATION_HEADER, userStateStub.getBearerToken()))
-            .andDo(print());
+            .header(AUTHORISATION_HEADER, userStateStub.getBearerToken()));
 
         String body = result.andExpect(status().isOk())
             .andExpect(content().contentType(APPLICATION_JSON))
