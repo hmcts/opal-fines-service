@@ -10,7 +10,7 @@
 *
 * Date        Author      Version  Nature of Change
 * ----------  ----------  -------  -------------------------------------------------------------
-* 05/08/2025  J SHEEN     1.0      PO-2972 data for major creditors R1B disabled integration test
+* 05/08/2025  J SHEEN     1.0      PO-2972 Deletes data for major creditors R1B disabled integration test
 */
 
 DELETE FROM public.creditor_accounts
