@@ -8,6 +8,8 @@ import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildP
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildVehicleDetails;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -76,6 +78,8 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
     private final DefendantAccountPartiesRepository defendantAccountPartiesRepository;
 
     private final DefendantAccountControlValidator defendantAccountControlValidator;
+
+    private final EntityManager em;
 
     @Override
     @Transactional(readOnly = true)
@@ -216,8 +220,10 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             .build();
     }
     private DefendantAccountEntity bumpVersion(Long accountId) {
-        DefendantAccountEntity entity = defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(accountId);
-        return defendantAccountRepositoryService.saveAndFlush(entity);
+        DefendantAccountEntity entity = defendantAccountRepositoryService.findById(accountId);
+        em.lock(entity, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+        em.flush();
+        return entity;
     }
 
     @Override
