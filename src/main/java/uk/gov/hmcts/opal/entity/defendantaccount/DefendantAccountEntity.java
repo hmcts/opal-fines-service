@@ -251,11 +251,11 @@ public class DefendantAccountEntity implements Versioned {
 
     @Column(name = "version_number")
     @Version
-    private Long versionNumber;
+    private BigInteger versionNumber;
 
     @Override
     public BigInteger getVersion() {
-        return Optional.ofNullable(versionNumber).map(BigInteger::valueOf).orElse(null);
+        return versionNumber;
     }
 
     public boolean isInBusinessUnit(String businessUnitId) {
