@@ -28,6 +28,7 @@ import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
+import uk.gov.hmcts.opal.service.DraftAccountService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -252,7 +253,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
                 .value("A single user cannot submit and delete the same Draft Account"));
 
         verify(securityEventLoggingService, times(1)).logEvent(
-            eq("Business Function - Deletion of Draft Account"),
+            eq(DraftAccountService.EVENT_ACCOUNT_DELETION),
             eq("Failure"),
             eq((short) 78),
             eq("Deletion"),
@@ -291,7 +292,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .andExpect(jsonPath("$.timeline_data").isArray());
 
         verify(securityEventLoggingService, times(1)).logEvent(
-            eq("Business Function - Deletion of Draft Account"),
+            eq(DraftAccountService.EVENT_ACCOUNT_DELETION),
             eq("Success"),
             eq((short) 78),
             eq("Deletion"),
