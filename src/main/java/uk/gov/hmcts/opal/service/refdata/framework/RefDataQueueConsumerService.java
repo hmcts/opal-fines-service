@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.SchemaPaths;
-import uk.gov.hmcts.opal.exception.InvalidRefDataException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -38,7 +37,7 @@ public class RefDataQueueConsumerService {
 
             RefDataUpdateHandler<?, ?> handler = resolveHandler(messageNode);
             dispatch(handler, messageNode.get("payload"));
-        } catch (InvalidRefDataException | JsonSchemaValidationException ex) {
+        } catch (IllegalArgumentException | JsonSchemaValidationException ex) {
             log.warn("Discarding invalid ref-data message: {}", ex.getMessage());
             log.debug("Invalid ref-data message payload was:\n{}", messagePayload, ex);
         }
@@ -48,7 +47,7 @@ public class RefDataQueueConsumerService {
         try {
             return objectMapper.readTree(messagePayload);
         } catch (Exception ex) {
-            throw new InvalidRefDataException("Unable to parse ref data message", ex);
+            throw new IllegalArgumentException("Unable to parse ref data message", ex);
         }
     }
 
@@ -57,7 +56,7 @@ public class RefDataQueueConsumerService {
         String refDataType = refDataTypeNode == null ? null : refDataTypeNode.asText();
         RefDataUpdateHandler<?, ?> handler = handlersByType.get(refDataType);
         if (handler == null) {
-            throw new InvalidRefDataException("Unknown ref data type: " + refDataType);
+            throw new IllegalArgumentException("Unknown ref data type: " + refDataType);
         }
         return handler;
     }
@@ -68,7 +67,7 @@ public class RefDataQueueConsumerService {
         try {
             dto = objectMapper.convertValue(payloadNode, handler.payloadType());
         } catch (IllegalArgumentException ex) {
-            throw new InvalidRefDataException("Unable to convert ref data payload", ex);
+            throw new IllegalArgumentException("Unable to convert ref data payload", ex);
         }
         handler.validateDto(dto);
         E entity = handler.findEntity(dto)

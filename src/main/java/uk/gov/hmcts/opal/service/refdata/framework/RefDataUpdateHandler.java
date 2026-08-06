@@ -7,7 +7,7 @@ public interface RefDataUpdateHandler<T, E> {
 
     Class<T> payloadType();
 
-    // Implementations should throw InvalidRefDataException for validation erorrs.
+    // Implementations should throw RuntimeExceptions for validation erorrs.
     void validateDto(T dto);
 
     Optional<E> findEntity(T dto);
