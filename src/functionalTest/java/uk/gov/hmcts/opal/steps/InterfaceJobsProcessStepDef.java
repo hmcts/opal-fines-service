@@ -117,7 +117,7 @@ public class InterfaceJobsProcessStepDef extends BaseStepDef {
             .put("interface_jobs", new JSONArray().put(new JSONObject()
                 .put("file_name", "e2e-process-" + UUID.randomUUID() + ".dat")
                 .put("source", "NATWEST")
-                .put("records", "[{\\\"account\\\":\\\"abc123\\\"}]")
+                .put("records", "[{\"account\":\"abc123\"}]")
                 .put("business_unit_id", BUSINESS_UNIT_ID)
                 .put("interface_name", "E2E Process Interface Jobs")
                 .put("created_datetime", LocalDateTime.now().withNano(0).toString())));
