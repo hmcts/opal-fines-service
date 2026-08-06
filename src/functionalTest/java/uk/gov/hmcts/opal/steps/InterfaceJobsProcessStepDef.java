@@ -127,7 +127,9 @@ public class InterfaceJobsProcessStepDef extends BaseStepDef {
             .when()
             .post(getTestUrl() + CREATE_PATH);
 
-        then().statusCode(200);
+        then()
+            .log().ifValidationFails()
+            .statusCode(200);
         JSONArray createdJobs = new JSONObject(then().extract().asString()).getJSONArray("interface_jobs");
         assertEquals(1, createdJobs.length(), "Expected one created interface job");
         return new ProcessJob(createdJobs.getJSONObject(0).getLong("interface_job_id"), overrideInhibits);
