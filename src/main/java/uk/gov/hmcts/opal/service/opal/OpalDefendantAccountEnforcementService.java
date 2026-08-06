@@ -157,7 +157,7 @@ public class OpalDefendantAccountEnforcementService
 
         return AddEnforcementResponse.builder()
             .defendantAccountId(String.valueOf(defendantAccountId))
-            .version(Math.toIntExact(latestDefendant.getVersionNumber()))
+            .version(latestDefendant.getVersionNumber())
             .enforcementId(String.valueOf(enforcementId))
             .build();
     }

@@ -60,7 +60,7 @@ public class LegacyImpositionService implements ImpositionServiceInterface {
 
         return Optional.ofNullable(legacyImpositionsResponse).map(imposition ->
             GetDefendantAccountImpositionsResponse.builder()
-                .version(BigInteger.valueOf(legacyImpositionsResponse.getVersion()))
+                .version(legacyImpositionsResponse.getVersion())
                 .payload(buildImpositionList(legacyImpositionsResponse.getImpositions()))
                 .build()).orElse(null);
     }

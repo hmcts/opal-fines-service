@@ -112,7 +112,7 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 public class LegacyDefendantAccountService implements DefendantAccountServiceInterface {
 
     public static final String GET_HEADER_SUMMARY = "getDefendantAccountHeaderSummary";
-    public static final String GET_DEFENDANT_ACCOUNT_HISTORY = "LIBRA.get_defendant_account_history";
+    public static final String GET_DEFENDANT_ACCOUNT_HISTORY = "getDefendantAccountHistory";
     public static final String SEARCH_DEFENDANT_ACCOUNTS = "searchDefendantAccounts";
     public static final String GET_PAYMENT_TERMS = "getDefendantAccountPaymentTerms";
     public static final String ADD_PAYMENT_TERMS = "addDefendantAccountPaymentTerms";
@@ -364,7 +364,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 .build();
 
         return DefendantAccountHeaderSummary.builder()
-            .version(new BigInteger(Optional.ofNullable(response.getVersion()).orElse("1")))
+            .version(Optional.ofNullable(response.getVersion()).orElse(BigInteger.ONE))
             .response(defendantAccHeaderSummaryResponse)
             .build();
     }
@@ -879,7 +879,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 .defendantAccountId(String.valueOf(defendantAccountId))
                 .businessUnitId(businessUnitId)
                 .businessUnitUserId(businessUnitUserId)
-                .version(VersionUtils.extractBigInteger(ifMatch).intValue())
+                .version(VersionUtils.extractBigInteger(ifMatch))
                 .resultId(request != null && request.getResultId() != null ? request.getResultId().value() : null)
                 .enforcementResultResponses(
                     mapResultResponses(request != null ? request.getEnforcementResultResponses() : null))

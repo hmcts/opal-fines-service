@@ -276,7 +276,7 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
 
         // Return the legacy wrapper with version + correctly-shaped party
         response.setDefendantAccountParty(legacyParty);
-        response.setVersion(BigInteger.valueOf(legacy.getVersion()));
+        response.setVersion(legacy.getVersion());
         return response;
     }
 
@@ -291,7 +291,7 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
         String postedByName, String businessUnitUserId) {
 
         LegacyReplaceDefendantAccountPartyRequest req = LegacyReplaceDefendantAccountPartyRequest.builder()
-            .version(VersionUtils.extractBigInteger(ifMatch).longValue())
+            .version(VersionUtils.extractBigInteger(ifMatch))
             .defendantAccountId(defendantAccountId)
             .businessUnitId(businessUnitId)
             .businessUnitUserId(businessUnitUserId)
@@ -487,7 +487,7 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
         }
 
         return GetDefendantAccountPartyResponse.builder()
-            .version(legacy.getVersion() == null ? null : BigInteger.valueOf(legacy.getVersion()))
+            .version(legacy.getVersion() == null ? null : legacy.getVersion())
             .defendantAccountParty(modernParty)
             .build();
     }

@@ -219,7 +219,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
     // TODO - Created PO-2452 to fix bumping the version with a more atomically correct method
     private DefendantAccountEntity bumpVersion(Long accountId) {
         DefendantAccountEntity entity = defendantAccountRepositoryService.findById(accountId);
-        entity.setVersionNumber(entity.getVersion().add(BigInteger.ONE).longValueExact());
+        entity.setVersionNumber(entity.getVersion().add(BigInteger.ONE));
         return defendantAccountRepositoryService.saveAndFlush(entity);
     }
 

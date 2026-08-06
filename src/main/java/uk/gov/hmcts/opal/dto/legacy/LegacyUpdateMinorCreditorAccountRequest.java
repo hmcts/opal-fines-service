@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Size;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
+import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -44,7 +45,7 @@ public class LegacyUpdateMinorCreditorAccountRequest {
     @JsonProperty("account_version")
     @XmlElement(name = "account_version")
     @NotNull
-    private Integer accountVersion;
+    private BigInteger accountVersion;
 
     @JsonProperty("party_details")
     @XmlElement(name = "party_details")
