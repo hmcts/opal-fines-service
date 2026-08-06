@@ -120,7 +120,7 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
         );
 
         verify(gatewayService).postToGateway(
-            eq("LIBRA.patchDefendantAccount"),
+            eq("updateDefendantAccount"),
             eq(LegacyUpdateDefendantAccountResponse.class),
             any(LegacyUpdateDefendantAccountRequest.class),
             isNull()
