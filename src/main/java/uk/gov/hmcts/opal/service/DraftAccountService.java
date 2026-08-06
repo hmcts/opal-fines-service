@@ -234,6 +234,7 @@ public class DraftAccountService {
         Optional<BusinessUnitUser> unitUser = userState.getBusinessUnitUserForBusinessUnit(dto.getBusinessUnitId());
         log.info(":updateDraftAccount: unit user: {}", unitUser);
         if (UserState.userHasPermission(unitUser, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS)) {
+            DraftAccountStatus previousStatus = draftAccountTransactional.getDraftAccount(draftAccountId).getAccountStatus();
             if (DraftAccountStatus.PUBLISHING_PENDING.equals(dto.getAccountStatus())) {
                 applyValidatedBy(dto, userState, unitUser.orElseThrow());
             }
@@ -245,7 +246,7 @@ public class DraftAccountService {
 
             loggingService.pdplForDraftAccount(updatedEntity, Action.RESUBMIT, userState);
 
-            if (updatedEntity.getAccountStatus().isDeleted()) {
+            if (transitionedToDeleted(previousStatus, updatedEntity.getAccountStatus())) {
                 logDeletionSuccess(dto.getBusinessUnitId(), userState.getUserId(), draftAccountId,
                     updatedEntity.getSubmittedBy());
             }
@@ -268,7 +269,7 @@ public class DraftAccountService {
     private void logApprovalSuccess(Short buId, Long approverId, Long accountId, String submittedBy) {
         Map<String, Object> data = MapUtils.ofNullable("UserIdentifier", approverId,
             "DraftAccountIdentifier", accountId,
-            "DraftAccountSubmittedByUserIdentifier", submittedBy);;
+            "DraftAccountSubmittedByUserIdentifier", submittedBy);
         securityEventLoggingService.logEvent(EVENT_ACCOUNT_APPROVAL, "Success", buId, "Approval",
             LocalDateTime.now(clock), data);
     }
@@ -277,8 +278,17 @@ public class DraftAccountService {
         Map<String, Object> data = MapUtils.ofNullable("UserIdentifier", deletingUserId,
             "DraftAccountIdentifier", accountId,
             "DraftAccountSubmittedByUserIdentifier", submittedBy);
-        securityEventLoggingService.logEvent(EVENT_ACCOUNT_DELETION, "Success", buId, "Deletion",
-            LocalDateTime.now(clock), data);
+        try {
+            securityEventLoggingService.logEvent(EVENT_ACCOUNT_DELETION, "Success", buId, "Deletion",
+                LocalDateTime.now(clock), data);
+        } catch (RuntimeException ex) {
+            log.warn(":logDeletionSuccess: Failed to write security event for draft account deletion: {}",
+                accountId, ex);
+        }
+    }
+
+    private boolean transitionedToDeleted(DraftAccountStatus previousStatus, DraftAccountStatus updatedStatus) {
+        return previousStatus != null && !previousStatus.isDeleted() && updatedStatus != null && updatedStatus.isDeleted();
     }
 
     public DraftAccountResponseDto toGetResponseDto(DraftAccountEntity entity) {

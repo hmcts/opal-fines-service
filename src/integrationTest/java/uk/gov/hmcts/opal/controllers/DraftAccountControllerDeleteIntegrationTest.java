@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.service.DraftAccountService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -45,7 +46,7 @@ class DraftAccountControllerDeleteIntegrationTest extends CommonDraftAccountCont
                 """));
 
         verify(securityEventLoggingService, times(1)).logEvent(
-            eq("Business Function - Deletion of Draft Account"),
+            eq(DraftAccountService.EVENT_ACCOUNT_DELETION),
             eq("Success"),
             eq((short) 78),
             eq("Deletion"),
