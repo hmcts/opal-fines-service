@@ -15,6 +15,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.math.BigInteger;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,7 +66,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(accountId)
             .businessUnit(bu)
-            .versionNumber(1L)
+            .versionNumber(BigInteger.ONE)
             .build();
 
         when(defendantAccountRepositoryService.findById(accountId))
@@ -95,7 +96,7 @@ class OpalDefendantAccountServicePaymentCardTest {
     void addPaymentCardRequest_failsWhenPcrAlreadyExists() {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 10).build())
-            .versionNumber(1L)
+            .versionNumber(BigInteger.ONE)
             .build();
 
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
@@ -110,7 +111,7 @@ class OpalDefendantAccountServicePaymentCardTest {
     void addPaymentCardRequest_failsWhenBusinessUnitMismatch() {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 77).build())
-            .versionNumber(1L)
+            .versionNumber(BigInteger.ONE)
             .build();
 
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
@@ -124,7 +125,7 @@ class OpalDefendantAccountServicePaymentCardTest {
     void addPaymentCardRequest_allowsNullBusinessUnitUserId_whenUserNotInBusinessUnit() {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 10).build())
-            .versionNumber(1L)
+            .versionNumber(BigInteger.ONE)
             .build();
 
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
@@ -143,7 +144,7 @@ class OpalDefendantAccountServicePaymentCardTest {
     void addPaymentCardRequest_versionConflictThrows() {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 10).build())
-            .versionNumber(5L)  // expected If-Match
+            .versionNumber(BigInteger.valueOf(5L))  // expected If-Match
             .build();
 
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
@@ -157,7 +158,7 @@ class OpalDefendantAccountServicePaymentCardTest {
     void addPaymentCardRequest_newSignature_failsWhenBusinessUnitMismatch() {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 20).build())
-            .versionNumber(1L)
+            .versionNumber(BigInteger.ONE)
             .build();
 
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
@@ -174,7 +175,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(1L)
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 10).build())
-            .versionNumber(1L)
+            .versionNumber(BigInteger.ONE)
             .build();
         UnprocessableException exception = new UnprocessableException("blocked");
 
@@ -200,7 +201,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(accountId)
             .businessUnit(bu)
-            .versionNumber(1L)
+            .versionNumber(BigInteger.ONE)
             .build();
 
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);

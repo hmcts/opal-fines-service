@@ -118,7 +118,7 @@ class OpalDefendantAccountUpdateTest {
             .build();
 
         // If-Match must match this (@Version)
-        entity.setVersionNumber(1L);
+        entity.setVersionNumber(BigInteger.ONE);
 
         // Stubs
         when(defendantAccountRepositoryService.findById(id)).thenReturn(entity);
@@ -237,7 +237,7 @@ class OpalDefendantAccountUpdateTest {
 
         DefendantAccountEntity entity = DefendantAccountEntity.builder()
             .businessUnit(bu)
-            .versionNumber(1L)
+            .versionNumber(BigInteger.ONE)
             .build();
 
         when(defendantAccountRepositoryService.findById(id)).thenReturn(entity);
@@ -264,7 +264,7 @@ class OpalDefendantAccountUpdateTest {
         var entity = DefendantAccountEntity.builder()
             .defendantAccountId(77L)
             .businessUnit(bu)
-            .versionNumber(5L)
+            .versionNumber(BigInteger.valueOf(5L))
             .build();
 
         when(defendantAccountRepositoryService.findById(77L)).thenReturn(entity);
@@ -292,7 +292,7 @@ class OpalDefendantAccountUpdateTest {
         var entity = DefendantAccountEntity.builder()
             .defendantAccountId(77L)
             .businessUnit(bu)
-            .versionNumber(0L)
+            .versionNumber(BigInteger.ZERO)
             .build();
         UnprocessableException exception = new UnprocessableException("blocked");
 
@@ -327,7 +327,7 @@ class OpalDefendantAccountUpdateTest {
         var entity = DefendantAccountEntity.builder()
             .defendantAccountId(77L)
             .businessUnit(bu)
-            .versionNumber(0L)
+            .versionNumber(BigInteger.ZERO)
             .build();
 
         when(defendantAccountRepositoryService.findById(77L)).thenReturn(entity);
@@ -360,7 +360,7 @@ class OpalDefendantAccountUpdateTest {
             .businessUnit(bu)
             .collectionOrder(true)
             .collectionOrderEffectiveDate(LocalDate.of(2025, Month.JANUARY, 1))
-            .versionNumber(0L)
+            .versionNumber(BigInteger.ZERO)
             .build();
 
         when(defendantAccountRepositoryService.findById(77L)).thenReturn(entity);
@@ -391,7 +391,7 @@ class OpalDefendantAccountUpdateTest {
         var entity = DefendantAccountEntity.builder()
             .defendantAccountId(77L)
             .businessUnit(bu)
-            .versionNumber(0L)
+            .versionNumber(BigInteger.ZERO)
             .build();
 
         when(defendantAccountRepositoryService.findById(77L)).thenReturn(entity);
@@ -424,7 +424,7 @@ class OpalDefendantAccountUpdateTest {
         var entity = DefendantAccountEntity.builder()
             .defendantAccountId(77L)
             .businessUnit(bu)
-            .versionNumber(0L)
+            .versionNumber(BigInteger.ZERO)
             .build();
 
         when(defendantAccountRepositoryService.findById(77L)).thenReturn(entity);
@@ -459,7 +459,7 @@ class OpalDefendantAccountUpdateTest {
         var entity = DefendantAccountEntity.builder()
             .defendantAccountId(77L)
             .businessUnit(bu)
-            .versionNumber(0L)
+            .versionNumber(BigInteger.ZERO)
             .build();
 
         when(defendantAccountRepositoryService.findById(77L)).thenReturn(entity);
@@ -491,7 +491,7 @@ class OpalDefendantAccountUpdateTest {
         var entity = DefendantAccountEntity.builder()
             .defendantAccountId(77L)
             .businessUnit(bu)
-            .versionNumber(0L)
+            .versionNumber(BigInteger.ZERO)
             .build();
         entity.setEnforcementOverrideResultId("FWEC");
         entity.setEnforcementOverrideEnforcerId(21L);
@@ -527,7 +527,7 @@ class OpalDefendantAccountUpdateTest {
             .businessUnit(bu)
             .collectionOrder(true)
             .collectionOrderEffectiveDate(LocalDate.of(2025, Month.JANUARY, 1))
-            .versionNumber(0L)
+            .versionNumber(BigInteger.ZERO)
             .build();
 
         when(defendantAccountRepositoryService.findById(77L)).thenReturn(entity);
@@ -560,7 +560,7 @@ class OpalDefendantAccountUpdateTest {
         var entity = DefendantAccountEntity.builder()
             .defendantAccountId(77L)
             .businessUnit(bu)
-            .versionNumber(0L)
+            .versionNumber(BigInteger.ZERO)
             .build();
 
         when(defendantAccountRepositoryService.findById(77L)).thenReturn(entity);

@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.math.BigInteger;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -50,7 +51,7 @@ class OpalNotesServiceTest {
         when(clock.instant()).thenReturn(Instant.parse("2026-07-03T10:15:30Z"));
         when(clock.getZone()).thenReturn(ZoneOffset.UTC);
         DefendantAccountEntity managed = new DefendantAccountEntity();
-        managed.setVersionNumber(12L);
+        managed.setVersionNumber(BigInteger.valueOf(12L));
         BusinessUnitEntity businessUnit = new BusinessUnitEntity();
         businessUnit.setBusinessUnitId((short) 78);
         managed.setBusinessUnit(businessUnit);

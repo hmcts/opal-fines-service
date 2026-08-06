@@ -14,6 +14,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.math.BigInteger;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -91,7 +92,7 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(accountId)
             .businessUnit(buEnt)
-            .versionNumber(1L)
+            .versionNumber(BigInteger.ONE)
             .build();
 
         account.setParties(new java.util.ArrayList<>());
@@ -200,7 +201,7 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
             .businessUnitId((short) 77).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buWrong).versionNumber(1L).build();
+            .defendantAccountId(accountId).businessUnit(buWrong).versionNumber(BigInteger.ONE).build();
 
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
         AddDefendantAccountPartyRequest request = validOrganisationRequest();
@@ -342,7 +343,7 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
         return DefendantAccountEntity.builder()
             .defendantAccountId(accountId)
             .businessUnit(BusinessUnitEntity.builder().businessUnitId(businessUnitId).build())
-            .versionNumber(version)
+            .versionNumber(BigInteger.valueOf(version))
             .build();
     }
 

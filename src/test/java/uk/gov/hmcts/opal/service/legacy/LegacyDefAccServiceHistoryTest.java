@@ -61,7 +61,7 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
     void getHistory_success_mapsMixedLegacyHistoryItems() {
         // Arrange
         GetDefendantAccountHistoryLegacyResponse responseBody = GetDefendantAccountHistoryLegacyResponse.builder()
-            .version(9L)
+            .version(BigInteger.valueOf(9L))
             .historyItems(List.of(
                 amendmentItem(),
                 paymentTermsItem(),

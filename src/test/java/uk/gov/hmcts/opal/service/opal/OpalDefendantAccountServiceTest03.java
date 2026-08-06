@@ -18,6 +18,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.math.BigInteger;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
@@ -95,7 +96,7 @@ class OpalDefendantAccountServiceTest03 {
             .defendantAccountPartyId(dapId).party(null).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).versionNumber(1L).build();
+            .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).versionNumber(BigInteger.ONE).build();
 
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
 
@@ -133,7 +134,7 @@ class OpalDefendantAccountServiceTest03 {
             .defendantAccountPartyId(dapId).party(party).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).versionNumber(1L).build();
+            .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).versionNumber(BigInteger.ONE).build();
 
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
 
@@ -155,7 +156,7 @@ class OpalDefendantAccountServiceTest03 {
             .businessUnitId((short) 77).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buWrong).versionNumber(1L).build();
+            .defendantAccountId(accountId).businessUnit(buWrong).versionNumber(BigInteger.ONE).build();
 
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
 
@@ -184,7 +185,7 @@ class OpalDefendantAccountServiceTest03 {
             .defendantAccountId(accountId)
             .businessUnit(buEnt)
             .parties(List.of(dap))
-            .versionNumber(1L)
+            .versionNumber(BigInteger.ONE)
             .build();
         UnprocessableException exception = new UnprocessableException("blocked");
 
@@ -223,7 +224,7 @@ class OpalDefendantAccountServiceTest03 {
             .defendantAccountPartyId(dapId).party(party).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).versionNumber(1L).build();
+            .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).versionNumber(BigInteger.ONE).build();
 
         when(defendantAccountRepositoryService.findById(anyLong())).thenReturn(account);
 
@@ -271,7 +272,7 @@ class OpalDefendantAccountServiceTest03 {
             .defendantAccountPartyId(dapId).party(party).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).versionNumber(1L).build();
+            .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).versionNumber(BigInteger.ONE).build();
 
         when(partyRepositoryService.findById(444L)).thenReturn(party);
         when(aliasRepoService.findByPartyId(444L)).thenReturn(emptyList());
@@ -330,7 +331,7 @@ class OpalDefendantAccountServiceTest03 {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(accountId)
             .businessUnit(buEnt)
-            .versionNumber(1L)
+            .versionNumber(BigInteger.ONE)
             .build();
 
         PartyEntity party = mock(PartyEntity.class);
@@ -425,7 +426,7 @@ class OpalDefendantAccountServiceTest03 {
             .build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).versionNumber(1L).build();
+            .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).versionNumber(BigInteger.ONE).build();
 
         when(partyRepositoryService.findById(300L)).thenReturn(partyProxy);
         when(defendantAccountRepositoryService.saveAndFlush(account)).thenReturn(account);
@@ -473,7 +474,7 @@ class OpalDefendantAccountServiceTest03 {
             .defendantAccountPartyId(dapId).party(party).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).versionNumber(1L).build();
+            .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).versionNumber(BigInteger.ONE).build();
 
         when(defendantAccountRepositoryService.findById(anyLong())).thenReturn(account);
 
@@ -572,7 +573,7 @@ class OpalDefendantAccountServiceTest03 {
             .defendantAccountId(accountId)
             .businessUnit(buEnt)
             .parties(new java.util.ArrayList<>(List.of(defendantDap, parentGuardianDap)))
-            .versionNumber(1L)
+            .versionNumber(BigInteger.ONE)
             .build();
 
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);

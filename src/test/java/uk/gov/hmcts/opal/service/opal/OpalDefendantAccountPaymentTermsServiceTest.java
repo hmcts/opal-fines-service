@@ -11,6 +11,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.Optional;
@@ -86,7 +87,7 @@ public class OpalDefendantAccountPaymentTermsServiceTest {
         account.setDefendantAccountId(defendantAccountId);
         account.setBusinessUnit(bu);
         account.setLastEnforcement(String.valueOf(55L));
-        account.setVersionNumber(1L);
+        account.setVersionNumber(BigInteger.ONE);
 
         // Request DTO (minimal)
         PaymentTerms paymentTermsDto = new PaymentTerms();
@@ -164,7 +165,7 @@ public class OpalDefendantAccountPaymentTermsServiceTest {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(defendantAccountId)
             .businessUnit(bu)
-            .versionNumber(1L)
+            .versionNumber(BigInteger.ONE)
             .build();
 
         when(defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(defendantAccountId))
@@ -218,7 +219,7 @@ public class OpalDefendantAccountPaymentTermsServiceTest {
         account.setDefendantAccountId(defendantAccountId);
         account.setBusinessUnit(bu);
         account.setLastEnforcement("55");
-        account.setVersionNumber(1L);
+        account.setVersionNumber(BigInteger.ONE);
         PaymentTerms paymentTermsDto = new PaymentTerms();
         AddDefendantAccountPaymentTermsRequest request = new AddDefendantAccountPaymentTermsRequest();
         request.setPaymentTerms(paymentTermsDto);
@@ -271,7 +272,7 @@ public class OpalDefendantAccountPaymentTermsServiceTest {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(defendantAccountId)
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 10).build())
-            .versionNumber(1L)
+            .versionNumber(BigInteger.ONE)
             .build();
         UnprocessableException exception = new UnprocessableException("blocked");
 

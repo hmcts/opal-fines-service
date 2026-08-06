@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigInteger;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -74,12 +75,12 @@ class DefendantAccountRepositoryServiceTest {
         // arrange
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(10L)
-            .versionNumber(1L)
+            .versionNumber(BigInteger.valueOf(1L))
             .build();
 
         DefendantAccountEntity savedAccount = DefendantAccountEntity.builder()
             .defendantAccountId(10L)
-            .versionNumber(2L)
+            .versionNumber(BigInteger.valueOf(2L))
             .build();
 
         when(defendantAccountRepository.saveAndFlush(account))
@@ -99,12 +100,12 @@ class DefendantAccountRepositoryServiceTest {
         // arrange
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(5L)
-            .versionNumber(1L)
+            .versionNumber(BigInteger.valueOf(1L))
             .build();
 
         DefendantAccountEntity savedAccount = DefendantAccountEntity.builder()
             .defendantAccountId(5L)
-            .versionNumber(1L)
+            .versionNumber(BigInteger.valueOf(1L))
             .build();
 
         when(defendantAccountRepository.save(account))

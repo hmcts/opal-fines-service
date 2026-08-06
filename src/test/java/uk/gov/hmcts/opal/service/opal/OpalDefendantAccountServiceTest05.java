@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -68,7 +69,7 @@ class OpalDefendantAccountServiceTest05 {
             .parties(List.of(dap))
             .businessUnit(BusinessUnitEntity.builder()
                 .businessUnitId((short) 1).build())
-            .versionNumber(0L)
+            .versionNumber(BigInteger.ZERO)
             .build();
 
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
@@ -132,7 +133,7 @@ class OpalDefendantAccountServiceTest05 {
             .defendantAccountId(2L).parties(List.of(dap))
             .businessUnit(BusinessUnitEntity.builder()
                 .businessUnitId((short) 1).build())
-            .versionNumber(0L).build();
+            .versionNumber(BigInteger.ZERO).build();
 
         when(defendantAccountRepositoryService.findById(2L)).thenReturn(account);
 
@@ -204,7 +205,7 @@ class OpalDefendantAccountServiceTest05 {
             .parties(List.of(dap))
             .businessUnit(BusinessUnitEntity.builder()
                 .businessUnitId((short) 1).build())
-            .versionNumber(0L)
+            .versionNumber(BigInteger.ZERO)
             .build();
 
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
@@ -259,7 +260,7 @@ class OpalDefendantAccountServiceTest05 {
             .parties(List.of(dap))
             .businessUnit(BusinessUnitEntity.builder()
                 .businessUnitId((short) 1).build())
-            .versionNumber(0L)
+            .versionNumber(BigInteger.ZERO)
             .build();
 
         when(defendantAccountRepositoryService.findById(2L)).thenReturn(account);

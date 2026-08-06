@@ -25,7 +25,7 @@ class LegacyUpdateMinorCreditorAccountResponseMapperTest {
     @Test
     void toMinorCreditorAccountResponse_mapsAllCoreFields() {
         LegacyUpdateMinorCreditorAccountResponse legacy = LegacyUpdateMinorCreditorAccountResponse.builder()
-            .accountVersion(2)
+            .accountVersion(BigInteger.valueOf(2L))
             .creditorAccountId(607L)
             .partyDetails(LegacyPartyDetails.builder()
                 .partyId("99008")
@@ -122,7 +122,7 @@ class LegacyUpdateMinorCreditorAccountResponseMapperTest {
     @Test
     void toMinorCreditorAccountResponse_handlesNullNestedObjects() {
         LegacyUpdateMinorCreditorAccountResponse legacy = LegacyUpdateMinorCreditorAccountResponse.builder()
-            .accountVersion(1)
+            .accountVersion(BigInteger.ONE)
             .creditorAccountId(607L)
             .partyDetails(LegacyPartyDetails.builder()
                 .partyId("99008")

@@ -116,7 +116,7 @@ class OpalDefendantAccountServiceTest02 {
     void getDefendantAccountFixedPenalty_shouldMapVersionCorrectly() {
         Long id = 789L;
         DefendantAccountEntity acc = buildMockAccount(id);
-        acc.setVersionNumber(5L);
+        acc.setVersionNumber(BigInteger.valueOf(5L));
 
         FixedPenaltyOffenceEntity offence = buildMockOffence(false);
 
@@ -175,7 +175,7 @@ class OpalDefendantAccountServiceTest02 {
         return DefendantAccountEntity.builder()
             .defendantAccountId(accountId)
             .originatorName("Kingston-upon-Thames Mags Court")
-            .versionNumber(1L)
+            .versionNumber(BigInteger.ONE)
             .build();
     }
 

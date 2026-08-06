@@ -48,7 +48,7 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
             .defendantAccountId(String.valueOf(defendantAccountId))
             .businessUnitId(businessUnitId)
             .businessUnitUserId(postedBy)
-            .version(3)
+              .version(3)
             .build();
 
         when(updateDefendantAccountRequestMapper.toLegacyUpdateDefendantAccountRequest(request))

@@ -679,7 +679,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
         DefendantAccountEntity defendantEntity = DefendantAccountEntity.builder()
             .defendantAccountId(defendantAccountId)
             .lastEnforcement("NOENF")
-            .versionNumber(7L)
+            .versionNumber(BigInteger.valueOf(7L))
             .build();
 
         UserState userState = allPermissionsUser();
@@ -772,7 +772,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
         DefendantAccountEntity defendantEntity = DefendantAccountEntity.builder()
             .defendantAccountId(defendantAccountId)
             .lastEnforcement("NOENF")
-            .versionNumber(7L)
+            .versionNumber(BigInteger.valueOf(7L))
             .build();
 
         UserState userState = allPermissionsUser();
@@ -818,7 +818,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
         DefendantAccountEntity defendantEntity = DefendantAccountEntity.builder()
             .defendantAccountId(defendantAccountId)
             .lastEnforcement("NOENF")
-            .versionNumber(7L)
+            .versionNumber(BigInteger.valueOf(7L))
             .build();
         UnprocessableException exception = new UnprocessableException("blocked");
 
@@ -870,7 +870,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
         DefendantAccountEntity defendantEntity = DefendantAccountEntity.builder()
             .defendantAccountId(defendantAccountId)
             .lastEnforcement(null)
-            .versionNumber(7L)
+            .versionNumber(BigInteger.valueOf(7L))
             .build();
 
         UserState userState = allPermissionsUser();
@@ -925,7 +925,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
         DefendantAccountEntity defendantEntity = DefendantAccountEntity.builder()
             .defendantAccountId(defendantAccountId)
             .lastEnforcement("NOENF")
-            .versionNumber(7L)
+            .versionNumber(BigInteger.valueOf(7L))
             .build();
 
         UserState userState = allPermissionsUser();

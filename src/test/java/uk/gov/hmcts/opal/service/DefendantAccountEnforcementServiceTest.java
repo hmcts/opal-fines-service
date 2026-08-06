@@ -64,7 +64,7 @@ class DefendantAccountEnforcementServiceTest {
         AddEnforcementResponse proxyResponse = AddEnforcementResponse.builder()
             .enforcementId("ENF123")
             .defendantAccountId("77")
-            .version(3)
+            .version(BigInteger.valueOf(3))
             .build();
 
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);

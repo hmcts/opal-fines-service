@@ -42,7 +42,7 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
             .accountNumber("ACC-42")
             .debtorType("PERSON")
             .youth(Boolean.FALSE)
-            .version(5L)
+            .version(BigInteger.valueOf(5L))
             .build();
 
         ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
@@ -71,7 +71,7 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
     @SuppressWarnings("unchecked")
     void getAtAGlance_legacyFailure5xx_withEntity_mapsAnyway() {
         LegacyGetDefendantAccountAtAGlanceResponse body =
-            LegacyGetDefendantAccountAtAGlanceResponse.builder().version(0L).defendantAccountId("456").build();
+            LegacyGetDefendantAccountAtAGlanceResponse.builder().version(BigInteger.valueOf(0L)).defendantAccountId("456").build();
 
         ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
             new ParameterizedTypeReference<>() {};
@@ -129,7 +129,7 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
         LegacyGetDefendantAccountAtAGlanceResponse body =
             LegacyGetDefendantAccountAtAGlanceResponse.builder()
                 .partyDetails(party)
-                .version(0L)
+                .version(BigInteger.valueOf(0L))
                 .build();
 
         ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
@@ -184,7 +184,7 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
         LegacyGetDefendantAccountAtAGlanceResponse body =
             LegacyGetDefendantAccountAtAGlanceResponse.builder()
                 .partyDetails(party)
-                .version(0L)
+                .version(BigInteger.valueOf(0L))
                 .build();
 
         ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
@@ -272,7 +272,7 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
                 .paymentTermsSummary(legacyPts)
                 .enforcementStatusSummary(legacyEnf)
                 .commentsAndNotes(legacyCom)
-                .version(0L)
+                .version(BigInteger.valueOf(0L))
                 .build();
 
         ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
@@ -325,7 +325,7 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
         LegacyGetDefendantAccountAtAGlanceResponse body =
             LegacyGetDefendantAccountAtAGlanceResponse.builder()
                 .paymentTermsSummary(legacyPtsNulls)
-                .version(0L)
+                .version(BigInteger.valueOf(0L))
                 .build();
 
         ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =

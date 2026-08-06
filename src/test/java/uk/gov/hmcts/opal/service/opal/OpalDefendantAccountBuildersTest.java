@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.math.BigInteger;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -884,7 +885,7 @@ class OpalDefendantAccountBuildersTest {
         return DefendantAccountEntity.builder()
             .defendantAccountId(accountId)
             .originatorName("Kingston-upon-Thames Mags Court")
-            .versionNumber(1L)
+              .versionNumber(BigInteger.ONE)
             .build();
     }
 
