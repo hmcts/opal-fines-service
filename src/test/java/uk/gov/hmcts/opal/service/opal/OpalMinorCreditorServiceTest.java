@@ -15,16 +15,12 @@ import org.springframework.data.jpa.domain.Specification;
 import jakarta.persistence.EntityNotFoundException;
 import uk.gov.hmcts.opal.dto.CreditorAccountDto;
 import uk.gov.hmcts.opal.dto.DefendantDto;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse.AtAGlanceDefendant;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse.CreditorHeader;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse.Financials;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
-import uk.gov.hmcts.opal.dto.Payment;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
-import uk.gov.hmcts.opal.dto.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.CreditorAccountTypeReference;
 import uk.gov.hmcts.opal.dto.common.IndividualDetails;
@@ -39,6 +35,7 @@ import uk.gov.hmcts.opal.mapper.MinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntity;
 import uk.gov.hmcts.opal.mapper.response.GetMinorCreditorAccountAtAGlanceResponseMapper;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountAtAGlanceRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountHeaderRepository;
@@ -452,65 +449,16 @@ class OpalMinorCreditorServiceTest {
         when(minorCreditorAccountAtAGlanceRepository.findById(id)).thenReturn(Optional.of(creditor));
         when(partyRepository.findById(id)).thenReturn(Optional.of(party));
 
-        GetMinorCreditorAccountAtAGlanceResponse mapped = GetMinorCreditorAccountAtAGlanceResponse.builder()
-            .party(PartyDetails.builder().partyId("100").organisationFlag(true).organisationDetails(
-                OrganisationDetails.builder().organisationName("The Republic").build()).build())
-            .address(AddressDetails.builder().addressLine1("Coruscant").postcode("SP4CE").build())
-            .creditorAccountId(1977L)
-            .defendant(AtAGlanceDefendant.builder()
-                .accountNumber("066")
-                .accountId(66L)
-                .title("Mr")
-                .forenames("Obi Wan")
-                .surname("Kenobi")
-                .build())
-            .payment(Payment.builder().holdPayment(false).bacs(true).build())
-            .build();
+        MinorCreditorAccountAtAGlanceResponse mapped = new MinorCreditorAccountAtAGlanceResponse();
 
         when(atAGlanceResponseMapper.toDto(creditor, party)).thenReturn(mapped);
 
         // Act
-        GetMinorCreditorAccountAtAGlanceResponse response = service.getMinorCreditorAtAGlance(id);
+        MinorCreditorAccountAtAGlanceResponse response = service.getMinorCreditorAtAGlance(id);
 
         // Assert
-        assertNotNull(response);
-
-        // Party
-        assertNotNull(response.getParty());
-        assertEquals("100", response.getParty().getPartyId());
-        assertTrue(response.getParty().getOrganisationFlag());
-
-        assertNotNull(response.getParty().getOrganisationDetails());
-        assertEquals("The Republic",
-            response.getParty().getOrganisationDetails().getOrganisationName());
-        assertNull(response.getParty().getOrganisationDetails().getOrganisationAliases());
-
-        assertNull(response.getParty().getIndividualDetails());
-
-        // Address
-        assertNotNull(response.getAddress());
-        assertEquals("Coruscant", response.getAddress().getAddressLine1());
-        assertNull(response.getAddress().getAddressLine2());
-        assertNull(response.getAddress().getAddressLine3());
-        assertNull(response.getAddress().getAddressLine4());
-        assertNull(response.getAddress().getAddressLine5());
-        assertEquals("SP4CE", response.getAddress().getPostcode());
-
-        // Creditor Account
-        assertEquals(1977, response.getCreditorAccountId());
-
-        // Defendant
-        assertNotNull(response.getDefendant());
-        assertEquals("066", response.getDefendant().getAccountNumber());
-        assertEquals(66, response.getDefendant().getAccountId());
-        assertEquals("Mr", response.getDefendant().getTitle());
-        assertEquals("Obi Wan", response.getDefendant().getForenames());
-        assertEquals("Kenobi", response.getDefendant().getSurname());
-
-        // Payment
-        assertNotNull(response.getPayment());
-        assertTrue(response.getPayment().getBacs());
-        assertFalse(response.getPayment().getHoldPayment());
+        assertSame(mapped, response);
+        assertEquals(BigInteger.valueOf(creditor.getVersionNumber()), response.getVersion());
     }
 
     @Test
