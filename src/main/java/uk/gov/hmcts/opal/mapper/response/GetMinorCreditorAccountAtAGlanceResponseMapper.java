@@ -1,15 +1,28 @@
 package uk.gov.hmcts.opal.mapper.response;
 
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 import org.mapstruct.ReportingPolicy;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
+import org.openapitools.jackson.nullable.JsonNullable;
+import uk.gov.hmcts.opal.dto.common.AddressDetails;
+import uk.gov.hmcts.opal.dto.common.IndividualDetails;
+import uk.gov.hmcts.opal.dto.common.IndividualAlias;
+import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
+import uk.gov.hmcts.opal.dto.common.OrganisationAlias;
+import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntity;
+import uk.gov.hmcts.opal.generated.model.AddressDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.IndividualAliasCommonStrict;
+import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.generated.model.OrganisationAliasCommon;
+import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommonStrict;
 import uk.gov.hmcts.opal.mapper.common.AddressMapper;
-import uk.gov.hmcts.opal.mapper.common.AtAGlanceDefendantMapper;
 import uk.gov.hmcts.opal.mapper.common.PartyMapper;
 import uk.gov.hmcts.opal.mapper.common.PaymentMapper;
 
@@ -19,13 +32,48 @@ import uk.gov.hmcts.opal.mapper.common.PaymentMapper;
     uses = {
         PartyMapper.class,
         AddressMapper.class,
-        AtAGlanceDefendantMapper.class,
         PaymentMapper.class
     }
 )
 public interface GetMinorCreditorAccountAtAGlanceResponseMapper {
+
+    PartyDetailsCommonStrict toPartyDetails(PartyDetails source);
+
+    AddressDetailsCommonStrict toAddressDetails(AddressDetails source);
+
+    OrganisationDetailsCommonStrict toOrganisationDetails(OrganisationDetails source);
+
+    IndividualDetailsCommonStrict toIndividualDetails(IndividualDetails source);
+
+    List<OrganisationAliasCommon> toOrganisationAliases(List<OrganisationAlias> source);
+
+    List<IndividualAliasCommonStrict> toIndividualAliases(List<IndividualAlias> source);
+
+    default JsonNullable<OrganisationDetailsCommonStrict> toJsonNullable(OrganisationDetails source) {
+        return JsonNullable.of(toOrganisationDetails(source));
+    }
+
+    default JsonNullable<IndividualDetailsCommonStrict> toJsonNullable(IndividualDetails source) {
+        return JsonNullable.of(toIndividualDetails(source));
+    }
+
+    default <T> JsonNullable<T> toJsonNullable(T value) {
+        return JsonNullable.of(value);
+    }
+
+    default JsonNullable<List<OrganisationAliasCommon>> toNullableOrganisationAliases(
+        List<OrganisationAlias> source) {
+        return JsonNullable.of(toOrganisationAliases(source));
+    }
+
+    default JsonNullable<List<IndividualAliasCommonStrict>> toNullableIndividualAliases(
+        List<IndividualAlias> source) {
+        return JsonNullable.of(toIndividualAliases(source));
+    }
+
     @Mapping(target = "version", source = "creditorAccountVersion")
-    GetMinorCreditorAccountAtAGlanceResponse toDto(LegacyGetMinorCreditorAccountAtAGlanceResponse legacy);
+    @Mapping(target = "payment.isBacs", source = "payment.bacs")
+    MinorCreditorAccountAtAGlanceResponse toDto(LegacyGetMinorCreditorAccountAtAGlanceResponse legacy);
 
     @Mappings({
         @Mapping(target = "address.addressLine1", source = "entity.addressLine1"),
@@ -44,9 +92,9 @@ public interface GetMinorCreditorAccountAtAGlanceResponseMapper {
         @Mapping(target = "defendant.forenames", source = "entity.defendantForenames"),
         @Mapping(target = "defendant.surname", source = "entity.defendantSurname"),
 
-        @Mapping(target = "payment.bacs", source = "entity.payByBacs"),
+        @Mapping(target = "payment.isBacs", source = "entity.payByBacs"),
         @Mapping(target = "payment.holdPayment", source = "entity.holdPayout")
     })
-    GetMinorCreditorAccountAtAGlanceResponse toDto(MinorCreditorAccountAtAGlanceEntity entity, PartyEntity party);
+    MinorCreditorAccountAtAGlanceResponse toDto(MinorCreditorAccountAtAGlanceEntity entity, PartyEntity party);
 
 }
