@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -19,6 +20,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
@@ -79,6 +82,9 @@ class OpalDefendantAccountServiceTest03 {
 
     @Mock
     private DefendantAccountControlValidator defendantAccountControlValidator;
+
+    @Mock
+    private EntityManager em;
 
     // Service under test
     @InjectMocks
@@ -241,13 +247,10 @@ class OpalDefendantAccountServiceTest03 {
                 .build())
             .build();
 
-        DefendantAccountEntity bumpedAccount = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId)
-            .versionNumber(2L)
-            .build();
-
-        when(defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(accountId)).thenReturn(bumpedAccount);
-        when(defendantAccountRepositoryService.saveAndFlush(bumpedAccount)).thenReturn(bumpedAccount);
+        doAnswer(invocation -> {
+            account.setVersionNumber(2L);
+            return null;
+        }).when(em).flush();
 
         try (MockedStatic<VersionUtils> vs = mockStatic(VersionUtils.class)) {
             vs.when(() -> VersionUtils.verifyIfMatch(any(), anyString(), anyLong(), anyString()))
@@ -258,11 +261,10 @@ class OpalDefendantAccountServiceTest03 {
                     accountId, dapId, req, "\"1\"", "10", "tester", "Tester Name", null);
 
             assertNotNull(resp);
-            assertEquals(BigInteger.valueOf(2L), resp.getVersion());
 
             // existing debtor should be deleted (we previously retrieved it via findById)
-            verify(defendantAccountRepositoryService).getDefendantAccountByIdForUpdate(accountId);
-            verify(defendantAccountRepositoryService).saveAndFlush(bumpedAccount);
+            verify(em).lock(account, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+            verify(em).flush();
 
         }
     }
@@ -299,13 +301,11 @@ class OpalDefendantAccountServiceTest03 {
                 .build())
             .address(null).contactDetails(null).build();
 
-        DefendantAccountEntity bumpedAccount = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId)
-            .versionNumber(2L)
-            .build();
 
-        when(defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(accountId)).thenReturn(bumpedAccount);
-        when(defendantAccountRepositoryService.saveAndFlush(bumpedAccount)).thenReturn(bumpedAccount);
+        doAnswer(invocation -> {
+            account.setVersionNumber(2L);
+            return null;
+        }).when(em).flush();
 
         try (MockedStatic<VersionUtils> vs = mockStatic(VersionUtils.class)) {
             vs.when(() -> VersionUtils.verifyIfMatch(any(), anyString(), anyLong(), anyString()))
@@ -331,8 +331,8 @@ class OpalDefendantAccountServiceTest03 {
             verify(party).setHomeTelephoneNumber(null);
             verify(party).setWorkTelephoneNumber(null);
 
-            verify(defendantAccountRepositoryService).getDefendantAccountByIdForUpdate(accountId);
-            verify(defendantAccountRepositoryService).saveAndFlush(bumpedAccount);
+            verify(em).lock(account, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+            verify(em).flush();
         }
     }
 
@@ -395,13 +395,10 @@ class OpalDefendantAccountServiceTest03 {
                 .build())
             .build();
 
-        DefendantAccountEntity bumpedAccount = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId)
-            .versionNumber(2L)
-            .build();
-
-        when(defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(accountId)).thenReturn(bumpedAccount);
-        when(defendantAccountRepositoryService.saveAndFlush(bumpedAccount)).thenReturn(bumpedAccount);
+        doAnswer(invocation -> {
+            account.setVersionNumber(2L);
+            return null;
+        }).when(em).flush();
 
         try (MockedStatic<VersionUtils> vs = mockStatic(VersionUtils.class)) {
             vs.when(() -> VersionUtils.verifyIfMatch(eq(account), eq(ifMatch), eq(accountId), anyString()))
@@ -412,9 +409,10 @@ class OpalDefendantAccountServiceTest03 {
 
             assertNotNull(resp);
             assertNotNull(resp.getDefendantAccountParty());
+            assertEquals(BigInteger.valueOf(2L), resp.getVersion());
 
-            verify(defendantAccountRepositoryService).getDefendantAccountByIdForUpdate(accountId);
-            verify(defendantAccountRepositoryService).saveAndFlush(bumpedAccount);
+            verify(em).lock(account, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+            verify(em).flush();
             verify(amendmentRepositoryService).auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
             verify(amendmentRepositoryService).auditFinaliseStoredProc(
                 eq(accountId), eq(RecordType.DEFENDANT_ACCOUNTS),
@@ -466,13 +464,10 @@ class OpalDefendantAccountServiceTest03 {
                 .build())
             .build();
 
-        DefendantAccountEntity bumpedAccount = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId)
-            .versionNumber(2L)
-            .build();
-
-        when(defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(accountId)).thenReturn(bumpedAccount);
-        when(defendantAccountRepositoryService.saveAndFlush(bumpedAccount)).thenReturn(bumpedAccount);
+        doAnswer(invocation -> {
+            account.setVersionNumber(2L);
+            return null;
+        }).when(em).flush();
 
         try (MockedStatic<VersionUtils> vs = mockStatic(VersionUtils.class)) {
             vs.when(() -> VersionUtils.verifyIfMatch(any(), anyString(), anyLong(), anyString()))
@@ -483,11 +478,12 @@ class OpalDefendantAccountServiceTest03 {
 
             assertNotNull(resp);
             assertNotNull(resp.getDefendantAccountParty());
+            assertEquals(BigInteger.valueOf(2L), resp.getVersion());
             verify(partyRepositoryService, times(2)).findById(300L); // main + aliases
-            verify(defendantAccountRepositoryService).getDefendantAccountByIdForUpdate(accountId);
-            verify(defendantAccountRepositoryService).saveAndFlush(bumpedAccount);
             verify(aliasRepoService, times(2)).findByPartyId(300L);
             verify(defendantAccountControlValidator, never()).validateCanMutateParty(account);
+            verify(em).lock(account, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+            verify(em).flush();
         }
     }
 
@@ -531,13 +527,10 @@ class OpalDefendantAccountServiceTest03 {
             // employer null, language null
             .build();
 
-        DefendantAccountEntity bumpedAccount = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId)
-            .versionNumber(2L)
-            .build();
-
-        when(defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(accountId)).thenReturn(bumpedAccount);
-        when(defendantAccountRepositoryService.saveAndFlush(bumpedAccount)).thenReturn(bumpedAccount);
+        doAnswer(invocation -> {
+            account.setVersionNumber(2L);
+            return null;
+        }).when(em).flush();
 
         try (MockedStatic<VersionUtils> vs = mockStatic(VersionUtils.class)) {
             vs.when(() -> VersionUtils.verifyIfMatch(any(), anyString(), anyLong(), anyString()))
@@ -572,8 +565,8 @@ class OpalDefendantAccountServiceTest03 {
             assertNull(saved.getDocumentLanguageDate());
             assertNull(saved.getHearingLanguageDate());
 
-            verify(defendantAccountRepositoryService).getDefendantAccountByIdForUpdate(accountId);
-            verify(defendantAccountRepositoryService).saveAndFlush(bumpedAccount);
+            verify(em).lock(account, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+            verify(em).flush();
             verify(aliasRepoService, times(2)).findByPartyId(333L);
         }
     }
@@ -616,14 +609,12 @@ class OpalDefendantAccountServiceTest03 {
             .versionNumber(1L)
             .build();
 
-        DefendantAccountEntity bumpedAccount = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId)
-            .versionNumber(2L)
-            .build();
+        doAnswer(invocation -> {
+            account.setVersionNumber(2L);
+            return null;
+        }).when(em).flush();
 
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
-        when(defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(accountId)).thenReturn(bumpedAccount);
-        when(defendantAccountRepositoryService.saveAndFlush(bumpedAccount)).thenReturn(bumpedAccount);
         when(partyRepositoryService.findById(4001L)).thenReturn(defendantParty);
         when(aliasRepoService.findByPartyId(4001L)).thenReturn(emptyList());
         when(debtorRepoService.findById(4001L)).thenReturn(Optional.of(new DebtorDetailEntity()));
@@ -654,8 +645,8 @@ class OpalDefendantAccountServiceTest03 {
             assertEquals("Defendant", resp.getDefendantAccountParty().getDefendantAccountPartyType());
             assertEquals("4001", resp.getDefendantAccountParty().getPartyDetails().getPartyId());
             assertTrue(Boolean.TRUE.equals(resp.getDefendantAccountParty().getPartyDetails().getOrganisationFlag()));
-            verify(defendantAccountRepositoryService).getDefendantAccountByIdForUpdate(accountId);
-            verify(defendantAccountRepositoryService).saveAndFlush(bumpedAccount);
+            verify(em).lock(account, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+            verify(em).flush();
             verify(defendantAccountPartiesRepository)
                 .deleteByAccountIdAndAssociationTypeExcludingDapId(
                     accountId, AssociationType.PARENT_GUARDIAN, defendantDapId
