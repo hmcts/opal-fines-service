@@ -234,11 +234,12 @@ public class DraftAccountService {
         Optional<BusinessUnitUser> unitUser = userState.getBusinessUnitUserForBusinessUnit(dto.getBusinessUnitId());
         log.info(":updateDraftAccount: unit user: {}", unitUser);
         if (UserState.userHasPermission(unitUser, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS)) {
-            DraftAccountStatus previousStatus = draftAccountTransactional.getDraftAccount(draftAccountId).getAccountStatus();
             if (DraftAccountStatus.PUBLISHING_PENDING.equals(dto.getAccountStatus())) {
                 applyValidatedBy(dto, userState, unitUser.orElseThrow());
             }
             jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
+            final DraftAccountStatus previousStatus =
+                draftAccountTransactional.getDraftAccount(draftAccountId).getAccountStatus();
             BigInteger updateVersion = extractBigInteger(ifMatch);
             DraftAccountEntity updatedEntity = draftAccountTransactional.updateDraftAccount(draftAccountId, dto,
                 draftAccountTransactional, updateVersion, userState);
@@ -288,7 +289,10 @@ public class DraftAccountService {
     }
 
     private boolean transitionedToDeleted(DraftAccountStatus previousStatus, DraftAccountStatus updatedStatus) {
-        return previousStatus != null && !previousStatus.isDeleted() && updatedStatus != null && updatedStatus.isDeleted();
+        return previousStatus != null
+            && !previousStatus.isDeleted()
+            && updatedStatus != null
+            && updatedStatus.isDeleted();
     }
 
     public DraftAccountResponseDto toGetResponseDto(DraftAccountEntity entity) {
