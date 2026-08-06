@@ -259,6 +259,70 @@ paths:
             application/json+problem:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
+  /defendant-accounts/{id}/at-a-glance:
+    get:
+      tags:
+        - Defendant Account
+      summary: Get Defendant Account At A Glance
+      description: Returns the at-a-glance summary for a Defendant Account.
+      operationId: getDefendantAccountAtAGlance
+      security:
+        - permissions:
+            - Search and View Accounts (in at least one business unit)
+      parameters:
+        - in: path
+          name: id
+          description: DB Mapping - defendant_accounts.defendant_account_id
+          schema:
+            type: integer
+            format: int64
+          required: true
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/atAGlanceResponse'
+        400:
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
   /defendant-accounts/{id}/impositions:
     get:
       tags:
@@ -366,7 +430,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/consolidatedAccountDefendantAccount'
+                  $ref: '#/components/schemas/consolidatedAccount'
         400:
           description: Bad request
           content:
@@ -569,7 +633,7 @@ paths:
           content:
             application/json+problem:
               schema:
-               $ref: './common.yaml#/components/schemas/ProblemDetail'
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
         401:
           description: Unauthorized
           content:
@@ -597,15 +661,15 @@ paths:
         500:
           description: Internal server error
           content:
-           application/json+problem:
-             schema:
+            application/json+problem:
+              schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         503:
           description: Service unavailable
           content:
-           application/json+problem:
-             schema:
-               $ref: './common.yaml#/components/schemas/ProblemDetail'
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
   /defendant-accounts/{id}/history:
     get:
       tags:
@@ -704,6 +768,78 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    atAGlanceResponse:
+      title: Defendant Account At A Glance Response
+      type: object
+      additionalProperties: false
+      required:
+        - defendant_account_id
+        - account_number
+        - debtor_type
+        - is_youth
+        - party_details
+        - address
+        - payment_terms
+        - enforcement_status
+        - comments_and_notes
+      properties:
+        defendant_account_id:
+          type: string
+          description: DB Mapping - defendant_accounts.defendant_account_id
+        account_number:
+          type: string
+          description: DB Mapping - defendant_accounts.account_number
+        account_balance:
+          type:
+            - number
+            - 'null'
+          multipleOf: 0.01
+          description: DB Mapping - defendant_accounts.account_balance
+        account_status_code:
+          type:
+            - string
+            - 'null'
+          enum:
+            - L
+            - C
+            - TO
+            - TS
+            - TA
+            - CS
+            - WO
+          description: DB Mapping - defendant_accounts.account_status
+        account_status_name:
+          type:
+            - string
+            - 'null'
+          description: Derived display name from defendant_accounts.account_status
+        debtor_type:
+          type: string
+          enum:
+            - Defendant
+            - Parent/Guardian
+          description: |
+            This field will be set to 'Defendant' if defendant_account_parties.debtor = 'TRUE', otherwise if this is null and a Parent/Guardian is on the account with defendant_account_parties.debtor = 'TRUE', then the value returned is 'Parent/Guardian'.
+        is_youth:
+          type: boolean
+          description: |
+            Derived from the defendant party age or date of birth.
+        party_details:
+          $ref: './CommonStrict.yaml#/components/schemas/partyDetails'
+        address:
+          $ref: './CommonStrict.yaml#/components/schemas/addressDetails'
+        language_preferences:
+          anyOf:
+            - $ref: './CommonStrict.yaml#/components/schemas/languagePreferences'
+            - type: 'null'
+        payment_terms:
+          $ref: './CommonStrict.yaml#/components/schemas/paymentTermsSummary'
+        enforcement_status:
+          $ref: './CommonStrict.yaml#/components/schemas/enforcementStatusSummary'
+        comments_and_notes:
+          anyOf:
+            - $ref: './CommonStrict.yaml#/components/schemas/commentsAndNotes'
+            - type: 'null'
     consolidatedAccountDefendantAccount:
       title: Consolidated Account
       type: object
@@ -1018,13 +1154,13 @@ components:
             - $ref: '#/components/schemas/enforcementOverrideResult'
           nullable: true
         enforcer:
-            allOf:
-              - $ref: '#/components/schemas/enforcer'
-            nullable: true
+          allOf:
+            - $ref: '#/components/schemas/enforcer'
+          nullable: true
         lja:
-            allOf:
-              - $ref: '#/components/schemas/localJusticeArea'
-            nullable: true
+          allOf:
+            - $ref: '#/components/schemas/localJusticeArea'
+          nullable: true
     enforcementOverrideResult:
       type: object
       properties:
