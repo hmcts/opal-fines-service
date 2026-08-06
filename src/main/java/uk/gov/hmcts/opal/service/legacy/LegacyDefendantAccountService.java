@@ -117,7 +117,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public static final String GET_PAYMENT_TERMS = "getDefendantAccountPaymentTerms";
     public static final String ADD_PAYMENT_TERMS = "addDefendantAccountPaymentTerms";
     public static final String GET_DEFENDANT_AT_A_GLANCE = "getDefendantAccountAtAGlance";
-    public static final String ADD_ENFORCEMENT = "LIBRA.addEnforcement";
+    public static final String ADD_ENFORCEMENT = "addDefendantAccountEnforcement";
     public static final String GET_CONSOLIDATED_ACCOUNTS = "LIBRA.get_consolidated_accounts";
 
     public static final String GET_DEFENDANT_ACCOUNT_PARTY = "getDefendantAccountParty";
@@ -519,7 +519,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                     ? JsonNullable.undefined()
                     : JsonNullable.of(toComments(src.getCommentsAndNotes())))
                 .build())
-            .version(BigInteger.valueOf(src.getVersion()))
+            .version(src.getVersion())
             .build();
     }
 

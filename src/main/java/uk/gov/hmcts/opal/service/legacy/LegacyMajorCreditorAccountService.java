@@ -35,11 +35,11 @@ import uk.gov.hmcts.opal.service.iface.MajorCreditorAccountServiceInterface;
 public class LegacyMajorCreditorAccountService implements MajorCreditorAccountServiceInterface {
 
     public static final String GET_MAJOR_CREDITOR_ACCOUNT_AT_A_GLANCE =
-        "LIBRA.get_major_creditor_account_at_a_glance";
+        "getMajorCreditorAccountAtAGlance";
     public static final String GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY =
-        "LIBRA.get_major_creditor_account_header_summary";
+        "getMajorCreditorAccountHeaderSummary";
     public static final String GET_MAJOR_CREDITOR_ACCOUNT_HISTORY =
-        "LIBRA.get_major_creditor_account_history";
+        "getMajorCreditorAccountHistory";
 
     private final GatewayService gatewayService;
     private final GetMajorCreditorAccountAtAGlanceResponseLegacyMapper atAGlanceResponseMapper;

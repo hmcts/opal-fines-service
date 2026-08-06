@@ -30,7 +30,7 @@ import java.math.BigInteger;
 @Slf4j(topic = "opal.LegacyImpositionService")
 public class LegacyImpositionService implements ImpositionServiceInterface {
 
-    public static final String GET_IMPOSITIONS = "LIBRA.get_impositions";
+    public static final String GET_IMPOSITIONS = "getDefendantAccountImpositions";
 
     /* ---- Services ---- */
     private final GatewayService gatewayService;
