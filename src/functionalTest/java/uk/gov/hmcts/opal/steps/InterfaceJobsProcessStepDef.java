@@ -51,7 +51,9 @@ public class InterfaceJobsProcessStepDef extends BaseStepDef {
         alreadyProcessingJob = createInterfaceJob();
         unprocessedJob = createInterfaceJob();
         submitProcessRequest(buildProcessRequest(alreadyProcessingJob), authorisedJsonRequest());
-        then().statusCode(200);
+        then()
+            .log().ifValidationFails()
+            .statusCode(200);
     }
 
     @When("I submit the eligible interface jobs for processing")
@@ -107,7 +109,9 @@ public class InterfaceJobsProcessStepDef extends BaseStepDef {
 
     @Then("the process response is 200 with an empty body")
     public void processResponseIsSuccessfulAndEmpty() {
-        then().statusCode(200);
+        then()
+            .log().ifValidationFails()
+            .statusCode(200);
         assertEquals("", then().extract().asString(), "The successful process response must have no body");
     }
 
