@@ -1,6 +1,5 @@
-package uk.gov.hmcts.opal.service.opal;
+package uk.gov.hmcts.opal.service.refdata.framework;
 
-import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import com.networknt.schema.InputFormat;
 import com.networknt.schema.JsonSchema;
@@ -10,7 +9,6 @@ import com.networknt.schema.ValidationMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.common.dto.ToJsonString;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 
@@ -23,45 +21,16 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
-@Slf4j(topic = "opal.JsonSchemaValidationService")
+@Slf4j(topic = "opal.SchemaValidationService")
 @Service
-public class JsonSchemaValidationService {
+public class SchemaValidationService {
 
     private static final String PATH_ROOT = "jsonSchemas";
 
     private static final Map<String, JsonSchema> schemaCache = HashMap.newHashMap(37);
 
-    public boolean isValid(String body, String jsonSchemaFileName) {
-        Set<String> errors = validate(body, jsonSchemaFileName);
-        if (!errors.isEmpty()) {
-            log.error(":isValid: for JSON schema '{}', found {} validation errors.", jsonSchemaFileName, errors.size());
-            for (String msg : errors) {
-                log.error(":isValid: error: {}", msg);
-            }
-            return false;
-        }
-        return true;
-    }
-
     public boolean isValid(JsonNode jsonNode, String jsonSchemaFileName) {
         return validate(jsonNode, jsonSchemaFileName).isEmpty();
-    }
-
-    public void  validateOrError(String body, String jsonSchemaFileName) {
-        Set<String> errors = validate(body, jsonSchemaFileName);
-        if (!errors.isEmpty()) {
-            StringBuilder sb = new StringBuilder(errors.size() >> 7);
-            sb.append("Validating against JSON schema '")
-                .append(jsonSchemaFileName)
-                .append("', found ")
-                .append(errors.size())
-                .append(" validation errors:");
-            for (String msg : errors) {
-                sb.append("\n\t").append(msg);
-            }
-            appendContent(sb, body);
-            throw new JsonSchemaValidationException(sb.toString());
-        }
     }
 
     public void validateOrError(JsonNode jsonNode, String jsonSchemaFileName) {
@@ -81,45 +50,17 @@ public class JsonSchemaValidationService {
         }
     }
 
-    public Set<String> validate(String body, String jsonSchemaFileName) {
-        JsonSchema jsonSchema = getJsonSchema(jsonSchemaFileName);
-        try {
-            getJsonNodeFromStringContent(body);
-            Set<ValidationMessage> msgs = jsonSchema.validate(body, InputFormat.JSON);
-            return msgs.stream().map(ValidationMessage::getMessage).collect(Collectors.toSet());
-        } catch (JsonSchemaValidationException jsve) {
-            return Set.of(jsve.getMessage());
-        }
-    }
-
     public Set<String> validate(JsonNode jsonNode, String jsonSchemaFileName) {
         JsonSchema jsonSchema = getJsonSchema(jsonSchemaFileName);
-        try {
-            Set<ValidationMessage> msgs = jsonSchema.validate(jsonNode.toString(), InputFormat.JSON);
-            if (!msgs.isEmpty()) {
-                log.error(":isValid: for JSON schema '{}', found {} validation errors.", jsonSchemaFileName,
-                    msgs.size());
-                for (ValidationMessage msg : msgs) {
-                    log.error(":isValid: error: {}", msg.getMessage());
-                }
+        Set<ValidationMessage> msgs = jsonSchema.validate(jsonNode.toString(), InputFormat.JSON);
+        if (!msgs.isEmpty()) {
+            log.error(":isValid: for JSON schema '{}', found {} validation errors.", jsonSchemaFileName,
+                msgs.size());
+            for (ValidationMessage msg : msgs) {
+                log.error(":isValid: error: {}", msg.getMessage());
             }
-            return msgs.stream().map(ValidationMessage::getMessage).collect(Collectors.toSet());
-        } catch (Exception ex) {
-            log.error(":isValid: exception during schema validation", ex);
-            String errorMessage = ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage();
-            return Set.of(errorMessage);
         }
-    }
-
-    private JsonNode getJsonNodeFromStringContent(String content) {
-        try {
-            return ToJsonString.getObjectMapper().readTree(content);
-        } catch (JacksonException e) {
-            StringBuilder sb = new StringBuilder(e.getMessage().length() + content.length() + 99);
-            sb.append(e.getOriginalMessage());
-            appendContent(sb, content);
-            throw new JsonSchemaValidationException(sb.toString(), e);
-        }
+        return msgs.stream().map(ValidationMessage::getMessage).collect(Collectors.toSet());
     }
 
     private void appendContent(StringBuilder sb, String content) {
@@ -145,7 +86,6 @@ public class JsonSchemaValidationService {
         }
 
         try {
-            // Key change: Use URL instead of string content
             JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V202012);
             JsonSchema jsonSchema = factory.getSchema(cpr.getURI());
 
@@ -156,5 +96,4 @@ public class JsonSchemaValidationService {
                 format("Problem reading JSON Schema from '%s'", filePath), e);
         }
     }
-
 }

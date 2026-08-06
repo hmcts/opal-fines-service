@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "javaType": "uk.gov.hmcts.opal.generated.refdata.RefDataUpdateMessage",
+  "title": "Ref Data Update Message",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "refDataType": {
+      "type": "string",
+      "enum": ["LOCAL_JUSTICE_AREA"],
+      "description": "Identifier for the ref data handler that should process this message"
+    },
+    "payload": {
+      "existingJavaType": "tools.jackson.databind.JsonNode",
+      "oneOf": [
+        {
+          "$ref": "./LocalJusticeAreaUpdateDto.json"
+        }
+      ],
+      "description": "The ref data payload for the current supported message type"
+    }
+  },
+  "required": ["refDataType", "payload"]
+}

@@ -35,6 +35,7 @@ plugins {
   id 'org.flywaydb.flyway' version '13.0.0'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '5.3.9'
   id "org.openapi.generator" version "7.24.0"
+  id "org.jsonschema2pojo" version "1.3.3"
 }
 
 ext {
@@ -183,6 +184,7 @@ sourceSets {
   main {
     java {
       srcDir "$buildDir/generated/openapi/src/main/java"
+      srcDir "$buildDir/generated/jsonschema2pojo/src/main/java"
     }
   }
 
@@ -270,6 +272,17 @@ openApiGenerate {
     useLombokAnnotations                : "true",
     generateBuilders                    : "true"
   ]
+}
+
+jsonSchema2Pojo {
+  source = files("$rootDir/src/main/resources/jsonSchemas/ref-data")
+  targetDirectory = file("$buildDir/generated/jsonschema2pojo/src/main/java")
+  targetPackage = "uk.gov.hmcts.opal.generated.refdata"
+  dateTimeType = "java.time.LocalDateTime"
+  includeGeneratedAnnotation = false
+  includeHashcodeAndEquals = false
+  includeToString = false
+  generateBuilders = false
 }
 
 def feignClientList = []
@@ -1136,6 +1149,7 @@ tasks.register('generateFeignClients') {
 tasks.named("compileJava") {
   dependsOn 'openApiGenerate'
   dependsOn 'generateFeignClients'
+  dependsOn 'generateJsonSchema2Pojo'
 }
 
 apply from: "$rootDir/gradle/zephyr.gradle"
