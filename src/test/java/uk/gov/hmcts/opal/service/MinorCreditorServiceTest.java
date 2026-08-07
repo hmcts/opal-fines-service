@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -56,6 +57,9 @@ class MinorCreditorServiceTest {
     @Mock
     MinorCreditorSearchProxy minorCreditorSearchProxy;
 
+    @Mock
+    MinorCreditorSearchRequestValidator minorCreditorSearchRequestValidator;
+
     @InjectMocks
     private MinorCreditorService minorCreditorService;
 
@@ -67,6 +71,7 @@ class MinorCreditorServiceTest {
 
         when(minorCreditorSearchProxy.searchMinorCreditors(any())).thenReturn(postMinorCreditorAccountsSearchResponse);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
+        doNothing().when(minorCreditorSearchRequestValidator).validateAndCheckFeature(any(MinorCreditorSearch.class));
 
         // Act
         PostMinorCreditorAccountsSearchResponse result =

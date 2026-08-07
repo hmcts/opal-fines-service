@@ -33,6 +33,7 @@ import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {
@@ -74,6 +75,7 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     @DisplayName("PO-2333: INT.01 returns consolidated child accounts for a valid master account")
     @JiraStory("PO-2333")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-9378")
     void getConsolidatedAccounts_whenMasterHasChildren_returnsOkWithPayload() throws Exception {
         mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID))
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -95,6 +97,7 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     @DisplayName("PO-2333: INT.03 response contains only documented consolidated account fields")
     @JiraStory("PO-2333")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-9380")
     void getConsolidatedAccounts_returnsOnlyDocumentedFields() throws Exception {
         MvcResult result = mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID))
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -117,6 +120,7 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     @DisplayName("PO-2333: INT.04 filters consolidated accounts by master account id")
     @JiraStory("PO-2333")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-9382")
     void getConsolidatedAccounts_filtersByMasterAccountId() throws Exception {
         mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID))
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -131,6 +135,7 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     @DisplayName("PO-2333: INT.05 returns empty array when master has no consolidated children")
     @JiraStory("PO-2333")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-9383")
     void getConsolidatedAccounts_whenNoChildren_returnsEmptyArray() throws Exception {
         mockMvc.perform(get(URL.formatted(EMPTY_MASTER_ACCOUNT_ID))
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -144,6 +149,7 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     @DisplayName("PO-2333: INT.06 returns 404 when defendant account does not exist")
     @JiraStory("PO-2333")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-9379")
     void getConsolidatedAccounts_whenMasterDoesNotExist_returnsNotFound() throws Exception {
         mockMvc.perform(get(URL.formatted(999999999L))
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -160,6 +166,7 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     @DisplayName("PO-2333: INT.08 permits user with Search and View Accounts in a different business unit")
     @JiraStory("PO-2333")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-9376")
     void getConsolidatedAccounts_whenPermissionInDifferentBusinessUnit_returnsOk() throws Exception {
         authorise(DIFFERENT_BUSINESS_UNIT_ID, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         mockUserWithPermission(DIFFERENT_BUSINESS_UNIT_ID);
@@ -175,6 +182,7 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     @DisplayName("PO-2333: INT.09 returns 403 when user lacks Search and View Accounts")
     @JiraStory("PO-2333")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-9374")
     void getConsolidatedAccounts_whenMissingPermission_returnsForbidden() throws Exception {
         userStateStub.setupWithNoPermissions();
         doReturn(UserStateUtil.noPermissionsUser())
@@ -195,6 +203,7 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     @DisplayName("PO-2333: INT.10 returns 401 when credentials are missing")
     @JiraStory("PO-2333")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-9377")
     void getConsolidatedAccounts_whenCredentialsMissing_returnsUnauthorized() throws Exception {
         doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
             .when(userStateService).getUserStateV1FromSecurityContext();
@@ -214,6 +223,7 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     @Sql(
         scripts = "classpath:db/insertData/insert_into_consolidated_accounts_bulk.sql",
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @JiraTestKey("PO-9381")
     void getConsolidatedAccounts_whenManyChildrenExist_returnsFullArray() throws Exception {
         mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID))
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -236,6 +246,7 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     @DisplayName("PO-2333: INT.11 repeated GET returns identical body")
     @JiraStory("PO-2333")
     @JiraEpic("PO-1286")
+    @JiraTestKey("PO-9375")
     void getConsolidatedAccounts_whenRepeated_returnsIdenticalBody() throws Exception {
         MvcResult first = mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID))
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())

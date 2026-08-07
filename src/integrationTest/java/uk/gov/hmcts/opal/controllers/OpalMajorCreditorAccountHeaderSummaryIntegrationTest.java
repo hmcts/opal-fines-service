@@ -226,9 +226,10 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
 
         JsonNode businessUnitDetails = response.get("business_unit_details");
         assertEquals(
-            Set.of("business_unit_id", "business_unit_name", "welsh_speaking"),
+            Set.of("business_unit_code", "business_unit_id", "business_unit_name", "welsh_speaking"),
             fieldNames(businessUnitDetails)
         );
+        assertTrue(businessUnitDetails.get("business_unit_code").isNull());
         assertEquals("77", businessUnitDetails.get("business_unit_id").asText());
         assertEquals("Camberwell Green", businessUnitDetails.get("business_unit_name").asText());
         assertEquals("N", businessUnitDetails.get("welsh_speaking").asText());

@@ -1,0 +1,399 @@
+openapi: 3.1.1
+info:
+  description: Opal Fines Service - Strict common components
+  license:
+    name: MIT
+    url: 'https://opensource.org/licenses/MIT'
+  title: Opal Fines Service
+  version: v0.0.1
+components:
+  schemas:
+    partyDetails:
+      title: Party Details
+      type: object
+      additionalProperties: false
+      properties:
+        party_id:
+          type: string
+        organisation_flag:
+          type: boolean
+        organisation_details:
+          $ref: '#/components/schemas/organisationDetails'
+        individual_details:
+          $ref: '#/components/schemas/individualDetails'
+      required:
+        - organisation_flag
+    organisationDetails:
+      title: Organisation Details
+      type:
+        - object
+        - 'null'
+      properties:
+        organisation_name:
+          type: string
+        organisation_aliases:
+          type:
+            - array
+            - 'null'
+          items:
+            $ref: '#/components/schemas/organisationAlias'
+      required:
+        - organisation_name
+    organisationAlias:
+      title: Organisation Alias
+      type: object
+      properties:
+        alias_id:
+          type: string
+        sequence_number:
+          type: integer
+          minimum: 1
+          maximum: 5
+        organisation_name:
+          type: string
+      required:
+        - alias_id
+        - sequence_number
+        - organisation_name
+    individualDetails:
+      title: Individual Details
+      type:
+        - object
+        - 'null'
+      properties:
+        title:
+          type:
+            - string
+            - 'null'
+        forenames:
+          type:
+            - string
+            - 'null'
+        surname:
+          type: string
+        date_of_birth:
+          type:
+            - string
+            - 'null'
+        age:
+          type:
+            - string
+            - 'null'
+        national_insurance_number:
+          type:
+            - string
+            - 'null'
+        individual_aliases:
+          type:
+            - array
+            - 'null'
+          items:
+            $ref: '#/components/schemas/individualAlias'
+      required:
+        - title
+        - forenames
+        - surname
+        - date_of_birth
+        - age
+        - national_insurance_number
+        - individual_aliases
+    individualAlias:
+      title: Individual Alias
+      type: object
+      properties:
+        alias_id:
+          type: string
+        sequence_number:
+          type: integer
+          minimum: 1
+          maximum: 5
+        surname:
+          type: string
+        forenames:
+          type:
+            - string
+            - 'null'
+      required:
+        - alias_id
+        - sequence_number
+        - surname
+        - forenames
+    addressDetails:
+      title: Address Details
+      type: object
+      additionalProperties: false
+      properties:
+        address_line_1:
+          type: string
+        address_line_2:
+          type:
+            - string
+            - 'null'
+        address_line_3:
+          type:
+            - string
+            - 'null'
+        address_line_4:
+          type:
+            - string
+            - 'null'
+        address_line_5:
+          type:
+            - string
+            - 'null'
+        postcode:
+          type:
+            - string
+            - 'null'
+      required:
+        - address_line_1
+        - address_line_2
+        - address_line_3
+        - address_line_4
+        - address_line_5
+        - postcode
+    commentsAndNotes:
+      title: Comment and Notes
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      properties:
+        account_comment:
+          type:
+            - string
+            - 'null'
+        free_text_note_1:
+          type:
+            - string
+            - 'null'
+        free_text_note_2:
+          type:
+            - string
+            - 'null'
+        free_text_note_3:
+          type:
+            - string
+            - 'null'
+      required:
+        - account_comment
+        - free_text_note_1
+        - free_text_note_2
+        - free_text_note_3
+    languagePreferences:
+      title: Language Preferences
+      type:
+        - object
+        - 'null'
+      required:
+        - document_language_preference
+        - hearing_language_preference
+      properties:
+        document_language_preference:
+          $ref: '#/components/schemas/languagePreference'
+        hearing_language_preference:
+          $ref: '#/components/schemas/languagePreference'
+    languagePreference:
+      title: Language Preference
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      properties:
+        language_code:
+          type: string
+          enum:
+            - CY
+            - EN
+        language_display_name:
+          type: string
+          enum:
+            - Welsh and English
+            - English only
+      required:
+        - language_code
+        - language_display_name
+    paymentTermsSummary:
+      title: Payment Terms Summary
+      type: object
+      additionalProperties: false
+      required:
+        - payment_terms_type
+        - effective_date
+        - instalment_period
+        - lump_sum_amount
+      properties:
+        payment_terms_type:
+          $ref: '#/components/schemas/paymentTermsType'
+        effective_date:
+          type:
+            - string
+            - 'null'
+          format: date
+        instalment_period:
+          anyOf:
+            - $ref: '#/components/schemas/instalmentPeriod'
+            - type: 'null'
+        lump_sum_amount:
+          type:
+            - number
+            - 'null'
+          multipleOf: 0.01
+        instalment_amount:
+          type:
+            - number
+            - 'null'
+          multipleOf: 0.01
+    paymentTermsType:
+      title: Payment Terms Type
+      type: object
+      additionalProperties: false
+      properties:
+        payment_terms_type_code:
+          type: string
+          enum:
+            - B
+            - P
+            - I
+        payment_terms_type_display_name:
+          type: string
+          enum:
+            - By date
+            - Paid
+            - Instalments
+      required:
+        - payment_terms_type_code
+        - payment_terms_type_display_name
+    instalmentPeriod:
+      title: Instalment Period
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      properties:
+        instalment_period_code:
+          type: string
+          enum:
+            - W
+            - M
+            - F
+        instalment_period_display_name:
+          type: string
+          enum:
+            - Weekly
+            - Monthly
+            - Fortnightly
+      required:
+        - instalment_period_code
+        - instalment_period_display_name
+    enforcementStatusSummary:
+      title: Enforcement Status Summary
+      type: object
+      additionalProperties: false
+      required:
+        - last_enforcement_action
+        - collection_order_made
+        - default_days_in_jail
+        - enforcement_override
+        - last_movement_date
+      properties:
+        last_enforcement_action:
+          anyOf:
+            - $ref: '#/components/schemas/lastEnforcementAction'
+            - type: 'null'
+        collection_order_made:
+          type: boolean
+        default_days_in_jail:
+          type:
+            - integer
+            - 'null'
+        enforcement_override:
+          anyOf:
+            - $ref: '#/components/schemas/enforcementOverride'
+            - type: 'null'
+        last_movement_date:
+          type:
+            - string
+            - 'null'
+          format: date
+    lastEnforcementAction:
+      title: Last Enforcement Action
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      required:
+        - last_enforcement_action_id
+        - last_enforcement_action_title
+      properties:
+        last_enforcement_action_id:
+          type: string
+        last_enforcement_action_title:
+          type:
+            - string
+            - 'null'
+    enforcementOverride:
+      title: Enforcement Override
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      properties:
+        enforcement_override_result:
+          anyOf:
+            - $ref: '#/components/schemas/enforcementOverrideResultReference'
+            - type: 'null'
+        enforcer:
+          anyOf:
+            - $ref: '#/components/schemas/enforcerReference'
+            - type: 'null'
+        lja:
+          anyOf:
+            - $ref: '#/components/schemas/ljaReference'
+            - type: 'null'
+    enforcementOverrideResultReference:
+      title: Enforcement Override Result Reference
+      type: object
+      additionalProperties: false
+      properties:
+        enforcement_override_result_id:
+          type: string
+        enforcement_override_result_title:
+          type: string
+      required:
+        - enforcement_override_result_id
+        - enforcement_override_result_title
+    enforcerReference:
+      title: Enforcer Reference
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      properties:
+        enforcer_id:
+          type: integer
+          format: int64
+        enforcer_name:
+          type: string
+      required:
+        - enforcer_id
+        - enforcer_name
+    ljaReference:
+      title: LJA Reference
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      properties:
+        lja_id:
+          type: integer
+          format: int64
+        lja_code:
+          type:
+            - string
+            - 'null'
+        lja_name:
+          type: string
+      required:
+        - lja_id
+        - lja_name

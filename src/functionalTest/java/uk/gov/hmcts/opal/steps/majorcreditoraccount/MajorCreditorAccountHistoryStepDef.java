@@ -1,19 +1,25 @@
 package uk.gov.hmcts.opal.steps.majorcreditoraccount;
 
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.springframework.http.HttpHeaders;
+import uk.gov.hmcts.opal.assertions.CommonResponseAssertions;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 import uk.gov.hmcts.opal.steps.BearerTokenStepDef;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 import static net.serenitybdd.rest.SerenityRest.given;
-import static net.serenitybdd.rest.SerenityRest.then;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -23,26 +29,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
 
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String HISTORY_PATH = "/major-creditor-accounts/%d/history";
     private static final long DEFAULT_ACCOUNT_ID = 10770000000041L;
-    private static final Set<String> TOP_LEVEL_FIELDS = Set.of("historyItems");
-    private static final Set<String> HISTORY_ITEM_FIELDS = Set.of("postedDetails", "type", "details", "amount");
-    private static final Set<String> POSTED_DETAILS_FIELDS = Set.of("postedDate", "postedBy", "postedByName");
-    private static final Set<String> DETAILS_FIELDS = Set.of(
-        "transactionType",
-        "paymentReference",
-        "status",
-        "statusDate",
-        "associatedRecordType",
-        "associatedRecordId",
-        "accountNumber",
-        "defendantAccountNumber",
-        "defendantAccountId"
-    );
+    private static final String HISTORY_RESPONSE_SCHEMA =
+        "opal/major-creditor/getMajorCreditorHistoryResponse.json";
+    private static final Set<String> HISTORY_TYPES = Set.of("Financial", "Note");
+
+    private final CommonResponseAssertions responseAssertions = new CommonResponseAssertions();
+    private final JsonSchemaValidationService schemaValidationService = new JsonSchemaValidationService();
+
     private Response firstResponse;
     private Response secondResponse;
     private LocalDate rememberedDateFrom;
     private LocalDate rememberedDateTo;
+    private Long lastRequestedAccountId;
 
     /**
      * Requests major-creditor history for the seeded account using the current scenario token.
@@ -80,6 +81,14 @@ public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
     }
 
     /**
+     * Requests major-creditor history for the seeded account with an invalid Authorization header.
+     */
+    @When("I request major creditor account history for the created major creditor account with an invalid token")
+    public void requestMajorCreditorAccountHistoryForCreatedMajorCreditorAccountWithInvalidToken() {
+        getHistory("invalid-token", DEFAULT_ACCOUNT_ID, null);
+    }
+
+    /**
      * Requests major-creditor history for the seeded account with a specific query string.
      *
      * @param query query string to append to the request URI.
@@ -94,18 +103,26 @@ public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
      */
     @When("I request major creditor account history for a non-existent major creditor account")
     public void requestMajorCreditorAccountHistoryForNonExistentMajorCreditorAccount() {
-        getHistory(BearerTokenStepDef.getToken(), 999999L, null);
+        getHistory(BearerTokenStepDef.getToken(), nonExistentMajorCreditorAccountId(), null);
     }
 
     /**
      * Asserts the successful response follows the documented contract.
-     *
-     * @throws Exception if the response body cannot be parsed as JSON.
      */
     @Then("the major creditor account history response is returned as documented")
-    public void majorCreditorAccountHistoryResponseIsReturnedAsDocumented() throws Exception {
-        then().statusCode(200);
-        assertDocumentedShape();
+    public void majorCreditorAccountHistoryResponseIsReturnedAsDocumented() {
+        Response response = net.serenitybdd.rest.SerenityRest.lastResponse();
+        responseAssertions.assertStatus(response, 200);
+        schemaValidationService.validateOrError(response.getBody().asString(), HISTORY_RESPONSE_SCHEMA);
+
+        JsonNode root = latestJsonBody();
+        assertEquals(Set.of("historyItems"), fieldNames(root), "Unexpected top-level history response fields");
+        JsonNode historyItems = root.path("historyItems");
+        assertTrue(historyItems.isArray(), "historyItems should be an array");
+
+        for (JsonNode historyItem : historyItems) {
+            validateHistoryItem(historyItem);
+        }
     }
 
     /**
@@ -124,7 +141,7 @@ public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
      */
     @Then("the major creditor account history request is rejected as unauthorized")
     public void majorCreditorAccountHistoryRequestIsRejectedAsUnauthorized() {
-        then().statusCode(401);
+        responseAssertions.assertStatus(net.serenitybdd.rest.SerenityRest.lastResponse(), 401);
     }
 
     /**
@@ -132,7 +149,7 @@ public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
      */
     @Then("the major creditor account history request is rejected as forbidden")
     public void majorCreditorAccountHistoryRequestIsRejectedAsForbidden() {
-        then().statusCode(403);
+        responseAssertions.assertStatus(net.serenitybdd.rest.SerenityRest.lastResponse(), 403);
     }
 
     /**
@@ -140,28 +157,22 @@ public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
      */
     @Then("the major creditor account history request is rejected as not found")
     public void majorCreditorAccountHistoryRequestIsRejectedAsNotFound() {
-        then().statusCode(404);
+        responseAssertions.assertStatus(net.serenitybdd.rest.SerenityRest.lastResponse(), 404);
     }
 
     /**
      * Stores the inclusive date range from the latest history response.
-     *
-     * @throws Exception if the response body cannot be parsed as JSON.
      */
     @Then("I remember the returned major creditor account history date range")
-    public void rememberReturnedMajorCreditorAccountHistoryDateRange() throws Exception {
-        List<String> postedDates = then().extract().jsonPath()
-            .getList("historyItems.postedDetails.postedDate", String.class);
+    public void rememberReturnedMajorCreditorAccountHistoryDateRange() {
+        List<LocalDate> dates = postedDates();
 
-        if (postedDates == null || postedDates.isEmpty()) {
+        if (dates.isEmpty()) {
             rememberedDateFrom = null;
             rememberedDateTo = null;
             return;
         }
 
-        List<LocalDate> dates = postedDates.stream()
-            .map(LocalDate::parse)
-            .toList();
         rememberedDateFrom = dates.stream().min(LocalDate::compareTo).orElseThrow();
         rememberedDateTo = dates.stream().max(LocalDate::compareTo).orElseThrow();
     }
@@ -172,7 +183,12 @@ public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
     @Then("the major creditor account history response contains only items on or after the remembered dateFrom")
     public void majorCreditorAccountHistoryResponseContainsOnlyItemsOnOrAfterRememberedDateFrom() {
         if (rememberedDateFrom != null) {
-            assertDateBoundary("postedDetails.postedDate", rememberedDateFrom, true);
+            for (JsonNode historyItem : historyItems()) {
+                assertFalse(
+                    postedDateOf(historyItem).isBefore(rememberedDateFrom),
+                    "History item was before dateFrom boundary"
+                );
+            }
         }
     }
 
@@ -182,35 +198,12 @@ public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
     @Then("the major creditor account history response contains only items on or before the remembered dateTo")
     public void majorCreditorAccountHistoryResponseContainsOnlyItemsOnOrBeforeRememberedDateTo() {
         if (rememberedDateTo != null) {
-            assertDateBoundary("postedDetails.postedDate", rememberedDateTo, false);
-        }
-    }
-
-    /**
-     * Asserts the response includes an item on the remembered lower bound.
-     */
-    @Then("the major creditor account history response includes an item on the remembered dateFrom")
-    public void majorCreditorAccountHistoryResponseIncludesAnItemOnTheRememberedDateFrom() {
-        if (rememberedDateFrom != null) {
-            assertTrue(
-                then().extract().jsonPath().getList("historyItems.postedDetails.postedDate", String.class)
-                    .contains(rememberedDateFrom.toString()),
-                "Expected an item on the remembered dateFrom"
-            );
-        }
-    }
-
-    /**
-     * Asserts the response includes an item on the remembered upper bound.
-     */
-    @Then("the major creditor account history response includes an item on the remembered dateTo")
-    public void majorCreditorAccountHistoryResponseIncludesAnItemOnTheRememberedDateTo() {
-        if (rememberedDateTo != null) {
-            assertTrue(
-                then().extract().jsonPath().getList("historyItems.postedDetails.postedDate", String.class)
-                    .contains(rememberedDateTo.toString()),
-                "Expected an item on the remembered dateTo"
-            );
+            for (JsonNode historyItem : historyItems()) {
+                assertFalse(
+                    postedDateOf(historyItem).isAfter(rememberedDateTo),
+                    "History item was after dateTo boundary"
+                );
+            }
         }
     }
 
@@ -218,67 +211,141 @@ public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
      * Asserts the history response only contains the expected type when filtered.
      */
     @Then("the major creditor account history contains only the following item types")
-    public void majorCreditorAccountHistoryContainsOnlyTheFollowingItemTypes(
-        io.cucumber.datatable.DataTable dataTable) {
-        List<String> expectedTypes = dataTable.asList();
-        List<String> actualTypes = then().extract().jsonPath().getList("historyItems.type", String.class);
-        assertTrue(actualTypes.stream().allMatch(expectedTypes::contains), "Unexpected history item type returned");
+    public void majorCreditorAccountHistoryContainsOnlyTheFollowingItemTypes(DataTable dataTable) {
+        Set<String> expectedTypes = new LinkedHashSet<>(dataTable.asList(String.class));
+        List<String> actualTypes = new ArrayList<>();
+        for (JsonNode historyItem : historyItems()) {
+            actualTypes.add(typeOf(historyItem));
+        }
+
+        assertTrue(expectedTypes.containsAll(actualTypes), "Unexpected history item type returned");
     }
 
     /**
-     * Asserts only documented fields are present in the response body.
+     * Asserts the latest error response follows the shared ProblemDetail contract.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @param expectedStatus expected HTTP status code.
      */
-    @Then("the major creditor account history response contains only documented fields")
-    public void majorCreditorAccountHistoryResponseContainsOnlyDocumentedFields() throws Exception {
-        assertDocumentedShape();
+    @Then("the major creditor account history error response matches the standard problem detail contract for status "
+        + "{int}")
+    public void majorCreditorHistoryErrorResponseMatchesStandardProblemDetailContract(int expectedStatus) {
+
+        Response response = net.serenitybdd.rest.SerenityRest.lastResponse();
+        assertEquals(expectedStatus, response.statusCode(), "Unexpected HTTP status");
+
+        JsonNode root = latestJsonBody();
+        assertTrue(root.isObject(), "Problem detail response should be an object");
+        assertText(root.path("title"), "title");
+        assertText(root.path("detail"), "detail");
+        assertTrue(root.path("status").isInt(), "status should be an integer");
+        assertEquals(expectedStatus, root.path("status").asInt(), "Unexpected status in problem detail");
+
+        assertOptionalText(root.path("type"), "type");
+        assertOptionalText(root.path("instance"), "instance");
+        assertOptionalText(root.path("operation_id"), "operation_id");
+        if (!root.path("retriable").isMissingNode() && !root.path("retriable").isNull()) {
+            assertTrue(root.path("retriable").isBoolean(), "retriable should be a boolean");
+        }
+    }
+
+    /**
+     * Asserts error responses do not contain account history data.
+     */
+    @Then("the major creditor account history error response contains no account data")
+    public void majorCreditorHistoryErrorResponseContainsNoAccountData() {
+        JsonNode root = latestJsonBody();
+        assertTrue(root.path("historyItems").isMissingNode(), "Error response should not include historyItems");
+        if (lastRequestedAccountId != null) {
+            assertFalse(
+                net.serenitybdd.rest.SerenityRest.lastResponse().getBody().asString()
+                    .contains(String.valueOf(lastRequestedAccountId)),
+                "Error response leaked the creditor account id"
+            );
+        }
     }
 
     private Response getHistory(String token, long accountId, String query) {
+        lastRequestedAccountId = accountId;
         String url = getTestUrl() + HISTORY_PATH.formatted(accountId) + (query == null ? "" : "?" + query);
         RequestSpecification request = given()
             .accept("*/*")
             .contentType("application/json");
-        if (token != null) {
+        if (token != null && !token.isBlank()) {
             request = request.header(HttpHeaders.AUTHORIZATION, "Bearer " + token);
         }
         return request.when().get(url);
     }
 
-    private void assertDocumentedShape() throws Exception {
-        assertEquals(Set.of("historyItems"), then().extract().jsonPath().getMap("").keySet());
-        List<java.util.Map<String, Object>> rawItems = then().extract().jsonPath().getList("historyItems");
-        if (rawItems == null) {
-            return;
+    private long nonExistentMajorCreditorAccountId() {
+        return 92_000_000_000_000L + Math.abs(System.nanoTime() % 10_000_000_000L);
+    }
+
+    private JsonNode latestJsonBody() {
+        return OBJECT_MAPPER.readTree(net.serenitybdd.rest.SerenityRest.lastResponse().getBody().asString());
+    }
+
+    private List<JsonNode> historyItems() {
+        JsonNode historyItems = latestJsonBody().path("historyItems");
+        assertTrue(historyItems.isArray(), "historyItems should be an array");
+
+        List<JsonNode> items = new ArrayList<>();
+        for (JsonNode item : historyItems) {
+            items.add(item);
         }
-        for (java.util.Map<String, Object> item : rawItems) {
-            assertTrue(HISTORY_ITEM_FIELDS.containsAll(item.keySet()), "Unexpected history item field returned");
-            assertTrue(item.keySet().containsAll(Set.of("postedDetails", "type", "details")),
-                "Missing required history item field");
-            @SuppressWarnings("unchecked")
-            java.util.Map<String, Object> postedDetails = (java.util.Map<String, Object>) item.get("postedDetails");
-            assertTrue(POSTED_DETAILS_FIELDS.containsAll(postedDetails.keySet()),
-                "Unexpected posted details field returned");
-            assertTrue(postedDetails.keySet().containsAll(POSTED_DETAILS_FIELDS),
-                "Missing required posted details field");
-            @SuppressWarnings("unchecked")
-            java.util.Map<String, Object> details = (java.util.Map<String, Object>) item.get("details");
-            assertTrue(DETAILS_FIELDS.containsAll(details.keySet()), "Unexpected detail field returned");
-            assertTrue(details.keySet().contains("transactionType"), "Missing required transactionType field");
+        return items;
+    }
+
+    private List<LocalDate> postedDates() {
+        return historyItems().stream()
+            .map(this::postedDateOf)
+            .toList();
+    }
+
+    private void validateHistoryItem(JsonNode historyItem) {
+        assertTrue(historyItem.isObject(), "history item should be an object");
+
+        JsonNode postedDetails = historyItem.path("postedDetails");
+        assertTrue(postedDetails.isObject(), "postedDetails should be an object");
+        LocalDate.parse(assertText(postedDetails.path("posted_date"), "postedDetails.posted_date"));
+        assertOptionalText(postedDetails.path("posted_by"), "postedDetails.posted_by");
+        assertOptionalText(postedDetails.path("posted_by_name"), "postedDetails.posted_by_name");
+
+        String type = typeOf(historyItem);
+        assertTrue(HISTORY_TYPES.contains(type), "Unexpected history item type: " + type);
+
+        JsonNode details = historyItem.path("details");
+        assertTrue(details.isObject(), "details should be an object");
+
+        JsonNode amount = historyItem.path("amount");
+        if (!amount.isMissingNode() && !amount.isNull()) {
+            assertTrue(amount.isNumber(), "amount should be numeric when present");
         }
     }
 
-    private void assertDateBoundary(String jsonPathSuffix, LocalDate boundary, boolean lowerBound) {
-        List<String> dates = then().extract().jsonPath().getList("historyItems." + jsonPathSuffix, String.class);
-        assertFalse(dates.isEmpty(), "Expected history items in the response");
-        for (String date : dates) {
-            LocalDate actual = LocalDate.parse(date);
-            if (lowerBound) {
-                assertTrue(!actual.isBefore(boundary), "Expected dates on or after " + boundary);
-            } else {
-                assertTrue(!actual.isAfter(boundary), "Expected dates on or before " + boundary);
-            }
+    private String typeOf(JsonNode historyItem) {
+        return assertText(historyItem.path("type"), "type");
+    }
+
+    private LocalDate postedDateOf(JsonNode historyItem) {
+        return LocalDate.parse(
+            assertText(historyItem.path("postedDetails").path("posted_date"), "postedDetails.posted_date")
+        );
+    }
+
+    private String assertText(JsonNode node, String fieldName) {
+        assertTrue(node.isString(), fieldName + " should be a string");
+        return node.asString();
+    }
+
+    private void assertOptionalText(JsonNode node, String fieldName) {
+        if (!node.isMissingNode() && !node.isNull()) {
+            assertText(node, fieldName);
         }
+    }
+
+    private Set<String> fieldNames(JsonNode node) {
+        Set<String> names = new LinkedHashSet<>();
+        node.properties().forEach(property -> names.add(property.getKey()));
+        return names;
     }
 }
