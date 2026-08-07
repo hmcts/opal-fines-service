@@ -95,6 +95,7 @@ class MinorCreditorAccountAtAGlanceResponseMapperTest {
 
         //Assert
         assertEquals(66L, result.getCreditorAccountId());
+        assertEquals(BigInteger.ONE, result.getVersion());
         assertEquals("theEmpire", result.getParty().getPartyId());
         assertEquals("The Empire", result.getParty().getOrganisationDetails().get().getOrganisationName());
         assertEquals("Sheev", result.getParty().getIndividualDetails().get().getForenames().get());
@@ -109,6 +110,7 @@ class MinorCreditorAccountAtAGlanceResponseMapperTest {
     void testEntityToOpalFullConversion() {
         MinorCreditorAccountAtAGlanceEntity entity = MinorCreditorAccountAtAGlanceEntity.builder()
             .creditorId(66L)
+            .versionNumber(2L)
             .accountNumber("ORDER-66")
             .addressLine1("Jedi Temple")
             .addressLine2("Galactic City")
@@ -131,6 +133,7 @@ class MinorCreditorAccountAtAGlanceResponseMapperTest {
 
         // creditor account
         assertEquals(66L, dto.getCreditorAccountId());
+        assertEquals(BigInteger.valueOf(2), dto.getVersion());
 
         // address
         assertNotNull(dto.getAddress());
