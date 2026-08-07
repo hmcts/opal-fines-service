@@ -27,7 +27,6 @@ import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
-import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
@@ -35,10 +34,13 @@ import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchReferenceNumberDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
@@ -52,6 +54,9 @@ class DefendantAccountApiControllerTest {
 
     @Mock
     private ImpositionService impositionService;
+
+    @Mock
+    private DefendantAccountEnforcementService defendantAccountEnforcementService;
 
     @Mock
     private DefendantAccountHistoryResponseMapper defendantAccountHistoryResponseMapper;
@@ -275,6 +280,32 @@ class DefendantAccountApiControllerTest {
         assertEquals("\"1\"", response.getHeaders().getETag());
         assertSame(summaryResponse, response.getBody());
         verify(defendantAccountService).getHeaderSummary(defendantId);
+    }
+
+    @Test
+    void whenRemovingEnforcementHold_thenReturnsGeneratedResponseWithEtag() {
+        Long defendantAccountId = 1L;
+        Short businessUnitId = 10;
+        String ifMatch = "\"7\"";
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder().reason("remove hold reason").build();
+        RemoveEnforcementHoldResponseDefendantAccount serviceResponse =
+            RemoveEnforcementHoldResponseDefendantAccount.builder()
+                .defendantAccountId("1")
+                .version(BigInteger.valueOf(8))
+                .build();
+        when(defendantAccountEnforcementService.removeEnforcementHold(
+            defendantAccountId, businessUnitId, ifMatch, request)).thenReturn(serviceResponse);
+
+        ResponseEntity<RemoveEnforcementHoldResponseDefendantAccount> response =
+            defendantAccountApiController.removeEnforcementHold(
+                defendantAccountId, businessUnitId, request, ifMatch);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("\"8\"", response.getHeaders().getETag());
+        assertSame(serviceResponse, response.getBody());
+        verify(defendantAccountEnforcementService).removeEnforcementHold(
+            defendantAccountId, businessUnitId, ifMatch, request);
     }
 
 }

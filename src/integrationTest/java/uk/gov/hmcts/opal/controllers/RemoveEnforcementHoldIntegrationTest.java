@@ -5,14 +5,17 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.controllers.util.OpenApiContractAssertions.assertJsonResponseMatchesBundledSpec;
 import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectEntityNotFound;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
+import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.service.opal.ReportEntryService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -89,9 +92,21 @@ class RemoveEnforcementHoldIntegrationTest extends AbstractOpalDefendantsIntegra
                     }
                     """)
         );
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        JsonNode json = objectMapper.readTree(body);
+
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(APPLICATION_JSON))
-            .andExpect(jsonPath("$.defendantAccountId").value(String.valueOf(ACCOUNT_WITH_ENFORCEMENT_HOLD)));
+            .andExpect(header().exists("ETag"))
+            .andExpect(jsonPath("$.defendant_account_id").value(String.valueOf(ACCOUNT_WITH_ENFORCEMENT_HOLD)));
+
+        assertJsonResponseMatchesBundledSpec(
+            json,
+            "/defendant-accounts/{defendantAccountId}/remove-enf-hold",
+            "PATCH",
+            200,
+            APPLICATION_JSON.toString()
+        );
 
         org.junit.jupiter.api.Assertions.assertNull(lastEnforcementFor(ACCOUNT_WITH_ENFORCEMENT_HOLD));
     }

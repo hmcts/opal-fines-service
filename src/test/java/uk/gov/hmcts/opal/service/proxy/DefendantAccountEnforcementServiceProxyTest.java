@@ -9,8 +9,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountEnforcementServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountEnforcementService;
@@ -158,11 +158,11 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
         String businessUnitUserId = "BU-USER";
         String ifMatch = "\"7\"";
 
-        RemoveDefendantAccountEnforcementHoldRequest req =
-            RemoveDefendantAccountEnforcementHoldRequest.builder().build();
+        RemoveEnforcementHoldRequestDefendantAccount req =
+            RemoveEnforcementHoldRequestDefendantAccount.builder().build();
 
-        RemoveDefendantAccountEnforcementHoldResponse expected =
-            RemoveDefendantAccountEnforcementHoldResponse.builder().build();
+        RemoveEnforcementHoldResponseDefendantAccount expected =
+            RemoveEnforcementHoldResponseDefendantAccount.builder().build();
 
         when(legacyService.removeEnforcementHold(
             defendantAccountId,
@@ -172,7 +172,7 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
             req
         )).thenReturn(expected);
 
-        RemoveDefendantAccountEnforcementHoldResponse result =
+        RemoveEnforcementHoldResponseDefendantAccount result =
             serviceProxy.removeEnforcementHold(
                 defendantAccountId,
                 businessUnitId,
