@@ -33,7 +33,7 @@ import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 class MinorCreditorAccountAtAGlanceResponseMapperTest {
 
     @Autowired
-    private GetMinorCreditorAccountAtAGlanceResponseMapper mapper;
+    private MinorCreditorAccountAtAGlanceResponseMapper mapper;
 
     @Test
     void testLegacyToOpalFullConversion() {

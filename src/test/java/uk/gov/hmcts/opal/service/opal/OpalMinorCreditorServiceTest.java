@@ -34,7 +34,7 @@ import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderEntityMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntity;
-import uk.gov.hmcts.opal.mapper.response.GetMinorCreditorAccountAtAGlanceResponseMapper;
+import uk.gov.hmcts.opal.mapper.response.MinorCreditorAccountAtAGlanceResponseMapper;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountAtAGlanceRepository;
@@ -82,7 +82,7 @@ class OpalMinorCreditorServiceTest {
     private MinorCreditorAccountResponseMapper responseMapper;
 
     @Mock
-    private GetMinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
+    private MinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
 
     @InjectMocks
     private OpalMinorCreditorService service;
