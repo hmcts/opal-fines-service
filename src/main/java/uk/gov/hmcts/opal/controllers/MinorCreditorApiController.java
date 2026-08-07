@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.generated.http.api.MinorCreditorApi;
 import uk.gov.hmcts.opal.generated.model.GetMinorCreditorHistory200Response;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCreditor;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.service.MinorCreditorService;
@@ -41,8 +41,7 @@ public class MinorCreditorApiController implements MinorCreditorApi {
 
     @Override
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<MinorCreditorAccountAtAGlanceResponse> getMinorCreditorAccountAtAGlance(
-        Long id) {
+    public ResponseEntity<MinorCreditorAccountAtAGlanceResponse> getMinorCreditorAccountAtAGlance(Long id) {
         log.debug(":GET:getMinorCreditorAccountAtAGlance: id={}", id);
 
         MinorCreditorAccountAtAGlanceResponse response = minorCreditorService.getMinorCreditorAtAGlance(id);
