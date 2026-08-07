@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
@@ -84,7 +84,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
         VersionUtils.verifyIfMatch(account, ifMatch, account.getDefendantAccountId(), "addPaymentCardRequest");
         defendantAccountControlValidator.validateCanAddPaymentCardRequest(account);
 
-        amendmentRepositoryService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
+        amendmentRepositoryService.auditInitialiseStoredProc(defendantAccountId, AssociatedRecordType.DEFENDANT_ACCOUNTS);
 
         ensureNoExistingPaymentCardRequest(defendantAccountId);
 
@@ -157,7 +157,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
         VersionUtils.verifyIfMatch(defAccount, ifMatch, defendantAccountId, "addPaymentTerms");
         defendantAccountControlValidator.validateCanAddPaymentTerms(defAccount);
 
-        amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
+        amendmentService.auditInitialiseStoredProc(defendantAccountId, AssociatedRecordType.DEFENDANT_ACCOUNTS);
 
         paymentTermsService.deactivateExistingActivePaymentTerms(defAccount.getDefendantAccountId());
 
@@ -215,7 +215,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
 
         amendmentService.auditFinaliseStoredProc(
             defAccount.getDefendantAccountId(),
-            RecordType.DEFENDANT_ACCOUNTS,
+            AssociatedRecordType.DEFENDANT_ACCOUNTS,
             Short.parseShort(businessUnitId),
             businessUnitUserId,
             postedByName,
@@ -348,7 +348,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
 
         amendmentRepositoryService.auditFinaliseStoredProc(
             accountId,
-            RecordType.DEFENDANT_ACCOUNTS,
+            AssociatedRecordType.DEFENDANT_ACCOUNTS,
             buId,
             businessUnitUserId,
             postedByName,

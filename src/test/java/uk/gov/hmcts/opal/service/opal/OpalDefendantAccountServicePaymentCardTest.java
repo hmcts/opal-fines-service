@@ -27,7 +27,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler.PaymentCardRequestAlreadyExistsException;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
-import uk.gov.hmcts.opal.dto.RecordType;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -87,7 +87,7 @@ class OpalDefendantAccountServicePaymentCardTest {
 
         verify(paymentCardRequestRepositoryService).save(any(PaymentCardRequestEntity.class));
         verify(amendmentRepositoryService).auditFinaliseStoredProc(
-            accountId, RecordType.DEFENDANT_ACCOUNTS, (short) 10, "L080JG", "John Smith", null,
+            accountId, AssociatedRecordType.DEFENDANT_ACCOUNTS, (short) 10, "L080JG", "John Smith", null,
             "ACCOUNT_ENQUIRY");
     }
 

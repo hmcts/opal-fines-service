@@ -24,7 +24,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
-import uk.gov.hmcts.opal.dto.RecordType;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
@@ -191,9 +191,9 @@ class OpalMinorCreditorServiceUpdateTest {
         assertEquals("Updated", savedParty.getSurname());
         assertEquals("100 New Road", savedParty.getAddressLine1());
         assertEquals("ZZ1 1ZZ", savedParty.getPostcode());
-        verify(amendmentService).auditInitialiseStoredProc(accountId, RecordType.CREDITOR_ACCOUNTS);
+        verify(amendmentService).auditInitialiseStoredProc(accountId, AssociatedRecordType.DEFENDANT_ACCOUNTS);
         verify(amendmentService).auditFinaliseStoredProc(
-            accountId, RecordType.CREDITOR_ACCOUNTS, businessUnitId, postedBy, "Tester Name", null, "ACCOUNT_ENQUIRY");
+            accountId, AssociatedRecordType.DEFENDANT_ACCOUNTS, businessUnitId, postedBy, "Tester Name", null, "ACCOUNT_ENQUIRY");
     }
 
     @Test
