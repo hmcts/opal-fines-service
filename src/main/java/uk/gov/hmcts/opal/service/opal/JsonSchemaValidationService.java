@@ -44,7 +44,21 @@ public class JsonSchemaValidationService {
     }
 
     public boolean isValid(JsonNode jsonNode, String jsonSchemaFileName) {
-        return validate(jsonNode, jsonSchemaFileName).isEmpty();
+        JsonSchema jsonSchema = getJsonSchema(jsonSchemaFileName);
+        try {
+            Set<ValidationMessage> msgs = jsonSchema.validate(jsonNode.toString(), InputFormat.JSON);
+            if (!msgs.isEmpty()) {
+                log.error(":isValid: for JSON schema '{}', found {} validation errors.", jsonSchemaFileName,
+                    msgs.size());
+                for (ValidationMessage msg : msgs) {
+                    log.error(":isValid: error: {}", msg.getMessage());
+                }
+            }
+            return msgs.isEmpty();
+        } catch (Exception ex) {
+            log.error(":isValid: exception during schema validation", ex);
+            return false;
+        }
     }
 
     public void  validateOrError(String body, String jsonSchemaFileName) {
@@ -64,23 +78,6 @@ public class JsonSchemaValidationService {
         }
     }
 
-    public void validateOrError(JsonNode jsonNode, String jsonSchemaFileName) {
-        Set<String> errors = validate(jsonNode, jsonSchemaFileName);
-        if (!errors.isEmpty()) {
-            StringBuilder sb = new StringBuilder(errors.size() >> 7);
-            sb.append("Validating against JSON schema '")
-                .append(jsonSchemaFileName)
-                .append("', found ")
-                .append(errors.size())
-                .append(" validation errors:");
-            for (String msg : errors) {
-                sb.append("\n\t").append(msg);
-            }
-            appendContent(sb, jsonNode.toString());
-            throw new JsonSchemaValidationException(sb.toString());
-        }
-    }
-
     public Set<String> validate(String body, String jsonSchemaFileName) {
         JsonSchema jsonSchema = getJsonSchema(jsonSchemaFileName);
         try {
@@ -89,25 +86,6 @@ public class JsonSchemaValidationService {
             return msgs.stream().map(ValidationMessage::getMessage).collect(Collectors.toSet());
         } catch (JsonSchemaValidationException jsve) {
             return Set.of(jsve.getMessage());
-        }
-    }
-
-    public Set<String> validate(JsonNode jsonNode, String jsonSchemaFileName) {
-        JsonSchema jsonSchema = getJsonSchema(jsonSchemaFileName);
-        try {
-            Set<ValidationMessage> msgs = jsonSchema.validate(jsonNode.toString(), InputFormat.JSON);
-            if (!msgs.isEmpty()) {
-                log.error(":isValid: for JSON schema '{}', found {} validation errors.", jsonSchemaFileName,
-                    msgs.size());
-                for (ValidationMessage msg : msgs) {
-                    log.error(":isValid: error: {}", msg.getMessage());
-                }
-            }
-            return msgs.stream().map(ValidationMessage::getMessage).collect(Collectors.toSet());
-        } catch (Exception ex) {
-            log.error(":isValid: exception during schema validation", ex);
-            String errorMessage = ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage();
-            return Set.of(errorMessage);
         }
     }
 
