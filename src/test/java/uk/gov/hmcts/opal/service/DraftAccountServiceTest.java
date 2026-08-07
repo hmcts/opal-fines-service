@@ -442,7 +442,7 @@ class DraftAccountServiceTest {
     void testUpdateDraftAccount_businessUnitMismatch() {
         // Arrange
         Long draftAccountId = 1L;
-        UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
+        final UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .build();
