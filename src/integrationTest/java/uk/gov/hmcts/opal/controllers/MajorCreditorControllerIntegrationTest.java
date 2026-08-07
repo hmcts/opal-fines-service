@@ -134,7 +134,7 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(144))
+            .andExpect(jsonPath("$.count").value(145))
             .andExpect(jsonPath("$.refData[?(@.major_creditor_id == 1)].major_creditor_code").value(hasItem("AAAA")))
             .andExpect(jsonPath("$.refData[?(@.major_creditor_id == 1)].name")
                 .value(hasItem("AAAA Credit Services")))
