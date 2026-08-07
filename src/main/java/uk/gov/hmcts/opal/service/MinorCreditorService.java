@@ -30,12 +30,15 @@ public class MinorCreditorService {
 
     private final UserStateService userStateService;
 
+    private final MinorCreditorSearchRequestValidator minorCreditorSearchRequestValidator;
+
     public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch entity) {
         log.debug(":searchMinorCreditor:");
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
+            minorCreditorSearchRequestValidator.validateAndCheckFeature(entity);
             return minorCreditorSearchProxy.searchMinorCreditors(entity);
         } else {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
