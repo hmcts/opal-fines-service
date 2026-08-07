@@ -191,9 +191,10 @@ class OpalMinorCreditorServiceUpdateTest {
         assertEquals("Updated", savedParty.getSurname());
         assertEquals("100 New Road", savedParty.getAddressLine1());
         assertEquals("ZZ1 1ZZ", savedParty.getPostcode());
-        verify(amendmentService).auditInitialiseStoredProc(accountId, AssociatedRecordType.DEFENDANT_ACCOUNTS);
+        verify(amendmentService).auditInitialiseStoredProc(accountId, AssociatedRecordType.CREDITOR_ACCOUNTS);
         verify(amendmentService).auditFinaliseStoredProc(
-            accountId, AssociatedRecordType.DEFENDANT_ACCOUNTS, businessUnitId, postedBy, "Tester Name", null, "ACCOUNT_ENQUIRY");
+            accountId, AssociatedRecordType.CREDITOR_ACCOUNTS, businessUnitId, postedBy,
+            "Tester Name", null, "ACCOUNT_ENQUIRY");
     }
 
     @Test

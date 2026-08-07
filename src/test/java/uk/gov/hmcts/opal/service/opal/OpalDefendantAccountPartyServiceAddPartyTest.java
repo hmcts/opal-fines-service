@@ -183,7 +183,8 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
                 argThat(l -> l.getDocumentLanguagePreference() != null
                     && l.getHearingLanguagePreference() != null)
             );
-            verify(amendmentRepositoryService).auditInitialiseStoredProc(accountId, AssociatedRecordType.DEFENDANT_ACCOUNTS);
+            verify(amendmentRepositoryService)
+                .auditInitialiseStoredProc(accountId, AssociatedRecordType.DEFENDANT_ACCOUNTS);
             verify(amendmentRepositoryService).auditFinaliseStoredProc(
                 eq(accountId), eq(AssociatedRecordType.DEFENDANT_ACCOUNTS),
                 eq(Short.parseShort(bu)), eq("tester"), eq("Tester Name"), any(), eq("ACCOUNT_ENQUIRY"));

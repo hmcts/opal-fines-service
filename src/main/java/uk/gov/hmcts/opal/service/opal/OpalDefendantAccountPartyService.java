@@ -354,7 +354,8 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
         VersionUtils.verifyIfMatch(account, ifMatch, defendantAccountId, "removeDefendantAccountParty");
         defendantAccountControlValidator.validateCanMutateParty(account);
-        amendmentRepositoryService.auditInitialiseStoredProc(defendantAccountId, AssociatedRecordType.DEFENDANT_ACCOUNTS);
+        amendmentRepositoryService
+            .auditInitialiseStoredProc(defendantAccountId, AssociatedRecordType.DEFENDANT_ACCOUNTS);
 
         // Verify the DAP association is valid for this Defendant Account
         account.getParties().stream()

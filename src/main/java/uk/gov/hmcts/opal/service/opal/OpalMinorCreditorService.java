@@ -252,7 +252,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
         validatePartyId(request.getPartyDetails().getPartyId(), party.getPartyId());
 
-        amendmentService.auditInitialiseStoredProc(minorCreditorAccountId, AssociatedRecordType.DEFENDANT_ACCOUNTS);
+        amendmentService.auditInitialiseStoredProc(minorCreditorAccountId, AssociatedRecordType.CREDITOR_ACCOUNTS);
 
         updateMapper.updateParty(request.getPartyDetails(), request.getAddress(), party);
 
@@ -272,7 +272,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
         amendmentService.auditFinaliseStoredProc(
             minorCreditorAccountId,
-            AssociatedRecordType.DEFENDANT_ACCOUNTS,
+            AssociatedRecordType.CREDITOR_ACCOUNTS,
             creditorAccount.getBusinessUnitId(),
             postedBy,
             postedByName,

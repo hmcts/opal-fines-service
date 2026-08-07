@@ -84,7 +84,8 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
         VersionUtils.verifyIfMatch(account, ifMatch, account.getDefendantAccountId(), "addPaymentCardRequest");
         defendantAccountControlValidator.validateCanAddPaymentCardRequest(account);
 
-        amendmentRepositoryService.auditInitialiseStoredProc(defendantAccountId, AssociatedRecordType.DEFENDANT_ACCOUNTS);
+        amendmentRepositoryService
+            .auditInitialiseStoredProc(defendantAccountId, AssociatedRecordType.DEFENDANT_ACCOUNTS);
 
         ensureNoExistingPaymentCardRequest(defendantAccountId);
 
