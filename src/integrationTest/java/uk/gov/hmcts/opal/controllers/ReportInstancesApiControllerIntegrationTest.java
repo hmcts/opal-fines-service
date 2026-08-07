@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.ReportEntity;
@@ -219,6 +220,31 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
                     jsonPath("$").isArray(),
                     jsonPath("$.length()").value(3),
                     jsonPath("$[*].report_id", Matchers.not(Matchers.hasItem(UNCONFIGURED_REPORT_ID))));
+        }
+
+        @Test
+        @JiraStory("PO-9147")
+        @JiraEpic("PO-2248")
+        void whenFilteredByUserIdWithoutReportId_matchingInstancesAreReturned_happyPath() throws Exception {
+            doReturn(List.of(
+                ReportEntity.builder()
+                    .reportId(REPORT_ID)
+                    .permission(SEARCH_AND_VIEW_ACCOUNTS)
+                    .build(),
+                ReportEntity.builder()
+                    .reportId(UNCONFIGURED_REPORT_ID)
+                    .build()
+            )).when(reportRepository).findAll();
+
+            mockMvc.perform(authorisedGet()
+                    .param("user_id", "42"))
+                .andExpectAll(
+                    status().isOk(),
+                    content().contentTypeCompatibleWith(APPLICATION_JSON),
+                    jsonPath("$").isArray(),
+                    jsonPath("$.length()").value(2),
+                    jsonPath("$[0].report_id").value(REPORT_ID)
+                );
         }
 
         @Test
