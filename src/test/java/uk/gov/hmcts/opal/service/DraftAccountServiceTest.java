@@ -447,9 +447,11 @@ class DraftAccountServiceTest {
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .build();
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
+            .accountStatus(DraftAccountStatus.SUBMITTED)
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 3).build())
             .versionNumber(0L)
             .build();
+        when(draftAccountTransactional.getDraftAccount(draftAccountId)).thenReturn(existingAccount);
         when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any(), any()))
             .thenReturn(existingAccount);
         when(userStateService.getUserStateV1FromSecurityContext())
@@ -484,6 +486,12 @@ class DraftAccountServiceTest {
             .timelineData(createTimelineDataString())
             .versionNumber(1L)
             .build();
+        when(draftAccountTransactional.getDraftAccount(draftAccountId)).thenReturn(
+            DraftAccountEntity.builder()
+                .draftAccountId(draftAccountId)
+                .accountStatus(DraftAccountStatus.SUBMITTED)
+                .build()
+        );
         when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any(), any()))
             .thenReturn(updatedAccount);
         var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
@@ -535,6 +543,12 @@ class DraftAccountServiceTest {
             .build();
         var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
 
+        when(draftAccountTransactional.getDraftAccount(draftAccountId)).thenReturn(
+            DraftAccountEntity.builder()
+                .draftAccountId(draftAccountId)
+                .accountStatus(DraftAccountStatus.SUBMITTED)
+                .build()
+        );
         when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any(), any()))
             .thenReturn(updatedAccount);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
@@ -586,6 +600,12 @@ class DraftAccountServiceTest {
             .build();
         var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
 
+        when(draftAccountTransactional.getDraftAccount(draftAccountId)).thenReturn(
+            DraftAccountEntity.builder()
+                .draftAccountId(draftAccountId)
+                .accountStatus(DraftAccountStatus.SUBMITTED)
+                .build()
+        );
         when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any(), any()))
             .thenReturn(updatedAccount);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
