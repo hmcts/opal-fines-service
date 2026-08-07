@@ -149,4 +149,49 @@ class RefDataQueueConsumerServiceIntegrationTest extends AbstractIntegrationTest
         assertThat(reloaded.getName()).isEqualTo(originalName);
         assertThat(reloaded.getLjaCode()).isEqualTo(original.getLjaCode());
     }
+
+    @Test
+    void consume_discardsInvalidPayloadWhenInvalidLjaTypeIsSupplied() {
+        LocalJusticeAreaEntity original = localJusticeAreaRepository.findAll().stream()
+            .findFirst()
+            .orElseThrow();
+        final Short localJusticeAreaId = original.getLocalJusticeAreaId();
+        final String originalName = original.getName();
+        final LocalJusticeAreaType originalType = original.getLjaType();
+        final String ljaCode = original.getLjaCode() == null ? "Z126" : original.getLjaCode();
+        final long beforeCount = localJusticeAreaRepository.count();
+
+        if (original.getLjaCode() == null) {
+            original.setLjaCode(ljaCode);
+            localJusticeAreaRepository.saveAndFlush(original);
+            entityManager.flush();
+            entityManager.clear();
+        }
+
+        assertThatCode(() -> consumer.consume("""
+            {
+              "refDataType": "LOCAL_JUSTICE_AREA",
+              "payload": {
+                "ljaCode": "%s",
+                "name": "Updated LJA",
+                "addressLine1": "New address line 1",
+                "addressLine2": "New address line 2",
+                "postcode": "NE1 2BB",
+                "ljaType": "NOT_A_REAL_TYPE"
+              }
+            }
+            """.formatted(ljaCode)))
+            .as("invalid ljaType should be discarded rather than retried")
+            .doesNotThrowAnyException();
+
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThat(localJusticeAreaRepository.count()).isEqualTo(beforeCount);
+
+        LocalJusticeAreaEntity reloaded = localJusticeAreaRepository.findById(localJusticeAreaId).orElseThrow();
+        assertThat(reloaded.getName()).isEqualTo(originalName);
+        assertThat(reloaded.getLjaCode()).isEqualTo(ljaCode);
+        assertThat(reloaded.getLjaType()).isEqualTo(originalType);
+    }
 }

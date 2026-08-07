@@ -67,7 +67,7 @@ public class RefDataQueueConsumerService {
         T dto;
         try {
             dto = objectMapper.convertValue(payloadNode, handler.payloadType());
-        } catch (IllegalArgumentException ex) {
+        } catch (RuntimeException ex) {
             throw new IllegalArgumentException("Unable to convert ref data payload", ex);
         }
         handler.validateDto(dto);
