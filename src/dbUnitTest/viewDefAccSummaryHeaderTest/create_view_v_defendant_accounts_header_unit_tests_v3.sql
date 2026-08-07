@@ -126,7 +126,8 @@ BEGIN
         allow_cheques,
         payment_card_requested,
         originator_type,
-        originator_name
+        originator_name,
+        collection_order
     ) VALUES
     (
         v_defendant_account_id,
@@ -143,7 +144,8 @@ BEGIN
         TRUE,
         TRUE,
         'TFO',
-        'Test Originator Court'
+        'Test Originator Court',
+        TRUE
     ),
     (
         v_defendant_account_id_2,
@@ -160,7 +162,8 @@ BEGIN
         TRUE,
         FALSE,
         'FP',
-        'Test Fixed Penalty Office'
+        'Test Fixed Penalty Office',
+        FALSE
     )
     ON CONFLICT (defendant_account_id) DO UPDATE 
     SET business_unit_id = EXCLUDED.business_unit_id,
@@ -176,7 +179,8 @@ BEGIN
         allow_cheques = EXCLUDED.allow_cheques,
         payment_card_requested = EXCLUDED.payment_card_requested,
         originator_type = EXCLUDED.originator_type,
-        originator_name = EXCLUDED.originator_name;
+        originator_name = EXCLUDED.originator_name,
+        collection_order = EXCLUDED.collection_order;
     
     -- Create defendant associations
     INSERT INTO defendant_account_parties (
@@ -290,6 +294,7 @@ DECLARE
     v_account_type            varchar;
     v_originator_type         varchar;
     v_originator_name         varchar;
+    v_collection_order        boolean;
     
     -- Party information variables
     v_party_id                bigint;
@@ -332,6 +337,7 @@ BEGIN
         account_type,
         originator_type::varchar,
         originator_name,
+        collection_order,
         party_id,
         forenames,
         surname,
@@ -355,6 +361,7 @@ BEGIN
         v_account_type,
         v_originator_type,
         v_originator_name,
+        v_collection_order,
         v_party_id,
         v_forenames,
         v_surname,
@@ -383,6 +390,7 @@ BEGIN
     ASSERT v_account_type = 'Fine', 'Account type should match';
     ASSERT v_originator_type = 'TFO', 'Originator type should match';
     ASSERT v_originator_name = 'Test Originator Court', 'Originator name should match';
+    ASSERT v_collection_order = TRUE, 'Collection order should be TRUE';
     
     -- 2. Party information
     ASSERT v_party_id = 999901, 'Party ID should match';
@@ -423,6 +431,7 @@ DECLARE
     v_prosecutor_case_ref     varchar;
     v_originator_type         varchar;
     v_originator_name         varchar;
+    v_collection_order        boolean;
     
     -- Party information variables
     v_forenames               varchar;
@@ -457,6 +466,7 @@ BEGIN
         prosecutor_case_reference,
         originator_type::varchar,
         originator_name,
+        collection_order,
         forenames,
         surname,
         title,
@@ -474,6 +484,7 @@ BEGIN
         v_prosecutor_case_ref,
         v_originator_type,
         v_originator_name,
+        v_collection_order,
         v_forenames,
         v_surname,
         v_title,
@@ -496,6 +507,7 @@ BEGIN
     ASSERT v_prosecutor_case_ref = 'PCR78901', 'Prosecutor case reference should match';
     ASSERT v_originator_type = 'FP', 'Originator type should match';
     ASSERT v_originator_name = 'Test Fixed Penalty Office', 'Originator name should match';
+    ASSERT v_collection_order = FALSE, 'Collection order should be FALSE';
     
     -- 2. Party information
     ASSERT v_forenames = 'Another', 'Forenames should match';

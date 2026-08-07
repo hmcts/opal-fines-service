@@ -55,6 +55,7 @@ AS
          , CASE WHEN dt.defendant_account_id IS NOT NULL THEN TRUE ELSE FALSE END AS has_consolidated_accounts
          , da.originator_type
          , da.originator_name
+         , da.collection_order
       FROM defendant_accounts da
       JOIN business_units bu
         ON da.business_unit_id = bu.business_unit_id                
