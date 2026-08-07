@@ -9,10 +9,10 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountEnforcementServiceProxy;
 
 @Service
@@ -61,11 +61,11 @@ public class DefendantAccountEnforcementService {
         }
     }
 
-    public RemoveDefendantAccountEnforcementHoldResponse removeEnforcementHold(
+    public RemoveEnforcementHoldResponseDefendantAccount removeEnforcementHold(
         Long defendantAccountId,
         Short businessUnitId,
         String ifMatch,
-        RemoveDefendantAccountEnforcementHoldRequest request) {
+        RemoveEnforcementHoldRequestDefendantAccount request) {
 
         log.debug(":removeEnforcementHold:");
 

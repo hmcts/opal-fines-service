@@ -26,8 +26,8 @@ import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
@@ -671,8 +671,8 @@ public class OpalDefendantAccountEnforcementServiceTest {
         String ifMatch = "\"7\"";
         String updatedIfMatch = "\"7\"";
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
@@ -701,7 +701,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             versionUtils.when(() -> VersionUtils.createETag(defendantEntity)).thenReturn(updatedIfMatch);
 
             // act
-            RemoveDefendantAccountEnforcementHoldResponse result =
+            RemoveEnforcementHoldResponseDefendantAccount result =
                 service.removeEnforcementHold(
                     defendantAccountId,
                     businessUnitId,
@@ -764,8 +764,8 @@ public class OpalDefendantAccountEnforcementServiceTest {
         Short businessUnitId = 10;
         String businessUnitUserId = "BU-USER-1";
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
@@ -810,8 +810,8 @@ public class OpalDefendantAccountEnforcementServiceTest {
         String businessUnitUserId = "BU-USER-1";
         String ifMatch = "\"7\"";
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
@@ -862,8 +862,8 @@ public class OpalDefendantAccountEnforcementServiceTest {
         String businessUnitUserId = "BU-USER-1";
         String ifMatch = "\"7\"";
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
@@ -917,8 +917,8 @@ public class OpalDefendantAccountEnforcementServiceTest {
         String businessUnitUserId = "BU-USER-1";
         String ifMatch = "\"7\"";
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
