@@ -23,10 +23,12 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
+import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchReferenceNumberDefendantAccount;
@@ -104,6 +106,32 @@ class DefendantAccountApiControllerTest {
         assertEquals("\"7\"", response.getHeaders().getETag());
         assertSame(payload, response.getBody());
         verify(defendantAccountService).getConsolidatedAccounts(defendantId);
+    }
+
+    @Test
+    void given_validRequest_when_getDefendantAccountAtAGlance_then_returnsOkResponseWithEtag() {
+        Long defendantId = 77L;
+        AtAGlanceResponseDefendantAccount payload =
+            AtAGlanceResponseDefendantAccount.builder()
+                .defendantAccountId("77")
+                .accountNumber("177A")
+                .debtorType(AtAGlanceResponseDefendantAccount.DebtorTypeEnum.DEFENDANT)
+                .isYouth(false)
+                .build();
+        GetDefendantAccountAtAGlanceResponse serviceResponse = GetDefendantAccountAtAGlanceResponse.builder()
+            .payload(payload)
+            .version(BigInteger.valueOf(5))
+            .build();
+
+        when(defendantAccountService.getAtAGlance(defendantId)).thenReturn(serviceResponse);
+
+        ResponseEntity<AtAGlanceResponseDefendantAccount> response =
+            defendantAccountApiController.getDefendantAccountAtAGlance(defendantId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("\"5\"", response.getHeaders().getETag());
+        assertSame(payload, response.getBody());
+        verify(defendantAccountService).getAtAGlance(defendantId);
     }
 
     @Test

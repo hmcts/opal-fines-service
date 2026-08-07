@@ -10,8 +10,8 @@ import io.cucumber.java.en.When;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.http.HttpHeaders;
+import uk.gov.hmcts.opal.actions.minorcreditor.MinorCreditorHistoryFixtureActions;
 import uk.gov.hmcts.opal.assertions.CommonResponseAssertions;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static net.serenitybdd.rest.SerenityRest.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -39,12 +38,12 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String HISTORY_PATH = "/minor-creditor-accounts/%d/history";
-    private static final String HISTORY_FIXTURE_PATH = "/testing-support/minor-creditor-history";
     private static final String HISTORY_TEST_USER = "opal-test@dev.platform.hmcts.net";
     private static final String HISTORY_RESPONSE_SCHEMA =
         "opal/minor-creditor/getMinorCreditorHistoryResponse.json";
     private static final Set<String> HISTORY_TYPES = Set.of("Amendment", "Financial", "Note");
 
+    private final MinorCreditorHistoryFixtureActions fixtureActions = new MinorCreditorHistoryFixtureActions();
     private final CommonResponseAssertions responseAssertions = new CommonResponseAssertions();
     private final JsonSchemaValidationService schemaValidationService = new JsonSchemaValidationService();
 
@@ -63,10 +62,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
         }
 
         try {
-            Response response = given()
-                .accept("*/*")
-                .when()
-                .delete(getTestUrl() + HISTORY_FIXTURE_PATH + "/" + createdMinorCreditorAccountId);
+            Response response = fixtureActions.deleteFixture(createdMinorCreditorAccountId);
 
             assertTrue(
                 response.statusCode() == 204 || response.statusCode() == 404,
@@ -88,13 +84,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     public void minorCreditorAccountWithRepresentativeHistoryExists(String submittedBy) throws JSONException {
         actAsHistoryTestUser();
 
-        Response response = given()
-            .accept("*/*")
-            .contentType("application/json")
-            .body(new JSONObject().put("reference", submittedBy).toString())
-            .when()
-            .post(getTestUrl() + HISTORY_FIXTURE_PATH);
-
+        Response response = fixtureActions.createFixture(submittedBy);
         responseAssertions.assertStatus(response, 200);
 
         JsonNode body = readJson(response);
@@ -207,10 +197,9 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     /**
      * Asserts the latest history response is ordered newest first by posted date.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
      */
     @Then("the minor creditor account history is ordered newest first")
-    public void minorCreditorHistoryIsOrderedNewestFirst() throws Exception {
+    public void minorCreditorHistoryIsOrderedNewestFirst() {
         LocalDate previous = null;
         for (JsonNode historyItem : historyItems()) {
             LocalDate current = postedDateOf(historyItem);
@@ -227,10 +216,9 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     /**
      * Asserts the unfiltered response includes fixture data outside the remembered filter range.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
      */
     @Then("the minor creditor account history includes records outside the remembered date range")
-    public void minorCreditorHistoryIncludesRecordsOutsideRememberedDateRange() throws Exception {
+    public void minorCreditorHistoryIncludesRecordsOutsideRememberedDateRange() {
         assertExcludedDate();
 
         assertTrue(
@@ -242,10 +230,9 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     /**
      * Asserts the filtered response excludes fixture data outside the remembered filter range.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
      */
     @Then("the minor creditor account history excludes records outside the remembered date range")
-    public void minorCreditorHistoryExcludesRecordsOutsideRememberedDateRange() throws Exception {
+    public void minorCreditorHistoryExcludesRecordsOutsideRememberedDateRange() {
         assertExcludedDate();
 
         for (JsonNode historyItem : historyItems()) {
@@ -258,10 +245,9 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
      * Asserts the latest history response contains only the supplied item types.
      *
      * @param dataTable expected item type values.
-     * @throws Exception if the response body cannot be parsed as JSON.
      */
     @Then("the minor creditor account history contains only the following item types")
-    public void minorCreditorHistoryContainsOnlyTheFollowingItemTypes(DataTable dataTable) throws Exception {
+    public void minorCreditorHistoryContainsOnlyTheFollowingItemTypes(DataTable dataTable) {
         Set<String> expectedTypes = new LinkedHashSet<>(dataTable.asList(String.class));
         Set<String> actualTypes = new LinkedHashSet<>();
         for (JsonNode historyItem : historyItems()) {
@@ -275,10 +261,9 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
      * Asserts the latest history response excludes the supplied item types.
      *
      * @param dataTable item type values that must not be returned.
-     * @throws Exception if the response body cannot be parsed as JSON.
      */
     @Then("the minor creditor account history excludes the following item types")
-    public void minorCreditorHistoryExcludesTheFollowingItemTypes(DataTable dataTable) throws Exception {
+    public void minorCreditorHistoryExcludesTheFollowingItemTypes(DataTable dataTable) {
         Set<String> excludedTypes = new LinkedHashSet<>(dataTable.asList(String.class));
         for (JsonNode historyItem : historyItems()) {
             assertFalse(
@@ -291,10 +276,9 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     /**
      * Asserts every returned item is on or after the remembered dateFrom boundary.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
      */
     @Then("the minor creditor account history response contains only items on or after the remembered dateFrom")
-    public void minorCreditorHistoryContainsOnlyItemsOnOrAfterRememberedDateFrom() throws Exception {
+    public void minorCreditorHistoryContainsOnlyItemsOnOrAfterRememberedDateFrom() {
         assertRememberedDateRange();
         for (JsonNode historyItem : historyItems()) {
             assertFalse(
@@ -307,10 +291,9 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     /**
      * Asserts every returned item is on or before the remembered dateTo boundary.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
      */
     @Then("the minor creditor account history response contains only items on or before the remembered dateTo")
-    public void minorCreditorHistoryContainsOnlyItemsOnOrBeforeRememberedDateTo() throws Exception {
+    public void minorCreditorHistoryContainsOnlyItemsOnOrBeforeRememberedDateTo() {
         assertRememberedDateRange();
         for (JsonNode historyItem : historyItems()) {
             assertFalse(
@@ -365,7 +348,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     }
 
     private void getHistory(String token, long accountId, String query) {
-        RequestSpecification request = given()
+        RequestSpecification request = net.serenitybdd.rest.SerenityRest.given()
             .accept("*/*")
             .contentType("application/json");
 
@@ -419,7 +402,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
         return items;
     }
 
-    private Map<String, Long> typeCounts() throws Exception {
+    private Map<String, Long> typeCounts() {
         Map<String, Long> counts = new LinkedHashMap<>();
         for (JsonNode historyItem : historyItems()) {
             counts.merge(typeOf(historyItem), 1L, Long::sum);

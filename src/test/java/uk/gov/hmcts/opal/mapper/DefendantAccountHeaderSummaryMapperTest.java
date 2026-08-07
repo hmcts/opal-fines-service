@@ -93,6 +93,7 @@ class DefendantAccountHeaderSummaryMapperTest {
             .accountStatus(DefendantAccountStatus.LIVE)
             .businessUnitId((short) 77)
             .businessUnitName("BUName")
+            .businessUnitCode("0046")
             .imposed(BigDecimal.valueOf(11))
             .arrears(BigDecimal.valueOf(22))
             .paid(BigDecimal.valueOf(33))
@@ -108,6 +109,7 @@ class DefendantAccountHeaderSummaryMapperTest {
 
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
         assertEquals("ACCT100", dto.getResponse().getAccountNumber());
+        assertEquals("0046", dto.getResponse().getBusinessUnitSummary().getBusinessUnitCode());
         assertNotNull(dto.getResponse().getPartyDetails());
     }
 
