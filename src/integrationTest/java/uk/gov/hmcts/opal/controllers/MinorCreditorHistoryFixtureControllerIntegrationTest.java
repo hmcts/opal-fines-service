@@ -47,6 +47,10 @@ class MinorCreditorHistoryFixtureControllerIntegrationTest extends AbstractInteg
             .andExpect(jsonPath("$.creditor_account_id").isNumber())
             .andExpect(jsonPath("$.defendant_account_id").isNumber())
             .andExpect(jsonPath("$.party_id").isNumber())
+            .andExpect(jsonPath("$.business_unit_id").value(77))
+            .andExpect(jsonPath("$.account_number").isNotEmpty())
+            .andExpect(jsonPath("$.surname").value("MCHINT"))
+            .andExpect(jsonPath("$.forenames").value("History"))
             .andExpect(jsonPath("$.date_from").isNotEmpty())
             .andExpect(jsonPath("$.date_to").isNotEmpty())
             .andExpect(jsonPath("$.excluded_date").isNotEmpty());

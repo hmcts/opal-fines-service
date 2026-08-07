@@ -59,6 +59,10 @@ public class MinorCreditorHistoryFixtureService {
             .creditorAccountId(creditorAccountId)
             .defendantAccountId(defendantAccountId)
             .partyId(partyId)
+            .businessUnitId(BUSINESS_UNIT_ID)
+            .accountNumber(creditorAccountNumber)
+            .surname(fixtureReference)
+            .forenames("History")
             .dateFrom(dateFrom)
             .dateTo(dateTo)
             .excludedDate(excludedDate)
@@ -301,6 +305,14 @@ public class MinorCreditorHistoryFixtureService {
         Long defendantAccountId,
         @JsonProperty("party_id")
         Long partyId,
+        @JsonProperty("business_unit_id")
+        Short businessUnitId,
+        @JsonProperty("account_number")
+        String accountNumber,
+        @JsonProperty("surname")
+        String surname,
+        @JsonProperty("forenames")
+        String forenames,
         @JsonProperty("date_from")
         LocalDate dateFrom,
         @JsonProperty("date_to")

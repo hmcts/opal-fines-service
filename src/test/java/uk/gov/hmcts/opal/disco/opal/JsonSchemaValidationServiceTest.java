@@ -665,6 +665,106 @@ class JsonSchemaValidationServiceTest {
         assertDefendantAccountsSearchResponseIsInvalid(defendantSearchResponse(accountJson));
     }
 
+    @Test
+    void testMinorCreditorAccountsSearchRequest_withForenamesWithoutSurname_shouldFail() {
+        String invalidJson = """
+            {
+              "active_accounts_only": true,
+              "creditor": {
+                "organisation": false,
+                "forenames": "John",
+                "address_line_1": "1 High Street"
+              }
+            }
+            """;
+
+        assertFalse(jsonSchemaValidationService.isValid(
+            invalidJson,
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST));
+    }
+
+    @Test
+    void testMinorCreditorAccountSearchRequest_withAccountNumber_shouldPass() {
+        String validJson = """
+            {
+              "active_accounts_only": true,
+              "account_number": "12345678A"
+            }
+            """;
+
+        assertTrue(jsonSchemaValidationService.isValid(
+            validJson,
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST));
+    }
+
+    @Test
+    void testMinorCreditorAccountsSearchRequest_withSurnameOnly_shouldPass() {
+        String validJson = """
+            {
+              "active_accounts_only": true,
+              "creditor": {
+                "organisation": false,
+                "surname": "Smith"
+              }
+            }
+            """;
+
+        assertTrue(jsonSchemaValidationService.isValid(
+            validJson,
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST));
+    }
+
+    @Test
+    void testMinorCreditorAccountsSearchRequest_withOrganisationNameOnly_shouldPass() {
+        String validJson = """
+            {
+              "active_accounts_only": true,
+              "creditor": {
+                "organisation": true,
+                "organisation_name": "Acme Ltd"
+              }
+            }
+            """;
+
+        assertTrue(jsonSchemaValidationService.isValid(
+            validJson,
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST));
+    }
+
+    @Test
+    void testMinorCreditorAccountsSearchRequest_withAddressLine1Only_shouldPass() {
+        String validJson = """
+            {
+              "active_accounts_only": true,
+              "creditor": {
+                "organisation": false,
+                "address_line_1": "1 High Street"
+              }
+            }
+            """;
+
+        assertTrue(jsonSchemaValidationService.isValid(
+            validJson,
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST));
+    }
+
+    @Test
+    void testMinorCreditorAccountsSearchRequest_withPostcodeOnly_shouldPass() {
+        String validJson = """
+            {
+              "active_accounts_only": true,
+              "creditor": {
+                "organisation": false,
+                "postcode": "AB1 2CD"
+              }
+            }
+            """;
+
+        assertTrue(jsonSchemaValidationService.isValid(
+            validJson,
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST));
+    }
+
     private void assertDefendantAccountsSearchRequestIsValid(String defendantJson) {
         assertTrue(jsonSchemaValidationService.isValid(
             defendantSearchRequest(defendantJson),
@@ -715,5 +815,4 @@ class JsonSchemaValidationServiceTest {
             }
             """.formatted(accountJson);
     }
-
 }
