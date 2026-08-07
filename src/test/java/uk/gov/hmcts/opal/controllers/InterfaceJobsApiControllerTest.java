@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.OK;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +16,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateRequest;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateResponse;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsSummaryItem;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsSummaryResponse;
 import uk.gov.hmcts.opal.service.opal.InterfaceJobService;
@@ -29,11 +32,27 @@ class InterfaceJobsApiControllerTest {
     private InterfaceJobsApiController controller;
 
     @Test
+    void postInterfaceJobs_returnsCreatedServiceResponse() {
+        InterfaceJobsCreateRequest request = InterfaceJobsCreateRequest.builder().build();
+        InterfaceJobsCreateResponse serviceResponse = InterfaceJobsCreateResponse.builder()
+            .interfaceJobs(List.of())
+            .build();
+
+        when(interfaceJobService.create(request)).thenReturn(serviceResponse);
+
+        ResponseEntity<InterfaceJobsCreateResponse> response = controller.postInterfaceJobs(request);
+
+        assertEquals(OK, response.getStatusCode());
+        assertEquals(serviceResponse, response.getBody());
+        verify(interfaceJobService).create(request);
+    }
+
+    @Test
     void getInterfaceJobsSummary_returnsServiceResponse() {
         List<Short> businessUnitIds = List.of((short) 10, (short) 20);
         List<String> statuses = List.of("COMPLETED");
-        LocalDateTime completedDateFrom = LocalDateTime.of(2026, 7, 1, 10, 0);
-        LocalDateTime completedDateTo = LocalDateTime.of(2026, 7, 2, 10, 0);
+        LocalDateTime completedDateFrom = LocalDateTime.of(2026, Month.JULY, 1, 10, 0);
+        LocalDateTime completedDateTo = LocalDateTime.of(2026, Month.JULY, 2, 10, 0);
         InterfaceJobsSummaryResponse serviceResponse = InterfaceJobsSummaryResponse.builder()
             .interfaceJobs(List.of(new InterfaceJobsSummaryItem()))
             .build();

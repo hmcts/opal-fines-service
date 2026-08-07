@@ -22,6 +22,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneOffset;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -222,7 +223,7 @@ class OpalDefendantAccountUpdateTest {
 
         ArgumentCaptor<NoteEntity> noteCaptor = ArgumentCaptor.forClass(NoteEntity.class);
         verify(noteRepository).save(noteCaptor.capture());
-        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), noteCaptor.getValue().getPostedDate());
+        assertEquals(LocalDateTime.of(2026, Month.MAY, 7, 10, 15), noteCaptor.getValue().getPostedDate());
     }
 
     @Test
@@ -358,7 +359,7 @@ class OpalDefendantAccountUpdateTest {
             .defendantAccountId(77L)
             .businessUnit(bu)
             .collectionOrder(true)
-            .collectionOrderEffectiveDate(LocalDate.of(2025, 1, 1))
+            .collectionOrderEffectiveDate(LocalDate.of(2025, Month.JANUARY, 1))
             .versionNumber(0L)
             .build();
 
@@ -369,7 +370,7 @@ class OpalDefendantAccountUpdateTest {
             .payload(UpdateDefendantAccountRequestPayload.builder()
                 .collectionOrder(CollectionOrderCommon.builder()
                     .collectionOrderFlag(true)
-                    .collectionOrderDate(LocalDate.of(2025, 1, 1))
+                    .collectionOrderDate(LocalDate.of(2025, Month.JANUARY, 1))
                     .build())
                 .build())
             .version(BigInteger.ZERO)
@@ -525,7 +526,7 @@ class OpalDefendantAccountUpdateTest {
             .defendantAccountId(77L)
             .businessUnit(bu)
             .collectionOrder(true)
-            .collectionOrderEffectiveDate(LocalDate.of(2025, 1, 1))
+            .collectionOrderEffectiveDate(LocalDate.of(2025, Month.JANUARY, 1))
             .versionNumber(0L)
             .build();
 
@@ -537,7 +538,7 @@ class OpalDefendantAccountUpdateTest {
             .payload(UpdateDefendantAccountRequestPayload.builder()
                 .collectionOrder(CollectionOrderCommon.builder()
                     .collectionOrderFlag(false)
-                    .collectionOrderDate(LocalDate.of(2025, 2, 2))
+                    .collectionOrderDate(LocalDate.of(2025, Month.FEBRUARY, 2))
                     .build())
                 .build())
             .version(BigInteger.ZERO)

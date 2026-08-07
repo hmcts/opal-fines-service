@@ -366,7 +366,7 @@ class CashTillReportServiceTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("invalidMoneyCases")
-    void convertReportDataToFileType_whenMoneyHasMoreThanTwoDecimalPlaces_throwsException(String description,
+    void convertReportDataToFileType_moneyScaleTooHigh_throwsException(String description,
         Consumer<CashTillReportRow> change, String expectedMessage) {
         CashTillReportRow row = validRow();
         change.accept(row);

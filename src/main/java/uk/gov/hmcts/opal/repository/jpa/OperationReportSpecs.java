@@ -1,350 +1,152 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
-import static uk.gov.hmcts.opal.dto.AccountStatusReportFilterType.CLOSED;
-import static uk.gov.hmcts.opal.dto.AccountStatusReportFilterType.LIVE;
-import static uk.gov.hmcts.opal.dto.CollectionOrderReportFilterType.WITH;
-import static uk.gov.hmcts.opal.dto.CollectionOrderReportFilterType.WITHOUT;
-import static uk.gov.hmcts.opal.entity.defendantaccount.AssociationType.PARENT_GUARDIAN;
-import static uk.gov.hmcts.opal.util.AgeUtil.ADULT_AGE;
-import static uk.gov.hmcts.opal.util.DateTimeUtils.todayPlusDaysUk;
-import static uk.gov.hmcts.opal.util.DateTimeUtils.todayUk;
-
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.From;
-import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-import jakarta.persistence.criteria.Subquery;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import lombok.AllArgsConstructor;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Optional;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.ResultId;
 import uk.gov.hmcts.opal.dto.report.operation.OperationReportByEnforcementFiltersDto;
 import uk.gov.hmcts.opal.dto.report.operation.OperationReportByPaymentFiltersDto;
 import uk.gov.hmcts.opal.dto.report.operation.OperationReportFiltersDto;
-import uk.gov.hmcts.opal.dto.report.operation.PaymentReportMode;
-import uk.gov.hmcts.opal.entity.PartyEntity_;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity_;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity_;
-import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity;
-import uk.gov.hmcts.opal.entity.defendanttransaction.DefendantTransactionEntity_;
-import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
-import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity_;
-import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount_;
 import uk.gov.hmcts.opal.service.report.ReportEnforcementMode;
 
-@AllArgsConstructor
 public final class OperationReportSpecs {
 
-    public static Specification<DefendantAccountEntity> build(OperationReportFiltersDto filters) {
-        return Specification.where(fetchJoins())
-            .and(accountFiltersSpec(filters));
+    private OperationReportSpecs() {
     }
 
-    public static Specification<DefendantAccountEntity> accountFiltersSpec(
-        OperationReportFiltersDto filters
-    ) {
+    public static Specification<DefendantAccountEntity> build(OperationReportFiltersDto filters) {
+        return Specification.where(fetchJoins()).and(accountFiltersSpec(filters));
+    }
+
+    public static Specification<DefendantAccountEntity> accountFiltersSpec(OperationReportFiltersDto filters) {
         if (filters instanceof OperationReportByEnforcementFiltersDto enforcementFilters) {
-            return (root, query, cb) ->
-                accountFiltersByEnforcement(root, query, cb, enforcementFilters);
+            return (root, query, cb) -> enforcementFiltersPredicate(root, query, cb, enforcementFilters);
         }
         if (filters instanceof OperationReportByPaymentFiltersDto paymentFilters) {
-            return (root, query, cb) ->
-                accountFiltersByPayment(root, query, cb, paymentFilters);
+            return (root, query, cb) -> paymentFiltersPredicate(root, query, cb, paymentFilters);
         }
         throw new IllegalArgumentException(
-            "Unsupported filters type: " + (filters == null ? "null" : filters.getClass().getName())
-        );
+            "Unsupported filters type: " + (filters == null ? "null" : filters.getClass().getName()));
     }
 
-    public static Specification<DefendantAccountEntity> defendantAccountIdsIn(List<Long> accountIds) {
-        return (root, query, cb) -> {
-            if (accountIds == null || accountIds.isEmpty()) {
-                return cb.disjunction();
-            }
-            return root.get(DefendantAccountEntity_.DEFENDANT_ACCOUNT_ID).in(accountIds);
-        };
+    public static Predicate accountFiltersByEnforcement(From<?, DefendantAccountEntity> root, CriteriaQuery<?> query,
+        CriteriaBuilder cb, OperationReportByEnforcementFiltersDto filters) {
+
+        return enforcementFiltersPredicate(root, query, cb, filters);
     }
 
-    public static Predicate accountFiltersByEnforcement(
-        From<?, DefendantAccountEntity> root,
-        CriteriaQuery<?> query,
-        CriteriaBuilder cb,
-        OperationReportByEnforcementFiltersDto filters
-    ) {
-        List<Predicate> predicates = new ArrayList<>();
-        addCommonFilters(root, query, cb, filters, predicates);
-        addNotUnderEnforcementFilter(root, cb, filters, predicates);
-        return combinePredicates(cb, predicates);
+    private static Predicate enforcementFiltersPredicate(From<?, DefendantAccountEntity> root, CriteriaQuery<?> query,
+        CriteriaBuilder cb, OperationReportByEnforcementFiltersDto filters) {
+
+        return cb.and(predicateArray(
+            Optional.of(commonFiltersPredicate(root, query, cb, filters)),
+            optionalNotUnderEnforcementPredicate(root, cb, filters)
+        ));
     }
 
-    public static Predicate accountFiltersByPayment(
-        From<?, DefendantAccountEntity> root,
-        CriteriaQuery<?> query,
-        CriteriaBuilder cb,
-        OperationReportByPaymentFiltersDto filters
-    ) {
-        List<Predicate> predicates = new ArrayList<>();
-        addCommonFilters(root, query, cb, filters, predicates);
-        if (filters.getReportMode().equals(PaymentReportMode.SINCE_DATE)) {
-            addIsPaymentMadeFilter(root, query, cb, filters, predicates);
-        }
-        addLastEnforcementFilter(root, cb, filters, predicates);
-        return combinePredicates(cb, predicates);
+    private static Predicate paymentFiltersPredicate(From<?, DefendantAccountEntity> root, CriteriaQuery<?> query,
+        CriteriaBuilder cb, OperationReportByPaymentFiltersDto filters) {
+
+        return cb.and(predicateArray(
+            Optional.of(commonFiltersPredicate(root, query, cb, filters)),
+            optionalPaymentMadePredicate(root, query, cb, filters),
+            optionalLastEnforcementPredicate(root, cb, filters)
+        ));
     }
 
-    private static void addCommonFilters(
-        From<?, DefendantAccountEntity> root,
-        CriteriaQuery<?> query,
-        CriteriaBuilder cb,
-        OperationReportFiltersDto filters,
-        List<Predicate> predicates
-    ) {
-        addBusinessUnitFilter(root, filters, predicates);
-        addAccountTypeFilter(root, cb, filters, predicates);
-        addParentGuardianFilter(root, query, cb, filters, predicates);
-        addCollectionOrderFilter(root, cb, filters, predicates);
-        addAccountStatusFilter(root, cb, filters, predicates);
-        addBalanceFilter(root, cb, filters, predicates);
-        addNameRangeFilter(root, cb, filters, predicates);
-        addNext7DaysFilter(root, query, cb, filters, predicates);
+    private static Predicate commonFiltersPredicate(From<?, DefendantAccountEntity> root, CriteriaQuery<?> query,
+        CriteriaBuilder cb, OperationReportFiltersDto filters) {
+
+        return cb.and(predicateArray(
+            notNullOrEmpty(filters.getBusinessUnitIds())
+                .map(ids -> DefendantAccountSpecs.businessUnitIdsInPredicate(root, ids)),
+            hasAccountTypeFilter(filters)
+                .map(ignore -> DefendantAccountSpecs.operationReportAccountTypesPredicate(root, cb, filters)),
+            selected(filters.getOnlyAccountsWithParentGuardian())
+                .map(ignore -> DefendantAccountSpecs.parentGuardianExistsPredicate(root, query, cb)),
+            Optional.ofNullable(filters.getCollectionOrderChoice())
+                .map(choice -> DefendantAccountSpecs.collectionOrderPredicate(root, cb, choice)),
+            Optional.ofNullable(filters.getAccountStatus())
+                .map(status -> DefendantAccountSpecs.accountStatusPredicate(root, cb, status)),
+            Optional.ofNullable(filters.getMinBalance())
+                .map(minBalance -> DefendantAccountSpecs.minBalancePredicate(root, cb, minBalance)),
+            Optional.ofNullable(filters.getMaxBalance())
+                .map(maxBalance -> DefendantAccountSpecs.maxBalancePredicate(root, cb, maxBalance)),
+            hasNameRangeFilter(filters).map(ignore -> DefendantAccountSpecs.nameRangePredicate(
+                root, cb, filters.getLowerNameRange(), filters.getUpperNameRange())),
+            selected(filters.getFirstPaymentOrPayByInNext7Days())
+                .map(ignore -> PaymentTermsSpecs.effectiveInNextDaysPredicate(root, query, cb, 7))
+        ));
     }
 
-    private static Predicate combinePredicates(CriteriaBuilder cb, List<Predicate> predicates) {
-        return predicates.isEmpty()
-            ? cb.conjunction()
-            : cb.and(predicates.toArray(new Predicate[0]));
+    private static Optional<OperationReportFiltersDto> hasAccountTypeFilter(OperationReportFiltersDto filters) {
+        return Optional.of(filters).filter(candidate -> Boolean.TRUE.equals(candidate.getIncludeAdult())
+            || Boolean.TRUE.equals(candidate.getIncludeYouth())
+            || Boolean.TRUE.equals(candidate.getIncludeCompany()));
     }
 
-    private static void addBusinessUnitFilter(
-        From<?, DefendantAccountEntity> root,
-        OperationReportFiltersDto filters,
-        List<Predicate> predicates
-    ) {
-        if (filters.getBusinessUnitIds() != null && !filters.getBusinessUnitIds().isEmpty()) {
-            predicates.add(
-                root.get(DefendantAccountEntity_.BUSINESS_UNIT)
-                    .get(SearchDefendantAccount_.BUSINESS_UNIT_ID)
-                    .in(filters.getBusinessUnitIds())
-            );
-        }
+    private static Optional<OperationReportFiltersDto> hasNameRangeFilter(OperationReportFiltersDto filters) {
+        return Optional.of(filters).filter(candidate -> notBlank(candidate.getLowerNameRange()).isPresent()
+            || notBlank(candidate.getUpperNameRange()).isPresent());
     }
 
-    private static void addIsPaymentMadeFilter(
-        From<?, DefendantAccountEntity> root,
-        CriteriaQuery<?> query,
-        CriteriaBuilder cb,
-        OperationReportByPaymentFiltersDto filters,
-        List<Predicate> predicates
-    ) {
-        Subquery<Long> subquery = query.subquery(Long.class);
-        Root<DefendantTransactionEntity> transaction = subquery.from(DefendantTransactionEntity.class);
-        subquery.select(transaction.get(DefendantTransactionEntity_.DEFENDANT_ACCOUNT_ID))
-            .where(
-                DefendantTransactionSpecs.paymentMadeOnOrAfterDatePredicate(
-                    transaction, cb, filters.getSinceDate()
-                )
-            );
-        Predicate hasPayment = root.get(DefendantAccountEntity_.DEFENDANT_ACCOUNT_ID).in(subquery);
-        predicates.add(Boolean.TRUE.equals(filters.getIsPaymentMade()) ? hasPayment : cb.not(hasPayment));
+    private static Optional<Predicate> optionalNotUnderEnforcementPredicate(From<?, DefendantAccountEntity> root,
+        CriteriaBuilder cb, OperationReportByEnforcementFiltersDto filters) {
+
+        return Optional.ofNullable(filters.getReportEnforcementMode())
+            .filter(ReportEnforcementMode.NOT_UNDER_ENFORCEMENT::equals)
+            .map(ignore -> DefendantAccountSpecs.notUnderEnforcementPredicate(root, cb));
     }
 
-    private static void addLastEnforcementFilter(
-        From<?, DefendantAccountEntity> root,
-        CriteriaBuilder cb,
-        OperationReportByPaymentFiltersDto filters,
-        List<Predicate> predicates
-    ) {
-        ResultId lastEnforcementFilter = filters.getSinceLastEnforcementAction();
-        if (lastEnforcementFilter != null) {
-            predicates.add(
-                cb.equal(root.get(DefendantAccountEntity_.LAST_ENFORCEMENT), lastEnforcementFilter.value())
-            );
-        }
+    private static Optional<Predicate> optionalLastEnforcementPredicate(From<?, DefendantAccountEntity> root,
+        CriteriaBuilder cb, OperationReportByPaymentFiltersDto filters) {
+
+        return Optional.ofNullable(filters.getSinceLastEnforcementAction())
+            .map(lastEnforcement -> DefendantAccountSpecs.lastEnforcementPredicate(root, cb, lastEnforcement));
     }
 
-    private static void addAccountTypeFilter(
-        From<?, DefendantAccountEntity> root,
-        CriteriaBuilder cb,
-        OperationReportFiltersDto filters,
-        List<Predicate> predicates
-    ) {
-        if (!(Boolean.TRUE.equals(filters.getIncludeAdult())
-            || Boolean.TRUE.equals(filters.getIncludeYouth())
-            || Boolean.TRUE.equals(filters.getIncludeCompany()))) {
-            return;
-        }
+    private static Optional<Predicate> optionalPaymentMadePredicate(From<?, DefendantAccountEntity> root,
+        CriteriaQuery<?> query, CriteriaBuilder cb, OperationReportByPaymentFiltersDto filters) {
 
-        Join<?, ?> link = root.join(DefendantAccountEntity_.PARTIES, JoinType.LEFT);
-        Join<?, ?> party = link.join(DefendantAccountPartiesEntity_.PARTY, JoinType.LEFT);
-
-        List<Predicate> typePredicates = new ArrayList<>();
-
-        if (Boolean.TRUE.equals(filters.getIncludeAdult())) {
-            typePredicates.add(cb.greaterThanOrEqualTo(party.get(PartyEntity_.AGE), ADULT_AGE));
-        }
-        if (Boolean.TRUE.equals(filters.getIncludeYouth())) {
-            typePredicates.add(cb.lessThan(party.get(PartyEntity_.AGE), ADULT_AGE));
-        }
-        if (Boolean.TRUE.equals(filters.getIncludeCompany())) {
-            typePredicates.add(cb.isTrue(party.get(PartyEntity_.ORGANISATION)));
-        }
-
-        predicates.add(cb.or(typePredicates.toArray(new Predicate[0])));
+        return Optional.ofNullable(filters.getIsPaymentMade()).map(isPaymentMade -> switch (filters.getReportMode()) {
+                case SINCE_DATE -> paymentMadeOnOrAfterPredicate(
+                    root, query, cb, filters.getSinceDate(), isPaymentMade);
+                case WITH_REGF -> paymentMadeAfterEnforcementPredicate(
+                    root, query, cb, ResultId.REGF.value(), true, isPaymentMade);
+                case SINCE_LAST_ENFORCEMENT -> paymentMadeAfterEnforcementPredicate(
+                    root, query, cb, filters.getSinceLastEnforcementAction().value(), false, isPaymentMade);
+            });
     }
 
-    private static void addParentGuardianFilter(
-        From<?, DefendantAccountEntity> root,
-        CriteriaQuery<?> query,
-        CriteriaBuilder cb,
-        OperationReportFiltersDto filters,
-        List<Predicate> predicates
-    ) {
-        if (!Boolean.TRUE.equals(filters.getOnlyAccountsWithParentGuardian())) {
-            return;
-        }
-        Subquery<Long> subquery = query.subquery(Long.class);
-        Root<DefendantAccountPartiesEntity> dap = subquery.from(DefendantAccountPartiesEntity.class);
+    private static Predicate paymentMadeOnOrAfterPredicate(From<?, DefendantAccountEntity> account,
+        CriteriaQuery<?> query, CriteriaBuilder cb, LocalDate sinceDate, boolean isPaymentMade) {
 
-        subquery.select(cb.literal(1L));
-        subquery.where(
-            cb.equal(
-                dap.get(DefendantAccountPartiesEntity_.DEFENDANT_ACCOUNT)
-                    .get(DefendantAccountEntity_.DEFENDANT_ACCOUNT_ID),
-                root.get(DefendantAccountEntity_.DEFENDANT_ACCOUNT_ID)
-            ),
-            cb.equal(dap.get(DefendantAccountPartiesEntity_.ASSOCIATION_TYPE), PARENT_GUARDIAN)
-        );
-        predicates.add(cb.exists(subquery));
+        Predicate hasPayment =
+            DefendantTransactionSpecs.accountHasPaymentFromPredicate(account, query, cb, sinceDate);
+        return isPaymentMade ? hasPayment : cb.not(hasPayment);
     }
 
-    private static void addCollectionOrderFilter(
-        From<?, DefendantAccountEntity> root,
-        CriteriaBuilder cb,
-        OperationReportFiltersDto filters,
-        List<Predicate> predicates
-    ) {
-        if (filters.getCollectionOrderChoice() == null) {
-            return;
-        }
-        if (WITH.equals(filters.getCollectionOrderChoice())) {
-            predicates.add(cb.isTrue(root.get(DefendantAccountEntity_.COLLECTION_ORDER)));
-        } else if (WITHOUT.equals(filters.getCollectionOrderChoice())) {
-            predicates.add(cb.isFalse(root.get(DefendantAccountEntity_.COLLECTION_ORDER)));
-        }
-    }
+    private static Predicate paymentMadeAfterEnforcementPredicate(From<?, DefendantAccountEntity> account,
+        CriteriaQuery<?> query, CriteriaBuilder cb, String resultId, boolean firstEnforcement, boolean isPaymentMade) {
 
-    private static void addAccountStatusFilter(
-        From<?, DefendantAccountEntity> root,
-        CriteriaBuilder cb,
-        OperationReportFiltersDto filters,
-        List<Predicate> predicates
-    ) {
-        if (filters.getAccountStatus() == null) {
-            return;
-        }
-        if (LIVE.equals(filters.getAccountStatus())) {
-            predicates.add(cb.and(
-                cb.greaterThan(root.get(DefendantAccountEntity_.ACCOUNT_BALANCE), cb.literal(0)),
-                cb.isNull(root.get(DefendantAccountEntity_.COMPLETED_DATE))
-            ));
-        } else if (CLOSED.equals(filters.getAccountStatus())) {
-            predicates.add(cb.or(
-                cb.equal(root.get(DefendantAccountEntity_.ACCOUNT_BALANCE), cb.literal(0)),
-                cb.isNotNull(root.get(DefendantAccountEntity_.COMPLETED_DATE))
-            ));
-        }
-    }
-
-    private static void addBalanceFilter(
-        From<?, DefendantAccountEntity> root,
-        CriteriaBuilder cb,
-        OperationReportFiltersDto filters,
-        List<Predicate> predicates
-    ) {
-        if (filters.getMinBalance() != null) {
-            predicates.add(
-                cb.greaterThanOrEqualTo(root.get(DefendantAccountEntity_.ACCOUNT_BALANCE), filters.getMinBalance())
-            );
-        }
-        if (filters.getMaxBalance() != null) {
-            predicates.add(
-                cb.lessThanOrEqualTo(root.get(DefendantAccountEntity_.ACCOUNT_BALANCE), filters.getMaxBalance())
-            );
-        }
-    }
-
-    private static void addNameRangeFilter(
-        From<?, DefendantAccountEntity> root,
-        CriteriaBuilder cb,
-        OperationReportFiltersDto filters,
-        List<Predicate> predicates
-    ) {
-        if (filters.getLowerNameRange() == null && filters.getUpperNameRange() == null) {
-            return;
-        }
-
-        Join<?, ?> link = root.join(DefendantAccountEntity_.PARTIES, JoinType.LEFT);
-        Join<?, ?> party = link.join(DefendantAccountPartiesEntity_.PARTY, JoinType.LEFT);
-
-        Expression<String> firstLetter = cb.lower(
-            cb.substring(
-                cb.coalesce(party.get(PartyEntity_.SURNAME), party.get(PartyEntity_.ORGANISATION_NAME)),
-                1, 1
-            )
-        );
-        if (filters.getLowerNameRange() != null) {
-            predicates.add(cb.greaterThanOrEqualTo(firstLetter, filters.getLowerNameRange().toLowerCase()));
-        }
-        if (filters.getUpperNameRange() != null) {
-            predicates.add(cb.lessThanOrEqualTo(firstLetter, filters.getUpperNameRange().toLowerCase()));
-        }
-    }
-
-    private static void addNext7DaysFilter(
-        From<?, DefendantAccountEntity> root,
-        CriteriaQuery<?> query,
-        CriteriaBuilder cb,
-        OperationReportFiltersDto filters,
-        List<Predicate> predicates
-    ) {
-        if (!Boolean.TRUE.equals(filters.getFirstPaymentOrPayByInNext7Days())) {
-            return;
-        }
-        LocalDate today = todayUk();
-        LocalDate in7Days = todayPlusDaysUk(7);
-
-        Subquery<Long> subquery = query.subquery(Long.class);
-        Root<PaymentTermsEntity> paymentTerms = subquery.from(PaymentTermsEntity.class);
-
-        subquery.select(cb.literal(1L));  // 'SELECT 1' TO CHECK EXISTS
-        subquery.where(
-            cb.equal(
-                paymentTerms.get(PaymentTermsEntity_.DEFENDANT_ACCOUNT)
-                    .get(DefendantAccountEntity_.DEFENDANT_ACCOUNT_ID),
-                root.get(DefendantAccountEntity_.DEFENDANT_ACCOUNT_ID)
-            ),
-            cb.between(paymentTerms.get(PaymentTermsEntity_.EFFECTIVE_DATE), today, in7Days)
-        );
-        predicates.add(cb.exists(subquery));
-    }
-
-    private static void addNotUnderEnforcementFilter(
-        From<?, DefendantAccountEntity> root,
-        CriteriaBuilder cb,
-        OperationReportByEnforcementFiltersDto filters,
-        List<Predicate> predicates
-    ) {
-        if (ReportEnforcementMode.NOT_UNDER_ENFORCEMENT.equals(filters.getReportEnforcementMode())) {
-            predicates.add(cb.isNull(root.get(DefendantAccountEntity_.LAST_ENFORCEMENT)));
-        }
+        Predicate hasEnforcement = EnforcementSpecs.accountHasResultPredicate(account, query, cb, resultId);
+        Predicate hasPaymentAfterEnforcement =
+            DefendantTransactionSpecs.accountHasPaymentFromEnforcementPredicate(
+                account, query, cb, resultId, firstEnforcement);
+        return cb.and(
+            hasEnforcement,
+            isPaymentMade ? hasPaymentAfterEnforcement : cb.not(hasPaymentAfterEnforcement));
     }
 
     private static Specification<DefendantAccountEntity> fetchJoins() {
@@ -368,4 +170,26 @@ public final class OperationReportSpecs {
             // Intentionally ignored: some queries cannot fetch these associations.
         }
     }
+
+    @SafeVarargs
+    private static Predicate[] predicateArray(Optional<Predicate>... optionalPredicates) {
+        return Arrays.stream(optionalPredicates)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .filter(Objects::nonNull)
+            .toArray(Predicate[]::new);
+    }
+
+    private static Optional<Boolean> selected(Boolean candidate) {
+        return Optional.ofNullable(candidate).filter(Boolean::booleanValue);
+    }
+
+    private static Optional<String> notBlank(String candidate) {
+        return Optional.ofNullable(candidate).filter(value -> !value.isBlank());
+    }
+
+    private static <T> Optional<Collection<T>> notNullOrEmpty(Collection<T> collection) {
+        return Optional.ofNullable(collection).filter(candidate -> !candidate.isEmpty());
+    }
+
 }

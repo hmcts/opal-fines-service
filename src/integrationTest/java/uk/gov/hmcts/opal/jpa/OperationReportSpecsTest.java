@@ -29,6 +29,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
+import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
 import uk.gov.hmcts.opal.repository.jpa.OperationReportSpecs;
 import uk.gov.hmcts.opal.service.report.ReportEnforcementMode;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -55,24 +56,20 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
         value = "PO-8800",
         name = "[1] filters = OperationReportByEnforcementFiltersDto(reportEnforcementMode=null, "
             + "enforcementDateFrom=null, enforcementDateTo=null, lastActionDateFrom=null, "
-            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)"
-    )
+            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)")
     @JiraTestKey(
         value = "PO-8801",
         name = "[2] filters = OperationReportByEnforcementFiltersDto(reportEnforcementMode=null, "
             + "enforcementDateFrom=null, enforcementDateTo=null, lastActionDateFrom=null, "
-            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)"
-    )
+            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)")
     @JiraTestKey(
         value = "PO-8802",
         name = "[3] filters = OperationReportByPaymentFiltersDto(isPaymentMade=null, "
-            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)"
-    )
+            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)")
     @JiraTestKey(
         value = "PO-8803",
         name = "[4] filters = OperationReportByPaymentFiltersDto(isPaymentMade=null, "
-            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)"
-    )
+            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)")
     void businessUnitSpec_businessUnitIdsNullOrEmpty_returnConjunction(OperationReportFiltersDto filters) {
         long total = defendantAccountRepository.count();
 
@@ -92,8 +89,7 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
             OperationReportByPaymentFiltersDto.builder()
                 .reportMode(PaymentReportMode.WITH_REGF)
                 .businessUnitIds(List.of())
-                .build()
-        );
+                .build());
     }
 
     @JiraStory("PO-2286")
@@ -107,13 +103,11 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
         value = "PO-8792",
         name = "[1] filters = OperationReportByEnforcementFiltersDto(reportEnforcementMode=null, "
             + "enforcementDateFrom=null, enforcementDateTo=null, lastActionDateFrom=null, "
-            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)"
-    )
+            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)")
     @JiraTestKey(
         value = "PO-8793",
         name = "[2] filters = OperationReportByPaymentFiltersDto(isPaymentMade=null, "
-            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)"
-    )
+            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)")
     void businessUnitSpec_businessUnitIdsList_returnAllFromBusinessUnitIds(OperationReportFiltersDto filters) {
         List<DefendantAccountEntity> results = defendantAccountRepository.findAll(OperationReportSpecs.build(filters));
 
@@ -128,8 +122,7 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
             OperationReportByPaymentFiltersDto.builder()
                 .reportMode(PaymentReportMode.WITH_REGF)
                 .businessUnitIds(List.of(78L))
-                .build()
-        );
+                .build());
     }
 
     @JiraStory("PO-2286")
@@ -143,13 +136,11 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
         value = "PO-8790",
         name = "[1] filters = OperationReportByEnforcementFiltersDto(reportEnforcementMode=null, "
             + "enforcementDateFrom=null, enforcementDateTo=null, lastActionDateFrom=null, "
-            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)"
-    )
+            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)")
     @JiraTestKey(
         value = "PO-8791",
         name = "[2] filters = OperationReportByPaymentFiltersDto(isPaymentMade=null, "
-            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)"
-    )
+            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)")
     void accountTypesSpec_includeAdult_returnAllAdultAccounts(OperationReportFiltersDto filters) {
         List<DefendantAccountEntity> results = defendantAccountRepository.findAll(OperationReportSpecs.build(filters));
 
@@ -157,8 +148,7 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
             .allSatisfy(account ->
                 assertThat(account.getParties())
                     .anySatisfy(parties ->
-                        assertThat(parties.getParty().getAge()).isGreaterThanOrEqualTo((short) 18))
-            );
+                        assertThat(parties.getParty().getAge()).isGreaterThanOrEqualTo((short) 18)));
     }
 
     private static Stream<OperationReportFiltersDto> adultFilters() {
@@ -167,8 +157,7 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
             OperationReportByPaymentFiltersDto.builder()
                 .includeAdult(true)
                 .reportMode(PaymentReportMode.WITH_REGF)
-                .build()
-        );
+                .build());
     }
 
     @JiraStory("PO-2286")
@@ -182,13 +171,11 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
         value = "PO-8814",
         name = "[1] filters = OperationReportByEnforcementFiltersDto(reportEnforcementMode=null, "
             + "enforcementDateFrom=null, enforcementDateTo=null, lastActionDateFrom=null, "
-            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)"
-    )
+            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)")
     @JiraTestKey(
         value = "PO-8815",
         name = "[2] filters = OperationReportByPaymentFiltersDto(isPaymentMade=null, "
-            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)"
-    )
+            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)")
     void accountTypesSpec_includeYouth_returnAllYouthAccounts(OperationReportFiltersDto filters) {
         List<DefendantAccountEntity> results = defendantAccountRepository.findAll(OperationReportSpecs.build(filters));
 
@@ -196,8 +183,7 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
             .allSatisfy(account ->
                 assertThat(account.getParties())
                     .anySatisfy(parties ->
-                        assertThat(parties.getParty().getAge()).isLessThan((short) 18))
-            );
+                        assertThat(parties.getParty().getAge()).isLessThan((short) 18)));
     }
 
     private static Stream<OperationReportFiltersDto> youthFilters() {
@@ -205,8 +191,7 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
             OperationReportByEnforcementFiltersDto.builder().includeYouth(true).build(),
             OperationReportByPaymentFiltersDto.builder()
                 .reportMode(PaymentReportMode.WITH_REGF)
-                .includeYouth(true).build()
-        );
+                .includeYouth(true).build());
     }
 
     @JiraStory("PO-2286")
@@ -220,21 +205,18 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
         value = "PO-8804",
         name = "[1] filters = OperationReportByEnforcementFiltersDto(reportEnforcementMode=null, "
             + "enforcementDateFrom=null, enforcementDateTo=null, lastActionDateFrom=null, "
-            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)"
-    )
+            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)")
     @JiraTestKey(
         value = "PO-8805",
         name = "[2] filters = OperationReportByPaymentFiltersDto(isPaymentMade=null, "
-            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)"
-    )
+            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)")
     void accountTypesSpec_includeCompany_returnAllCompanyAccounts(OperationReportFiltersDto filters) {
         List<DefendantAccountEntity> results = defendantAccountRepository.findAll(OperationReportSpecs.build(filters));
 
         assertThat(results)
             .allSatisfy(account ->
                 assertThat(account.getParties())
-                    .anySatisfy(parties -> assertThat(parties.getParty().isOrganisation()).isTrue())
-            );
+                    .anySatisfy(parties -> assertThat(parties.getParty().isOrganisation()).isTrue()));
     }
 
     private static Stream<OperationReportFiltersDto> companyFilters() {
@@ -243,8 +225,7 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
             OperationReportByPaymentFiltersDto.builder()
                 .reportMode(PaymentReportMode.WITH_REGF)
                 .includeCompany(true)
-                .build()
-        );
+                .build());
     }
 
     @JiraStory("PO-2286")
@@ -258,20 +239,17 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
         value = "PO-8811",
         name = "[1] filters = OperationReportByEnforcementFiltersDto(reportEnforcementMode=null, "
             + "enforcementDateFrom=null, enforcementDateTo=null, lastActionDateFrom=null, "
-            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)"
-    )
+            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)")
     @JiraTestKey(
         value = "PO-8812",
         name = "[2] filters = OperationReportByPaymentFiltersDto(isPaymentMade=null, "
-            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)"
-    )
+            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)")
     void parentGuardianSpec_returnAllAccountsWithParentGuardian(OperationReportFiltersDto filters) {
         List<DefendantAccountEntity> results = defendantAccountRepository.findAll(OperationReportSpecs.build(filters));
 
         assertThat(results).allSatisfy(account ->
             assertThat(account.getParties()).anySatisfy(parties ->
-                assertThat(parties.getAssociationType()).isEqualTo(PARENT_GUARDIAN))
-        );
+                assertThat(parties.getAssociationType()).isEqualTo(PARENT_GUARDIAN)));
     }
 
     private static Stream<OperationReportFiltersDto> parentGuardianFilters() {
@@ -279,8 +257,7 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
             OperationReportByEnforcementFiltersDto.builder().onlyAccountsWithParentGuardian(true).build(),
             OperationReportByPaymentFiltersDto.builder()
                 .reportMode(PaymentReportMode.WITH_REGF)
-                .onlyAccountsWithParentGuardian(true).build()
-        );
+                .onlyAccountsWithParentGuardian(true).build());
     }
 
     @JiraStory("PO-2286")
@@ -294,13 +271,11 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
         value = "PO-8796",
         name = "[1] filters = OperationReportByEnforcementFiltersDto(reportEnforcementMode=null, "
             + "enforcementDateFrom=null, enforcementDateTo=null, lastActionDateFrom=null, "
-            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)"
-    )
+            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)")
     @JiraTestKey(
         value = "PO-8797",
         name = "[2] filters = OperationReportByPaymentFiltersDto(isPaymentMade=null, "
-            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)"
-    )
+            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)")
     void collectionOrderSpec_withCollectionOrder_returnAllAccountsWithCollectionOrder(
         OperationReportFiltersDto filters) {
         List<DefendantAccountEntity> results = defendantAccountRepository.findAll(OperationReportSpecs.build(filters));
@@ -316,8 +291,7 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
             OperationReportByPaymentFiltersDto.builder()
                 .reportMode(PaymentReportMode.WITH_REGF)
                 .collectionOrderChoice(WITH)
-                .build()
-        );
+                .build());
     }
 
     @JiraStory("PO-2286")
@@ -331,13 +305,11 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
         value = "PO-8788",
         name = "[1] filters = OperationReportByEnforcementFiltersDto(reportEnforcementMode=null, "
             + "enforcementDateFrom=null, enforcementDateTo=null, lastActionDateFrom=null, "
-            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)"
-    )
+            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)")
     @JiraTestKey(
         value = "PO-8789",
         name = "[2] filters = OperationReportByPaymentFiltersDto(isPaymentMade=null, "
-            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)"
-    )
+            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)")
     void collectionOrderSpec_withoutCollectionOrder_returnAllAccountsWithoutCollectionOrder(
         OperationReportFiltersDto filters) {
         List<DefendantAccountEntity> results = defendantAccountRepository.findAll(OperationReportSpecs.build(filters));
@@ -353,8 +325,7 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
             OperationReportByPaymentFiltersDto.builder()
                 .collectionOrderChoice(WITHOUT)
                 .reportMode(PaymentReportMode.WITH_REGF)
-                .build()
-        );
+                .build());
     }
 
     @JiraStory("PO-2286")
@@ -368,13 +339,11 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
         value = "PO-8786",
         name = "[1] filters = OperationReportByEnforcementFiltersDto(reportEnforcementMode=null, "
             + "enforcementDateFrom=null, enforcementDateTo=null, lastActionDateFrom=null, "
-            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)"
-    )
+            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)")
     @JiraTestKey(
         value = "PO-8787",
         name = "[2] filters = OperationReportByPaymentFiltersDto(isPaymentMade=null, "
-            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)"
-    )
+            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)")
     void accountStatusSpec_live_returnAllAccountsWithLiveStatus(OperationReportFiltersDto filters) {
         List<DefendantAccountEntity> results = defendantAccountRepository.findAll(OperationReportSpecs.build(filters));
 
@@ -391,8 +360,7 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
             OperationReportByPaymentFiltersDto.builder()
                 .accountStatus(LIVE)
                 .reportMode(PaymentReportMode.WITH_REGF)
-                .build()
-        );
+                .build());
     }
 
     @JiraStory("PO-2286")
@@ -406,13 +374,11 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
         value = "PO-8794",
         name = "[1] filters = OperationReportByEnforcementFiltersDto(reportEnforcementMode=null, "
             + "enforcementDateFrom=null, enforcementDateTo=null, lastActionDateFrom=null, "
-            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)"
-    )
+            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)")
     @JiraTestKey(
         value = "PO-8795",
         name = "[2] filters = OperationReportByPaymentFiltersDto(isPaymentMade=null, "
-            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)"
-    )
+            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)")
     void accountStatusSpec_closed_returnAllAccountsWithClosedStatus(OperationReportFiltersDto filters) {
         List<DefendantAccountEntity> results = defendantAccountRepository.findAll(OperationReportSpecs.build(filters));
 
@@ -429,8 +395,7 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
             OperationReportByPaymentFiltersDto.builder()
                 .reportMode(PaymentReportMode.WITH_REGF)
                 .accountStatus(CLOSED)
-                .build()
-        );
+                .build());
     }
 
     @JiraStory("PO-2286")
@@ -444,13 +409,11 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
         value = "PO-8807",
         name = "[1] filters = OperationReportByEnforcementFiltersDto(reportEnforcementMode=null, "
             + "enforcementDateFrom=null, enforcementDateTo=null, lastActionDateFrom=null, "
-            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)"
-    )
+            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)")
     @JiraTestKey(
         value = "PO-8808",
         name = "[2] filters = OperationReportByPaymentFiltersDto(isPaymentMade=null, "
-            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)"
-    )
+            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)")
     void balanceRangeSpec_minAndMaxGiven_returnAllAccountsWithinRange(OperationReportFiltersDto filters) {
         List<DefendantAccountEntity> results = defendantAccountRepository.findAll(OperationReportSpecs.build(filters));
 
@@ -471,8 +434,7 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
                 .reportMode(PaymentReportMode.WITH_REGF)
                 .maxBalance(BigDecimal.valueOf(600))
                 .minBalance(BigDecimal.valueOf(400))
-                .build()
-        );
+                .build());
     }
 
     @JiraStory("PO-2286")
@@ -486,13 +448,11 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
         value = "PO-8783",
         name = "[1] filters = OperationReportByEnforcementFiltersDto(reportEnforcementMode=null, "
             + "enforcementDateFrom=null, enforcementDateTo=null, lastActionDateFrom=null, "
-            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)"
-    )
+            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)")
     @JiraTestKey(
         value = "PO-8784",
         name = "[2] filters = OperationReportByPaymentFiltersDto(isPaymentMade=null, "
-            + "reportMode=SINCE_DATE, sinceLastEnforcementAction=null, sinceDate=2000-01-01)"
-    )
+            + "reportMode=SINCE_DATE, sinceLastEnforcementAction=null, sinceDate=2000-01-01)")
     void nameRangeSpec_lowerAndUpperGiven_returnAllAccountsWithinRange(OperationReportFiltersDto filters) {
         List<DefendantAccountEntity> results = defendantAccountRepository.findAll(OperationReportSpecs.build(filters));
 
@@ -501,8 +461,7 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
                 String name = displayName(parties.getParty());
                 assertThat(name).isNotNull();
                 assertThat(name.substring(0, 1).toLowerCase()).isEqualTo("l");
-            })
-        );
+            }));
     }
 
     private static Stream<OperationReportFiltersDto> nameRangeFilters() {
@@ -517,8 +476,7 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
                 .upperNameRange("l")
                 .reportMode(PaymentReportMode.SINCE_DATE)
                 .sinceDate(LocalDate.of(2000, 1, 1))
-                .build()
-        );
+                .build());
     }
 
     @JiraStory("PO-2286")
@@ -532,13 +490,11 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
         value = "PO-8809",
         name = "[1] filters = OperationReportByEnforcementFiltersDto(reportEnforcementMode=null, "
             + "enforcementDateFrom=null, enforcementDateTo=null, lastActionDateFrom=null, "
-            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)"
-    )
+            + "lastActionDateTo=null, regfDateFrom=null, regfDateTo=null, enforcementAction=null)")
     @JiraTestKey(
         value = "PO-8810",
         name = "[2] filters = OperationReportByPaymentFiltersDto(isPaymentMade=null, "
-            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)"
-    )
+            + "reportMode=WITH_REGF, sinceLastEnforcementAction=null, sinceDate=null)")
     void next7DaysSpec_true_returnsAccountsWhereRelevantDateIsInNext7Days(OperationReportFiltersDto filters) {
         PaymentTermsEntity paymentTermsForSeededData = paymentTermsRepository
             .findByDefendantAccount_DefendantAccountIdAndEffectiveDateIsNotNullOrderByEffectiveDateAsc(77L)
@@ -551,14 +507,12 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
         assertThat(results).allSatisfy(account -> {
             List<PaymentTermsEntity> paymentTerms = paymentTermsRepository
                 .findByDefendantAccount_DefendantAccountIdAndEffectiveDateIsNotNullOrderByEffectiveDateAsc(
-                    account.getDefendantAccountId()
-                );
+                    account.getDefendantAccountId());
 
             assertThat(paymentTerms).isNotEmpty();
             assertThat(paymentTerms).anySatisfy(term ->
                 assertThat(term.getEffectiveDate())
-                    .isBetween(LocalDate.now(), LocalDate.now().plusDays(7))
-            );
+                    .isBetween(LocalDate.now(), LocalDate.now().plusDays(7)));
         });
     }
 
@@ -567,8 +521,7 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
             OperationReportByEnforcementFiltersDto.builder().firstPaymentOrPayByInNext7Days(true).build(),
             OperationReportByPaymentFiltersDto.builder()
                 .reportMode(PaymentReportMode.WITH_REGF)
-                .firstPaymentOrPayByInNext7Days(true).build()
-        );
+                .firstPaymentOrPayByInNext7Days(true).build());
     }
 
     @JiraStory("PO-2286")
@@ -636,8 +589,7 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
         List<DefendantAccountEntity> results = defendantAccountRepository.findAll(OperationReportSpecs.build(filters));
 
         assertThat(results).allSatisfy(account ->
-            assertThat(account.getLastEnforcement()).isEqualTo(ABDC.value())
-        );
+            assertThat(account.getLastEnforcement()).isEqualTo(ABDC.value()));
     }
 
     @JiraStory("PO-2286")
@@ -645,10 +597,9 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-7786")
     @Test
-    void defendantAccountIdsIn_account() {
+    void idsIn_returnsMatchingAccounts() {
         List<DefendantAccountEntity> results = defendantAccountRepository.findAll(
-            OperationReportSpecs.defendantAccountIdsIn(List.of(77L, 78L))
-        );
+            DefendantAccountSpecs.idsIn(List.of(77L, 78L)));
 
         assertThat(results)
             .extracting(DefendantAccountEntity::getDefendantAccountId)
@@ -663,10 +614,9 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
     @MethodSource("emptyAccountIdLists")
     @JiraTestKey(value = "PO-8798", name = "[1] accountIds = null")
     @JiraTestKey(value = "PO-8799", name = "[2] accountIds = []")
-    void defendantAccountIdsIn_emptyOrNullList_returnsNoResults(List<Long> accountIds) {
+    void idsIn_emptyOrNullList_returnsNoResults(List<Long> accountIds) {
         List<DefendantAccountEntity> results = defendantAccountRepository.findAll(
-            OperationReportSpecs.defendantAccountIdsIn(accountIds)
-        );
+            DefendantAccountSpecs.idsIn(accountIds));
 
         assertThat(results).isEmpty();
     }
@@ -674,8 +624,7 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
     private static Stream<List<Long>> emptyAccountIdLists() {
         return Stream.of(
             null,
-            List.of()
-        );
+            List.of());
     }
 
     private static String displayName(PartyEntity party) {

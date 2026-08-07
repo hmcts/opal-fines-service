@@ -10,7 +10,7 @@ import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 
-@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface SummaryRowDtoCoreMapper extends CommonMappingHelper {
 
     @Mapping(target = "header1", constant = "DETAIL")

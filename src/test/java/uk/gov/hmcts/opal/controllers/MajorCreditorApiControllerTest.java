@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -94,8 +95,8 @@ class MajorCreditorApiControllerTest {
 
     @Test
     void getMajorCreditorHistory_success() {
-        LocalDate dateFrom = LocalDate.of(2026, 1, 1);
-        LocalDate dateTo = LocalDate.of(2026, 1, 31);
+        LocalDate dateFrom = LocalDate.of(2026, Month.JANUARY, 1);
+        LocalDate dateTo = LocalDate.of(2026, Month.JANUARY, 31);
         List<String> itemTypes = List.of("financial");
         GetMajorCreditorHistory200Response payload = new GetMajorCreditorHistory200Response().historyItems(List.of());
         GetMajorCreditorHistoryResponse response = GetMajorCreditorHistoryResponse.builder()

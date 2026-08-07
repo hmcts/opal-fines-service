@@ -71,11 +71,9 @@ public class OpalDefendantAccountEnforcementService
 
     private final AmendmentService amendmentService;
 
-    private final ReportEntryService reportEntryService;
-
     private final Clock clock;
 
-    private final OpalDefendantAccountService opalDefendantAccountService;
+    private final OpalDefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
 
     private final ObjectMapper objectMapper;
 
@@ -141,7 +139,7 @@ public class OpalDefendantAccountEnforcementService
 
         if (request.getPaymentTerms() != null) {
             DefendantAccountEntity defendantEntity = defendantAccountRepositoryService.findById(defendantAccountId);
-            opalDefendantAccountService.addPaymentTermsPreservingLastEnforcement(
+            defendantAccountPaymentTermsService.addPaymentTermsPreservingLastEnforcement(
                 defendantAccountId,
                 businessUnitId.toString(),
                 businessUnitUserId,

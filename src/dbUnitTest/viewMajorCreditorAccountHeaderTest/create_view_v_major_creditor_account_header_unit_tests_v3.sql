@@ -171,7 +171,7 @@ BEGIN
         major_creditor_id,
         prosecution_service,
         minor_creditor_party_id,
-        from_suspense,
+        repayment,
         hold_payout,
         pay_by_bacs,
         bank_sort_code,

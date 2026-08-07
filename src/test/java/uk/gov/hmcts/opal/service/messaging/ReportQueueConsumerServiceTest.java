@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.messaging;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -15,7 +16,6 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.service.report.GenericReportService;
 
@@ -48,7 +48,7 @@ class ReportQueueConsumerServiceTest {
         assertThatThrownBy(() -> consumer.consume(payload))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("payload is blank");
-        verify(genericReportService, never()).generateReportInstanceContent(Mockito.any());
+        verify(genericReportService, never()).generateReportInstanceContent(any());
     }
 
     @Test
@@ -61,6 +61,6 @@ class ReportQueueConsumerServiceTest {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("Unable to parse")
             .hasCause(parseException);
-        verify(genericReportService, never()).generateReportInstanceContent(Mockito.any());
+        verify(genericReportService, never()).generateReportInstanceContent(any());
     }
 }

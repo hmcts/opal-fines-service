@@ -41,6 +41,20 @@ public class LegacyNotesIntegrationTest extends NotesIntegrationTest {
     @JiraStory("PO-1566")
     @JiraEpic("PO-812")
     @JiraTestKey("PO-5959")
+    @JiraTestKey(value = "PO-9418", name = "CREATE_MANAGE_DRAFT_ACCOUNTS")
+    @JiraTestKey(value = "PO-9419", name = "ACCOUNT_ENQUIRY_NOTES")
+    @JiraTestKey(value = "PO-9420", name = "ACCOUNT_ENQUIRY")
+    @JiraTestKey(value = "PO-9421", name = "COLLECTION_ORDER")
+    @JiraTestKey(value = "PO-9422", name = "CHECK_VALIDATE_DRAFT_ACCOUNTS")
+    @JiraTestKey(value = "PO-9423", name = "SEARCH_AND_VIEW_ACCOUNTS")
+    @JiraTestKey(value = "PO-9424", name = "ACCOUNT_MAINTENANCE")
+    @JiraTestKey(value = "PO-9425", name = "AMEND_PAYMENT_TERMS")
+    @JiraTestKey(value = "PO-9426", name = "ENTER_ENFORCEMENT")
+    @JiraTestKey(value = "PO-9427", name = "VIEW_CREDITOR_BACS")
+    @JiraTestKey(value = "PO-9428", name = "CONSOLIDATE")
+    @JiraTestKey(value = "PO-9429", name = "ADD_AND_REMOVE_PAYMENT_HOLD")
+    @JiraTestKey(value = "PO-9430", name = "PROCESS_AND_ALLOCATE_PAYMENTS")
+    @JiraTestKey(value = "PO-9431", name = "AUTO_ENFORCEMENT")
     void testLegacyNotes_Forbidden(FinesPermission permission) throws Exception {
         super.postNotes_UserWithoutPermission(permission);
     }
@@ -50,6 +64,9 @@ public class LegacyNotesIntegrationTest extends NotesIntegrationTest {
     @JiraStory("PO-1566")
     @JiraEpic("PO-812")
     @JiraTestKey("PO-5960")
+    @JiraTestKey(value = "PO-9432", name = "missing Business-Unit-Id header")
+    @JiraTestKey(value = "PO-9433", name = "wrong business unit in header")
+    @JiraTestKey(value = "PO-9434", name = "permission present in another BU")
     void testLegacyNotes_BusinessUnitAuthorization(BusinessUnitAuthorizationScenario scenario)
         throws Exception {
         super.postNotes_BusinessUnitAuthorization(scenario);

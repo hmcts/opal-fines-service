@@ -1,7 +1,7 @@
-@Opal @JIRA-LABEL:account-enquiry @MinorCreditorHistory
+@Opal @R1B @JIRA-LABEL:account-enquiry @MinorCreditorHistory
 Feature: Minor Creditor Account History
 
-  @cleanUpData @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653
+  @cleanUpData @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653 @JIRA-TEST-KEY:PO-9546
   Scenario: E2E.01 Happy path history retrieval
     Given a minor creditor account with representative history exists for submitted by "MCHIST001"
     When I request minor creditor account history for the created minor creditor account
@@ -12,7 +12,7 @@ Feature: Minor Creditor Account History
       | Note      | 3 |
     And the minor creditor account history is ordered newest first
 
-  @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653 @JIRA-NFR:PO-2507
+  @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653 @JIRA-NFR:PO-2507 @JIRA-TEST-KEY:PO-9547
   Scenario: E2E.02 Authentication
     When I request minor creditor account history for a non-existent minor creditor account without a token
     Then the minor creditor account history error response matches the standard problem detail contract for status 401
@@ -21,21 +21,21 @@ Feature: Minor Creditor Account History
     Then the minor creditor account history error response matches the standard problem detail contract for status 401
     And the minor creditor account history error response contains no account data
 
-  @cleanUpData @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653
+  @cleanUpData @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653 @JIRA-TEST-KEY:PO-9548
   Scenario: E2E.03 Authorization
     Given a minor creditor account with representative history exists for submitted by "MCHIST003"
     When the "opal-test-2@dev.platform.hmcts.net" user requests minor creditor account history for the created minor creditor account
     Then the minor creditor account history error response matches the standard problem detail contract for status 403
     And the minor creditor account history error response contains no account data
 
-  @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653
+  @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653 @JIRA-TEST-KEY:PO-9549
   Scenario: E2E.04 Unknown creditor
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I request minor creditor account history for a non-existent minor creditor account
     Then the minor creditor account history error response matches the standard problem detail contract for status 404
     And the minor creditor account history error response contains no account data
 
-  @cleanUpData @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653
+  @cleanUpData @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653 @JIRA-TEST-KEY:PO-9550
   Scenario: E2E.05 Combined filters
     Given a minor creditor account with representative history exists for submitted by "MCHIST005"
     When I request minor creditor account history for the created minor creditor account
