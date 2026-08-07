@@ -53,7 +53,7 @@ import uk.gov.hmcts.opal.mapper.legacy.GetMinorCreditorAccountHeaderSummaryRespo
 import uk.gov.hmcts.opal.mapper.legacy.LegacyMinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateMinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateMinorCreditorAccountRequestMapper;
-import uk.gov.hmcts.opal.mapper.response.GetMinorCreditorAccountAtAGlanceResponseMapper;
+import uk.gov.hmcts.opal.mapper.response.MinorCreditorAccountAtAGlanceResponseMapper;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -63,7 +63,7 @@ class LegacyMinorCreditorServiceTest {
     private GatewayService gatewayService;
 
     @Mock
-    private GetMinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
+    private MinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
 
     @Mock
     private GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;

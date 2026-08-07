@@ -35,7 +35,7 @@ import uk.gov.hmcts.opal.mapper.common.PaymentMapper;
         PaymentMapper.class
     }
 )
-public interface GetMinorCreditorAccountAtAGlanceResponseMapper {
+public interface MinorCreditorAccountAtAGlanceResponseMapper {
 
     PartyDetailsCommonStrict toPartyDetails(PartyDetails source);
 

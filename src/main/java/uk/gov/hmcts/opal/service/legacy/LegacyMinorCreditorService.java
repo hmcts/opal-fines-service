@@ -37,7 +37,7 @@ import uk.gov.hmcts.opal.mapper.legacy.GetMinorCreditorAccountHeaderSummaryRespo
 import uk.gov.hmcts.opal.mapper.legacy.LegacyMinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateMinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateMinorCreditorAccountRequestMapper;
-import uk.gov.hmcts.opal.mapper.response.GetMinorCreditorAccountAtAGlanceResponseMapper;
+import uk.gov.hmcts.opal.mapper.response.MinorCreditorAccountAtAGlanceResponseMapper;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
 
@@ -55,7 +55,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     private static final String UPDATE_MINOR_CREDITOR_ACCOUNT = "LIBRA.of_update_minor_creditor_account";
 
     private final GatewayService gatewayService;
-    private final GetMinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
+    private final MinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
     private final LegacyMinorCreditorAccountResponseMapper minorCreditorAccountResponseMapper;
     private final CreditorAccountRepository creditorAccountRepository;
     private final GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
