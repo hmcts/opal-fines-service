@@ -69,6 +69,7 @@ class DefendantPartyPostIntegrationTest extends AbstractOpalDefendantsIntegratio
     @DisplayName("POST Add DAP - account controls return 422 for blocked account status")
     @JiraStory("PO-5757")
     @JiraEpic("PO-2990")
+    @JiraTestKey("PO-9386")
     void post_addParty_returns422_whenBlockedByAccountControls() throws Exception {
         // Arrange
         long defendantAccountId = 9077L;

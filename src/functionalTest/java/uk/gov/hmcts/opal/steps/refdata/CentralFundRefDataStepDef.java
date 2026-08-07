@@ -72,7 +72,7 @@ public class CentralFundRefDataStepDef extends BaseStepDef {
         JsonNode root = OBJECT_MAPPER.readTree(response.getBody().asString());
         assertEquals(Set.of("major_creditor", "business_unit_details"), fieldNames(root));
         assertEquals(Set.of("creditor_account_id", "account_number", "name"), fieldNames(root.get("major_creditor")));
-        assertEquals(Set.of("business_unit_id", "business_unit_name", "welsh_speaking"),
+        assertEquals(Set.of("business_unit_code", "business_unit_id", "business_unit_name", "welsh_speaking"),
             fieldNames(root.get("business_unit_details")));
     }
 

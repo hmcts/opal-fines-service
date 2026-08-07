@@ -36,7 +36,7 @@ public class OpalNotesService implements NotesServiceInterface {
     public String addNote(AddNoteRequest req, String ifMatch, UserState user, AccountNoteContext target) {
         log.info(":OpalAddNote");
 
-        final Versioned account = getAccountAndVerifyVersion(target, ifMatch);
+        getAccountAndVerifyVersion(target, ifMatch);
 
         Note requestNote = req.getActivityNote();
 

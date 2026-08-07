@@ -6,6 +6,7 @@ import static uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItemTyp
 import static uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItemType.NOTE;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorHistoryItemHistory;
@@ -15,8 +16,8 @@ class MinorCreditorHistoryItemTest {
     @Test
     void ordering_sortsByNewestTimestampThenTypeOrderThenSourceId() {
         // Arrange
-        LocalDateTime olderTimestamp = LocalDateTime.of(2026, 1, 30, 10, 0);
-        LocalDateTime newerTimestamp = LocalDateTime.of(2026, 1, 31, 10, 0);
+        LocalDateTime olderTimestamp = LocalDateTime.of(2026, Month.JANUARY, 30, 10, 0);
+        LocalDateTime newerTimestamp = LocalDateTime.of(2026, Month.JANUARY, 31, 10, 0);
         MinorCreditorHistoryItem olderAmendment = item(AMENDMENT, 1L, olderTimestamp);
         MinorCreditorHistoryItem note = item(NOTE, 1L, newerTimestamp);
         MinorCreditorHistoryItem financial = item(FINANCIAL, 1L, newerTimestamp);

@@ -106,7 +106,7 @@ public class DefendantAccountControlValidator {
     private void validate(DefendantAccountEntity account, Check... checks) {
         List<String> failures = List.of(checks).stream()
             .map(check -> check.failureMessage(account))
-            .filter(message -> message != null)
+            .filter(Objects::nonNull)
             .toList();
 
         if (!failures.isEmpty()) {

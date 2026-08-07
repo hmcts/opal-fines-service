@@ -65,6 +65,8 @@ class Release1bFeatureToggleLaunchDarklyEnabledFlagTrueIntegrationTest extends A
     @JiraTestKey(value = "PO-8647", name = "\"Patch Minor Creditor Account\"")
     @JiraTestKey(value = "PO-8648", name = "\"Get Result By Id\"")
     @JiraTestKey(value = "PO-2333", name = "\"Get Defendant Account Consolidated Accounts\"")
+    @JiraTestKey(value = "PO-9492", name = "\"Get Defendant Account Impositions\"")
+    @JiraTestKey(value = "PO-9493", name = "\"Get Mappings\"")
     void shouldNotReturnFeatureDisabledProblemWhenLaunchDarklyFlagIsTrue(String endpointName, RequestBuilder request)
         throws Exception {
         when(ldClient.boolVariation(eq(RELEASE_1B), any(LDContext.class), anyBoolean())).thenReturn(true);

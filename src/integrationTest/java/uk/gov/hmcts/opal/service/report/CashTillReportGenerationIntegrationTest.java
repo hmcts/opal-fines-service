@@ -4,10 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import lombok.RequiredArgsConstructor;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
@@ -24,7 +25,6 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.PaymentMethod;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.MiscellaneousAccountRepository;
 import uk.gov.hmcts.opal.repository.PartyRepository;
 import uk.gov.hmcts.opal.repository.PaymentInRepository;
@@ -35,28 +35,21 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Transactional
 @DisplayName("Cash Till Report Generation Integration Tests")
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class CashTillReportGenerationIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired
-    private CashTillReportService service;
+    private final CashTillReportService service;
 
-    @Autowired
-    private BusinessUnitRepository businessUnitRepository;
+    private final BusinessUnitRepository businessUnitRepository;
 
-    @Autowired
-    private TillRepository tillRepository;
+    private final TillRepository tillRepository;
 
-    @Autowired
-    private PaymentInRepository paymentInRepository;
+    private final PaymentInRepository paymentInRepository;
 
-    @Autowired
-    private DefendantAccountRepository defendantAccountRepository;
+    private final MiscellaneousAccountRepository miscellaneousAccountRepository;
 
-    @Autowired
-    private MiscellaneousAccountRepository miscellaneousAccountRepository;
-
-    @Autowired
-    private PartyRepository partyRepository;
+    private final PartyRepository partyRepository;
 
     @Test
     @JiraStory("PO-2636")
