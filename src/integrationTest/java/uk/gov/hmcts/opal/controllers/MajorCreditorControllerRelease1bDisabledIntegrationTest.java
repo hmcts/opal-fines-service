@@ -41,8 +41,8 @@ public class MajorCreditorControllerRelease1bDisabledIntegrationTest extends Abs
     @Test
     @JiraEpic("PO-2630")
     @JiraStory("PO-2972")
-    @DisplayName("Test get major creditors ref data when release 1b is disabled")
-    void testGetMajorCreditorsRefData_WhenRelease1bDisabled() throws Exception {
+    @DisplayName("Major creditors ref data when release 1b is disabled includes from suspense and excludes repayment")
+    void getMajorCreditorsRefData_WhenRelease1bDisabled_IncludesFromSuspenseAndExcludesRepayment() throws Exception {
         ResultActions result = mockMvc.perform(get(MAJOR_CREDITORS_URL)
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())
             .header(AUTHORISATION_HEADER, userStateStub.getBearerToken()));
