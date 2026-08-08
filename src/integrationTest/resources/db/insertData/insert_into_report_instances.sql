@@ -24,6 +24,20 @@ INSERT INTO public.reports (
     'SEARCH_AND_VIEW_ACCOUNTS',
     '{CSV,PDF}',
     true
+),
+(
+    'it_report_instances_noperm',
+    'Integration Report Instances Unconfigured',
+    'Operational Reports',
+    false,
+    NULL,
+    true,
+    false,
+    false,
+    'P30D',
+    NULL,
+    '{CSV,PDF}',
+    true
 );
 
 INSERT INTO public.report_instances (
@@ -81,6 +95,18 @@ INSERT INTO public.report_instances (
     'ERROR',
     'Error Report',
     NULL
+),
+(
+    9004,
+    'it_report_instances_noperm',
+    '{10}',
+    4,
+    '2026-04-01 11:00:00',
+    44,
+    'Unauthorised User',
+    NULL,
+    '2026-04-01 10:00:00',
+    'READY',
+    'Unconfigured Report',
+    50
 );
-
-
