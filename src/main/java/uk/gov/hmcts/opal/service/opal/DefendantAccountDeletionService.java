@@ -6,6 +6,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.repository.AccountTransferRepository;
 import uk.gov.hmcts.opal.repository.AllocationRepository;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
@@ -15,6 +16,7 @@ import uk.gov.hmcts.opal.repository.CommittalWarrantProgressRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
+import uk.gov.hmcts.opal.repository.DocumentInstanceRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.FixedPenaltyOffenceRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
@@ -44,6 +46,7 @@ public class DefendantAccountDeletionService {
     private final AccountTransferRepository accountTransferRepository;
     private final EnforcementRepository enforcementRepository;
     private final CommittalWarrantProgressRepository committalWarrantProgressRepository;
+    private final DocumentInstanceRepository documentInstanceRepository;
     private final CreditorAccountTransactional creditorAccountTransactional;
     private final PaymentCardRequestRepository paymentCardRequestsRepository;
     private final NoteRepository noteRepository;
@@ -98,6 +101,10 @@ public class DefendantAccountDeletionService {
 
         // Entities with @ManyToOne defendantAccount relationships
         accountTransferRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
+        documentInstanceRepository.deleteByAssociatedRecordTypeAndAssociatedRecordId(
+            AssociatedRecordType.DEFENDANT_ACCOUNTS.getLabel(),
+            String.valueOf(defendantAccountId)
+        );
         defendantAccountPartiesRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
         enforcementRepository.deleteByDefendantAccountId(defendantAccountId);
         creditorAccountTransactional.deleteAllByDefendantAccountId(defendantAccountId, creditorAccountTransactional);
