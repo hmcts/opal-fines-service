@@ -14,8 +14,6 @@ import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
@@ -34,6 +32,8 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.dto.legacy.ResultResponsesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountEnforcementServiceInterface;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyRemoveDefendantEnforcementHoldMapper;
@@ -104,12 +104,12 @@ public class LegacyDefendantAccountEnforcementService implements DefendantAccoun
     }
 
     @Override
-    public RemoveDefendantAccountEnforcementHoldResponse removeEnforcementHold(
+    public RemoveEnforcementHoldResponseDefendantAccount removeEnforcementHold(
         Long defendantAccountId,
         Short businessUnitId,
         String businessUnitUserId,
         String ifMatch,
-        RemoveDefendantAccountEnforcementHoldRequest request) {
+        RemoveEnforcementHoldRequestDefendantAccount request) {
 
         LegacyRemoveDefendantAccountEnforcementHoldRequest legacyRequest =
             removeEnforcementHoldMapper.toLegacyRequest(
