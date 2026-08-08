@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.controllers;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Optional;
@@ -11,20 +10,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
-import uk.gov.hmcts.opal.dto.ResultDto;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.service.opal.ResultService;
 import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @RestController
-@RequestMapping("/results")
 @Slf4j(topic = "opal.ResultController")
 @Tag(name = "Result Controller")
 public class ResultController {
@@ -45,24 +40,7 @@ public class ResultController {
         this.featureToggleApi = featureToggleApi;
     }
 
-    @GetMapping(value = "/{resultId}")
-    @Operation(summary = "Returns the full ResultDto for the given resultId.")
-    @FeatureToggle(
-        feature = FeatureFlags.RELEASE_1B,
-        defaultValueProperty = FeatureFlags.RELEASE_1B_ENABLED_PROPERTY
-    )
-    public ResponseEntity<ResultDto> getResultById(
-        @PathVariable String resultId,
-        @RequestParam(name = "include_welsh", required = false, defaultValue = "false") boolean includeWelsh) {
-
-        log.debug(":GET:getResultById: resultId: {}, includeWelsh: {}", resultId, includeWelsh);
-
-        return buildResponse(resultService.getResult(resultId, includeWelsh));
-    }
-
-
-    @GetMapping
-    @Operation(summary = "Returns all results or results for the given resultIds.")
+    @GetMapping("/results")
     @FeatureToggle(feature = FeatureFlags.RELEASE_1A, defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<ResultReferenceDataResponse> getResults(
         @RequestParam MultiValueMap<String, String> requestParams,
