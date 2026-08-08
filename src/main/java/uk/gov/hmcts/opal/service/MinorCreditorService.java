@@ -131,24 +131,14 @@ public class MinorCreditorService {
         if (businessUnitId == null) {
             throw new PermissionNotAllowedException(
                 (Short) null,
-                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
+                FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR);
         }
         Short businessUnitIdShort = Short.valueOf(businessUnitId);
-        if (!userState.hasBusinessUnitUserWithPermission(businessUnitIdShort, FinesPermission.ACCOUNT_MAINTENANCE)) {
-            throw new PermissionNotAllowedException(
-                businessUnitIdShort,
-                FinesPermission.ACCOUNT_MAINTENANCE);
-        }
         if (!userState.hasBusinessUnitUserWithPermission(businessUnitIdShort,
-            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD)) {
+            FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR)) {
             throw new PermissionNotAllowedException(
                 businessUnitIdShort,
-                FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
-        }
-        if (!userState.hasBusinessUnitUserWithPermission(businessUnitIdShort, FinesPermission.VIEW_CREDITOR_BACS)) {
-            throw new PermissionNotAllowedException(
-                businessUnitIdShort,
-                FinesPermission.VIEW_CREDITOR_BACS);
+                FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR);
         }
 
         String postedBy = userState.getBusinessUnitUserForBusinessUnit(businessUnitIdShort)

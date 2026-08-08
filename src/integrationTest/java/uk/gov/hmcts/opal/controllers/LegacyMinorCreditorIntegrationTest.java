@@ -121,17 +121,9 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
     @Test
     @JiraStory("PO-1915")
     @JiraEpic("PO-812")
-    @JiraTestKey("PO-7599")
-    void patchMinorCreditor_withoutHoldPermission_returns403() throws Exception {
-        super.patchMinorCreditor_withoutHoldPermission_returns403();
-    }
-
-    @Test
-    @JiraStory("PO-1915")
-    @JiraEpic("PO-812")
     @JiraTestKey("PO-7598")
-    void patchMinorCreditor_withoutAccountMaintenancePermission_returns403() throws Exception {
-        super.patchMinorCreditor_withoutAccountMaintenancePermission_returns403();
+    void patchMinorCreditor_withoutMinorCreditorMaintenancePermission_returns403() throws Exception {
+        super.patchMinorCreditor_withoutMinorCreditorMaintenancePermission_returns403();
     }
 
     @Test
