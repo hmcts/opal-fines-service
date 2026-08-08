@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -7,13 +8,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.Optional;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -23,13 +24,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
+import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountPaymentTermsServiceProxy;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,6 +47,9 @@ class DefendantAccountPaymentTermsServiceTest {
     private UserStateService userStateService;
 
     @Mock
+    private BusinessUnitService businessUnitService;
+
+    @Mock
     private UserState userState;
 
     @InjectMocks
@@ -49,18 +57,18 @@ class DefendantAccountPaymentTermsServiceTest {
 
     @Test
     void getPaymentTerms_whenUserHasPermission_returnsProxyResult() {
-        // arrange
+        // Arrange
         Long defendantAccountId = 77L;
         GetDefendantAccountPaymentTermsResponse proxyResponse = new GetDefendantAccountPaymentTermsResponse();
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(defendantAccountPaymentTermsServiceProxy.getPaymentTerms(defendantAccountId)).thenReturn(proxyResponse);
 
-        // act
+        // Act
         GetDefendantAccountPaymentTermsResponse result =
             defendantAccountPaymentTermsService.getPaymentTerms(defendantAccountId);
 
-        // assert
+        // Assert
         assertSame(proxyResponse, result, "Should return exactly the proxy response");
 
         // verify interactions
@@ -95,34 +103,35 @@ class DefendantAccountPaymentTermsServiceTest {
     }
 
     @Test
-    void addPaymentCardRequest_derivesBusinessUnitUserIdFromUserState() {
+    void addPaymentCardRequest_derivesBusinessUnitUserIdAndPostedByNameFromUserStateV2() {
         // arrange
         Long defendantAccountId = 77L;
         String businessUnitId = "10";
-        String headerBusinessUnitUserId = "HEADER_USER";
         String derivedBusinessUnitUserId = "USER01";
         String ifMatch = "\"1\"";
+        DomainBusinessUnitUsers businessUnitUsers = businessUnitUsers(
+            businessUnitUser((short) 10, derivedBusinessUnitUserId, FinesPermission.AMEND_PAYMENT_TERMS));
         AddPaymentCardRequestResponse proxyResponse = new AddPaymentCardRequestResponse(defendantAccountId);
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS)).thenReturn(true);
-        when(userState.getBusinessUnitUserForBusinessUnit((short) 10)).thenReturn(Optional.of(
-            BusinessUnitUser.builder().businessUnitUserId(derivedBusinessUnitUserId).build()));
-        when(userState.getUserName()).thenReturn("normal@users.com");
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userStateV2(businessUnitUsers));
+        when(businessUnitService.getBusinessUnitUserIdForBusinessUnit(
+            businessUnitUsers, (short) 10, FinesPermission.AMEND_PAYMENT_TERMS)).thenReturn(derivedBusinessUnitUserId);
         when(defendantAccountPaymentTermsServiceProxy.addPaymentCardRequest(
             defendantAccountId, businessUnitId, derivedBusinessUnitUserId, "normal@users.com", ifMatch))
             .thenReturn(proxyResponse);
 
         // act
         AddPaymentCardRequestResponse result = defendantAccountPaymentTermsService.addPaymentCardRequest(
-            defendantAccountId, businessUnitId, headerBusinessUnitUserId, ifMatch);
+            defendantAccountId, businessUnitId, ifMatch);
 
         // assert
         assertSame(proxyResponse, result);
+        verify(userStateService).getUserStateFromSecurityContext();
+        verify(businessUnitService).getBusinessUnitUserIdForBusinessUnit(
+            businessUnitUsers, (short) 10, FinesPermission.AMEND_PAYMENT_TERMS);
         verify(defendantAccountPaymentTermsServiceProxy).addPaymentCardRequest(
             defendantAccountId, businessUnitId, derivedBusinessUnitUserId, "normal@users.com", ifMatch);
-        verify(defendantAccountPaymentTermsServiceProxy, never()).addPaymentCardRequest(
-            defendantAccountId, businessUnitId, headerBusinessUnitUserId, "normal@users.com", ifMatch);
+        verifyNoMoreInteractions(userStateService, businessUnitService, defendantAccountPaymentTermsServiceProxy);
     }
 
     @Test
@@ -170,5 +179,117 @@ class DefendantAccountPaymentTermsServiceTest {
         assertNotNull(postedDetails);
         assertEquals("USER01", postedDetails.getPostedBy());
         assertEquals("normal@users.com", postedDetails.getPostedByName());
+    }
+
+    @Test
+    void addPaymentCardRequest_userHasBusinessUnitUserAndPermission_callsProxyWithDerivedId() {
+        // Arrange
+        Long defendantAccountId = 77L;
+        String businessUnitId = "78";
+        String businessUnitUserId = "L080JG";
+        String ifMatch = "\"4\"";
+        AddPaymentCardRequestResponse proxyResponse = new AddPaymentCardRequestResponse(defendantAccountId);
+        DomainBusinessUnitUsers businessUnitUsers = businessUnitUsers(
+            businessUnitUser((short) 78, businessUnitUserId, FinesPermission.AMEND_PAYMENT_TERMS));
+
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userStateV2(businessUnitUsers));
+        when(businessUnitService.getBusinessUnitUserIdForBusinessUnit(
+            businessUnitUsers, (short) 78, FinesPermission.AMEND_PAYMENT_TERMS)).thenReturn(businessUnitUserId);
+        when(defendantAccountPaymentTermsServiceProxy.addPaymentCardRequest(
+            defendantAccountId,
+            businessUnitId,
+            businessUnitUserId,
+            "normal@users.com",
+            ifMatch
+        )).thenReturn(proxyResponse);
+
+        // Act
+        AddPaymentCardRequestResponse result = defendantAccountPaymentTermsService.addPaymentCardRequest(
+            defendantAccountId,
+            businessUnitId,
+            ifMatch
+        );
+
+        // Assert
+        assertSame(proxyResponse, result);
+        verify(userStateService).getUserStateFromSecurityContext();
+        verify(businessUnitService).getBusinessUnitUserIdForBusinessUnit(
+            businessUnitUsers, (short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
+        verify(defendantAccountPaymentTermsServiceProxy).addPaymentCardRequest(
+            defendantAccountId,
+            businessUnitId,
+            businessUnitUserId,
+            "normal@users.com",
+            ifMatch
+        );
+        verifyNoMoreInteractions(userStateService, businessUnitService, defendantAccountPaymentTermsServiceProxy);
+    }
+
+    @Test
+    void addPaymentCardRequest_permissionInDifferentBusinessUnit_throws403AndDoesNotCallProxy() {
+        // Arrange
+        DomainBusinessUnitUsers businessUnitUsers = businessUnitUsers(
+            businessUnitUser((short) 77, "L077JG", FinesPermission.AMEND_PAYMENT_TERMS));
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userStateV2(businessUnitUsers));
+
+        // Act
+        PermissionNotAllowedException ex = assertThrows(
+            PermissionNotAllowedException.class,
+            () -> defendantAccountPaymentTermsService.addPaymentCardRequest(77L, "78", "\"4\"")
+        );
+
+        // Assert
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.AMEND_PAYMENT_TERMS);
+        assertEquals((short) 78, ex.getBusinessUnitId());
+        verify(userStateService).getUserStateFromSecurityContext();
+        verifyNoInteractions(businessUnitService, defendantAccountPaymentTermsServiceProxy);
+        verifyNoMoreInteractions(userStateService);
+    }
+
+    @Test
+    void addPaymentCardRequest_selectedBusinessUnitWithoutPermission_throws403AndDoesNotCallProxy() {
+        // Arrange
+        DomainBusinessUnitUsers businessUnitUsers = businessUnitUsers(
+            businessUnitUser((short) 78, "L078JG"),
+            businessUnitUser((short) 77, "L077JG", FinesPermission.AMEND_PAYMENT_TERMS));
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userStateV2(businessUnitUsers));
+
+        // Act
+        PermissionNotAllowedException ex = assertThrows(
+            PermissionNotAllowedException.class,
+            () -> defendantAccountPaymentTermsService.addPaymentCardRequest(77L, "78", "\"4\"")
+        );
+
+        // Assert
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.AMEND_PAYMENT_TERMS);
+        assertEquals((short) 78, ex.getBusinessUnitId());
+        verify(userStateService).getUserStateFromSecurityContext();
+        verifyNoInteractions(businessUnitService, defendantAccountPaymentTermsServiceProxy);
+        verifyNoMoreInteractions(userStateService);
+    }
+
+    private static UserStateV2 userStateV2(DomainBusinessUnitUsers businessUnitUsers) {
+        return UserStateV2.builder()
+            .userId(1L)
+            .username("normal@users.com")
+            .name("Normal User")
+            .domains(Map.of(Domain.FINES, businessUnitUsers))
+            .build();
+    }
+
+    private static DomainBusinessUnitUsers businessUnitUsers(BusinessUnitUser... businessUnitUsers) {
+        return DomainBusinessUnitUsers.builder()
+            .businessUnitUsers(List.of(businessUnitUsers))
+            .build();
+    }
+
+    private static BusinessUnitUser businessUnitUser(
+        short businessUnitId, String businessUnitUserId, FinesPermission... permissions) {
+
+        return BusinessUnitUser.builder()
+            .businessUnitId(businessUnitId)
+            .businessUnitUserId(businessUnitUserId)
+            .permissions(UserStateUtil.permissionsFor(permissions))
+            .build();
     }
 }

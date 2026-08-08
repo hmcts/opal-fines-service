@@ -5,12 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
+import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountPaymentTermsServiceProxy;
 
 @Service
@@ -22,6 +25,7 @@ public class DefendantAccountPaymentTermsService {
 
     private final UserStateService userStateService;
 
+    private final BusinessUnitService businessUnitService;
 
     public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
 
@@ -36,33 +40,32 @@ public class DefendantAccountPaymentTermsService {
         }
     }
 
+    // Using V2 FINES-domain user state for the payment-card request path.
     public AddPaymentCardRequestResponse addPaymentCardRequest(
         Long defendantAccountId,
         String businessUnitId,
-        String businessUnitUserId,
         String ifMatch
     ) {
         log.debug(":addPaymentCardRequest:");
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
+        short buId = Short.parseShort(businessUnitId);
+        DomainBusinessUnitUsers businessUnitUsers = userState.getDomainBusinessUnitUsers(Domain.FINES);
 
-        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS)) {
-            String derivedBusinessUnitUserId = userState.getBusinessUnitUserForBusinessUnit(
-                    Short.parseShort(businessUnitId))
-                .map(BusinessUnitUser::getBusinessUnitUserId)
-                .filter(id -> !id.isBlank())
-                .orElse(userState.getUserName());
-            String postedByName = userState.getUserName();
+        if (businessUnitUsers.hasBusinessUnitUserWithPermission(buId, FinesPermission.AMEND_PAYMENT_TERMS)) {
+            String businessUnitUserId = businessUnitService.getBusinessUnitUserIdForBusinessUnit(
+                businessUnitUsers, buId, FinesPermission.AMEND_PAYMENT_TERMS);
+            String postedByName = userState.getUsername();
 
             return defendantAccountPaymentTermsServiceProxy.addPaymentCardRequest(
                 defendantAccountId,
                 businessUnitId,
-                derivedBusinessUnitUserId,
+                businessUnitUserId,
                 postedByName,
                 ifMatch
             );
         } else {
-            throw new PermissionNotAllowedException(FinesPermission.AMEND_PAYMENT_TERMS);
+            throw new PermissionNotAllowedException(buId, FinesPermission.AMEND_PAYMENT_TERMS);
         }
     }
 

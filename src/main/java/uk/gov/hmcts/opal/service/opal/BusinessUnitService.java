@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
@@ -8,6 +10,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptor;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -16,9 +22,6 @@ import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemEntity;
 import uk.gov.hmcts.opal.repository.BusinessUnitLiteRepository;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +37,15 @@ public class BusinessUnitService {
     public BusinessUnitEntity getBusinessUnit(short businessUnitId) {
         return businessUnitRepository.findById(businessUnitId)
             .orElseThrow(() -> new EntityNotFoundException("Business Unit not found with id: " + businessUnitId));
+    }
+
+    public String getBusinessUnitUserIdForBusinessUnit(
+        DomainBusinessUnitUsers businessUnitUsers, short businessUnitId, PermissionDescriptor permission) {
+
+        return getBusinessUnitUserForBusinessUnit(businessUnitUsers, businessUnitId)
+            .map(BusinessUnitUser::getBusinessUnitUserId)
+            .filter(id -> !id.isBlank())
+            .orElseThrow(() -> new PermissionNotAllowedException(businessUnitId, permission));
     }
 
     public List<BusinessUnitEntity> searchBusinessUnits(BusinessUnitSearchDto criteria) {
@@ -82,6 +94,15 @@ public class BusinessUnitService {
             entity.getItemValue(),
             entity.getItemValues()
         );
+    }
+
+    private Optional<BusinessUnitUser> getBusinessUnitUserForBusinessUnit(
+        DomainBusinessUnitUsers businessUnitUsers, short businessUnitId) {
+
+        if (businessUnitUsers == null || businessUnitUsers.getBusinessUnitUsers() == null) {
+            return Optional.empty();
+        }
+        return businessUnitUsers.getBusinessUnitUserForBusinessUnit(businessUnitId);
     }
 
 }
