@@ -8,6 +8,8 @@ import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildP
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildVehicleDetails;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -76,6 +78,8 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
     private final DefendantAccountPartiesRepository defendantAccountPartiesRepository;
 
     private final DefendantAccountControlValidator defendantAccountControlValidator;
+
+    private final EntityManager em;
 
     @Override
     @Transactional(readOnly = true)
@@ -215,12 +219,11 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             .languagePreferences(buildLanguagePreferences(debtorDetail))
             .build();
     }
-
-    // TODO - Created PO-2452 to fix bumping the version with a more atomically correct method
     private DefendantAccountEntity bumpVersion(Long accountId) {
         DefendantAccountEntity entity = defendantAccountRepositoryService.findById(accountId);
-        entity.setVersionNumber(entity.getVersion().add(BigInteger.ONE).longValueExact());
-        return defendantAccountRepositoryService.saveAndFlush(entity);
+        em.lock(entity, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+        em.flush();
+        return entity;
     }
 
     @Override
