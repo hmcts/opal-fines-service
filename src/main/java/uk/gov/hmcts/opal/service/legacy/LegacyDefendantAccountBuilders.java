@@ -51,7 +51,7 @@ public class LegacyDefendantAccountBuilders {
             .isHmrcCheckEligible(false)  // Always 'false' for Legacy responses
             .lastEnforcementAction(buildEnforcementActionDefendantAccount(legacy.getLastEnforcementAction()))
             .nextEnforcementActionData(null) // Not returned from Legacy
-            .version(new BigInteger(legacy.getVersion()))
+            .version(legacy.getVersion())
             .build();
     }
 

@@ -44,9 +44,9 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 @Slf4j(topic = "opal.LegacyDefendantAccountEnforcementService")
 public class LegacyDefendantAccountEnforcementService implements DefendantAccountEnforcementServiceInterface {
 
-    public static final String ADD_ENFORCEMENT = "LIBRA.addEnforcement";
-    public static final String GET_ENFORCEMENT_STATUS = "LIBRA.of_get_defendant_account_enf_status";
-    public static final String REMOVE_ENFORCEMENT_HOLD = "LIBRA.of_remove_defendant_account_enf_hold";
+    public static final String ADD_ENFORCEMENT = "addDefendantAccountEnforcement";
+    public static final String GET_ENFORCEMENT_STATUS = "getDefendantAccountEnforcementStatus";
+    public static final String REMOVE_ENFORCEMENT_HOLD = "removeDefendantAccountEnforcementHold";
 
     private final GatewayService gatewayService;
     private final CourtService courtService;
@@ -73,7 +73,7 @@ public class LegacyDefendantAccountEnforcementService implements DefendantAccoun
                 .defendantAccountId(String.valueOf(defendantAccountId))
                 .businessUnitId(String.valueOf(businessUnitId))
                 .businessUnitUserId(businessUnitUserId)
-                .version(VersionUtils.extractBigInteger(ifMatch).intValue())
+                .version(VersionUtils.extractBigInteger(ifMatch))
                 .resultId(request != null && request.getResultId() != null ? request.getResultId().value() : null)
                 .enforcementResultResponses(
                     mapResultResponses(request != null ? request.getEnforcementResultResponses() : null))

@@ -10,6 +10,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -94,7 +95,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
     void testGetHeaderSummary_nonZeroAmounts_andCustomBu() {
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody =
             LegacyGetDefendantAccountHeaderSummaryResponse.builder()
-                .version("1")
+                .version(BigInteger.ONE)
                 .defendantAccountId("1")
                 .accountNumber("SAMPLE")
                 .accountType("Fine")

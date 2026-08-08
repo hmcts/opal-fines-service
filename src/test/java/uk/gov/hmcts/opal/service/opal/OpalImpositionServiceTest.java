@@ -46,7 +46,7 @@ class OpalImpositionServiceTest {
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(defendantAccountId)
-            .versionNumber(12L)
+              .versionNumber(12L)
             .build();
         when(defendantAccountRepositoryService.findById(defendantAccountId)).thenReturn(account);
         when(impositionRepository.findDefendantAccountImpositionsByDefendantAccountId(defendantAccountId))

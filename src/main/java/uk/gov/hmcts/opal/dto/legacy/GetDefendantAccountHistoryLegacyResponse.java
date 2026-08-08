@@ -8,6 +8,7 @@ import jakarta.xml.bind.annotation.XmlElementWrapper;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,7 +30,7 @@ import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 public class GetDefendantAccountHistoryLegacyResponse implements ToXmlString {
 
     @XmlElement(name = "version")
-    private Long version;
+    private BigInteger version;
 
     @JsonProperty("history_items")
     @XmlElementWrapper(name = "history_items")

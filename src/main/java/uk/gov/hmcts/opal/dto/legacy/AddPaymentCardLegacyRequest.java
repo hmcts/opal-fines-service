@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.dto.legacy;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
+import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,5 +26,5 @@ public class AddPaymentCardLegacyRequest {
     private String businessUnitUserId;
 
     @XmlElement(name = "version")
-    private String version;
+    private BigInteger version;
 }
