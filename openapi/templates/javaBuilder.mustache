@@ -17,6 +17,9 @@
     protected Builder copyOf({{classname}} value) { {{#parentModel}}
       super.copyOf(value);{{/parentModel}}{{#vars}}
       this.instance.{{setter}}(value.{{name}});{{/vars}}
+      {{#vendorExtensions.x-versioned}}
+      this.instance.setVersion(value.getVersion());
+      {{/vendorExtensions.x-versioned}}
       return this;
     }
 
@@ -35,6 +38,12 @@
     }
     {{/isNullable}}{{/openApiNullable}}
 {{/vars}}
+{{#vendorExtensions.x-versioned}}
+    public {{classname}}.Builder version(java.math.BigInteger version) {
+      this.instance.setVersion(version);
+      return this;
+    }
+{{/vendorExtensions.x-versioned}}
 {{#parentVars}}
     @Override
     public {{classname}}.Builder {{name}}({{#removeAnnotations}}{{{datatypeWithEnum}}}{{/removeAnnotations}} {{name}}) {
