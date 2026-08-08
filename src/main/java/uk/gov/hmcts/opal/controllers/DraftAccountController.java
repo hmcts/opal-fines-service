@@ -3,17 +3,14 @@ package uk.gov.hmcts.opal.controllers;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
-import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,7 +30,6 @@ import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
-import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.service.DraftAccountService;
@@ -84,15 +80,6 @@ public class DraftAccountController {
                 optionalNotSubmittedBys, accountStatusDateFrom, accountStatusDateTo));
     }
 
-    @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Searches Draft Accounts based upon criteria in request body")
-    public ResponseEntity<List<DraftAccountResponseDto>> postDraftAccountsSearch(
-        @RequestBody DraftAccountSearchDto criteria) {
-
-        log.debug(":POST:postDraftAccountsSearch: query: \n{}", criteria);
-
-        return buildResponse(draftAccountService.searchDraftAccounts(criteria));
-    }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Creates a Draft Account Entity in the DB based upon data in request body")
@@ -109,24 +96,6 @@ public class DraftAccountController {
         return buildCreatedResponse(draftAccountService.submitDraftAccount(dto));
     }
 
-    @Hidden
-    @DeleteMapping(value = "/{draftAccountId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Deletes the Draft Account for the given draftAccountId.")
-    @ConditionalOnProperty(prefix = "opal.testing-support-endpoints", name = "enabled", havingValue = "true")
-    public ResponseEntity<String> deleteDraftAccountById(
-        @PathVariable Long draftAccountId,
-        @RequestHeader(value = "If-Match", required = false) String ifMatch,
-        @RequestParam("ignore_missing") Optional<Boolean> ignoreMissing) {
-
-        // Note: This endpoint is used for testing only, so the 'If-Match' check is not actually used.
-        boolean checkExisted = !(ignoreMissing.orElse(false));
-
-        log.debug(":DELETE:deleteDraftAccountById: Delete Draft Account: {}{}", draftAccountId,
-            checkExisted ? "" : ", ignore if missing");
-
-        return buildResponse(draftAccountService.deleteDraftAccount((draftAccountId), checkExisted));
-
-    }
 
     @PutMapping(value = "/{draftAccountId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Replaces an existing Draft Account Entity in the DB with data in request body")

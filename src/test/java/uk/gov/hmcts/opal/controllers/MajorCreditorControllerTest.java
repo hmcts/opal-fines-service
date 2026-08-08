@@ -18,7 +18,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceDataResults;
-import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
 import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
 
@@ -45,25 +44,6 @@ class MajorCreditorControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(entity, response.getBody());
         verify(majorCreditorService, times(1)).getMajorCreditorById(any(Long.class));
-    }
-
-    @Test
-    void testSearchMajorCreditors_Success() {
-        // Arrange
-        MajorCreditorEntity entity = MajorCreditorEntity.builder().build();
-        List<MajorCreditorEntity> majorCreditorList = List.of(entity);
-
-        when(majorCreditorService.searchMajorCreditors(any())).thenReturn(majorCreditorList);
-
-        // Act
-        MajorCreditorSearchDto searchDto = MajorCreditorSearchDto.builder().build();
-        ResponseEntity<List<MajorCreditorEntity>> response = majorCreditorController
-            .postMajorCreditorsSearch(searchDto);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(majorCreditorList, response.getBody());
-        verify(majorCreditorService, times(1)).searchMajorCreditors(any());
     }
 
     @Test
