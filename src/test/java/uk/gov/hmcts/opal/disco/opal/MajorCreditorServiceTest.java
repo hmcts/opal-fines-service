@@ -3,6 +3,8 @@ package uk.gov.hmcts.opal.disco.opal;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
@@ -13,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -65,7 +66,7 @@ class MajorCreditorServiceTest {
     @Test
     void testSearchMajorCreditors() {
         // Arrange
-        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        SpecificationFluentQuery sfq = mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
         MajorCreditorEntity majorCreditorEntity = MajorCreditorEntity.builder().build();
@@ -88,7 +89,7 @@ class MajorCreditorServiceTest {
     @Test
     void testMajorCreditorsReferenceDataRelease1bEnabled() {
         // Arrange
-        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        SpecificationFluentQuery sfq = mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
         MajorCreditorEntity majorCreditorEntity = MajorCreditorEntity.builder()
@@ -193,6 +194,6 @@ class MajorCreditorServiceTest {
 
         // Assert
         assertEquals(List.of(referenceData), result);
-        Mockito.verify(majorCreditorMapper).toRefData(majorCreditorEntity);
+        verify(majorCreditorMapper).toRefData(majorCreditorEntity);
     }
 }

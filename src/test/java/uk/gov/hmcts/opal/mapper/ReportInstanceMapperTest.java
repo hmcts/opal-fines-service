@@ -149,7 +149,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
         }
 
         @Test
-        public void toReportInstanceReportsDto_completedReportInstanceNoErrors() {
+        void toReportInstanceReportsDto_completedReportInstanceNoErrors() {
             ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
                 .reportInstanceId(REPORT_INSTANCE_ID)
                 .requestedAt(REQUESTED_AT)
@@ -223,7 +223,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
         }
 
         @Test
-        public void toReportInstanceReportsDto_customReportInstanceNameOverridesReportTitle() {
+        void toReportInstanceReportsDto_customReportInstanceNameOverridesReportTitle() {
             ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
                 .reportInstanceId(REPORT_INSTANCE_ID)
                 .requestedAt(REQUESTED_AT)
@@ -257,7 +257,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
         }
 
         @Test
-        public void toReportInstanceReportsDto_errors() {
+        void toReportInstanceReportsDto_errors() {
             ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
                 .reportInstanceId(REPORT_INSTANCE_ID)
                 .requestedAt(REQUESTED_AT)
@@ -300,7 +300,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
         }
 
         @Test
-        public void toReportInstanceReportsDto_reportInstanceReadyButSupportedFiletypesIsNull() {
+        void toReportInstanceReportsDto_reportInstanceReadyButSupportedFiletypesIsNull() {
             ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
                 .reportInstanceId(REPORT_INSTANCE_ID)
                 .requestedAt(REQUESTED_AT)
@@ -334,7 +334,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
         }
 
         @Test
-        public void toReportInstanceReportsDto_reportInstanceReadyButSupportedFiletypesIsEmpty() {
+        void toReportInstanceReportsDto_reportInstanceReadyButSupportedFiletypesIsEmpty() {
             ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
                 .reportInstanceId(REPORT_INSTANCE_ID)
                 .requestedAt(REQUESTED_AT)

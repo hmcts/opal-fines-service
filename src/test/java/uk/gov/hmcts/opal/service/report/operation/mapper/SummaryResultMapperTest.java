@@ -173,7 +173,7 @@ class SummaryResultMapperTest {
         // Assert
         SummaryReportTotalsRowDto totals =
             result.getSummaryReport().getTotals();
-        assertThat(totals.getAccountsReported()).isEqualTo(0);
+        assertThat(totals.getAccountsReported()).isZero();
         assertThat(totals.getTotalImposed()).isEqualByComparingTo("0");
         assertThat(totals.getTotalPaid()).isEqualByComparingTo("0");
         assertThat(totals.getTotalBalance()).isEqualByComparingTo("0");

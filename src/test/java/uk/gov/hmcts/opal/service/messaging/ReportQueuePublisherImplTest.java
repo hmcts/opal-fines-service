@@ -15,7 +15,7 @@ import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.config.ReportServiceBusProperties;
 
 @ExtendWith(MockitoExtension.class)
-public class ReportQueuePublisherImplTest {
+class ReportQueuePublisherImplTest {
 
     @Mock
     private JmsTemplate jmsTemplate;
@@ -30,7 +30,7 @@ public class ReportQueuePublisherImplTest {
     private ReportQueuePublisherImpl reportQueuePublisher;
 
     @Test
-    public void test_addReportInstanceToQueue() throws JsonProcessingException {
+    void test_addReportInstanceToQueue() throws JsonProcessingException {
         when(objectMapper.writeValueAsString(any())).thenReturn("PAYLOAD");
         when(properties.getQueueName()).thenReturn("Queue name");
 

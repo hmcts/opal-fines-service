@@ -21,7 +21,7 @@ import uk.gov.hmcts.opal.exception.ReportNotFoundException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 
 @ExtendWith(MockitoExtension.class)
-public class ReportParameterValidatorTest {
+class ReportParameterValidatorTest {
 
     private static final String REPORT_ID = "report-id";
 

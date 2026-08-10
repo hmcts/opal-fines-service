@@ -22,7 +22,7 @@ import uk.gov.hmcts.opal.generated.model.PatchEnforcementAccountTypeRequestInner
 import uk.gov.hmcts.opal.service.opal.EnforcementAccountTypeService;
 
 @ExtendWith(MockitoExtension.class)
-public class EnforcementAccountTypesApiControllerTest {
+class EnforcementAccountTypesApiControllerTest {
     @Mock
     private EnforcementAccountTypeService service;
 

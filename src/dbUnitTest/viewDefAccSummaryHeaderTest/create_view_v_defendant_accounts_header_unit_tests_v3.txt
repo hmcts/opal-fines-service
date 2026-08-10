@@ -1,0 +1,11 @@
+NOTICE:  === Setting up test data for v_defendant_accounts_header tests ===
+NOTICE:  Test data setup completed: defendant_account_id = 999901 and 999902
+NOTICE:  === TEST 1: Comprehensive test for account with parent/guardian ===
+NOTICE:  TEST 1 PASSED: All information retrieved and validated successfully for account with parent/guardian
+NOTICE:  === TEST 2: Comprehensive test for account without parent/guardian ===
+NOTICE:  TEST 2 PASSED: All information retrieved and validated successfully for account without parent/guardian
+NOTICE:  === Cleaning up test data ===
+NOTICE:  Test data cleanup completed
+DO
+
+Query returned successfully in 160 msec.
