@@ -24,7 +24,7 @@ public class LegacyBusinessUnitCodeResolver {
             return businessUnitRepository.findById(Short.valueOf(businessUnitId))
                 .map(entity -> entity.getBusinessUnitCode())
                 .filter(StringUtils::hasText)
-                .orElse(legacyBusinessUnitCode);
+                .orElse(null);
         } catch (NumberFormatException ignored) {
             return legacyBusinessUnitCode;
         }

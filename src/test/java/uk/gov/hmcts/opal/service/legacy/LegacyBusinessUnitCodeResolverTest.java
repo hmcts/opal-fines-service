@@ -64,13 +64,13 @@ class LegacyBusinessUnitCodeResolverTest {
     }
 
     @Test
-    void resolve_whenBusinessUnitIsNotFound_returnsLegacyCode() {
+    void resolve_whenBusinessUnitIsNotFoundAndLegacyCodeEchoesId_returnsNull() {
         LegacyBusinessUnitCodeResolver resolver = new LegacyBusinessUnitCodeResolver(businessUnitRepository);
         when(businessUnitRepository.findById((short) 78)).thenReturn(Optional.empty());
 
         String result = resolver.resolve("78", "78");
 
-        assertEquals("78", result);
+        assertNull(result);
     }
 
     @Test
