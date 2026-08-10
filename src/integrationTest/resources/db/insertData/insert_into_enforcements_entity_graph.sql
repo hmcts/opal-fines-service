@@ -10,16 +10,19 @@
 * Date        Author      Version  Nature of Change
 * ----------  ----------  -------  -------------------------------------------------------------
 * 16/04/2026  S WILLIAMS  1.0      PO-2883: Add enforcement data to verify lazy loading and named entity graph fetch behaviour.
+* 10/08/2026  TMc         2.0      PO-6322 Included values for business_units.business_unit_code as it is now a NOT NULL field.
 *
 */
 
 INSERT INTO business_units (
     business_unit_id,
     business_unit_name,
+    business_unit_code,
     business_unit_type
 ) VALUES (
     910,
     'Entity Graph BU',
+    '0910',
     'Accounting Division'
 );
 
