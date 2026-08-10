@@ -10,7 +10,6 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -200,7 +199,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
 
         DefendantAccountHeaderSummary published = legacyDefendantAccountService.getHeaderSummary(1L);
 
-        assertEquals("NE", published.getBusinessUnitSummary().getBusinessUnitCode());
+        assertEquals("NE", published.getResponse().getBusinessUnitSummary().getBusinessUnitCode());
     }
 
     @Test

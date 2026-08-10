@@ -32,7 +32,7 @@ class MajorCreditorAccountHeaderEntityMapperTest {
 
         assertNotNull(response);
         assertEquals(BigInteger.valueOf(8L), response.getVersion());
-        assertEquals("77", response.getBusinessUnitDetails().getBusinessUnitId());
+        assertEquals((short) 77, response.getBusinessUnitDetails().getBusinessUnitId());
         assertEquals("Camberwell Green", response.getBusinessUnitDetails().getBusinessUnitName());
         assertEquals("CBG", response.getBusinessUnitDetails().getBusinessUnitCode());
         assertEquals("N", response.getBusinessUnitDetails().getWelshSpeaking());
