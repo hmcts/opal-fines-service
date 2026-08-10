@@ -219,6 +219,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             .languagePreferences(buildLanguagePreferences(debtorDetail))
             .build();
     }
+
     private DefendantAccountEntity bumpVersion(Long accountId) {
         DefendantAccountEntity entity = defendantAccountRepositoryService.findById(accountId);
         em.lock(entity, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
