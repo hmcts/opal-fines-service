@@ -10,7 +10,7 @@ class AgeUtilTest {
     @Test
     void shouldReturnZeroWhenDateOfBirthIsNull() {
         int age = AgeUtil.calculateAge(null);
-        assertThat(age).isEqualTo(0);
+        assertThat(age).isZero();
     }
 
     @Test
@@ -38,7 +38,7 @@ class AgeUtilTest {
     void shouldReturnZeroForTodayBirthDate() {
         LocalDate dob = LocalDate.now();
         int age = AgeUtil.calculateAge(dob);
-        assertThat(age).isEqualTo(0);
+        assertThat(age).isZero();
     }
 
     @Test

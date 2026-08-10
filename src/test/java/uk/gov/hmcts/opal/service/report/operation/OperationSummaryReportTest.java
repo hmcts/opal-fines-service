@@ -36,7 +36,7 @@ class OperationSummaryReportTest {
     @Test
     void getNumberOfRecords_noRecords_return0() {
         when(paymentReport.getReportSummaryRows()).thenReturn(null);
-        assertThat(operationSummaryReport.getNumberOfRecords()).isEqualTo(0);
+        assertThat(operationSummaryReport.getNumberOfRecords()).isZero();
     }
 
     @Test

@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -20,6 +19,7 @@ import uk.gov.hmcts.opal.repository.OffenceRepository;
 import uk.gov.hmcts.opal.service.opal.OffenceService;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -64,7 +65,7 @@ class OffenceServiceTest {
     @Test
     void testSearchOffences() {
         // Arrange
-        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        SpecificationFluentQuery sfq = mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
         when(sfq.limit(anyInt())).thenReturn(sfq);
 
@@ -90,14 +91,14 @@ class OffenceServiceTest {
     @Test
     void testOffencesReferenceData() {
         // Arrange
-        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        SpecificationFluentQuery sfq = mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
         OffenceEntity offenceEntity = OffenceEntity.builder()
             .offenceId(1L)
             .cjsCode("NINE")
             .offenceTitle("Theft from a Palace")
-            .dateUsedFrom(LocalDateTime.of(1909, 3, 3, 3, 30))
+            .dateUsedFrom(LocalDateTime.of(1909, Month.MARCH, 3, 3, 30))
             .offenceOas("A")
             .offenceOasCy("B")
             .build();

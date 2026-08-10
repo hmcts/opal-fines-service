@@ -78,7 +78,7 @@ import uk.gov.hmcts.opal.mapper.legacy.LegacyRemoveDefendantEnforcementHoldMappe
 import uk.gov.hmcts.opal.service.opal.CourtService;
 
 @ExtendWith(MockitoExtension.class)
-public class LegacyDefendantAccountEnforcementServiceTest {
+class LegacyDefendantAccountEnforcementServiceTest {
 
     @Spy
     private MockRestClient restClient = spy(MockRestClient.class);

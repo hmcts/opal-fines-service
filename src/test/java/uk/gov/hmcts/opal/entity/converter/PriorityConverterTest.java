@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.entity.Priority;
 
-public class PriorityConverterTest {
+class PriorityConverterTest {
 
     private final PriorityConverter converter = new PriorityConverter();
 
