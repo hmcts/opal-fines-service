@@ -118,6 +118,26 @@
     <packageUrl regex="true">^pkg:maven/org\.apache\.tomcat\.embed/tomcat\-embed\-(core|websocket)@11\.0\.24$</packageUrl>
     <cve>CVE-2026-66299</cve>
   </suppress>
+  <suppress until="2026-09-15Z">
+    <notes><![CDATA[
+    Reviewed 2026-08-10.
+    These CVEs are currently reported against org.apache.qpid:proton-j:0.34.1,
+    which is pulled transitively by org.apache.qpid:qpid-jms-client:2.10.0.
+    Qpid JMS 2.10.0 and Proton-J 0.34.1 are the current Apache Qpid releases,
+    so there is no newer drop-in dependency available at review time. This
+    service uses Qpid JMS as a client for controlled Azure Service Bus messaging,
+    not as a public AMQP listener. Keep this suppression narrowly scoped to
+    proton-j 0.34.1 and revisit once Apache publishes clearer CVE/fixed-version
+    guidance or a newer Qpid JMS/Proton-J release is available.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.qpid/proton\-j@0\.34\.1$</packageUrl>
+    <cve>CVE-2026-66257</cve>
+    <cve>CVE-2026-66273</cve>
+    <cve>CVE-2026-66274</cve>
+    <cve>CVE-2026-66275</cve>
+    <cve>CVE-2026-66276</cve>
+    <cve>CVE-2026-66277</cve>
+  </suppress>
   <!--End of Temporary suppression section -->
 
 </suppressions>
