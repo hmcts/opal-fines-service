@@ -5,6 +5,7 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -25,7 +26,7 @@ public class LegacyAddNoteResponse implements ToXmlString {
 
     @NotNull
     @XmlElement(name = "version", required = true)
-    private Integer version;
+    private BigInteger version;
 
     @XmlElement(name = "activity_note", required = true)
     private LegacyNote note;

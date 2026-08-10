@@ -5,6 +5,7 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,7 +28,7 @@ import uk.gov.hmcts.opal.dto.legacy.common.ResultResponses;
 public class LegacyGetDefendantAccountEnforcementStatusResponse implements ToXmlString {
 
     @XmlElement(name = "version")
-    private String version;
+    private BigInteger version;
 
     @XmlElement(name = "enforcement_overview")
     private EnforcementOverview enforcementOverview;

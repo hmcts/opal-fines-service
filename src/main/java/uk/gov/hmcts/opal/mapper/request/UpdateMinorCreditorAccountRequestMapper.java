@@ -33,7 +33,7 @@ public interface UpdateMinorCreditorAccountRequestMapper {
         @Mapping(target = "creditorAccountId", source = "creditorAccountId", qualifiedByName = "numberToString"),
         @Mapping(target = "businessUnitId", source = "businessUnitId", qualifiedByName = "numberToString"),
         @Mapping(target = "businessUnitUserId", source = "businessUnitUserId"),
-        @Mapping(target = "accountVersion", source = "accountVersion", qualifiedByName = "bigIntegerToInteger"),
+        @Mapping(target = "accountVersion", source = "accountVersion"),
         @Mapping(target = "partyDetails", source = "request.partyDetails"),
         @Mapping(target = "address", source = "request.address"),
         @Mapping(target = "payment", source = "request.payment")
@@ -65,11 +65,6 @@ public interface UpdateMinorCreditorAccountRequestMapper {
     @Named("numberToString")
     default String numberToString(Number value) {
         return value == null ? null : String.valueOf(value.longValue());
-    }
-
-    @Named("bigIntegerToInteger")
-    default Integer bigIntegerToInteger(BigInteger value) {
-        return value == null ? null : value.intValueExact();
     }
 
     @Named("integerToShort")

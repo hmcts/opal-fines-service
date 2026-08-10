@@ -41,7 +41,7 @@ class LegacyMinorCreditorPatchStubIntegrationTest extends AbstractIntegrationTes
 
     private static final String URL_BASE = "/minor-creditor-accounts";
     private static final short BUSINESS_UNIT_ID = 10;
-    private static final String UPDATE_MINOR_CREDITOR_ACCOUNT = "LIBRA.of_update_minor_creditor_account";
+    private static final String UPDATE_MINOR_CREDITOR_ACCOUNT = "updateMinorCreditorAccount";
 
     @Test
     @JiraStory("PO-1915")

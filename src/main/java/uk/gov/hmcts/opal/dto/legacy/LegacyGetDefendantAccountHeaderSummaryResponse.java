@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.dto.legacy;
 
 
+import java.math.BigInteger;
+
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -25,7 +27,7 @@ import uk.gov.hmcts.opal.dto.legacy.common.PaymentStateSummary;
 public class LegacyGetDefendantAccountHeaderSummaryResponse implements ToXmlString {
 
     @XmlElement(name = "version")
-    private String version;
+    private BigInteger version;
 
     @XmlElement(name = "defendant_account_id")
     private String defendantAccountId;

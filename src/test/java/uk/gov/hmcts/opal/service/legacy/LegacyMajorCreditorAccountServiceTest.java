@@ -233,7 +233,7 @@ class LegacyMajorCreditorAccountServiceTest {
                 .itemTypes(List.of("Financial"))
                 .build();
         GetMajorCreditorAccountHistoryLegacyResponse legacyResponse =
-            GetMajorCreditorAccountHistoryLegacyResponse.builder().version(7L).build();
+            GetMajorCreditorAccountHistoryLegacyResponse.builder().version(BigInteger.valueOf(7L)).build();
         GetMajorCreditorHistoryResponse mappedResponse = GetMajorCreditorHistoryResponse.builder()
             .version(BigInteger.valueOf(7))
             .build();
@@ -352,7 +352,7 @@ class LegacyMajorCreditorAccountServiceTest {
         return GetMajorCreditorAccountHeaderSummaryLegacyResponse.builder()
             .majorCreditor(GetMajorCreditorAccountHeaderSummaryLegacyResponse.MajorCreditorLegacy.builder()
                                .creditorAccountId(123L)
-                               .accountVersion(7L)
+                               .accountVersion(BigInteger.valueOf(7L))
                                .build())
             .businessUnitDetails(BusinessUnitSummary.builder()
                                      .businessUnitId("46")

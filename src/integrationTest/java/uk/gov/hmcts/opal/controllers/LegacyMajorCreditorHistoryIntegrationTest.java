@@ -21,6 +21,7 @@ import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_V
 import static uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService.GET_MAJOR_CREDITOR_ACCOUNT_HISTORY;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -313,7 +314,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
 
     private GetMajorCreditorAccountHistoryLegacyResponse legacyResponse() {
         return GetMajorCreditorAccountHistoryLegacyResponse.builder()
-            .version(7L)
+            .version(BigInteger.valueOf(7L))
             .historyItems(List.of(
                 historyItem("MJUSR3", "Major User Three", "MJF003", "MADJ", "Manual Adjustment",
                             LocalDateTime.of(2026, 1, 31, 10, 30), new BigDecimal("-31.00")),

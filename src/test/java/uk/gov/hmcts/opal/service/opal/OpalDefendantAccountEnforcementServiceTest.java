@@ -1024,7 +1024,7 @@ class OpalDefendantAccountEnforcementServiceTest {
 
     private void assertCommonResponse(AddEnforcementResponseDefendantAccount response) {
         assertEquals(String.valueOf(DEFENDANT_ACCOUNT_ID), response.getDefendantAccountId());
-        assertEquals(0, response.getVersion());
+        assertEquals(BigInteger.ZERO, response.getVersion());
         assertEquals(String.valueOf(ENFORCEMENT_ID), response.getEnforcementId());
         verify(defendantAccountRepositoryService).refresh(ArgumentMatchers.any(DefendantAccountEntity.class));
     }
