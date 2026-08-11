@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.refdata.framework;
+package uk.gov.hmcts.opal.service.messaging;
 
 import jakarta.jms.JMSException;
 import jakarta.jms.Message;
@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.opal.service.refdata.framework.RefDataQueueConsumerService;
 
 @Component
 @RequiredArgsConstructor
