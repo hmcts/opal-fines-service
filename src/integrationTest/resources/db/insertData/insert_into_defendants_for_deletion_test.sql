@@ -165,3 +165,12 @@ VALUES (
     9110, 'TTPLET', 78, '2025-10-27 15:51:42.498414+00', '01000000A',
     'defendant_accounts', '1001', 'New', NULL, '<doc><account>1001</account></doc>'
 );
+
+INSERT INTO document_instances (
+    document_instance_id, document_id, business_unit_id, generated_date, generated_by,
+    associated_record_type, associated_record_id, status, printed_date, document_content
+)
+VALUES (
+    9111, 'TTPLET', 78, '2025-10-27 15:52:42.498414+00', '01000000A',
+    'impositions', '9105', 'New', NULL, '<doc><imposition>9105</imposition></doc>'
+);

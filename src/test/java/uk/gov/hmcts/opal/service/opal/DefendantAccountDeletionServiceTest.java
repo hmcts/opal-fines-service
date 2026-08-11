@@ -26,6 +26,7 @@ import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
 import uk.gov.hmcts.opal.repository.DocumentInstanceRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.FixedPenaltyOffenceRepository;
+import uk.gov.hmcts.opal.repository.ImpositionRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentCardRequestRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
@@ -79,6 +80,9 @@ class DefendantAccountDeletionServiceTest {
     private ReportRepository reportRepository;
 
     @Mock
+    private ImpositionRepository impositionRepository;
+
+    @Mock
     private AllocationRepository allocationsRepository;
 
     @Mock
@@ -97,17 +101,34 @@ class DefendantAccountDeletionServiceTest {
     void deleteDefendantAccountAndAssociatedData_deletesDocumentInstancesAfterAccountTransfers() {
         long defendantAccountId = 1001L;
         when(defendantAccountRepository.existsById(defendantAccountId)).thenReturn(true);
+        when(impositionRepository.findImpositionIdsByDefendantAccountId(defendantAccountId))
+            .thenReturn(List.of(2001L, 2002L));
         when(defendantTransactionRepository.findDefendantAccountTransactionIdsByDefendantAccountId(defendantAccountId))
             .thenReturn(List.of());
 
         service.deleteDefendantAccountAndAssociatedData(defendantAccountId);
 
-        InOrder inOrder = inOrder(accountTransferRepository, documentInstanceRepository, defendantAccountRepository);
+        InOrder inOrder = inOrder(
+            accountTransferRepository,
+            documentInstanceRepository,
+            creditorAccountTransactional,
+            defendantAccountRepository
+        );
         inOrder.verify(accountTransferRepository).deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
         inOrder.verify(documentInstanceRepository).deleteByAssociatedRecordTypeAndAssociatedRecordId(
             AssociatedRecordType.DEFENDANT_ACCOUNTS.getLabel(),
             String.valueOf(defendantAccountId)
         );
+        inOrder.verify(documentInstanceRepository).deleteByAssociatedRecordTypeAndAssociatedRecordId(
+            AssociatedRecordType.IMPOSITIONS.getLabel(),
+            "2001"
+        );
+        inOrder.verify(documentInstanceRepository).deleteByAssociatedRecordTypeAndAssociatedRecordId(
+            AssociatedRecordType.IMPOSITIONS.getLabel(),
+            "2002"
+        );
+        inOrder.verify(creditorAccountTransactional)
+            .deleteAllByDefendantAccountId(defendantAccountId, creditorAccountTransactional);
         inOrder.verify(defendantAccountRepository).deleteById(defendantAccountId);
     }
 
@@ -121,6 +142,6 @@ class DefendantAccountDeletionServiceTest {
             () -> service.deleteDefendantAccountAndAssociatedData(defendantAccountId)
         );
 
-        verifyNoInteractions(documentInstanceRepository);
+        verifyNoInteractions(documentInstanceRepository, impositionRepository);
     }
 }

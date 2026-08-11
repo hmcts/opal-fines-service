@@ -190,6 +190,7 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
     void shouldDeleteDefendantAccountAndAssociatedData() throws Exception {
         long defendantAccountId = 1001L;
         String associatedRecordId = String.valueOf(defendantAccountId);
+        String impositionAssociatedRecordId = "9105";
 
         // Pre-check that data exists
         assertThat(defendantAccountRepository.existsById(defendantAccountId)).isTrue();
@@ -203,6 +204,10 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
         assertThat(documentInstanceRepository.countByAssociatedRecordTypeAndAssociatedRecordId(
             AssociatedRecordType.DEFENDANT_ACCOUNTS.getLabel(),
             associatedRecordId
+        )).isPositive();
+        assertThat(documentInstanceRepository.countByAssociatedRecordTypeAndAssociatedRecordId(
+            AssociatedRecordType.IMPOSITIONS.getLabel(),
+            impositionAssociatedRecordId
         )).isPositive();
         assertThat(noteRepository.countByAssociatedRecordId(associatedRecordId)).isPositive();
         assertThat(amendmentRepository.countByAssociatedRecordId(associatedRecordId)).isPositive();
@@ -230,6 +235,10 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
         assertThat(documentInstanceRepository.countByAssociatedRecordTypeAndAssociatedRecordId(
             AssociatedRecordType.DEFENDANT_ACCOUNTS.getLabel(),
             associatedRecordId
+        )).isZero();
+        assertThat(documentInstanceRepository.countByAssociatedRecordTypeAndAssociatedRecordId(
+            AssociatedRecordType.IMPOSITIONS.getLabel(),
+            impositionAssociatedRecordId
         )).isZero();
         assertThat(noteRepository.countByAssociatedRecordId(associatedRecordId)).isZero();
         assertThat(amendmentRepository.countByAssociatedRecordId(associatedRecordId)).isZero();

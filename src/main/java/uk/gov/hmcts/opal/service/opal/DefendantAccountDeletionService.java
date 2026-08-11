@@ -19,6 +19,7 @@ import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
 import uk.gov.hmcts.opal.repository.DocumentInstanceRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.FixedPenaltyOffenceRepository;
+import uk.gov.hmcts.opal.repository.ImpositionRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentCardRequestRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
@@ -52,6 +53,7 @@ public class DefendantAccountDeletionService {
     private final NoteRepository noteRepository;
     private final ReportEntryRepository reportEntryRepository;
     private final ReportRepository reportRepository;
+    private final ImpositionRepository impositionRepository;
 
     // Level 3 - Grandchildren
     private final AllocationRepository allocationsRepository;
@@ -64,9 +66,10 @@ public class DefendantAccountDeletionService {
         log.warn("DESTRUCTIVE OPERATION: Deleting defendant account {} and ALL associated data", defendantAccountId);
 
         validateAccountExists(defendantAccountId);
+        List<Long> impositionIds = impositionRepository.findImpositionIdsByDefendantAccountId(defendantAccountId);
 
         deleteLevel3Data(defendantAccountId);
-        deleteLevel2Data(defendantAccountId);
+        deleteLevel2Data(defendantAccountId, impositionIds);
         deleteLevel1Data(defendantAccountId);
 
         log.warn("COMPLETED: Deleted defendant account {} and all associated data", defendantAccountId);
@@ -96,15 +99,12 @@ public class DefendantAccountDeletionService {
         log.debug("Completed Level 3 deletion of {} rows for defendant account {}", count, defendantAccountId);
     }
 
-    private void deleteLevel2Data(long defendantAccountId) {
+    private void deleteLevel2Data(long defendantAccountId, List<Long> impositionIds) {
         log.debug("Deleting Level 2 dependencies for defendant account {}", defendantAccountId);
 
         // Entities with @ManyToOne defendantAccount relationships
         accountTransferRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
-        documentInstanceRepository.deleteByAssociatedRecordTypeAndAssociatedRecordId(
-            AssociatedRecordType.DEFENDANT_ACCOUNTS.getLabel(),
-            String.valueOf(defendantAccountId)
-        );
+        deleteAssociatedDocumentInstances(defendantAccountId, impositionIds);
         defendantAccountPartiesRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
         enforcementRepository.deleteByDefendantAccountId(defendantAccountId);
         creditorAccountTransactional.deleteAllByDefendantAccountId(defendantAccountId, creditorAccountTransactional);
@@ -121,6 +121,20 @@ public class DefendantAccountDeletionService {
         amendmentRepository.deleteByAssociatedRecordId(String.valueOf(defendantAccountId));
 
         log.debug("Completed Level 2 deletion for defendant account {}", defendantAccountId);
+    }
+
+    private void deleteAssociatedDocumentInstances(long defendantAccountId, List<Long> impositionIds) {
+        documentInstanceRepository.deleteByAssociatedRecordTypeAndAssociatedRecordId(
+            AssociatedRecordType.DEFENDANT_ACCOUNTS.getLabel(),
+            String.valueOf(defendantAccountId)
+        );
+
+        impositionIds.stream()
+            .map(String::valueOf)
+            .forEach(impositionId -> documentInstanceRepository.deleteByAssociatedRecordTypeAndAssociatedRecordId(
+                AssociatedRecordType.IMPOSITIONS.getLabel(),
+                impositionId
+            ));
     }
 
     private void deleteLevel1Data(long defendantAccountId) {
