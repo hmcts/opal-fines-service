@@ -232,8 +232,8 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
             mockMvc.perform(authorisedGet())
                 .andExpectAll(
                     status().isOk(),
-                    content().contentTypeCompatibleWith(APPLICATION_JSON)
-                    ,content().json("[]")
+                    content().contentTypeCompatibleWith(APPLICATION_JSON),
+                    content().json("[]")
                 );
         }
 
