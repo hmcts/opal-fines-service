@@ -165,6 +165,11 @@ opal:
       queue-name: ${SERVICEBUS_REPORT_QUEUE_NAME:report}
       consumer-enabled: ${REPORT_CONSUMER_ENABLED:true}
       publisher-enabled: ${REPORT_PUBLISHER_ENABLED:true}
+  ref-data:
+    service-bus:
+      topic-name: ${SERVICEBUS_REF_DATA_TOPIC_NAME:ref-data}
+      subscription-name: ${SERVICEBUS_REF_DATA_SUBSCRIPTION_NAME:ref-data}
+      consumer-enabled: ${REF_DATA_CONSUMER_ENABLED:true}
 
 be-developer-config:
   user-role-permissions: ${BE_DEV_ROLE_PERMISSIONS:}
