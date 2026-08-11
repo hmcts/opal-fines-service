@@ -3,7 +3,7 @@ Feature: Process interface jobs
 
   # Temporarily ignored because the deployed Service Bus queue/emulator is unavailable;
   # re-enable when the queue dependency is available.
-  @Ignore @JIRA-STORY:PO-2593 @JIRA-TEST-KEY:PO-2593-E2E-01
+  @JIRA-STORY:PO-2593 @JIRA-TEST-KEY:PO-2593-E2E-01
   Scenario: Eligible interface jobs are accepted for processing
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And I create two eligible interface jobs for processing
@@ -14,7 +14,7 @@ Feature: Process interface jobs
 
   # Temporarily ignored because scenario setup publishes to the unavailable Service Bus queue;
   # re-enable when the queue dependency is available.
-  @Ignore @JIRA-STORY:PO-2593 @JIRA-TEST-KEY:PO-2593-E2E-02
+  @JIRA-STORY:PO-2593 @JIRA-TEST-KEY:PO-2593-E2E-02
   Scenario: Mixed interface-job statuses return conflict without partial processing
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And I create an interface job that has already begun processing and an unprocessed interface job
