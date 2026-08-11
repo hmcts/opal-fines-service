@@ -98,7 +98,7 @@ public class TestingSupportControllerDeleteInterfaceJobsIntegrationTest extends 
     void wouldDeleteInterfaceJobsAndAssociatedDataNoneSupplied() throws Exception {
         ResultActions actions = mockMvc.perform(delete(URL));
 
-        actions.andExpect(status().isOk());
+        actions.andExpect(status().is5xxServerError());
     }
 
     @Test

@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.controllers;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_PAYMENT;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_PAYMENT_ENABLED_PROPERTY;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
@@ -90,6 +91,7 @@ public class TestingSupportController {
         return ResponseEntity.noContent().build();
     }
 
+    @Hidden
     @FeatureToggle(
         feature = RELEASE_1C_PAYMENT,
         defaultValueProperty = RELEASE_1C_PAYMENT_ENABLED_PROPERTY
@@ -97,7 +99,7 @@ public class TestingSupportController {
     @DeleteMapping("/interface-jobs")
     @Operation(summary = "Deletes a list of Interface jobs. FOR TESTING ONLY!")
     public ResponseEntity<Void> deleteInterfaceJobs(
-            @RequestParam(value = "ids", required = false) List<Long> interfaceJobIds) {
+            @RequestParam(value = "ids") List<Long> interfaceJobIds) {
         log.warn("TEST ENDPOINT: Request to delete interface jobs with ids: {}", interfaceJobIds);
 
         interfaceJobService.deleteInterfaceJobs(interfaceJobIds);
