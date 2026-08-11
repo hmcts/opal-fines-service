@@ -1,8 +1,8 @@
 package uk.gov.hmcts.opal.service.report;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -307,7 +307,7 @@ class GenericReportServiceTest {
     }
 
     @Test
-    public void addReportInstance_success_singleBU() {
+    void addReportInstance_success_singleBU() {
         //setup
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
@@ -336,7 +336,7 @@ class GenericReportServiceTest {
     }
 
     @Test
-    public void addReportInstance_success_multiBU() {
+    void addReportInstance_success_multiBU() {
         //setup
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
@@ -367,7 +367,7 @@ class GenericReportServiceTest {
     }
 
     @Test
-    public void addReportInstance_multiBU_notAllowed_throwsException() {
+    void addReportInstance_multiBU_notAllowed_throwsException() {
         //setup
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.isSupportsMultiBu()).thenReturn(false);
@@ -385,7 +385,7 @@ class GenericReportServiceTest {
     }
 
     @Test
-    public void addReportInstance_noManualCreation_throwsException() {
+    void addReportInstance_noManualCreation_throwsException() {
         //setup
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.isSupportsMultiBu()).thenReturn(false);
@@ -404,14 +404,13 @@ class GenericReportServiceTest {
     }
 
     @Test
-    public void addReportInstance_userNotAuthorizedWithBU_throwsException() {
+    void addReportInstance_userNotAuthorizedWithBU_throwsException() {
         //setup
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.isSupportsMultiBu()).thenReturn(true);
         when(reportEntity.isCanManuallyCreate()).thenReturn(true);
-        //when(mapper.writeValueAsString(any())).thenReturn("{}");
 
         when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
         //test
@@ -427,14 +426,13 @@ class GenericReportServiceTest {
     }
 
     @Test
-    public void addReportInstance_failsValidation_throwsException() {
+    void addReportInstance_failsValidation_throwsException() {
         //setup
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.isSupportsMultiBu()).thenReturn(true);
         when(reportEntity.isCanManuallyCreate()).thenReturn(true);
-        //when(mapper.writeValueAsString(any())).thenReturn("{}");
         when(reportParameterValidator.validateReportInstanceParameterValues(reportParameters, reportEntity))
             .thenReturn(false);
 
@@ -452,7 +450,7 @@ class GenericReportServiceTest {
     }
 
     @Test
-    public void addReportInstance_genReportAsyncFalse_throwsException() {
+    void addReportInstance_genReportAsyncFalse_throwsException() {
         //setup
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
@@ -479,7 +477,7 @@ class GenericReportServiceTest {
     }
 
     @Test
-    public void addReportInstance_invalidJson_throwsException() {
+    void addReportInstance_invalidJson_throwsException() {
         //setup
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));

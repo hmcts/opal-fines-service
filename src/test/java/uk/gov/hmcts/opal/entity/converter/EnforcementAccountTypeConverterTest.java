@@ -12,7 +12,7 @@ import org.mockito.MockedStatic;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementAccountType;
 
 
-public class EnforcementAccountTypeConverterTest {
+class EnforcementAccountTypeConverterTest {
 
     private EnforcementAccountTypeConverter converter = new EnforcementAccountTypeConverter();
 

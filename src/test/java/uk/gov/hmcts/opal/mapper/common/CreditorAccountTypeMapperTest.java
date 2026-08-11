@@ -7,7 +7,7 @@ import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.dto.common.CreditorAccountTypeReference;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 
-public class CreditorAccountTypeMapperTest {
+class CreditorAccountTypeMapperTest {
 
     private final CreditorAccountTypeMapper mapper = Mappers.getMapper(CreditorAccountTypeMapper.class);
 
