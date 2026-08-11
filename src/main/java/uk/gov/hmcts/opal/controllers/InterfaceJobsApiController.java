@@ -8,8 +8,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.opal.SchemaPaths;
-import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.generated.http.api.InterfaceJobsApi;
@@ -33,9 +31,7 @@ public class InterfaceJobsApiController implements InterfaceJobsApi {
     @Override
     @FeatureToggle(feature = FeatureFlags.RELEASE_1C_PAYMENT,
         defaultValueProperty = FeatureFlags.RELEASE_1C_PAYMENT_ENABLED_PROPERTY)
-    public ResponseEntity<Void> processInterfaceJobs(
-        @JsonSchemaValidated(schemaPath = SchemaPaths.PROCESS_INTERFACE_JOBS_REQUEST)
-        InterfaceJobsProcessRequest request) {
+    public ResponseEntity<Void> processInterfaceJobs(InterfaceJobsProcessRequest request) {
         if (dynamicConfigService.isLegacyMode()) {
             log.debug(":POST:processInterfaceJobs: rejecting request because service is in legacy mode");
             throw new FeatureDisabledException("Interface job processing is only available in OPAL mode");
