@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.print;
 
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -10,6 +9,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -17,6 +17,7 @@ import static org.mockito.Mockito.when;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,7 +31,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
@@ -111,9 +111,6 @@ class PrintServiceTest {
                                     + "</fo:root>"
                                     + "</xsl:template>"
                                     + "</xsl:stylesheet>");
-
-
-
     }
 
     @Test
@@ -131,10 +128,10 @@ class PrintServiceTest {
         assertEquals(printJobEntity2.getBatchId(), batchId);
         assertEquals(PrintStatus.PENDING, printJobEntity1.getStatus());
         assertEquals(PrintStatus.PENDING, printJobEntity2.getStatus());
-        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), printJobEntity1.getCreatedAt());
-        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), printJobEntity1.getUpdatedAt());
-        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), printJobEntity2.getCreatedAt());
-        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), printJobEntity2.getUpdatedAt());
+        assertEquals(LocalDateTime.of(2026, Month.MAY, 7, 10, 15), printJobEntity1.getCreatedAt());
+        assertEquals(LocalDateTime.of(2026, Month.MAY, 7, 10, 15), printJobEntity1.getUpdatedAt());
+        assertEquals(LocalDateTime.of(2026, Month.MAY, 7, 10, 15), printJobEntity2.getCreatedAt());
+        assertEquals(LocalDateTime.of(2026, Month.MAY, 7, 10, 15), printJobEntity2.getUpdatedAt());
 
         verify(printJobMapper, times(1)).toEntities(printJobDtos);
         verify(printJobRepository, times(2)).save(any(PrintJobEntity.class));
@@ -175,22 +172,21 @@ class PrintServiceTest {
             .thenReturn(new PageImpl<>(Collections.singletonList(printJobEntity)))
             .thenReturn(new PageImpl<>(Collections.emptyList()));
 
-        //  doNothing().when(sftpOutboundService).uploadFile(any(byte[].class), anyString(), anyString());
         printService.setPageSize(10);
+
         // Act
         printService.processJobsWithLock(cutoffDate);
 
         // Assert
         verify(printJobRepository, atLeastOnce()).findPendingJobsForUpdate(eq(PrintStatus.PENDING), eq(cutoffDate),
                                                                            any(Pageable.class));
-        // verify(sftpOutboundService, atLeastOnce()).uploadFile(any(byte[].class), anyString(), anyString());
         verify(printJobRepository, atLeastOnce()).save(any(PrintJobEntity.class));
     }
 
     @Test
     void testProcessPendingJobsSuccess() {
         // Arrange
-        PrintService printServiceSpy = Mockito.spy(printService);
+        PrintService printServiceSpy = spy(printService);
         printServiceSpy.setMaxRetries(3);
         LocalDateTime cutoffDate = LocalDateTime.now();
         doNothing().when(printServiceSpy).processJobsWithLock(cutoffDate);
@@ -208,7 +204,7 @@ class PrintServiceTest {
     @Test
     void testProcessPendingJobsMaxRetriesExceeded() {
         // Arrange
-        PrintService printServiceSpy = Mockito.spy(printService);
+        PrintService printServiceSpy = spy(printService);
         printServiceSpy.setMaxRetries(3); // Assuming maxRetries is set to 3
         LocalDateTime cutoffDate = LocalDateTime.now();
 
