@@ -225,6 +225,19 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         }
 
         @Test
+        @JiraStory("PO-9147")
+        @JiraEpic("PO-2248")
+        void whenNoFiltersButUserHasNoPerms_allInstancesAreReturned() throws Exception {
+            userStateStub.setupWithNoPermissions();
+            mockMvc.perform(authorisedGet())
+                .andExpectAll(
+                    status().isOk(),
+                    content().contentTypeCompatibleWith(APPLICATION_JSON)
+                    ,content().json("[]")
+                );
+        }
+
+        @Test
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         @JiraTestKey("PO-8290")
