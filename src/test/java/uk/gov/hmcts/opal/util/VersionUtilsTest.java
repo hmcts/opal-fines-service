@@ -8,7 +8,7 @@ import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class VersionUtilsTest {
+class VersionUtilsTest {
 
     @Test
     void testVerifyVersions_success() {

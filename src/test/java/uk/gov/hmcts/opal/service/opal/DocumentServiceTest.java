@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneOffset;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -71,7 +72,7 @@ class DocumentServiceTest {
         assertEquals(DocumentEntityStatus.NEW, saved.getStatus());
         assertEquals(defAccountId, saved.getAssociatedRecordId());
         assertEquals(AssociatedRecordType.DEFENDANT_ACCOUNTS, saved.getAssociatedRecordType());
-        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), saved.getGeneratedDate());
+        assertEquals(LocalDateTime.of(2026, Month.MAY, 7, 10, 15), saved.getGeneratedDate());
     }
 
     @Test

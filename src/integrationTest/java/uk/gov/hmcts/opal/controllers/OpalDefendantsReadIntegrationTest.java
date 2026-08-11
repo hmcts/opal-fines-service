@@ -222,6 +222,9 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
         log.info("Null fields response:\n" + actions.andReturn().getResponse().getContentAsString());
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.surname").doesNotExist())
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.date_of_birth")
+                .value(nullValue()))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.age").value(nullValue()))
             .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").doesNotExist());
     }
 
