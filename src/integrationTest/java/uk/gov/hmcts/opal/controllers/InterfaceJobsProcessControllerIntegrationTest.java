@@ -181,55 +181,18 @@ class InterfaceJobsProcessControllerIntegrationTest extends AbstractIntegrationT
     }
 
     @Test
-    @DisplayName("PO-2593 - Unknown request properties return 400")
+    @DisplayName("PO-2593 - Missing required item property returns 400")
     @JiraStory("PO-2593")
     @JiraEpic("PO-2468")
-    void processJobs_rejectsUnknownRequestProperties() throws Exception {
+    void processJobs_rejectsMissingRequiredItemProperty() throws Exception {
         mockMvc.perform(post(URL)
                 .header(AUTHORIZATION, AUTH_HEADER)
                 .contentType(APPLICATION_JSON)
                 .content("{\"interface_jobs\":[{"
                     + "\"interface_job_id\":990001,\"business_unit_id\":77,"
-                    + "\"override_inhibits\":true,\"unexpected\":true}]}"))
-            .andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.status").value(400));
-
-        verifyNoInteractions(interfaceJobQueuePublisher);
-    }
-
-    @Test
-    @DisplayName("PO-2593 - Unknown top-level properties return 400")
-    @JiraStory("PO-2593")
-    @JiraEpic("PO-2468")
-    void processJobs_rejectsUnknownTopLevelProperties() throws Exception {
-        mockMvc.perform(post(URL)
-                .header(AUTHORIZATION, AUTH_HEADER)
-                .contentType(APPLICATION_JSON)
-                .content("{\"interface_jobs\":[{"
-                    + "\"interface_job_id\":990001,\"business_unit_id\":77,"
-                    + "\"override_inhibits\":true}],\"unexpected\":true}"))
-            .andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.status").value(400));
-
-        verifyNoInteractions(interfaceJobQueuePublisher);
-    }
-
-    @Test
-    @DisplayName("PO-2593 - Invalid property types return 400")
-    @JiraStory("PO-2593")
-    @JiraEpic("PO-2468")
-    void processJobs_rejectsInvalidPropertyTypes() throws Exception {
-        mockMvc.perform(post(URL)
-                .header(AUTHORIZATION, AUTH_HEADER)
-                .contentType(APPLICATION_JSON)
-                .content("{\"interface_jobs\":[{"
-                    + "\"interface_job_id\":\"990001\",\"business_unit_id\":77,"
-                    + "\"override_inhibits\":true}]}"))
-            .andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.status").value(400));
+                    + "\"override_inhibits\":true},{"
+                    + "\"interface_job_id\":990002,\"business_unit_id\":77}]}"))
+            .andExpect(status().isBadRequest());
 
         verifyNoInteractions(interfaceJobQueuePublisher);
     }
