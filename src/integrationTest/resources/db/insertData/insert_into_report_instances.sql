@@ -26,8 +26,8 @@ INSERT INTO public.reports (
     true
 ),
 (
-    'it_report_instances_noperm',
-    'Integration Report Instances Unconfigured',
+    'it_report_noperm',
+    'Integration Report Unconfigured',
     'Operational Reports',
     false,
     NULL,
@@ -98,7 +98,7 @@ INSERT INTO public.report_instances (
 ),
 (
     9004,
-    'it_report_instances_noperm',
+    'it_report_noperm',
     '{10}',
     4,
     '2026-04-01 11:00:00',

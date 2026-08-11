@@ -21,9 +21,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
-import uk.gov.hmcts.opal.repository.ReportRepository;
 import uk.gov.hmcts.opal.service.report.GenericReportService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -34,14 +32,12 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String REPORT_ID = "it_report_instances";
-    private static final String UNCONFIGURED_REPORT_ID = "it_report_instances_noperm";
+    private static final String UNCONFIGURED_REPORT_ID = "it_report_noperm";
+    private static final long REPORT_INSTANCE_ID_NOPERMS_REPORT = 9004L;
     private static final String URL_BASE = "/report-instances";
 
     @MockitoSpyBean
     private GenericReportService genericReportService;
-
-    @MockitoSpyBean
-    private ReportRepository reportRepository;
 
     @BeforeEach
     void setUp() {
@@ -202,39 +198,20 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-9147")
         @JiraEpic("PO-2248")
         void whenUnconfiguredReportExists_itIsNotReturned_happyPath() throws Exception {
-            doReturn(List.of(
-                ReportEntity.builder()
-                    .reportId(REPORT_ID)
-                    .permission(SEARCH_AND_VIEW_ACCOUNTS)
-                    .build(),
-                ReportEntity.builder()
-                    .reportId(UNCONFIGURED_REPORT_ID)
-                    .build()
-            )).when(reportRepository).findAll();
-
             mockMvc.perform(authorisedGet())
                 .andExpectAll(
                     status().isOk(),
                     content().contentTypeCompatibleWith(APPLICATION_JSON),
                     jsonPath("$").isArray(),
                     jsonPath("$.length()").value(3),
-                    jsonPath("$[*].report_id", Matchers.not(Matchers.hasItem(UNCONFIGURED_REPORT_ID))));
+                    jsonPath("$[*].report_id", Matchers.not(Matchers.hasItem(UNCONFIGURED_REPORT_ID))),
+                    jsonPath("$[*].instance_id", Matchers.not(Matchers.hasItem(REPORT_INSTANCE_ID_NOPERMS_REPORT))));
         }
 
         @Test
         @JiraStory("PO-9147")
         @JiraEpic("PO-2248")
         void whenFilteredByUserIdWithoutReportId_matchingInstancesAreReturned_happyPath() throws Exception {
-            doReturn(List.of(
-                ReportEntity.builder()
-                    .reportId(REPORT_ID)
-                    .permission(SEARCH_AND_VIEW_ACCOUNTS)
-                    .build(),
-                ReportEntity.builder()
-                    .reportId(UNCONFIGURED_REPORT_ID)
-                    .build()
-            )).when(reportRepository).findAll();
-
             mockMvc.perform(authorisedGet()
                     .param("user_id", "42"))
                 .andExpectAll(
@@ -242,7 +219,8 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
                     content().contentTypeCompatibleWith(APPLICATION_JSON),
                     jsonPath("$").isArray(),
                     jsonPath("$.length()").value(2),
-                    jsonPath("$[0].report_id").value(REPORT_ID)
+                    jsonPath("$[0].report_id").value(REPORT_ID),
+                    jsonPath("$[*].instance_id", Matchers.not(Matchers.hasItem(REPORT_INSTANCE_ID_NOPERMS_REPORT)))
                 );
         }
 
