@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.clearInvocations;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -29,9 +30,10 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
+@DisplayName("CourtControllerIntegrationTest")
 @Slf4j(topic = "opal.CourtControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_courts.sql", executionPhase = BEFORE_TEST_CLASS)
-@DisplayName("CourtControllerIntegrationTest")
+@Sql(scripts = "classpath:db/deleteData/delete_from_courts.sql", executionPhase = AFTER_TEST_CLASS)
 class CourtControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/courts";
@@ -65,7 +67,7 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.courtId").value(7))
-            .andExpect(jsonPath("$.businessUnitId").value(99))
+            .andExpect(jsonPath("$.businessUnitId").value(991))
             .andExpect(jsonPath("$.courtCode").value(7))
             .andExpect(jsonPath("$.name").value("AAA Test Court"))
             .andExpect(jsonPath("$.localJusticeAreaId").value(1013))
@@ -106,7 +108,7 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())
             .header("authorization", userStateStub.getBearerToken())
             .contentType(MediaType.APPLICATION_JSON)
-            .content("{\"businessUnitId\":\"99\"}"));
+            .content("{\"businessUnitId\":\"991\"}"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostCourtsSearch: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -115,7 +117,7 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.searchData[0].courtId").value(7))
-            .andExpect(jsonPath("$.searchData[0].businessUnitId").value(99))
+            .andExpect(jsonPath("$.searchData[0].businessUnitId").value(991))
             .andExpect(jsonPath("$.searchData[0].courtCode").value(7))
             .andExpect(jsonPath("$.searchData[0].name").value("AAA Test Court"))
             .andExpect(jsonPath("$.searchData[0].localJusticeAreaId").value(1013))
@@ -154,7 +156,7 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE)
             .header("authorization", userStateStub.getBearerToken())
-            .param("business_unit", "99"));
+            .param("business_unit", "991"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetCourtRefData: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -165,7 +167,7 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[0].court_id").value(7))
             .andExpect(jsonPath("$.refData[0].court_code").value(7))
             .andExpect(jsonPath("$.refData[0].name").value("AAA Test Court"))
-            .andExpect(jsonPath("$.refData[0].business_unit_id").value(99));
+            .andExpect(jsonPath("$.refData[0].business_unit_id").value(991));
 
         jsonSchemaValidationService.validateOrError(body, GET_COURTS_REF_DATA_RESPONSE);
     }
