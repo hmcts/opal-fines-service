@@ -48,6 +48,17 @@ public class BusinessUnitService {
             .orElseThrow(() -> new PermissionNotAllowedException(businessUnitId, permission));
     }
 
+    /**
+     * Null-safe method to route permission check through.
+     */
+    public boolean hasBusinessUnitUserWithPermission(
+        DomainBusinessUnitUsers businessUnitUsers, short businessUnitId, PermissionDescriptor permission) {
+
+        return getBusinessUnitUserForBusinessUnit(businessUnitUsers, businessUnitId)
+            .filter(businessUnitUser -> businessUnitUser.hasPermission(permission))
+            .isPresent();
+    }
+
     public List<BusinessUnitEntity> searchBusinessUnits(BusinessUnitSearchDto criteria) {
 
         Page<BusinessUnitEntity> page = businessUnitRepository

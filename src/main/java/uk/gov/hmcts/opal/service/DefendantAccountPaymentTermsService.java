@@ -51,7 +51,8 @@ public class DefendantAccountPaymentTermsService {
         UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
         DomainBusinessUnitUsers businessUnitUsers = userState.getDomainBusinessUnitUsers(Domain.FINES);
 
-        if (businessUnitUsers.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.AMEND_PAYMENT_TERMS)) {
+        if (businessUnitService.hasBusinessUnitUserWithPermission(
+            businessUnitUsers, businessUnitId, FinesPermission.AMEND_PAYMENT_TERMS)) {
             String businessUnitUserId = businessUnitService.getBusinessUnitUserIdForBusinessUnit(
                 businessUnitUsers, businessUnitId, FinesPermission.AMEND_PAYMENT_TERMS);
             String postedByName = userState.getUsername();

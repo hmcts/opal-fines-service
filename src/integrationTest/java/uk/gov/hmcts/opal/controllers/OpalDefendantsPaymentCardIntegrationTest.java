@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -152,6 +153,35 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
         headers.setBearerAuth(userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
         headers.add("If-Match", "\"" + versionFor(88L) + "\"");
+
+        mockMvc.perform(
+                post("/defendant-accounts/88/payment-card-request")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{}")
+            )
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"))
+            .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.businessUnitId").value(78))
+            .andExpect(jsonPath("$.retriable").value(false));
+    }
+
+    @Test
+    @DisplayName("OPAL: Add Payment Card Request – Forbidden when user has no FINES domain [@PO-6449]")
+    @JiraStory("PO-6449")
+    @JiraEpic("PO-977")
+    void opalAddPaymentCardRequest_Forbidden_NoFinesDomain() throws Exception {
+        userStateStub.setUserState(userStateStub.getDefaultUserStateBuilder()
+            .domains(Map.of())
+            .build());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + versionFor(88L) + "\"");
 
         mockMvc.perform(
                 post("/defendant-accounts/88/payment-card-request")

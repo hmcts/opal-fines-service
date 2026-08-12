@@ -15,6 +15,7 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -112,6 +113,59 @@ class BusinessUnitServiceTest {
         assertThat(ex.getPermission()).containsExactly(FinesPermission.AMEND_PAYMENT_TERMS);
     }
 
+    @Test
+    void hasBusinessUnitUserWithPermission_whenUserHasPermission_returnsTrue() {
+        // Arrange
+        DomainBusinessUnitUsers businessUnitUsers = businessUnitUsers(
+            businessUnitUser((short) 78, "L078JG", FinesPermission.AMEND_PAYMENT_TERMS)
+        );
+
+        // Act
+        boolean result = businessUnitService.hasBusinessUnitUserWithPermission(
+            businessUnitUsers, (short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
+
+        // Assert
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void hasBusinessUnitUserWithPermission_whenBusinessUnitUsersIsNull_returnsFalse() {
+        // Act
+        boolean result = businessUnitService.hasBusinessUnitUserWithPermission(
+            null, (short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
+
+        // Assert
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void hasBusinessUnitUserWithPermission_whenBusinessUnitUserListIsNull_returnsFalse() {
+        // Arrange
+        DomainBusinessUnitUsers businessUnitUsers = DomainBusinessUnitUsers.builder().build();
+
+        // Act
+        boolean result = businessUnitService.hasBusinessUnitUserWithPermission(
+            businessUnitUsers, (short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
+
+        // Assert
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void hasBusinessUnitUserWithPermission_whenPermissionMissing_returnsFalse() {
+        // Arrange
+        DomainBusinessUnitUsers businessUnitUsers = businessUnitUsers(
+            businessUnitUser((short) 78, "L078JG")
+        );
+
+        // Act
+        boolean result = businessUnitService.hasBusinessUnitUserWithPermission(
+            businessUnitUsers, (short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
+
+        // Assert
+        assertThat(result).isFalse();
+    }
+
     @SuppressWarnings("unchecked")
     @Test
     void testSearchBusinessUnits() {
@@ -180,11 +234,22 @@ class BusinessUnitServiceTest {
             .build();
     }
 
-    private static BusinessUnitUser businessUnitUser(short businessUnitId, String businessUnitUserId) {
+    private static BusinessUnitUser businessUnitUser(
+        short businessUnitId, String businessUnitUserId, FinesPermission... permissions) {
+
         return BusinessUnitUser.builder()
             .businessUnitId(businessUnitId)
             .businessUnitUserId(businessUnitUserId)
-            .permissions(Set.of())
+            .permissions(permissionsFor(permissions))
             .build();
+    }
+
+    private static Set<Permission> permissionsFor(FinesPermission... permissions) {
+        return Arrays.stream(permissions)
+            .map(permission -> Permission.builder()
+                .permissionId(permission.getId())
+                .permissionName(permission.getDescription())
+                .build())
+            .collect(Collectors.toSet());
     }
 }
