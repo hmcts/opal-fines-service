@@ -60,7 +60,7 @@ class Release1bFeatureToggleAnnotationTest {
             "MajorCreditorApiController#getCentralFundByBusinessUnit",
             "DefendantAccountApiController#getEnforcementStatus",
             "DefendantAccountController#addPaymentCardRequest",
-            "MinorCreditorController#getMinorCreditorsAtAGlance",
+            "MinorCreditorApiController#getMinorCreditorAccountAtAGlance",
             "DefendantAccountController#getDefendantAccountFixedPenalty",
             "DefendantAccountController#getDefendantAccountParty",
             "DefendantAccountController#addDefendantAccountParty",
