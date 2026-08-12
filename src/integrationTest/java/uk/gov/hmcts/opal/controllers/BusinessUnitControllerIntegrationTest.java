@@ -132,7 +132,8 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[?(@.business_unit_id == 9092)].business_unit_name")
                 .value(hasItem("AAA Business Unit 9092")))
             .andExpect(jsonPath("$.refData[?(@.business_unit_id == 9092)].business_unit_code").value(hasItem("AAAA")))
-            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 9092)].business_unit_type").value(hasItem("Accounting Division")))
+            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 9092)].business_unit_type")
+                .value(hasItem("Accounting Division")))
             .andExpect(jsonPath("$.refData[?(@.business_unit_id == 9092)].account_number_prefix").value(hasItem("XX")))
             .andExpect(jsonPath("$.refData[?(@.business_unit_id == 9092)].welsh_language").value(hasItem(true)))
             .andExpect(jsonPath("$.refData[?(@.business_unit_id == 9092)].opal_domain").value(hasItem("Fines")));
@@ -175,7 +176,8 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[?(@.business_unit_id == 9092)].business_unit_name")
                 .value(hasItem("AAA Business Unit 9092")))
             .andExpect(jsonPath("$.refData[?(@.business_unit_id == 9092)].business_unit_code").value(hasItem("AAAA")))
-            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 9092)].business_unit_type").value(hasItem("Accounting Division")))
+            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 9092)].business_unit_type")
+                .value(hasItem("Accounting Division")))
             .andExpect(jsonPath("$.refData[?(@.business_unit_id == 9092)].account_number_prefix").value(hasItem("XX")))
             .andExpect(jsonPath("$.refData[?(@.business_unit_id == 9092)].opal_domain").value(hasItem("Fines")));
     }
