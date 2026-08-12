@@ -12,11 +12,8 @@ public class LegacyBusinessUnitCodeResolver {
     private final BusinessUnitRepository businessUnitRepository;
 
     public String resolve(String businessUnitId, String legacyBusinessUnitCode) {
-        if (StringUtils.hasText(legacyBusinessUnitCode) && !legacyBusinessUnitCode.equals(businessUnitId)) {
-            return legacyBusinessUnitCode;
-        }
-
-        if (!StringUtils.hasText(businessUnitId)) {
+        if ((StringUtils.hasText(legacyBusinessUnitCode) && !legacyBusinessUnitCode.equals(businessUnitId))
+            || !StringUtils.hasText(businessUnitId)) {
             return legacyBusinessUnitCode;
         }
 
