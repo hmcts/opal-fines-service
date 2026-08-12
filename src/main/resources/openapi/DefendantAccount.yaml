@@ -692,7 +692,7 @@ paths:
           name: Business-Unit-Id
           description: Business unit identifier
           schema:
-            type: string
+            $ref: './types.yaml#/components/schemas/BusinessUnitId'
           required: true
         - in: header
           name: If-Match

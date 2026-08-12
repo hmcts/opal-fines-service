@@ -19,11 +19,11 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.http.api.DefendantAccountApi;
-import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.AddPaymentCardRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
@@ -49,11 +49,11 @@ public class DefendantAccountApiController implements DefendantAccountApi {
     @Override
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<AddPaymentCardRequestDefendantAccount> addPaymentCardRequest(Long id,
-        String businessUnitId, String ifMatch) {
+        Short businessUnitId, String ifMatch) {
         log.debug(":POST:addPaymentCardRequest: for defendantAccountId={}", id);
 
         AddPaymentCardRequestResponse response =
-            defendantAccountPaymentTermsService.addPaymentCardRequest(id, businessUnitId, ifMatch);
+            defendantAccountPaymentTermsService.addPaymentCardRequest(id, businessUnitId.toString(), ifMatch);
         AddPaymentCardRequestDefendantAccount generatedResponse = AddPaymentCardRequestDefendantAccount.builder()
             .defendantAccountId(response.getDefendantAccountId())
             .build();
