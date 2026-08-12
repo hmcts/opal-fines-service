@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.disco.opal;
 
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -91,7 +92,7 @@ class BusinessUnitServiceTest {
                 ConfigurationItemEntity.builder()
                     .itemName("A Config Item")
                     .itemValue("A value")
-                    .itemValues(List.of("Item Values One", "Item Values Two"))
+                    .itemValues(Map.of("Key1", "Item Values One", "Key2", "Item Values Two"))
                     .build()))
             .build();
 
@@ -112,6 +113,7 @@ class BusinessUnitServiceTest {
             (short)3, "Big Business Unit", null,
             BusinessUnitType.AREA.getLabel(), null,
             null, Boolean.TRUE, List.of(new BusinessUnitReferenceData.ConfigItemRefData(
-            "A Config Item", "A value", List.of("Item Values One", "Item Values Two"))))), result);
+            "A Config Item", "A value", Map.of("Key1", "Item Values One",
+            "Key2", "Item Values Two"))))), result);
     }
 }
