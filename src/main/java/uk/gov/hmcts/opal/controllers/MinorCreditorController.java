@@ -55,12 +55,9 @@ public class MinorCreditorController {
     @Operation(summary = "Searches MinorCreditors based upon criteria in request body")
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<PostMinorCreditorAccountsSearchResponse> postMinorCreditorsSearch(
-        @RequestBody MinorCreditorSearch criteria) throws InterruptedException {
+        @RequestBody MinorCreditorSearch criteria) {
 
         log.debug(":POST:postMinorCreditorsSearch: query: \n{}", criteria);
-
-        System.out.println("\n\n Sleeping to trigger azure timeout... \n\n");
-        Thread.sleep(Duration.ofSeconds(60));
 
         PostMinorCreditorAccountsSearchResponse response = minorCreditorService
             .searchMinorCreditors(criteria);
