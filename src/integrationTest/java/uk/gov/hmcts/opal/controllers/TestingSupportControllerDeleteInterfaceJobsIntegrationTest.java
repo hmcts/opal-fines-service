@@ -67,8 +67,8 @@ public class TestingSupportControllerDeleteInterfaceJobsIntegrationTest extends 
     @JiraStory("PO-2578")
     @JiraEpic("PO-2468")
     void shouldDeleteInterfaceJobsAndAssociatedData() throws Exception {
-        long interfaceJobId_1 = 987651L;
-        long InterfaceJobId_2 = 987652L;
+        long interfaceJobId1 = 987651L;
+        long interfaceJobId2 = 987652L;
         List<Long> interfaceFileIds = List.of(987751L, 987752L);
 
 
@@ -79,7 +79,7 @@ public class TestingSupportControllerDeleteInterfaceJobsIntegrationTest extends 
         assertThat(paymentInRepository.count()).isEqualTo(2);
 
         ResultActions actions = mockMvc.perform(delete(URL)
-            .queryParam("ids", "" + interfaceJobId_1, "" + InterfaceJobId_2));
+            .queryParam("ids", "" + interfaceJobId1, "" + interfaceJobId2));
 
         actions.andExpect(status().isOk());
 
