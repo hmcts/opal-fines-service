@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.controllers;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -19,6 +20,7 @@ public class TestingSupportControllerDeleteInterfaceJobsDisabledIntegrationTest 
     @Test
     @JiraStory("PO-2578")
     @JiraEpic("PO-2468")
+    @DisplayName("Testing support disabled, DELETE /testing-support/interface-jobs returns 404")
     void shouldReturn404() throws Exception {
         mockMvc.perform(delete(URL)
             .queryParam("ids", "987651")

@@ -28,8 +28,8 @@ INSERT INTO tills (
     owned_by_name
 )
 VALUES
-    (987951, (SELECT MIN(business_unit_id) FROM business_units), 1, 'test-user', 987751, 'Test User'),
-    (987952, (SELECT MIN(business_unit_id) FROM business_units), 2, 'test-user', 987752, 'Test User');
+    (987951, 77, 1, 'test-user', 987751, 'Test User'),
+    (987952, 77, 2, 'test-user', 987752, 'Test User');
 
 INSERT INTO payments_in (
     payment_in_id,

@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AccessLevel;
@@ -109,9 +110,8 @@ public class InterfaceJobService {
 
     @Transactional
     public void deleteInterfaceJobs(List<Long> interfaceJobIds) {
-        if (interfaceJobIds == null || interfaceJobIds.isEmpty()) {
-            log.warn("TEST ENDPOINT: No interface job ids supplied for deletion");
-            return;
+        if (interfaceJobIds.isEmpty() || interfaceJobRepository.findAllById(interfaceJobIds).isEmpty()) {
+            throw new EntityNotFoundException("Interface job ids supplied for deletion not found");
         }
         log.warn("DESTRUCTIVE OPERATION: Deleting interface jobs with ids: {}", interfaceJobIds);
         interfaceJobRepository.deleteAllById(interfaceJobIds);
