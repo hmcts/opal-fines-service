@@ -116,6 +116,32 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
     }
 
     @Test
+    @DisplayName("OPAL: Add Payment Card Request – Not acceptable when Business-Unit-Id is non-numeric [@PO-6449]")
+    @JiraStory("PO-6449")
+    @JiraEpic("PO-977")
+    void opalAddPaymentCardRequest_InvalidBusinessUnitHeader_returnsTypeMismatch() throws Exception {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
+        headers.add("Business-Unit-Id", "abc");
+        headers.add("If-Match", "\"0\"");
+
+        mockMvc.perform(
+                post("/defendant-accounts/88/payment-card-request")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{}")
+            )
+            .andExpect(status().isNotAcceptable())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/type-mismatch"))
+            .andExpect(jsonPath("$.title").value("Not Acceptable"))
+            .andExpect(jsonPath("$.status").value(406))
+            .andExpect(jsonPath("$.detail").value("Invalid parameter value format"))
+            .andExpect(jsonPath("$.reason").exists());
+    }
+
+    @Test
     @DisplayName("OPAL: Add Payment Card Request – Forbidden when user has no business-unit user [@PO-6449]")
     @JiraStory("PO-6449")
     @JiraEpic("PO-977")
