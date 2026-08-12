@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.DRAFT_ACCOUNT_PERMISSIONS;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
 
 import java.util.List;
@@ -235,6 +236,25 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
                     content().contentTypeCompatibleWith(APPLICATION_JSON),
                     content().json("[]")
                 );
+        }
+
+        @Test
+        @JiraStory("PO-9147")
+        @JiraEpic("PO-2248")
+        void whenUserHasMorePermissions_additionalReportIsFound_happyPath() throws Exception {
+            userStateStub.addPermissions((short) 10, DRAFT_ACCOUNT_PERMISSIONS);
+            userStateStub.addPermissions((short) 20, DRAFT_ACCOUNT_PERMISSIONS);
+
+            mockMvc.perform(authorisedGet())
+                .andExpectAll(
+                    status().isOk(),
+                    content().contentTypeCompatibleWith(APPLICATION_JSON),
+                    jsonPath("$").isArray(),
+                    jsonPath("$.length()").value(4),
+                    jsonPath("$[*].report_id", Matchers.not(Matchers.hasItem(UNCONFIGURED_REPORT_ID))),
+                    jsonPath("$[*].instance_id", Matchers.not(Matchers.hasItem(REPORT_INSTANCE_ID_NOPERMS_REPORT))),
+                    jsonPath("$[*].report_id", Matchers.hasItem("it_report_diff_perm")),
+                    jsonPath("$[*].instance_id", Matchers.hasItem(9005)));
         }
 
         @Test

@@ -38,6 +38,20 @@ INSERT INTO public.reports (
     NULL,
     '{CSV,PDF}',
     true
+),
+(
+ 'it_report_diff_perm',
+ 'Integration Report Unconfigured',
+ 'Operational Reports',
+ false,
+ NULL,
+ true,
+ false,
+ false,
+ 'P30D',
+ 'CREATE_MANAGE_DRAFT_ACCOUNTS',
+ '{CSV,PDF}',
+ true
 );
 
 INSERT INTO public.report_instances (
@@ -108,5 +122,19 @@ INSERT INTO public.report_instances (
     '2026-04-01 10:00:00',
     'READY',
     'Unconfigured Report',
+    50
+),
+(
+    9005,
+    'it_report_diff_perm',
+    '{10}',
+    4,
+    '2026-04-01 11:00:00',
+    44,
+    'Unauthorised User',
+    NULL,
+    '2026-04-01 10:00:00',
+    'READY',
+    'Another Unconfigured Report',
     50
 );
