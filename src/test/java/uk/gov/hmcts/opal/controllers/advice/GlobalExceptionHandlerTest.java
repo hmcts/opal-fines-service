@@ -2,12 +2,15 @@ package uk.gov.hmcts.opal.controllers.advice;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
 import feign.Response;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import java.math.BigInteger;
 import java.net.URI;
 import java.util.Collection;
@@ -15,12 +18,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
@@ -188,6 +194,47 @@ class GlobalExceptionHandlerTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertEquals("Internal Server Error", response.getBody().getTitle());
         assertEquals("missing config", response.getBody().getDetail());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "/business-units/search",
+        "/draft-accounts/search",
+        "/draft-accounts/123",
+        "/local-justice-areas/search",
+        "/major-creditors/search",
+        "/minor-creditor-accounts/123"
+    })
+    void handleMethodNotSupported_disabledTestingSupportEndpoint_returnsNotFoundProblem(String requestUri) {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getRequestURI()).thenReturn(requestUri);
+
+        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleMethodNotSupportedException(
+            new HttpRequestMethodNotSupportedException("GET"),
+            request
+        );
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Not Found", response.getBody().getTitle());
+        assertEquals("The requested endpoint could not be found", response.getBody().getDetail());
+    }
+
+    @Test
+    void handleMethodNotSupported_enabledTestingSupportEndpoint_returnsInternalServerErrorProblem() {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getRequestURI()).thenReturn("/business-units/123");
+
+        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleMethodNotSupportedException(
+            new HttpRequestMethodNotSupportedException("GET"),
+            request
+        );
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Internal Server Error", response.getBody().getTitle());
+        assertEquals(
+            "An unexpected error occurred while processing your request",
+            response.getBody().getDetail()
+        );
     }
 
     @Test
