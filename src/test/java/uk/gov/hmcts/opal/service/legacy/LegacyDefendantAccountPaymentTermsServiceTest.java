@@ -106,7 +106,8 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
 
         // When
         AddPaymentCardRequestResponse out =
-            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L, (short) 78, "L080JG", "Tester Name", "4");
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L,
+                (short) 78, "L080JG", "Tester Name", "4");
 
         // Then
         assertNotNull(out);
@@ -176,7 +177,8 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(99L, (short) 78, "L080JG", "Tester Name", "1")
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(99L,
+                (short) 78, "L080JG", "Tester Name", "1")
         );
     }
 
@@ -196,7 +198,8 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(88L, (short) 78, "L080JG", "Tester Name", "2")
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(88L,
+                (short) 78, "L080JG", "Tester Name", "2")
         );
     }
 
@@ -214,7 +217,8 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(55L, (short) 78, "L080JG", "Tester Name", "3")
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(55L,
+                (short) 78, "L080JG", "Tester Name", "3")
         );
     }
 
