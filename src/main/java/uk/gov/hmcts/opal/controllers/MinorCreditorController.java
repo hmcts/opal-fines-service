@@ -53,10 +53,12 @@ public class MinorCreditorController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches MinorCreditors based upon criteria in request body")
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
+    @SuppressWarnings("deprecation")
     public ResponseEntity<PostMinorCreditorAccountsSearchResponse> postMinorCreditorsSearch(
         @RequestBody MinorCreditorSearch criteria) {
 
         log.debug(":POST:postMinorCreditorsSearch: query: \n{}", criteria);
+        userStateService.checkForAuthorisedUser();
 
         PostMinorCreditorAccountsSearchResponse response = minorCreditorService
             .searchMinorCreditors(criteria);
