@@ -70,7 +70,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             .andExpect(jsonPath("$.submitted_by_name").value("Pablo"))
             .andExpect(jsonPath("$.account_type").value("Fine"))
             .andExpect(jsonPath("$.account_status").value("Resubmitted"))
-            .andExpect(jsonPath("$.account.originator_type").value("TFO"))
+            .andExpect(jsonPath("$.account.originator_type").value("NEW"))
             .andExpect(jsonPath("$.timeline_data").isArray())
             .andExpect(jsonPath("$.timeline_data[1].username").value("L078JG"))
             .andExpect(jsonPath("$.timeline_data[1].status").value("Submitted"))
@@ -159,8 +159,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     void testReplaceDraftAccount_timelineDataIsSupplied() throws Exception {
         String request = validReplaceRequestBody(0L)
             .replace(
-                "\"account_status\": \"Submitted\"",
-                "\"account_status\": \"Submitted\",\n              \"timeline_data\": " + validTimelineDataJson().trim()
+                "\"version\": 0",
+                "\"version\": 0,\n              \"timeline_data\": " + validTimelineDataJson().trim()
             );
         String ifMatch = getIfMatchForDraftAccount(5L);
 
@@ -738,9 +738,9 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "adultOrYouthOnly",
-                "originator_name": "Police Force",
-                "originator_id": 12345,
-                "originator_type": "TFO",
+                "originator_name": "%s",
+                "originator_id": %d,
+                "originator_type": "NEW",
                 "enforcement_court_id": 260000000048,
                 "collection_order_made": true,
                 "collection_order_made_today": false,
@@ -806,8 +806,9 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 ]
               },
               "account_type": "Fine",
-              "account_status": "Submitted"
-            }""";
+              "account_status": "Submitted",
+              "version": %d
+            }""".formatted(VALID_FINE_ORIGINATOR_NAME, VALID_FINE_ORIGINATOR_ID, version);
     }
 
     private static String nonImpositionResultReplaceRequestBody(Long version) {
@@ -817,6 +818,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
     private static String invalidReferenceReplaceRequestBody(Long version) {
         return validReplaceRequestBody(version)
+            .replace("\"originator_id\": " + VALID_FINE_ORIGINATOR_ID, "\"originator_id\": 999995")
             .replace("\"enforcement_court_id\": 260000000048", "\"enforcement_court_id\": 999999")
             .replace("\"offence_id\": 35014", "\"offence_id\": 999998")
             .replace("\"imposing_court_id\": 260000000048", "\"imposing_court_id\": 999997")
@@ -826,12 +828,13 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
     private static String expectedReferenceValidationErrorMessage() {
         return """
-            Draft account reference validation failed with 5 error(s):
+            Draft account reference validation failed with 6 error(s):
              - $.enforcement_court_id: court id 999999 does not exist
              - account.offences[0].offence_id: offence id 999998 does not exist
              - $.offences[0].imposing_court_id: court id 999997 does not exist
              - $.offences[0].impositions[0].result_id: result id NOT-A-RESULT does not exist
              - $.offences[0].impositions[0].major_creditor_id: major creditor id 999996 does not exist
+             - $.originator_id: local justice area id 999995 does not exist
             """.stripIndent().stripTrailing();
     }
 
@@ -849,8 +852,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "pgToPay",
-                "originator_name": "Police Force",
-                "originator_id": 12345,
+                "originator_name": "%s",
+                "originator_id": %d,
                 "originator_type": "NEW",
                 "enforcement_court_id": 260000000048,
                 "collection_order_made": true,
@@ -907,9 +910,10 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 ]
               },
               "account_type": "Fine",
-              "account_status": "Submitted"
+              "account_status": "Submitted",
+              "version": %d
             }
-            """;
+            """.formatted(VALID_FINE_ORIGINATOR_NAME, VALID_FINE_ORIGINATOR_ID, version);
     }
 
     private static String validReplaceRequestBodyDefendantOnly(Long version) {
@@ -919,8 +923,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "adultOrYouthOnly",
-                "originator_name": "Police Force",
-                "originator_id": 12345,
+                "originator_name": "%s",
+                "originator_id": %d,
                 "originator_type": "NEW",
                 "enforcement_court_id": 260000000048,
                 "collection_order_made": true,
@@ -962,9 +966,10 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 ]
               },
               "account_type": "Fine",
-              "account_status": "Submitted"
+              "account_status": "Submitted",
+              "version": %d
             }
-            """;
+            """.formatted(VALID_FINE_ORIGINATOR_NAME, VALID_FINE_ORIGINATOR_ID, version);
     }
 
     private static String validReplaceRequestBodyParentGuardianOnly(Long version) {
@@ -974,8 +979,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "pgToPay",
-                "originator_name": "Police Force",
-                "originator_id": 12345,
+                "originator_name": "%s",
+                "originator_id": %d,
                 "originator_type": "NEW",
                 "enforcement_court_id": 260000000048,
                 "collection_order_made": true,
@@ -1025,9 +1030,10 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 ]
               },
               "account_type": "Fine",
-              "account_status": "Submitted"
+              "account_status": "Submitted",
+              "version": %d
             }
-            """;
+            """.formatted(VALID_FINE_ORIGINATOR_NAME, VALID_FINE_ORIGINATOR_ID, version);
     }
 
     private static String validReplaceRequestBodyMinorCreditorOnly(Long version) {
@@ -1037,8 +1043,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "adultOrYouthOnly",
-                "originator_name": "Police Force",
-                "originator_id": 12345,
+                "originator_name": "%s",
+                "originator_id": %d,
                 "originator_type": "NEW",
                 "enforcement_court_id": 260000000048,
                 "collection_order_made": true,
@@ -1087,9 +1093,10 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 ]
               },
               "account_type": "Fine",
-              "account_status": "Submitted"
+              "account_status": "Submitted",
+              "version": %d
             }
-            """;
+            """.formatted(VALID_FINE_ORIGINATOR_NAME, VALID_FINE_ORIGINATOR_ID, version);
     }
 
 }

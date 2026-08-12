@@ -179,8 +179,8 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "Adult",
-                "originator_name": "Police Force",
-                "originator_id": 12345,
+                "originator_name": "%s",
+                "originator_id": %d,
                 "originator_type": "NEW",
                 "enforcement_court_id": 260000000048,
                 "collection_order_made": true,
@@ -247,8 +247,9 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
                 ]
               },
               "account_type": "Fine",
-              "account_status": "Submitted"
-            }""";
+              "account_status": "Submitted",
+              "version": 0
+            }""".formatted(VALID_FINE_ORIGINATOR_NAME, VALID_FINE_ORIGINATOR_ID);
     }
 
     private static String invalidCreateRequestBody() {
