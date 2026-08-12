@@ -296,7 +296,7 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
     @Override
     public AddPaymentCardRequestResponse addPaymentCardRequest(
         Long defendantAccountId,
-        String businessUnitId,
+        Short businessUnitId,
         String businessUnitUserId,
         String postedByName,
         String ifMatch
@@ -314,23 +314,23 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
         return new AddPaymentCardRequestResponse(id);
     }
 
-    private String requireBusinessUnitUserId(String businessUnitUserId, String businessUnitId) {
+    private String requireBusinessUnitUserId(String businessUnitUserId, Short businessUnitId) {
         if (businessUnitUserId == null || businessUnitUserId.isBlank()) {
             throw new PermissionNotAllowedException(
-                Short.parseShort(businessUnitId), FinesPermission.AMEND_PAYMENT_TERMS);
+                businessUnitId, FinesPermission.AMEND_PAYMENT_TERMS);
         }
         return businessUnitUserId;
     }
 
     private AddPaymentCardLegacyRequest buildLegacyRequest(
         Long defendantAccountId,
-        String businessUnitId,
+        Short businessUnitId,
         String businessUnitUserId,
         String version
     ) {
         return AddPaymentCardLegacyRequest.builder()
             .defendantAccountId(String.valueOf(defendantAccountId))
-            .businessUnitId(businessUnitId)
+            .businessUnitId(String.valueOf(businessUnitId))
             .businessUnitUserId(businessUnitUserId)
             .version(version)
             .build();

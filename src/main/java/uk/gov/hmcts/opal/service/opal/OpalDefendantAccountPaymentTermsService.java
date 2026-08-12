@@ -74,7 +74,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
     @Override
     @Transactional
     public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
-        String businessUnitId,
+        Short businessUnitId,
         String businessUnitUserId,
         String postedByName,
         String ifMatch) {
@@ -82,7 +82,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
         log.debug(":addPaymentCardRequest (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
         final String requiredBusinessUnitUserId = requireBusinessUnitUserId(businessUnitUserId, businessUnitId);
-        DefendantAccountEntity account = loadAndValidateAccount(defendantAccountId, businessUnitId);
+        DefendantAccountEntity account = loadAndValidateAccount(defendantAccountId, String.valueOf(businessUnitId));
         VersionUtils.verifyIfMatch(account, ifMatch, account.getDefendantAccountId(), "addPaymentCardRequest");
         defendantAccountControlValidator.validateCanAddPaymentCardRequest(account);
 
@@ -99,10 +99,10 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
         return new AddPaymentCardRequestResponse(defendantAccountId);
     }
 
-    private String requireBusinessUnitUserId(String businessUnitUserId, String businessUnitId) {
+    private String requireBusinessUnitUserId(String businessUnitUserId, Short businessUnitId) {
         if (businessUnitUserId == null || businessUnitUserId.isBlank()) {
             throw new PermissionNotAllowedException(
-                Short.parseShort(businessUnitId), FinesPermission.AMEND_PAYMENT_TERMS);
+                businessUnitId, FinesPermission.AMEND_PAYMENT_TERMS);
         }
         return businessUnitUserId;
     }

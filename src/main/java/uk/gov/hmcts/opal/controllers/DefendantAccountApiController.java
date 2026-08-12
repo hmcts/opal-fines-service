@@ -53,7 +53,7 @@ public class DefendantAccountApiController implements DefendantAccountApi {
         log.debug(":POST:addPaymentCardRequest: for defendantAccountId={}", id);
 
         AddPaymentCardRequestResponse response =
-            defendantAccountPaymentTermsService.addPaymentCardRequest(id, businessUnitId.toString(), ifMatch);
+            defendantAccountPaymentTermsService.addPaymentCardRequest(id, businessUnitId, ifMatch);
         AddPaymentCardRequestDefendantAccount generatedResponse = AddPaymentCardRequestDefendantAccount.builder()
             .defendantAccountId(response.getDefendantAccountId())
             .build();

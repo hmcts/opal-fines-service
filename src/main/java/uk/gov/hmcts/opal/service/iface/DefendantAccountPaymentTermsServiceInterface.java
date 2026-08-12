@@ -8,7 +8,8 @@ public interface DefendantAccountPaymentTermsServiceInterface {
 
     GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId);
 
-    AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId, String businessUnitId,
+    AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
+        Short businessUnitId,
         String businessUnitUserId,
         String postedByName, String ifMatch);
 

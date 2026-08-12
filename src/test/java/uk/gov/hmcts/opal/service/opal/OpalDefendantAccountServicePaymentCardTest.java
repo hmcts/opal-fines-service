@@ -79,7 +79,7 @@ class OpalDefendantAccountServicePaymentCardTest {
             .thenAnswer(inv -> inv.getArgument(0));
 
         AddPaymentCardRequestResponse response = service.addPaymentCardRequest(
-            accountId, "10", "L080JG", "John Smith", "\"1\""
+            accountId, (short) 10, "L080JG", "John Smith", "\"1\""
         );
 
         assertNotNull(response);
@@ -105,7 +105,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(paymentCardRequestRepositoryService.existsByDefendantAccountId(1L)).thenReturn(true);
 
         assertThrows(PaymentCardRequestAlreadyExistsException.class, () ->
-            service.addPaymentCardRequest(1L, "10", "L080JG", "John Smith", "\"1\"")
+            service.addPaymentCardRequest(1L, (short) 10, "L080JG", "John Smith", "\"1\"")
         );
     }
 
@@ -119,7 +119,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
         assertThrows(EntityNotFoundException.class, () ->
-            service.addPaymentCardRequest(1L, "10", "L080JG", "John Smith", "\"1\"")
+            service.addPaymentCardRequest(1L, (short) 10, "L080JG", "John Smith", "\"1\"")
         );
     }
 
@@ -129,7 +129,7 @@ class OpalDefendantAccountServicePaymentCardTest {
     void addPaymentCardRequest_missingBusinessUnitUserId_throws403BeforeMutation(String businessUnitUserId) {
         PermissionNotAllowedException ex = assertThrows(
             PermissionNotAllowedException.class,
-            () -> service.addPaymentCardRequest(1L, "10", businessUnitUserId, "John Smith", "\"1\"")
+            () -> service.addPaymentCardRequest(1L, (short) 10, businessUnitUserId, "John Smith", "\"1\"")
         );
 
         assertThat(ex.getPermission()).containsExactly(FinesPermission.AMEND_PAYMENT_TERMS);
@@ -152,7 +152,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
         assertThrows(ObjectOptimisticLockingFailureException.class, () ->
-            service.addPaymentCardRequest(1L, "10", "L080JG", "John Smith", "\"0\"")
+            service.addPaymentCardRequest(1L, (short) 10, "L080JG", "John Smith", "\"0\"")
         );
     }
 
@@ -166,7 +166,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
         assertThrows(EntityNotFoundException.class, () ->
-            service.addPaymentCardRequest(1L, "10", "BU-USER-123", "John Smith", "\"1\"")
+            service.addPaymentCardRequest(1L, (short) 10, "BU-USER-123", "John Smith", "\"1\"")
         );
 
         verify(defendantAccountRepositoryService, never()).save(any());
@@ -185,7 +185,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         doThrow(exception).when(defendantAccountControlValidator).validateCanAddPaymentCardRequest(account);
 
         UnprocessableException result = assertThrows(UnprocessableException.class, () ->
-            service.addPaymentCardRequest(1L, "10", "BU-USER-123", "John Smith", "\"1\""));
+            service.addPaymentCardRequest(1L, (short) 10, "BU-USER-123", "John Smith", "\"1\""));
 
         assertEquals(exception, result);
         verify(defendantAccountControlValidator).validateCanAddPaymentCardRequest(account);
@@ -211,7 +211,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(defendantAccountRepositoryService.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         AddPaymentCardRequestResponse response = service.addPaymentCardRequest(
-            accountId, "10", "L080JG", "John Smith", "\"1\""
+            accountId, (short) 10, "L080JG", "John Smith", "\"1\""
         );
 
         assertNotNull(response);
@@ -242,7 +242,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         //Act
         PermissionNotAllowedException ex = assertThrows(
             PermissionNotAllowedException.class,
-            () -> svc.addPaymentCardRequest(1L, "10", "\"1\"")
+            () -> svc.addPaymentCardRequest(1L, (short) 10, "\"1\"")
         );
 
         //Assert
@@ -270,7 +270,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         //Act
         PermissionNotAllowedException ex = assertThrows(
             PermissionNotAllowedException.class,
-            () -> svc.addPaymentCardRequest(1L, "10", "\"1\"")
+            () -> svc.addPaymentCardRequest(1L, (short) 10, "\"1\"")
         );
 
         //Assert

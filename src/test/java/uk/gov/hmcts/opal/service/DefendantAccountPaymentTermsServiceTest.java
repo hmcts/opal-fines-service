@@ -106,7 +106,7 @@ class DefendantAccountPaymentTermsServiceTest {
     void addPaymentCardRequest_derivesBusinessUnitUserIdAndPostedByNameFromUserStateV2() {
         // arrange
         Long defendantAccountId = 77L;
-        String businessUnitId = "10";
+        Short businessUnitId = (short) 10;
         String derivedBusinessUnitUserId = "USER01";
         String ifMatch = "\"1\"";
         DomainBusinessUnitUsers businessUnitUsers = businessUnitUsers(
@@ -185,7 +185,7 @@ class DefendantAccountPaymentTermsServiceTest {
     void addPaymentCardRequest_userHasBusinessUnitUserAndPermission_callsProxyWithDerivedId() {
         // Arrange
         Long defendantAccountId = 77L;
-        String businessUnitId = "78";
+        short businessUnitId = 78;
         String businessUnitUserId = "L080JG";
         String ifMatch = "\"4\"";
         AddPaymentCardRequestResponse proxyResponse = new AddPaymentCardRequestResponse(defendantAccountId);
@@ -235,7 +235,7 @@ class DefendantAccountPaymentTermsServiceTest {
         // Act
         PermissionNotAllowedException ex = assertThrows(
             PermissionNotAllowedException.class,
-            () -> defendantAccountPaymentTermsService.addPaymentCardRequest(77L, "78", "\"4\"")
+            () -> defendantAccountPaymentTermsService.addPaymentCardRequest(77L, (short) 78, "\"4\"")
         );
 
         // Assert
@@ -257,7 +257,7 @@ class DefendantAccountPaymentTermsServiceTest {
         // Act
         PermissionNotAllowedException ex = assertThrows(
             PermissionNotAllowedException.class,
-            () -> defendantAccountPaymentTermsService.addPaymentCardRequest(77L, "78", "\"4\"")
+            () -> defendantAccountPaymentTermsService.addPaymentCardRequest(77L, (short) 78, "\"4\"")
         );
 
         // Assert

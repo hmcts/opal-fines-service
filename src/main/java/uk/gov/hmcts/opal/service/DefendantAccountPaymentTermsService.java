@@ -43,18 +43,17 @@ public class DefendantAccountPaymentTermsService {
     // Using V2 FINES-domain user state for the payment-card request path.
     public AddPaymentCardRequestResponse addPaymentCardRequest(
         Long defendantAccountId,
-        String businessUnitId,
+        Short businessUnitId,
         String ifMatch
     ) {
         log.debug(":addPaymentCardRequest:");
 
         UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
-        short buId = Short.parseShort(businessUnitId);
         DomainBusinessUnitUsers businessUnitUsers = userState.getDomainBusinessUnitUsers(Domain.FINES);
 
-        if (businessUnitUsers.hasBusinessUnitUserWithPermission(buId, FinesPermission.AMEND_PAYMENT_TERMS)) {
+        if (businessUnitUsers.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.AMEND_PAYMENT_TERMS)) {
             String businessUnitUserId = businessUnitService.getBusinessUnitUserIdForBusinessUnit(
-                businessUnitUsers, buId, FinesPermission.AMEND_PAYMENT_TERMS);
+                businessUnitUsers, businessUnitId, FinesPermission.AMEND_PAYMENT_TERMS);
             String postedByName = userState.getUsername();
 
             return defendantAccountPaymentTermsServiceProxy.addPaymentCardRequest(
@@ -65,7 +64,7 @@ public class DefendantAccountPaymentTermsService {
                 ifMatch
             );
         } else {
-            throw new PermissionNotAllowedException(buId, FinesPermission.AMEND_PAYMENT_TERMS);
+            throw new PermissionNotAllowedException(businessUnitId, FinesPermission.AMEND_PAYMENT_TERMS);
         }
     }
 
