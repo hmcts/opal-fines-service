@@ -97,7 +97,7 @@ public class TestingSupportEndpointToggleIntegrationTest extends AbstractFeature
     @DisplayName("should return 404 Not Found?")
     @JiraStory("PO-6409")
     @JiraEpic("PO-8248")
-    void shouldReturn404When1cEnforcementOperationalReportingIsDisabled(String description,
+    void shouldReturn404WhenTestingSupportIsDisabled(String description,
         MockHttpServletRequestBuilder request)
         throws Exception {
         log.debug("Testing feature-disabled 404 for: {}", description);

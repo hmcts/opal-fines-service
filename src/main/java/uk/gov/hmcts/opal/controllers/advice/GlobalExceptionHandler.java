@@ -337,6 +337,7 @@ public class GlobalExceptionHandler {
         HttpServletRequest request) {
 
         if (isDisabledTestingSupportEndpoint(request.getRequestURI())) {
+            log.info("Call to disabled testing support endpoint for request URI {}", request.getRequestURI());
             ProblemDetail problemDetail = createProblemDetail(
                 HttpStatus.NOT_FOUND,
                 "Not Found",
@@ -345,29 +346,27 @@ public class GlobalExceptionHandler {
                 false,
                 ex
             );
-
             return responseWithProblemDetail(HttpStatus.NOT_FOUND, problemDetail);
         }
 
         ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.METHOD_NOT_ALLOWED,
-            "Method Not Allowed",
-            ex.getMessage(),
-            "method-not-allowed",
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Internal Server Error",
+            "An unexpected error occurred while processing your request",
+            "servlet-error",
             false,
             ex
         );
-
-        return responseWithProblemDetail(HttpStatus.METHOD_NOT_ALLOWED, problemDetail);
+        return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
     private boolean isDisabledTestingSupportEndpoint(String path) {
         return path.equals("/business-units/search")
             || path.equals("/draft-accounts/search")
-            || path.matches("/draft-accounts/[^/]+")
+            || path.matches("/draft-accounts/\\d+$")
             || path.equals("/local-justice-areas/search")
             || path.equals("/major-creditors/search")
-            || path.matches("/minor-creditor-accounts/[^/]+");
+            || path.matches("/minor-creditor-accounts/\\d+$");
     }
 
 
