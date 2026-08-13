@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
@@ -55,19 +54,6 @@ public class MinorCreditorController {
 
         PostMinorCreditorAccountsSearchResponse response = minorCreditorService
             .searchMinorCreditors(criteria);
-
-        return buildResponse(response);
-    }
-
-    @GetMapping(value = "{minorCreditorId}/at-a-glance")
-    @Operation(summary = "Get Minor Creditor Account At A Glance")
-    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<GetMinorCreditorAccountAtAGlanceResponse> getMinorCreditorsAtAGlance(
-        @PathVariable Long minorCreditorId) {
-        log.debug(":GET:getMinorCreditorsAtAGlance: query: \n{}", minorCreditorId);
-
-        GetMinorCreditorAccountAtAGlanceResponse response = minorCreditorService
-            .getMinorCreditorAtAGlance(minorCreditorId);
 
         return buildResponse(response);
     }

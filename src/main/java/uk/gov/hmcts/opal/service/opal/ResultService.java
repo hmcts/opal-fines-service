@@ -17,12 +17,12 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
-import uk.gov.hmcts.opal.dto.ResultDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.generated.model.GetResultByIdResponseResults;
 import uk.gov.hmcts.opal.mapper.ResultMapper;
 import uk.gov.hmcts.opal.repository.ResultRepository;
 import uk.gov.hmcts.opal.repository.jpa.ResultSpecs;
@@ -63,11 +63,11 @@ public class ResultService {
 
     @Cacheable(value = "resultsCache", key = "#root.method.name + '_' + #resultId + '_' + #includeWelsh")
     @Transactional(readOnly = true)
-    public ResultDto getResult(String resultId, boolean includeWelsh) {
+    public GetResultByIdResponseResults getResult(String resultId, boolean includeWelsh) {
         ResultEntity entity = resultRepository.findWithFullGraphByResultId(resultId)
             .orElseThrow(() -> new EntityNotFoundException("'Result' not found with id: " + resultId));
 
-        ResultDto result = resultMapper.toDto(entity);
+        GetResultByIdResponseResults result = resultMapper.toDto(entity);
         if (includeWelsh) {
             result.setResultParameters(addWelshResultParameters(result.getResultParameters()));
         }

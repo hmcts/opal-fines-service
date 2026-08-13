@@ -18,6 +18,8 @@ public class SchemaPaths {
 
     public static final String GET_RESULTS_REF_DATA_RESPONSE = REFERENCE_DATA + "/getResultsRefDataResponse.json";
 
+    public static final String GET_RESULT_BY_ID_RESPONSE = REFERENCE_DATA + "/getResultByIdResponse.json";
+
     public static final String GET_PROSECUTORS_REF_DATA_RESPONSE = REFERENCE_DATA
         + "/getProsecutorsRefDataResponse.json";
 
