@@ -329,6 +329,25 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 
+  /minor-creditor-accounts/search:
+    post:
+      tags:
+        - Minor Creditor
+      summary: Search minor creditors
+      description: Searches minor creditors based upon criteria in request body.
+      operationId: postMinorCreditorSearch
+      security:
+        - permissions:
+            - Search and View Accounts (in any Business Unit).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/postMinorCreditorSearchRequest'
+      responses:
+
+
 components:
   securitySchemes:
     bearerAuth:
@@ -417,3 +436,5 @@ components:
                   description: DB Mapping - creditor_accounts.hold_payout
               required:
                 - hold_payment
+    postMinorCreditorSearchRequest:
+
