@@ -41,7 +41,7 @@ Feature: Replace Draft Account
       | account_snapshot.account_type       | Fine         |
       | account_snapshot.submitted_by       | L073JG       |
       | account_snapshot.business_unit_name | West London  |
-      | account.originator_type             | TFO          |
+      | account.originator_type             | NEW          |
 
     Then the original creation timestamp is preserved
     And I see the account status date is now after the initial account status date
