@@ -27,7 +27,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.config.cache.CacheNames;
-import uk.gov.hmcts.opal.service.hmrc.response.HmrcAuthToken;
+import uk.gov.hmcts.opal.service.hmrc.clients.HmrcAuthCreds;
+import uk.gov.hmcts.opal.service.hmrc.clients.response.HmrcAuthToken;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 

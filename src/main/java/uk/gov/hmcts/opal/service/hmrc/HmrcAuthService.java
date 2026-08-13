@@ -5,7 +5,8 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.config.cache.CacheNames;
 import uk.gov.hmcts.opal.service.hmrc.clients.HmrcAuthClient;
-import uk.gov.hmcts.opal.service.hmrc.response.HmrcAuthToken;
+import uk.gov.hmcts.opal.service.hmrc.clients.HmrcAuthCreds;
+import uk.gov.hmcts.opal.service.hmrc.clients.response.HmrcAuthToken;
 
 @Service
 @Slf4j(topic = "opal.HmrcAuthService")

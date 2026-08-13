@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.hmrc.response;
+package uk.gov.hmcts.opal.service.hmrc.clients.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

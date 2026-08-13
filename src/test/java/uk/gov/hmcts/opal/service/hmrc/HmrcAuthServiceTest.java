@@ -10,7 +10,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.service.hmrc.clients.HmrcAuthClient;
-import uk.gov.hmcts.opal.service.hmrc.response.HmrcAuthToken;
+import uk.gov.hmcts.opal.service.hmrc.clients.HmrcAuthCreds;
+import uk.gov.hmcts.opal.service.hmrc.clients.response.HmrcAuthToken;
 
 @ExtendWith(MockitoExtension.class)
 public class HmrcAuthServiceTest {
