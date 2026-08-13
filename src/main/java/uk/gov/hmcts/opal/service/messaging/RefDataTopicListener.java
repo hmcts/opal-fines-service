@@ -23,7 +23,7 @@ public class RefDataTopicListener {
     )
     public void onMessage(Message message) throws JMSException {
         if (message instanceof TextMessage textMessage) {
-            consumer.consume(textMessage.getText());
+            consumer.processMessage(textMessage.getText());
         } else {
             throw new IllegalArgumentException("Message must be of type TextMessage");
         }

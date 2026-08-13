@@ -30,7 +30,7 @@ class RefDataQueueConsumerServiceIntegrationTest extends AbstractIntegrationTest
     private EntityManager entityManager;
 
     @Test
-    void consume_updatesExistingLocalJusticeAreaFromPayload() {
+    void processMessage_updatesExistingLocalJusticeAreaFromPayload() {
         LocalJusticeAreaEntity original = localJusticeAreaRepository.findAll().stream()
             .findFirst()
             .orElseThrow();
@@ -42,7 +42,7 @@ class RefDataQueueConsumerServiceIntegrationTest extends AbstractIntegrationTest
         entityManager.flush();
         entityManager.clear();
 
-        consumer.consume("""
+        consumer.processMessage("""
             {
               "refDataType": "LOCAL_JUSTICE_AREA",
               "payload": {
@@ -73,7 +73,7 @@ class RefDataQueueConsumerServiceIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
-    void consume_createsNewLocalJusticeAreaFromPayload() {
+    void processMessage_createsNewLocalJusticeAreaFromPayload() {
         Short nextLocalJusticeAreaId = jdbcTemplate.queryForObject("""
                 select coalesce(max(local_justice_area_id), 0) + 1
                 from local_justice_areas
@@ -86,7 +86,7 @@ class RefDataQueueConsumerServiceIntegrationTest extends AbstractIntegrationTest
         String ljaCode = "Z124";
         final long beforeCount = localJusticeAreaRepository.count();
 
-        consumer.consume("""
+        consumer.processMessage("""
             {
               "refDataType": "LOCAL_JUSTICE_AREA",
               "payload": {
@@ -118,7 +118,7 @@ class RefDataQueueConsumerServiceIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
-    void consume_discardsInvalidPayloadWhenRequiredFieldIsMissing() {
+    void processMessage_discardsInvalidPayloadWhenRequiredFieldIsMissing() {
         LocalJusticeAreaEntity original = localJusticeAreaRepository.findAll().stream()
             .findFirst()
             .orElseThrow();
@@ -127,7 +127,7 @@ class RefDataQueueConsumerServiceIntegrationTest extends AbstractIntegrationTest
         final String ljaCode = original.getLjaCode() == null ? "Z125" : original.getLjaCode();
         final long beforeCount = localJusticeAreaRepository.count();
 
-        assertThatCode(() -> consumer.consume("""
+        assertThatCode(() -> consumer.processMessage("""
             {
               "refDataType": "LOCAL_JUSTICE_AREA",
               "payload": {
@@ -151,7 +151,7 @@ class RefDataQueueConsumerServiceIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
-    void consume_discardsInvalidPayloadWhenInvalidLjaTypeIsSupplied() {
+    void processMessage_discardsInvalidPayloadWhenInvalidLjaTypeIsSupplied() {
         LocalJusticeAreaEntity original = localJusticeAreaRepository.findAll().stream()
             .findFirst()
             .orElseThrow();
@@ -168,7 +168,7 @@ class RefDataQueueConsumerServiceIntegrationTest extends AbstractIntegrationTest
             entityManager.clear();
         }
 
-        assertThatCode(() -> consumer.consume("""
+        assertThatCode(() -> consumer.processMessage("""
             {
               "refDataType": "LOCAL_JUSTICE_AREA",
               "payload": {

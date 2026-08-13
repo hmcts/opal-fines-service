@@ -29,7 +29,7 @@ public class RefDataQueueConsumerService {
     }
 
     @Transactional
-    public void consume(String messagePayload) {
+    public void processMessage(String messagePayload) {
         try {
             JsonNode messageNode = readMessageNode(messagePayload);
             schemaValidationService.validateOrError(messageNode, REF_DATA_UPDATE_MESSAGE_SCHEMA);
