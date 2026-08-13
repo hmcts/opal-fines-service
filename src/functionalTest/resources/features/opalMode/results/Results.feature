@@ -67,12 +67,12 @@ Feature: Results Reference Data
       | result_id                | AEO  |
       | requires_employment_data | true |
 
-  @JIRA-STORY:PO-8973 @JIRA-EPIC:PO-304 @R1B
+  @JIRA-STORY:PO-8973 @JIRA-EPIC:PO-304 @R1B @JIRA-TEST-KEY:PO-10065
   Scenario: Result by ID matches OpenAPI schema
     When I request result with identifier "SC"
     Then the result response matches the documented schema
 
-  @JIRA-STORY:PO-8973 @JIRA-EPIC:PO-304 @R1B
+  @JIRA-STORY:PO-8973 @JIRA-EPIC:PO-304 @R1B @JIRA-TEST-KEY:PO-10066
   Scenario: Result by ID maps response fields
     When I request result with identifier "SC"
     Then the result response contains
@@ -103,12 +103,12 @@ Feature: Results Reference Data
       | manual_enforcement            | true                                                          |
       | enf_next_permitted_actions    | CWN                                                           |
 
-  @JIRA-STORY:PO-8973 @JIRA-EPIC:PO-304 @R1B
+  @JIRA-STORY:PO-8973 @JIRA-EPIC:PO-304 @R1B @JIRA-TEST-KEY:PO-10067
   Scenario: Unknown result by ID returns not found
     When I request result with identifier "ZZZZZZ"
     Then the request is rejected as not found
 
-  @JIRA-STORY:PO-8973 @JIRA-EPIC:PO-2630 @R1B
+  @JIRA-STORY:PO-8973 @JIRA-EPIC:PO-2630 @R1B @JIRA-TEST-KEY:PO-10068
   Scenario: Result by ID omits Welsh parameters by default
     When I request result with identifier "SC"
     Then the result parameters do not contain the following entries
