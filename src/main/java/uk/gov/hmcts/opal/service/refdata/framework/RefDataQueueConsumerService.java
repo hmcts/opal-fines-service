@@ -31,19 +31,18 @@ public class RefDataQueueConsumerService {
         try {
             JsonNode messageNode = readMessageNode(messagePayload);
 
+            schemaValidationService.validateOrError(messageNode, REF_DATA_UPDATE_MESSAGE_SCHEMA);
+
             Optional<RefDataUpdateHandler<?, ?>> handler = handlerRegistry.find(
                 messageNode.path("refDataType").asText(null));
             if (handler.isEmpty()) {
-                log.warn("Ignoring ref-data message with no registered handler for type: {}",
+                log.debug("Ignoring ref-data message with no registered handler for type: {}",
                     messageNode.get("refDataType"));
-                log.debug("Ignored ref-data message payload was:\n{}", messagePayload);
                 return;
             }
 
-            schemaValidationService.validateOrError(messageNode, REF_DATA_UPDATE_MESSAGE_SCHEMA);
             applyUpdate(handler.get(), messageNode.get("payload"));
         } catch (IllegalArgumentException | JsonSchemaValidationException ex) {
-            log.warn("Ref-data message will be retried or sent to DLQ: {}", ex.getMessage());
             log.debug("Invalid ref-data message payload was:\n{}", messagePayload, ex);
             throw ex;
         }
