@@ -64,7 +64,8 @@ CREATE OR REPLACE VIEW v_minor_creditor_account_header AS
            FROM impositions i
           WHERE (i.creditor_account_id = t.creditor_account_id)), (0)::numeric)
     END AS outstanding,
-    bu.business_unit_code
+    bu.business_unit_code,
+    t.repayment
    FROM (((( SELECT ca.creditor_account_id,
             ca.account_number AS creditor_account_number,
             ca.creditor_account_type,

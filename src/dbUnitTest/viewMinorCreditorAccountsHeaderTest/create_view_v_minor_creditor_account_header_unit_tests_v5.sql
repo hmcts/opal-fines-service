@@ -57,6 +57,7 @@ DECLARE
     v_creditor_account_id         BIGINT;
     v_creditor_account_number     VARCHAR(20);
     v_creditor_account_type       t_creditor_account_type_enum;
+    v_repayment                   BOOLEAN;
     v_version_number              BIGINT;
     v_party_id                    BIGINT;
     v_title                       VARCHAR(20);
@@ -1330,6 +1331,7 @@ BEGIN
         SELECT creditor_account_id,
                creditor_account_number,
                creditor_account_type,
+               repayment,
                version_number,
                party_id,
                title,
@@ -1350,6 +1352,7 @@ BEGIN
                v_creditor_account_id,
                v_creditor_account_number,
                v_creditor_account_type,
+               v_repayment,
                v_version_number,
                v_party_id,
                v_title,
@@ -1375,6 +1378,11 @@ BEGIN
              WHERE business_unit_id = v_business_unit_id
         ), 'business_unit_code should match BUSINESS_UNITS.business_unit_code';
 
+        ASSERT v_repayment = (
+            SELECT repayment
+              FROM creditor_accounts
+             WHERE creditor_account_id = v_creditor_account_id
+        ), 'repayment should match CREDITOR_ACCOUNTS.repayment';
 
         CASE i
             WHEN 1 THEN
@@ -1386,6 +1394,8 @@ BEGIN
                 ASSERT v_outstanding = 10000.00, 'Outstanding amount should be 10000.00';
                 ASSERT v_has_associated_defendant IS TRUE,
                     'has_associated_defendant should be TRUE';
+                ASSERT v_repayment IS FALSE,
+                    'repayment should be FALSE';
 
             WHEN 2 THEN
                 -- Scenario 2 - Organisation - No impositions
@@ -1396,6 +1406,8 @@ BEGIN
                 ASSERT v_outstanding = 0, 'Outstanding amount should be 0';
                 ASSERT v_has_associated_defendant IS FALSE,
                     'has_associated_defendant should be FALSE';
+                ASSERT v_repayment IS FALSE,
+                    'repayment should be FALSE';
 
             WHEN 3 THEN
                 -- Scenario 3: Individual - Impositions and creditor transactions, partial payment
@@ -1406,6 +1418,8 @@ BEGIN
                 ASSERT v_outstanding = 14000.00, 'Outstanding amount should be 14000.00';
                 ASSERT v_has_associated_defendant IS TRUE,
                     'has_associated_defendant should be TRUE';
+                ASSERT v_repayment IS FALSE,
+                    'repayment should be FALSE';
 
             WHEN 4 THEN
                 -- Scenario 4: Organisation - Impositions and creditor transactions, full payment
@@ -1416,6 +1430,8 @@ BEGIN
                 ASSERT v_outstanding = 0, 'Outstanding amount should be 0';
                 ASSERT v_has_associated_defendant IS TRUE,
                     'has_associated_defendant should be TRUE';
+                ASSERT v_repayment IS FALSE,
+                    'repayment should be FALSE';
 
             WHEN 5 THEN
                 -- Scenario 5: Individual - Impositions, but no creditor transactions
@@ -1426,6 +1442,8 @@ BEGIN
                 ASSERT v_outstanding = 45000.00, 'Outstanding amount should be 45000.00';
                 ASSERT v_has_associated_defendant IS TRUE,
                     'has_associated_defendant should be TRUE';
+                ASSERT v_repayment IS FALSE,
+                    'repayment should be FALSE';
 
             WHEN 6 THEN
                 -- Scenario 6: Repayment creditor - all totals zero except paid_out which
@@ -1437,6 +1455,8 @@ BEGIN
                 ASSERT v_outstanding = 0, 'Outstanding should be 0 for repayment creditor';
                 ASSERT v_has_associated_defendant IS FALSE,
                     'has_associated_defendant should be FALSE for repayment creditor';
+                ASSERT v_repayment IS TRUE,
+                    'repayment should be TRUE for repayment creditor';
 
         END CASE;
 
