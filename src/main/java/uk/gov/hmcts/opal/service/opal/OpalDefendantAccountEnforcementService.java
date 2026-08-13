@@ -198,17 +198,15 @@ public class OpalDefendantAccountEnforcementService
         paymentTerms.setInstalmentAmount(source.getInstalmentAmount().orElse(null));
         if (source.getPaymentTermsType() != null) {
             paymentTerms.setPaymentTermsType(PaymentTermsType.builder()
-                .paymentTermsTypeCode(source.getPaymentTermsType().getPaymentTermsTypeCode() == null ? null
-                    : PaymentTermsType.PaymentTermsTypeCode.fromValue(
-                        source.getPaymentTermsType().getPaymentTermsTypeCode().getValue()))
+                .paymentTermsTypeCode(PaymentTermsType.PaymentTermsTypeCode.fromValue(
+                    source.getPaymentTermsType().getPaymentTermsTypeCode().getValue()))
                 .build());
         }
         EnforcementInstalmentPeriodCommonStrict instalmentPeriod = source.getInstalmentPeriod().orElse(null);
         if (instalmentPeriod != null) {
             paymentTerms.setInstalmentPeriod(InstalmentPeriod.builder()
-                .instalmentPeriodCode(instalmentPeriod.getInstalmentPeriodCode() == null ? null
-                    : InstalmentPeriod.InstalmentPeriodCode.fromValue(
-                        instalmentPeriod.getInstalmentPeriodCode().getValue()))
+                .instalmentPeriodCode(InstalmentPeriod.InstalmentPeriodCode.fromValue(
+                    instalmentPeriod.getInstalmentPeriodCode().getValue()))
                 .build());
         }
         EnforcementPostedDetailsCommonStrict postedDetails = source.getPostedDetails().orElse(null);
