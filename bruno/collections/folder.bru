@@ -10,3 +10,51 @@ auth {
 auth:bearer {
   token: {{BEARER_TOKEN}}
 }
+
+script:pre-request {
+  function getTokenExpiresAt(token) {
+    try {
+      const encodedPayload = token.split(".")[1];
+      const base64Payload = encodedPayload.replace(/-/g, "+").replace(/_/g, "/")
+        .padEnd(Math.ceil(encodedPayload.length / 4) * 4, "=");
+      const payload = JSON.parse(atob(base64Payload));
+
+      return typeof payload.exp === "number" ? payload.exp * 1000 : null;
+    } catch {
+      return null;
+    }
+  }
+
+  const refreshBufferMs = 60 * 1000;
+  const token = bru.getEnvVar("BEARER_TOKEN");
+  const tokenExpiresAt = Number(bru.getEnvVar("tokenExpiresAt"));
+  const tokenNeedsRefresh = !token || !Number.isFinite(tokenExpiresAt)
+    || Date.now() >= tokenExpiresAt - refreshBufferMs;
+
+  if (!tokenNeedsRefresh) {
+    console.log(`[collections pre-request] Using stored bearer token; expires ${new Date(tokenExpiresAt).toISOString()}`);
+    return;
+  }
+
+  console.log("[collections pre-request] Stored bearer token is missing or expiring; requesting a new token");
+  const response = await bru.sendRequest({
+    method: "GET",
+    url: `${bru.getEnvVar("userURL")}/testing-support/token/test-user`
+  });
+
+  if (response.status !== 200) {
+    throw new Error(`Could not refresh bearer token: HTTP ${response.status}`);
+  }
+
+  const responsePayload = response.data ?? response.body;
+  const body = typeof responsePayload === "string" ? JSON.parse(responsePayload) : responsePayload;
+  if (!body?.access_token) {
+    throw new Error("Could not refresh bearer token: access_token was not returned");
+  }
+
+  const refreshedTokenExpiresAt = getTokenExpiresAt(body.access_token)
+    ?? Date.now() + (60 * 60 * 1000);
+  bru.setEnvVar("BEARER_TOKEN", body.access_token, { persist: true });
+  bru.setEnvVar("tokenExpiresAt", String(refreshedTokenExpiresAt), { persist: true });
+  console.log(`[collections pre-request] Using newly refreshed bearer token; expires ${new Date(refreshedTokenExpiresAt).toISOString()}`);
+}

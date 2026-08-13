@@ -11,11 +11,26 @@ get {
 }
 
 script:post-response {
+  function getTokenExpiresAt(token) {
+    try {
+      const encodedPayload = token.split(".")[1];
+      const base64Payload = encodedPayload.replace(/-/g, "+").replace(/_/g, "/")
+        .padEnd(Math.ceil(encodedPayload.length / 4) * 4, "=");
+      const payload = JSON.parse(atob(base64Payload));
+
+      return typeof payload.exp === "number" ? payload.exp * 1000 : null;
+    } catch {
+      return null;
+    }
+  }
+
   const json = typeof res.body === "string" ? JSON.parse(res.body) : res.body;
-  
   const token = json.access_token;
-  
-  bru.setVar("BEARER_TOKEN", token, { persist: true });
+  const tokenExpiresAt = getTokenExpiresAt(token) ?? Date.now() + (60 * 60 * 1000);
+
+  bru.setEnvVar("BEARER_TOKEN", token, { persist: true });
+  bru.setEnvVar("tokenExpiresAt", String(tokenExpiresAt), { persist: true });
+  console.log(`[auth/Auth Token post-response] Stored newly requested bearer token; expires ${new Date(tokenExpiresAt).toISOString()}`);
 }
 
 settings {

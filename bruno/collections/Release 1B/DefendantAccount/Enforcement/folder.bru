@@ -6,11 +6,9 @@ meta {
 script:pre-request {
   const id = bru.getEnvVar("enfDefendantAccountId");
   const baseUrl = bru.getEnvVar("baseURL");
-  const token = bru.getVar("BEARER_TOKEN");
+  const token = bru.getEnvVar("BEARER_TOKEN");
   const url = `${baseUrl}/defendant-accounts/${id}/header-summary`
-
-  console.log(`url= ${url} token= ${token}`);
-
+  
   const response = await bru.sendRequest({
     method: "GET",
     url: url,
@@ -18,15 +16,15 @@ script:pre-request {
       Authorization: `Bearer ${token}`
     }
   });
-
+  
   if (response.status !== 200) {
     throw new Error(`Could not retrieve the current defendant account ETag: HTTP ${response.status}`);
   }
-
+  
   const etag = response.headers?.etag || response.headers?.ETag || response.getHeader?.("ETag");
   if (!etag) {
     throw new Error("The defendant account response did not include an ETag");
   }
-
+  
   req.setHeader("If-Match", etag);
 }
