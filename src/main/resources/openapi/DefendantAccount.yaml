@@ -398,6 +398,97 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 
+  /defendant-accounts/{defendantAccountId}/enforcements:
+    post:
+      tags:
+        - Defendant Account
+      summary: Create an enforcement for a given defendant account
+      operationId: addEnforcement
+      security:
+        - permissions:
+            - Enter Enforcement (in the business unit supplied in Business-Unit-Id)
+      parameters:
+        - in: path
+          name: defendantAccountId
+          description: DB Mapping - defendant_accounts.defendant_account_id
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: header
+          name: Business-Unit-Id
+          description: Business unit identifier
+          required: true
+          schema:
+            type: integer
+            format: int16
+        - in: header
+          name: If-Match
+          description: Version of the defendant account. DB Mapping - defendant_accounts.version
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/addEnforcementRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/addEnforcementResponse'
+        '400':
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '409':
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '422':
+          description: Unprocessable content
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
   /defendant-accounts/{defendantAccountId}/consolidated-accounts:
     get:
       tags:
@@ -852,6 +943,53 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    addEnforcementRequest:
+      title: Add Enforcement Request
+      type: object
+      additionalProperties: false
+      required:
+        - result_id
+        - enforcement_result_responses
+        - payment_terms
+      properties:
+        result_id:
+          $ref: './CommonStrict.yaml#/components/schemas/enforcementResultId'
+        enforcement_result_responses:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/enforcementResultResponse'
+        payment_terms:
+          $ref: './CommonStrict.yaml#/components/schemas/enforcementPaymentTerms'
+    enforcementResultResponse:
+      title: Enforcement Result Response
+      type: object
+      additionalProperties: false
+      required:
+        - parameter_name
+        - response
+      properties:
+        parameter_name:
+          type: string
+        response:
+          type: string
+    addEnforcementResponse:
+      title: Add Enforcement Response
+      type: object
+      additionalProperties: false
+      x-json-include: NON_NULL
+      required:
+        - defendant_account_id
+        - enforcement_id
+        - version
+      properties:
+        defendant_account_id:
+          type: string
+        enforcement_id:
+          type: string
+        version:
+          type: integer
+          format: int32
     atAGlanceResponse:
       title: Defendant Account At A Glance Response
       type: object

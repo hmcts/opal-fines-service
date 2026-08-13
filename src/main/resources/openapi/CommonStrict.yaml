@@ -244,6 +244,145 @@ components:
             - number
             - 'null'
           multipleOf: 0.01
+    enforcementPaymentTerms:
+      title: Enforcement Payment Terms
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      required:
+        - days_in_default
+        - date_days_in_default_imposed
+        - extension
+        - reason_for_extension
+        - payment_terms_type
+        - effective_date
+        - lump_sum_amount
+        - instalment_amount
+        - posted_details
+      properties:
+        days_in_default:
+          type:
+            - integer
+            - 'null'
+          format: int32
+        date_days_in_default_imposed:
+          type:
+            - string
+            - 'null'
+          format: date
+        extension:
+          type: boolean
+        reason_for_extension:
+          type:
+            - string
+            - 'null'
+        payment_terms_type:
+          $ref: '#/components/schemas/enforcementPaymentTermsType'
+        effective_date:
+          type:
+            - string
+            - 'null'
+          format: date
+        instalment_period:
+          $ref: '#/components/schemas/enforcementInstalmentPeriod'
+        lump_sum_amount:
+          type:
+            - number
+            - 'null'
+          multipleOf: 0.01
+        instalment_amount:
+          type:
+            - number
+            - 'null'
+          multipleOf: 0.01
+        posted_details:
+          $ref: '#/components/schemas/enforcementPostedDetails'
+    enforcementResultId:
+      title: Enforcement Result Id
+      type: string
+      enum:
+        - ABDC
+        - AEO
+        - AEOC
+        - BWTU
+        - CLAMPO
+        - COLLO
+        - CONF
+        - CW
+        - DW
+        - FSN
+        - HTT
+        - INTL
+        - MPSO
+        - NAP
+        - NBWT
+        - NOENF
+        - PRIS
+        - REGF
+        - REM
+        - S136
+        - SC
+        - UPWO
+        - WDN
+    enforcementPaymentTermsType:
+      title: Enforcement Payment Terms Type
+      type: object
+      additionalProperties: false
+      required:
+        - payment_terms_type_code
+        - payment_terms_type_display_name
+      properties:
+        payment_terms_type_code:
+          type: string
+          enum: [B, P, I]
+        payment_terms_type_display_name:
+          type: string
+          enum:
+            - By date
+            - Paid
+            - Instalments
+    enforcementInstalmentPeriod:
+      title: Enforcement Instalment Period
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      required:
+        - instalment_period_code
+        - instalment_period_display_name
+      properties:
+        instalment_period_code:
+          type: string
+          enum: [W, M, F]
+        instalment_period_display_name:
+          type: string
+          enum:
+            - Weekly
+            - Monthly
+            - Fortnightly
+    enforcementPostedDetails:
+      title: Enforcement Posted Details
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      required:
+        - posted_date
+        - posted_by
+        - posted_by_name
+      properties:
+        posted_date:
+          type: string
+          format: date-time
+        posted_by:
+          type:
+            - string
+            - 'null'
+        posted_by_name:
+          type:
+            - string
+            - 'null'
     paymentTermsType:
       title: Payment Terms Type
       type: object

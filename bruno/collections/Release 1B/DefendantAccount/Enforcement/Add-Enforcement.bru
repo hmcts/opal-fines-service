@@ -1,0 +1,68 @@
+meta {
+  name: Add-Enforcement
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseURL}}/defendant-accounts/{{enfDefendantAccountId}}/enforcements
+  body: json
+  auth: bearer
+}
+
+headers {
+  Business-Unit-Id: 77
+  If-Match: 1
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{BEARER_TOKEN}}
+}
+
+body:json {
+  {
+    "result_id": "COLLO",
+    "enforcement_result_responses": [
+      {
+        "parameter_name": "reason",
+        "response": "a"
+      },
+      {
+        "parameter_name": "collectiontype",
+        "response": "Wages"
+      },
+      {
+        "parameter_name": "reserveterms",
+        "response": "aa"
+      }
+    ],
+    "payment_terms": {
+      "days_in_default": 7,
+      "date_days_in_default_imposed": "2026-05-28",
+      "extension": true,
+      "reason_for_extension": "extension reason",
+      "payment_terms_type": {
+        "payment_terms_type_code": "B",
+        "payment_terms_type_display_name": "By date"
+      },
+      "effective_date": "2026-10-30",
+      "instalment_period": {
+        "instalment_period_code": "W",
+        "instalment_period_display_name": "Weekly"
+      },
+      "lump_sum_amount": 500000,
+      "instalment_amount": 0.50,
+      "posted_details": {
+        "posted_date": "2026-05-28T00:00:00",
+        "posted_by": "The Republic",
+        "posted_by_name": "Master Yoda"
+      }
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

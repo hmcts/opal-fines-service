@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.legacy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -17,7 +18,6 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityNotFoundException;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -27,7 +27,6 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,22 +36,16 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
-import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
-import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
-import uk.gov.hmcts.opal.dto.PaymentTerms;
-import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
-import uk.gov.hmcts.opal.dto.ResultResponse;
-import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
-import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse.EnforcementAction;
@@ -71,9 +64,16 @@ import uk.gov.hmcts.opal.dto.legacy.common.ResultResponses;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
+import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementActionDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.EnforcementInstalmentPeriodCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverviewDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsTypeCommonStrict;
+import uk.gov.hmcts.opal.generated.model.EnforcementPostedDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.EnforcementResultResponseDefendantAccount;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyRemoveDefendantEnforcementHoldMapper;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 
@@ -115,7 +115,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
     }
 
     @Test
-    void addEnforcement_success_returnsMappedAddEnforcementResponse_simple() {
+    void addEnforcement_success_returnsMappedAddEnforcementResponseDefendantAccount_simple() {
         AddDefendantAccountEnforcementLegacyResponse legacyResp =
             mock(AddDefendantAccountEnforcementLegacyResponse.class);
         when(legacyResp.getEnforcementId()).thenReturn("ENF-1");
@@ -132,7 +132,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
             Mockito.nullable(String.class)
         );
 
-        AddEnforcementResponse out =
+        AddEnforcementResponseDefendantAccount out =
             legacyDefendantAccountEnforcementService.addEnforcement(
                 123L,
                 (short) 1,
@@ -169,7 +169,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
         );
 
         // Act
-        AddEnforcementResponse out =
+        AddEnforcementResponseDefendantAccount out =
             legacyDefendantAccountEnforcementService.addEnforcement(
                 500L,
                 (short) 500, "user-500", "5", null
@@ -187,20 +187,32 @@ class LegacyDefendantAccountEnforcementServiceTest {
     @SuppressWarnings("unchecked")
     void addEnforcement_withRequest_sendsLegacyRequestContainingMappedCollectionsAndPaymentTerms() throws Exception {
         // Arrange: mock modern request with one ResultResponse and a PaymentTerms object
-        AddDefendantAccountEnforcementRequest request = mock(AddDefendantAccountEnforcementRequest.class);
-        ResultResponse rr = mock(ResultResponse.class);
+        AddEnforcementRequestDefendantAccount request = mock(AddEnforcementRequestDefendantAccount.class);
+        EnforcementResultResponseDefendantAccount rr = mock(EnforcementResultResponseDefendantAccount.class);
         when(rr.getParameterName()).thenReturn("param-1");
         when(rr.getResponse()).thenReturn("resp-1");
         when(request.getEnforcementResultResponses()).thenReturn(java.util.List.of(rr));
 
-        PaymentTerms pt = mock(PaymentTerms.class);
-        PaymentTermsType ptt = mock(PaymentTermsType.class);
-        when(ptt.getPaymentTermsTypeCode()).thenReturn(null); // safe for mapLegacyPaymentTermsType
-        InstalmentPeriod ip = mock(InstalmentPeriod.class);
-        when(ip.getInstalmentPeriodCode()).thenReturn(null); // safe for mapLegacyInstalmentPeriod
-        when(pt.getPaymentTermsType()).thenReturn(ptt);
-        when(pt.getInstalmentPeriod()).thenReturn(ip);
-        when(request.getPaymentTerms()).thenReturn(pt);
+        EnforcementPaymentTermsTypeCommonStrict paymentTermsType = new EnforcementPaymentTermsTypeCommonStrict()
+            .paymentTermsTypeCode(EnforcementPaymentTermsTypeCommonStrict.PaymentTermsTypeCodeEnum.B)
+            .paymentTermsTypeDisplayName(
+                EnforcementPaymentTermsTypeCommonStrict.PaymentTermsTypeDisplayNameEnum.BY_DATE);
+        EnforcementInstalmentPeriodCommonStrict instalmentPeriod = new EnforcementInstalmentPeriodCommonStrict()
+            .instalmentPeriodCode(EnforcementInstalmentPeriodCommonStrict.InstalmentPeriodCodeEnum.W)
+            .instalmentPeriodDisplayName(
+                EnforcementInstalmentPeriodCommonStrict.InstalmentPeriodDisplayNameEnum.WEEKLY);
+        EnforcementPaymentTermsCommonStrict paymentTerms = new EnforcementPaymentTermsCommonStrict()
+                .daysInDefault(null)
+                .dateDaysInDefaultImposed(null)
+                .extension(false)
+                .reasonForExtension(null)
+                .paymentTermsType(paymentTermsType)
+                .effectiveDate(null)
+                .instalmentPeriod(instalmentPeriod)
+                .lumpSumAmount(null)
+                .instalmentAmount(null)
+                .postedDetails(null);
+        when(request.getPaymentTerms()).thenReturn(JsonNullable.of(paymentTerms));
 
         // Prepare legacy response entity that will be returned by gateway
         AddDefendantAccountEnforcementLegacyResponse legacyResp =
@@ -223,7 +235,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
         );
 
         // Act
-        AddEnforcementResponse out =
+        AddEnforcementResponseDefendantAccount out =
             legacyDefendantAccountEnforcementService
                 .addEnforcement(
                     999L, (short) 101, "user-test",
@@ -245,7 +257,6 @@ class LegacyDefendantAccountEnforcementServiceTest {
         var defId = clazz.getMethod("getDefendantAccountId").invoke(sentLegacyRequest);
         var buId = clazz.getMethod("getBusinessUnitId").invoke(sentLegacyRequest);
         var buUser = clazz.getMethod("getBusinessUnitUserId").invoke(sentLegacyRequest);
-
 
         assertEquals("999", defId);
         assertEquals("101", buId);
@@ -287,7 +298,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
         );
 
         // Act
-        AddEnforcementResponse out =
+        AddEnforcementResponseDefendantAccount out =
             legacyDefendantAccountEnforcementService.addEnforcement(
                 500L, (short) 500,
                 "user-500", "5", null
@@ -334,7 +345,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
             createLegacyEnforcementStatusResponse(true);
 
         when(restClient.responseSpec
-                 .body(Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()))
+            .body(Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()))
             .thenReturn(responseBody);
 
         when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short) 123).build());
@@ -536,28 +547,28 @@ class LegacyDefendantAccountEnforcementServiceTest {
                     .build())
             .enforcementOverride(full ? EnforcementOverride.builder()  // Optional
                 .lja(LjaReference.builder()
-                         .ljaId((short) 1).ljaName("England").build())
+                    .ljaId((short) 1).ljaName("England").build())
                 .enforcer(EnforcerReference.builder()
-                              .enforcerId(2L).enforcerName("Arthur").build())
+                    .enforcerId(2L).enforcerName("Arthur").build())
                 .enforcementOverrideResult(EnforcementOverrideResultReference.builder()
-                                               .enforcementOverrideResultId("AAB").enforcementOverrideResultName(
+                    .enforcementOverrideResultId("AAB").enforcementOverrideResultName(
                         "AaAaBb").build())
                 .build() : null)
             .enforcementOverview(EnforcementOverview.builder()
-                                     .enforcementCourt(CourtReference.builder()
-                                                           .courtId(3L).courtName("Bath").build())
-                                     .collectionOrder(CollectionOrder.builder()
-                                                          .collectionOrderCode("XX").collectionOrderFlag(true)
-                                                          .collectionOrderDate(LocalDate.of(2024, 3, 4)).build())
-                                     .daysInDefault(6)
-                                     .build())
+                .enforcementCourt(CourtReference.builder()
+                    .courtId(3L).courtName("Bath").build())
+                .collectionOrder(CollectionOrder.builder()
+                    .collectionOrderCode("XX").collectionOrderFlag(true)
+                    .collectionOrderDate(LocalDate.of(2024, 3, 4)).build())
+                .daysInDefault(6)
+                .build())
             .lastEnforcementAction(full ? EnforcementAction.builder() // Optional
                 .enforcer(EnforcerReference.builder()
-                              .enforcerId(4L).enforcerName("Merlin").build())
+                    .enforcerId(4L).enforcerName("Merlin").build())
                 .resultReference(ResultReference.builder()
-                                     .resultId("FEE").resultTitle("Result Ref").build())
+                    .resultId("FEE").resultTitle("Result Ref").build())
                 .resultResponses(ResultResponses.builder()
-                                     .parameterName("Param Name").response("A response").build())
+                    .parameterName("Param Name").response("A response").build())
                 .dateAdded("2024-01-01T10:00:00")
                 .reason("late")
                 .warrantNumber("123")
@@ -634,7 +645,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
             createLegacyEnforcementStatusResponse(false); // or build one with all override ids null
 
         when(restClient.responseSpec
-                 .body(Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()))
+            .body(Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()))
             .thenReturn(responseBody);
 
         when(courtService.getCourtById(anyLong()))
@@ -816,10 +827,9 @@ class LegacyDefendantAccountEnforcementServiceTest {
         assertNotNull(nullResult);
         assertTrue(nullResult.isEmpty());
 
-        // list with a null and a real ResultResponse
-        ResultResponse rr = mock(ResultResponse.class);
-        when(rr.getParameterName()).thenReturn("p");
-        when(rr.getResponse()).thenReturn("r");
+        EnforcementResultResponseDefendantAccount rr = new EnforcementResultResponseDefendantAccount()
+            .parameterName("p")
+            .response("r");
 
         List<?> mapped = (List<?>) m.invoke(
             legacyDefendantAccountEnforcementService,
@@ -838,19 +848,17 @@ class LegacyDefendantAccountEnforcementServiceTest {
     @Test
     void mapLegacyPostedDetails_nullAndNonNull() throws Exception {
         Method m = LegacyDefendantAccountEnforcementService.class
-            .getDeclaredMethod("mapLegacyPostedDetails", PostedDetails.class);
+            .getDeclaredMethod("mapLegacyPostedDetails", EnforcementPostedDetailsCommonStrict.class);
         m.setAccessible(true);
 
         // null -> null
         Object nullOut = m.invoke(legacyDefendantAccountEnforcementService, (Object) null);
         assertNull(nullOut);
 
-        // non-null PostedDetails -> LegacyPostedDetails with copied fields
-        PostedDetails pd = mock(PostedDetails.class);
-        when(pd.getPostedDate())
-            .thenReturn(LocalDateTime.of(2024, 6, 1, 10, 11, 12));
-        when(pd.getPostedBy()).thenReturn("u123");
-        when(pd.getPostedByName()).thenReturn("User Name");
+        EnforcementPostedDetailsCommonStrict pd = new EnforcementPostedDetailsCommonStrict()
+            .postedDate(LocalDateTime.of(2024, 6, 1, 10, 11, 12))
+            .postedBy("u123")
+            .postedByName("User Name");
 
         Object lpd = m.invoke(legacyDefendantAccountEnforcementService, pd);
         assertNotNull(lpd);
@@ -867,7 +875,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
     @Test
     void mapPaymentTerms_nullReturnsNull() throws Exception {
         Method m = LegacyDefendantAccountEnforcementService.class
-            .getDeclaredMethod("mapPaymentTerms", PaymentTerms.class);
+            .getDeclaredMethod("mapPaymentTerms", EnforcementPaymentTermsCommonStrict.class);
         m.setAccessible(true);
 
         Object out = m.invoke(legacyDefendantAccountEnforcementService, (Object) null);
@@ -896,7 +904,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
                 m.invoke(legacyDefendantAccountEnforcementService, "Z")
         );
         assertNotNull(ite.getCause());
-        assertTrue(ite.getCause() instanceof IllegalArgumentException);
+        assertInstanceOf(IllegalArgumentException.class, ite.getCause());
         assertTrue(ite.getCause().getMessage().contains("Unknown PaymentTermsType code: Z"));
     }
 
@@ -922,7 +930,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
                 m.invoke(legacyDefendantAccountEnforcementService, "X")
         );
         assertNotNull(ite.getCause());
-        assertTrue(ite.getCause() instanceof IllegalArgumentException);
+        assertInstanceOf(IllegalArgumentException.class, ite.getCause());
         assertTrue(ite.getCause().getMessage().contains("Unknown InstalmentPeriod code: X"));
     }
 }
