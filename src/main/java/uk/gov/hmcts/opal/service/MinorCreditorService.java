@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
@@ -19,6 +18,7 @@ import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 
 @Service
@@ -30,12 +30,15 @@ public class MinorCreditorService {
 
     private final UserStateService userStateService;
 
+    private final MinorCreditorSearchRequestValidator minorCreditorSearchRequestValidator;
+
     public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch entity) {
         log.debug(":searchMinorCreditor:");
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
+            minorCreditorSearchRequestValidator.validateAndCheckFeature(entity);
             return minorCreditorSearchProxy.searchMinorCreditors(entity);
         } else {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
@@ -74,7 +77,7 @@ public class MinorCreditorService {
         }
     }
 
-    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId) {
+    public MinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId) {
 
         log.debug(":getMinorCreditorAccountAtAGlance: id= {}", minorCreditorId);
 

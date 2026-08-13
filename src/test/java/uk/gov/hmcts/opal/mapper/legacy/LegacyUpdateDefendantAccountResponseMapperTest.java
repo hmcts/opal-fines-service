@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
  * Tests for LegacyUpdateDefendantAccountResponseMapper default converters
  * using MapStruct-generated implementation.
  */
-public class LegacyUpdateDefendantAccountResponseMapperTest {
+class LegacyUpdateDefendantAccountResponseMapperTest {
     // Use the MapStruct-generated class directly
     private final LegacyUpdateDefendantAccountResponseMapper mapper =
         new LegacyUpdateDefendantAccountResponseMapperImpl();
