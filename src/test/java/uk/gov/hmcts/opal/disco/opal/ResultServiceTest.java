@@ -26,13 +26,13 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
-import uk.gov.hmcts.opal.dto.ResultDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.result.ResultType;
+import uk.gov.hmcts.opal.generated.model.GetResultByIdResponseResults;
 import uk.gov.hmcts.opal.mapper.ResultMapper;
 import uk.gov.hmcts.opal.repository.ResultRepository;
 import uk.gov.hmcts.opal.repository.jpa.ResultSpecs;
@@ -247,7 +247,7 @@ class ResultServiceTest {
             .requiresEmploymentData(true)
             .build();
 
-        uk.gov.hmcts.opal.dto.ResultDto dto = uk.gov.hmcts.opal.dto.ResultDto.builder()
+        GetResultByIdResponseResults dto = GetResultByIdResponseResults.builder()
             .resultId("ABC")
             .resultTitle("Result Title")
             .resultTitleCy("Welsh Title")
@@ -260,7 +260,7 @@ class ResultServiceTest {
         when(resultMapper.toDto(entity)).thenReturn(dto);
 
         // Act
-        uk.gov.hmcts.opal.dto.ResultDto result = resultService.getResult("ABC", false);
+        GetResultByIdResponseResults result = resultService.getResult("ABC", false);
 
         // Assert
         assertNotNull(result);
@@ -294,7 +294,7 @@ class ResultServiceTest {
             .resultId("ABC")
             .resultParameters(resultParameters)
             .build();
-        uk.gov.hmcts.opal.dto.ResultDto dto = uk.gov.hmcts.opal.dto.ResultDto.builder()
+        GetResultByIdResponseResults dto = GetResultByIdResponseResults.builder()
             .resultId("ABC")
             .resultParameters(resultParameters)
             .build();
@@ -303,7 +303,7 @@ class ResultServiceTest {
         when(resultMapper.toDto(entity)).thenReturn(dto);
 
         // Act
-        uk.gov.hmcts.opal.dto.ResultDto result = resultService.getResult("ABC", true);
+        GetResultByIdResponseResults result = resultService.getResult("ABC", true);
 
         // Assert
         JsonNode parameters = ToJsonString.toJsonNode(result.getResultParameters());
@@ -334,7 +334,7 @@ class ResultServiceTest {
             .resultParameters(resultParameters)
             .build();
 
-        ResultDto dto = ResultDto.builder()
+        GetResultByIdResponseResults dto = GetResultByIdResponseResults.builder()
             .resultId("ABC")
             .resultParameters(resultParameters)
             .build();
@@ -342,7 +342,7 @@ class ResultServiceTest {
         when(resultRepository.findWithFullGraphByResultId("ABC")).thenReturn(Optional.of(entity));
         when(resultMapper.toDto(entity)).thenReturn(dto);
 
-        ResultDto result = resultService.getResult("ABC", true);
+        GetResultByIdResponseResults result = resultService.getResult("ABC", true);
 
         JsonNode parameters = ToJsonString.toJsonNode(result.getResultParameters());
         assertEquals(2, parameters.size());
@@ -371,7 +371,7 @@ class ResultServiceTest {
             .resultParameters(resultParameters)
             .build();
 
-        ResultDto dto = ResultDto.builder()
+        GetResultByIdResponseResults dto = GetResultByIdResponseResults.builder()
             .resultId("ABC")
             .resultParameters(resultParameters)
             .build();
@@ -379,7 +379,7 @@ class ResultServiceTest {
         when(resultRepository.findWithFullGraphByResultId("ABC")).thenReturn(Optional.of(entity));
         when(resultMapper.toDto(entity)).thenReturn(dto);
 
-        ResultDto result = resultService.getResult("ABC", true);
+        GetResultByIdResponseResults result = resultService.getResult("ABC", true);
 
         JsonNode parameters = ToJsonString.toJsonNode(result.getResultParameters());
         assertEquals(1, parameters.size());
@@ -415,7 +415,7 @@ class ResultServiceTest {
             .resultId("ABC")
             .resultParameters(resultParameters)
             .build();
-        ResultDto dto = ResultDto.builder()
+        GetResultByIdResponseResults dto = GetResultByIdResponseResults.builder()
             .resultId("ABC")
             .resultParameters(resultParameters)
             .build();
@@ -423,7 +423,7 @@ class ResultServiceTest {
         when(resultRepository.findWithFullGraphByResultId("ABC")).thenReturn(Optional.of(entity));
         when(resultMapper.toDto(entity)).thenReturn(dto);
 
-        ResultDto result = resultService.getResult("ABC", true);
+        GetResultByIdResponseResults result = resultService.getResult("ABC", true);
 
         JsonNode parameters = ToJsonString.toJsonNode(result.getResultParameters());
         assertEquals(1, parameters.size());
@@ -453,7 +453,7 @@ class ResultServiceTest {
             .resultId("ABC")
             .resultParameters(resultParameters)
             .build();
-        uk.gov.hmcts.opal.dto.ResultDto dto = uk.gov.hmcts.opal.dto.ResultDto.builder()
+        GetResultByIdResponseResults dto = GetResultByIdResponseResults.builder()
             .resultId("ABC")
             .resultParameters(resultParameters)
             .build();
@@ -462,7 +462,7 @@ class ResultServiceTest {
         when(resultMapper.toDto(entity)).thenReturn(dto);
 
         // Act
-        uk.gov.hmcts.opal.dto.ResultDto result = resultService.getResult("ABC", true);
+        GetResultByIdResponseResults result = resultService.getResult("ABC", true);
 
         // Assert
         JsonNode parameters = ToJsonString.toJsonNode(result.getResultParameters());
@@ -494,7 +494,7 @@ class ResultServiceTest {
             .resultId("ABC")
             .resultParameters(resultParameters)
             .build();
-        uk.gov.hmcts.opal.dto.ResultDto dto = uk.gov.hmcts.opal.dto.ResultDto.builder()
+        GetResultByIdResponseResults dto = GetResultByIdResponseResults.builder()
             .resultId("ABC")
             .resultParameters(resultParameters)
             .build();
@@ -503,7 +503,7 @@ class ResultServiceTest {
         when(resultMapper.toDto(entity)).thenReturn(dto);
 
         // Act
-        uk.gov.hmcts.opal.dto.ResultDto result = resultService.getResult("ABC", false);
+        GetResultByIdResponseResults result = resultService.getResult("ABC", false);
 
         // Assert
         JsonNode parameters = ToJsonString.toJsonNode(result.getResultParameters());

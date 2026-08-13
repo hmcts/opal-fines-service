@@ -106,6 +106,33 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("PO-8973 Get result by ID omits optional fields when null")
+    @JiraStory("PO-8973")
+    @JiraEpic("PO-304")
+    void getResultById_whenOptionalFieldsAreNull_omitsThem() throws Exception {
+        mockMvc.perform(get(URL_BASE + "/DDDDDD"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.result_id").value("DDDDDD"))
+            .andExpect(jsonPath("$.imposition_allocation_priority").doesNotExist())
+            .andExpect(jsonPath("$.imposition_creditor").doesNotExist())
+            .andExpect(jsonPath("$.imposition_category").doesNotExist())
+            .andExpect(jsonPath("$.allow_payment_terms").doesNotExist())
+            .andExpect(jsonPath("$.enf_next_permitted_actions").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("PO-8973 Get result by ID includes optional field when null with ALWAYS")
+    @JiraStory("PO-8973")
+    @JiraEpic("PO-304")
+    void getResultById_whenOptionalFieldIsNullWithAlways_includesIt() throws Exception {
+        mockMvc.perform(get(URL_BASE + "/DDDDDD"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.allow_additional_action").value(nullValue()));
+    }
+
+    @Test
     @DisplayName("PO-2985 Get result by ID duplicates Welsh result parameters when requested")
     @JiraStory("PO-2985")
     @JiraEpic("PO-2630")
