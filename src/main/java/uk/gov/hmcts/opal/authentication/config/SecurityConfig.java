@@ -1,11 +1,13 @@
 package uk.gov.hmcts.opal.authentication.config;
 
+import feign.FeignException;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.security.autoconfigure.web.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -20,6 +22,7 @@ import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
+import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
 import org.springframework.security.web.SecurityFilterChain;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthConfigurationProperties;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthProviderConfigurationProperties;
@@ -85,9 +88,22 @@ public class SecurityConfig {
         InternalAuthConfigurationProperties authProps,
         OpalJwtAuthenticationProvider finesJwtAuthenticationProvider) {
 
-        AuthenticationManager manager = finesJwtAuthenticationProvider::authenticate;
+        AuthenticationManager manager = authentication ->
+            authenticateWithUserServiceUnauthorizedHandling(finesJwtAuthenticationProvider, authentication);
+
         Map<String, AuthenticationManager> managers = Map.of(authProps.getIssuerUri(), manager);
         return new JwtIssuerAuthenticationManagerResolver(managers::get);
+    }
+
+    private Authentication authenticateWithUserServiceUnauthorizedHandling(
+        OpalJwtAuthenticationProvider finesJwtAuthenticationProvider,
+        Authentication authentication) {
+
+        try {
+            return finesJwtAuthenticationProvider.authenticate(authentication);
+        } catch (FeignException.Unauthorized ex) {
+            throw new InvalidBearerTokenException("User Service rejected bearer token", ex);
+        }
     }
 
     @Bean
