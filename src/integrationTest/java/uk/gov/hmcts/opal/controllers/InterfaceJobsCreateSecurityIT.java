@@ -12,6 +12,7 @@ import org.springframework.test.context.TestPropertySource;
 import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @TestPropertySource(properties = {
     "launchdarkly.default-flag-values.release-1c-payment=true"
@@ -25,6 +26,7 @@ class InterfaceJobsCreateSecurityIT extends AbstractIntegrationWithSecurityTest 
     @DisplayName("PO-2577 INT.01 - Rejects create without token")
     @JiraStory("PO-2577")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-10084")
     void rejectsCreateWithoutToken() throws Exception {
         mockMvc.perform(post(URL)
                 .contentType(MediaType.APPLICATION_JSON)
