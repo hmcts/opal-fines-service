@@ -38,9 +38,7 @@ class DefendantPartyDeleteIntegrationTest extends AbstractOpalDefendantsIntegrat
 
         String body = """
             {
-              "party_details": {
-                "party_id": "77"
-              }
+              "defendant_account_party_id": "9077"
             }
             """;
 
@@ -88,9 +86,7 @@ class DefendantPartyDeleteIntegrationTest extends AbstractOpalDefendantsIntegrat
 
         String body = """
             {
-              "party_details": {
-                "party_id": "206"
-              }
+              "defendant_account_party_id": "2006"
             }
             """;
 
@@ -138,9 +134,7 @@ class DefendantPartyDeleteIntegrationTest extends AbstractOpalDefendantsIntegrat
 
         String body = """
             {
-              "party_details": {
-                "party_id": "99999"
-              }
+              "defendant_account_party_id": "99999"
             }
             """;
 
