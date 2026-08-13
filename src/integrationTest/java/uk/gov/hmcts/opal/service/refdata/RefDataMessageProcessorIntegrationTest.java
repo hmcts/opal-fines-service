@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.service.refdata;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import jakarta.persistence.EntityManager;
@@ -198,10 +197,10 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void processMessage_ignoresUnknownRefDataTypeWhenNoHandlerIsRegistered() {
+    void processMessage_throwsSchemaValidationExceptionWhenUnknownRefDataTypeIsSupplied() {
         final long beforeCount = localJusticeAreaRepository.count();
 
-        assertThatCode(() -> consumer.processMessage("""
+        assertThatThrownBy(() -> consumer.processMessage("""
             {
               "refDataType": "UNKNOWN_REF_DATA_TYPE",
               "payload": {
@@ -209,7 +208,8 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
               }
             }
             """))
-            .doesNotThrowAnyException();
+            .isInstanceOf(JsonSchemaValidationException.class)
+            .hasMessageContaining("ref-data/RefDataUpdateMessage.json");
 
         entityManager.flush();
         entityManager.clear();
