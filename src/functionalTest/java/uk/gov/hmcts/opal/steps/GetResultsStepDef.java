@@ -5,6 +5,7 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.path.json.JsonPath;
 import io.restassured.specification.RequestSpecification;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -13,13 +14,18 @@ import java.util.Map;
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static uk.gov.hmcts.opal.SchemaPaths.GET_RESULT_BY_ID_RESPONSE;
 import static uk.gov.hmcts.opal.config.Constants.RESULTS_URI;
 
 /**
  * Defines Cucumber steps for the results API.
  */
 public class GetResultsStepDef extends BaseStepDef {
+
+    private final JsonSchemaValidationService jsonSchemaValidationService = new JsonSchemaValidationService();
+
     /**
      * Requests the results endpoint for the supplied result identifiers.
      *
@@ -143,6 +149,18 @@ public class GetResultsStepDef extends BaseStepDef {
     }
 
     /**
+     * Asserts that the single-result response matches the documented OpenAPI response schema.
+     */
+    @Then("the result response matches the documented schema")
+    public void resultResponseMatchesDocumentedSchema() {
+        then().assertThat().statusCode(200);
+        jsonSchemaValidationService.validateOrError(
+            then().extract().body().asString(),
+            GET_RESULT_BY_ID_RESPONSE
+        );
+    }
+
+    /**
      * Asserts that result_parameters contains a contiguous sequence of parameter entries.
      *
      * @param data Cucumber table containing expected parameter field values.
@@ -160,6 +178,27 @@ public class GetResultsStepDef extends BaseStepDef {
             "Expected result parameter sequence was not found. Expected sequence: "
                 + expectedParameters + ". Actual result_parameters: " + actualParameters
         );
+    }
+
+    /**
+     * Asserts that result_parameters does not contain the supplied parameter names.
+     *
+     * @param data Cucumber table containing parameter names that should be absent.
+     */
+    @Then("the result parameters do not contain the following entries")
+    public void resultParametersDoNotContainEntries(DataTable data) {
+        List<String> unexpectedParameterNames = data.asList(String.class);
+        then().assertThat().statusCode(200);
+
+        String resultParameters = then().extract().body().jsonPath().getString("result_parameters");
+        List<Map<String, Object>> actualParameters = JsonPath.from(resultParameters).getList("$");
+
+        for (String unexpectedName : unexpectedParameterNames) {
+            assertFalse(
+                containsParameterNamed(actualParameters, unexpectedName),
+                "Unexpected result parameter was found: " + unexpectedName
+            );
+        }
     }
 
     /**
@@ -216,6 +255,11 @@ public class GetResultsStepDef extends BaseStepDef {
             }
         }
         return true;
+    }
+
+    private boolean containsParameterNamed(List<Map<String, Object>> actualParameters, String expectedName) {
+        return actualParameters.stream()
+            .anyMatch(parameter -> expectedName.equals(String.valueOf(parameter.get("name"))));
     }
 
 }

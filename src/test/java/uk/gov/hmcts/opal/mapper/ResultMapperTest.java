@@ -8,6 +8,7 @@ import uk.gov.hmcts.opal.entity.ImpositionCategoriesEntity;
 import uk.gov.hmcts.opal.entity.result.ImpositionCreditor;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.result.ResultType;
+import uk.gov.hmcts.opal.generated.model.GetResultByIdResponseResults;
 
 import java.util.List;
 
@@ -115,7 +116,7 @@ class ResultMapperTest {
     }
 
     @Test
-    void toDto_shouldMapLiteEntityToFullResultDto() {
+    void toDto_mapsFullEntityToGeneratedResponse() {
         // Arrange
         ImpositionCategoriesEntity compensationCategory = ImpositionCategoriesEntity.builder()
             .impositionCategory("Compensation")
@@ -155,7 +156,7 @@ class ResultMapperTest {
             .build();
 
         // Act
-        uk.gov.hmcts.opal.dto.ResultDto dto = resultMapper.toDto(entity);
+        GetResultByIdResponseResults dto = resultMapper.toDto(entity);
 
         // Assert — every field 1:1
         assertNotNull(dto);
@@ -163,31 +164,31 @@ class ResultMapperTest {
         assertEquals(entity.getResultTitle(), dto.getResultTitle());
         assertEquals(entity.getResultTitleCy(), dto.getResultTitleCy());
         assertEquals(entity.getResultType().getLabel(), dto.getResultType());
-        assertEquals(entity.isActive(), dto.isActive());
+        assertEquals(entity.isActive(), dto.getActive());
         assertEquals(entity.getImpositionAllocationPriority(), dto.getImpositionAllocationPriority());
         assertEquals(entity.getImpositionCreditor().getLabel(), dto.getImpositionCreditor());
-        assertEquals(entity.isImposition(), dto.isImposition());
+        assertEquals(entity.isImposition(), dto.getImposition());
         assertEquals("Compensation", dto.getImpositionCategory());
         assertEquals(entity.getImpositionAccruing(), dto.getImpositionAccruing());
-        assertEquals(entity.isEnforcement(), dto.isEnforcement());
-        assertEquals(entity.isEnforcementOverride(), dto.isEnforcementOverride());
-        assertEquals(entity.isFurtherEnforcementWarn(), dto.isFurtherEnforcementWarn());
-        assertEquals(entity.isFurtherEnforcementDisallow(), dto.isFurtherEnforcementDisallow());
-        assertEquals(entity.isEnforcementHold(), dto.isEnforcementHold());
-        assertEquals(entity.isRequiresEnforcer(), dto.isRequiresEnforcer());
-        assertEquals(entity.isGeneratesHearing(), dto.isGeneratesHearing());
-        assertEquals(entity.isCollectionOrder(), dto.isCollectionOrder());
-        assertEquals(entity.isExtendTtpDisallow(), dto.isExtendTtpDisallow());
-        assertEquals(entity.isExtendTtpPreserveLastEnf(), dto.isExtendTtpPreserveLastEnf());
-        assertEquals(entity.isPreventPaymentCard(), dto.isPreventPaymentCard());
-        assertEquals(entity.isListsMonies(), dto.isListsMonies());
+        assertEquals(entity.isEnforcement(), dto.getEnforcement());
+        assertEquals(entity.isEnforcementOverride(), dto.getEnforcementOverride());
+        assertEquals(entity.isFurtherEnforcementWarn(), dto.getFurtherEnforcementWarn());
+        assertEquals(entity.isFurtherEnforcementDisallow(), dto.getFurtherEnforcementDisallow());
+        assertEquals(entity.isEnforcementHold(), dto.getEnforcementHold());
+        assertEquals(entity.isRequiresEnforcer(), dto.getRequiresEnforcer());
+        assertEquals(entity.isGeneratesHearing(), dto.getGeneratesHearing());
+        assertEquals(entity.isCollectionOrder(), dto.getCollectionOrder());
+        assertEquals(entity.isExtendTtpDisallow(), dto.getExtendTtpDisallow());
+        assertEquals(entity.isExtendTtpPreserveLastEnf(), dto.getExtendTtpPreserveLastEnf());
+        assertEquals(entity.isPreventPaymentCard(), dto.getPreventPaymentCard());
+        assertEquals(entity.isListsMonies(), dto.getListsMonies());
         assertEquals(entity.getResultParameters(), dto.getResultParameters());
         assertEquals(entity.getRequiresEmploymentData(), dto.getRequiresEmploymentData());
         assertEquals(entity.getAllowPaymentTerms(), dto.getAllowPaymentTerms());
         assertEquals(entity.getAllowAdditionalAction(), dto.getAllowAdditionalAction());
-        assertEquals(entity.isGeneratesWarrant(), dto.isGeneratesWarrant());
+        assertEquals(entity.isGeneratesWarrant(), dto.getGeneratesWarrant());
         assertEquals(entity.getRequiresLja(), dto.getRequiresLja());
-        assertEquals(entity.isManualEnforcement(), dto.isManualEnforcement());
+        assertEquals(entity.isManualEnforcement(), dto.getManualEnforcement());
         assertEquals(entity.getEnfNextPermittedActions(), dto.getEnfNextPermittedActions());
     }
 
