@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefe
 public interface RemoveDefendantAccountPartyMapper {
 
     @Mapping(target = "version", ignore = true)
+    @Mapping(target = "defendantAccountPartyId", source = "partyDetails.partyId")
     RemoveDefendantAccountPartyRequest toServiceRequest(
         RemoveDefendantAccountPartyRequestDefendantAccount request);
 

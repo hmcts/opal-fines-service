@@ -43,6 +43,7 @@ import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccountPartyDetails;
 import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.mapper.RemoveDefendantAccountPartyMapper;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
@@ -212,7 +213,9 @@ class DefendantAccountApiControllerTest {
         String ifMatch = "\"1\"";
         RemoveDefendantAccountPartyRequestDefendantAccount request =
             RemoveDefendantAccountPartyRequestDefendantAccount.builder()
-                .defendantAccountPartyId("10")
+                .partyDetails(RemoveDefendantAccountPartyRequestDefendantAccountPartyDetails.builder()
+                    .partyId("10")
+                    .build())
                 .build();
         RemoveDefendantAccountPartyResponse serviceResponse = RemoveDefendantAccountPartyResponse.builder()
             .defendantAccountPartyId("10")
