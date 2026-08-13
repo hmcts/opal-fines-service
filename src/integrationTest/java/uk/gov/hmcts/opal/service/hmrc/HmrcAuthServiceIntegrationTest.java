@@ -99,7 +99,7 @@ public class HmrcAuthServiceIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("Correctly calls HMRC endpoint and returns correct DTO (INT.01 - INT.06 - INT.07)")
+    @DisplayName("Correctly calls HMRC endpoint and returns correct token (INT.01 - INT.06 - INT.07)")
     @JiraStory("PO-2383")
     @JiraEpic("PO-1421")
     void correctlyCallsHmrcEndpointAndReturnsDto() {
