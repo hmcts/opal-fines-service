@@ -49,10 +49,6 @@ java:
           alias: OPAL_HMRC_AUTH_CLIENT_ID
         - name: opal-hmrc-auth-client-secret
           alias: OPAL_HMRC_AUTH_CLIENT_SECRET
-        - name: opal-hmrc-auth-scope
-          alias: OPAL_HMRC_AUTH_SCOPE
-        - name: opal-hmrc-auth-grant-type
-          alias: OPAL_HMRC_AUTH_GRANT_TYPE
         - name: opal-hmrc-auth-url
           alias: OPAL_HMRC_AUTH_URL
   environment:

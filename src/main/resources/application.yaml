@@ -207,6 +207,6 @@ hmrc:
   auth:
     client-id: ${OPAL_HMRC_AUTH_CLIENT_ID}
     client-secret: ${OPAL_HMRC_AUTH_CLIENT_SECRET}
-    scope: ${OPAL_HMRC_AUTH_SCOPE}
-    grant-type: ${OPAL_HMRC_AUTH_GRANT_TYPE}
+    scope: ${OPAL_HMRC_AUTH_SCOPE:}
+    grant-type: ${OPAL_HMRC_AUTH_GRANT_TYPE:client_credentials}
     url: ${OPAL_HMRC_AUTH_URL}
