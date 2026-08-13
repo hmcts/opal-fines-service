@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.refdata;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import jakarta.persistence.EntityManager;
@@ -194,6 +195,26 @@ class RefDataQueueConsumerServiceIntegrationTest extends AbstractIntegrationTest
         assertThat(reloaded.getName()).isEqualTo(originalName);
         assertThat(reloaded.getLjaCode()).isEqualTo(ljaCode);
         assertThat(reloaded.getLjaType()).isEqualTo(originalType);
+    }
+
+    @Test
+    void processMessage_ignoresUnknownRefDataTypeWhenNoHandlerIsRegistered() {
+        final long beforeCount = localJusticeAreaRepository.count();
+
+        assertThatCode(() -> consumer.processMessage("""
+            {
+              "refDataType": "UNKNOWN_REF_DATA_TYPE",
+              "payload": {
+                "anything": "goes"
+              }
+            }
+            """))
+            .doesNotThrowAnyException();
+
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThat(localJusticeAreaRepository.count()).isEqualTo(beforeCount);
     }
 
     @Test

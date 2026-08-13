@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.refdata.framework;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -32,10 +33,17 @@ public class RefDataQueueConsumerService {
     public void processMessage(String messagePayload) {
         try {
             JsonNode messageNode = readMessageNode(messagePayload);
-            schemaValidationService.validateOrError(messageNode, REF_DATA_UPDATE_MESSAGE_SCHEMA);
 
-            RefDataUpdateHandler<?, ?> handler = resolveHandler(messageNode);
-            applyUpdate(handler, messageNode.get("payload"));
+            Optional<RefDataUpdateHandler<?, ?>> handler = resolveHandler(messageNode);
+            if (handler.isEmpty()) {
+                log.warn("Ignoring ref-data message with no registered handler for type: {}",
+                    messageNode.get("refDataType"));
+                log.debug("Ignored ref-data message payload was:\n{}", messagePayload);
+                return;
+            }
+
+            schemaValidationService.validateOrError(messageNode, REF_DATA_UPDATE_MESSAGE_SCHEMA);
+            applyUpdate(handler.get(), messageNode.get("payload"));
         } catch (IllegalArgumentException | JsonSchemaValidationException ex) {
             log.warn("Ref-data message will be retried or sent to DLQ: {}", ex.getMessage());
             log.debug("Invalid ref-data message payload was:\n{}", messagePayload, ex);
@@ -51,14 +59,10 @@ public class RefDataQueueConsumerService {
         }
     }
 
-    private RefDataUpdateHandler<?, ?> resolveHandler(JsonNode messageNode) {
+    private Optional<RefDataUpdateHandler<?, ?>> resolveHandler(JsonNode messageNode) {
         JsonNode refDataTypeNode = messageNode.get("refDataType");
         String refDataType = refDataTypeNode == null ? null : refDataTypeNode.asText();
-        RefDataUpdateHandler<?, ?> handler = handlersByType.get(refDataType);
-        if (handler == null) {
-            throw new IllegalArgumentException("Unknown ref data type: " + refDataType);
-        }
-        return handler;
+        return Optional.ofNullable(handlersByType.get(refDataType));
     }
 
     @SuppressWarnings("unchecked")
