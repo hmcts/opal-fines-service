@@ -27,7 +27,6 @@ import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.service.MinorCreditorService;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.OpalCreditorAccountService;
 
 @RestController
@@ -40,25 +39,19 @@ public class MinorCreditorController {
 
     // Only used for the 'DELETE' endpoint, used in testing
     private final OpalCreditorAccountService opalCreditorAccountService;
-    private final UserStateService userStateService;
 
     public MinorCreditorController(MinorCreditorService minorCreditorService,
-                                   OpalCreditorAccountService opalCreditorAccountService,
-        UserStateService userStateService) {
+                                   OpalCreditorAccountService opalCreditorAccountService) {
         this.minorCreditorService = minorCreditorService;
         this.opalCreditorAccountService = opalCreditorAccountService;
-        this.userStateService = userStateService;
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches MinorCreditors based upon criteria in request body")
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    @SuppressWarnings("deprecation")
     public ResponseEntity<PostMinorCreditorAccountsSearchResponse> postMinorCreditorsSearch(
         @RequestBody MinorCreditorSearch criteria) {
-
         log.debug(":POST:postMinorCreditorsSearch: query: \n{}", criteria);
-        userStateService.checkForAuthorisedUser();
 
         PostMinorCreditorAccountsSearchResponse response = minorCreditorService
             .searchMinorCreditors(criteria);
