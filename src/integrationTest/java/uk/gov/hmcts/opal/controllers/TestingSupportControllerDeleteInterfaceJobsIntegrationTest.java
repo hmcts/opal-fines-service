@@ -63,7 +63,7 @@ public class TestingSupportControllerDeleteInterfaceJobsIntegrationTest extends 
     private TillRepository tillRepository;
 
     @Test
-    @DisplayName("Deletes interface jobs and associated data")
+    @DisplayName("PO-2578 - Deletes interface jobs and associated data")
     @JiraStory("PO-2578")
     @JiraEpic("PO-2468")
     void shouldDeleteInterfaceJobsAndAssociatedData() throws Exception {
@@ -91,7 +91,7 @@ public class TestingSupportControllerDeleteInterfaceJobsIntegrationTest extends 
     }
 
     @Test
-    @DisplayName("Deleting interface jobs without IDs returns a server error")
+    @DisplayName("PO-2578 - Deleting interface jobs without IDs returns a server error")
     @JiraStory("PO-2578")
     @JiraEpic("PO-2468")
     void deleteInterfaceJobs_whenNoIdsAreSupplied_returnsServerError() throws Exception {
@@ -101,7 +101,7 @@ public class TestingSupportControllerDeleteInterfaceJobsIntegrationTest extends 
     }
 
     @Test
-    @DisplayName("Deleting interface jobs with an empty IDs parameter returns not found")
+    @DisplayName("PO-2578 - Deleting interface jobs with an empty IDs parameter returns not found")
     @JiraStory("PO-2578")
     @JiraEpic("PO-2468")
     void deleteInterfaceJobs_whenEmptyIdsParmaIsSupplied_returnsNotFound() throws Exception {
@@ -111,7 +111,7 @@ public class TestingSupportControllerDeleteInterfaceJobsIntegrationTest extends 
     }
 
     @Test
-    @DisplayName("Deleting an interface job that does not exist returns not found")
+    @DisplayName("PO-2578 - Deleting an interface job that does not exist returns not found")
     @JiraStory("PO-2578")
     @JiraEpic("PO-2468")
     void deleteInterfaceJobs_whenIdDoesNotExist_returnsNotFound() throws Exception {
@@ -121,7 +121,7 @@ public class TestingSupportControllerDeleteInterfaceJobsIntegrationTest extends 
     }
 
     @Test
-    @DisplayName("Deleting the same interface job twice returns not found on the second call")
+    @DisplayName("PO-2578 - Deleting the same interface job twice returns not found on the second call")
     @JiraStory("PO-2578")
     @JiraEpic("PO-2468")
     void deleteInterfaceJobs_whenCalledTwice_returnsNotFoundOnSecondCall() throws Exception {
@@ -135,7 +135,7 @@ public class TestingSupportControllerDeleteInterfaceJobsIntegrationTest extends 
     }
 
     @Test
-    @DisplayName("Database unavailable when deleting interface jobs returns service unavailable")
+    @DisplayName("PO-2578 - Database unavailable when deleting interface jobs returns service unavailable")
     @JiraStory("PO-2578")
     @JiraEpic("PO-2468")
     void deleteInterfaceJobs_whenDatabaseIsUnavailable_returnsStandardisedServiceUnavailable() throws Exception {

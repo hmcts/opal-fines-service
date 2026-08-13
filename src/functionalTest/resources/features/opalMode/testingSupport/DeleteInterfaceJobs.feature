@@ -8,7 +8,8 @@ Feature: Delete interface jobs for test support
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
   Scenario: E2E.01 Testing-support interface-job deletion is available in an enabled non-production environment
-    When I request deletion of an interface job in the enabled E2E environment
+    Given an isolated interface job has been created
+    When I delete the created interface job using testing support
     Then the request succeeds
 
   Scenario: E2E.02 Deleting a created interface job removes it from the summary

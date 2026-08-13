@@ -14,13 +14,14 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {"opal.testing-support-endpoints.enabled=false"})
+@DisplayName("Testing Support Interface Jobs Delete Disabled Controller Integration Tests")
 public class TestingSupportControllerDeleteInterfaceJobsDisabledIntegrationTest extends AbstractIntegrationTest {
     private static final String URL = "/testing-support/interface-jobs";
 
     @Test
     @JiraStory("PO-2578")
     @JiraEpic("PO-2468")
-    @DisplayName("Testing support disabled, DELETE /testing-support/interface-jobs returns 404")
+    @DisplayName("PO-2578 - Testing support disabled, DELETE /testing-support/interface-jobs returns 404")
     void shouldReturn404() throws Exception {
         mockMvc.perform(delete(URL)
             .queryParam("ids", "987651")
@@ -28,4 +29,3 @@ public class TestingSupportControllerDeleteInterfaceJobsDisabledIntegrationTest 
             .andExpect(status().isNotFound());
     }
 }
-

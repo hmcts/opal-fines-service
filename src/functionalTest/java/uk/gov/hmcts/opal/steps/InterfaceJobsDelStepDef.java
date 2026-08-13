@@ -27,15 +27,9 @@ public class InterfaceJobsDelStepDef extends BaseStepDef {
     private static final String TESTING_SUPPORT_INTERFACE_JOBS_URI = "/testing-support/interface-jobs";
     private static final String INTERFACE_JOBS_URI = "/interface-jobs";
     private static final String INTERFACE_JOBS_SUMMARY_URI = "/interface-jobs/summary";
-    private static final long NON_EXISTENT_INTERFACE_JOB_ID = 9_000_000_000_000L;
     private static final short BUSINESS_UNIT_ID = 78;
 
     private Long createdInterfaceJobId;
-
-    @When("I request deletion of an interface job in the enabled E2E environment")
-    public void requestDeletionInEnabledE2eEnvironment() {
-        deleteInterfaceJob(NON_EXISTENT_INTERFACE_JOB_ID);
-    }
 
     @Given("an isolated interface job has been created")
     public void createAnIsolatedInterfaceJob() {
