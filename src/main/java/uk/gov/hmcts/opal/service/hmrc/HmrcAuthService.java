@@ -20,11 +20,6 @@ public class HmrcAuthService implements HmrcAuthentication {
         this.credentials = credentials;
     }
 
-//    @Cacheable(CacheNames.HMRC_AUTH_SERVICE)
-//    public HmrcAuthToken getAuthToken() {
-//        return client.getAuthToken(credentials);
-//    }
-
     @Override
     @Cacheable(CacheNames.HMRC_AUTH_SERVICE)
     public String getToken() {
