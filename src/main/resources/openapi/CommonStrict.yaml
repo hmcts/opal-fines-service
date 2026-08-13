@@ -331,17 +331,10 @@ components:
       additionalProperties: false
       required:
         - payment_terms_type_code
-        - payment_terms_type_display_name
       properties:
         payment_terms_type_code:
           type: string
           enum: [B, P, I]
-        payment_terms_type_display_name:
-          type: string
-          enum:
-            - By date
-            - Paid
-            - Instalments
     enforcementInstalmentPeriod:
       title: Enforcement Instalment Period
       type:
@@ -350,17 +343,10 @@ components:
       additionalProperties: false
       required:
         - instalment_period_code
-        - instalment_period_display_name
       properties:
         instalment_period_code:
           type: string
           enum: [W, M, F]
-        instalment_period_display_name:
-          type: string
-          enum:
-            - Weekly
-            - Monthly
-            - Fortnightly
     enforcementPostedDetails:
       title: Enforcement Posted Details
       type:

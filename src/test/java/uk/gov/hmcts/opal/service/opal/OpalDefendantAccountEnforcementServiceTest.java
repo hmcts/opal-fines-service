@@ -612,14 +612,10 @@ class OpalDefendantAccountEnforcementServiceTest {
             .extension(true)
             .reasonForExtension("test reason")
             .paymentTermsType(new EnforcementPaymentTermsTypeCommonStrict()
-                .paymentTermsTypeCode(EnforcementPaymentTermsTypeCommonStrict.PaymentTermsTypeCodeEnum.B)
-                .paymentTermsTypeDisplayName(
-                    EnforcementPaymentTermsTypeCommonStrict.PaymentTermsTypeDisplayNameEnum.BY_DATE))
+                .paymentTermsTypeCode(EnforcementPaymentTermsTypeCommonStrict.PaymentTermsTypeCodeEnum.B))
             .effectiveDate(LocalDate.of(2026, 5, 28))
             .instalmentPeriod(new EnforcementInstalmentPeriodCommonStrict()
-                .instalmentPeriodCode(EnforcementInstalmentPeriodCommonStrict.InstalmentPeriodCodeEnum.W)
-                .instalmentPeriodDisplayName(
-                    EnforcementInstalmentPeriodCommonStrict.InstalmentPeriodDisplayNameEnum.WEEKLY))
+                .instalmentPeriodCode(EnforcementInstalmentPeriodCommonStrict.InstalmentPeriodCodeEnum.W))
             .lumpSumAmount(BigDecimal.valueOf(100000))
             .instalmentAmount(BigDecimal.valueOf(0.50))
             .postedDetails(null);

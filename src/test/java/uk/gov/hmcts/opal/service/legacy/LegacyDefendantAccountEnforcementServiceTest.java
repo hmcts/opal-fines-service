@@ -194,13 +194,9 @@ class LegacyDefendantAccountEnforcementServiceTest {
         when(request.getEnforcementResultResponses()).thenReturn(java.util.List.of(rr));
 
         EnforcementPaymentTermsTypeCommonStrict paymentTermsType = new EnforcementPaymentTermsTypeCommonStrict()
-            .paymentTermsTypeCode(EnforcementPaymentTermsTypeCommonStrict.PaymentTermsTypeCodeEnum.B)
-            .paymentTermsTypeDisplayName(
-                EnforcementPaymentTermsTypeCommonStrict.PaymentTermsTypeDisplayNameEnum.BY_DATE);
+            .paymentTermsTypeCode(EnforcementPaymentTermsTypeCommonStrict.PaymentTermsTypeCodeEnum.B);
         EnforcementInstalmentPeriodCommonStrict instalmentPeriod = new EnforcementInstalmentPeriodCommonStrict()
-            .instalmentPeriodCode(EnforcementInstalmentPeriodCommonStrict.InstalmentPeriodCodeEnum.W)
-            .instalmentPeriodDisplayName(
-                EnforcementInstalmentPeriodCommonStrict.InstalmentPeriodDisplayNameEnum.WEEKLY);
+            .instalmentPeriodCode(EnforcementInstalmentPeriodCommonStrict.InstalmentPeriodCodeEnum.W);
         EnforcementPaymentTermsCommonStrict paymentTerms = new EnforcementPaymentTermsCommonStrict()
                 .daysInDefault(null)
                 .dateDaysInDefaultImposed(null)

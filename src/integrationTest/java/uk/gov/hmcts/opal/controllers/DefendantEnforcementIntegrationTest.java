@@ -68,14 +68,10 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
         .extension(true)
         .reasonForExtension("extension reason")
         .paymentTermsType(new EnforcementPaymentTermsTypeCommonStrict()
-            .paymentTermsTypeCode(EnforcementPaymentTermsTypeCommonStrict.PaymentTermsTypeCodeEnum.B)
-            .paymentTermsTypeDisplayName(
-                EnforcementPaymentTermsTypeCommonStrict.PaymentTermsTypeDisplayNameEnum.BY_DATE))
+            .paymentTermsTypeCode(EnforcementPaymentTermsTypeCommonStrict.PaymentTermsTypeCodeEnum.B))
         .effectiveDate(LocalDate.of(2026, 10, 30))
         .instalmentPeriod(new EnforcementInstalmentPeriodCommonStrict()
-            .instalmentPeriodCode(EnforcementInstalmentPeriodCommonStrict.InstalmentPeriodCodeEnum.W)
-            .instalmentPeriodDisplayName(
-                EnforcementInstalmentPeriodCommonStrict.InstalmentPeriodDisplayNameEnum.WEEKLY))
+            .instalmentPeriodCode(EnforcementInstalmentPeriodCommonStrict.InstalmentPeriodCodeEnum.W))
         .lumpSumAmount(BigDecimal.valueOf(500000L))
         .instalmentAmount(BigDecimal.valueOf(0.50))
         .postedDetails(new EnforcementPostedDetailsCommonStrict()
