@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -231,6 +232,64 @@ class DefendantAccountPaymentTermsServiceTest {
             ifMatch
         );
         verifyNoMoreInteractions(userStateService, businessUnitService, defendantAccountPaymentTermsServiceProxy);
+    }
+
+    @Test
+    void addPaymentCardRequest_permissionDenied_throws403() {
+        // Arrange
+        short businessUnitId = 10;
+        DomainBusinessUnitUsers businessUnitUsers = businessUnitUsers(
+            businessUnitUser(businessUnitId, "L010JG")
+        );
+
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userStateV2(businessUnitUsers));
+        when(businessUnitService.hasBusinessUnitUserWithPermission(
+            businessUnitUsers, businessUnitId, FinesPermission.AMEND_PAYMENT_TERMS)).thenReturn(false);
+
+        // Act
+        PermissionNotAllowedException ex = assertThrows(
+            PermissionNotAllowedException.class,
+            () -> defendantAccountPaymentTermsService.addPaymentCardRequest(1L, businessUnitId, "\"1\"")
+        );
+
+        // Assert
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.AMEND_PAYMENT_TERMS);
+        assertThat(ex.getBusinessUnitId()).isEqualTo(businessUnitId);
+        verify(userStateService).getUserStateFromSecurityContext();
+        verify(businessUnitService).hasBusinessUnitUserWithPermission(
+            businessUnitUsers, businessUnitId, FinesPermission.AMEND_PAYMENT_TERMS);
+        verify(businessUnitService, never()).getBusinessUnitUserIdForBusinessUnit(
+            any(DomainBusinessUnitUsers.class), eq(businessUnitId), eq(FinesPermission.AMEND_PAYMENT_TERMS));
+        verifyNoInteractions(defendantAccountPaymentTermsServiceProxy);
+        verifyNoMoreInteractions(userStateService, businessUnitService);
+    }
+
+    @Test
+    void addPaymentCardRequest_missingBusinessUnitUser_throws403Exception() {
+        // Arrange
+        short businessUnitId = 10;
+        DomainBusinessUnitUsers businessUnitUsers = businessUnitUsers();
+
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userStateV2(businessUnitUsers));
+        when(businessUnitService.hasBusinessUnitUserWithPermission(
+            businessUnitUsers, businessUnitId, FinesPermission.AMEND_PAYMENT_TERMS)).thenReturn(false);
+
+        // Act
+        PermissionNotAllowedException ex = assertThrows(
+            PermissionNotAllowedException.class,
+            () -> defendantAccountPaymentTermsService.addPaymentCardRequest(1L, businessUnitId, "\"1\"")
+        );
+
+        // Assert
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.AMEND_PAYMENT_TERMS);
+        assertThat(ex.getBusinessUnitId()).isEqualTo(businessUnitId);
+        verify(userStateService).getUserStateFromSecurityContext();
+        verify(businessUnitService).hasBusinessUnitUserWithPermission(
+            businessUnitUsers, businessUnitId, FinesPermission.AMEND_PAYMENT_TERMS);
+        verify(businessUnitService, never()).getBusinessUnitUserIdForBusinessUnit(
+            any(DomainBusinessUnitUsers.class), eq(businessUnitId), eq(FinesPermission.AMEND_PAYMENT_TERMS));
+        verifyNoInteractions(defendantAccountPaymentTermsServiceProxy);
+        verifyNoMoreInteractions(userStateService, businessUnitService);
     }
 
     @Test
