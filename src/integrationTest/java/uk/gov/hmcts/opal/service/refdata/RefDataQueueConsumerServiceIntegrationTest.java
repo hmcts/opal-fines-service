@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.service.refdata;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaType;
+import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.service.refdata.framework.RefDataQueueConsumerService;
 
@@ -118,7 +119,7 @@ class RefDataQueueConsumerServiceIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
-    void processMessage_discardsInvalidPayloadWhenRequiredFieldIsMissing() {
+    void processMessage_throwsSchemaValidationExceptionWhenRequiredFieldIsMissing() {
         LocalJusticeAreaEntity original = localJusticeAreaRepository.findAll().stream()
             .findFirst()
             .orElseThrow();
@@ -127,7 +128,7 @@ class RefDataQueueConsumerServiceIntegrationTest extends AbstractIntegrationTest
         final String ljaCode = original.getLjaCode() == null ? "Z125" : original.getLjaCode();
         final long beforeCount = localJusticeAreaRepository.count();
 
-        assertThatCode(() -> consumer.processMessage("""
+        assertThatThrownBy(() -> consumer.processMessage("""
             {
               "refDataType": "LOCAL_JUSTICE_AREA",
               "payload": {
@@ -137,8 +138,8 @@ class RefDataQueueConsumerServiceIntegrationTest extends AbstractIntegrationTest
               }
             }
             """.formatted(ljaCode)))
-            .as("invalid ref-data messages should be discarded rather than retried")
-            .doesNotThrowAnyException();
+            .isInstanceOf(JsonSchemaValidationException.class)
+            .hasMessageContaining("ref-data/RefDataUpdateMessage.json");
 
         entityManager.flush();
         entityManager.clear();
@@ -151,7 +152,7 @@ class RefDataQueueConsumerServiceIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
-    void processMessage_discardsInvalidPayloadWhenInvalidLjaTypeIsSupplied() {
+    void processMessage_throwsSchemaValidationExceptionWhenInvalidLjaTypeIsSupplied() {
         LocalJusticeAreaEntity original = localJusticeAreaRepository.findAll().stream()
             .findFirst()
             .orElseThrow();
@@ -168,7 +169,7 @@ class RefDataQueueConsumerServiceIntegrationTest extends AbstractIntegrationTest
             entityManager.clear();
         }
 
-        assertThatCode(() -> consumer.processMessage("""
+        assertThatThrownBy(() -> consumer.processMessage("""
             {
               "refDataType": "LOCAL_JUSTICE_AREA",
               "payload": {
@@ -181,8 +182,8 @@ class RefDataQueueConsumerServiceIntegrationTest extends AbstractIntegrationTest
               }
             }
             """.formatted(ljaCode)))
-            .as("invalid ljaType should be discarded rather than retried")
-            .doesNotThrowAnyException();
+            .isInstanceOf(JsonSchemaValidationException.class)
+            .hasMessageContaining("ref-data/RefDataUpdateMessage.json");
 
         entityManager.flush();
         entityManager.clear();
@@ -193,5 +194,12 @@ class RefDataQueueConsumerServiceIntegrationTest extends AbstractIntegrationTest
         assertThat(reloaded.getName()).isEqualTo(originalName);
         assertThat(reloaded.getLjaCode()).isEqualTo(ljaCode);
         assertThat(reloaded.getLjaType()).isEqualTo(originalType);
+    }
+
+    @Test
+    void processMessage_throwsIllegalArgumentExceptionWhenPayloadIsNotJson() {
+        assertThatThrownBy(() -> consumer.processMessage("not-json"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Unable to parse ref data message");
     }
 }

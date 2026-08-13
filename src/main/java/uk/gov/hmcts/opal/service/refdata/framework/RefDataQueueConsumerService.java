@@ -37,8 +37,9 @@ public class RefDataQueueConsumerService {
             RefDataUpdateHandler<?, ?> handler = resolveHandler(messageNode);
             applyUpdate(handler, messageNode.get("payload"));
         } catch (IllegalArgumentException | JsonSchemaValidationException ex) {
-            log.warn("Discarding invalid ref-data message: {}", ex.getMessage());
+            log.warn("Ref-data message will be retried or sent to DLQ: {}", ex.getMessage());
             log.debug("Invalid ref-data message payload was:\n{}", messagePayload, ex);
+            throw ex;
         }
     }
 
