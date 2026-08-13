@@ -24,7 +24,6 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
@@ -37,16 +36,13 @@ public class DefendantAccountController {
 
     private final DefendantAccountService defendantAccountService;
     private final DefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
-    private final DefendantAccountEnforcementService defendantAccountEnforcementService;
     private final DefendantAccountPartyService defendantAccountPartyService;
 
     public DefendantAccountController(DefendantAccountService defendantAccountService,
         DefendantAccountPaymentTermsService defendantAccountPaymentTermsService,
-        DefendantAccountEnforcementService defendantAccountEnforcementService,
         DefendantAccountPartyService defendantAccountPartyService) {
         this.defendantAccountService = defendantAccountService;
         this.defendantAccountPaymentTermsService = defendantAccountPaymentTermsService;
-        this.defendantAccountEnforcementService = defendantAccountEnforcementService;
         this.defendantAccountPartyService = defendantAccountPartyService;
     }
 
@@ -80,7 +76,6 @@ public class DefendantAccountController {
         return buildResponse(
             defendantAccountPaymentTermsService.getPaymentTerms(defendantAccountId));
     }
-
 
     @DeleteMapping(value = "/{defendantAccountId}/defendant-account-parties/{defendantAccountPartyId}",
         consumes = MediaType.APPLICATION_JSON_VALUE,

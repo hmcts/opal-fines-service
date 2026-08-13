@@ -14,7 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
@@ -25,9 +24,6 @@ class DefendantAccountControllerTest {
 
     @Mock
     private DefendantAccountService defendantAccountService;
-
-    @Mock
-    private DefendantAccountEnforcementService defendantAccountEnforcementService;
 
     @Mock
     private DefendantAccountPartyService defendantAccountPartyService;

@@ -16,7 +16,6 @@ import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
-import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.http.api.DefendantAccountApi;
@@ -34,20 +33,21 @@ import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.ReplacePartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
+import uk.gov.hmcts.opal.mapper.RemoveDefendantAccountPartyMapper;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.ReplacePartyRequestMapper;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
-import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
+import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
-import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
-import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.ImpositionService;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
@@ -60,10 +60,11 @@ public class DefendantAccountApiController implements DefendantAccountApi {
     private final DefendantAccountEnforcementService defendantAccountEnforcementService;
     private final DefendantAccountHistoryResponseMapper defendantAccountHistoryResponseMapper;
     private final ImpositionService impositionService;
+    private final DefendantAccountPartyService defendantAccountPartyService;
     private final DefendantAccountFixedPenaltyService defendantAccountFixedPenaltyService;
     private final DefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
-    private final DefendantAccountPartyService defendantAccountPartyService;
     private final ReplacePartyRequestMapper replacePartyRequestMapper;
+    private final RemoveDefendantAccountPartyMapper removeDefendantAccountPartyMapper;
 
     @Override
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
@@ -206,6 +207,30 @@ public class DefendantAccountApiController implements DefendantAccountApi {
         log.debug(":POST:postDefendantAccountSearch");
 
         return buildResponse(defendantAccountService.searchDefendantAccounts(request));
+    }
+
+    @Override
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
+    public ResponseEntity<RemoveDefendantAccountPartyResponseDefendantAccount> removeDefendantAccountParty(
+        Long defendantAccountId,
+        Long defendantAccountPartyId,
+        Short businessUnitId,
+        RemoveDefendantAccountPartyRequestDefendantAccount request,
+        String ifMatch) {
+
+        log.debug(":DELETE:removeDefendantAccountParty: for defendant id: {} and defendantAccountPartyId: {}",
+            defendantAccountId, defendantAccountPartyId);
+
+        RemoveDefendantAccountPartyResponseDefendantAccount response =
+            removeDefendantAccountPartyMapper.toGeneratedResponse(
+                defendantAccountPartyService.removeDefendantAccountParty(
+                    defendantAccountId,
+                    defendantAccountPartyId,
+                    businessUnitId,
+                    ifMatch,
+                    removeDefendantAccountPartyMapper.toServiceRequest(request)));
+
+        return buildResponse(response);
     }
 
     @Override
