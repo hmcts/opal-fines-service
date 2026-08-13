@@ -18,14 +18,15 @@ import jakarta.persistence.Table;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
-
-import java.util.List;
 
 @Getter
 @Setter
@@ -70,6 +71,7 @@ public class ConfigurationItemEntity {
     @Column(name = "item_value")
     private String itemValue;
 
-    @Column(name = "item_values", length = 500)
-    private List<String> itemValues;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "item_values")
+    private Map<String, Object> itemValues;
 }
