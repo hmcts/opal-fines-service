@@ -6,11 +6,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
-import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 
-@Slf4j(topic = "opal.RefDataQueueConsumer")
+@Slf4j(topic = "opal.RefDataMessageProcessor")
 @Service
-public class RefDataQueueConsumerService {
+public class RefDataMessageProcessor {
 
     private static final String REF_DATA_UPDATE_MESSAGE_SCHEMA = "ref-data/RefDataUpdateMessage.json";
 
@@ -18,7 +17,7 @@ public class RefDataQueueConsumerService {
     private final SchemaValidationService schemaValidationService;
     private final RefDataHandlerRegistry handlerRegistry;
 
-    public RefDataQueueConsumerService(ObjectMapper objectMapper,
+    public RefDataMessageProcessor(ObjectMapper objectMapper,
         SchemaValidationService schemaValidationService,
         RefDataHandlerRegistry handlerRegistry) {
         this.objectMapper = objectMapper;
@@ -28,24 +27,19 @@ public class RefDataQueueConsumerService {
 
     @Transactional
     public void processMessage(String messagePayload) {
-        try {
-            JsonNode messageNode = readMessageNode(messagePayload);
+        JsonNode messageNode = readMessageNode(messagePayload);
 
-            schemaValidationService.validateOrError(messageNode, REF_DATA_UPDATE_MESSAGE_SCHEMA);
+        schemaValidationService.validateOrError(messageNode, REF_DATA_UPDATE_MESSAGE_SCHEMA);
 
-            Optional<RefDataUpdateHandler<?, ?>> handler = handlerRegistry.find(
-                messageNode.path("refDataType").asText(null));
-            if (handler.isEmpty()) {
-                log.debug("Ignoring ref-data message with no registered handler for type: {}",
-                    messageNode.get("refDataType"));
-                return;
-            }
-
-            applyUpdate(handler.get(), messageNode.get("payload"));
-        } catch (IllegalArgumentException | JsonSchemaValidationException ex) {
-            log.debug("Invalid ref-data message payload was:\n{}", messagePayload, ex);
-            throw ex;
+        Optional<RefDataUpdateHandler<?, ?>> handler = handlerRegistry.find(
+            messageNode.path("refDataType").asText(null));
+        if (handler.isEmpty()) {
+            log.debug("Ignoring ref-data message with no registered handler for type: {}",
+                messageNode.get("refDataType"));
+            return;
         }
+
+        applyUpdate(handler.get(), messageNode.get("payload"));
     }
 
     private JsonNode readMessageNode(String messagePayload) {

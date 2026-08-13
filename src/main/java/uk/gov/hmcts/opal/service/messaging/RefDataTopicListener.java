@@ -7,14 +7,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.opal.service.refdata.framework.RefDataQueueConsumerService;
+import uk.gov.hmcts.opal.service.refdata.framework.RefDataMessageProcessor;
 
 @Component
 @RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "opal.ref-data.service-bus", name = "consumer-enabled", havingValue = "true")
 public class RefDataTopicListener {
 
-    private final RefDataQueueConsumerService consumer;
+    private final RefDataMessageProcessor consumer;
 
     @JmsListener(
         destination = "${opal.ref-data.service-bus.topic-name}",

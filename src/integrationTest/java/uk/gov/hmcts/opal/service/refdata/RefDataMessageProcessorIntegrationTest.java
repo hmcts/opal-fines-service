@@ -17,15 +17,15 @@ import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaType;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
-import uk.gov.hmcts.opal.service.refdata.framework.RefDataQueueConsumerService;
+import uk.gov.hmcts.opal.service.refdata.framework.RefDataMessageProcessor;
 
 @Transactional
 @DisplayName("Ref Data Queue Consumer Integration Tests")
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-class RefDataQueueConsumerServiceIntegrationTest extends AbstractIntegrationTest {
+class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
 
-    private final RefDataQueueConsumerService consumer;
+    private final RefDataMessageProcessor consumer;
     private final LocalJusticeAreaRepository localJusticeAreaRepository;
 
     @PersistenceContext
