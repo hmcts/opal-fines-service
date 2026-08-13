@@ -81,7 +81,8 @@ public class TestingSupportControllerDeleteInterfaceJobsIntegrationTest extends 
         ResultActions actions = mockMvc.perform(delete(URL)
             .queryParam("ids", "" + interfaceJobId1, "" + interfaceJobId2));
 
-        actions.andExpect(status().isOk());
+        actions.andExpect(status().isOk())
+            .andExpect(jsonPath("$").doesNotExist());
 
         assertThat(paymentInRepository.count()).isZero();
         assertThat(tillRepository.countByInterfaceFile_InterfaceFileIdIn(interfaceFileIds)).isZero();
@@ -97,7 +98,11 @@ public class TestingSupportControllerDeleteInterfaceJobsIntegrationTest extends 
     void deleteInterfaceJobs_whenNoIdsAreSupplied_returnsServerError() throws Exception {
         ResultActions actions = mockMvc.perform(delete(URL));
 
-        actions.andExpect(status().is5xxServerError());
+        actions.andExpect(status().is5xxServerError())
+            .andExpect(jsonPath("$.title").value("Internal Server Error"))
+            .andExpect(jsonPath("$.detail").value("An unexpected error occurred while processing your request"))
+            .andExpect(jsonPath("$.status").value(500))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/servlet-error"));
     }
 
     @Test
@@ -107,7 +112,11 @@ public class TestingSupportControllerDeleteInterfaceJobsIntegrationTest extends 
     void deleteInterfaceJobs_whenEmptyIdsParmaIsSupplied_returnsNotFound() throws Exception {
         ResultActions actions = mockMvc.perform(delete(URL).queryParam("ids", ""));
 
-        actions.andExpect(status().isNotFound());
+        actions.andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.title").value("Entity Not Found"))
+            .andExpect(jsonPath("$.detail").value("The requested entity could not be found"))
+            .andExpect(jsonPath("$.status").value(404))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"));
     }
 
     @Test
@@ -117,7 +126,11 @@ public class TestingSupportControllerDeleteInterfaceJobsIntegrationTest extends 
     void deleteInterfaceJobs_whenIdDoesNotExist_returnsNotFound() throws Exception {
         mockMvc.perform(delete(URL)
                 .queryParam("ids", "-1"))
-            .andExpect(status().isNotFound());
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.title").value("Entity Not Found"))
+            .andExpect(jsonPath("$.detail").value("The requested entity could not be found"))
+            .andExpect(jsonPath("$.status").value(404))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"));
     }
 
     @Test
@@ -127,11 +140,16 @@ public class TestingSupportControllerDeleteInterfaceJobsIntegrationTest extends 
     void deleteInterfaceJobs_whenCalledTwice_returnsNotFoundOnSecondCall() throws Exception {
         mockMvc.perform(delete(URL)
                 .queryParam("ids", "987651"))
-            .andExpect(status().isOk());
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").doesNotExist());
 
         mockMvc.perform(delete(URL)
                 .queryParam("ids", "987651"))
-            .andExpect(status().isNotFound());
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.title").value("Entity Not Found"))
+            .andExpect(jsonPath("$.detail").value("The requested entity could not be found"))
+            .andExpect(jsonPath("$.status").value(404))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"));
     }
 
     @Test
