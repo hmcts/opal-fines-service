@@ -9,7 +9,7 @@ import uk.gov.hmcts.opal.service.hmrc.HmrcAuthentication;
 @Component
 public class FeignRequestInterceptor implements RequestInterceptor {
 
-    @Autowired(required = false) //TODO: remove 'required = false' once this interface has an implementation.
+    @Autowired
     private HmrcAuthentication auth;
 
     @Override
