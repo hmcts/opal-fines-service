@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -158,7 +159,7 @@ class BusinessUnitControllerTest {
             (short)1, "Main BU", "MNBU", "Big",
             "Prefix", "Domain", null, List.of(
                 new BusinessUnitReferenceData.ConfigItemRefData("Item Name", "Item Value",
-                                                                List.of("value 1", "value 2"))
+                                                                Map.of("value 1", "value 2"))
         ));
 
     }
