@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Get Defendant Account Impositions Legacy Response",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer"
+    },
+    "impositions": {
+      "type": "array",
+      "items": {
+        "$ref": "./common-objects/impositionSummaryLegacy.json"
+      }
+    }
+  },
+  "required": [
+    "version",
+    "impositions"
+  ]
+}
