@@ -2,12 +2,14 @@ package uk.gov.hmcts.opal.service.refdata.framework;
 
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 
 @Slf4j(topic = "opal.RefDataQueueConsumer")
+@Service
 public class RefDataQueueConsumerService {
 
     private static final String REF_DATA_UPDATE_MESSAGE_SCHEMA = "ref-data/RefDataUpdateMessage.json";
@@ -29,7 +31,8 @@ public class RefDataQueueConsumerService {
         try {
             JsonNode messageNode = readMessageNode(messagePayload);
 
-            Optional<RefDataUpdateHandler<?, ?>> handler = handlerRegistry.find(messageNode.path("refDataType").asText(null));
+            Optional<RefDataUpdateHandler<?, ?>> handler = handlerRegistry.find(
+                messageNode.path("refDataType").asText(null));
             if (handler.isEmpty()) {
                 log.warn("Ignoring ref-data message with no registered handler for type: {}",
                     messageNode.get("refDataType"));

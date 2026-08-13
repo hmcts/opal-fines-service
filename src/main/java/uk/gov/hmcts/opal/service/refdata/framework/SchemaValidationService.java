@@ -8,6 +8,7 @@ import com.networknt.schema.SpecVersion.VersionFlag;
 import com.networknt.schema.ValidationMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 
 @Slf4j(topic = "opal.SchemaValidationService")
+@Service
 public class SchemaValidationService {
 
     private static final String PATH_ROOT = "jsonSchemas";
