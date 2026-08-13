@@ -3,6 +3,8 @@ package uk.gov.hmcts.opal.controllers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
@@ -13,8 +15,10 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
+import org.mapstruct.factory.Mappers;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -210,35 +214,44 @@ class DefendantAccountApiControllerTest {
             RemoveDefendantAccountPartyRequestDefendantAccount.builder()
                 .defendantAccountPartyId("10")
                 .build();
-        RemoveDefendantAccountPartyRequest serviceRequest = RemoveDefendantAccountPartyRequest.builder()
-            .defendantAccountPartyId(10L)
-            .build();
         RemoveDefendantAccountPartyResponse serviceResponse = RemoveDefendantAccountPartyResponse.builder()
             .defendantAccountPartyId("10")
             .version(BigInteger.valueOf(2))
             .build();
-        RemoveDefendantAccountPartyResponseDefendantAccount generatedResponse =
-            RemoveDefendantAccountPartyResponseDefendantAccount.builder()
-                .defendantAccountPartyId("10")
-                .build();
+        DefendantAccountApiController controller = new DefendantAccountApiController(
+            defendantAccountService,
+            defendantAccountHistoryResponseMapper,
+            impositionService,
+            defendantAccountPartyService,
+            Mappers.getMapper(RemoveDefendantAccountPartyMapper.class)
+        );
 
-        when(removeDefendantAccountPartyMapper.toServiceRequest(request)).thenReturn(serviceRequest);
         when(defendantAccountPartyService.removeDefendantAccountParty(
-            defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, serviceRequest))
+            eq(defendantAccountId),
+            eq(defendantAccountPartyId),
+            eq(businessUnitId),
+            eq(ifMatch),
+            any(RemoveDefendantAccountPartyRequest.class)))
             .thenReturn(serviceResponse);
-        when(removeDefendantAccountPartyMapper.toGeneratedResponse(serviceResponse)).thenReturn(generatedResponse);
 
         ResponseEntity<RemoveDefendantAccountPartyResponseDefendantAccount> response =
-            defendantAccountApiController.removeDefendantAccountParty(
+            controller.removeDefendantAccountParty(
                 defendantAccountId, defendantAccountPartyId, businessUnitId, request, ifMatch);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("\"2\"", response.getHeaders().getETag());
-        assertSame(generatedResponse, response.getBody());
-        verify(removeDefendantAccountPartyMapper).toServiceRequest(request);
+        assertNotNull(response.getBody());
+        assertEquals("10", response.getBody().getDefendantAccountPartyId());
+
+        ArgumentCaptor<RemoveDefendantAccountPartyRequest> requestCaptor =
+            ArgumentCaptor.forClass(RemoveDefendantAccountPartyRequest.class);
         verify(defendantAccountPartyService).removeDefendantAccountParty(
-            defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, serviceRequest);
-        verify(removeDefendantAccountPartyMapper).toGeneratedResponse(serviceResponse);
+            eq(defendantAccountId),
+            eq(defendantAccountPartyId),
+            eq(businessUnitId),
+            eq(ifMatch),
+            requestCaptor.capture());
+        assertEquals(10L, requestCaptor.getValue().getDefendantAccountPartyId());
     }
 
     @Test
