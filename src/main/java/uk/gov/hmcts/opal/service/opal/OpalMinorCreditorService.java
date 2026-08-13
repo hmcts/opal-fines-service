@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.CreditorAccountDto;
 import uk.gov.hmcts.opal.dto.DefendantDto;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
@@ -33,12 +32,13 @@ import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItem;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItemType;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.GetMinorCreditorHistory200Response;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderEntityMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountUpdateMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorHistoryItemMapper;
-import uk.gov.hmcts.opal.mapper.response.GetMinorCreditorAccountAtAGlanceResponseMapper;
+import uk.gov.hmcts.opal.mapper.response.MinorCreditorAccountAtAGlanceResponseMapper;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.CreditorTransactionRepository;
@@ -73,7 +73,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
     private final MinorCreditorAccountUpdateMapper updateMapper;
     private final MinorCreditorAccountResponseMapper responseMapper;
     private final MinorCreditorHistoryItemMapper historyItemMapper;
-    private final GetMinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
+    private final MinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
     private final EntityManager em;
     private final MinorCreditorSpecs specs = new MinorCreditorSpecs();
 
@@ -177,7 +177,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
     @Override
     @Transactional(readOnly = true)
-    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId) {
+    public MinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId) {
         log.debug(":getMinorCreditorAtAGlance (Opal): minorCreditorId={}", minorCreditorId);
 
         MinorCreditorAccountAtAGlanceEntity minorCreditorEntity =
@@ -190,7 +190,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
                 "Party not found: " + minorCreditorEntity.getPartyId()
             ));
 
-        GetMinorCreditorAccountAtAGlanceResponse response =
+        MinorCreditorAccountAtAGlanceResponse response =
             atAGlanceResponseMapper.toDto(minorCreditorEntity, partyEntity);
 
         if (minorCreditorEntity.getVersionNumber() != null) {

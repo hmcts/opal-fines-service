@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -151,7 +152,7 @@ class CashListReportServiceTest {
         return PaymentInEntity.builder()
             .paymentInId(paymentInId)
             .tillEntity(till)
-            .paymentDate(LocalDateTime.of(2026, 5, 26, 14, 30))
+            .paymentDate(LocalDateTime.of(2026, Month.MAY, 26, 14, 30))
             .paymentMethod(PaymentMethod.NC)
             .destinationType(DestinationType.F)
             .build();

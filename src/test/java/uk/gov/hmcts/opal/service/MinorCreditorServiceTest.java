@@ -32,7 +32,6 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
@@ -46,6 +45,7 @@ import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCreditorPayment;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 
 @ExtendWith(MockitoExtension.class)
@@ -379,13 +379,13 @@ class MinorCreditorServiceTest {
     void testGetMinorCreditorAccountAtAGlance() {
         // Arrange
         Long id = 123L;
-        GetMinorCreditorAccountAtAGlanceResponse response = GetMinorCreditorAccountAtAGlanceResponse.builder().build();
+        MinorCreditorAccountAtAGlanceResponse response = new MinorCreditorAccountAtAGlanceResponse();
 
         when(minorCreditorSearchProxy.getMinorCreditorAtAGlance(id)).thenReturn(response);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
 
         // Act
-        GetMinorCreditorAccountAtAGlanceResponse result =
+        MinorCreditorAccountAtAGlanceResponse result =
             minorCreditorService.getMinorCreditorAtAGlance(id);
 
         // Assert

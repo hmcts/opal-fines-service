@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneOffset;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,7 +37,7 @@ class PaymentTermsServiceTest {
         PaymentTermsEntity entity = new PaymentTermsEntity();
         entity.setPostedBy("user1");
         entity.setPostedByUsername("username1");
-        entity.setPostedDate(LocalDateTime.of(2026, 5, 1, 9, 0));
+        entity.setPostedDate(LocalDateTime.of(2026, Month.MAY, 1, 9, 0));
 
         when(paymentTermsRepository.save(any(PaymentTermsEntity.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -46,7 +47,7 @@ class PaymentTermsServiceTest {
         assertEquals(true, result.getActive());
         assertEquals("user1", result.getPostedBy());
         assertEquals("username1", result.getPostedByUsername());
-        assertEquals(LocalDateTime.of(2026, 5, 1, 9, 0), result.getPostedDate());
+        assertEquals(LocalDateTime.of(2026, Month.MAY, 1, 9, 0), result.getPostedDate());
         verify(paymentTermsRepository).save(any(PaymentTermsEntity.class));
     }
 
@@ -68,7 +69,7 @@ class PaymentTermsServiceTest {
 
         PaymentTermsEntity result = paymentTermsService.addPaymentTerm(entity);
 
-        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), result.getPostedDate());
+        assertEquals(LocalDateTime.of(2026, Month.MAY, 7, 10, 15), result.getPostedDate());
         verify(paymentTermsRepository).save(any(PaymentTermsEntity.class));
     }
 }

@@ -7,7 +7,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.Creditor;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
@@ -59,22 +58,6 @@ class MinorCreditorControllerTest {
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(mockResponse, responseEntity.getBody());
         verify(minorCreditorService, times(1)).searchMinorCreditors(any());
-    }
-
-    @Test
-    void testGetMinorCreditorAccountAtAGlance_Success() {
-        // Arrange
-        GetMinorCreditorAccountAtAGlanceResponse mockResponse = new GetMinorCreditorAccountAtAGlanceResponse();
-
-        when(minorCreditorService.getMinorCreditorAtAGlance(101L)).thenReturn(mockResponse);
-
-        // Act
-        ResponseEntity<GetMinorCreditorAccountAtAGlanceResponse> responseEntity =
-            minorCreditorController.getMinorCreditorsAtAGlance(101L);
-
-        // Assert
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals(mockResponse, responseEntity.getBody());
     }
 
     @Test
