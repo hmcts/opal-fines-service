@@ -57,7 +57,7 @@ class Release1bFeatureToggleAnnotationTest {
             "ResultsApiController#getResultById",
             "DefendantAccountApiController#postDefendantAccountSearch",
             "DefendantAccountController#addEnforcement",
-            "DefendantAccountController#removeDefendantAccountParty",
+            "DefendantAccountApiController#removeDefendantAccountParty",
             "MajorCreditorApiController#getCentralFundByBusinessUnit",
             "DefendantAccountApiController#getEnforcementStatus",
             "DefendantAccountController#addPaymentCardRequest",
