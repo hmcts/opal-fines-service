@@ -4,8 +4,8 @@ import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import tools.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.opal.service.refdata.framework.RefDataHandlerRegistry;
 import uk.gov.hmcts.opal.service.refdata.framework.RefDataQueueConsumerService;
-import uk.gov.hmcts.opal.service.refdata.framework.RefDataUpdateHandler;
 import uk.gov.hmcts.opal.service.refdata.framework.SchemaValidationService;
 
 @Configuration
@@ -20,8 +20,8 @@ public class RefDataFrameworkConfig {
     public RefDataQueueConsumerService refDataQueueConsumerService(
         ObjectMapper objectMapper,
         SchemaValidationService schemaValidationService,
-        List<RefDataUpdateHandler<?, ?>> handlers
+        RefDataHandlerRegistry handlerRegistry
     ) {
-        return new RefDataQueueConsumerService(objectMapper, schemaValidationService, handlers);
+        return new RefDataQueueConsumerService(objectMapper, schemaValidationService, handlerRegistry);
     }
 }

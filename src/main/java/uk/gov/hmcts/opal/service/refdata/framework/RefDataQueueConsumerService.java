@@ -1,10 +1,6 @@
 package uk.gov.hmcts.opal.service.refdata.framework;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
@@ -18,15 +14,14 @@ public class RefDataQueueConsumerService {
 
     private final ObjectMapper objectMapper;
     private final SchemaValidationService schemaValidationService;
-    private final Map<String, RefDataUpdateHandler<?, ?>> handlersByType;
+    private final RefDataHandlerRegistry handlerRegistry;
 
     public RefDataQueueConsumerService(ObjectMapper objectMapper,
         SchemaValidationService schemaValidationService,
-        List<RefDataUpdateHandler<?, ?>> handlers) {
+        RefDataHandlerRegistry handlerRegistry) {
         this.objectMapper = objectMapper;
         this.schemaValidationService = schemaValidationService;
-        this.handlersByType = handlers.stream()
-            .collect(Collectors.toMap(RefDataUpdateHandler::refDataType, Function.identity()));
+        this.handlerRegistry = handlerRegistry;
     }
 
     @Transactional
@@ -34,7 +29,7 @@ public class RefDataQueueConsumerService {
         try {
             JsonNode messageNode = readMessageNode(messagePayload);
 
-            Optional<RefDataUpdateHandler<?, ?>> handler = resolveHandler(messageNode);
+            Optional<RefDataUpdateHandler<?, ?>> handler = handlerRegistry.find(messageNode.path("refDataType").asText(null));
             if (handler.isEmpty()) {
                 log.warn("Ignoring ref-data message with no registered handler for type: {}",
                     messageNode.get("refDataType"));
@@ -57,12 +52,6 @@ public class RefDataQueueConsumerService {
         } catch (Exception ex) {
             throw new IllegalArgumentException("Unable to parse ref data message", ex);
         }
-    }
-
-    private Optional<RefDataUpdateHandler<?, ?>> resolveHandler(JsonNode messageNode) {
-        JsonNode refDataTypeNode = messageNode.get("refDataType");
-        String refDataType = refDataTypeNode == null ? null : refDataTypeNode.asText();
-        return Optional.ofNullable(handlersByType.get(refDataType));
     }
 
     @SuppressWarnings("unchecked")
