@@ -35,7 +35,7 @@ public class RefDataQueueConsumerService {
             schemaValidationService.validateOrError(messageNode, REF_DATA_UPDATE_MESSAGE_SCHEMA);
 
             RefDataUpdateHandler<?, ?> handler = resolveHandler(messageNode);
-            dispatch(handler, messageNode.get("payload"));
+            applyUpdate(handler, messageNode.get("payload"));
         } catch (IllegalArgumentException | JsonSchemaValidationException ex) {
             log.warn("Discarding invalid ref-data message: {}", ex.getMessage());
             log.debug("Invalid ref-data message payload was:\n{}", messagePayload, ex);
@@ -61,7 +61,7 @@ public class RefDataQueueConsumerService {
     }
 
     @SuppressWarnings("unchecked")
-    private <T, E> void dispatch(RefDataUpdateHandler<T, E> handler, JsonNode payloadNode) {
+    private <T, E> void applyUpdate(RefDataUpdateHandler<T, E> handler, JsonNode payloadNode) {
         T dto;
         try {
             dto = objectMapper.convertValue(payloadNode, handler.payloadType());
