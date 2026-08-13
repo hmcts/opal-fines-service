@@ -47,11 +47,11 @@ public class HmrcAuthServiceIntegrationTest extends AbstractIntegrationTest {
     private HmrcAuthCreds hmrcAuthCreds;
 
     private final HmrcAuthToken hmrcAuthToken = new HmrcAuthToken(
-        "xxxx-test-token-xxxx", "bearer", 14400, "test-scope1+test-scope2"
+        "xxxx-test-token-xxxx", "BEARER", 14400, "test-scope1+test-scope2"
     );
 
     private final HmrcAuthToken hmrcAuthToken2 = new HmrcAuthToken(
-        "xxxx-2-test-token-2-xxxx", "bearer", 14400, "test-scope1+test-scope2"
+        "xxxx-2-test-token-2-xxxx", "BEARER", 14400, "test-scope1+test-scope2"
     );
 
     private static final String WIREMOCK_HMRC_AUTH_SCENARIO = "GET HMRC auth token test";
