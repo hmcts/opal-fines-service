@@ -8,6 +8,14 @@ info:
   version: v0.0.1
 components:
   schemas:
+    removeDefendantAccountPartyDetails:
+      title: Remove Defendant Account Party Details
+      type: object
+      additionalProperties: false
+      properties:
+        party_id:
+          type: string
+          minLength: 1
     partyDetails:
       title: Party Details
       type: object
