@@ -31,6 +31,7 @@ import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @DisplayName("Interface Job Create Integration Tests")
@@ -58,6 +59,7 @@ class InterfaceJobCreateIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2577")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-10187")
     void shouldCreateInterfaceJobsAndFiles() {
         stubPermission(BUSINESS_UNIT_ID);
 
@@ -83,6 +85,7 @@ class InterfaceJobCreateIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2577")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-10188")
     void shouldRollbackWhenOneInterfaceJobCannotBeCreated() {
         stubPermission(BUSINESS_UNIT_ID, MISSING_BUSINESS_UNIT_ID);
 

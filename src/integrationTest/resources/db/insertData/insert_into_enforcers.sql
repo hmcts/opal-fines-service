@@ -13,6 +13,17 @@
 *
 **/
 
+INSERT INTO business_units
+(
+business_unit_id,business_unit_name,business_unit_code,business_unit_type,
+account_number_prefix,parent_business_unit_id,opal_domain,welsh_language
+)
+VALUES
+(
+10059,'Business Unit 5','BU05','Area'
+,'XX',NULL,'Fines',false
+);
+
 INSERT INTO enforcers
 (
 enforcer_id, business_unit_id, enforcer_code, name, name_cy
@@ -22,7 +33,7 @@ enforcer_id, business_unit_id, enforcer_code, name, name_cy
 )
 VALUES
 (
-001, 5, 001, 'AAA Enforcers', NULL
+001, 10059, 001, 'AAA Enforcers', NULL
 , '9 Enforcement Street', 'Enformentville', 'Enforcementon'
 , NULL, NULL, NULL
 , 'EF1 1EF', '101/09/00000', 666
