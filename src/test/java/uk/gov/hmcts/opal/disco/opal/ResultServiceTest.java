@@ -32,8 +32,8 @@ import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.result.ResultType;
 import uk.gov.hmcts.opal.generated.model.GetResultByIdResponseResults;
-import uk.gov.hmcts.opal.generated.model.GetResultsResponseResults;
-import uk.gov.hmcts.opal.generated.model.ResultReferenceDataResults;
+import uk.gov.hmcts.opal.generated.model.ResultsRefDataResponse;
+import uk.gov.hmcts.opal.generated.model.ResultsRefData;
 import uk.gov.hmcts.opal.mapper.ResultMapper;
 import uk.gov.hmcts.opal.repository.ResultRepository;
 import uk.gov.hmcts.opal.repository.jpa.ResultSpecs;
@@ -100,7 +100,7 @@ class ResultServiceTest {
     void testGetResultsByIds() {
         // Arrange
         ResultEntity resultEntity = ResultEntity.builder().resultId("ABC").build();
-        ResultReferenceDataResults dto = ResultReferenceDataResults.builder()
+        ResultsRefData dto = ResultsRefData.builder()
             .resultId("ABC")
             .active(false)
             .build();
@@ -123,10 +123,10 @@ class ResultServiceTest {
             .thenReturn(noOpSpec());
 
         // Act
-        GetResultsResponseResults result = resultService.getResultsByIds(List.of("ABC"),
+        ResultsRefDataResponse result = resultService.getResultsByIds(List.of("ABC"),
             false, false, false, false, null);
 
-        GetResultsResponseResults expectedResponse = GetResultsResponseResults.builder()
+        ResultsRefDataResponse expectedResponse = ResultsRefDataResponse.builder()
             .refData(List.of(dto))
             .count(1)
             .build();
@@ -158,15 +158,15 @@ class ResultServiceTest {
         when(resultSpecs.referenceDataByIds(any(), any(), any(), any(), any(), any()))
             .thenReturn(noOpSpec());
 
-        ResultReferenceDataResults dto = ResultReferenceDataResults.builder().resultId("NBWIT").active(false).build();
+        ResultsRefData dto = ResultsRefData.builder().resultId("NBWIT").active(false).build();
         when(resultMapper.toResultReferenceData(any())).thenReturn(dto);
 
         // Act - enforcementOverride true (others null)
-        GetResultsResponseResults result = resultService.getResultsByIds(
+        ResultsRefDataResponse result = resultService.getResultsByIds(
             List.of("NBWIT"), null, null, null, null, Boolean.TRUE);
 
         // Assert
-        GetResultsResponseResults expected = GetResultsResponseResults.builder()
+        ResultsRefDataResponse expected = ResultsRefDataResponse.builder()
             .refData(List.of(dto))
             .count(1)
             .build();
@@ -549,15 +549,15 @@ class ResultServiceTest {
         when(resultSpecs.referenceDataByIds(any(), any(), any(), any(), any(), any()))
             .thenReturn(noOpSpec());
 
-        ResultReferenceDataResults dto = ResultReferenceDataResults.builder().resultId("ABC").active(false).build();
+        ResultsRefData dto = ResultsRefData.builder().resultId("ABC").active(false).build();
         when(resultMapper.toResultReferenceData(any())).thenReturn(dto);
 
         // Act - pass Optional.of(ids) and null for all booleans
-        GetResultsResponseResults result = resultService.getResultsByIds(List.of("ABC"),
+        ResultsRefDataResponse result = resultService.getResultsByIds(List.of("ABC"),
             null, null, null, null, null);
 
         // Assert - mapping and count
-        GetResultsResponseResults expected = GetResultsResponseResults.builder()
+        ResultsRefDataResponse expected = ResultsRefDataResponse.builder()
             .refData(List.of(dto))
             .count(1)
             .build();
@@ -586,15 +586,15 @@ class ResultServiceTest {
         when(resultSpecs.referenceDataByIds(any(), any(), any(), any(), any(), any()))
             .thenReturn(noOpSpec());
 
-        ResultReferenceDataResults dto = ResultReferenceDataResults.builder().resultId("ACT-1").active(false).build();
+        ResultsRefData dto = ResultsRefData.builder().resultId("ACT-1").active(false).build();
         when(resultMapper.toResultReferenceData(any())).thenReturn(dto);
 
         // Act - active true (others null)
-        GetResultsResponseResults result = resultService.getResultsByIds(List.of("ACT-1"),
+        ResultsRefDataResponse result = resultService.getResultsByIds(List.of("ACT-1"),
             Boolean.TRUE, null, null, null, null);
 
         // Assert
-        GetResultsResponseResults expected = GetResultsResponseResults.builder()
+        ResultsRefDataResponse expected = ResultsRefDataResponse.builder()
             .refData(List.of(dto))
             .count(1)
             .build();
@@ -626,16 +626,16 @@ class ResultServiceTest {
         when(resultSpecs.referenceDataByIds(any(), any(), any(), any(), any(), any()))
             .thenReturn(noOpSpec());
 
-        ResultReferenceDataResults dto = ResultReferenceDataResults.builder()
+        ResultsRefData dto = ResultsRefData.builder()
             .resultId("MEF-FALSE").active(false).build();
         when(resultMapper.toResultReferenceData(any())).thenReturn(dto);
 
         // Act - pass explicit false
-        GetResultsResponseResults result = resultService.getResultsByIds(List.of("MEF-FALSE"),
+        ResultsRefDataResponse result = resultService.getResultsByIds(List.of("MEF-FALSE"),
             null, Boolean.FALSE, null, null, null);
 
         // Assert
-        GetResultsResponseResults expected = GetResultsResponseResults.builder()
+        ResultsRefDataResponse expected = ResultsRefDataResponse.builder()
             .refData(List.of(dto))
             .count(1)
             .build();
@@ -671,15 +671,15 @@ class ResultServiceTest {
         when(resultSpecs.referenceDataByIds(any(), any(), any(), any(), any(), any()))
             .thenReturn(noOpSpec());
 
-        ResultReferenceDataResults dto = ResultReferenceDataResults.builder().resultId("MIXED").active(false).build();
+        ResultsRefData dto = ResultsRefData.builder().resultId("MIXED").active(false).build();
         when(resultMapper.toResultReferenceData(any())).thenReturn(dto);
 
         // Act - mix of true/false/null
-        GetResultsResponseResults result = resultService.getResultsByIds(List.of("MIXED"),
+        ResultsRefDataResponse result = resultService.getResultsByIds(List.of("MIXED"),
             Boolean.TRUE, Boolean.TRUE, Boolean.FALSE, Boolean.TRUE, Boolean.FALSE);
 
         // Assert
-        GetResultsResponseResults expected = GetResultsResponseResults.builder()
+        ResultsRefDataResponse expected = ResultsRefDataResponse.builder()
             .refData(List.of(dto))
             .count(1)
             .build();
