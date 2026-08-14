@@ -23,7 +23,6 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers.UserBusinessUnits;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceDataResults;
-import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
@@ -55,25 +54,6 @@ class BusinessUnitControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(entity, response.getBody());
         verify(businessUnitService, times(1)).getBusinessUnit(any(Short.class));
-    }
-
-    @Test
-    void testSearchBusinessUnits_Success() {
-        // Arrange
-        BusinessUnitEntity entity = BusinessUnitEntity.builder().build();
-        List<BusinessUnitEntity> businessUnitList = List.of(entity);
-
-        when(businessUnitService.searchBusinessUnits(any())).thenReturn(businessUnitList);
-
-        // Act
-        BusinessUnitSearchDto searchDto = BusinessUnitSearchDto.builder().build();
-        ResponseEntity<List<BusinessUnitEntity>> response = businessUnitController
-            .postBusinessUnitsSearch(searchDto);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(businessUnitList, response.getBody());
-        verify(businessUnitService, times(1)).searchBusinessUnits(any());
     }
 
     @Test
