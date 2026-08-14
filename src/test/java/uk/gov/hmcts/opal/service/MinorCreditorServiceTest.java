@@ -27,8 +27,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
@@ -65,7 +65,7 @@ class MinorCreditorServiceTest {
             PostMinorCreditorAccountsSearchResponse.builder().build();
 
         when(minorCreditorSearchProxy.searchMinorCreditors(any())).thenReturn(postMinorCreditorAccountsSearchResponse);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
 
         // Act
         PostMinorCreditorAccountsSearchResponse result =
@@ -84,7 +84,7 @@ class MinorCreditorServiceTest {
             GetMinorCreditorAccountHeaderSummaryResponse.builder().build();
 
         when(minorCreditorSearchProxy.getHeaderSummary(id)).thenReturn(response);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
 
         // Act
         GetMinorCreditorAccountHeaderSummaryResponse result =
@@ -99,10 +99,10 @@ class MinorCreditorServiceTest {
     @Test
     void testGetMinorCreditorAccountHeaderSummary_permissionNotAllowed() {
         // Arrange
-        UserState noPermissionUser = mock(UserState.class);
+        UserStateV2 noPermissionUser = mock(UserStateV2.class);
         when(noPermissionUser.anyBusinessUnitUserHasPermission(
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(noPermissionUser);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(noPermissionUser);
 
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
@@ -117,14 +117,14 @@ class MinorCreditorServiceTest {
         // Arrange
         Long id = 123L;
         MinorCreditorAccountResponse response = responseWithBacsDetails();
-        UserState userState = UserStateUtil.permissionUser(
+        UserStateV2 userState = UserStateUtil.permissionUser(
             (short) 10,
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
             FinesPermission.VIEW_CREDITOR_BACS
         );
 
         when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
 
         // Act
         MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id);
@@ -140,10 +140,10 @@ class MinorCreditorServiceTest {
     @Test
     void testGetMinorCreditorAccount_permissionNotAllowed() {
         // Arrange
-        UserState noPermissionUser = mock(UserState.class);
+        UserStateV2 noPermissionUser = mock(UserStateV2.class);
         when(noPermissionUser.anyBusinessUnitUserHasPermission(
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(noPermissionUser);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(noPermissionUser);
 
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
@@ -165,7 +165,7 @@ class MinorCreditorServiceTest {
             .version(BigInteger.ONE)
             .build();
 
-        when(userStateService.getUserStateV1FromSecurityContext())
+        when(userStateService.getUserStateFromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
         when(minorCreditorSearchProxy.getMinorCreditorHistory(eq(id), any(MinorCreditorHistoryFilters.class)))
             .thenReturn(response);
@@ -178,7 +178,7 @@ class MinorCreditorServiceTest {
         assertEquals(response, result);
         ArgumentCaptor<MinorCreditorHistoryFilters> filtersCaptor =
             ArgumentCaptor.forClass(MinorCreditorHistoryFilters.class);
-        verify(userStateService).getUserStateV1FromSecurityContext();
+        verify(userStateService).getUserStateFromSecurityContext();
         verify(minorCreditorSearchProxy).getMinorCreditorHistory(eq(id), filtersCaptor.capture());
         assertEquals(LocalDateTime.of(2026, 1, 1, 0, 0), filtersCaptor.getValue().postedFromInclusive());
         assertEquals(LocalDateTime.of(2026, 2, 1, 0, 0), filtersCaptor.getValue().postedToExclusive());
@@ -191,10 +191,10 @@ class MinorCreditorServiceTest {
     @Test
     void getMinorCreditorHistory_withoutPermission_throwsPermissionNotAllowed() {
         // Arrange
-        UserState noPermissionUser = mock(UserState.class);
+        UserStateV2 noPermissionUser = mock(UserStateV2.class);
         when(noPermissionUser.anyBusinessUnitUserHasPermission(
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(noPermissionUser);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(noPermissionUser);
 
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
@@ -210,7 +210,7 @@ class MinorCreditorServiceTest {
     void getMinorCreditorHistory_authFailure_propagatesAndDoesNotDelegate() {
         // Arrange
         RuntimeException expected = new RuntimeException("auth failed");
-        when(userStateService.getUserStateV1FromSecurityContext()).thenThrow(expected);
+        when(userStateService.getUserStateFromSecurityContext()).thenThrow(expected);
 
         // Act
         RuntimeException result = assertThrows(
@@ -226,7 +226,7 @@ class MinorCreditorServiceTest {
     @Test
     void getMinorCreditorHistory_invalidItemType_throwsIllegalArgumentException() {
         // Arrange
-        when(userStateService.getUserStateV1FromSecurityContext())
+        when(userStateService.getUserStateFromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
 
         // Act & Assert
@@ -242,7 +242,7 @@ class MinorCreditorServiceTest {
     @Test
     void getMinorCreditorHistory_dateFromAfterDateTo_throwsIllegalArgumentException() {
         // Arrange
-        when(userStateService.getUserStateV1FromSecurityContext())
+        when(userStateService.getUserStateFromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
 
         // Act & Assert
@@ -262,11 +262,11 @@ class MinorCreditorServiceTest {
     void testGetMinorCreditorAccount_withoutBacsPermission_redactsBacsFields() {
         // Arrange
         Long id = 123L;
-        UserState userState = UserStateUtil.permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        UserStateV2 userState = UserStateUtil.permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         MinorCreditorAccountResponse response = responseWithBacsDetails();
 
         when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
 
         // Act
         MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id);
@@ -286,7 +286,7 @@ class MinorCreditorServiceTest {
     void testGetMinorCreditorAccount_withBacsPermission_preservesBacsFields() {
         // Arrange
         Long id = 123L;
-        UserState userState = UserStateUtil.permissionUser(
+        UserStateV2 userState = UserStateUtil.permissionUser(
             (short) 10,
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
             FinesPermission.VIEW_CREDITOR_BACS
@@ -294,7 +294,7 @@ class MinorCreditorServiceTest {
         MinorCreditorAccountResponse response = responseWithBacsDetails();
 
         when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
 
         // Act
         MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id);
@@ -314,7 +314,7 @@ class MinorCreditorServiceTest {
     void testGetMinorCreditorAccount_withBacsPermissionInDifferentBusinessUnit_redactsBacsFields() {
         // Arrange
         Long id = 123L;
-        UserState userState = UserStateUtil.permissionUser(
+        UserStateV2 userState = UserStateUtil.permissionUser(
             (short) 20,
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
             FinesPermission.VIEW_CREDITOR_BACS
@@ -322,7 +322,7 @@ class MinorCreditorServiceTest {
         MinorCreditorAccountResponse response = responseWithBacsDetails();
 
         when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
 
         // Act
         MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id);
@@ -342,7 +342,7 @@ class MinorCreditorServiceTest {
     void testGetMinorCreditorAccount_missingBusinessUnitLookup_redactsBacsFields() {
         // Arrange
         Long id = 123L;
-        UserState userState = UserStateUtil.permissionUser(
+        UserStateV2 userState = UserStateUtil.permissionUser(
             (short) 10,
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
             FinesPermission.VIEW_CREDITOR_BACS
@@ -351,7 +351,7 @@ class MinorCreditorServiceTest {
         response.setBusinessUnitId(null);
 
         when(minorCreditorSearchProxy.getMinorCreditorAccount(id)).thenReturn(response);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
 
         // Act
         MinorCreditorAccountResponse result = minorCreditorService.getMinorCreditorAccount(id);
@@ -374,7 +374,7 @@ class MinorCreditorServiceTest {
         GetMinorCreditorAccountAtAGlanceResponse response = GetMinorCreditorAccountAtAGlanceResponse.builder().build();
 
         when(minorCreditorSearchProxy.getMinorCreditorAtAGlance(id)).thenReturn(response);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
 
         // Act
         GetMinorCreditorAccountAtAGlanceResponse result =
@@ -389,10 +389,10 @@ class MinorCreditorServiceTest {
     @Test
     void testGetMinorCreditorAccountAtAGlance_permissionNotAllowed() {
         // Arrange
-        UserState noPermissionUser = mock(UserState.class);
+        UserStateV2 noPermissionUser = mock(UserStateV2.class);
         when(noPermissionUser.anyBusinessUnitUserHasPermission(
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(noPermissionUser);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(noPermissionUser);
 
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
@@ -405,12 +405,12 @@ class MinorCreditorServiceTest {
     @Test
     void testGetMinorCreditorAccountAtAGlance_viewCreditorBacsPermissionNotAllowed() {
         // Arrange
-        UserState noBacsPermissionUser = mock(UserState.class);
+        UserStateV2 noBacsPermissionUser = mock(UserStateV2.class);
         when(noBacsPermissionUser.anyBusinessUnitUserHasPermission(
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(noBacsPermissionUser.anyBusinessUnitUserHasPermission(
             FinesPermission.VIEW_CREDITOR_BACS)).thenReturn(false);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(noBacsPermissionUser);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(noBacsPermissionUser);
 
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
@@ -423,10 +423,10 @@ class MinorCreditorServiceTest {
     @Test
     void testPermissionNotAllowedException() {
         // Arrange
-        UserState noPermissionUser = mock(UserState.class);
+        UserStateV2 noPermissionUser = mock(UserStateV2.class);
         when(noPermissionUser.anyBusinessUnitUserHasPermission(
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(noPermissionUser);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(noPermissionUser);
 
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
@@ -506,7 +506,7 @@ class MinorCreditorServiceTest {
     @Test
     void updateMinorCreditorAccount_missingBusinessUnit_throwsPermissionNotAllowed() {
         // Arrange
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(mock(UserState.class));
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(mock(UserStateV2.class));
 
         PatchMinorCreditorAccountRequest request = new PatchMinorCreditorAccountRequest()
             .partyDetails(new PartyDetailsCommon().partyId("1").organisationFlag(true))
@@ -527,22 +527,22 @@ class MinorCreditorServiceTest {
     @Test
     void updateMinorCreditorAccount_blankBusinessUnitUserId_fallsBackToUsername() {
         // Arrange
-        UserState userState = mock(UserState.class);
+        UserStateV2 userState = mock(UserStateV2.class);
         when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD))
             .thenReturn(true);
         when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ACCOUNT_MAINTENANCE))
             .thenReturn(true);
         when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.VIEW_CREDITOR_BACS))
             .thenReturn(true);
-        when(userState.getUserName()).thenReturn("test.user@hmcts.net");
+        when(userState.getUsername()).thenReturn("test.user@hmcts.net");
         when(userState.getBusinessUnitUserForBusinessUnit((short) 10)).thenReturn(Optional.of(
-            BusinessUnitUser.builder()
+            BusinessUnitUserV2.builder()
                 .businessUnitUserId(" ")
                 .businessUnitId((short) 10)
                 .build()
         ));
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(minorCreditorSearchProxy.updateMinorCreditorAccount(eq(1L), any(), eq(BigInteger.ONE), any(),
             any(), anyShort()))
             .thenReturn(new MinorCreditorAccountResponse());
@@ -565,10 +565,10 @@ class MinorCreditorServiceTest {
     void updateMinorCreditorAccount_paymentObjectWithoutHoldPermission_evenWhenHoldUnchanged_throwsPermissionNotAllowed(
     ) {
         // Arrange
-        UserState userState = UserStateUtil.permissionUser((short) 10, FinesPermission.ACCOUNT_MAINTENANCE);
+        UserStateV2 userState = UserStateUtil.permissionUser((short) 10, FinesPermission.ACCOUNT_MAINTENANCE);
         PatchMinorCreditorAccountRequest request = unchangedHoldPatchRequest();
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
 
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
@@ -589,14 +589,14 @@ class MinorCreditorServiceTest {
     @Test
     void updateMinorCreditorAccount_viewCreditorBacsPermissionNotAllowed() {
         // Arrange
-        UserState userState = mock(UserState.class);
+        UserStateV2 userState = mock(UserStateV2.class);
         when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD))
             .thenReturn(true);
         when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ACCOUNT_MAINTENANCE))
             .thenReturn(true);
         when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.VIEW_CREDITOR_BACS))
             .thenReturn(false);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
 
         PatchMinorCreditorAccountRequest request = validPatchRequest();
 
@@ -612,10 +612,10 @@ class MinorCreditorServiceTest {
     @Test
     void updateMinorCreditorAccount_paymentObjectWithoutHoldPermission_whenHoldChanges_throwsPermissionNotAllowed() {
         // Arrange
-        UserState userState = UserStateUtil.permissionUser((short) 10, FinesPermission.ACCOUNT_MAINTENANCE);
+        UserStateV2 userState = UserStateUtil.permissionUser((short) 10, FinesPermission.ACCOUNT_MAINTENANCE);
         PatchMinorCreditorAccountRequest request = validPatchRequest();
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
 
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(

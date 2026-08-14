@@ -21,7 +21,7 @@ import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountResponse;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -85,7 +85,7 @@ class LegacyDraftAccountPublishTest {
     @Test
     void testPublishDefendantAccount_success() {
 
-        BusinessUnitUser buu = BusinessUnitUser.builder()
+        BusinessUnitUserV2 buu = BusinessUnitUserV2.builder()
             .businessUnitId((short)7)
             .businessUnitUserId("Dave")
             .build();
@@ -130,7 +130,7 @@ class LegacyDraftAccountPublishTest {
         try (MockedStatic<LogUtil> logUtilMock = mockStatic(LogUtil.class)) {
             logUtilMock.when(LogUtil::getOrCreateOpalOperationId).thenReturn(opId);
 
-            BusinessUnitUser buu = BusinessUnitUser.builder()
+            BusinessUnitUserV2 buu = BusinessUnitUserV2.builder()
                 .businessUnitId((short)7)
                 .businessUnitUserId("Dave")
                 .build();
@@ -180,7 +180,7 @@ class LegacyDraftAccountPublishTest {
     @Test
     void testPublishDefendantAccount_400Error() {
 
-        BusinessUnitUser buu = BusinessUnitUser.builder()
+        BusinessUnitUserV2 buu = BusinessUnitUserV2.builder()
             .businessUnitId((short)7)
             .businessUnitUserId("Dave")
             .build();
@@ -214,7 +214,7 @@ class LegacyDraftAccountPublishTest {
     @Test
     void testPublishDefendantAccount_unknownError() {
 
-        BusinessUnitUser buu = BusinessUnitUser.builder()
+        BusinessUnitUserV2 buu = BusinessUnitUserV2.builder()
             .businessUnitId((short)7)
             .businessUnitUserId("Dave")
             .build();
@@ -259,7 +259,7 @@ class LegacyDraftAccountPublishTest {
         GatewayService mockGatewayService = Mockito.mock(GatewayService.class);
         injectGatewayService(legacyDraftAccountPublish, mockGatewayService);
 
-        BusinessUnitUser buu = BusinessUnitUser.builder()
+        BusinessUnitUserV2 buu = BusinessUnitUserV2.builder()
             .businessUnitId((short)7)
             .businessUnitUserId("Dave")
             .build();
@@ -294,7 +294,7 @@ class LegacyDraftAccountPublishTest {
         GatewayService mockGatewayService = Mockito.mock(GatewayService.class);
         injectGatewayService(legacyDraftAccountPublish, mockGatewayService);
 
-        BusinessUnitUser buu = BusinessUnitUser.builder()
+        BusinessUnitUserV2 buu = BusinessUnitUserV2.builder()
             .businessUnitId((short)7)
             .businessUnitUserId("Dave")
             .build();
@@ -334,7 +334,7 @@ class LegacyDraftAccountPublishTest {
         GatewayService mockGatewayService = Mockito.mock(GatewayService.class);
         injectGatewayService(legacyDraftAccountPublish, mockGatewayService);
 
-        BusinessUnitUser buu = BusinessUnitUser.builder()
+        BusinessUnitUserV2 buu = BusinessUnitUserV2.builder()
             .businessUnitId((short)7)
             .businessUnitUserId("Dave")
             .build();
@@ -375,7 +375,7 @@ class LegacyDraftAccountPublishTest {
                         .build())
                 .account("{}")
                 .build(),
-            BusinessUnitUser.builder().businessUnitUserId("testUser").build()
+            BusinessUnitUserV2.builder().businessUnitUserId("testUser").build()
         );
 
         assertEquals("testUser", lcdar.getBusinessUnitUserId());
@@ -393,7 +393,7 @@ class LegacyDraftAccountPublishTest {
                         .build())
                 .account(null)
                 .build(),
-            BusinessUnitUser.builder().businessUnitUserId("testUser").build()
+            BusinessUnitUserV2.builder().businessUnitUserId("testUser").build()
         );
 
         assertEquals("testUser", lcdar.getBusinessUnitUserId());
@@ -411,7 +411,7 @@ class LegacyDraftAccountPublishTest {
                         .build())
                 .account("   ")
                 .build(),
-            BusinessUnitUser.builder().businessUnitUserId("testUser").build()
+            BusinessUnitUserV2.builder().businessUnitUserId("testUser").build()
         );
 
         assertEquals("testUser", lcdar.getBusinessUnitUserId());
@@ -424,7 +424,7 @@ class LegacyDraftAccountPublishTest {
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 6).build())
             .account("{invalidJson:}") // malformed JSON
             .build();
-        BusinessUnitUser user = BusinessUnitUser.builder().businessUnitUserId("testUser").build();
+        BusinessUnitUserV2 user = BusinessUnitUserV2.builder().businessUnitUserId("testUser").build();
 
         assertThrows(JsonSchemaValidationException.class, () -> {
             LegacyDraftAccountPublish.createDefendantAccountRequest(entity, user);
@@ -442,7 +442,7 @@ class LegacyDraftAccountPublishTest {
                         .build())
                 .account("{\"defendantAccountId\":12345,\"accountNumber\":\"77-007\"}")
                 .build(),
-            BusinessUnitUser.builder().businessUnitUserId("testUser").build()
+            BusinessUnitUserV2.builder().businessUnitUserId("testUser").build()
         );
 
         assertEquals("testUser", lcdar.getBusinessUnitUserId());

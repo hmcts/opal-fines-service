@@ -25,6 +25,7 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler.PaymentCardRequestAlreadyExistsException;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
@@ -208,8 +209,8 @@ class OpalDefendantAccountServicePaymentCardTest {
     void addPaymentCardRequest_permissionDenied_throws403() {
         DefendantAccountPaymentTermsServiceProxy proxy = mock(DefendantAccountPaymentTermsServiceProxy.class);
 
-        UserState userState = mock(UserState.class);
-        when(userStateService.getUserStateV1FromSecurityContext())
+        UserStateV2 userState = mock(UserStateV2.class);
+        when(userStateService.getUserStateFromSecurityContext())
             .thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS))
             .thenReturn(false);

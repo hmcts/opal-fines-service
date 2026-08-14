@@ -15,6 +15,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
@@ -675,11 +676,11 @@ public class OpalDefendantAccountEnforcementServiceTest {
             .versionNumber(7L)
             .build();
 
-        UserState userState = allPermissionsUser();
+        UserStateV2 userState = allPermissionsUser();
         LocalDate expectedLastMovementDate = LocalDate.of(2026, 4, 22);
         ArgumentCaptor<AddNoteRequest> addNoteRequestCaptor = ArgumentCaptor.forClass(AddNoteRequest.class);
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(defendantAccountRepositoryService.findById(defendantAccountId)).thenReturn(defendantEntity);
         when(defendantAccountRepositoryService.saveAndFlush(defendantEntity)).thenReturn(defendantEntity);
 
@@ -709,7 +710,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             assertNull(defendantEntity.getLastEnforcement());
             assertEquals(expectedLastMovementDate, defendantEntity.getLastMovementDate());
 
-            verify(userStateService).getUserStateV1FromSecurityContext();
+            verify(userStateService).getUserStateFromSecurityContext();
             verify(defendantAccountRepositoryService).findById(defendantAccountId);
             verify(amendmentService).auditInitialiseStoredProc(
                 defendantAccountId,
@@ -728,7 +729,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
                 uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS,
                 businessUnitId,
                 businessUnitUserId,
-                userState.getUserName(),
+                userState.getUsername(),
                 null,
                 "Remove Enforcement Hold"
             );
@@ -761,9 +762,9 @@ public class OpalDefendantAccountEnforcementServiceTest {
             .versionNumber(7L)
             .build();
 
-        UserState userState = allPermissionsUser();
+        UserStateV2 userState = allPermissionsUser();
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(defendantAccountRepositoryService.findById(defendantAccountId)).thenReturn(defendantEntity);
 
         ResourceConflictException ex = assertThrows(
@@ -783,7 +784,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
         assertEquals("If-Match header is required", ex.getConflictReason());
         assertSame(defendantEntity, ex.getVersioned());
 
-        verify(userStateService).getUserStateV1FromSecurityContext();
+        verify(userStateService).getUserStateFromSecurityContext();
         verify(defendantAccountRepositoryService).findById(defendantAccountId);
         verifyNoInteractions(amendmentService, reportEntryService, notesProxy);
         verifyNoMoreInteractions(defendantAccountRepositoryService);
@@ -807,9 +808,9 @@ public class OpalDefendantAccountEnforcementServiceTest {
             .versionNumber(7L)
             .build();
 
-        UserState userState = allPermissionsUser();
+        UserStateV2 userState = allPermissionsUser();
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(defendantAccountRepositoryService.findById(defendantAccountId)).thenReturn(defendantEntity);
 
         try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
@@ -837,7 +838,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             assertEquals("No enforcement hold to remove", ex.getConflictReason());
             assertSame(defendantEntity, ex.getVersioned());
 
-            verify(userStateService).getUserStateV1FromSecurityContext();
+            verify(userStateService).getUserStateFromSecurityContext();
             verify(defendantAccountRepositoryService).findById(defendantAccountId);
             verifyNoInteractions(amendmentService, reportEntryService, notesProxy);
             verifyNoMoreInteractions(defendantAccountRepositoryService);
@@ -862,9 +863,9 @@ public class OpalDefendantAccountEnforcementServiceTest {
             .versionNumber(7L)
             .build();
 
-        UserState userState = allPermissionsUser();
+        UserStateV2 userState = allPermissionsUser();
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(defendantAccountRepositoryService.findById(defendantAccountId)).thenReturn(defendantEntity);
         doThrow(new ObjectOptimisticLockingFailureException(defendantEntity.getClass(), defendantAccountId))
             .when(defendantAccountRepositoryService)
@@ -893,7 +894,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             assertEquals(defendantEntity.getClass().getName(), ex.getPersistentClassName());
             assertEquals(defendantAccountId, ex.getIdentifier());
 
-            verify(userStateService).getUserStateV1FromSecurityContext();
+            verify(userStateService).getUserStateFromSecurityContext();
             verify(defendantAccountRepositoryService).findById(defendantAccountId);
             verify(amendmentService).auditInitialiseStoredProc(
                 defendantAccountId,
@@ -905,7 +906,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
                 eq(uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS),
                 eq(businessUnitId),
                 eq(businessUnitUserId),
-                eq(userState.getUserName()),
+                eq(userState.getUsername()),
                 isNull(),
                 eq("Remove Enforcement Hold")
             );

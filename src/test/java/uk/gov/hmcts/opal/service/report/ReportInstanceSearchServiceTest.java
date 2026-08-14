@@ -34,7 +34,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
@@ -83,7 +83,7 @@ class ReportInstanceSearchServiceTest {
         }
     }
 
-    private void setBusinessUnitUsers(BusinessUnitUser... businessUnitUsers) {
+    private void setBusinessUnitUsers(BusinessUnitUserV2... businessUnitUsers) {
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(userStateV2);
         when(userStateV2.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(domainBusinessUnitUsers);
         when(domainBusinessUnitUsers.getBusinessUnitUsers()).thenReturn(List.of(businessUnitUsers));
@@ -238,9 +238,9 @@ class ReportInstanceSearchServiceTest {
             ReportEntity searchReport = report("search", SEARCH_AND_VIEW_ACCOUNTS);
             ReportEntity maintenanceReport = report("maintain", ACCOUNT_MAINTENANCE);
 
-            BusinessUnitUser buUser1 =
+            BusinessUnitUserV2 buUser1 =
                 businessUnitUser("BU1", (short) 10, SEARCH_AND_VIEW_ACCOUNTS, ACCOUNT_MAINTENANCE);
-            BusinessUnitUser buUser2 = businessUnitUser("BU2", (short) 20, SEARCH_AND_VIEW_ACCOUNTS);
+            BusinessUnitUserV2 buUser2 = businessUnitUser("BU2", (short) 20, SEARCH_AND_VIEW_ACCOUNTS);
 
             setBusinessUnitUsers(buUser1, buUser2);
 

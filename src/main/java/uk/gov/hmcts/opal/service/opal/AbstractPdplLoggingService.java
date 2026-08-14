@@ -6,7 +6,7 @@ import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
@@ -23,7 +23,7 @@ public abstract class AbstractPdplLoggingService {
         PersonalDataProcessingCategory category,
         List<ParticipantIdentifier> individuals,
         ParticipantIdentifier recipient,
-        UserState userState) {
+        UserStateV2 userState) {
 
 
         // attempt to resolve createdBy from Spring Security

@@ -13,7 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
@@ -34,7 +34,7 @@ public class OpalNotesService implements NotesServiceInterface {
 
     @Override
     @Transactional
-    public String addNote(AddNoteRequest req, String ifMatch, UserState user, DefendantAccountEntity account) {
+    public String addNote(AddNoteRequest req, String ifMatch, UserStateV2 user, DefendantAccountEntity account) {
         // TODO - waiting for PO-1564 to call DefendantAccountService to get the account
 
         log.info(":OpalAddNote");
@@ -60,7 +60,7 @@ public class OpalNotesService implements NotesServiceInterface {
         note.setAssociatedRecordType(AssociatedRecordType.DEFENDANT_ACCOUNTS);
         note.setBusinessUnitUserId(managed.getBusinessUnit().getBusinessUnitId().toString());
         note.setPostedDate(LocalDateTime.now(clock));
-        note.setPostedByUsername(user.getDisplayName());
+        note.setPostedByUsername(user.getUsername());
 
         NoteEntity entity = repository.save(note);
 

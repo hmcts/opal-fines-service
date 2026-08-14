@@ -20,7 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RecordType;
@@ -34,7 +34,7 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 class LegacyNotesServiceTest {
 
     @Mock private GatewayService gatewayService;
-    @Mock private UserState user;
+    @Mock private UserStateV2 user;
 
     @InjectMocks private LegacyNotesService service;
 

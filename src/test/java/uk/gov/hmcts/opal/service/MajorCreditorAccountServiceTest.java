@@ -15,7 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
@@ -35,26 +35,26 @@ class MajorCreditorAccountServiceTest {
 
     @Test
     void getAtAGlance_authorisedUserDelegatesToProxy() {
-        UserState userState = mock(UserState.class);
+        UserStateV2 userState = mock(UserStateV2.class);
         GetMajorCreditorAccountAtAGlanceResponse response = new GetMajorCreditorAccountAtAGlanceResponse();
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(majorCreditorAccountProxy.getAtAGlance(123L)).thenReturn(response);
 
         GetMajorCreditorAccountAtAGlanceResponse result = majorCreditorAccountService.getAtAGlance(123L);
 
         assertEquals(response, result);
-        verify(userStateService).getUserStateV1FromSecurityContext();
+        verify(userStateService).getUserStateFromSecurityContext();
         verify(majorCreditorAccountProxy).getAtAGlance(123L);
     }
 
     @Test
     void getAtAGlance_withoutSearchAndViewAccountPermissionThrowsForbidden() {
-        UserState userState = mock(UserState.class);
+        UserStateV2 userState = mock(UserStateV2.class);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
             .thenReturn(false);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
 
         PermissionNotAllowedException exception = assertThrows(
             PermissionNotAllowedException.class,
@@ -67,10 +67,10 @@ class MajorCreditorAccountServiceTest {
 
     @Test
     void getHeaderSummary_authorisedUserDelegatesToProxy() {
-        UserState userState = mock(UserState.class);
+        UserStateV2 userState = mock(UserStateV2.class);
         GetMajorCreditorAccountHeaderSummaryResponse response = responseWithBusinessUnit((short) 77);
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(userState.hasBusinessUnitUserWithPermission((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
             .thenReturn(true);
@@ -80,17 +80,17 @@ class MajorCreditorAccountServiceTest {
             majorCreditorAccountService.getHeaderSummary(123L);
 
         assertEquals(response, result);
-        verify(userStateService).getUserStateV1FromSecurityContext();
+        verify(userStateService).getUserStateFromSecurityContext();
         verify(userState).hasBusinessUnitUserWithPermission((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verify(majorCreditorAccountProxy).getHeaderSummary(123L);
     }
 
     @Test
     void getHeaderSummary_withoutSearchAndViewAccountPermissionThrowsForbidden() {
-        UserState userState = mock(UserState.class);
+        UserStateV2 userState = mock(UserStateV2.class);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
             .thenReturn(false);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
 
         PermissionNotAllowedException exception = assertThrows(
             PermissionNotAllowedException.class,
@@ -103,10 +103,10 @@ class MajorCreditorAccountServiceTest {
 
     @Test
     void getHeaderSummary_permissionInDifferentBusinessUnitThrowsForbidden() {
-        UserState userState = mock(UserState.class);
+        UserStateV2 userState = mock(UserStateV2.class);
         GetMajorCreditorAccountHeaderSummaryResponse response = responseWithBusinessUnit((short) 77);
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(userState.hasBusinessUnitUserWithPermission((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
             .thenReturn(false);

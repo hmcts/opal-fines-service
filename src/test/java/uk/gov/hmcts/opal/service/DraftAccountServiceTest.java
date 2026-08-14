@@ -36,7 +36,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
@@ -114,7 +114,7 @@ class DraftAccountServiceTest {
             .thenReturn(DraftAccountResponseDto.builder().build());
         when(draftAccountTransactional.getDraftAccount(anyLong())).thenReturn(draftAccountEntity);
         var userState = UserStateUtil.allPermissionsUser();
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
 
         // Act
         DraftAccountResponseDto result = draftAccountService.getDraftAccount(1);
@@ -135,7 +135,7 @@ class DraftAccountServiceTest {
         when(draftAccountTransactional.getDraftAccounts(any(), any(), any(), any(), any(), any()))
             .thenReturn(List.of(draftAccountEntity));
         var userState = UserStateUtil.allPermissionsUser();
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
 
         // Act
         DraftAccountsResponseDto result = draftAccountService.getDraftAccounts(
@@ -175,7 +175,7 @@ class DraftAccountServiceTest {
             .thenReturn(DraftAccountResponseDto.builder().build());
         when(draftAccountTransactional.submitDraftAccount(any())).thenReturn(draftAccountEntity);
         var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         AddDraftAccountRequestDto addDraftAccountDto = AddDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
             .submittedBy("SpoofedUser")
@@ -209,7 +209,7 @@ class DraftAccountServiceTest {
             .submittedBy("TestUser")
             .submittedByName("Test User")
             .build();
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.noPermissionsUser());
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(UserStateUtil.noPermissionsUser());
 
         // Act & Assert
         PermissionNotAllowedException ex = assertThrows(
@@ -231,7 +231,7 @@ class DraftAccountServiceTest {
             .accountType(DraftAccountType.FINE)
             .build();
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(
             UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS)
         );
 
@@ -295,7 +295,7 @@ class DraftAccountServiceTest {
         );
         when(draftAccountTransactional.replaceDraftAccount(any(), any(), any(), any())).thenReturn(updatedAccount);
         var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
             .submittedBy("SpoofedUser")
@@ -343,7 +343,7 @@ class DraftAccountServiceTest {
             .build();
         when(draftAccountTransactional.replaceDraftAccount(any(), any(), any(), any())).thenThrow(
             new EntityNotFoundException("Draft Account not found with id: " + draftAccountId));
-        when(userStateService.getUserStateV1FromSecurityContext())
+        when(userStateService.getUserStateFromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 1, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 
         // Act & Assert
@@ -370,7 +370,7 @@ class DraftAccountServiceTest {
             .version(BigInteger.valueOf(0L))
             .build();
         when(draftAccountTransactional.replaceDraftAccount(any(), any(), any(), any())).thenReturn(existingAccount);
-        when(userStateService.getUserStateV1FromSecurityContext())
+        when(userStateService.getUserStateFromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 
         // Act & Assert
@@ -394,7 +394,7 @@ class DraftAccountServiceTest {
             .build();
         when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any(), any()))
             .thenReturn(existingAccount);
-        when(userStateService.getUserStateV1FromSecurityContext())
+        when(userStateService.getUserStateFromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 2, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
 
         // Act & Assert
@@ -429,7 +429,7 @@ class DraftAccountServiceTest {
         when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any(), any()))
             .thenReturn(updatedAccount);
         var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
 
         publishPending_success(updatedAccount, draftAccountId, updateDto, userState);
 
@@ -479,7 +479,7 @@ class DraftAccountServiceTest {
 
         when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any(), any()))
             .thenReturn(updatedAccount);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(draftAccountMapper.toResponseDto(updatedAccount)).thenReturn(
             DraftAccountResponseDto.builder()
                 .draftAccountId(draftAccountId)
@@ -509,7 +509,7 @@ class DraftAccountServiceTest {
     }
 
     private void publishPending_success(DraftAccountEntity updatedAccount, Long draftAccountId,
-        UpdateDraftAccountRequestDto updateDto, UserState userState) {
+        UpdateDraftAccountRequestDto updateDto, UserStateV2 userState) {
 
         DraftAccountEntity publishedAccount = DraftAccountEntity.builder()
             .draftAccountId(draftAccountId)

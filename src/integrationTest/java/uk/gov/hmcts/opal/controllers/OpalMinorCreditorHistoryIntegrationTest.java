@@ -12,7 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noPermissionsUser;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionUserStateV2;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
 import jakarta.persistence.QueryTimeoutException;
@@ -65,7 +65,7 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUpAuthorisedUser() {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(permissionUser(
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(permissionUser(
             BUSINESS_UNIT_ID,
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS
         ));
@@ -251,7 +251,7 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-8629")
     void getMinorCreditorHistory_whenUnauthorised_returns401() throws Exception {
         doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).getUserStateV1FromSecurityContext();
+            .when(userStateService).getUserStateFromSecurityContext();
 
         getHistory()
             .andExpect(status().isUnauthorized())
@@ -265,7 +265,7 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2642 common response returns 403 when the user lacks permission")
     @JiraTestKey("PO-8628")
     void getMinorCreditorHistory_whenUserLacksPermission_returns403() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(noPermissionsUser());
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(noFinesPermissionUserStateV2());
 
         getHistory()
             .andExpect(status().isForbidden())
@@ -301,7 +301,7 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-8631")
     void getMinorCreditorHistory_whenTimeoutOccurs_returns408() throws Exception {
         doThrow(new QueryTimeoutException("timeout"))
-            .when(userStateService).getUserStateV1FromSecurityContext();
+            .when(userStateService).getUserStateFromSecurityContext();
 
         getHistory()
             .andExpect(status().isRequestTimeout())
@@ -316,7 +316,7 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-8623")
     void getMinorCreditorHistory_whenDatabaseUnavailable_returns503() throws Exception {
         doThrow(new DataAccessResourceFailureException("db unavailable"))
-            .when(userStateService).getUserStateV1FromSecurityContext();
+            .when(userStateService).getUserStateFromSecurityContext();
 
         getHistory()
             .andExpect(status().isServiceUnavailable())
@@ -331,7 +331,7 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-8633")
     void getMinorCreditorHistory_whenUnexpectedFailureOccurs_returns500() throws Exception {
         doThrow(new ResponseStatusException(INTERNAL_SERVER_ERROR, "Boom"))
-            .when(userStateService).getUserStateV1FromSecurityContext();
+            .when(userStateService).getUserStateFromSecurityContext();
 
         getHistory()
             .andExpect(status().isInternalServerError())

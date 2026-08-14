@@ -15,7 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountPaymentTermsServiceProxy;
 
@@ -29,7 +29,7 @@ class DefendantAccountPaymentTermsServiceTest {
     private UserStateService userStateService;
 
     @Mock
-    private UserState userState;
+    private UserStateV2 userState;
 
     @InjectMocks
     private DefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
@@ -39,7 +39,7 @@ class DefendantAccountPaymentTermsServiceTest {
         // arrange
         Long defendantAccountId = 77L;
         GetDefendantAccountPaymentTermsResponse proxyResponse = new GetDefendantAccountPaymentTermsResponse();
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(defendantAccountPaymentTermsServiceProxy.getPaymentTerms(defendantAccountId)).thenReturn(proxyResponse);
 
@@ -51,7 +51,7 @@ class DefendantAccountPaymentTermsServiceTest {
         assertSame(proxyResponse, result, "Should return exactly the proxy response");
 
         // verify interactions
-        verify(userStateService).getUserStateV1FromSecurityContext();
+        verify(userStateService).getUserStateFromSecurityContext();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verify(defendantAccountPaymentTermsServiceProxy).getPaymentTerms(defendantAccountId);
         verifyNoMoreInteractions(userStateService, userState, defendantAccountPaymentTermsServiceProxy);
@@ -61,7 +61,7 @@ class DefendantAccountPaymentTermsServiceTest {
     void getPaymentTerms_whenUserLacksPermission_throwsPermissionNotAllowed() {
         // arrange
         Long defendantAccountId = 77L;
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
 
         // act + assert
@@ -75,7 +75,7 @@ class DefendantAccountPaymentTermsServiceTest {
         );
 
         // proxy must not be called
-        verify(userStateService).getUserStateV1FromSecurityContext();
+        verify(userStateService).getUserStateFromSecurityContext();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verifyNoInteractions(defendantAccountPaymentTermsServiceProxy);
         verifyNoMoreInteractions(userStateService, userState);

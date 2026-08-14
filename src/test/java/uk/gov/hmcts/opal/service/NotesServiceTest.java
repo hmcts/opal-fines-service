@@ -28,7 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.server.ResponseStatusException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RecordType;
@@ -46,7 +46,7 @@ class NotesServiceTest {
 
     @Mock private NoteRepository repository;
     @Mock private EntityManager em;
-    @Mock private UserState user;
+    @Mock private UserStateV2 user;
 
     @InjectMocks
     private OpalNotesService service;
@@ -86,7 +86,7 @@ class NotesServiceTest {
     @Test
     void addNote_success_savesFields_returnsId_andLocksManagedEntity() {
         when(em.find(DefendantAccountEntity.class, 77L)).thenReturn(managedInEm);
-        when(user.getDisplayName()).thenReturn("Normal User");
+        when(user.getUsername()).thenReturn("Normal User");
 
         // repository.save returns an entity with generated id
         NoteEntity persisted = new NoteEntity();
