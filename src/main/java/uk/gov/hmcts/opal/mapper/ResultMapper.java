@@ -8,8 +8,8 @@ import uk.gov.hmcts.opal.entity.result.ImpositionCreditor;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.result.ResultType;
 import uk.gov.hmcts.opal.generated.model.GetResultByIdResponseResults;
-import uk.gov.hmcts.opal.generated.model.GetResultsResponseResults;
-import uk.gov.hmcts.opal.generated.model.ResultReferenceDataResults;
+import uk.gov.hmcts.opal.generated.model.ResultsRefDataResponse;
+import uk.gov.hmcts.opal.generated.model.ResultsRefData;
 
 import java.util.List;
 
@@ -18,19 +18,19 @@ public interface ResultMapper {
 
     ResultReferenceData toRefData(ResultEntity entity);
 
-    default GetResultsResponseResults toReferenceDataResponse(List<ResultEntity> entities) {
-        List<ResultReferenceDataResults> dtoList = entities.stream()
+    default ResultsRefDataResponse toReferenceDataResponse(List<ResultEntity> entities) {
+        List<ResultsRefData> dtoList = entities.stream()
             .map(this::toResultReferenceData)
             .toList();
 
-        return GetResultsResponseResults.builder()
+        return ResultsRefDataResponse.builder()
             .refData(dtoList)
             .count(dtoList.size())
             .build();
     }
 
     @Mapping(target = "impositionAllocationOrder", source = "impositionAllocationPriority")
-    ResultReferenceDataResults toResultReferenceData(ResultEntity entity);
+    ResultsRefData toResultReferenceData(ResultEntity entity);
 
     @Mapping(target = "impositionCategory", source = "impositionCategory.impositionCategory")
     GetResultByIdResponseResults toDto(ResultEntity entity);

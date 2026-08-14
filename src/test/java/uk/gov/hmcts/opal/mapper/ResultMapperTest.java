@@ -8,7 +8,7 @@ import uk.gov.hmcts.opal.entity.result.ImpositionCreditor;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.result.ResultType;
 import uk.gov.hmcts.opal.generated.model.GetResultByIdResponseResults;
-import uk.gov.hmcts.opal.generated.model.GetResultsResponseResults;
+import uk.gov.hmcts.opal.generated.model.ResultsRefDataResponse;
 
 import java.util.List;
 
@@ -103,7 +103,7 @@ class ResultMapperTest {
         List<ResultEntity> entities = List.of(entity1, entity2);
 
         // Act
-        GetResultsResponseResults response = resultMapper.toReferenceDataResponse(entities);
+        ResultsRefDataResponse response = resultMapper.toReferenceDataResponse(entities);
 
         // Assert
         assertNotNull(response);

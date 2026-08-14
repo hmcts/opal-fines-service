@@ -15,7 +15,7 @@ import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.generated.http.api.ResultsApi;
 import uk.gov.hmcts.opal.generated.model.GetResultByIdResponseResults;
-import uk.gov.hmcts.opal.generated.model.GetResultsResponseResults;
+import uk.gov.hmcts.opal.generated.model.ResultsRefDataResponse;
 import uk.gov.hmcts.opal.service.opal.ResultService;
 import uk.gov.hmcts.opal.util.FeatureFlags;
 
@@ -50,7 +50,7 @@ public class ResultsApiController implements ResultsApi {
         feature = FeatureFlags.RELEASE_1A,
         defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY
     )
-    public ResponseEntity<GetResultsResponseResults> getResults(
+    public ResponseEntity<ResultsRefDataResponse> getResults(
         List<String> resultIds,
         Boolean active,
         Boolean manualEnforcementOnly,

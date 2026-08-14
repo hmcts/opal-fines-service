@@ -22,7 +22,7 @@ import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.generated.model.GetResultByIdResponseResults;
-import uk.gov.hmcts.opal.generated.model.GetResultsResponseResults;
+import uk.gov.hmcts.opal.generated.model.ResultsRefDataResponse;
 import uk.gov.hmcts.opal.mapper.ResultMapper;
 import uk.gov.hmcts.opal.repository.ResultRepository;
 import uk.gov.hmcts.opal.repository.jpa.ResultSpecs;
@@ -109,7 +109,7 @@ public class ResultService {
         return welshParameter;
     }
 
-    public GetResultsResponseResults getResultsByIds(List<String> resultIds,
+    public ResultsRefDataResponse getResultsByIds(List<String> resultIds,
         Boolean active,
         Boolean manualEnforcement,
         Boolean generatesHearing,
