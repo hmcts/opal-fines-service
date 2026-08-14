@@ -876,6 +876,8 @@ components:
       additionalProperties: false
       x-implements:
         - uk.gov.hmcts.opal.dto.ToJsonString
+      required:
+        - defendant_account_party_id
       properties:
         defendant_account_party_id:
           type: string
