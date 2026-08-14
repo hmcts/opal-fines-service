@@ -35,8 +35,6 @@ import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.entity.AliasEntity;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.PartyEntity;
@@ -45,6 +43,8 @@ import uk.gov.hmcts.opal.entity.debtordetail.Language;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPartyServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.AliasRepositoryService;
@@ -341,9 +341,9 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
     @Override
     @Transactional
-    public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
+    public RemoveDefendantAccountPartyResponseDefendantAccount removeDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId, Short businessUnitId, String businessUserId, String postedBy,
-        String postedByName, String ifMatch, RemoveDefendantAccountPartyRequest request) {
+        String postedByName, String ifMatch, RemoveDefendantAccountPartyRequestDefendantAccount request) {
 
         DefendantAccountEntity account = defendantAccountRepositoryService.findById(defendantAccountId);
 
@@ -379,7 +379,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         // Flush the managed entity to the DB to ensure the updated version is returned.
         BigInteger newVersion = defendantAccountRepositoryService.saveAndFlush(account).getVersion();
 
-        return RemoveDefendantAccountPartyResponse.builder()
+        return RemoveDefendantAccountPartyResponseDefendantAccount.builder()
             .defendantAccountPartyId(String.valueOf(defendantAccountPartyId))
             .version(newVersion)
             .build();
