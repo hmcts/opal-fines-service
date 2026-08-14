@@ -62,7 +62,7 @@ class Release1bFeatureToggleAnnotationTest {
             "DefendantAccountApiController#getEnforcementStatus",
             "DefendantAccountApiController#addPaymentCardRequest",
             "MinorCreditorApiController#getMinorCreditorAccountAtAGlance",
-            "DefendantAccountController#getDefendantAccountFixedPenalty",
+            "DefendantAccountApiController#getDefendantAccountFixedPenalty",
             "DefendantAccountController#getDefendantAccountParty",
             "DefendantAccountController#addDefendantAccountParty",
             "DefendantAccountController#removeEnforcementHold",

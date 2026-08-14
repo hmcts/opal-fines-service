@@ -27,7 +27,6 @@ import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
@@ -839,12 +838,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .freeTextNote2(JsonNullable.of(src.getFreeTextNote2()))
             .freeTextNote3(JsonNullable.of(src.getFreeTextNote3()))
             .build();
-    }
-
-    @Override
-    //TODO: Remove method, duplicated in refactored class
-    public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(Long defendantAccountId) {
-        throw new UnsupportedOperationException("Legacy GetDefendantAccountFixedPenalty not implemented yet");
     }
 
     @Override

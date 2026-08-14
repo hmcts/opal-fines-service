@@ -9,6 +9,91 @@ info:
   title: Opal Fines Service
 
 paths:
+  /defendant-accounts/{defendantAccountId}/fixed-penalty:
+    get:
+      tags:
+        - Defendant Account
+      summary: Get Defendant Account Fixed Penalty
+      description: Returns fixed penalty offence details for a defendant account.
+      operationId: getDefendantAccountFixedPenalty
+      security:
+        - permissions:
+            - Search and View Accounts (in at least one business unit)
+      parameters:
+        - in: path
+          name: defendantAccountId
+          description: DB Mapping - defendant_accounts.defendant_account_id
+          schema:
+            type: integer
+            format: int64
+          required: true
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                title: Get Defendant Account Fixed Penalty Response
+                type: object
+                additionalProperties: false
+                x-json-include: ALWAYS
+                x-versioned: true
+                x-implements:
+                  - uk.gov.hmcts.opal.dto.ToJsonString
+                  - uk.gov.hmcts.opal.util.Versioned
+                required:
+                  - vehicle_fixed_penalty_flag
+                  - fixed_penalty_ticket_details
+                  - vehicle_fixed_penalty_details
+                properties:
+                  vehicle_fixed_penalty_flag:
+                    type: boolean
+                  fixed_penalty_ticket_details:
+                    $ref: './common.yaml#/components/schemas/fixedPenaltyTicketDetails'
+                  vehicle_fixed_penalty_details:
+                    anyOf:
+                      - $ref: './common.yaml#/components/schemas/vehicleFixedPenaltyDetails'
+                      - type: 'null'
+        '400':
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
   /defendant-accounts/{id}/enforcement-status:
     get:
       tags:

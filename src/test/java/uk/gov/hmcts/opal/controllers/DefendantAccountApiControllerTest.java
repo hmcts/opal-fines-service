@@ -33,11 +33,15 @@ import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchReferenceNumberDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse;
+import uk.gov.hmcts.opal.generated.model.FixedPenaltyTicketDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.VehicleFixedPenaltyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
+import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
 import uk.gov.hmcts.opal.service.ImpositionService;
 
 @ExtendWith(MockitoExtension.class)
@@ -52,8 +56,42 @@ class DefendantAccountApiControllerTest {
     @Mock
     private DefendantAccountHistoryResponseMapper defendantAccountHistoryResponseMapper;
 
+    @Mock
+    private DefendantAccountFixedPenaltyService defendantAccountFixedPenaltyService;
+
     @InjectMocks
     private DefendantAccountApiController defendantAccountApiController;
+
+    @Test
+    void given_validRequest_when_getDefendantAccountFixedPenalty_then_returnsOkResponseWithEtag() {
+        Long defendantAccountId = 77L;
+        GetDefendantAccountFixedPenaltyResponse serviceResponse = GetDefendantAccountFixedPenaltyResponse.builder()
+            .vehicleFixedPenaltyFlag(true)
+            .fixedPenaltyTicketDetails(FixedPenaltyTicketDetailsCommon.builder()
+                .issuingAuthority("Kingston-upon-Thames Mags Court")
+                .ticketNumber("888")
+                .timeOfOffence("12:34")
+                .placeOfOffence("London")
+                .build())
+            .vehicleFixedPenaltyDetails(VehicleFixedPenaltyDetailsCommon.builder()
+                .vehicleRegistrationNumber("AB12CDE")
+                .vehicleDriversLicense("DOE1234567")
+                .noticeNumber("PN98765")
+                .dateNoticeIssued(LocalDate.of(2024, 1, 1))
+                .build())
+            .version(BigInteger.valueOf(12))
+            .build();
+        when(defendantAccountFixedPenaltyService.getDefendantAccountFixedPenalty(defendantAccountId))
+            .thenReturn(serviceResponse);
+
+        ResponseEntity<GetDefendantAccountFixedPenaltyResponse> response =
+            defendantAccountApiController.getDefendantAccountFixedPenalty(defendantAccountId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("\"12\"", response.getHeaders().getETag());
+        assertSame(serviceResponse, response.getBody());
+        verify(defendantAccountFixedPenaltyService).getDefendantAccountFixedPenalty(defendantAccountId);
+    }
 
     @Test
     void given_validRequest_when_getImpositions_then_returnsOkResponseWithEtag() {

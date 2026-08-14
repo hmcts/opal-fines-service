@@ -6,7 +6,6 @@ import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
@@ -25,8 +24,6 @@ public interface DefendantAccountServiceInterface {
     DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto);
 
     GetDefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId);
-
-    GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(Long defendantAccountId);
 
     UpdateDefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
         String businessUnitId,

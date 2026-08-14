@@ -36,7 +36,6 @@ import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.WarnError;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
@@ -46,7 +45,6 @@ import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
-import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
@@ -266,22 +264,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .accountBalance(account.getDefendantAccountBalance())
             .birthDate(account.getBirthDate() != null ? account.getBirthDate().toString() : null)
             .aliases(OpalDefendantAccountBuilders.buildSearchAliases(account));
-    }
-
-    //Deprecated - use OpalDefendantAccountFixedPenaltyService
-    //TODO - Remove once OpalDefendantAccountFixedPenaltyService is in use
-    @Override
-    @Transactional(readOnly = true)
-    public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(Long defendantAccountId) {
-        log.debug(":getDefendantAccountFixedPenalty (Opal): id={}", defendantAccountId);
-
-        DefendantAccountEntity account = defendantAccountRepositoryService.findById(defendantAccountId);
-
-        FixedPenaltyOffenceEntity offence = fixedPenaltyOffenceRepository.findByDefendantAccountId(defendantAccountId)
-            .orElseThrow(() -> new EntityNotFoundException(
-                "Fixed Penalty Offence not found for account: " + defendantAccountId));
-
-        return OpalDefendantAccountBuilders.toFixedPenaltyResponse(account, offence);
     }
 
     @Transactional(readOnly = true)
