@@ -122,7 +122,7 @@ public class TestingSupportController {
         feature = RELEASE_1C_PAYMENT,
         defaultValueProperty = RELEASE_1C_PAYMENT_ENABLED_PROPERTY
     )
-    @DeleteMapping("/interface-jobs")
+    @DeleteMapping("/testing-support/interface-jobs")
     @Operation(summary = "Deletes a list of Interface jobs. FOR TESTING ONLY!")
     public ResponseEntity<Void> deleteInterfaceJobs(
             @RequestParam(value = "ids") List<Long> interfaceJobIds) {
