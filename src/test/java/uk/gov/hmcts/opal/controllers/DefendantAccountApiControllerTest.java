@@ -31,8 +31,6 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
-import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
@@ -56,7 +54,6 @@ import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAc
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.ReplacePartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.VehicleFixedPenaltyDetailsCommonStrict;
-import uk.gov.hmcts.opal.mapper.RemoveDefendantAccountPartyMapper;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.ReplacePartyRequestMapper;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
@@ -83,9 +80,6 @@ class DefendantAccountApiControllerTest {
 
     @Mock
     private ReplacePartyRequestMapper replacePartyRequestMapper;
-
-    @Mock
-    private RemoveDefendantAccountPartyMapper removeDefendantAccountPartyMapper;
 
     @Mock
     private DefendantAccountEnforcementService defendantAccountEnforcementService;
@@ -379,27 +373,18 @@ class DefendantAccountApiControllerTest {
                     .partyId("10")
                     .build())
                 .build();
-        RemoveDefendantAccountPartyRequest serviceRequest = RemoveDefendantAccountPartyRequest.builder()
-            .defendantAccountPartyId(10L)
-            .build();
-        RemoveDefendantAccountPartyResponse serviceResponse = RemoveDefendantAccountPartyResponse.builder()
-            .defendantAccountPartyId("10")
-            .version(BigInteger.valueOf(2))
-            .build();
-        RemoveDefendantAccountPartyResponseDefendantAccount generatedResponse =
+        RemoveDefendantAccountPartyResponseDefendantAccount serviceResponse =
             RemoveDefendantAccountPartyResponseDefendantAccount.builder()
                 .defendantAccountPartyId("10")
                 .version(BigInteger.valueOf(2))
                 .build();
-        when(removeDefendantAccountPartyMapper.toServiceRequest(request)).thenReturn(serviceRequest);
-        when(removeDefendantAccountPartyMapper.toGeneratedResponse(serviceResponse)).thenReturn(generatedResponse);
 
         when(defendantAccountPartyService.removeDefendantAccountParty(
             eq(defendantAccountId),
             eq(defendantAccountPartyId),
             eq(businessUnitId),
             eq(ifMatch),
-            any(RemoveDefendantAccountPartyRequest.class)))
+            any(RemoveDefendantAccountPartyRequestDefendantAccount.class)))
             .thenReturn(serviceResponse);
 
         ResponseEntity<RemoveDefendantAccountPartyResponseDefendantAccount> response =
@@ -411,17 +396,15 @@ class DefendantAccountApiControllerTest {
         assertNotNull(response.getBody());
         assertEquals("10", response.getBody().getDefendantAccountPartyId());
 
-        ArgumentCaptor<RemoveDefendantAccountPartyRequest> requestCaptor =
-            ArgumentCaptor.forClass(RemoveDefendantAccountPartyRequest.class);
+        ArgumentCaptor<RemoveDefendantAccountPartyRequestDefendantAccount> requestCaptor =
+            ArgumentCaptor.forClass(RemoveDefendantAccountPartyRequestDefendantAccount.class);
         verify(defendantAccountPartyService).removeDefendantAccountParty(
             eq(defendantAccountId),
             eq(defendantAccountPartyId),
             eq(businessUnitId),
             eq(ifMatch),
             requestCaptor.capture());
-        assertEquals(10L, requestCaptor.getValue().getDefendantAccountPartyId());
-        verify(removeDefendantAccountPartyMapper).toServiceRequest(request);
-        verify(removeDefendantAccountPartyMapper).toGeneratedResponse(serviceResponse);
+        assertEquals("10", requestCaptor.getValue().getDefendantAccountPartyId());
     }
 
     @Test

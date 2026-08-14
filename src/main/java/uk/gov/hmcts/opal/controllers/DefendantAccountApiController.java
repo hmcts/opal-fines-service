@@ -40,7 +40,6 @@ import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantA
 import uk.gov.hmcts.opal.generated.model.ReplacePartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
-import uk.gov.hmcts.opal.mapper.RemoveDefendantAccountPartyMapper;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.ReplacePartyRequestMapper;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
@@ -64,7 +63,6 @@ public class DefendantAccountApiController implements DefendantAccountApi {
     private final DefendantAccountFixedPenaltyService defendantAccountFixedPenaltyService;
     private final DefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
     private final ReplacePartyRequestMapper replacePartyRequestMapper;
-    private final RemoveDefendantAccountPartyMapper removeDefendantAccountPartyMapper;
 
     @Override
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
@@ -221,16 +219,8 @@ public class DefendantAccountApiController implements DefendantAccountApi {
         log.debug(":DELETE:removeDefendantAccountParty: for defendant id: {} and defendantAccountPartyId: {}",
             defendantAccountId, defendantAccountPartyId);
 
-        RemoveDefendantAccountPartyResponseDefendantAccount response =
-            removeDefendantAccountPartyMapper.toGeneratedResponse(
-                defendantAccountPartyService.removeDefendantAccountParty(
-                    defendantAccountId,
-                    defendantAccountPartyId,
-                    businessUnitId,
-                    ifMatch,
-                    removeDefendantAccountPartyMapper.toServiceRequest(request)));
-
-        return buildResponse(response);
+        return buildResponse(defendantAccountPartyService.removeDefendantAccountParty(
+            defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, request));
     }
 
     @Override

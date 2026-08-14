@@ -12,8 +12,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
@@ -50,8 +50,10 @@ class DefendantAccountControllerTest {
         Short businessUnitId = 10;
         String ifMatch = "1";
 
-        RemoveDefendantAccountPartyRequest request = new RemoveDefendantAccountPartyRequest();
-        RemoveDefendantAccountPartyResponse mockResponse = new RemoveDefendantAccountPartyResponse();
+        RemoveDefendantAccountPartyRequestDefendantAccount request =
+            new RemoveDefendantAccountPartyRequestDefendantAccount();
+        RemoveDefendantAccountPartyResponseDefendantAccount mockResponse =
+            new RemoveDefendantAccountPartyResponseDefendantAccount();
 
         when(defendantAccountPartyService.removeDefendantAccountParty(defendantAccountId,
             defendantAccountPartyId, businessUnitId,
@@ -59,7 +61,7 @@ class DefendantAccountControllerTest {
         )).thenReturn(mockResponse);
 
         // Act
-        ResponseEntity<RemoveDefendantAccountPartyResponse> response =
+        ResponseEntity<RemoveDefendantAccountPartyResponseDefendantAccount> response =
             defendantAccountController.removeDefendantAccountParty(defendantAccountId,
                 defendantAccountPartyId, businessUnitId,
                 ifMatch, request);

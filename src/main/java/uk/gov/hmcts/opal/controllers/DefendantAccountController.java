@@ -22,8 +22,8 @@ import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
-import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
@@ -82,12 +82,12 @@ public class DefendantAccountController {
         produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Delete a Defendant Account Party for the provided Defendant Account ID and Party ID")
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<RemoveDefendantAccountPartyResponse> removeDefendantAccountParty(
+    public ResponseEntity<RemoveDefendantAccountPartyResponseDefendantAccount> removeDefendantAccountParty(
         @PathVariable Long defendantAccountId,
         @PathVariable Long defendantAccountPartyId,
         @RequestHeader("Business-Unit-Id") Short businessUnitId,
         @RequestHeader(value = "If-Match", required = false) String ifMatch,
-        @RequestBody RemoveDefendantAccountPartyRequest request
+        @RequestBody RemoveDefendantAccountPartyRequestDefendantAccount request
     ) {
         log.debug(":DELETE:removeDefendantAccountParty: for defendant id: {} and defendantAccountPartyId: {}",
             defendantAccountId, defendantAccountPartyId);
