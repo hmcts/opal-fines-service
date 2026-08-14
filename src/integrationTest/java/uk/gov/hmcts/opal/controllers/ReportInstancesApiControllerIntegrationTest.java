@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers;
 
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
@@ -9,10 +10,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.DRAFT_ACCOUNT_PERMISSIONS;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
 
 import java.util.List;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -27,9 +31,12 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Sql(scripts = "classpath:db/insertData/insert_into_report_instances.sql", executionPhase = BEFORE_TEST_METHOD)
 @Sql(scripts = "classpath:db/deleteData/delete_from_report_instances.sql", executionPhase = AFTER_TEST_METHOD)
+@DisplayName("ReportInstancesApiController Integration Test")
 class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String REPORT_ID = "it_report_instances";
+    private static final String UNCONFIGURED_REPORT_ID = "it_report_noperm";
+    private static final long REPORT_INSTANCE_ID_NOPERMS_REPORT = 9004L;
     private static final String URL_BASE = "/report-instances";
 
     @MockitoSpyBean
@@ -98,6 +105,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
     class GetReportInstancesSadPath {
 
         @Test
+        @DisplayName("Missing token returns unauthorized")
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         @JiraTestKey("PO-8292")
@@ -114,6 +122,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         }
 
         @Test
+        @DisplayName("Unsupported response type returns not acceptable")
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         @JiraTestKey("PO-8293")
@@ -125,6 +134,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         }
 
         @Test
+        @DisplayName("Missing report permission returns forbidden")
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         @JiraTestKey("PO-8291")
@@ -147,6 +157,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         }
 
         @Test
+        @DisplayName("Missing business unit permission returns forbidden")
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         @JiraTestKey("PO-8294")
@@ -173,6 +184,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
     class GetReportInstancesHappyPath {
 
         @Test
+        @DisplayName("No filters return all report instances with permissions")
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         @JiraTestKey("PO-8286")
@@ -191,6 +203,73 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         }
 
         @Test
+        @DisplayName("Unconfigured permissions reports are not returned")
+        @JiraStory("PO-9147")
+        @JiraEpic("PO-2248")
+        void whenUnconfiguredReportExists_itIsNotReturned_happyPath() throws Exception {
+            mockMvc.perform(authorisedGet())
+                .andExpectAll(
+                    status().isOk(),
+                    content().contentTypeCompatibleWith(APPLICATION_JSON),
+                    jsonPath("$").isArray(),
+                    jsonPath("$.length()").value(3),
+                    jsonPath("$[*].report_id", Matchers.not(Matchers.hasItem(UNCONFIGURED_REPORT_ID))),
+                    jsonPath("$[*].instance_id", Matchers.not(Matchers.hasItem(REPORT_INSTANCE_ID_NOPERMS_REPORT))));
+        }
+
+        @Test
+        @DisplayName("Filtering by user ID without report ID returns matching instances")
+        @JiraStory("PO-9147")
+        @JiraEpic("PO-2248")
+        void whenFilteredByUserIdWithoutReportId_matchingInstancesAreReturned_happyPath() throws Exception {
+            mockMvc.perform(authorisedGet()
+                    .param("user_id", "42"))
+                .andExpectAll(
+                    status().isOk(),
+                    content().contentTypeCompatibleWith(APPLICATION_JSON),
+                    jsonPath("$").isArray(),
+                    jsonPath("$.length()").value(2),
+                    jsonPath("$[0].report_id").value(REPORT_ID),
+                    jsonPath("$[*].instance_id", Matchers.not(Matchers.hasItem(REPORT_INSTANCE_ID_NOPERMS_REPORT)))
+                );
+        }
+
+        @Test
+        @DisplayName("No filters return an empty array when the user has no permissions")
+        @JiraStory("PO-9147")
+        @JiraEpic("PO-2248")
+        void whenNoFiltersButUserHasNoPerms_allInstancesAreReturned() throws Exception {
+            userStateStub.setupWithNoPermissions();
+            mockMvc.perform(authorisedGet())
+                .andExpectAll(
+                    status().isOk(),
+                    content().contentTypeCompatibleWith(APPLICATION_JSON),
+                    content().json("[]")
+                );
+        }
+
+        @Test
+        @DisplayName("Additional reports are found when the user has more permissions")
+        @JiraStory("PO-9147")
+        @JiraEpic("PO-2248")
+        void whenUserHasMorePermissions_additionalReportIsFound_happyPath() throws Exception {
+            userStateStub.addPermissions((short) 10, DRAFT_ACCOUNT_PERMISSIONS);
+            userStateStub.addPermissions((short) 20, DRAFT_ACCOUNT_PERMISSIONS);
+
+            mockMvc.perform(authorisedGet())
+                .andExpectAll(
+                    status().isOk(),
+                    content().contentTypeCompatibleWith(APPLICATION_JSON),
+                    jsonPath("$").isArray(),
+                    jsonPath("$.length()").value(4),
+                    jsonPath("$[*].report_id", Matchers.not(Matchers.hasItem(UNCONFIGURED_REPORT_ID))),
+                    jsonPath("$[*].instance_id", Matchers.not(Matchers.hasItem(REPORT_INSTANCE_ID_NOPERMS_REPORT))),
+                    jsonPath("$[*].report_id", Matchers.hasItem("it_report_diff_perm")),
+                    jsonPath("$[*].instance_id", Matchers.hasItem(9005)));
+        }
+
+        @Test
+        @DisplayName("Filtering by report ID returns matching instances")
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         @JiraTestKey("PO-8290")
@@ -209,6 +288,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         }
 
         @Test
+        @DisplayName("Filtering by date range returns matching instances")
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         @JiraTestKey("PO-8282")
@@ -234,6 +314,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         }
 
         @Test
+        @DisplayName("Filtering by user ID returns matching instances")
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         @JiraTestKey("PO-8289")
@@ -258,6 +339,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         }
 
         @Test
+        @DisplayName("Filtering by business unit returns matching instances")
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         @JiraTestKey("PO-8287")
@@ -282,6 +364,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         }
 
         @Test
+        @DisplayName("Ready instances map all fields correctly")
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         @JiraTestKey("PO-8288")
@@ -318,6 +401,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         }
 
         @Test
+        @DisplayName("In-progress instances are not downloadable")
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         @JiraTestKey("PO-8283")
@@ -344,6 +428,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         }
 
         @Test
+        @DisplayName("Null instance name uses the report title")
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         @JiraTestKey("PO-8285")
@@ -368,6 +453,7 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         }
 
         @Test
+        @DisplayName("No matching instances return an empty array")
         @JiraStory("PO-2251")
         @JiraEpic("PO-2248")
         @JiraTestKey("PO-8284")

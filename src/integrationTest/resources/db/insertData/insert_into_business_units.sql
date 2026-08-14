@@ -13,13 +13,24 @@
 *
 **/
 
-INSERT INTO BUSINESS_UNITS
-(
-business_unit_id,business_unit_name,business_unit_code,business_unit_type
-,account_number_prefix,parent_business_unit_id,opal_domain,welsh_language
+INSERT INTO business_units (
+    business_unit_id, business_unit_name, business_unit_code, business_unit_type,
+    account_number_prefix, parent_business_unit_id, opal_domain, welsh_language
 )
 VALUES
 (
-1,'AAA Business Unit 001','AAAA','Area'
-,'XX',99,'Fines',true
+9091,'Parent Business Unit','PRNT',
+'Area','XX',NULL,'Fines',
+true
+);
+
+INSERT INTO business_units (
+    business_unit_id, business_unit_name, business_unit_code, business_unit_type,
+    account_number_prefix, parent_business_unit_id, opal_domain, welsh_language
+)
+VALUES
+(
+9092,'AAA Business Unit 9092','AAAA',
+'Accounting Division','XX',9091,
+'Fines',true
 );
