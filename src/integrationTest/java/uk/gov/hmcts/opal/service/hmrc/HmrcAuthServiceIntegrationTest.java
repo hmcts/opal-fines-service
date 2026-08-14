@@ -34,7 +34,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @Slf4j(topic = "opal.HmrcAuthServiceIntegrationTest")
 @DisplayName("HMRC Auth Service Integration Test")
-@WireMockTest(httpPort = 8080)
+@WireMockTest(httpPort = 4455)
 public class HmrcAuthServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired

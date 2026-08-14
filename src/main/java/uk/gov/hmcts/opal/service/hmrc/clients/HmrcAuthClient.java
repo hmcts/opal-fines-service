@@ -4,9 +4,13 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import uk.gov.hmcts.opal.service.hmrc.clients.response.HmrcAuthToken;
 
-@FeignClient(name = "hmrcAuthClient", url = "${hmrc.auth.url}")
+@FeignClient(name = "hmrcAuthClient",
+    url = "${hmrc.auth.url}",
+    configuration = HmrcFeignClientConfiguration.class
+)
+
 public interface HmrcAuthClient {
 
-    @PostMapping
+    @PostMapping("/oauth/token")
     HmrcAuthToken getAuthToken(HmrcAuthCreds creds);
 }
