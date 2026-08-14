@@ -51,7 +51,7 @@ import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountPartyLegacyResponseMapper;
 import uk.gov.hmcts.opal.mapper.legacy.RemoveDefendantAccountPartyLegacyResponseMapper;
 
@@ -1781,7 +1781,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         // Act
-        RemoveDefendantAccountPartyResponse response = legacyDefendantAccountPartyService.removeDefendantAccountParty(
+        RemoveDefendantAccountPartyResponseDefendantAccount response = legacyDefendantAccountPartyService.removeDefendantAccountParty(
             77L, 20010L, (short) 78, "dev_user", "poster", "Poster Name", "\"3\"", null
         );
 
@@ -1820,7 +1820,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             Mockito.nullable(String.class)
         );
 
-        RemoveDefendantAccountPartyResponse result = legacyDefendantAccountPartyService.removeDefendantAccountParty(
+        RemoveDefendantAccountPartyResponseDefendantAccount result = legacyDefendantAccountPartyService.removeDefendantAccountParty(
             77L, 20010L, (short) 78, "dev_user", "poster", "Poster Name", "\"3\"", null
         );
 
@@ -1848,7 +1848,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             Mockito.nullable(String.class)
         );
 
-        RemoveDefendantAccountPartyResponse response = legacyDefendantAccountPartyService.removeDefendantAccountParty(
+        RemoveDefendantAccountPartyResponseDefendantAccount response = legacyDefendantAccountPartyService.removeDefendantAccountParty(
             77L, 20010L, (short) 78, "dev_user", "poster", "Poster Name", "\"3\"", null
         );
 

@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPartyServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
@@ -62,9 +62,10 @@ public class DefendantAccountPartyServiceProxy implements DefendantAccountPartyS
     }
 
     @Override
-    public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
+    public RemoveDefendantAccountPartyResponseDefendantAccount removeDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId, Short businessUnitId, String businessUserId,
-        String postedBy, String postedByName, String ifMatch, RemoveDefendantAccountPartyRequest request) {
+        String postedBy, String postedByName, String ifMatch,
+        RemoveDefendantAccountPartyRequestDefendantAccount request) {
 
         return getCurrentModeService().removeDefendantAccountParty(defendantAccountId,
             defendantAccountPartyId, businessUnitId, businessUserId,

@@ -15,7 +15,6 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
-import org.mapstruct.factory.Mappers;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -32,8 +31,6 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
-import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
@@ -45,7 +42,6 @@ import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefen
 import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
-import uk.gov.hmcts.opal.mapper.RemoveDefendantAccountPartyMapper;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
 import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
@@ -65,9 +61,6 @@ class DefendantAccountApiControllerTest {
 
     @Mock
     private DefendantAccountPartyService defendantAccountPartyService;
-
-    @Mock
-    private RemoveDefendantAccountPartyMapper removeDefendantAccountPartyMapper;
 
     @InjectMocks
     private DefendantAccountApiController defendantAccountApiController;
@@ -213,20 +206,21 @@ class DefendantAccountApiControllerTest {
         String ifMatch = "\"1\"";
         RemoveDefendantAccountPartyRequestDefendantAccount request =
             RemoveDefendantAccountPartyRequestDefendantAccount.builder()
+                .defendantAccountPartyId("10")
                 .partyDetails(RemoveDefendantAccountPartyDetailsCommonStrict.builder()
                     .partyId("10")
                     .build())
                 .build();
-        RemoveDefendantAccountPartyResponse serviceResponse = RemoveDefendantAccountPartyResponse.builder()
-            .defendantAccountPartyId("10")
-            .version(BigInteger.valueOf(2))
-            .build();
+        RemoveDefendantAccountPartyResponseDefendantAccount serviceResponse =
+            RemoveDefendantAccountPartyResponseDefendantAccount.builder()
+                .defendantAccountPartyId("10")
+                .version(BigInteger.valueOf(2))
+                .build();
         DefendantAccountApiController controller = new DefendantAccountApiController(
             defendantAccountService,
             defendantAccountHistoryResponseMapper,
             impositionService,
-            defendantAccountPartyService,
-            Mappers.getMapper(RemoveDefendantAccountPartyMapper.class)
+            defendantAccountPartyService
         );
 
         when(defendantAccountPartyService.removeDefendantAccountParty(
@@ -234,7 +228,7 @@ class DefendantAccountApiControllerTest {
             eq(defendantAccountPartyId),
             eq(businessUnitId),
             eq(ifMatch),
-            any(RemoveDefendantAccountPartyRequest.class)))
+            any(RemoveDefendantAccountPartyRequestDefendantAccount.class)))
             .thenReturn(serviceResponse);
 
         ResponseEntity<RemoveDefendantAccountPartyResponseDefendantAccount> response =
@@ -246,15 +240,15 @@ class DefendantAccountApiControllerTest {
         assertNotNull(response.getBody());
         assertEquals("10", response.getBody().getDefendantAccountPartyId());
 
-        ArgumentCaptor<RemoveDefendantAccountPartyRequest> requestCaptor =
-            ArgumentCaptor.forClass(RemoveDefendantAccountPartyRequest.class);
+        ArgumentCaptor<RemoveDefendantAccountPartyRequestDefendantAccount> requestCaptor =
+            ArgumentCaptor.forClass(RemoveDefendantAccountPartyRequestDefendantAccount.class);
         verify(defendantAccountPartyService).removeDefendantAccountParty(
             eq(defendantAccountId),
             eq(defendantAccountPartyId),
             eq(businessUnitId),
             eq(ifMatch),
             requestCaptor.capture());
-        assertEquals(10L, requestCaptor.getValue().getDefendantAccountPartyId());
+        assertEquals("10", requestCaptor.getValue().getDefendantAccountPartyId());
     }
 
     @Test

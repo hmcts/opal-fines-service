@@ -874,6 +874,10 @@ components:
       title: Remove Defendant Account Party Request
       type: object
       additionalProperties: false
+      x-implements:
+        - uk.gov.hmcts.opal.dto.ToJsonString
+      required:
+        - defendant_account_party_id
       properties:
         defendant_account_party_id:
           type: string
@@ -886,6 +890,10 @@ components:
       title: Remove Defendant Account Party Response
       type: object
       x-json-include: NON_NULL
+      x-versioned: true
+      x-implements:
+        - uk.gov.hmcts.opal.dto.ToJsonString
+        - uk.gov.hmcts.opal.util.Versioned
       additionalProperties: false
       required:
         - defendant_account_party_id

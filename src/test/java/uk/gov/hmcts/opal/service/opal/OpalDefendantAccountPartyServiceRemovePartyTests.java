@@ -19,8 +19,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.dto.RecordType;
-import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
@@ -81,11 +81,12 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
             .auditFinaliseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS, (short) 10, "posted", "Posted User", "CASE-REF",
                 "ACCOUNT_ENQUIRY");
 
-        RemoveDefendantAccountPartyRequest request = RemoveDefendantAccountPartyRequest.builder()
-            .defendantAccountPartyId(99L)
-            .build();
+        RemoveDefendantAccountPartyRequestDefendantAccount request =
+            RemoveDefendantAccountPartyRequestDefendantAccount.builder()
+                .defendantAccountPartyId("99")
+                .build();
 
-        RemoveDefendantAccountPartyResponse response = service.removeDefendantAccountParty(
+        RemoveDefendantAccountPartyResponseDefendantAccount response = service.removeDefendantAccountParty(
             1L,
             5L,
             (short) 10,
@@ -115,9 +116,10 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
 
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
-        RemoveDefendantAccountPartyRequest request = RemoveDefendantAccountPartyRequest.builder()
-            .defendantAccountPartyId(123L)
-            .build();
+        RemoveDefendantAccountPartyRequestDefendantAccount request =
+            RemoveDefendantAccountPartyRequestDefendantAccount.builder()
+                .defendantAccountPartyId("123")
+                .build();
 
         assertThrows(EntityNotFoundException.class, () ->
             service.removeDefendantAccountParty(1L, 5L, (short) 10,
