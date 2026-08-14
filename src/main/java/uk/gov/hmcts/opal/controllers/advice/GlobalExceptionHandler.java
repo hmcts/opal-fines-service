@@ -4,6 +4,7 @@ import static uk.gov.hmcts.opal.util.VersionUtils.createETag;
 
 import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Optional;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
