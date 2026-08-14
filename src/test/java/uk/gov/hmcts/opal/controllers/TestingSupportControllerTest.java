@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,7 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
+import uk.gov.hmcts.opal.service.opal.InterfaceJobService;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
@@ -70,6 +72,9 @@ class TestingSupportControllerTest {
 
     @MockitoBean
     private DefendantAccountDeletionService defendantAccountDeletionService;
+
+    @MockitoBean
+    private InterfaceJobService interfaceJobService;
 
     @MockitoBean
     private UserStateClientService userStateClientService;
@@ -152,6 +157,17 @@ class TestingSupportControllerTest {
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertFalse(response.hasBody());
+    }
+
+    @Test
+    void deleteInterfaceJobs_shouldDeleteRequestedJobs() {
+        List<Long> interfaceJobIds = List.of(1L, 2L);
+
+        ResponseEntity<Void> response = controller.deleteInterfaceJobs(interfaceJobIds);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertFalse(response.hasBody());
+        verify(interfaceJobService).deleteInterfaceJobs(interfaceJobIds);
     }
 
     @Test

@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AccessLevel;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
@@ -36,6 +38,7 @@ import uk.gov.hmcts.opal.repository.jpa.InterfaceJobSpecs;
 import uk.gov.hmcts.opal.service.UserStateService;
 
 @Service
+@Slf4j(topic = "opal.InterfaceJobService")
 @RequiredArgsConstructor
 public class InterfaceJobService {
 
@@ -103,6 +106,15 @@ public class InterfaceJobService {
             .toList();
 
         return InterfaceJobsSummaryResponse.builder().interfaceJobs(summaries).build();
+    }
+
+    @Transactional
+    public void deleteInterfaceJobs(List<Long> interfaceJobIds) {
+        if (interfaceJobIds.isEmpty() || interfaceJobRepository.findAllById(interfaceJobIds).isEmpty()) {
+            throw new EntityNotFoundException("Interface job ids supplied for deletion not found");
+        }
+        log.warn("DESTRUCTIVE OPERATION: Deleting interface jobs with ids: {}", interfaceJobIds);
+        interfaceJobRepository.deleteAllById(interfaceJobIds);
     }
 
     private List<InterfaceJobsSummaryItem> toResponses(InterfaceJobEntity interfaceJob) {

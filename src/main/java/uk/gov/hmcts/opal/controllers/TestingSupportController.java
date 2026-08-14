@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_PAYMENT;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_PAYMENT_ENABLED_PROPERTY;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 import io.swagger.v3.oas.annotations.Hidden;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
@@ -38,6 +41,7 @@ import uk.gov.hmcts.opal.service.DraftAccountService;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
+import uk.gov.hmcts.opal.service.opal.InterfaceJobService;
 import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
 import uk.gov.hmcts.opal.service.opal.OpalCreditorAccountService;
@@ -60,6 +64,7 @@ public class TestingSupportController {
     private final FeatureToggleApi featureToggleApi;
     private final AccessTokenService accessTokenService;
     private final DefendantAccountDeletionService defendantAccountDeletionService;
+    private final InterfaceJobService interfaceJobService;
     private final UserStateClientService userStateClientService;
     private final UserStateMapper userStateMapper;
     private final MajorCreditorService majorCreditorService;
@@ -110,6 +115,22 @@ public class TestingSupportController {
         defendantAccountDeletionService.deleteDefendantAccountAndAssociatedData(defendantAccountId);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @Hidden
+    @FeatureToggle(
+        feature = RELEASE_1C_PAYMENT,
+        defaultValueProperty = RELEASE_1C_PAYMENT_ENABLED_PROPERTY
+    )
+    @DeleteMapping("/testing-support/interface-jobs")
+    @Operation(summary = "Deletes a list of Interface jobs. FOR TESTING ONLY!")
+    public ResponseEntity<Void> deleteInterfaceJobs(
+            @RequestParam(value = "ids") List<Long> interfaceJobIds) {
+        log.warn("TEST ENDPOINT: Request to delete interface jobs with ids: {}", interfaceJobIds);
+
+        interfaceJobService.deleteInterfaceJobs(interfaceJobIds);
+
+        return ResponseEntity.ok().build();
     }
 
     /**
