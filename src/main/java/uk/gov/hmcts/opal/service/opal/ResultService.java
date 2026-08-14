@@ -19,10 +19,10 @@ import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
-import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.generated.model.GetResultByIdResponseResults;
+import uk.gov.hmcts.opal.generated.model.GetResultsResponseResults;
 import uk.gov.hmcts.opal.mapper.ResultMapper;
 import uk.gov.hmcts.opal.repository.ResultRepository;
 import uk.gov.hmcts.opal.repository.jpa.ResultSpecs;
@@ -109,8 +109,7 @@ public class ResultService {
         return welshParameter;
     }
 
-    // @Cacheable(cacheNames = "resultReferenceDataByIds", key = "#resultIds.orElse('noIds'))")
-    public ResultReferenceDataResponse getResultsByIds(Optional<List<String>> resultIds,
+    public GetResultsResponseResults getResultsByIds(List<String> resultIds,
         Boolean active,
         Boolean manualEnforcement,
         Boolean generatesHearing,
@@ -118,9 +117,12 @@ public class ResultService {
         Boolean enforcementOverride) {
 
         Sort idSort = Sort.by(Sort.Direction.ASC, "resultId");
+        Optional<List<String>> resultIdsFilter = Optional.ofNullable(resultIds)
+            .filter(ids -> ids.stream().anyMatch(id -> !id.isBlank()));
 
         Page<ResultEntity> page = resultRepository.findBy(
-            resultSpecs.referenceDataByIds(resultIds, active, manualEnforcement, generatesHearing, enforcement,
+            resultSpecs.referenceDataByIds(resultIdsFilter, active, manualEnforcement, generatesHearing,
+                enforcement,
                 enforcementOverride),
             ffq -> ffq
                 .sortBy(idSort)

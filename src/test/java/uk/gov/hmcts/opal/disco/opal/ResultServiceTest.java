@@ -28,11 +28,12 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
-import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.result.ResultType;
 import uk.gov.hmcts.opal.generated.model.GetResultByIdResponseResults;
+import uk.gov.hmcts.opal.generated.model.GetResultsResponseResults;
+import uk.gov.hmcts.opal.generated.model.ResultReferenceDataResults;
 import uk.gov.hmcts.opal.mapper.ResultMapper;
 import uk.gov.hmcts.opal.repository.ResultRepository;
 import uk.gov.hmcts.opal.repository.jpa.ResultSpecs;
@@ -99,8 +100,10 @@ class ResultServiceTest {
     void testGetResultsByIds() {
         // Arrange
         ResultEntity resultEntity = ResultEntity.builder().resultId("ABC").build();
-        ResultReferenceData dto = new ResultReferenceData(
-            "ABC", null, null, false, null, null, null);
+        ResultReferenceDataResults dto = ResultReferenceDataResults.builder()
+            .resultId("ABC")
+            .active(false)
+            .build();
 
         @SuppressWarnings("unchecked")
         SpecificationFluentQuery<ResultEntity> sfq = (SpecificationFluentQuery<ResultEntity>)
@@ -115,16 +118,17 @@ class ResultServiceTest {
             return mockPage;
         });
 
-        when(resultMapper.toRefData(any())).thenReturn(dto);
+        when(resultMapper.toResultReferenceData(any())).thenReturn(dto);
         when(resultSpecs.referenceDataByIds(any(), any(), any(), any(), any(), any()))
             .thenReturn(noOpSpec());
 
         // Act
-        ResultReferenceDataResponse result = resultService.getResultsByIds(Optional.of(List.of("ABC")),
+        GetResultsResponseResults result = resultService.getResultsByIds(List.of("ABC"),
             false, false, false, false, null);
 
-        ResultReferenceDataResponse expectedResponse = ResultReferenceDataResponse.builder()
+        GetResultsResponseResults expectedResponse = GetResultsResponseResults.builder()
             .refData(List.of(dto))
+            .count(1)
             .build();
 
         // Assert
@@ -154,16 +158,17 @@ class ResultServiceTest {
         when(resultSpecs.referenceDataByIds(any(), any(), any(), any(), any(), any()))
             .thenReturn(noOpSpec());
 
-        ResultReferenceData dto = new ResultReferenceData("NBWIT", null, null, false, null, null, null);
-        when(resultMapper.toRefData(any())).thenReturn(dto);
+        ResultReferenceDataResults dto = ResultReferenceDataResults.builder().resultId("NBWIT").active(false).build();
+        when(resultMapper.toResultReferenceData(any())).thenReturn(dto);
 
         // Act - enforcementOverride true (others null)
-        ResultReferenceDataResponse result = resultService.getResultsByIds(
-            Optional.of(List.of("NBWIT")), null, null, null, null, Boolean.TRUE);
+        GetResultsResponseResults result = resultService.getResultsByIds(
+            List.of("NBWIT"), null, null, null, null, Boolean.TRUE);
 
         // Assert
-        ResultReferenceDataResponse expected = ResultReferenceDataResponse.builder()
+        GetResultsResponseResults expected = GetResultsResponseResults.builder()
             .refData(List.of(dto))
+            .count(1)
             .build();
 
         assertEquals(expected.getCount(), result.getCount());
@@ -544,16 +549,17 @@ class ResultServiceTest {
         when(resultSpecs.referenceDataByIds(any(), any(), any(), any(), any(), any()))
             .thenReturn(noOpSpec());
 
-        ResultReferenceData dto = new ResultReferenceData("ABC", null, null, false, null, null, null);
-        when(resultMapper.toRefData(any())).thenReturn(dto);
+        ResultReferenceDataResults dto = ResultReferenceDataResults.builder().resultId("ABC").active(false).build();
+        when(resultMapper.toResultReferenceData(any())).thenReturn(dto);
 
         // Act - pass Optional.of(ids) and null for all booleans
-        ResultReferenceDataResponse result = resultService.getResultsByIds(Optional.of(List.of("ABC")),
+        GetResultsResponseResults result = resultService.getResultsByIds(List.of("ABC"),
             null, null, null, null, null);
 
         // Assert - mapping and count
-        ResultReferenceDataResponse expected = ResultReferenceDataResponse.builder()
+        GetResultsResponseResults expected = GetResultsResponseResults.builder()
             .refData(List.of(dto))
+            .count(1)
             .build();
 
         assertEquals(expected.getCount(), result.getCount());
@@ -580,16 +586,17 @@ class ResultServiceTest {
         when(resultSpecs.referenceDataByIds(any(), any(), any(), any(), any(), any()))
             .thenReturn(noOpSpec());
 
-        ResultReferenceData dto = new ResultReferenceData("ACT-1", null, null, false, null, null, null);
-        when(resultMapper.toRefData(any())).thenReturn(dto);
+        ResultReferenceDataResults dto = ResultReferenceDataResults.builder().resultId("ACT-1").active(false).build();
+        when(resultMapper.toResultReferenceData(any())).thenReturn(dto);
 
         // Act - active true (others null)
-        ResultReferenceDataResponse result = resultService.getResultsByIds(Optional.of(List.of("ACT-1")),
+        GetResultsResponseResults result = resultService.getResultsByIds(List.of("ACT-1"),
             Boolean.TRUE, null, null, null, null);
 
         // Assert
-        ResultReferenceDataResponse expected = ResultReferenceDataResponse.builder()
+        GetResultsResponseResults expected = GetResultsResponseResults.builder()
             .refData(List.of(dto))
+            .count(1)
             .build();
 
         assertEquals(expected.getCount(), result.getCount());
@@ -619,16 +626,18 @@ class ResultServiceTest {
         when(resultSpecs.referenceDataByIds(any(), any(), any(), any(), any(), any()))
             .thenReturn(noOpSpec());
 
-        ResultReferenceData dto = new ResultReferenceData("MEF-FALSE", null, null, false, null, null, null);
-        when(resultMapper.toRefData(any())).thenReturn(dto);
+        ResultReferenceDataResults dto = ResultReferenceDataResults.builder()
+            .resultId("MEF-FALSE").active(false).build();
+        when(resultMapper.toResultReferenceData(any())).thenReturn(dto);
 
         // Act - pass explicit false
-        ResultReferenceDataResponse result = resultService.getResultsByIds(Optional.of(List.of("MEF-FALSE")),
+        GetResultsResponseResults result = resultService.getResultsByIds(List.of("MEF-FALSE"),
             null, Boolean.FALSE, null, null, null);
 
         // Assert
-        ResultReferenceDataResponse expected = ResultReferenceDataResponse.builder()
+        GetResultsResponseResults expected = GetResultsResponseResults.builder()
             .refData(List.of(dto))
+            .count(1)
             .build();
 
         assertEquals(expected.getCount(), result.getCount());
@@ -662,16 +671,17 @@ class ResultServiceTest {
         when(resultSpecs.referenceDataByIds(any(), any(), any(), any(), any(), any()))
             .thenReturn(noOpSpec());
 
-        ResultReferenceData dto = new ResultReferenceData("MIXED", null, null, false, null, null, null);
-        when(resultMapper.toRefData(any())).thenReturn(dto);
+        ResultReferenceDataResults dto = ResultReferenceDataResults.builder().resultId("MIXED").active(false).build();
+        when(resultMapper.toResultReferenceData(any())).thenReturn(dto);
 
         // Act - mix of true/false/null
-        ResultReferenceDataResponse result = resultService.getResultsByIds(Optional.of(List.of("MIXED")),
+        GetResultsResponseResults result = resultService.getResultsByIds(List.of("MIXED"),
             Boolean.TRUE, Boolean.TRUE, Boolean.FALSE, Boolean.TRUE, Boolean.FALSE);
 
         // Assert
-        ResultReferenceDataResponse expected = ResultReferenceDataResponse.builder()
+        GetResultsResponseResults expected = GetResultsResponseResults.builder()
             .refData(List.of(dto))
+            .count(1)
             .build();
 
         assertEquals(expected.getCount(), result.getCount());
