@@ -3,12 +3,12 @@ package uk.gov.hmcts.opal.mapper;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
-import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.entity.ImpositionCategoriesEntity;
 import uk.gov.hmcts.opal.entity.result.ImpositionCreditor;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.result.ResultType;
 import uk.gov.hmcts.opal.generated.model.GetResultByIdResponseResults;
+import uk.gov.hmcts.opal.generated.model.GetResultsResponseResults;
 
 import java.util.List;
 
@@ -103,16 +103,16 @@ class ResultMapperTest {
         List<ResultEntity> entities = List.of(entity1, entity2);
 
         // Act
-        ResultReferenceDataResponse response = resultMapper.toReferenceDataResponse(entities);
+        GetResultsResponseResults response = resultMapper.toReferenceDataResponse(entities);
 
         // Assert
         assertNotNull(response);
         assertNotNull(response.getRefData());
         assertEquals(2, response.getRefData().size());
-        assertEquals("R1", response.getRefData().get(0).getResultId());
-        assertEquals("Result 1", response.getRefData().get(0).getResultTitle());
-        assertEquals("R2", response.getRefData().get(1).getResultId());
-        assertEquals("Result 2", response.getRefData().get(1).getResultTitle());
+        assertEquals("R1", response.getRefData().get(0).getResultId().get());
+        assertEquals("Result 1", response.getRefData().get(0).getResultTitle().get());
+        assertEquals("R2", response.getRefData().get(1).getResultId().get());
+        assertEquals("Result 2", response.getRefData().get(1).getResultTitle().get());
     }
 
     @Test

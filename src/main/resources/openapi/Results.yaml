@@ -6,6 +6,92 @@ info:
   description: APIs for retrieving result reference data.
 
 paths:
+  /results:
+    get:
+      tags:
+        - Results
+      summary: Get results
+      description: Returns result reference data, optionally filtered by result identifiers and result attributes.
+      operationId: getResults
+      parameters:
+        - name: result_ids
+          in: query
+          required: false
+          description: Comma-separated result identifiers.
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: active
+          in: query
+          required: false
+          schema:
+            type: boolean
+        - name: manual_enforcement_only
+          in: query
+          required: false
+          schema:
+            type: boolean
+        - name: generates_hearing
+          in: query
+          required: false
+          schema:
+            type: boolean
+        - name: enforcement
+          in: query
+          required: false
+          schema:
+            type: boolean
+        - name: enforcement_override
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Results retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetResultsResponse'
+        '400':
+          description: Invalid query parameter
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Results filtering is unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
   /results/{id}:
     get:
       tags:
@@ -67,6 +153,51 @@ paths:
 
 components:
   schemas:
+    GetResultsResponse:
+      title: Get Results response
+      type: object
+      additionalProperties: false
+      x-json-include: NON_NULL
+      required:
+        - count
+        - refData
+      properties:
+        count:
+          type: integer
+          format: int32
+        refData:
+          type: array
+          items:
+            $ref: '#/components/schemas/resultReferenceData'
+    resultReferenceData:
+      title: Result Reference Data
+      type: object
+      additionalProperties: false
+      x-json-include: NON_NULL
+      required:
+        - active
+      properties:
+        result_id:
+          type: [string, 'null']
+          x-extra-annotation: '@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS)'
+        result_title:
+          type: [string, 'null']
+          x-extra-annotation: '@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS)'
+        result_title_cy:
+          type: [string, 'null']
+          x-extra-annotation: '@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS)'
+        active:
+          type: boolean
+        result_type:
+          type: [string, 'null']
+          x-extra-annotation: '@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS)'
+        imposition_creditor:
+          type: [string, 'null']
+          x-extra-annotation: '@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS)'
+        imposition_allocation_order:
+          type: [integer, 'null']
+          format: int16
+          x-extra-annotation: '@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS)'
     GetResultByIdResponse:
       title: Get Result by ID response
       type: object
