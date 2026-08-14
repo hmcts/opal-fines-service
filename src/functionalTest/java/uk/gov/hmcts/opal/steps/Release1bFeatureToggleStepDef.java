@@ -409,13 +409,11 @@ public class Release1bFeatureToggleStepDef extends BaseStepDef {
                 "extension": true,
                 "reason_for_extension": "Financial hardship",
                 "payment_terms_type": {
-                  "payment_terms_type_code": "B",
-                  "payment_terms_type_display_name": "By date"
+                  "payment_terms_type_code": "B"
                 },
                 "effective_date": "2025-11-15",
                 "instalment_period": {
-                  "instalment_period_code": "M",
-                  "instalment_period_display_name": "Monthly"
+                  "instalment_period_code": "M"
                 },
                 "lump_sum_amount": 0.00,
                 "instalment_amount": 150.00,

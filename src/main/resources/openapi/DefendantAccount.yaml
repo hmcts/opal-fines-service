@@ -985,8 +985,10 @@ components:
       properties:
         defendant_account_id:
           type: string
+          x-field-extra-annotation: '@jakarta.validation.constraints.NotBlank'
         enforcement_id:
           type: string
+          x-field-extra-annotation: '@jakarta.validation.constraints.NotBlank'
         version:
           type: integer
           format: int32
