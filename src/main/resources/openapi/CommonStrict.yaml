@@ -12,6 +12,8 @@ components:
       title: Remove Defendant Account Party Details
       type: object
       additionalProperties: false
+      required:
+        - party_id
       properties:
         party_id:
           type: string
