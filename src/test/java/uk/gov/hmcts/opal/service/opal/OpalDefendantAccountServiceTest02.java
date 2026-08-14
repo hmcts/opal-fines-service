@@ -18,13 +18,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse;
+import uk.gov.hmcts.opal.mapper.DefendantAccountFixedPenaltyMapper;
 import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
@@ -39,6 +42,10 @@ class OpalDefendantAccountServiceTest02 {
 
     @Mock
     private FixedPenaltyOffenceRepositoryService fixedPenaltyOffenceRepositoryService;
+
+    @Spy
+    private DefendantAccountFixedPenaltyMapper defendantAccountFixedPenaltyMapper =
+        Mappers.getMapper(DefendantAccountFixedPenaltyMapper.class);
 
     // Service under test
     @InjectMocks
@@ -60,7 +67,7 @@ class OpalDefendantAccountServiceTest02 {
             service.getDefendantAccountFixedPenalty(defendantAccountId);
 
         assertNotNull(response);
-        assertTrue(response.isVehicleFixedPenaltyFlag());
+        assertTrue(response.getVehicleFixedPenaltyFlag());
         assertEquals("Kingston-upon-Thames Mags Court",
             response.getFixedPenaltyTicketDetails().getIssuingAuthority());
         assertEquals("888", response.getFixedPenaltyTicketDetails().getTicketNumber());
@@ -83,12 +90,12 @@ class OpalDefendantAccountServiceTest02 {
         GetDefendantAccountFixedPenaltyResponse response = service.getDefendantAccountFixedPenalty(accountId);
 
         assertNotNull(response);
-        assertFalse(response.isVehicleFixedPenaltyFlag());
+        assertFalse(response.getVehicleFixedPenaltyFlag());
         assertEquals("Kingston-upon-Thames Mags Court", response.getFixedPenaltyTicketDetails().getIssuingAuthority());
         assertEquals("888", response.getFixedPenaltyTicketDetails().getTicketNumber());
         assertEquals("12:12", response.getFixedPenaltyTicketDetails().getTimeOfOffence());
         assertEquals("Manchester", response.getFixedPenaltyTicketDetails().getPlaceOfOffence());
-        assertNull(response.getVehicleFixedPenaltyDetails());
+        assertNull(response.getVehicleFixedPenaltyDetails().get());
     }
 
     @Test

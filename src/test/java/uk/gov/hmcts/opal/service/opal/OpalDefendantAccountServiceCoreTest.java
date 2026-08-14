@@ -20,10 +20,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.entity.defendantaccount.ConsolidatedAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
@@ -34,8 +35,10 @@ import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse.DefendantAccountTypeEnum;
 import uk.gov.hmcts.opal.mapper.ConsolidatedAccountMapper;
+import uk.gov.hmcts.opal.mapper.DefendantAccountFixedPenaltyMapper;
 import uk.gov.hmcts.opal.repository.ConsolidatedAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
@@ -74,6 +77,10 @@ class OpalDefendantAccountServiceCoreTest {
 
     @Mock
     private EnforcementRepositoryService enforcementRepositoryService;
+
+    @Spy
+    private DefendantAccountFixedPenaltyMapper defendantAccountFixedPenaltyMapper =
+        Mappers.getMapper(DefendantAccountFixedPenaltyMapper.class);
 
     // Services under test
     @InjectMocks
@@ -139,7 +146,7 @@ class OpalDefendantAccountServiceCoreTest {
         GetDefendantAccountFixedPenaltyResponse response =
             fpService.getDefendantAccountFixedPenalty(defendantAccountId);
 
-        assertFalse(response.isVehicleFixedPenaltyFlag(),
+        assertFalse(response.getVehicleFixedPenaltyFlag(),
             "Expected flag to be false when vehicleFixedPenalty=false and registration is null");
     }
 
@@ -159,7 +166,7 @@ class OpalDefendantAccountServiceCoreTest {
         GetDefendantAccountFixedPenaltyResponse response =
             fpService.getDefendantAccountFixedPenalty(defendantAccountId);
 
-        assertFalse(response.isVehicleFixedPenaltyFlag(),
+        assertFalse(response.getVehicleFixedPenaltyFlag(),
             "Expected flag to be false when vehicleFixedPenalty=false and registration='NV'");
     }
 
@@ -179,7 +186,7 @@ class OpalDefendantAccountServiceCoreTest {
         GetDefendantAccountFixedPenaltyResponse response =
             fpService.getDefendantAccountFixedPenalty(defendantAccountId);
 
-        assertTrue(response.isVehicleFixedPenaltyFlag(),
+        assertTrue(response.getVehicleFixedPenaltyFlag(),
             "Expected flag to be true when vehicleRegistration='AB12CDE' even if vehicleFixedPenalty=false");
     }
 
