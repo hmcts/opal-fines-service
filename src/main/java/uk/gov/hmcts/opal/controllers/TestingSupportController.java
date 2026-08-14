@@ -132,6 +132,7 @@ public class TestingSupportController {
 
         return ResponseEntity.ok().build();
     }
+
     /**
      * From {@link MajorCreditorController}.
      * @param criteria search criteria
