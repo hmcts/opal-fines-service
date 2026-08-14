@@ -56,6 +56,7 @@ public class DraftAccountService {
     public static final String ACCOUNT_DELETED_MESSAGE_FORMAT = """
         { "message": "Draft Account '%s' deleted"}""";
     public static final String EVENT_ACCOUNT_APPROVAL = "Business Function - Approval of Draft Account";
+    public static final String EVENT_ACCOUNT_DELETION = "Business Function - Deletion of Draft Account";
 
     private final DraftAccountTransactional draftAccountTransactional;
 
@@ -147,9 +148,13 @@ public class DraftAccountService {
 
     public String deleteDraftAccount(long draftAccountId, boolean checkExisted) {
         try {
+            DraftAccountEntity draftAccount = draftAccountTransactional.getDraftAccount(draftAccountId);
             boolean deleted =  draftAccountTransactional.deleteDraftAccount(draftAccountId, draftAccountTransactional);
             if (deleted) {
                 log.debug(":deleteDraftAccount: Deleted Draft Account: {}", draftAccountId);
+                UserState userState = userStateService.getUserStateV1FromSecurityContext();
+                logDeletionSuccess(draftAccount.getBusinessUnit().getBusinessUnitId(), userState.getUserId(),
+                    draftAccountId, draftAccount.getSubmittedBy());
             }
         } catch (UnexpectedRollbackException | EntityNotFoundException ure) {
             if (checkExisted) {
@@ -233,12 +238,19 @@ public class DraftAccountService {
                 applyValidatedBy(dto, userState, unitUser.orElseThrow());
             }
             jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
+            final DraftAccountStatus previousStatus =
+                draftAccountTransactional.getDraftAccount(draftAccountId).getAccountStatus();
             BigInteger updateVersion = extractBigInteger(ifMatch);
             DraftAccountEntity updatedEntity = draftAccountTransactional.updateDraftAccount(draftAccountId, dto,
                 draftAccountTransactional, updateVersion, userState);
             verifyUpdated(updatedEntity, updateVersion, draftAccountId, "updateDraftAccount");
 
             loggingService.pdplForDraftAccount(updatedEntity, Action.RESUBMIT, userState);
+
+            if (transitionedToDeleted(previousStatus, updatedEntity.getAccountStatus())) {
+                logDeletionSuccess(dto.getBusinessUnitId(), userState.getUserId(), draftAccountId,
+                    updatedEntity.getSubmittedBy());
+            }
 
             if (updatedEntity.getAccountStatus().isPublishingPending()) {
                 log.info(":updateDraftAccount: publishing: ");
@@ -258,9 +270,29 @@ public class DraftAccountService {
     private void logApprovalSuccess(Short buId, Long approverId, Long accountId, String submittedBy) {
         Map<String, Object> data = MapUtils.ofNullable("UserIdentifier", approverId,
             "DraftAccountIdentifier", accountId,
-            "DraftAccountSubmittedByUserIdentifier", submittedBy);;
+            "DraftAccountSubmittedByUserIdentifier", submittedBy);
         securityEventLoggingService.logEvent(EVENT_ACCOUNT_APPROVAL, "Success", buId, "Approval",
             LocalDateTime.now(clock), data);
+    }
+
+    private void logDeletionSuccess(Short buId, Long deletingUserId, Long accountId, String submittedBy) {
+        Map<String, Object> data = MapUtils.ofNullable("UserIdentifier", deletingUserId,
+            "DraftAccountIdentifier", accountId,
+            "DraftAccountSubmittedByUserIdentifier", submittedBy);
+        try {
+            securityEventLoggingService.logEvent(EVENT_ACCOUNT_DELETION, "Success", buId, "Deletion",
+                LocalDateTime.now(clock), data);
+        } catch (RuntimeException ex) {
+            log.warn(":logDeletionSuccess: Failed to write security event for draft account deletion: {}",
+                accountId, ex);
+        }
+    }
+
+    private boolean transitionedToDeleted(DraftAccountStatus previousStatus, DraftAccountStatus updatedStatus) {
+        return previousStatus != null
+            && !previousStatus.isDeleted()
+            && updatedStatus != null
+            && updatedStatus.isDeleted();
     }
 
     public DraftAccountResponseDto toGetResponseDto(DraftAccountEntity entity) {
