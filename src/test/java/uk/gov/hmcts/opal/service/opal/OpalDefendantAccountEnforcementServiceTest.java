@@ -88,7 +88,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 @ExtendWith(MockitoExtension.class)
-public class OpalDefendantAccountEnforcementServiceTest {
+class OpalDefendantAccountEnforcementServiceTest {
 
     private static final Long DEFENDANT_ACCOUNT_ID = 1001L;
     private static final Short BUSINESS_UNIT_ID = 2002;
@@ -257,7 +257,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     }
 
     @Test
-    public void testAddEnforcement_whenGivenAllFields_createsEnforcement() throws JacksonException {
+    void testAddEnforcement_whenGivenAllFields_createsEnforcement() throws JacksonException {
         mockAuthorisedUser();
         mockDefendantAccount();
         mockCreatedEnforcement();
@@ -310,7 +310,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     }
 
     @Test
-    public void testAddEnforcement_whenOnlyGivenReason_createsEnforcement() throws JacksonException {
+    void testAddEnforcement_whenOnlyGivenReason_createsEnforcement() throws JacksonException {
         UserState userState = mock(UserState.class);
         when(userState.getUserName()).thenReturn(USER_NAME);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
@@ -377,7 +377,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     }
 
     @Test
-    public void testAddEnforcement_whenOnlyGivenJailDays_createsEnforcement() throws JacksonException {
+    void testAddEnforcement_whenOnlyGivenJailDays_createsEnforcement() throws JacksonException {
         UserState userState = mock(UserState.class);
         when(userState.getUserName()).thenReturn(USER_NAME);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
@@ -444,7 +444,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     }
 
     @Test
-    public void testAddEnforcement_whenOnlyGivenEnforcer_createsEnforcement() throws JacksonException {
+    void testAddEnforcement_whenOnlyGivenEnforcer_createsEnforcement() throws JacksonException {
         UserState userState = mock(UserState.class);
         when(userState.getUserName()).thenReturn(USER_NAME);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
@@ -511,7 +511,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     }
 
     @Test
-    public void testAddEnforcement_whenOnlyGivenReleaseDate_createsEnforcement() throws JacksonException {
+    void testAddEnforcement_whenOnlyGivenReleaseDate_createsEnforcement() throws JacksonException {
         UserState userState = mock(UserState.class);
         when(userState.getUserName()).thenReturn(USER_NAME);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
@@ -578,7 +578,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
     }
 
     @Test
-    public void testAddEnforcement_whenGivenPaymentTerms_callsPaymentTermsService() throws JacksonException {
+    void testAddEnforcement_whenGivenPaymentTerms_callsPaymentTermsService() throws JacksonException {
         UserState userState = mock(UserState.class);
         when(userState.getUserName()).thenReturn(USER_NAME);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);

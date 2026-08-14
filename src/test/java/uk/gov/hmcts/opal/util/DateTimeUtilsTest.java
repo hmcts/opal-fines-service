@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Month;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -23,12 +24,12 @@ class DateTimeUtilsTest {
         return Stream.of(
             Arguments.of(null, null),
             Arguments.of(
-                LocalDate.of(2024, 5, 10),
-                LocalDateTime.of(2024, 5, 10, 0, 0)
+                LocalDate.of(2024, Month.MAY, 10),
+                LocalDateTime.of(2024, Month.MAY, 10, 0, 0)
             ),
             Arguments.of(
-                LocalDate.of(2024, 2, 29), // leap day
-                LocalDateTime.of(2024, 2, 29, 0, 0)
+                LocalDate.of(2024, Month.FEBRUARY, 29), // leap day
+                LocalDateTime.of(2024, Month.FEBRUARY, 29, 0, 0)
             )
         );
     }
@@ -43,12 +44,12 @@ class DateTimeUtilsTest {
         return Stream.of(
             Arguments.of(null, null),
             Arguments.of(
-                LocalDate.of(2024, 5, 10),
-                LocalDateTime.of(2024, 5, 10, 23, 59, 59, 999_999_999)
+                LocalDate.of(2024, Month.MAY, 10),
+                LocalDateTime.of(2024, Month.MAY, 10, 23, 59, 59, 999_999_999)
             ),
             Arguments.of(
-                LocalDate.of(2024, 2, 29), // leap day
-                LocalDateTime.of(2024, 2, 29, 23, 59, 59, 999_999_999)
+                LocalDate.of(2024, Month.FEBRUARY, 29), // leap day
+                LocalDateTime.of(2024, Month.FEBRUARY, 29, 23, 59, 59, 999_999_999)
             )
         );
     }
@@ -66,7 +67,7 @@ class DateTimeUtilsTest {
     static Stream<LocalDate> endOfTimeProvider() {
         return Stream.of(
             null,
-            LocalDate.of(2024, 1, 1)
+            LocalDate.of(2024, Month.JANUARY, 1)
         );
     }
 }

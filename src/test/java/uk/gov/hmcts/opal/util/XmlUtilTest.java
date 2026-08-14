@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class XmlUtilTest {
+class XmlUtilTest {
 
     @Test
     void testSchemaValidation_emptySchema() {

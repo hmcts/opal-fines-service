@@ -29,7 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.util.UuidProvider;
 
 @ExtendWith(MockitoExtension.class)
-public class ReportBlobStoreServiceTest {
+class ReportBlobStoreServiceTest {
 
     public static final String CONTAINER = "container";
     private final String message = "I am a report";
@@ -51,14 +51,14 @@ public class ReportBlobStoreServiceTest {
     private UUID uuid;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         reportBlobStoreService = new ReportBlobStoreService(blobServiceClient, uuidProvider, CONTAINER);
         when(blobServiceClient.getBlobContainerClient(CONTAINER)).thenReturn(container);
         uuid = UUID.randomUUID();
     }
 
     @Test
-    public void storeReport() {
+    void storeReport() {
         //Arrange
         when(container.getBlobClient(anyString())).thenReturn(blob);
         when(uuidProvider.getUuid()).thenReturn(uuid);
@@ -74,7 +74,7 @@ public class ReportBlobStoreServiceTest {
     }
 
     @Test
-    public void storeReport_containerDoesNotExist_throwError() {
+    void storeReport_containerDoesNotExist_throwError() {
         when(container.exists()).thenReturn(false);
         assertThrows(IllegalArgumentException.class, () -> reportBlobStoreService.storeReport(message));
     }
