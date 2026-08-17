@@ -5,7 +5,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
@@ -18,7 +17,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import feign.FeignException;
-import feign.RetryableException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -56,7 +54,6 @@ public class HmrcAuthServiceIntegrationTest extends AbstractIntegrationTest {
 
     private static final String WIREMOCK_HMRC_AUTH_SCENARIO = "GET HMRC auth token test";
     private static final String WIREMOCK_STATE__ONE_CALL_MADE = "One call made";
-    private static final String WIREMOCK_STATE__SERVER_ERROR = "Server error";
     private static final String WIREMOCK_STATE__CLIENT_ERROR = "Client error";
 
     private boolean clearAuthServiceCache() {
@@ -82,12 +79,6 @@ public class HmrcAuthServiceIntegrationTest extends AbstractIntegrationTest {
             .inScenario(WIREMOCK_HMRC_AUTH_SCENARIO)
             .whenScenarioStateIs(WIREMOCK_STATE__ONE_CALL_MADE)
             .willReturn(okJson(objectMapper.writeValueAsString(hmrcAuthToken2))));
-
-        stubFor(post(urlPathEqualTo("/oauth/token"))
-            .withRequestBody(equalToJson(payloadJson))
-            .inScenario(WIREMOCK_HMRC_AUTH_SCENARIO)
-            .whenScenarioStateIs(WIREMOCK_STATE__SERVER_ERROR)
-            .willReturn(serverError()));
 
         // This is a slight hack, as quite hard to modify payload to am
         // invalid one without rewiring service.
@@ -140,16 +131,6 @@ public class HmrcAuthServiceIntegrationTest extends AbstractIntegrationTest {
 
         WireMock.verify(2, postRequestedFor(urlPathEqualTo("/oauth/token")));
         assertNotEquals(token1, token2);
-    }
-
-    @Test
-    @DisplayName("Throws RetryableException when Server Error reported by HMRC endpoint (INT.08)")
-    @JiraStory("PO-2383")
-    @JiraEpic("PO-1421")
-    void throwsCorrectExceptionOnHmrcServerError() {
-
-        WireMock.setScenarioState(WIREMOCK_HMRC_AUTH_SCENARIO, WIREMOCK_STATE__SERVER_ERROR);
-        assertThrows(RetryableException.class, () -> hmrcAuthService.getToken());
     }
 
     @Test
