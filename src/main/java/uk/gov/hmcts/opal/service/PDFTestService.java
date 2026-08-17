@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.multipdf.PDFMergerUtility.DocumentMergeMode;
@@ -22,6 +23,7 @@ import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class PDFTestService {
 
     private static final String PDF_CLASSPATH_PATTERN = "classpath*:/pdf/*.pdf";
@@ -55,11 +57,11 @@ public class PDFTestService {
 
             // Uses disk-backed buffering to avoid loading entire merged content in heap memory.
             Instant start = Instant.now();
-            System.out.println("TMP: Merge start");
+            log.info("TMP: Merge start");
             merger.mergeDocuments(IOUtils.createTempFileOnlyStreamCache());
             Instant finish = Instant.now();
             long timeElapsed = Duration.between(start, finish).toMillis();
-            System.out.println("TMP: Merge End: Duration: " + timeElapsed + " ms");
+            log.info("TMP: Merge End: Duration: " + timeElapsed + " ms");
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to merge PDFs from classpath folder: /pdf", e);
         } finally {
