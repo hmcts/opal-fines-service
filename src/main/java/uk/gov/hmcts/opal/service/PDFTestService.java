@@ -123,4 +123,27 @@ public class PDFTestService {
             }
         }
     }
+
+    public void fetch(String fileName, OutputStream outputStream) {
+        Objects.requireNonNull(fileName, "fileName must not be null");
+        Objects.requireNonNull(outputStream, "outputStream must not be null");
+
+        Path requestedPath = Path.of(fileName);
+        if (requestedPath.isAbsolute() || requestedPath.getNameCount() != 1) {
+            throw new IllegalArgumentException("fileName must be a single filename without path segments");
+        }
+
+        String normalizedFileName = requestedPath.getFileName().toString();
+        Resource resource = resourcePatternResolver.getResource("classpath:/pdf/" + normalizedFileName);
+        if (!resource.exists() || !resource.isReadable()) {
+            throw new IllegalStateException("PDF file does not exist or is not readable: " + normalizedFileName);
+        }
+
+        try (InputStream inputStream = resource.getInputStream()) {
+            inputStream.transferTo(outputStream);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to stream PDF file from classpath folder: /pdf/"
+                + normalizedFileName, e);
+        }
+    }
 }

@@ -266,4 +266,14 @@ public class TestingSupportController {
             .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"merged.pdf\"")
             .body(responseBody);
     }
+
+    @GetMapping(value = "/testing-support/pdf-test-view", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<StreamingResponseBody> pdfTest(@RequestParam String fileName) {
+        StreamingResponseBody responseBody = outputStream -> pdfTestService.fetch(fileName, outputStream);
+
+        return ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_PDF)
+            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"merged.pdf\"")
+            .body(responseBody);
+    }
 }
