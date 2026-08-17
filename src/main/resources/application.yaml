@@ -168,6 +168,14 @@ opal:
       consumer-enabled: ${REPORT_CONSUMER_ENABLED:true}
       publisher-enabled: ${REPORT_PUBLISHER_ENABLED:true}
 
+  hmrc:
+    auth:
+      client-id: ${OPAL_HMRC_AUTH_CLIENT_ID:}
+      client-secret: ${OPAL_HMRC_AUTH_CLIENT_SECRET:}
+      scope: ${OPAL_HMRC_AUTH_SCOPE:}
+      grant-type: ${OPAL_HMRC_AUTH_GRANT_TYPE:client_credentials}
+      url: ${OPAL_HMRC_AUTH_URL:http://localhost:4455}
+
 be-developer-config:
   user-role-permissions: ${BE_DEV_ROLE_PERMISSIONS:}
 
@@ -202,11 +210,3 @@ logging-service:
       protocol: ${SERVICEBUS_LOGGING_PDPL_PROTOCOL:amqp}
       connection-string: ${SERVICEBUS_CONNECTION_STRING:Endpoint=sb://localhost/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=local;UseDevelopmentEmulator=true}
       queue-name: ${SERVICEBUS_LOGGING_PDPL_QUEUE_NAME:logging-pdpl}
-
-hmrc:
-  auth:
-    client-id: ${OPAL_HMRC_AUTH_CLIENT_ID:}
-    client-secret: ${OPAL_HMRC_AUTH_CLIENT_SECRET:}
-    scope: ${OPAL_HMRC_AUTH_SCOPE:}
-    grant-type: ${OPAL_HMRC_AUTH_GRANT_TYPE:client_credentials}
-    url: ${OPAL_HMRC_AUTH_URL:http://localhost:4455}

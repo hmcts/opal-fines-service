@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("hmrc.auth")
+@ConfigurationProperties("opal.hmrc.auth")
 @RequiredArgsConstructor
 @Getter
 public class HmrcAuthCreds {
