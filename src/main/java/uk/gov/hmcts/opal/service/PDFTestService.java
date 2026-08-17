@@ -79,7 +79,9 @@ public class PDFTestService {
                 .filter(Resource::isReadable)
                 .filter(resource -> {
                     String filename = resource.getFilename();
-                    return filename != null && !filename.equalsIgnoreCase(MERGED_FILE_NAME);
+                    return filename != null
+                        && !filename.equalsIgnoreCase(MERGED_FILE_NAME)
+                        && !filename.startsWith("!");
                 })
                 .sorted(Comparator.comparing(resource -> resource.getFilename().toLowerCase()))
                 .filter(this::hasContent)
