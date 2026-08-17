@@ -813,6 +813,7 @@ tasks.configureEach {
 }
 
 def coverageExclusions = [
+  '**/**',
   '**/uk/gov/hmcts/opal/**/model/**',
   '**/uk/gov/hmcts/opal/**/config/**',
   '**/uk/gov/hmcts/opal/authentication/client/**',

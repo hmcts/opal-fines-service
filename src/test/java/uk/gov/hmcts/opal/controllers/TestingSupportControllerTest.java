@@ -1,15 +1,20 @@
 package uk.gov.hmcts.opal.controllers;
 
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
@@ -35,9 +40,15 @@ import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
 import uk.gov.hmcts.opal.service.opal.OpalCreditorAccountService;
 import uk.gov.hmcts.opal.service.DraftAccountService;
+import uk.gov.hmcts.opal.service.PDFTestService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -96,6 +107,9 @@ class TestingSupportControllerTest {
 
     @MockitoBean
     private LocalJusticeAreaService localJusticeAreaService;
+
+    @MockitoBean
+    private PDFTestService pdfTestService;
 
     @Test
     void isLegacyMode() {
@@ -252,5 +266,27 @@ class TestingSupportControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(localJusticeAreas, response.getBody());
         verify(localJusticeAreaService).searchLocalJusticeAreas(criteria);
+    }
+
+    @Test
+    void pdfTest_shouldReturnMergedPdfForRequestedNumberOfPdfs() throws Exception {
+        byte[] expectedPdf = "%PDF-1.4\n".getBytes(StandardCharsets.US_ASCII);
+        doAnswer(invocation -> {
+            OutputStream outputStream = invocation.getArgument(1);
+            outputStream.write(expectedPdf);
+            return null;
+        }).when(pdfTestService).run(eq(25), any(OutputStream.class));
+
+        ResponseEntity<StreamingResponseBody> response = controller.pdfTest(25);
+
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        response.getBody().writeTo(output);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(MediaType.APPLICATION_PDF, response.getHeaders().getContentType());
+        assertEquals("inline; filename=\"merged.pdf\"", response.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION));
+        assertTrue(response.hasBody());
+        assertArrayEquals(expectedPdf, output.toByteArray());
+        verify(pdfTestService).run(eq(25), any(OutputStream.class));
     }
 }

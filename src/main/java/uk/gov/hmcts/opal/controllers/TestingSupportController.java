@@ -12,6 +12,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
@@ -38,6 +40,7 @@ import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
 import uk.gov.hmcts.opal.service.DraftAccountService;
+import uk.gov.hmcts.opal.service.PDFTestService;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
@@ -58,6 +61,7 @@ import uk.gov.hmcts.opal.service.opal.OpalCreditorAccountService;
 @ConditionalOnProperty(prefix = "opal.testing-support-endpoints", name = "enabled", havingValue = "true")
 @SuppressWarnings("java:S1874")
 public class TestingSupportController {
+
     private static final long CURRENT_USER_ID = 0L;
 
     private final DynamicConfigService dynamicConfigService;
@@ -72,6 +76,7 @@ public class TestingSupportController {
     private final OpalCreditorAccountService opalCreditorAccountService;
     private final DraftAccountService draftAccountService;
     private final LocalJusticeAreaService opalLocalJusticeAreaService;
+    private final PDFTestService pdfTestService;
 
     @GetMapping("/testing-support/is-legacy-mode")
     @Operation(summary = "Retrieves whether legacy mode is enabled.")
@@ -125,7 +130,7 @@ public class TestingSupportController {
     @DeleteMapping("/testing-support/interface-jobs")
     @Operation(summary = "Deletes a list of Interface jobs. FOR TESTING ONLY!")
     public ResponseEntity<Void> deleteInterfaceJobs(
-            @RequestParam(value = "ids") List<Long> interfaceJobIds) {
+        @RequestParam(value = "ids") List<Long> interfaceJobIds) {
         log.warn("TEST ENDPOINT: Request to delete interface jobs with ids: {}", interfaceJobIds);
 
         interfaceJobService.deleteInterfaceJobs(interfaceJobIds);
@@ -135,6 +140,7 @@ public class TestingSupportController {
 
     /**
      * From {@link MajorCreditorController}.
+     *
      * @param criteria search criteria
      * @return list of MajorCreditorEntities
      */
@@ -151,6 +157,7 @@ public class TestingSupportController {
 
     /**
      * From {@link BusinessUnitController}.
+     *
      * @param criteria search criteria
      * @return a list of BusinessUnitEntities
      */
@@ -167,9 +174,10 @@ public class TestingSupportController {
 
     /**
      * From {@link MinorCreditorController}.
+     *
      * @param minorCreditorId path param
-     * @param ifMatch header
-     * @param ignoreMissing query param
+     * @param ifMatch         header
+     * @param ignoreMissing   query param
      * @return json string stating what was deleted
      */
     @Hidden
@@ -192,6 +200,7 @@ public class TestingSupportController {
 
     /**
      * From {@link DraftAccountController}.
+     *
      * @param criteria search criteria
      * @return a list of DraftAccountResponseDtos
      */
@@ -207,9 +216,10 @@ public class TestingSupportController {
 
     /**
      * From {@link DraftAccountController}.
+     *
      * @param draftAccountId id path param
-     * @param ifMatch header (not used)
-     * @param ignoreMissing query param
+     * @param ifMatch        header (not used)
+     * @param ignoreMissing  query param
      * @return json string stating what was deleted
      */
     @Hidden
@@ -232,6 +242,7 @@ public class TestingSupportController {
 
     /**
      * From {@link LocalJusticeAreaController}.
+     *
      * @param criteria search criteria
      * @return a list of LocalJusticeAreaEntities
      */
@@ -244,5 +255,15 @@ public class TestingSupportController {
         List<LocalJusticeAreaEntity> response = opalLocalJusticeAreaService.searchLocalJusticeAreas(criteria);
 
         return buildResponse(response);
+    }
+
+    @GetMapping(value = "/testing-support/pdf-test", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<StreamingResponseBody> pdfTest(@RequestParam(defaultValue = "1000") Integer maxPdfsToMerge) {
+        StreamingResponseBody responseBody = outputStream -> pdfTestService.run(maxPdfsToMerge, outputStream);
+
+        return ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_PDF)
+            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"merged.pdf\"")
+            .body(responseBody);
     }
 }
