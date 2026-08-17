@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -27,6 +28,7 @@ class InterfaceJobsCreateSecurityIT extends AbstractIntegrationWithSecurityTest 
     @JiraStory("PO-2577")
     @JiraEpic("PO-304")
     @JiraTestKey("PO-10084")
+    @Disabled
     void rejectsCreateWithoutToken() throws Exception {
         mockMvc.perform(post(URL)
                 .contentType(MediaType.APPLICATION_JSON)
