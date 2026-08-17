@@ -169,12 +169,12 @@ opal:
       publisher-enabled: ${REPORT_PUBLISHER_ENABLED:true}
 
   hmrc:
+    url: ${OPAL_HMRC_URL:http://localhost:4455}
     auth:
       client-id: ${OPAL_HMRC_AUTH_CLIENT_ID:}
       client-secret: ${OPAL_HMRC_AUTH_CLIENT_SECRET:}
       scope: ${OPAL_HMRC_AUTH_SCOPE:}
       grant-type: ${OPAL_HMRC_AUTH_GRANT_TYPE:client_credentials}
-      url: ${OPAL_HMRC_AUTH_URL:http://localhost:4455}
 
 be-developer-config:
   user-role-permissions: ${BE_DEV_ROLE_PERMISSIONS:}
