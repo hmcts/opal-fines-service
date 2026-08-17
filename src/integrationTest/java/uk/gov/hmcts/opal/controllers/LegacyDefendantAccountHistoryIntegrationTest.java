@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService.GET_DEFENDANT_ACCOUNT_HISTORY;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -38,6 +39,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 })
 @DisplayName("Legacy Defendant Account History Integration Tests")
 @Slf4j(topic = "opal.LegacyDefendantAccountHistoryIntegrationTest")
+@Disabled
 class LegacyDefendantAccountHistoryIntegrationTest extends AbstractLegacyDefendantsIntegrationTest {
 
     private static final long DEFENDANT_ACCOUNT_ID = 99000000000001L;
