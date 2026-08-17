@@ -64,8 +64,6 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorize ->
                 authorize.requestMatchers(PathRequest.toStaticResources().atCommonLocations())
                     .permitAll()
-//                    .requestMatchers(AUTH_WHITELIST)
-//                    .permitAll()
                     .anyRequest()
                     .permitAll()
             )

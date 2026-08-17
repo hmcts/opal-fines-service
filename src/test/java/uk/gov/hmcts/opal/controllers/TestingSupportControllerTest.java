@@ -1,5 +1,16 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -32,26 +43,15 @@ import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
+import uk.gov.hmcts.opal.service.DraftAccountService;
+import uk.gov.hmcts.opal.service.PDFTestService;
+import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.InterfaceJobService;
-import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
 import uk.gov.hmcts.opal.service.opal.OpalCreditorAccountService;
-import uk.gov.hmcts.opal.service.DraftAccountService;
-import uk.gov.hmcts.opal.service.PDFTestService;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @SpringBootTest(
     classes =
@@ -284,7 +284,8 @@ class TestingSupportControllerTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(MediaType.APPLICATION_PDF, response.getHeaders().getContentType());
-        assertEquals("inline; filename=\"merged.pdf\"", response.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION));
+        assertEquals("inline; filename=\"merged.pdf\"",
+            response.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION));
         assertTrue(response.hasBody());
         assertArrayEquals(expectedPdf, output.toByteArray());
         verify(pdfTestService).run(eq(25), any(OutputStream.class));

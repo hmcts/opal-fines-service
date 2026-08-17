@@ -7,17 +7,19 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Objects;
 import java.util.List;
+import java.util.Objects;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.multipdf.PDFMergerUtility.DocumentMergeMode;
-import org.springframework.stereotype.Service;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.stereotype.Service;
 
 @Service
 public class PDFTestService {
@@ -52,7 +54,12 @@ public class PDFTestService {
             }
 
             // Uses disk-backed buffering to avoid loading entire merged content in heap memory.
+            Instant start = Instant.now();
+            System.out.println("TMP: Merge start");
             merger.mergeDocuments(IOUtils.createTempFileOnlyStreamCache());
+            Instant finish = Instant.now();
+            long timeElapsed = Duration.between(start, finish).toMillis();
+            System.out.println("TMP: Merge End: Duration: " + timeElapsed + " ms");
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to merge PDFs from classpath folder: /pdf", e);
         } finally {
@@ -89,7 +96,8 @@ public class PDFTestService {
         }
     }
 
-    private void addResourceAsSource(PDFMergerUtility merger, Resource resource, List<Path> tempFiles) throws IOException {
+    private void addResourceAsSource(PDFMergerUtility merger, Resource resource, List<Path> tempFiles)
+        throws IOException {
         if (resource.isFile()) {
             merger.addSource(resource.getFile());
             return;
