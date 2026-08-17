@@ -52,6 +52,20 @@ public class DefendantAccountApiController implements DefendantAccountApi {
 
     @Override
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
+    public ResponseEntity<AddEnforcementResponseDefendantAccount> addEnforcement(
+        Long defendantAccountId,
+        Short businessUnitId,
+        AddEnforcementRequestDefendantAccount request,
+        String ifMatch) {
+
+        log.debug(":POST:addEnforcement: for defendantAccountId={}", defendantAccountId);
+
+        return buildResponse(defendantAccountEnforcementService.addEnforcement(
+            defendantAccountId, businessUnitId, ifMatch, request));
+    }
+
+    @Override
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<AddPaymentCardRequestDefendantAccount> addPaymentCardRequest(Long id,
         Short businessUnitId, String ifMatch) {
         log.debug(":POST:addPaymentCardRequest: for defendantAccountId={}", id);
