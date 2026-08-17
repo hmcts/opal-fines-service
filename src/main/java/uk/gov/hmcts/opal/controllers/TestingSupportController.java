@@ -267,12 +267,6 @@ public class TestingSupportController {
             .body(responseBody);
     }
 
-    @GetMapping(value = "/testing-support/pdf-test2", produces = MediaType.APPLICATION_PDF_VALUE)
-    public ResponseEntity<Void> pdfTest2(@RequestParam(defaultValue = "1000") Integer maxPdfsToMerge) {
-        StreamingResponseBody responseBody = outputStream -> pdfTestService.run(maxPdfsToMerge);
-        return ResponseEntity.ok().build();
-    }
-
     @GetMapping(value = "/testing-support/pdf-test-view", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<StreamingResponseBody> pdfTest(@RequestParam String fileName) {
         StreamingResponseBody responseBody = outputStream -> pdfTestService.fetch(fileName, outputStream);
@@ -281,5 +275,11 @@ public class TestingSupportController {
             .contentType(MediaType.APPLICATION_PDF)
             .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"merged.pdf\"")
             .body(responseBody);
+    }
+
+    @GetMapping(value = "/testing-support/pdf-test2", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<Void> pdfTest2(@RequestParam(defaultValue = "1000") Integer maxPdfsToMerge) {
+        StreamingResponseBody responseBody = outputStream -> pdfTestService.run(maxPdfsToMerge);
+        return ResponseEntity.ok().build();
     }
 }
