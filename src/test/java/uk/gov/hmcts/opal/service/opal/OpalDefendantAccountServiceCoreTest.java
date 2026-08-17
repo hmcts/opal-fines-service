@@ -12,6 +12,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -87,7 +88,7 @@ class OpalDefendantAccountServiceCoreTest {
     void getConsolidatedAccounts_whenMasterExists_returnsWrappedPayloadWithMasterVersion() {
         Long defendantAccountId = 123L;
         DefendantAccountEntity masterAccount = DefendantAccountEntity.builder()
-            .versionNumber(12L)
+            .versionNumber(2L)
             .build();
         ConsolidatedAccountEntity consolidatedAccount = ConsolidatedAccountEntity.builder()
             .masterAccountId(defendantAccountId)

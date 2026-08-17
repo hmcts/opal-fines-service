@@ -39,7 +39,7 @@ public interface DefendantAccountHistoryLegacyResponseMapper {
         }
 
         return DefendantAccountHistoryResponse.builder()
-            .version(Optional.ofNullable(legacy.getVersion()).map(BigInteger::valueOf).orElse(BigInteger.ONE))
+            .version(Optional.ofNullable(legacy.getVersion()).orElse(BigInteger.ONE))
             .historyItems(Optional.ofNullable(legacy.getHistoryItems()).orElse(List.of()).stream()
                 .map(this::toHistoryItem)
                 .toList())

@@ -97,7 +97,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // Build a legacy response body where nested objects are null
         AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
-            .version(4)
+            .version(BigInteger.valueOf(4))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -160,7 +160,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             .build();
 
         AddDefendantAccountPartyLegacyResponse legacyResponse = AddDefendantAccountPartyLegacyResponse.builder()
-            .version(10)
+            .version(BigInteger.valueOf(10))
             .defendantAccountParty(DefendantAccountPartyLegacy.builder().build())
             .build();
 
@@ -210,7 +210,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             .build();
 
         AddDefendantAccountPartyLegacyResponse legacyResponse = AddDefendantAccountPartyLegacyResponse.builder()
-            .version(2)
+            .version(BigInteger.valueOf(2))
             .defendantAccountParty(DefendantAccountPartyLegacy.builder().build())
             .build();
 
@@ -248,7 +248,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // Build a minimal legacy response body (service should still map fields even on 5xx)
         AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
-            .version(2)
+            .version(BigInteger.valueOf(2))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -371,7 +371,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             .build();
         // Build a legacy entity with only organisationDetails populated
         AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
-            .version(2)
+            .version(BigInteger.valueOf(2))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -446,7 +446,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // Build a legacy entity with only individualDetails populated
         AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
-            .version(2)
+            .version(BigInteger.valueOf(2))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -533,7 +533,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // Build a legacy entity with employer details (including employerAddress)
         AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
-            .version(2)
+            .version(BigInteger.valueOf(2))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -619,7 +619,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // Build a legacy entity with employerDetails == null
         AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
-            .version(2)
+            .version(BigInteger.valueOf(2))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -679,7 +679,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // Build a legacy entity with language preferences populated
         AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
-            .version(5)
+            .version(BigInteger.valueOf(5))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -759,7 +759,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // Build a legacy entity with languagePreferences == null
         AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
-            .version(6)
+            .version(BigInteger.valueOf(6))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -890,7 +890,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         // arrange
         GetDefendantAccountPartyLegacyResponse legacy =
             GetDefendantAccountPartyLegacyResponse.builder()
-                .version(99L)
+                .version(BigInteger.valueOf(99L))
                 .defendantAccountParty(null)
                 .build();
 
@@ -996,7 +996,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         // arrange
         GetDefendantAccountPartyLegacyResponse legacy =
             GetDefendantAccountPartyLegacyResponse.builder()
-                .version(42L)
+                .version(BigInteger.valueOf(42L))
                 .defendantAccountParty(null)
                 .build();
 
@@ -1085,7 +1085,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             .build();
 
         GetDefendantAccountPartyLegacyResponse legacy =
-            GetDefendantAccountPartyLegacyResponse.builder().version(1L).defendantAccountParty(party).build();
+            GetDefendantAccountPartyLegacyResponse.builder().version(BigInteger.valueOf(1L)).defendantAccountParty(party).build();
 
         GatewayService.Response<GetDefendantAccountPartyLegacyResponse> resp =
             new GatewayService.Response<>(HttpStatus.OK, legacy, null, null);
@@ -1122,7 +1122,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             .build();
 
         GetDefendantAccountPartyLegacyResponse legacy =
-            GetDefendantAccountPartyLegacyResponse.builder().version(2L).defendantAccountParty(party).build();
+            GetDefendantAccountPartyLegacyResponse.builder().version(BigInteger.valueOf(2L)).defendantAccountParty(party).build();
 
         GatewayService.Response<GetDefendantAccountPartyLegacyResponse> resp =
             new GatewayService.Response<>(HttpStatus.OK, legacy, null, null);
@@ -1164,7 +1164,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             .build();
 
         GetDefendantAccountPartyLegacyResponse legacy =
-            GetDefendantAccountPartyLegacyResponse.builder().version(1L).defendantAccountParty(party).build();
+            GetDefendantAccountPartyLegacyResponse.builder().version(BigInteger.valueOf(1L)).defendantAccountParty(party).build();
 
         GatewayService.Response<GetDefendantAccountPartyLegacyResponse> resp =
             new GatewayService.Response<>(HttpStatus.OK, legacy, null, null);
@@ -1215,7 +1215,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             .build();
 
         var legacy = uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponse.builder()
-            .version(1L).defendantAccountParty(party).build();
+            .version(BigInteger.valueOf(1L)).defendantAccountParty(party).build();
 
         var resp = new uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response<>(
             org.springframework.http.HttpStatus.OK, legacy, null, null);
@@ -1264,7 +1264,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void replaceDefendantAccountParty_mapsNullNestedObjects_toNulls() {
         // Build a legacy response body where nested objects are null
         LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
-            .version(4)
+            .version(BigInteger.valueOf(4))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -1327,7 +1327,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void replaceDefendantAccountParty_legacyFailure5xx_logsAndMaps() {
         // Build a minimal legacy response body (service should still map fields even on 5xx)
         LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
-            .version(2)
+            .version(BigInteger.valueOf(2))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -1395,7 +1395,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void replaceDefendantAccountParty_mapsOrganisationDetails_andIndividualIsNull() {
         // Build a legacy entity with only organisationDetails populated
         LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
-            .version(2)
+            .version(BigInteger.valueOf(2))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -1458,7 +1458,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void replaceDefendantAccountParty_mapsIndividualDetails_andOrganisationIsNull() {
         // Build a legacy entity with only individualDetails populated
         LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
-            .version(2)
+            .version(BigInteger.valueOf(2))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -1528,7 +1528,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void replaceDefendantAccountParty_mapsEmployerDetails_andEmployerAddress() {
         // Build a legacy entity with employer details (including employerAddress)
         LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
-            .version(2)
+            .version(BigInteger.valueOf(2))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -1605,7 +1605,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void replaceDefendantAccountParty_mapsNullEmployerDetails_toNull() {
         // Build a legacy entity with employerDetails == null
         LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
-            .version(2)
+            .version(BigInteger.valueOf(2))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -1654,7 +1654,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void replaceDefendantAccountParty_mapsLanguagePreferences() {
         // Build a legacy entity with language preferences populated
         LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
-            .version(5)
+            .version(BigInteger.valueOf(5))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -1721,7 +1721,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void replaceDefendantAccountParty_mapsNullLanguagePreferences_toNull() {
         // Build a legacy entity with languagePreferences == null
         LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
-            .version(6)
+            .version(BigInteger.valueOf(6))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -1873,7 +1873,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             .build();
 
         return GetDefendantAccountPartyLegacyResponse.builder()
-            .version(1L)
+            .version(BigInteger.valueOf(1L))
             .defendantAccountParty(party)
             .build();
     }
@@ -1902,7 +1902,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             .build();
 
         return GetDefendantAccountPartyLegacyResponse.builder()
-            .version(2L)
+            .version(BigInteger.valueOf(2L))
             .defendantAccountParty(party)
             .build();
     }

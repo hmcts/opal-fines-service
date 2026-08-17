@@ -33,9 +33,9 @@ import java.math.BigInteger;
 @Slf4j(topic = "opal.LegacyDefendantAccountPaymentTermsService")
 public class LegacyDefendantAccountPaymentTermsService implements DefendantAccountPaymentTermsServiceInterface {
 
-    public static final String ADD_PAYMENT_TERMS = "LIBRA.add_payment_terms";
-    public static final String GET_PAYMENT_TERMS = "LIBRA.get_payment_terms";
-    public static final String ADD_PAYMENT_CARD_REQUEST = "LIBRA.of_add_defendant_account_pcr";
+    public static final String ADD_PAYMENT_TERMS = "addDefendantAccountPaymentTerms";
+    public static final String GET_PAYMENT_TERMS = "getDefendantAccountPaymentTerms";
+    public static final String ADD_PAYMENT_CARD_REQUEST = "addDefendantAccountPaymentCard";
 
     private final GatewayService gatewayService;
 
@@ -304,7 +304,7 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
 
         BigInteger version = VersionUtils.extractBigInteger(ifMatch);
         AddPaymentCardLegacyRequest request = buildLegacyRequest(defendantAccountId, businessUnitId,
-            businessUnitUserId, version.toString());
+            businessUnitUserId, version);
 
         AddPaymentCardLegacyResponse response = callGateway(request);
         Long id = Long.valueOf(response.getDefendantAccountId());
@@ -316,7 +316,7 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
         Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
-        String version
+        BigInteger version
     ) {
         return AddPaymentCardLegacyRequest.builder()
             .defendantAccountId(String.valueOf(defendantAccountId))

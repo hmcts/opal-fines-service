@@ -5,6 +5,7 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,7 +23,7 @@ import java.time.LocalDate;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class LegacyGetDefendantAccountPaymentTermsResponse implements ToXmlString {
 
-    private Long version;
+    private BigInteger version;
 
     @XmlElement(name = "payment_terms")
     private LegacyPaymentTerms paymentTerms;

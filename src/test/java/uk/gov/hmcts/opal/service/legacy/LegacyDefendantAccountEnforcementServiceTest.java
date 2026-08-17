@@ -120,7 +120,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
             mock(AddDefendantAccountEnforcementLegacyResponse.class);
         when(legacyResp.getEnforcementId()).thenReturn("ENF-1");
         when(legacyResp.getDefendantAccountId()).thenReturn("123");
-        when(legacyResp.getVersion()).thenReturn(1);
+        when(legacyResp.getVersion()).thenReturn(BigInteger.valueOf(1));
 
         GatewayService.Response<AddDefendantAccountEnforcementLegacyResponse> resp =
             new GatewayService.Response<>(HttpStatus.OK, legacyResp, null, null);
@@ -153,7 +153,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
             mock(AddDefendantAccountEnforcementLegacyResponse.class);
         when(legacyResp.getEnforcementId()).thenReturn("ENF-500");
         when(legacyResp.getDefendantAccountId()).thenReturn("500");
-        when(legacyResp.getVersion()).thenReturn(5);
+        when(legacyResp.getVersion()).thenReturn(BigInteger.valueOf(5));
 
         GatewayService.Response<AddDefendantAccountEnforcementLegacyResponse> resp =
             new GatewayService.Response<>(
@@ -207,7 +207,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
             mock(AddDefendantAccountEnforcementLegacyResponse.class);
         when(legacyResp.getEnforcementId()).thenReturn("ENF-CAP");
         when(legacyResp.getDefendantAccountId()).thenReturn("999");
-        when(legacyResp.getVersion()).thenReturn(11);
+        when(legacyResp.getVersion()).thenReturn(BigInteger.valueOf(11));
 
         GatewayService.Response<AddDefendantAccountEnforcementLegacyResponse> resp =
             new GatewayService.Response<>(HttpStatus.OK, legacyResp, null, null);
@@ -271,7 +271,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
             mock(AddDefendantAccountEnforcementLegacyResponse.class);
         when(legacyResp.getEnforcementId()).thenReturn("ENF-500");
         when(legacyResp.getDefendantAccountId()).thenReturn("500");
-        when(legacyResp.getVersion()).thenReturn(5);
+        when(legacyResp.getVersion()).thenReturn(BigInteger.valueOf(5));
 
         GatewayService.Response<AddDefendantAccountEnforcementLegacyResponse> resp =
             new GatewayService.Response<>(
@@ -562,7 +562,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
                 .reason("late")
                 .warrantNumber("123")
                 .build() : null)
-            .version("1234567890123456789012345678901234567890")
+            .version(new BigInteger("1234567890123456789012345678901234567890"))
             .employerFlag("true")
             .build();
     }

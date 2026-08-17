@@ -46,13 +46,13 @@ import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
 @Slf4j(topic = "opal.LegacyMinorCreditorService")
 public class LegacyMinorCreditorService implements MinorCreditorServiceInterface {
 
-    private static final String SEARCH_MINOR_CREDITORS = "LIBRA.search_minor_creditors";
+    private static final String SEARCH_MINOR_CREDITORS = "getMinorCreditorAccount";
     private static final String GET_MINOR_CREDITOR_ACCOUNT_PARTY = "GET_MINOR_CREDITOR_ACCOUNT_PARTY";
     private static final String GET_MINOR_CREDITORS_ACCOUNT_AT_A_GLANCE =
-        "LIBRA.get_minor_creditors_account_at_a_glance";
+        "getMinorCreditorAccountAtAGlance";
     private static final String GET_MINOR_CREDITORS_ACCOUNT_HEADER_SUMMARY =
-        "LIBRA.get_minor_creditors_account_header_summary";
-    private static final String UPDATE_MINOR_CREDITOR_ACCOUNT = "LIBRA.of_update_minor_creditor_account";
+        "getMinorCreditorAccountHeaderSummary";
+    private static final String UPDATE_MINOR_CREDITOR_ACCOUNT = "updateMinorCreditorAccount";
 
     private final GatewayService gatewayService;
     private final MinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;

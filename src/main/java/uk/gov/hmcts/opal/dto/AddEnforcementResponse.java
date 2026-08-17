@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
+import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,7 +21,7 @@ public class AddEnforcementResponse {
     private String defendantAccountId;
 
     @JsonProperty("version")
-    private Integer version;
+    private BigInteger version;
 
     @JsonProperty("enforcement_id")
     @NotBlank

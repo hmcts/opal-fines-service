@@ -10,6 +10,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.math.BigInteger;
 import java.util.Collection;
 import java.util.List;
 
@@ -34,7 +35,7 @@ class LegacyDefAccServiceAddEnforcementTest extends AbstractLegacyDefAccServiceT
             mock(AddDefendantAccountEnforcementLegacyResponse.class);
         when(legacyResp.getEnforcementId()).thenReturn("ENF-1");
         when(legacyResp.getDefendantAccountId()).thenReturn("123");
-        when(legacyResp.getVersion()).thenReturn(1);
+        when(legacyResp.getVersion()).thenReturn(BigInteger.valueOf(1));
 
         GatewayService.Response<AddDefendantAccountEnforcementLegacyResponse> resp =
             new GatewayService.Response<>(HttpStatus.OK, legacyResp, null, null);
@@ -61,8 +62,7 @@ class LegacyDefAccServiceAddEnforcementTest extends AbstractLegacyDefAccServiceT
             mock(AddDefendantAccountEnforcementLegacyResponse.class);
         when(legacyResp.getEnforcementId()).thenReturn("ENF-500");
         when(legacyResp.getDefendantAccountId()).thenReturn("500");
-        when(legacyResp.getVersion()).thenReturn(5);
-
+        when(legacyResp.getVersion()).thenReturn(BigInteger.valueOf(5));
         GatewayService.Response<AddDefendantAccountEnforcementLegacyResponse> resp =
             new GatewayService.Response<>(HttpStatus.SERVICE_UNAVAILABLE, legacyResp, "<legacy-failure/>", null);
 
@@ -104,7 +104,7 @@ class LegacyDefAccServiceAddEnforcementTest extends AbstractLegacyDefAccServiceT
             mock(AddDefendantAccountEnforcementLegacyResponse.class);
         when(legacyResp.getEnforcementId()).thenReturn("ENF-CAP");
         when(legacyResp.getDefendantAccountId()).thenReturn("999");
-        when(legacyResp.getVersion()).thenReturn(11);
+        when(legacyResp.getVersion()).thenReturn(BigInteger.valueOf(11));
 
         GatewayService.Response<AddDefendantAccountEnforcementLegacyResponse> resp =
             new GatewayService.Response<>(HttpStatus.OK, legacyResp, null, null);
@@ -154,7 +154,7 @@ class LegacyDefAccServiceAddEnforcementTest extends AbstractLegacyDefAccServiceT
             mock(AddDefendantAccountEnforcementLegacyResponse.class);
         when(legacyResp.getEnforcementId()).thenReturn("ENF-500");
         when(legacyResp.getDefendantAccountId()).thenReturn("500");
-        when(legacyResp.getVersion()).thenReturn(5);
+        when(legacyResp.getVersion()).thenReturn(BigInteger.valueOf(5));
 
         GatewayService.Response<AddDefendantAccountEnforcementLegacyResponse> resp =
             new GatewayService.Response<>(HttpStatus.SERVICE_UNAVAILABLE, legacyResp, "<legacy-failure/>", null);

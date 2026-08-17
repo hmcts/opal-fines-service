@@ -17,6 +17,7 @@ import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+
 import java.math.BigInteger;
 import java.time.Clock;
 import java.time.Instant;
@@ -115,10 +116,11 @@ class OpalDefendantAccountUpdateTest {
         DefendantAccountEntity entity = DefendantAccountEntity.builder()
             .defendantAccountId(id)
             .businessUnit(bu)
+            .versionNumber(1L)
             .build();
 
         // If-Match must match this (@Version)
-        entity.setVersionNumber(1L);
+        entity.setVersionNumber(0L);
 
         // Stubs
         when(defendantAccountRepositoryService.findById(id)).thenReturn(entity);

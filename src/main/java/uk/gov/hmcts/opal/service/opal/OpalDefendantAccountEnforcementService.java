@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import java.math.BigInteger;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import java.time.Clock;
@@ -157,7 +158,7 @@ public class OpalDefendantAccountEnforcementService
 
         return AddEnforcementResponse.builder()
             .defendantAccountId(String.valueOf(defendantAccountId))
-            .version(Math.toIntExact(latestDefendant.getVersionNumber()))
+            .version(BigInteger.valueOf(latestDefendant.getVersionNumber()))
             .enforcementId(String.valueOf(enforcementId))
             .build();
     }

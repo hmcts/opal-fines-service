@@ -6,6 +6,7 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,7 +27,7 @@ public class LegacyUpdateMinorCreditorAccountResponse implements ToXmlString {
 
     @XmlElement(name = "account_version")
     @NotNull
-    private Integer accountVersion;
+    private BigInteger accountVersion;
 
     @XmlElement(name = "creditor_account_id")
     @NotNull
