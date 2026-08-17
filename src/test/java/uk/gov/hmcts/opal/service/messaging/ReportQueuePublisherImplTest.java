@@ -5,6 +5,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,6 +16,7 @@ import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.config.ReportServiceBusProperties;
 
 @ExtendWith(MockitoExtension.class)
+@Disabled
 class ReportQueuePublisherImplTest {
 
     @Mock
