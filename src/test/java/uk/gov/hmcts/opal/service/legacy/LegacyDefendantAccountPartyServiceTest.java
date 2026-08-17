@@ -51,7 +51,7 @@ import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountPartyLegacyResponseMapper;
 import uk.gov.hmcts.opal.mapper.legacy.RemoveDefendantAccountPartyLegacyResponseMapper;
 
@@ -1781,9 +1781,10 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         // Act
-        RemoveDefendantAccountPartyResponse response = legacyDefendantAccountPartyService.removeDefendantAccountParty(
-            77L, 20010L, (short) 78, "dev_user", "poster", "Poster Name", "\"3\"", null
-        );
+        RemoveDefendantAccountPartyResponseDefendantAccount response =
+            legacyDefendantAccountPartyService.removeDefendantAccountParty(
+                77L, 20010L, (short) 78, "dev_user", "poster", "Poster Name", "\"3\"", null
+            );
 
         // Assert - response contains expected values from legacy response
         assertEquals("20010", response.getDefendantAccountPartyId());
@@ -1820,9 +1821,10 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             Mockito.nullable(String.class)
         );
 
-        RemoveDefendantAccountPartyResponse result = legacyDefendantAccountPartyService.removeDefendantAccountParty(
-            77L, 20010L, (short) 78, "dev_user", "poster", "Poster Name", "\"3\"", null
-        );
+        RemoveDefendantAccountPartyResponseDefendantAccount result =
+            legacyDefendantAccountPartyService.removeDefendantAccountParty(
+                77L, 20010L, (short) 78, "dev_user", "poster", "Poster Name", "\"3\"", null
+            );
 
         assertNull(result.getDefendantAccountPartyId());
         assertNull(result.getVersion());
@@ -1848,9 +1850,10 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             Mockito.nullable(String.class)
         );
 
-        RemoveDefendantAccountPartyResponse response = legacyDefendantAccountPartyService.removeDefendantAccountParty(
-            77L, 20010L, (short) 78, "dev_user", "poster", "Poster Name", "\"3\"", null
-        );
+        RemoveDefendantAccountPartyResponseDefendantAccount response =
+            legacyDefendantAccountPartyService.removeDefendantAccountParty(
+                77L, 20010L, (short) 78, "dev_user", "poster", "Poster Name", "\"3\"", null
+            );
 
         assertNull(response.getDefendantAccountPartyId());
         assertNull(response.getVersion());

@@ -175,7 +175,9 @@ class DefendantPartyDeleteIntegrationTest extends AbstractOpalDefendantsIntegrat
 
         String body = """
             {
-              "defendant_account_party_id": "2006"
+              "party_details": {
+                "party_id": "206"
+              }
             }
             """;
 

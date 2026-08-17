@@ -27,8 +27,8 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountPartyServiceProxy;
 
 @ExtendWith(MockitoExtension.class)
@@ -374,8 +374,10 @@ class DefendantAccountPartyServiceTest {
         Long defendantAccountPartyId = 44L;
         short businessUnitId = 9;
         String ifMatch = "W/\"3\"";
-        RemoveDefendantAccountPartyRequest request = new RemoveDefendantAccountPartyRequest();
-        RemoveDefendantAccountPartyResponse expectedResponse = mock(RemoveDefendantAccountPartyResponse.class);
+        RemoveDefendantAccountPartyRequestDefendantAccount request =
+            new RemoveDefendantAccountPartyRequestDefendantAccount();
+        RemoveDefendantAccountPartyResponseDefendantAccount expectedResponse =
+            mock(RemoveDefendantAccountPartyResponseDefendantAccount.class);
 
         BusinessUnitUser buUser = mock(BusinessUnitUser.class);
         when(buUser.getBusinessUnitUserId()).thenReturn("bu-user-id");
@@ -396,8 +398,9 @@ class DefendantAccountPartyServiceTest {
         )).thenReturn(expectedResponse);
 
         // Act
-        RemoveDefendantAccountPartyResponse actual = defendantAccountPartyService.removeDefendantAccountParty(
-            defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, request);
+        RemoveDefendantAccountPartyResponseDefendantAccount actual =
+            defendantAccountPartyService.removeDefendantAccountParty(
+                defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, request);
 
         // Assert
         assertThat(actual).isSameAs(expectedResponse);
@@ -431,8 +434,10 @@ class DefendantAccountPartyServiceTest {
         Long defendantAccountPartyId = 66L;
         short businessUnitId = 11;
         String ifMatch = "W/\"4\"";
-        RemoveDefendantAccountPartyRequest request = new RemoveDefendantAccountPartyRequest();
-        RemoveDefendantAccountPartyResponse expectedResponse = mock(RemoveDefendantAccountPartyResponse.class);
+        RemoveDefendantAccountPartyRequestDefendantAccount request =
+            new RemoveDefendantAccountPartyRequestDefendantAccount();
+        RemoveDefendantAccountPartyResponseDefendantAccount expectedResponse =
+            mock(RemoveDefendantAccountPartyResponseDefendantAccount.class);
 
         // No BusinessUnitUser present
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
@@ -452,8 +457,9 @@ class DefendantAccountPartyServiceTest {
         )).thenReturn(expectedResponse);
 
         // Act
-        RemoveDefendantAccountPartyResponse actual = defendantAccountPartyService.removeDefendantAccountParty(
-            defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, request);
+        RemoveDefendantAccountPartyResponseDefendantAccount actual =
+            defendantAccountPartyService.removeDefendantAccountParty(
+                defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, request);
 
         // Assert
         assertThat(actual).isSameAs(expectedResponse);
@@ -486,7 +492,8 @@ class DefendantAccountPartyServiceTest {
         Long defendantAccountPartyId = 88L;
         short businessUnitId = 13;
         String ifMatch = "W/\"5\"";
-        RemoveDefendantAccountPartyRequest request = new RemoveDefendantAccountPartyRequest();
+        RemoveDefendantAccountPartyRequestDefendantAccount request =
+            new RemoveDefendantAccountPartyRequestDefendantAccount();
 
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.hasBusinessUnitUserWithPermission(

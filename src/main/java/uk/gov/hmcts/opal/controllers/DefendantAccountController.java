@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,8 +33,6 @@ import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
-import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
@@ -185,26 +182,6 @@ public class DefendantAccountController {
         return buildResponse(
             defendantAccountPartyService.replaceDefendantAccountParty(defendantAccountId,
                 defendantAccountPartyId, ifMatch, businessUnitId, request));
-    }
-
-    @DeleteMapping(value = "/{defendantAccountId}/defendant-account-parties/{defendantAccountPartyId}",
-        consumes = MediaType.APPLICATION_JSON_VALUE,
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Delete a Defendant Account Party for the provided Defendant Account ID and Party ID")
-    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<RemoveDefendantAccountPartyResponse> removeDefendantAccountParty(
-        @PathVariable Long defendantAccountId,
-        @PathVariable Long defendantAccountPartyId,
-        @RequestHeader("Business-Unit-Id") Short businessUnitId,
-        @RequestHeader(value = "If-Match", required = false) String ifMatch,
-        @RequestBody RemoveDefendantAccountPartyRequest request
-    ) {
-        log.debug(":DELETE:removeDefendantAccountParty: for defendant id: {} and defendantAccountPartyId: {}",
-            defendantAccountId, defendantAccountPartyId);
-
-        return buildResponse(
-            defendantAccountPartyService.removeDefendantAccountParty(defendantAccountId,
-                defendantAccountPartyId, businessUnitId, ifMatch, request));
     }
 
     @PostMapping("/{defendantAccountId}/enforcements")
