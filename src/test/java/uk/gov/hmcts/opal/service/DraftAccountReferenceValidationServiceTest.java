@@ -389,6 +389,34 @@ class DraftAccountReferenceValidationServiceTest {
         verifyNoInteractions(localJusticeAreaRepository, prosecutorRepository);
     }
 
+    @Test
+    void validateReferences_whenAccountTypeIsInvalid_shouldFail() {
+        InvalidReferenceValidationException exception = assertThrows(InvalidReferenceValidationException.class,
+            () -> service.validateReferences(originatorAccountJson(
+                "Unknown",
+                "NEW",
+                32010L,
+                "Draft Account Validation Prosecutor"
+            ), BUSINESS_UNIT_ID));
+
+        assertContains(exception.getMessage(), "$.account_type: unsupported account type 'Unknown'");
+        verifyNoInteractions(localJusticeAreaRepository, prosecutorRepository);
+    }
+
+    @Test
+    void validateReferences_whenOriginatorTypeIsInvalid_shouldFail() {
+        InvalidReferenceValidationException exception = assertThrows(InvalidReferenceValidationException.class,
+            () -> service.validateReferences(originatorAccountJson(
+                DraftAccountType.FINE.getLabel(),
+                "CASE",
+                32010L,
+                "Draft Account Validation Prosecutor"
+            ), BUSINESS_UNIT_ID));
+
+        assertContains(exception.getMessage(), "$.originator_type: unsupported originator type 'CASE'");
+        verifyNoInteractions(localJusticeAreaRepository, prosecutorRepository);
+    }
+
     private static void assertContains(String message, String fragment) {
         org.junit.jupiter.api.Assertions.assertTrue(message.contains(fragment),
             () -> "Expected message to contain: " + fragment + "\nActual message:\n" + message);
@@ -471,6 +499,13 @@ class DraftAccountReferenceValidationServiceTest {
                                                 String originatorType,
                                                 Long originatorId,
                                                 String originatorName) {
+        return originatorAccountJson(accountType.getLabel(), originatorType, originatorId, originatorName);
+    }
+
+    private static String originatorAccountJson(String accountType,
+                                                String originatorType,
+                                                Long originatorId,
+                                                String originatorName) {
         return """
             {
               "account_type": "%s",
@@ -478,7 +513,7 @@ class DraftAccountReferenceValidationServiceTest {
               "originator_id": %d,
               "originator_name": "%s"
             }
-            """.formatted(accountType.getLabel(), originatorType, originatorId, originatorName);
+            """.formatted(accountType, originatorType, originatorId, originatorName);
     }
 
     private static LocalJusticeAreaEntity localJusticeArea(Short id, String name, LocalJusticeAreaType type) {
