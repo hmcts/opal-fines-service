@@ -20,6 +20,9 @@ springdoc:
   writer-with-order-by-keys: true
 
 spring:
+  mvc:
+    async:
+      request-timeout: ${SPRING_MVC_ASYNC_REQUEST_TIMEOUT:5m}
   config:
     import: "optional:configtree:/mnt/secrets/opal/"
   application:
