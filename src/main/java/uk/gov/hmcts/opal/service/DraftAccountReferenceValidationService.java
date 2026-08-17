@@ -138,8 +138,8 @@ public class DraftAccountReferenceValidationService {
     private void validateOriginator(JsonPathUtil.DocContext docContext, List<String> failures) {
         Long originatorId = safeReadLong(docContext, ORIGINATOR_ID_PATH);
         String originatorName = safeReadString(docContext, ORIGINATOR_NAME_PATH, null);
-        DraftAccountType accountType = readDraftAccountType(docContext);
-        OriginatorType originatorType = readOriginatorType(docContext);
+        DraftAccountType accountType = readDraftAccountType(docContext, failures);
+        OriginatorType originatorType = readOriginatorType(docContext, failures);
 
         if (originatorId == null || originatorName == null || accountType == null || originatorType == null) {
             return;
@@ -196,7 +196,7 @@ public class DraftAccountReferenceValidationService {
         }
     }
 
-    private DraftAccountType readDraftAccountType(JsonPathUtil.DocContext docContext) {
+    private DraftAccountType readDraftAccountType(JsonPathUtil.DocContext docContext, List<String> failures) {
         String accountTypeLabel = safeReadString(docContext, ACCOUNT_TYPE_PATH, null);
         if (accountTypeLabel == null) {
             return null;
@@ -205,11 +205,12 @@ public class DraftAccountReferenceValidationService {
         try {
             return DraftAccountType.getByLabel(accountTypeLabel);
         } catch (IllegalArgumentException ignored) {
+            failures.add(ACCOUNT_TYPE_PATH + ": unsupported account type '" + accountTypeLabel + "'");
             return null;
         }
     }
 
-    private OriginatorType readOriginatorType(JsonPathUtil.DocContext docContext) {
+    private OriginatorType readOriginatorType(JsonPathUtil.DocContext docContext, List<String> failures) {
         String originatorTypeLabel = safeReadString(docContext, ORIGINATOR_TYPE_PATH, null);
         if (originatorTypeLabel == null) {
             return null;
@@ -218,6 +219,7 @@ public class DraftAccountReferenceValidationService {
         try {
             return OriginatorType.getByLabel(originatorTypeLabel);
         } catch (IllegalArgumentException ignored) {
+            failures.add(ORIGINATOR_TYPE_PATH + ": unsupported originator type '" + originatorTypeLabel + "'");
             return null;
         }
     }
