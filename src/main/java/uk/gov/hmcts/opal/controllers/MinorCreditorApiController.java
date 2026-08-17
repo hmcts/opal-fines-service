@@ -12,11 +12,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
+import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.generated.http.api.MinorCreditorApi;
 import uk.gov.hmcts.opal.generated.model.GetMinorCreditorHistory200Response;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCreditor;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
@@ -94,6 +96,16 @@ public class MinorCreditorApiController implements MinorCreditorApi {
 
         MinorCreditorAccountsSearchResponse response = minorCreditorService
             .searchMinorCreditors(minorCreditorSearchRequest);
+
+        return buildResponse(response);
+    }
+
+    @Override
+    public ResponseEntity<MinorCreditorAccountHeaderSummaryResponse> getMinorCreditorAccountHeaderSummary(Long id) {
+        log.debug(":GET:getMinorCreditorAccountHeaderSummary: minorCreditorId: {}", id);
+
+        GetMinorCreditorAccountHeaderSummaryResponse response =
+            minorCreditorService.getMinorCreditorAccountHeaderSummary(id);
 
         return buildResponse(response);
     }
