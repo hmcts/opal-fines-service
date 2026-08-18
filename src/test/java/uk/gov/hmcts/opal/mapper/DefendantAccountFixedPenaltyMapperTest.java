@@ -15,7 +15,7 @@ import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse;
-import uk.gov.hmcts.opal.generated.model.VehicleFixedPenaltyDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.VehicleFixedPenaltyDetailsCommonStrict;
 
 class DefendantAccountFixedPenaltyMapperTest {
 
@@ -31,16 +31,16 @@ class DefendantAccountFixedPenaltyMapperTest {
             FixedPenaltyOffenceEntity offence = buildOffence("AB12 CDE");
 
             GetDefendantAccountFixedPenaltyResponse response = mapper.toResponse(account, offence);
-            VehicleFixedPenaltyDetailsCommon vehicleDetails = response.getVehicleFixedPenaltyDetails().get();
+            VehicleFixedPenaltyDetailsCommonStrict vehicleDetails = response.getVehicleFixedPenaltyDetails().get();
 
             assertAll(
                 () -> assertTrue(response.getVehicleFixedPenaltyFlag()),
                 () -> assertEquals(BigInteger.valueOf(12), response.getVersion()),
                 () -> assertEquals("Kingston-upon-Thames Mags Court",
-                    response.getFixedPenaltyTicketDetails().getIssuingAuthority()),
-                () -> assertEquals("888", response.getFixedPenaltyTicketDetails().getTicketNumber()),
-                () -> assertEquals("12:34", response.getFixedPenaltyTicketDetails().getTimeOfOffence()),
-                () -> assertEquals("London", response.getFixedPenaltyTicketDetails().getPlaceOfOffence()),
+                    response.getFixedPenaltyTicketDetails().getIssuingAuthority().get()),
+                () -> assertEquals("888", response.getFixedPenaltyTicketDetails().getTicketNumber().get()),
+                () -> assertEquals("12:34", response.getFixedPenaltyTicketDetails().getTimeOfOffence().get()),
+                () -> assertEquals("London", response.getFixedPenaltyTicketDetails().getPlaceOfOffence().get()),
                 () -> assertTrue(response.getVehicleFixedPenaltyDetails().isPresent()),
                 () -> assertEquals("AB12 CDE", vehicleDetails.getVehicleRegistrationNumber().get()),
                 () -> assertEquals("DOE1234567", vehicleDetails.getVehicleDriversLicense().get()),
@@ -59,10 +59,10 @@ class DefendantAccountFixedPenaltyMapperTest {
             assertAll(
                 () -> assertFalse(response.getVehicleFixedPenaltyFlag()),
                 () -> assertEquals("Kingston-upon-Thames Mags Court",
-                    response.getFixedPenaltyTicketDetails().getIssuingAuthority()),
-                () -> assertEquals("888", response.getFixedPenaltyTicketDetails().getTicketNumber()),
-                () -> assertEquals("12:34", response.getFixedPenaltyTicketDetails().getTimeOfOffence()),
-                () -> assertEquals("London", response.getFixedPenaltyTicketDetails().getPlaceOfOffence()),
+                    response.getFixedPenaltyTicketDetails().getIssuingAuthority().get()),
+                () -> assertEquals("888", response.getFixedPenaltyTicketDetails().getTicketNumber().get()),
+                () -> assertEquals("12:34", response.getFixedPenaltyTicketDetails().getTimeOfOffence().get()),
+                () -> assertEquals("London", response.getFixedPenaltyTicketDetails().getPlaceOfOffence().get()),
                 () -> assertTrue(response.getVehicleFixedPenaltyDetails().isPresent()),
                 () -> assertNull(response.getVehicleFixedPenaltyDetails().get())
             );

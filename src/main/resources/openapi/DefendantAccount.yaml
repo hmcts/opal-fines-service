@@ -52,10 +52,10 @@ paths:
                   vehicle_fixed_penalty_flag:
                     type: boolean
                   fixed_penalty_ticket_details:
-                    $ref: './common.yaml#/components/schemas/fixedPenaltyTicketDetails'
+                    $ref: './CommonStrict.yaml#/components/schemas/fixedPenaltyTicketDetails'
                   vehicle_fixed_penalty_details:
                     anyOf:
-                      - $ref: './common.yaml#/components/schemas/vehicleFixedPenaltyDetails'
+                      - $ref: './CommonStrict.yaml#/components/schemas/vehicleFixedPenaltyDetails'
                       - type: 'null'
         '400':
           description: Bad request

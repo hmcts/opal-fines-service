@@ -7,9 +7,9 @@ import org.mapstruct.Named;
 import org.openapitools.jackson.nullable.JsonNullable;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.generated.model.FixedPenaltyTicketDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.FixedPenaltyTicketDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse;
-import uk.gov.hmcts.opal.generated.model.VehicleFixedPenaltyDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.VehicleFixedPenaltyDetailsCommonStrict;
 
 @Mapper(componentModel = "spring")
 public interface DefendantAccountFixedPenaltyMapper {
@@ -34,17 +34,17 @@ public interface DefendantAccountFixedPenaltyMapper {
     @Mapping(target = "ticketNumber", source = "offence.ticketNumber")
     @Mapping(target = "timeOfOffence", source = "offence.timeOfOffence", qualifiedByName = "localTimeToString")
     @Mapping(target = "placeOfOffence", source = "offence.offenceLocation")
-    FixedPenaltyTicketDetailsCommon toFixedPenaltyTicketDetails(DefendantAccountEntity account,
+    FixedPenaltyTicketDetailsCommonStrict toFixedPenaltyTicketDetails(DefendantAccountEntity account,
         FixedPenaltyOffenceEntity offence);
 
     @Mapping(target = "vehicleRegistrationNumber", source = "vehicleRegistration")
     @Mapping(target = "vehicleDriversLicense", source = "licenceNumber")
     @Mapping(target = "noticeNumber", source = "noticeNumber")
     @Mapping(target = "dateNoticeIssued", source = "issuedDate")
-    VehicleFixedPenaltyDetailsCommon toVehicleFixedPenaltyDetails(FixedPenaltyOffenceEntity offence);
+    VehicleFixedPenaltyDetailsCommonStrict toVehicleFixedPenaltyDetails(FixedPenaltyOffenceEntity offence);
 
     @Named("toVehicleFixedPenaltyDetailsOrNull")
-    default JsonNullable<VehicleFixedPenaltyDetailsCommon> toVehicleFixedPenaltyDetailsOrNull(
+    default JsonNullable<VehicleFixedPenaltyDetailsCommonStrict> toVehicleFixedPenaltyDetailsOrNull(
         FixedPenaltyOffenceEntity offence) {
         return JsonNullable.of(isVehicleFixedPenalty(offence) ? toVehicleFixedPenaltyDetails(offence) : null);
     }

@@ -35,8 +35,8 @@ import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseComm
 import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchReferenceNumberDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse;
-import uk.gov.hmcts.opal.generated.model.FixedPenaltyTicketDetailsCommon;
-import uk.gov.hmcts.opal.generated.model.VehicleFixedPenaltyDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.FixedPenaltyTicketDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.VehicleFixedPenaltyDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
@@ -68,13 +68,13 @@ class DefendantAccountApiControllerTest {
         Long defendantAccountId = 77L;
         GetDefendantAccountFixedPenaltyResponse serviceResponse = GetDefendantAccountFixedPenaltyResponse.builder()
             .vehicleFixedPenaltyFlag(true)
-            .fixedPenaltyTicketDetails(FixedPenaltyTicketDetailsCommon.builder()
+            .fixedPenaltyTicketDetails(FixedPenaltyTicketDetailsCommonStrict.builder()
                 .issuingAuthority("Kingston-upon-Thames Mags Court")
                 .ticketNumber("888")
                 .timeOfOffence("12:34")
                 .placeOfOffence("London")
                 .build())
-            .vehicleFixedPenaltyDetails(VehicleFixedPenaltyDetailsCommon.builder()
+            .vehicleFixedPenaltyDetails(VehicleFixedPenaltyDetailsCommonStrict.builder()
                 .vehicleRegistrationNumber("AB12CDE")
                 .vehicleDriversLicense("DOE1234567")
                 .noticeNumber("PN98765")
