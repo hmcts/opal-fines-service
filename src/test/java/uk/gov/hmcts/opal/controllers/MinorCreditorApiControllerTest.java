@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.generated.model.GetMinorCreditorHistory200Response;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCreditor;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
@@ -133,5 +134,26 @@ class MinorCreditorApiControllerTest {
         assertEquals("\"2\"", result.getHeaders().getETag());
         assertSame(response, result.getBody());
         verify(minorCreditorService).updateMinorCreditorAccount(101L, request, BigInteger.ONE, "77");
+    }
+
+    @Test
+    void givenValidRequest_whenGetMinorCreditorAccountHeaderSummary_thenReturnsGeneratedResponseWithEtag() {
+        // Arrange
+        Long minorCreditorAccountId = 1L;
+        MinorCreditorAccountHeaderSummaryResponse response = new MinorCreditorAccountHeaderSummaryResponse();
+        response.setVersion(BigInteger.valueOf(3));
+        when(minorCreditorService.getMinorCreditorAccountHeaderSummary(minorCreditorAccountId))
+            .thenReturn(response);
+
+        // Act
+        ResponseEntity<MinorCreditorAccountHeaderSummaryResponse> result =
+            minorCreditorApiController.getMinorCreditorAccountHeaderSummary(minorCreditorAccountId);
+
+        // Assert
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals("\"3\"", result.getHeaders().getETag());
+        assertSame(response, result.getBody());
+        verify(minorCreditorService).getMinorCreditorAccountHeaderSummary(minorCreditorAccountId);
+
     }
 }

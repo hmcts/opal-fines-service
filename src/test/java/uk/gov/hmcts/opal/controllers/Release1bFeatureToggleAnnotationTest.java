@@ -53,7 +53,7 @@ class Release1bFeatureToggleAnnotationTest {
             "DefendantAccountApiController#getDefendantAccountHistory",
             "DefendantAccountApiController#updateDefendantAccount",
             "DefendantAccountApiController#getConsolidatedAccounts",
-            "MinorCreditorController#getMinorCreditorAccountHeaderSummary",
+            "MinorCreditorApiController#getMinorCreditorAccountHeaderSummary",
             "ResultsApiController#getResultById",
             "DefendantAccountApiController#postDefendantAccountSearch",
             "DefendantAccountController#addEnforcement",
