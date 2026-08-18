@@ -2,8 +2,8 @@ package uk.gov.hmcts.opal.mapper.legacy;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse.Financials;
 import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse.FinancialsLegacy;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponseFinancials;
 
 @Mapper(
     componentModel = "spring",
@@ -11,5 +11,5 @@ import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyRe
 )
 public interface FinancialsLegacyMapper {
 
-    Financials toOpal(FinancialsLegacy legacy);
+    MinorCreditorAccountHeaderSummaryResponseFinancials toOpal(FinancialsLegacy legacy);
 }
