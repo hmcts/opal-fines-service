@@ -13,7 +13,6 @@ import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.dto.CreditorAccountDto;
 import uk.gov.hmcts.opal.dto.DefendantDto;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
@@ -33,6 +32,7 @@ import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.mapper.legacy.GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyMinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateMinorCreditorAccountResponseMapper;
@@ -96,7 +96,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     }
 
     @Override
-    public GetMinorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long minorCreditorAccountId) {
+    public MinorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long minorCreditorAccountId) {
 
         Response<GetMinorCreditorAccountHeaderSummaryLegacyResponse> response =
             gatewayService.postToGateway(GET_MINOR_CREDITORS_ACCOUNT_HEADER_SUMMARY,
@@ -109,7 +109,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
 
         checkResponseForError(response, "getHeaderSummary");
 
-        GetMinorCreditorAccountHeaderSummaryResponse mapped = headerSummaryResponseMapper
+        MinorCreditorAccountHeaderSummaryResponse mapped = headerSummaryResponseMapper
             .toOpal(response.responseEntity);
 
         CreditorHeaderLegacy creditor = response.responseEntity.getCreditor();
