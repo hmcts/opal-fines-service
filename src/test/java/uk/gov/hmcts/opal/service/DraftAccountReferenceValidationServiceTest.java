@@ -137,6 +137,28 @@ class DraftAccountReferenceValidationServiceTest {
     }
 
     @Test
+    void validateReferences_whenEnforcementCourtExists_shouldPass() {
+        when(courtLiteRepository.existsById(11L)).thenReturn(true);
+
+        assertDoesNotThrow(() -> service.validateReferences(BUSINESS_UNIT_ID, enforcementCourtOnlyAccountJson(11)));
+
+        verify(courtLiteRepository).existsById(11L);
+        verifyNoInteractions(offenceRepository, resultRepository, majorCreditorRepository);
+    }
+
+    @Test
+    void validateReferences_whenEnforcementCourtDoesNotExist_shouldFailWithAccountPath() {
+        when(courtLiteRepository.existsById(999999L)).thenReturn(false);
+
+        InvalidReferenceValidationException exception = assertThrows(InvalidReferenceValidationException.class,
+            () -> service.validateReferences(BUSINESS_UNIT_ID, enforcementCourtOnlyAccountJson(999999)));
+
+        assertContains(exception.getMessage(), "account.enforcement_court_id: court id 999999 does not exist");
+        verify(courtLiteRepository).existsById(999999L);
+        verifyNoInteractions(offenceRepository, resultRepository, majorCreditorRepository);
+    }
+
+    @Test
     void validateReferences_whenSomeReferencesAreMissing_shouldReportAllFailures() {
         when(courtLiteRepository.existsById(anyLong())).thenReturn(false);
         when(offenceRepository.existsByOffenceIdAvailableToBusinessUnit(anyLong(), eq(BUSINESS_UNIT_ID)))
@@ -152,7 +174,7 @@ class DraftAccountReferenceValidationServiceTest {
         );
 
         String message = exception.getMessage();
-        assertContains(message, "$.enforcement_court_id");
+        assertContains(message, "account.enforcement_court_id");
         assertContains(message, "account.offences[0].offence_id");
         assertContains(message, "$.offences[0].imposing_court_id");
         assertContains(message, "$.offences[0].impositions[0].result_id");
@@ -811,5 +833,13 @@ class DraftAccountReferenceValidationServiceTest {
             .prosecutorId(id)
             .name(name)
             .build();
+    }
+
+    private static String enforcementCourtOnlyAccountJson(long enforcementCourtId) {
+        return """
+            {
+              "enforcement_court_id": %d
+            }
+            """.formatted(enforcementCourtId);
     }
 }
