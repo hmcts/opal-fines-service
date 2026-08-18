@@ -30,7 +30,9 @@ import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyRe
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
+import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountAtAGlanceResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHistoryRequestLegacyMapper;
@@ -53,6 +55,9 @@ class LegacyMajorCreditorAccountServiceTest {
 
     @Mock
     private GetMajorCreditorAccountHistoryResponseLegacyMapper historyResponseMapper;
+
+    @Mock
+    private LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
 
     @InjectMocks
     private LegacyMajorCreditorAccountService legacyMajorCreditorAccountService;
@@ -92,6 +97,9 @@ class LegacyMajorCreditorAccountServiceTest {
         GetMajorCreditorAccountHeaderSummaryLegacyResponse legacyResponse = legacyResponse();
         GetMajorCreditorAccountHeaderSummaryResponse mappedResponse =
             new GetMajorCreditorAccountHeaderSummaryResponse();
+        mappedResponse.setBusinessUnitDetails(new BusinessUnitSummaryCommon()
+                                                 .businessUnitId((short) 46)
+                                                 .businessUnitName("Test BU"));
 
         GetMajorCreditorAccountHeaderSummaryLegacyRequest expectedRequest = legacyRequest();
 
@@ -102,12 +110,14 @@ class LegacyMajorCreditorAccountServiceTest {
             null
         )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse));
         when(headerSummaryResponseMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
+        when(legacyBusinessUnitCodeResolver.resolve("46", null)).thenReturn("0046");
 
         GetMajorCreditorAccountHeaderSummaryResponse result =
             legacyMajorCreditorAccountService.getHeaderSummary(123L);
 
         assertEquals(mappedResponse, result);
         assertEquals(BigInteger.valueOf(7), result.getVersion());
+        assertEquals("0046", result.getBusinessUnitDetails().getBusinessUnitCode());
 
         verify(gatewayService).postToGateway(
             GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY,
@@ -344,6 +354,10 @@ class LegacyMajorCreditorAccountServiceTest {
                                .creditorAccountId(123L)
                                .accountVersion(7L)
                                .build())
+            .businessUnitDetails(BusinessUnitSummary.builder()
+                                     .businessUnitId("46")
+                                     .businessUnitName("Test BU")
+                                     .build())
             .build();
     }
 

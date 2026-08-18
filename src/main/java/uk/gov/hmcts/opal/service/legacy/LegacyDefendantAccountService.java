@@ -133,6 +133,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     private final CourtService courtService;
     private final LocalJusticeAreaService ljaService;
     private final HistoryItemOrderingService historyItemOrderingService;
+    private final LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
 
     /* ---- Mappers ---- */
     private final DefendantAccountHistoryLegacyResponseMapper legacyDefendantAccountHistoryResponseMapper;
@@ -318,7 +319,10 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             : BusinessUnitSummaryCommon.builder()
               .businessUnitId(Short.valueOf(response.getBusinessUnitSummary().getBusinessUnitId()))
               .businessUnitName(response.getBusinessUnitSummary().getBusinessUnitName())
-              .businessUnitCode(response.getBusinessUnitSummary().getBusinessUnitCode())
+              .businessUnitCode(legacyBusinessUnitCodeResolver.resolve(
+                  response.getBusinessUnitSummary().getBusinessUnitId(),
+                  response.getBusinessUnitSummary().getBusinessUnitCode()
+              ))
               .welshSpeaking("N")
               .build();
 

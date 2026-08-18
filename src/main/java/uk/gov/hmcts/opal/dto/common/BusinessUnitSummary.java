@@ -15,6 +15,9 @@ public class BusinessUnitSummary {
     @JsonProperty("business_unit_id")
     private String businessUnitId;
 
+    @JsonProperty("business_unit_code")
+    private String businessUnitCode;
+
     @JsonProperty("business_unit_name")
     private String businessUnitName;
 
