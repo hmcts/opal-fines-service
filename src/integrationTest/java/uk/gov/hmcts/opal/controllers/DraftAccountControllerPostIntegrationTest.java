@@ -699,7 +699,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         return """
             Draft account reference validation failed with 5 error(s):
              - $.enforcement_court_id: court id 999999 does not exist
-             - $.offences[0].offence_id: offence id 999998 does not exist
+             - account.offences[0].offence_id: offence id 999998 does not exist
              - $.offences[0].imposing_court_id: court id 999997 does not exist
              - $.offences[0].impositions[0].result_id: result id NOT-A-RESULT does not exist
              - $.offences[0].impositions[0].major_creditor_id: major creditor id 999996 does not exist
