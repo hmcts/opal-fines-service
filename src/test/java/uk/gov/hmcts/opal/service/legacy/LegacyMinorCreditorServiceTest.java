@@ -25,8 +25,6 @@ import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
-import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
-import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.legacy.CreditorAccount;
 import uk.gov.hmcts.opal.dto.legacy.Defendant;
 import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyRequest;
@@ -49,6 +47,8 @@ import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.generated.model.PostMinorCreditorAccountSearchRequestMinorCreditor;
+import uk.gov.hmcts.opal.generated.model.PostMinorCreditorAccountsSearchResponseMinorCreditor;
 import uk.gov.hmcts.opal.mapper.legacy.GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyMinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateMinorCreditorAccountResponseMapper;
@@ -100,7 +100,8 @@ class LegacyMinorCreditorServiceTest {
 
     @Test
     void searchMinorCreditors_shouldMapLegacyResponseToDto() {
-        MinorCreditorSearch search = MinorCreditorSearch.builder()
+        PostMinorCreditorAccountSearchRequestMinorCreditor search = PostMinorCreditorAccountSearchRequestMinorCreditor
+            .builder()
             .businessUnitIds(List.of((short) 1))
             .accountNumber("ACC-1")
             .activeAccountsOnly(true)
@@ -140,7 +141,8 @@ class LegacyMinorCreditorServiceTest {
         when(gatewayService.postToGateway(any(), eq(LegacyMinorCreditorSearchResultsResponse.class), any(), any()))
             .thenReturn(response);
 
-        PostMinorCreditorAccountsSearchResponse result = legacyMinorCreditorService.searchMinorCreditors(search);
+        PostMinorCreditorAccountsSearchResponseMinorCreditor result = legacyMinorCreditorService
+            .searchMinorCreditors(search);
 
         assertEquals(1, result.getCount());
         assertEquals(1, result.getCreditorAccounts().size());
@@ -150,7 +152,8 @@ class LegacyMinorCreditorServiceTest {
 
     @Test
     void searchMinorCreditors_shouldMapNullDefendantToNull() {
-        MinorCreditorSearch search = MinorCreditorSearch.builder()
+        PostMinorCreditorAccountSearchRequestMinorCreditor search = PostMinorCreditorAccountSearchRequestMinorCreditor
+            .builder()
             .businessUnitIds(List.of((short) 1))
             .accountNumber("ACC-2")
             .activeAccountsOnly(true)
@@ -186,7 +189,8 @@ class LegacyMinorCreditorServiceTest {
             any())
         ).thenReturn(response);
 
-        PostMinorCreditorAccountsSearchResponse result = legacyMinorCreditorService.searchMinorCreditors(search);
+        PostMinorCreditorAccountsSearchResponseMinorCreditor result = legacyMinorCreditorService
+            .searchMinorCreditors(search);
 
         assertEquals(1, result.getCount());
         assertNull(result.getCreditorAccounts().getFirst().getDefendant());
@@ -194,7 +198,10 @@ class LegacyMinorCreditorServiceTest {
 
     @Test
     void searchMinorCreditors_shouldHandleGatewayException() {
-        MinorCreditorSearch search = MinorCreditorSearch.builder().activeAccountsOnly(true).build();
+        PostMinorCreditorAccountSearchRequestMinorCreditor search = PostMinorCreditorAccountSearchRequestMinorCreditor
+            .builder()
+            .activeAccountsOnly(true)
+            .build();
 
         GatewayService.Response<LegacyMinorCreditorSearchResultsResponse> responseWithException =
             new GatewayService.Response<>(HttpStatus.INTERNAL_SERVER_ERROR,
@@ -203,7 +210,8 @@ class LegacyMinorCreditorServiceTest {
         when(gatewayService.postToGateway(any(), eq(LegacyMinorCreditorSearchResultsResponse.class), any(), any()))
             .thenReturn(responseWithException);
 
-        PostMinorCreditorAccountsSearchResponse result = legacyMinorCreditorService.searchMinorCreditors(search);
+        PostMinorCreditorAccountsSearchResponseMinorCreditor result = legacyMinorCreditorService
+            .searchMinorCreditors(search);
 
         assertEquals(0, result.getCount());
         assertEquals(0, result.getCreditorAccounts().size());
@@ -211,7 +219,11 @@ class LegacyMinorCreditorServiceTest {
 
     @Test
     void searchMinorCreditors_shouldHandleLegacyFailure() {
-        MinorCreditorSearch search = MinorCreditorSearch.builder().activeAccountsOnly(true).build();
+        PostMinorCreditorAccountSearchRequestMinorCreditor search = PostMinorCreditorAccountSearchRequestMinorCreditor
+            .builder()
+            .activeAccountsOnly(true)
+            .build();
+
         LegacyMinorCreditorSearchResultsResponse legacyResponse = LegacyMinorCreditorSearchResultsResponse.builder()
             .creditorAccounts(List.of())
             .build();
@@ -222,7 +234,8 @@ class LegacyMinorCreditorServiceTest {
         when(gatewayService.postToGateway(any(), eq(LegacyMinorCreditorSearchResultsResponse.class), any(), any()))
             .thenReturn(response);
 
-        PostMinorCreditorAccountsSearchResponse result = legacyMinorCreditorService.searchMinorCreditors(search);
+        PostMinorCreditorAccountsSearchResponseMinorCreditor result = legacyMinorCreditorService
+            .searchMinorCreditors(search);
 
         assertEquals(0, result.getCount());
         assertEquals(0, result.getCreditorAccounts().size());
@@ -230,7 +243,11 @@ class LegacyMinorCreditorServiceTest {
 
     @Test
     void searchMinorCreditors_shouldLogLegacyFailureEntity() {
-        MinorCreditorSearch search = MinorCreditorSearch.builder().activeAccountsOnly(true).build();
+        PostMinorCreditorAccountSearchRequestMinorCreditor search = PostMinorCreditorAccountSearchRequestMinorCreditor
+            .builder()
+            .activeAccountsOnly(true)
+            .build();
+
         LegacyMinorCreditorSearchResultsResponse legacyResponse = LegacyMinorCreditorSearchResultsResponse.builder()
             .count(0)
             .creditorAccounts(List.of())

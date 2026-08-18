@@ -11,15 +11,16 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
-import uk.gov.hmcts.opal.dto.Creditor;
-import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity_;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditorMinorCreditor;
+import uk.gov.hmcts.opal.generated.model.PostMinorCreditorAccountSearchRequestMinorCreditor;
 
 @Component
 public class MinorCreditorSpecs extends EntitySpecs<MinorCreditorEntity> {
 
-    public Specification<MinorCreditorEntity> findBySearchCriteria(MinorCreditorSearch criteria) {
+    public Specification<MinorCreditorEntity> findBySearchCriteria(
+        PostMinorCreditorAccountSearchRequestMinorCreditor criteria) {
         if (criteria == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Search criteria must be provided");
         }
@@ -35,7 +36,8 @@ public class MinorCreditorSpecs extends EntitySpecs<MinorCreditorEntity> {
         ));
     }
 
-    private Optional<Specification<MinorCreditorEntity>> byBusinessUnitIds(MinorCreditorSearch c) {
+    private Optional<Specification<MinorCreditorEntity>> byBusinessUnitIds(
+            PostMinorCreditorAccountSearchRequestMinorCreditor c) {
         return Optional.ofNullable(c.getBusinessUnitIds())
             .map(list -> list.stream()
                 .filter(Objects::nonNull)
@@ -45,14 +47,16 @@ public class MinorCreditorSpecs extends EntitySpecs<MinorCreditorEntity> {
             .map(MinorCreditorSpecs::businessUnitIdsIn);
     }
 
-    private Optional<Specification<MinorCreditorEntity>> byCreditorAccountNumber(MinorCreditorSearch c) {
+    private Optional<Specification<MinorCreditorEntity>> byCreditorAccountNumber(
+            PostMinorCreditorAccountSearchRequestMinorCreditor c) {
         return Optional.ofNullable(c.getAccountNumber())
             .filter(SpecificationUtils::hasText)
             .map(SpecificationUtils::stripCheckLetter)
             .map(MinorCreditorSpecs::accountNumberStartsWith);
     }
 
-    private Optional<Specification<MinorCreditorEntity>> byOrganisationName(MinorCreditorSearch c) {
+    private Optional<Specification<MinorCreditorEntity>> byOrganisationName(
+            PostMinorCreditorAccountSearchRequestMinorCreditor c) {
         return Optional.ofNullable(c.getCreditor())
             .filter(creditor -> hasText(creditor.getOrganisationName()))
             .map(creditor -> textMatches(
@@ -62,7 +66,8 @@ public class MinorCreditorSpecs extends EntitySpecs<MinorCreditorEntity> {
             ));
     }
 
-    private Optional<Specification<MinorCreditorEntity>> byForenames(MinorCreditorSearch c) {
+    private Optional<Specification<MinorCreditorEntity>> byForenames(
+            PostMinorCreditorAccountSearchRequestMinorCreditor c) {
         return Optional.ofNullable(c.getCreditor())
             .filter(creditor -> hasText(creditor.getForenames()))
             .map(creditor -> textMatches(
@@ -72,7 +77,8 @@ public class MinorCreditorSpecs extends EntitySpecs<MinorCreditorEntity> {
             ));
     }
 
-    private Optional<Specification<MinorCreditorEntity>> bySurname(MinorCreditorSearch c) {
+    private Optional<Specification<MinorCreditorEntity>> bySurname(
+            PostMinorCreditorAccountSearchRequestMinorCreditor c) {
         return Optional.ofNullable(c.getCreditor())
             .filter(creditor -> hasText(creditor.getSurname()))
             .map(creditor -> textMatches(
@@ -82,16 +88,18 @@ public class MinorCreditorSpecs extends EntitySpecs<MinorCreditorEntity> {
             ));
     }
 
-    private Optional<Specification<MinorCreditorEntity>> byAddressLine1(MinorCreditorSearch c) {
+    private Optional<Specification<MinorCreditorEntity>> byAddressLine1(
+            PostMinorCreditorAccountSearchRequestMinorCreditor c) {
         return Optional.ofNullable(c.getCreditor())
-            .map(Creditor::getAddressLine1)
+            .map(MinorCreditorAccountSearchCreditorMinorCreditor::getAddressLine1)
             .filter(SpecificationUtils::hasText)
             .map(value -> startsWith(MinorCreditorEntity_.ADDRESS_LINE1, value));
     }
 
-    private Optional<Specification<MinorCreditorEntity>> byPostcode(MinorCreditorSearch c) {
+    private Optional<Specification<MinorCreditorEntity>> byPostcode(
+            PostMinorCreditorAccountSearchRequestMinorCreditor c) {
         return Optional.ofNullable(c.getCreditor())
-            .map(Creditor::getPostcode)
+            .map(MinorCreditorAccountSearchCreditorMinorCreditor::getPostcode)
             .filter(SpecificationUtils::hasText)
             .map(value -> startsWith(MinorCreditorEntity_.POST_CODE, value));
     }

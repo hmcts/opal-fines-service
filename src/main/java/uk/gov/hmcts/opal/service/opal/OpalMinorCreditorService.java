@@ -14,12 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.dto.CreditorAccountDto;
-import uk.gov.hmcts.opal.dto.DefendantDto;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
-import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
-import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.PartyEntity;
@@ -33,7 +29,11 @@ import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItemType;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.GetMinorCreditorHistory200Response;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchDefendantMinorCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchResultMinorCreditor;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
+import uk.gov.hmcts.opal.generated.model.PostMinorCreditorAccountSearchRequestMinorCreditor;
+import uk.gov.hmcts.opal.generated.model.PostMinorCreditorAccountsSearchResponseMinorCreditor;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderEntityMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountUpdateMapper;
@@ -78,7 +78,8 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
     private final MinorCreditorSpecs specs = new MinorCreditorSpecs();
 
     @Override
-    public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch criteria) {
+    public PostMinorCreditorAccountsSearchResponseMinorCreditor searchMinorCreditors(
+        PostMinorCreditorAccountSearchRequestMinorCreditor criteria) {
         Specification<MinorCreditorEntity> spec = specs.findBySearchCriteria(criteria);
         List<MinorCreditorEntity> results = minorCreditorRepository.findAll(spec);
         return toResponse(results);
@@ -285,8 +286,8 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
         return response;
     }
 
-    private CreditorAccountDto toCreditorAccountDto(MinorCreditorEntity entity) {
-        return CreditorAccountDto.builder()
+    private MinorCreditorAccountSearchResultMinorCreditor toCreditorAccountDto(MinorCreditorEntity entity) {
+        return MinorCreditorAccountSearchResultMinorCreditor.builder()
             .creditorAccountId(String.valueOf(entity.getCreditorId()))
             .accountNumber(entity.getAccountNumber())
             .organisation(entity.isOrganisation())
@@ -304,8 +305,8 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
             .build();
     }
 
-    private DefendantDto toDefendantDto(MinorCreditorEntity entity) {
-        return DefendantDto.builder()
+    private MinorCreditorAccountSearchDefendantMinorCreditor toDefendantDto(MinorCreditorEntity entity) {
+        return MinorCreditorAccountSearchDefendantMinorCreditor.builder()
             .defendantAccountId(entity.getDefendantAccountId() != null
                                     ? String.valueOf(entity.getDefendantAccountId()) : null)
             .organisation(entity.isOrganisation())
@@ -315,12 +316,12 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
             .build();
     }
 
-    private PostMinorCreditorAccountsSearchResponse toResponse(List<MinorCreditorEntity> entities) {
-        List<CreditorAccountDto> accounts = entities.stream()
+    private PostMinorCreditorAccountsSearchResponseMinorCreditor toResponse(List<MinorCreditorEntity> entities) {
+        List<MinorCreditorAccountSearchResultMinorCreditor> accounts = entities.stream()
             .map(this::toCreditorAccountDto)
             .toList();
 
-        return PostMinorCreditorAccountsSearchResponse.builder()
+        return PostMinorCreditorAccountsSearchResponseMinorCreditor.builder()
             .count(accounts.size())
             .creditorAccounts(accounts.isEmpty() ? null : accounts)
             .build();

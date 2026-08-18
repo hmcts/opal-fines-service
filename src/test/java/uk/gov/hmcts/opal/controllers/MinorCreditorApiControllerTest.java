@@ -3,6 +3,8 @@ package uk.gov.hmcts.opal.controllers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -22,7 +24,10 @@ import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.generated.model.GetMinorCreditorHistory200Response;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditorMinorCreditor;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
+import uk.gov.hmcts.opal.generated.model.PostMinorCreditorAccountSearchRequestMinorCreditor;
+import uk.gov.hmcts.opal.generated.model.PostMinorCreditorAccountsSearchResponseMinorCreditor;
 import uk.gov.hmcts.opal.service.MinorCreditorService;
 
 @ExtendWith(MockitoExtension.class)
@@ -133,5 +138,31 @@ class MinorCreditorApiControllerTest {
         assertEquals("\"2\"", result.getHeaders().getETag());
         assertSame(response, result.getBody());
         verify(minorCreditorService).updateMinorCreditorAccount(101L, request, BigInteger.ONE, "77");
+    }
+
+    @Test
+    void testPostMinorCreditorSearch_Success() {
+        // Arrange
+        PostMinorCreditorAccountsSearchResponseMinorCreditor mockResponse =
+            new PostMinorCreditorAccountsSearchResponseMinorCreditor();
+
+        PostMinorCreditorAccountSearchRequestMinorCreditor search = PostMinorCreditorAccountSearchRequestMinorCreditor
+            .builder()
+            .businessUnitIds(List.of((short) 101, (short) 202, (short) 303))
+            .activeAccountsOnly(true)
+            .accountNumber("ACC123456")
+            .creditor(MinorCreditorAccountSearchCreditorMinorCreditor.builder().build())
+            .build();
+
+        when(minorCreditorService.searchMinorCreditors(any())).thenReturn(mockResponse);
+
+        // Act
+        ResponseEntity<PostMinorCreditorAccountsSearchResponseMinorCreditor> responseEntity =
+            minorCreditorApiController.postMinorCreditorSearch(search);
+
+        // Assert
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(mockResponse, responseEntity.getBody());
+        verify(minorCreditorService, times(1)).searchMinorCreditors(any());
     }
 }

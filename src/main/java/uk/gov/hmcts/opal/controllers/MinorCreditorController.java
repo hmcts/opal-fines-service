@@ -15,16 +15,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
-import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
-import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.service.MinorCreditorService;
 import uk.gov.hmcts.opal.service.opal.OpalCreditorAccountService;
 
@@ -43,19 +39,6 @@ public class MinorCreditorController {
                                    OpalCreditorAccountService opalCreditorAccountService) {
         this.minorCreditorService = minorCreditorService;
         this.opalCreditorAccountService = opalCreditorAccountService;
-    }
-
-    @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Searches MinorCreditors based upon criteria in request body")
-    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<PostMinorCreditorAccountsSearchResponse> postMinorCreditorsSearch(
-        @RequestBody MinorCreditorSearch criteria) {
-        log.debug(":POST:postMinorCreditorsSearch: query: \n{}", criteria);
-
-        PostMinorCreditorAccountsSearchResponse response = minorCreditorService
-            .searchMinorCreditors(criteria);
-
-        return buildResponse(response);
     }
 
     @Hidden

@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -34,8 +33,6 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
-import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
-import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItemType;
@@ -46,6 +43,8 @@ import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCredit
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.generated.model.PostMinorCreditorAccountSearchRequestMinorCreditor;
+import uk.gov.hmcts.opal.generated.model.PostMinorCreditorAccountsSearchResponseMinorCreditor;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,26 +56,22 @@ class MinorCreditorServiceTest {
     @Mock
     MinorCreditorSearchProxy minorCreditorSearchProxy;
 
-    @Mock
-    MinorCreditorSearchRequestValidator minorCreditorSearchRequestValidator;
-
     @InjectMocks
     private MinorCreditorService minorCreditorService;
 
     @Test
     void testPostSearchMinorCreditors() {
         // Arrange
-        PostMinorCreditorAccountsSearchResponse postMinorCreditorAccountsSearchResponse =
-            PostMinorCreditorAccountsSearchResponse.builder().build();
+        PostMinorCreditorAccountsSearchResponseMinorCreditor postMinorCreditorAccountsSearchResponse =
+            PostMinorCreditorAccountsSearchResponseMinorCreditor.builder().build();
 
         when(minorCreditorSearchProxy.searchMinorCreditors(any())).thenReturn(postMinorCreditorAccountsSearchResponse);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
-        doNothing().when(minorCreditorSearchRequestValidator).validateAndCheckFeature(any(MinorCreditorSearch.class));
 
         // Act
-        PostMinorCreditorAccountsSearchResponse result =
+        PostMinorCreditorAccountsSearchResponseMinorCreditor result =
             minorCreditorService.searchMinorCreditors(
-                (MinorCreditorSearch.builder().build()));
+                (PostMinorCreditorAccountSearchRequestMinorCreditor.builder().build()));
 
         // Assert
         assertNotNull(result);
@@ -439,7 +434,8 @@ class MinorCreditorServiceTest {
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
             PermissionNotAllowedException.class,
-            () -> minorCreditorService.searchMinorCreditors(MinorCreditorSearch.builder().build())
+            () -> minorCreditorService.searchMinorCreditors(PostMinorCreditorAccountSearchRequestMinorCreditor
+                .builder().build())
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
     }

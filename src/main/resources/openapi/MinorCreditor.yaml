@@ -488,9 +488,9 @@ components:
       type: object
       additionalProperties: false
       description: |
-        Search request criteria are validated by the JSON Schema used at runtime.
+        Search request criteria for minor creditor accounts.
         If account_number is populated, no other search fields may be populated.
-        If forenames is populated then last name must also be populated.
+        If creditor forenames is populated then last name must also be populated.
       allOf:
         - required:
             - active_accounts_only
