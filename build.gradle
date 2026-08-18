@@ -810,7 +810,7 @@ ext['postgresql.version'] = '42.7.11'
 
 dependencies {
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.3.29'
+  implementation 'uk.gov.hmcts:opal-common-lib:0.3.30'
 
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.2.1'
   testImplementation 'uk.gov.hmcts:zephyr-automation:1.2.1'

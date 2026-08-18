@@ -386,7 +386,7 @@ class DraftAccountTransactionalTest {
             .build();
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
-        UserStateV2 userState = UserStateV2.builder().username("USER_NAME_1").build();
+        UserStateV2 userState = UserStateV2.builder().username("USER_NAME_1").userId(0L).build();
 
         // Act & Assert
         assertThrows(ResourceConflictException.class, () ->
@@ -417,7 +417,7 @@ class DraftAccountTransactionalTest {
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
         when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        UserStateV2 userState = UserStateV2.builder().username("USER_NAME_1").build();
+        UserStateV2 userState = UserStateV2.builder().username("USER_NAME_1").userId(0L).build();
 
         // Act
         DraftAccountEntity result = draftAccountTransactional
@@ -465,7 +465,7 @@ class DraftAccountTransactionalTest {
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
 
-        UserStateV2 userState = UserStateV2.builder().username("USER_NAME_1").build();
+        UserStateV2 userState = UserStateV2.builder().username("USER_NAME_1").userId(0L).build();
 
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
             draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional,
@@ -498,7 +498,7 @@ class DraftAccountTransactionalTest {
         when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenAnswer(invocation -> invocation
             .getArgument(0));
 
-        UserStateV2 userState = UserStateV2.builder().username("USER_NAME_1").build();
+        UserStateV2 userState = UserStateV2.builder().username("USER_NAME_1").userId(0L).build();
 
         DraftAccountEntity result = draftAccountTransactional
             .updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional, BigInteger.ZERO, userState);
@@ -624,7 +624,7 @@ class DraftAccountTransactionalTest {
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
         when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        UserStateV2 userState = UserStateV2.builder().username("DifferentUser").build();
+        UserStateV2 userState = UserStateV2.builder().username("DifferentUser").userId(0L).build();
 
         DraftAccountEntity result = draftAccountTransactional.updateDraftAccount(
             draftAccountId, updateDto, draftAccountTransactional, BigInteger.ZERO, userState);
@@ -652,7 +652,7 @@ class DraftAccountTransactionalTest {
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
 
-        UserStateV2 userState = UserStateV2.builder().username("BUUID1").build();
+        UserStateV2 userState = UserStateV2.builder().username("BUUID1").userId(0L).build();
 
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
