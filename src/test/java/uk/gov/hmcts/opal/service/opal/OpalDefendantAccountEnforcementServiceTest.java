@@ -45,6 +45,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mapstruct.factory.Mappers;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
@@ -75,6 +76,7 @@ import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsTypeCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementResultIdCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementResultResponseDefendantAccount;
+import uk.gov.hmcts.opal.mapper.EnforcementPaymentTermsMapper;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
@@ -133,6 +135,10 @@ class OpalDefendantAccountEnforcementServiceTest {
 
     @Mock
     private DefendantAccountControlValidator defendantAccountControlValidator;
+
+    @Spy
+    private EnforcementPaymentTermsMapper enforcementPaymentTermsMapper =
+        Mappers.getMapper(EnforcementPaymentTermsMapper.class);
 
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper();

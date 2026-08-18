@@ -14,6 +14,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
+import tools.jackson.databind.node.ObjectNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -237,6 +238,52 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
             .andExpect(jsonPath("title").value("Entity Not Found"));
     }
 
+    /**
+     * Verifies that required nullable payment terms must be included in the request.
+     */
+    void postEnforcementImpl_whenPaymentTermsIsOmitted_returnsBadRequest() throws Exception {
+        ObjectNode request = validEnforcementRequest();
+        request.remove("payment_terms");
+
+        postEnforcementToNonExistingAccountForFieldValidation(request)
+            .andExpect(status().isBadRequest());
+    }
+
+    /**
+     * Verifies that explicit null payment terms pass request validation before the missing account returns 404.
+     */
+    void postEnforcementImpl_whenPaymentTermsIsExplicitlyNull_passesValidation() throws Exception {
+        ObjectNode request = validEnforcementRequest();
+        request.putNull("payment_terms");
+
+        postEnforcementToNonExistingAccountForFieldValidation(request)
+            .andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+    }
+
+    /**
+     * Verifies that required nullable days in default must be included in payment terms.
+     */
+    void postEnforcementImpl_whenDaysInDefaultIsOmitted_returnsBadRequest() throws Exception {
+        ObjectNode request = validEnforcementRequest();
+        ((ObjectNode) request.get("payment_terms")).remove("days_in_default");
+
+        postEnforcementToNonExistingAccountForFieldValidation(request)
+            .andExpect(status().isBadRequest());
+    }
+
+    /**
+     * Verifies that explicit null days in default pass request validation before the missing account returns 404.
+     */
+    void postEnforcementImpl_whenDaysInDefaultIsExplicitlyNull_passesValidation() throws Exception {
+        ObjectNode request = validEnforcementRequest();
+        ((ObjectNode) request.get("payment_terms")).putNull("days_in_default");
+
+        postEnforcementToNonExistingAccountForFieldValidation(request)
+            .andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+    }
+
     void postEnforcementImpl_colloWithPaymentTerms_preservesLastEnforcementAndReturnsResponses(Logger log)
         throws Exception {
         userStateStub.setupWithNoPermissions();
@@ -318,6 +365,33 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
             Integer.class,
             defendantAccountId
         );
+    }
+
+    /**
+     * Creates a complete valid request payload that tests can mutate to exercise validation rules.
+     */
+    private ObjectNode validEnforcementRequest() throws Exception {
+        AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
+            .resultId(EnforcementResultIdCommonStrict.ABDC)
+            .enforcementResultResponses(minimumResponses)
+            .paymentTerms(paymentTerms)
+            .build();
+
+        return (ObjectNode) objectMapper.readTree(objectMapper.writeValueAsString(request));
+    }
+
+    /**
+     * Posts to a nonexistent account so a 404 confirms that the request passed validation.
+     */
+    private ResultActions postEnforcementToNonExistingAccountForFieldValidation(ObjectNode request) throws Exception {
+        return mockMvc.perform(
+            post(URL_BASE + "/" + INVALID_DEFENDANT_ACCOUNT_ID + "/enforcements")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("Authorization", userStateStub.getBearerToken())
+                .header("Business-Unit-ID", BUSINESS_UNIT_ID.toString())
+                .header("IF-MATCH", "0")
+                .content(request.toString())
+                .contentType(MediaType.APPLICATION_JSON));
     }
 
     private ResultActions postScriptedEnforcement(AddEnforcementRequestDefendantAccount request) throws Exception {

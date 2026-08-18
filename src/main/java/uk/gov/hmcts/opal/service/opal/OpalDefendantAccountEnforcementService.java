@@ -16,21 +16,16 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
-import uk.gov.hmcts.opal.dto.PaymentTerms;
-import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.EnforcementInstalmentPeriodCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsCommonStrict;
-import uk.gov.hmcts.opal.generated.model.EnforcementPostedDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementResultResponseDefendantAccount;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
-import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
-import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
+import uk.gov.hmcts.opal.mapper.EnforcementPaymentTermsMapper;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
@@ -85,6 +80,8 @@ public class OpalDefendantAccountEnforcementService
     private final ObjectMapper objectMapper;
 
     private final DefendantAccountControlValidator defendantAccountControlValidator;
+
+    private final EnforcementPaymentTermsMapper enforcementPaymentTermsMapper;
 
     @Override
     @Transactional
@@ -152,7 +149,7 @@ public class OpalDefendantAccountEnforcementService
                 userState.getUserName(),
                 defendantEntity.getVersion().toString(),
                 AddDefendantAccountPaymentTermsRequest.builder()
-                    .paymentTerms(toPaymentTerms(enforcementPaymentTerms))
+                    .paymentTerms(enforcementPaymentTermsMapper.toPaymentTerms(enforcementPaymentTerms))
                     .requestPaymentCard(false)
                     .generatePaymentTermsChangeLetter(false)
                     .build()
@@ -182,42 +179,6 @@ public class OpalDefendantAccountEnforcementService
         }
 
         return resultResponsesMap;
-    }
-
-    private PaymentTerms toPaymentTerms(EnforcementPaymentTermsCommonStrict source) {
-        if (source == null) {
-            return null;
-        }
-        PaymentTerms paymentTerms = new PaymentTerms();
-        paymentTerms.setDaysInDefault(source.getDaysInDefault().orElse(null));
-        paymentTerms.setDateDaysInDefaultImposed(source.getDateDaysInDefaultImposed().orElse(null));
-        paymentTerms.setExtension(Boolean.TRUE.equals(source.getExtension()));
-        paymentTerms.setReasonForExtension(source.getReasonForExtension().orElse(null));
-        paymentTerms.setEffectiveDate(source.getEffectiveDate().orElse(null));
-        paymentTerms.setLumpSumAmount(source.getLumpSumAmount().orElse(null));
-        paymentTerms.setInstalmentAmount(source.getInstalmentAmount().orElse(null));
-        if (source.getPaymentTermsType() != null) {
-            paymentTerms.setPaymentTermsType(PaymentTermsType.builder()
-                .paymentTermsTypeCode(PaymentTermsType.PaymentTermsTypeCode.fromValue(
-                    source.getPaymentTermsType().getPaymentTermsTypeCode().getValue()))
-                .build());
-        }
-        EnforcementInstalmentPeriodCommonStrict instalmentPeriod = source.getInstalmentPeriod().orElse(null);
-        if (instalmentPeriod != null) {
-            paymentTerms.setInstalmentPeriod(InstalmentPeriod.builder()
-                .instalmentPeriodCode(InstalmentPeriod.InstalmentPeriodCode.fromValue(
-                    instalmentPeriod.getInstalmentPeriodCode().getValue()))
-                .build());
-        }
-        EnforcementPostedDetailsCommonStrict postedDetails = source.getPostedDetails().orElse(null);
-        if (postedDetails != null) {
-            PostedDetails details = new PostedDetails();
-            details.setPostedDate(postedDetails.getPostedDate());
-            details.setPostedBy(postedDetails.getPostedBy().orElse(null));
-            details.setPostedByName(postedDetails.getPostedByName().orElse(null));
-            paymentTerms.setPostedDetails(details);
-        }
-        return paymentTerms;
     }
 
     @Override
