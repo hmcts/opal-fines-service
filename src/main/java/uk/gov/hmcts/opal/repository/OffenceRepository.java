@@ -17,11 +17,11 @@ public interface OffenceRepository extends JpaRepository<OffenceEntity, Long>,
     JpaSpecificationExecutor<OffenceEntity> {
 
     @Query("""
-    SELECT CASE WHEN COUNT(o) > 0 THEN TRUE ELSE FALSE END
-    FROM OffenceEntity o
-    WHERE o.offenceId = :offenceId
-      AND (o.businessUnitId = :businessUnitId OR o.businessUnitId IS NULL)
-    """)
+        SELECT CASE WHEN COUNT(o) > 0 THEN TRUE ELSE FALSE END
+        FROM OffenceEntity o
+        WHERE o.offenceId = :offenceId
+          AND (o.businessUnitId = :businessUnitId OR o.businessUnitId IS NULL)
+        """)
     boolean existsByOffenceIdAvailableToBusinessUnit(
         @Param("offenceId") Long offenceId,
         @Param("businessUnitId") Short businessUnitId
