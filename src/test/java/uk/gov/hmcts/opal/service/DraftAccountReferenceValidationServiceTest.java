@@ -41,7 +41,7 @@ class DraftAccountReferenceValidationServiceTest {
     @Test
     void validateReferences_whenAllReferencesExist_shouldPass() {
         when(courtLiteRepository.existsById(anyLong())).thenReturn(true);
-        when(offenceRepository.existsByOffenceIdAndBusinessUnitId(anyLong(), eq((short) 77))).thenReturn(true);
+        when(offenceRepository.existsByOffenceIdAvailableToBusinessUnit(anyLong(), eq((short) 77))).thenReturn(true);
         when(resultRepository.existsById(anyString())).thenReturn(true);
         when(majorCreditorRepository.existsById(anyLong())).thenReturn(true);
 
@@ -51,7 +51,7 @@ class DraftAccountReferenceValidationServiceTest {
     @Test
     void validateReferences_whenSomeReferencesAreMissing_shouldReportAllFailures() {
         when(courtLiteRepository.existsById(anyLong())).thenReturn(false);
-        when(offenceRepository.existsByOffenceIdAndBusinessUnitId(anyLong(), eq((short) 77))).thenReturn(false);
+        when(offenceRepository.existsByOffenceIdAvailableToBusinessUnit(anyLong(), eq((short) 77))).thenReturn(false);
         when(resultRepository.existsById(anyString())).thenReturn(false);
         when(majorCreditorRepository.existsById(anyLong())).thenReturn(false);
 
@@ -72,8 +72,8 @@ class DraftAccountReferenceValidationServiceTest {
         assertContains(message, "$.payment_terms.enforcements[1].result_id");
 
         verify(courtLiteRepository, times(3)).existsById(anyLong());
-        verify(offenceRepository).existsByOffenceIdAndBusinessUnitId(21L, (short) 77);
-        verify(offenceRepository).existsByOffenceIdAndBusinessUnitId(22L, (short) 77);
+        verify(offenceRepository).existsByOffenceIdAvailableToBusinessUnit(21L, (short) 77);
+        verify(offenceRepository).existsByOffenceIdAvailableToBusinessUnit(22L, (short) 77);
         verify(resultRepository, times(4)).existsById(anyString());
         verify(majorCreditorRepository, times(2)).existsById(anyLong());
     }
