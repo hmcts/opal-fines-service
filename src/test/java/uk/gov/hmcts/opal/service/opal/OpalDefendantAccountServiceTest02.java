@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -66,13 +67,15 @@ class OpalDefendantAccountServiceTest02 {
         GetDefendantAccountFixedPenaltyResponse response =
             service.getDefendantAccountFixedPenalty(defendantAccountId);
 
-        assertNotNull(response);
-        assertTrue(response.getVehicleFixedPenaltyFlag());
-        assertEquals("Kingston-upon-Thames Mags Court",
-            response.getFixedPenaltyTicketDetails().getIssuingAuthority());
-        assertEquals("888", response.getFixedPenaltyTicketDetails().getTicketNumber());
-        assertEquals("12:34", response.getFixedPenaltyTicketDetails().getTimeOfOffence());
-        assertEquals("London", response.getFixedPenaltyTicketDetails().getPlaceOfOffence());
+        assertAll(
+            () -> assertNotNull(response),
+            () -> assertTrue(response.getVehicleFixedPenaltyFlag()),
+            () -> assertEquals("Kingston-upon-Thames Mags Court",
+                response.getFixedPenaltyTicketDetails().getIssuingAuthority()),
+            () -> assertEquals("888", response.getFixedPenaltyTicketDetails().getTicketNumber()),
+            () -> assertEquals("12:34", response.getFixedPenaltyTicketDetails().getTimeOfOffence()),
+            () -> assertEquals("London", response.getFixedPenaltyTicketDetails().getPlaceOfOffence())
+        );
     }
 
     @Test
@@ -89,13 +92,16 @@ class OpalDefendantAccountServiceTest02 {
 
         GetDefendantAccountFixedPenaltyResponse response = service.getDefendantAccountFixedPenalty(accountId);
 
-        assertNotNull(response);
-        assertFalse(response.getVehicleFixedPenaltyFlag());
-        assertEquals("Kingston-upon-Thames Mags Court", response.getFixedPenaltyTicketDetails().getIssuingAuthority());
-        assertEquals("888", response.getFixedPenaltyTicketDetails().getTicketNumber());
-        assertEquals("12:12", response.getFixedPenaltyTicketDetails().getTimeOfOffence());
-        assertEquals("Manchester", response.getFixedPenaltyTicketDetails().getPlaceOfOffence());
-        assertNull(response.getVehicleFixedPenaltyDetails().get());
+        assertAll(
+            () -> assertNotNull(response),
+            () -> assertFalse(response.getVehicleFixedPenaltyFlag()),
+            () -> assertEquals("Kingston-upon-Thames Mags Court",
+                response.getFixedPenaltyTicketDetails().getIssuingAuthority()),
+            () -> assertEquals("888", response.getFixedPenaltyTicketDetails().getTicketNumber()),
+            () -> assertEquals("12:12", response.getFixedPenaltyTicketDetails().getTimeOfOffence()),
+            () -> assertEquals("Manchester", response.getFixedPenaltyTicketDetails().getPlaceOfOffence()),
+            () -> assertNull(response.getVehicleFixedPenaltyDetails().get())
+        );
     }
 
     @Test
@@ -115,8 +121,11 @@ class OpalDefendantAccountServiceTest02 {
         when(fixedPenaltyOffenceRepositoryService.findByDefendantAccountId(id)).thenReturn(offence);
 
         var response = service.getDefendantAccountFixedPenalty(id);
-        assertNotNull(response);
-        assertNotNull(response.getFixedPenaltyTicketDetails());
+
+        assertAll(
+            () -> assertNotNull(response),
+            () -> assertNotNull(response.getFixedPenaltyTicketDetails())
+        );
     }
 
     @Test
@@ -152,8 +161,10 @@ class OpalDefendantAccountServiceTest02 {
         var response = service.getDefendantAccountFixedPenalty(123L);
 
         // Assert
-        verify(proxy).getDefendantAccountFixedPenalty(123L);
-        assertEquals(mockResponse, response);
+        assertAll(
+            () -> verify(proxy).getDefendantAccountFixedPenalty(123L),
+            () -> assertEquals(mockResponse, response)
+        );
     }
 
 
@@ -171,11 +182,12 @@ class OpalDefendantAccountServiceTest02 {
         var service = new DefendantAccountFixedPenaltyService(proxy, userStateService);
 
         // Act + Assert
-        assertThrows(PermissionNotAllowedException.class,
-            () -> service.getDefendantAccountFixedPenalty(123L)
+        assertAll(
+            () -> assertThrows(PermissionNotAllowedException.class,
+                () -> service.getDefendantAccountFixedPenalty(123L)
+            ),
+            () -> verifyNoInteractions(proxy)
         );
-
-        verifyNoInteractions(proxy);
     }
 
     private DefendantAccountEntity buildMockAccount(Long accountId) {

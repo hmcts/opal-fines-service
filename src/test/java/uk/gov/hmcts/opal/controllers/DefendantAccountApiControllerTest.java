@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -119,10 +120,13 @@ class DefendantAccountApiControllerTest {
         ResponseEntity<GetDefendantAccountFixedPenaltyResponse> response =
             defendantAccountApiController.getDefendantAccountFixedPenalty(defendantAccountId);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("\"12\"", response.getHeaders().getETag());
-        assertSame(serviceResponse, response.getBody());
-        verify(defendantAccountFixedPenaltyService).getDefendantAccountFixedPenalty(defendantAccountId);
+        assertAll(
+            () -> assertEquals(HttpStatus.OK, response.getStatusCode()),
+            () -> assertEquals("\"12\"", response.getHeaders().getETag()),
+            () -> assertSame(serviceResponse, response.getBody()),
+            () -> verify(defendantAccountFixedPenaltyService)
+                .getDefendantAccountFixedPenalty(defendantAccountId)
+        );
     }
 
     @Test
