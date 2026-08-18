@@ -11,10 +11,14 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
+import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.service.MinorCreditorService;
 
 @RestController
@@ -28,19 +32,5 @@ public class MinorCreditorController {
 
     public MinorCreditorController(MinorCreditorService minorCreditorService) {
         this.minorCreditorService = minorCreditorService;
-    }
-
-    @GetMapping(value = "/{minorCreditorId}/header-summary", produces = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Gets Minor Creditor account header summary for the given minorCreditorId")
-    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<GetMinorCreditorAccountHeaderSummaryResponse> getMinorCreditorAccountHeaderSummary(
-        @PathVariable Long minorCreditorId) {
-
-        log.debug(":GET:getMinorCreditorAccountHeaderSummary: minorCreditorId: {}", minorCreditorId);
-
-        GetMinorCreditorAccountHeaderSummaryResponse response =
-            minorCreditorService.getMinorCreditorAccountHeaderSummary(minorCreditorId);
-
-        return buildResponse(response);
     }
 }

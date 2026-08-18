@@ -727,12 +727,12 @@ components:
         - uk.gov.hmcts.opal.dto.ToJsonString
         - uk.gov.hmcts.opal.util.Versioned
       required:
-        - party_details
+        - party
         - business_unit
         - creditor
         - financials
       properties:
-        party_details:
+        party:
           $ref: './common.yaml#/components/schemas/partyDetails'
         business_unit:
           $ref: './common.yaml#/components/schemas/businessUnitSummary'
@@ -744,23 +744,39 @@ components:
             - account_id
             - account_number
             - account_type
-            - account_version
             - has_associated_defendant
           properties:
             account_id:
-              $ref: './types.yaml#/components/schemas/BigInt'
+              type: string
             account_number:
               type: string
               maxLength: 20
             account_type:
-              type: string
-              description: DB Mapping - creditor_accounts.creditor_account_type
-              enum:
-                - MN
-                - MJ
-                - CF
-            account_version:
-              $ref: './types.yaml#/components/schemas/BigInt'
+              title: Creditor Account Type Reference
+              type: object
+              additionalProperties: false
+              required:
+                - type
+              properties:
+                type:
+                  type: string
+                  description: DB Mapping - creditor_accounts.creditor_account_type
+                  enum:
+                    - MN
+                    - MJ
+                    - CF
+                display_name:
+                  type: string
+                  description: |
+                    Converts the short hand code of creditor_accounts.creditor_account_type into a display name.
+                    Mapping:
+                      'MN' becomes 'Minor Creditor'
+                      'MJ' becomes 'Major Creditor'
+                      'CF' becomes 'Central Fund'
+                  enum:
+                    - Minor Creditor
+                    - Major Creditor
+                    - Central Fund
             has_associated_defendant:
               type: boolean
         financials:

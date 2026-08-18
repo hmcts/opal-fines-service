@@ -56,7 +56,7 @@ class Release1bFeatureToggleAnnotationTest {
             "DefendantAccountApiController#addPaymentCardRequest",
             "DefendantAccountApiController#updateDefendantAccount",
             "DefendantAccountApiController#getConsolidatedAccounts",
-            "MinorCreditorController#getMinorCreditorAccountHeaderSummary",
+            "MinorCreditorApiController#getMinorCreditorAccountHeaderSummary",
             "DefendantAccountApiController#postDefendantAccountSearch",
             "DefendantAccountController#removeDefendantAccountParty",
             "MinorCreditorApiController#getMinorCreditorAccountAtAGlance",
