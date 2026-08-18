@@ -1,15 +1,12 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -18,26 +15,25 @@ import static org.mockito.Mockito.when;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler.PaymentCardRequestAlreadyExistsException;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.RecordType;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
-import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.PaymentCardRequestRepositoryService;
-import uk.gov.hmcts.opal.service.proxy.DefendantAccountPaymentTermsServiceProxy;
 
 @ExtendWith(MockitoExtension.class)
 class OpalDefendantAccountServicePaymentCardTest {
@@ -50,7 +46,6 @@ class OpalDefendantAccountServicePaymentCardTest {
     AmendmentRepositoryService amendmentRepositoryService;
     @Mock
     DefendantAccountControlValidator defendantAccountControlValidator;
-    @Mock UserStateService userStateService;
 
     @InjectMocks
     OpalDefendantAccountPaymentTermsService service;
@@ -76,7 +71,7 @@ class OpalDefendantAccountServicePaymentCardTest {
             .thenAnswer(inv -> inv.getArgument(0));
 
         AddPaymentCardRequestResponse response = service.addPaymentCardRequest(
-            accountId, "10", "L080JG", "John Smith", "\"1\""
+            accountId, (short) 10, "L080JG", "John Smith", "\"1\""
         );
 
         assertNotNull(response);
@@ -102,7 +97,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(paymentCardRequestRepositoryService.existsByDefendantAccountId(1L)).thenReturn(true);
 
         assertThrows(PaymentCardRequestAlreadyExistsException.class, () ->
-            service.addPaymentCardRequest(1L, "10", null, "John Smith", "\"1\"")
+            service.addPaymentCardRequest(1L, (short) 10, "L080JG", "John Smith", "\"1\"")
         );
     }
 
@@ -116,27 +111,27 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
         assertThrows(EntityNotFoundException.class, () ->
-            service.addPaymentCardRequest(1L, "10", null, "John Smith", "\"1\"")
+            service.addPaymentCardRequest(1L, (short) 10, "L080JG", "John Smith", "\"1\"")
         );
     }
 
-    @Test
-    void addPaymentCardRequest_allowsNullBusinessUnitUserId_whenUserNotInBusinessUnit() {
-        DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 10).build())
-            .versionNumber(1L)
-            .build();
-
-        when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
-        when(paymentCardRequestRepositoryService.existsByDefendantAccountId(1L)).thenReturn(false);
-        when(defendantAccountRepositoryService.save(any())).thenAnswer(inv -> inv.getArgument(0));
-
-        assertDoesNotThrow(() ->
-            service.addPaymentCardRequest(1L, "10", null, "John Smith", "\"1\"")
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = " ")
+    void addPaymentCardRequest_missingBusinessUnitUserId_throws403BeforeMutation(String businessUnitUserId) {
+        PermissionNotAllowedException ex = assertThrows(
+            PermissionNotAllowedException.class,
+            () -> service.addPaymentCardRequest(1L, (short) 10, businessUnitUserId, "John Smith", "\"1\"")
         );
 
-        assertTrue(account.getPaymentCardRequested());
-        assertNull(account.getPaymentCardRequestedBy());
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.AMEND_PAYMENT_TERMS);
+        assertThat(ex.getBusinessUnitId()).isEqualTo((short) 10);
+        verifyNoInteractions(
+            defendantAccountRepositoryService,
+            defendantAccountControlValidator,
+            amendmentRepositoryService,
+            paymentCardRequestRepositoryService
+        );
     }
 
     @Test
@@ -149,7 +144,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
         assertThrows(ObjectOptimisticLockingFailureException.class, () ->
-            service.addPaymentCardRequest(1L, "10", null, "John Smith", "\"0\"")
+            service.addPaymentCardRequest(1L, (short) 10, "L080JG", "John Smith", "\"0\"")
         );
     }
 
@@ -163,7 +158,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
         assertThrows(EntityNotFoundException.class, () ->
-            service.addPaymentCardRequest(1L, "10", "BU-USER-123", "John Smith", "\"1\"")
+            service.addPaymentCardRequest(1L, (short) 10, "BU-USER-123", "John Smith", "\"1\"")
         );
 
         verify(defendantAccountRepositoryService, never()).save(any());
@@ -182,7 +177,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         doThrow(exception).when(defendantAccountControlValidator).validateCanAddPaymentCardRequest(account);
 
         UnprocessableException result = assertThrows(UnprocessableException.class, () ->
-            service.addPaymentCardRequest(1L, "10", "BU-USER-123", "John Smith", "\"1\""));
+            service.addPaymentCardRequest(1L, (short) 10, "BU-USER-123", "John Smith", "\"1\""));
 
         assertEquals(exception, result);
         verify(defendantAccountControlValidator).validateCanAddPaymentCardRequest(account);
@@ -208,7 +203,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(defendantAccountRepositoryService.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         AddPaymentCardRequestResponse response = service.addPaymentCardRequest(
-            accountId, "10", "L080JG", "John Smith", "\"1\""
+            accountId, (short) 10, "L080JG", "John Smith", "\"1\""
         );
 
         assertNotNull(response);
@@ -219,26 +214,5 @@ class OpalDefendantAccountServicePaymentCardTest {
 
         verify(paymentCardRequestRepositoryService).save(any(PaymentCardRequestEntity.class));
         verify(defendantAccountRepositoryService).save(account);
-    }
-
-    @Test
-    void addPaymentCardRequest_permissionDenied_throws403() {
-        DefendantAccountPaymentTermsServiceProxy proxy = mock(DefendantAccountPaymentTermsServiceProxy.class);
-
-        UserState userState = mock(UserState.class);
-        when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(userState);
-        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS))
-            .thenReturn(false);
-
-        var svc = new DefendantAccountPaymentTermsService(proxy, userStateService);
-
-        PermissionNotAllowedException ex = assertThrows(
-            PermissionNotAllowedException.class,
-            () -> svc.addPaymentCardRequest(1L, "10", "USR", "\"1\"")
-        );
-        assertThat(ex.getPermission()).containsExactly(FinesPermission.AMEND_PAYMENT_TERMS);
-
-        verifyNoInteractions(proxy);
     }
 }

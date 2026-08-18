@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.entity.majorcreditor;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
@@ -73,6 +74,7 @@ public class MajorCreditorEntity extends AddressEntity {
     @Column(name = "contact_email", length = 80)
     private String contactEmail;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinFormula(
         value = "(select ca.creditor_account_id from creditor_accounts ca "

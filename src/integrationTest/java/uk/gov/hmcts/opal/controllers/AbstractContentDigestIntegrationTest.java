@@ -17,14 +17,8 @@ abstract class AbstractContentDigestIntegrationTest extends AbstractIntegrationT
     protected static final String POST_ENDPOINT = "/business-units/search";
     protected static final String POST_BODY = "{}";
 
-    private static final byte[] EMPTY_BODY = new byte[0];
-
-    protected static String validEmptyBodyDigest() throws NoSuchAlgorithmException {
-        return contentDigestHeaderFor(EMPTY_BODY);
-    }
-
-    protected static String validPostBodyDigest() throws NoSuchAlgorithmException {
-        return contentDigestHeaderFor(POST_BODY.getBytes(StandardCharsets.UTF_8));
+    protected static String validPostBodyDigest(String body) throws NoSuchAlgorithmException {
+        return contentDigestHeaderFor(body.getBytes(StandardCharsets.UTF_8));
     }
 
     protected static String invalidDigest() throws NoSuchAlgorithmException {

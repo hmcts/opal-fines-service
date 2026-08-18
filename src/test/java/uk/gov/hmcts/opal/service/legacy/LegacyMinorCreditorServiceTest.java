@@ -43,6 +43,7 @@ import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditorMinorCreditor;
 import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
@@ -105,6 +106,68 @@ class LegacyMinorCreditorServiceTest {
             .businessUnitIds(List.of((short) 1))
             .accountNumber("ACC-1")
             .activeAccountsOnly(true)
+            .build();
+
+        Defendant defendant = Defendant.builder()
+            .defendantAccountId("5L")
+            .firstnames("Jane")
+            .surname("Smith")
+            .organisation(false)
+            .organisationName(null)
+            .build();
+
+        CreditorAccount creditorAccount = CreditorAccount.builder()
+            .creditorAccountId("2")
+            .accountNumber("123456")
+            .organisation(true)
+            .organisationName("Org Ltd")
+            .firstnames("John")
+            .surname("Doe")
+            .addressLine1("123 Road")
+            .postcode("AB12 3CD")
+            .businessUnitId("10L")
+            .businessUnitName("Unit 10")
+            .accountBalance(1000.00)
+            .defendant(defendant)
+            .build();
+
+        LegacyMinorCreditorSearchResultsResponse legacyResponse = LegacyMinorCreditorSearchResultsResponse.builder()
+            .count(1)
+            .creditorAccounts(List.of(creditorAccount))
+            .build();
+
+        GatewayService.Response<LegacyMinorCreditorSearchResultsResponse> response =
+            new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
+
+        when(gatewayService.postToGateway(any(), eq(LegacyMinorCreditorSearchResultsResponse.class), any(), any()))
+            .thenReturn(response);
+
+        PostMinorCreditorAccountsSearchResponseMinorCreditor result = legacyMinorCreditorService
+            .searchMinorCreditors(search);
+
+        assertEquals(1, result.getCount());
+        assertEquals(1, result.getCreditorAccounts().size());
+        assertEquals("2", result.getCreditorAccounts().getFirst().getCreditorAccountId());
+        assertEquals("Jane", result.getCreditorAccounts().getFirst().getDefendant().getFirstnames());
+    }
+
+    @Test
+    void searchMinorCreditors_shouldMapLegacyResponseWithCreditorToDto() {
+        PostMinorCreditorAccountSearchRequestMinorCreditor search = PostMinorCreditorAccountSearchRequestMinorCreditor
+            .builder()
+            .businessUnitIds(List.of((short) 1))
+            .activeAccountsOnly(true)
+            .creditor(MinorCreditorAccountSearchCreditorMinorCreditor.builder()
+                .addressLine1("123 Road")
+                .postcode("AB12 3CD")
+                .organisation(false)
+                .organisationName(null)
+                .exactMatchOrganisationName(null)
+                .surname("Doe")
+                .forenames("John")
+                .exactMatchSurname(false)
+                .exactMatchForenames(false)
+                .build())
             .build();
 
         Defendant defendant = Defendant.builder()

@@ -3,15 +3,18 @@ package uk.gov.hmcts.opal.entity;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.xml.bind.annotation.XmlAccessType;
@@ -20,10 +23,14 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -70,8 +77,11 @@ public class TillEntity {
     @Column(name = "total_amount", precision = 18, scale = 2)
     private BigDecimal totalAmount;
 
-    @Column(name = "interface_file_id")
-    private Long interfaceFileId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "interface_file_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private InterfaceFileEntity interfaceFile;
 
     @Column(name = "payments_count")
     private Short paymentsCount;
@@ -86,4 +96,9 @@ public class TillEntity {
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime createdDate;
 
+    @Builder.Default
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @OneToMany(mappedBy = "tillEntity", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private List<PaymentInEntity> paymentInEntities = new ArrayList<>();
 }

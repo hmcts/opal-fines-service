@@ -109,6 +109,7 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-8973 Get result by ID omits optional fields when null")
     @JiraStory("PO-8973")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-10186")
     void getResultById_whenOptionalFieldsAreNull_omitsThem() throws Exception {
         mockMvc.perform(get(URL_BASE + "/DDDDDD"))
             .andExpect(status().isOk())
@@ -125,6 +126,7 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-8973 Get result by ID includes optional field when null with ALWAYS")
     @JiraStory("PO-8973")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-10185")
     void getResultById_whenOptionalFieldIsNullWithAlways_includesIt() throws Exception {
         mockMvc.perform(get(URL_BASE + "/DDDDDD"))
             .andExpect(status().isOk())
