@@ -24,10 +24,10 @@ import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.generated.model.GetMinorCreditorHistory200Response;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCreditor;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditorMinorCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
-import uk.gov.hmcts.opal.generated.model.PostMinorCreditorAccountSearchRequestMinorCreditor;
-import uk.gov.hmcts.opal.generated.model.PostMinorCreditorAccountsSearchResponseMinorCreditor;
 import uk.gov.hmcts.opal.service.MinorCreditorService;
 
 @ExtendWith(MockitoExtension.class)
@@ -143,21 +143,19 @@ class MinorCreditorApiControllerTest {
     @Test
     void testPostMinorCreditorSearch_Success() {
         // Arrange
-        PostMinorCreditorAccountsSearchResponseMinorCreditor mockResponse =
-            new PostMinorCreditorAccountsSearchResponseMinorCreditor();
+        MinorCreditorAccountsSearchResponse mockResponse = new MinorCreditorAccountsSearchResponse();
 
-        PostMinorCreditorAccountSearchRequestMinorCreditor search = PostMinorCreditorAccountSearchRequestMinorCreditor
-            .builder()
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
             .businessUnitIds(List.of((short) 101, (short) 202, (short) 303))
             .activeAccountsOnly(true)
             .accountNumber("ACC123456")
-            .creditor(MinorCreditorAccountSearchCreditorMinorCreditor.builder().build())
+            .creditor(MinorCreditorAccountSearchCreditor.builder().build())
             .build();
 
         when(minorCreditorService.searchMinorCreditors(any())).thenReturn(mockResponse);
 
         // Act
-        ResponseEntity<PostMinorCreditorAccountsSearchResponseMinorCreditor> responseEntity =
+        ResponseEntity<MinorCreditorAccountsSearchResponse> responseEntity =
             minorCreditorApiController.postMinorCreditorSearch(search);
 
         // Assert

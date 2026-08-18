@@ -344,14 +344,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/postMinorCreditorAccountSearchRequest'
+              $ref: '#/components/schemas/MinorCreditorSearchRequest'
       responses:
         200:
           description: 'OK'
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/postMinorCreditorAccountsSearchResponse'
+                $ref: '#/components/schemas/MinorCreditorAccountsSearchResponse'
         400:
           description: 'Bad request'
           content:
@@ -483,7 +483,7 @@ components:
                   description: DB Mapping - creditor_accounts.hold_payout
               required:
                 - hold_payment
-    postMinorCreditorAccountSearchRequest:
+    MinorCreditorSearchRequest:
       title: Post Minor Creditor Accounts Search Request
       type: object
       additionalProperties: false
@@ -513,9 +513,9 @@ components:
           type: string
           nullable: true
         creditor:
-          $ref: '#/components/schemas/minorCreditorAccountSearchCreditor'
+          $ref: '#/components/schemas/MinorCreditorAccountSearchCreditor'
           nullable: true
-    postMinorCreditorAccountsSearchResponse:
+    MinorCreditorAccountsSearchResponse:
       title: Post Minor Creditor Accounts Search Response
       type: object
       additionalProperties: false
@@ -532,7 +532,7 @@ components:
           description: A list of minor creditor accounts. Null if none are found
           items:
             $ref: '#/components/schemas/minorCreditorAccountSearchResult'
-    minorCreditorAccountSearchCreditor:
+    MinorCreditorAccountSearchCreditor:
       title: Minor Creditor Account Search Creditor
       type: object
       nullable: true
@@ -614,9 +614,9 @@ components:
           type: string
           nullable: true
         defendant:
-          $ref: '#/components/schemas/minorCreditorAccountSearchDefendant'
+          $ref: '#/components/schemas/MinorCreditorAccountSearchDefendant'
           nullable: true
-    minorCreditorAccountSearchDefendant:
+    MinorCreditorAccountSearchDefendant:
       title: Minor Creditor Account Search Defendant
       type: object
       additionalProperties: false

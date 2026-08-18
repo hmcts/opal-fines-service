@@ -28,13 +28,13 @@ import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsRespo
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditorMinorCreditor;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchDefendantMinorCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchDefendant;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchResultMinorCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
-import uk.gov.hmcts.opal.generated.model.PostMinorCreditorAccountSearchRequestMinorCreditor;
-import uk.gov.hmcts.opal.generated.model.PostMinorCreditorAccountsSearchResponseMinorCreditor;
 import uk.gov.hmcts.opal.mapper.legacy.GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyMinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateMinorCreditorAccountResponseMapper;
@@ -66,8 +66,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     private final LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
 
     @Override
-    public PostMinorCreditorAccountsSearchResponseMinorCreditor searchMinorCreditors(
-        PostMinorCreditorAccountSearchRequestMinorCreditor minorCreditorEntity) {
+    public MinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearchRequest minorCreditorEntity) {
 
         Response<LegacyMinorCreditorSearchResultsResponse> response =
             gatewayService.postToGateway(SEARCH_MINOR_CREDITORS,
@@ -206,8 +205,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
         return updateMinorCreditorAccountResponseMapper.toMinorCreditorAccountResponse(response.responseEntity);
     }
 
-    private LegacyMinorCreditorSearchResultsRequest createRequest(
-            PostMinorCreditorAccountSearchRequestMinorCreditor request) {
+    private LegacyMinorCreditorSearchResultsRequest createRequest(MinorCreditorSearchRequest request) {
         return LegacyMinorCreditorSearchResultsRequest.builder()
             .businessUnitIds(request.getBusinessUnitIds())
             .creditor(toCreditor(request.getCreditor()))
@@ -216,11 +214,11 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
             .build();
     }
 
-    private PostMinorCreditorAccountsSearchResponseMinorCreditor toMinorSearchDto(
+    private MinorCreditorAccountsSearchResponse toMinorSearchDto(
         LegacyMinorCreditorSearchResultsResponse legacyResponse) {
 
         if (legacyResponse == null) {
-            return PostMinorCreditorAccountsSearchResponseMinorCreditor.builder()
+            return MinorCreditorAccountsSearchResponse.builder()
                 .count(0)
                 .creditorAccounts(List.of())
                 .build();
@@ -244,7 +242,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
                 .accountBalance(BigDecimal.valueOf(legacy.getAccountBalance()))
                 .defendant(
                     legacy.getDefendant() == null ? null :
-                        MinorCreditorAccountSearchDefendantMinorCreditor.builder()
+                        MinorCreditorAccountSearchDefendant.builder()
                             .defendantAccountId(legacy.getDefendant().getDefendantAccountId())
                             .organisation(legacy.getDefendant().isOrganisation())
                             .organisationName(legacy.getDefendant().getOrganisationName())
@@ -255,13 +253,13 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
                 .build())
             .toList();
 
-        return PostMinorCreditorAccountsSearchResponseMinorCreditor.builder()
+        return MinorCreditorAccountsSearchResponse.builder()
             .count(legacyResponse.getCount())
             .creditorAccounts(mappedAccounts)
             .build();
     }
 
-    private Creditor toCreditor(MinorCreditorAccountSearchCreditorMinorCreditor creditor) {
+    private Creditor toCreditor(MinorCreditorAccountSearchCreditor creditor) {
         if (creditor == null) {
             return null;
         }

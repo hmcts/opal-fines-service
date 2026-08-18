@@ -26,10 +26,10 @@ import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchDefendantMinorCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchDefendant;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchResultMinorCreditor;
-import uk.gov.hmcts.opal.generated.model.PostMinorCreditorAccountSearchRequestMinorCreditor;
-import uk.gov.hmcts.opal.generated.model.PostMinorCreditorAccountsSearchResponseMinorCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderEntityMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.entity.PartyEntity;
@@ -134,8 +134,7 @@ class OpalMinorCreditorServiceTest {
 
     @Test
     void searchMinorCreditors_twoResults_happyPath_mapsAllFields() {
-        PostMinorCreditorAccountSearchRequestMinorCreditor criteria = PostMinorCreditorAccountSearchRequestMinorCreditor
-            .builder()
+        MinorCreditorSearchRequest criteria = MinorCreditorSearchRequest.builder()
             .businessUnitIds(List.of((short) 10))
             .accountNumber("12345678A")
             .activeAccountsOnly(false)
@@ -144,7 +143,7 @@ class OpalMinorCreditorServiceTest {
         when(minorCreditorRepository.findAll(Mockito.<Specification<MinorCreditorEntity>>any()))
             .thenReturn(List.of(entityOrgFalseWithDefendant, entityOrgTrueNoDefendant));
 
-        PostMinorCreditorAccountsSearchResponseMinorCreditor response = service.searchMinorCreditors(criteria);
+        MinorCreditorAccountsSearchResponse response = service.searchMinorCreditors(criteria);
 
         verify(minorCreditorRepository, times(1)).findAll(specCaptor.capture());
         Specification<MinorCreditorEntity> passedSpec = specCaptor.getValue();
@@ -167,7 +166,7 @@ class OpalMinorCreditorServiceTest {
         assertEquals("10", a0.getBusinessUnitId());
         assertEquals(new java.math.BigDecimal("150"), a0.getAccountBalance());
 
-        MinorCreditorAccountSearchDefendantMinorCreditor d0 = a0.getDefendant();
+        MinorCreditorAccountSearchDefendant d0 = a0.getDefendant();
         assertNotNull(d0);
         assertEquals("0", d0.getDefendantAccountId());
         assertFalse(d0.getOrganisation());
@@ -188,7 +187,7 @@ class OpalMinorCreditorServiceTest {
         assertEquals("10", a1.getBusinessUnitId());
         assertEquals(BigDecimal.ZERO, a1.getAccountBalance());
 
-        MinorCreditorAccountSearchDefendantMinorCreditor d1 = a1.getDefendant();
+        MinorCreditorAccountSearchDefendant d1 = a1.getDefendant();
         assertNotNull(d1);
         assertEquals("0", d1.getDefendantAccountId());
         assertTrue(d1.getOrganisation());
@@ -199,15 +198,14 @@ class OpalMinorCreditorServiceTest {
 
     @Test
     void searchMinorCreditors_emptyResult_returnsCountZeroAndEmptyList() {
-        PostMinorCreditorAccountSearchRequestMinorCreditor criteria = PostMinorCreditorAccountSearchRequestMinorCreditor
-            .builder()
+        MinorCreditorSearchRequest criteria = MinorCreditorSearchRequest.builder()
             .businessUnitIds(List.of((short) 10))
             .build();
 
         when(minorCreditorRepository.findAll(Mockito.<Specification<MinorCreditorEntity>>any()))
             .thenReturn(Collections.emptyList());
 
-        PostMinorCreditorAccountsSearchResponseMinorCreditor response = service.searchMinorCreditors(criteria);
+        MinorCreditorAccountsSearchResponse response = service.searchMinorCreditors(criteria);
 
         verify(minorCreditorRepository, times(1))
             .findAll(Mockito.<Specification<MinorCreditorEntity>>any());
@@ -217,7 +215,7 @@ class OpalMinorCreditorServiceTest {
 
     @Test
     void searchMinorCreditors_repositoryThrows_exceptionPropagates() {
-        PostMinorCreditorAccountSearchRequestMinorCreditor criteria = PostMinorCreditorAccountSearchRequestMinorCreditor
+        MinorCreditorSearchRequest criteria = MinorCreditorSearchRequest
             .builder()
             .businessUnitIds(List.of((short) 10))
             .accountNumber("boom")
@@ -234,7 +232,7 @@ class OpalMinorCreditorServiceTest {
 
     @Test
     void searchMinorCreditors_minimalCriteria_buildsSpecAndMapsSingle() {
-        PostMinorCreditorAccountSearchRequestMinorCreditor criteria = PostMinorCreditorAccountSearchRequestMinorCreditor
+        MinorCreditorSearchRequest criteria = MinorCreditorSearchRequest
             .builder()
             .businessUnitIds(List.of((short) 10))
             .build();
@@ -242,7 +240,7 @@ class OpalMinorCreditorServiceTest {
         when(minorCreditorRepository.findAll(Mockito.<Specification<MinorCreditorEntity>>any()))
             .thenReturn(List.of(entityOrgFalseWithDefendant));
 
-        PostMinorCreditorAccountsSearchResponseMinorCreditor response = service.searchMinorCreditors(criteria);
+        MinorCreditorAccountsSearchResponse response = service.searchMinorCreditors(criteria);
 
         verify(minorCreditorRepository).findAll(specCaptor.capture());
         Specification<MinorCreditorEntity> spec = specCaptor.getValue();

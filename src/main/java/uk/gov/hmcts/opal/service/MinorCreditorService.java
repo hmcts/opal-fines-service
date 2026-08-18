@@ -17,11 +17,11 @@ import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditorMinorCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
-import uk.gov.hmcts.opal.generated.model.PostMinorCreditorAccountSearchRequestMinorCreditor;
-import uk.gov.hmcts.opal.generated.model.PostMinorCreditorAccountsSearchResponseMinorCreditor;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 
 @Service
@@ -33,8 +33,7 @@ public class MinorCreditorService {
 
     private final UserStateService userStateService;
 
-    public PostMinorCreditorAccountsSearchResponseMinorCreditor searchMinorCreditors(
-        PostMinorCreditorAccountSearchRequestMinorCreditor entity) {
+    public MinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearchRequest entity) {
         log.debug(":searchMinorCreditor:");
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
@@ -208,8 +207,8 @@ public class MinorCreditorService {
             .collect(Collectors.joining(",", "[", "]"));
     }
 
-    private void validateMinorCreditorSearch(PostMinorCreditorAccountSearchRequestMinorCreditor entity) {
-        MinorCreditorAccountSearchCreditorMinorCreditor creditor = entity.getCreditor();
+    private void validateMinorCreditorSearch(MinorCreditorSearchRequest entity) {
+        MinorCreditorAccountSearchCreditor creditor = entity.getCreditor();
         if (hasText(entity.getAccountNumber()) && creditor != null) {
             throw new IllegalArgumentException("No other fields can be populated when accountNumber is populated");
         }

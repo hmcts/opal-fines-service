@@ -16,8 +16,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
-import uk.gov.hmcts.opal.generated.model.PostMinorCreditorAccountSearchRequestMinorCreditor;
-import uk.gov.hmcts.opal.generated.model.PostMinorCreditorAccountsSearchResponseMinorCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyMinorCreditorService;
 import uk.gov.hmcts.opal.service.opal.OpalMinorCreditorService;
@@ -69,12 +69,11 @@ class MinorCreditorServiceProxyTest extends ProxyTestsBase {
                                       MinorCreditorServiceInterface otherService) {
 
         // Given: a Entity is returned from the target service
-        PostMinorCreditorAccountsSearchResponseMinorCreditor
-            entity = PostMinorCreditorAccountsSearchResponseMinorCreditor.builder().build();
+        MinorCreditorAccountsSearchResponse entity = MinorCreditorAccountsSearchResponse.builder().build();
         when(targetService.searchMinorCreditors(any())).thenReturn(entity);
 
-        PostMinorCreditorAccountsSearchResponseMinorCreditor searchMinorCreditorsResult = serviceProxy
-            .searchMinorCreditors(PostMinorCreditorAccountSearchRequestMinorCreditor.builder().build());
+        MinorCreditorAccountsSearchResponse searchMinorCreditorsResult = serviceProxy
+            .searchMinorCreditors(MinorCreditorSearchRequest.builder().build());
 
         // Then: target service should be used, and the returned entity should be as expected
         verify(targetService).searchMinorCreditors(any());

@@ -18,8 +18,8 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditorMinorCreditor;
-import uk.gov.hmcts.opal.generated.model.PostMinorCreditorAccountSearchRequestMinorCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -45,12 +45,11 @@ public class MinorCreditorControllerSearchIntegrationTest extends AbstractIntegr
     @DisplayName("AC01 - If account number is populated no other fields can be - should error")
     @JiraTestKey("PO-10095")
     void postMinorCreditorAccountSearch_withAccountNumberAndOtherFields_shouldFail() throws Exception {
-        PostMinorCreditorAccountSearchRequestMinorCreditor search = PostMinorCreditorAccountSearchRequestMinorCreditor
-            .builder()
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
             .activeAccountsOnly(true)
             .accountNumber("JS987654")
             .businessUnitIds(List.of((short) 10))
-            .creditor(MinorCreditorAccountSearchCreditorMinorCreditor.builder()
+            .creditor(MinorCreditorAccountSearchCreditor.builder()
                 .addressLine1("44 Hold St.")
                 .postcode("DE1 2DE")
                 .organisationName("Tech Solutions")
@@ -77,8 +76,7 @@ public class MinorCreditorControllerSearchIntegrationTest extends AbstractIntegr
     @DisplayName("AC02 - If account number is populated no other fields can be - should be successful")
     @JiraTestKey("PO-10098")
     void postMinorCreditorAccountSearch_withAccountNumber_shouldPass() throws Exception {
-        PostMinorCreditorAccountSearchRequestMinorCreditor search = PostMinorCreditorAccountSearchRequestMinorCreditor
-            .builder()
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
             .businessUnitIds(List.of((short) 10))
             .activeAccountsOnly(true)
             .accountNumber("JS987654")
@@ -98,11 +96,10 @@ public class MinorCreditorControllerSearchIntegrationTest extends AbstractIntegr
     @DisplayName("AC03 - If first name is populated last name must also be populated - should error")
     @JiraTestKey("PO-10097")
     void postMinorCreditorAccountSearch_withFirstNameWithoutLastName_shouldFail() throws Exception {
-        PostMinorCreditorAccountSearchRequestMinorCreditor search = PostMinorCreditorAccountSearchRequestMinorCreditor
-            .builder()
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
             .businessUnitIds(List.of((short) 10))
             .activeAccountsOnly(true)
-            .creditor(MinorCreditorAccountSearchCreditorMinorCreditor.builder()
+            .creditor(MinorCreditorAccountSearchCreditor.builder()
                 .forenames("John")
                 .exactMatchForenames(false)
                 .organisation(false)
@@ -123,11 +120,10 @@ public class MinorCreditorControllerSearchIntegrationTest extends AbstractIntegr
     @DisplayName("AC04 - If first name is populated last name must also be populated - should be successful")
     @JiraTestKey("PO-10096")
     void postMinorCreditorAccountSearch_withFirstNameAndLastName_shouldPass() throws Exception {
-        PostMinorCreditorAccountSearchRequestMinorCreditor search = PostMinorCreditorAccountSearchRequestMinorCreditor
-            .builder()
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
             .businessUnitIds(List.of((short) 10))
             .activeAccountsOnly(true)
-            .creditor(MinorCreditorAccountSearchCreditorMinorCreditor.builder()
+            .creditor(MinorCreditorAccountSearchCreditor.builder()
                 .forenames("John")
                 .surname("Smith")
                 .exactMatchForenames(false)

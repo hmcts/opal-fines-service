@@ -40,11 +40,11 @@ import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCreditorPayment;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
-import uk.gov.hmcts.opal.generated.model.PostMinorCreditorAccountSearchRequestMinorCreditor;
-import uk.gov.hmcts.opal.generated.model.PostMinorCreditorAccountsSearchResponseMinorCreditor;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 
 @ExtendWith(MockitoExtension.class)
@@ -62,16 +62,15 @@ class MinorCreditorServiceTest {
     @Test
     void testPostSearchMinorCreditors() {
         // Arrange
-        PostMinorCreditorAccountsSearchResponseMinorCreditor postMinorCreditorAccountsSearchResponse =
-            PostMinorCreditorAccountsSearchResponseMinorCreditor.builder().build();
+        MinorCreditorAccountsSearchResponse minorCreditorAccountsSearchResponse = MinorCreditorAccountsSearchResponse
+            .builder().build();
 
-        when(minorCreditorSearchProxy.searchMinorCreditors(any())).thenReturn(postMinorCreditorAccountsSearchResponse);
+        when(minorCreditorSearchProxy.searchMinorCreditors(any())).thenReturn(minorCreditorAccountsSearchResponse);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
 
         // Act
-        PostMinorCreditorAccountsSearchResponseMinorCreditor result =
-            minorCreditorService.searchMinorCreditors(
-                (PostMinorCreditorAccountSearchRequestMinorCreditor.builder().build()));
+        MinorCreditorAccountsSearchResponse result = minorCreditorService
+            .searchMinorCreditors(MinorCreditorSearchRequest.builder().build());
 
         // Assert
         assertNotNull(result);
@@ -434,7 +433,7 @@ class MinorCreditorServiceTest {
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
             PermissionNotAllowedException.class,
-            () -> minorCreditorService.searchMinorCreditors(PostMinorCreditorAccountSearchRequestMinorCreditor
+            () -> minorCreditorService.searchMinorCreditors(MinorCreditorSearchRequest
                 .builder().build())
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);

@@ -16,7 +16,7 @@ import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity_;
 
 import java.util.Arrays;
 import java.util.Collection;
-import uk.gov.hmcts.opal.generated.model.PostMinorCreditorAccountSearchRequestMinorCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -44,8 +44,7 @@ class MinorCreditorSpecsTest {
 
     @Test
     void findBySearchCriteria_noFilters_throwsBadRequest() {
-        PostMinorCreditorAccountSearchRequestMinorCreditor criteria =
-            mock(PostMinorCreditorAccountSearchRequestMinorCreditor.class);
+        MinorCreditorSearchRequest criteria = mock(MinorCreditorSearchRequest.class);
         when(criteria.getBusinessUnitIds()).thenReturn(null);
         when(criteria.getAccountNumber()).thenReturn(null);
         when(criteria.getCreditor()).thenReturn(null);
@@ -60,8 +59,7 @@ class MinorCreditorSpecsTest {
     @Test
     @SuppressWarnings("unchecked")
     void businessUnitIds_only_buildsInPredicateWithShorts_andDropsNulls() {
-        PostMinorCreditorAccountSearchRequestMinorCreditor criteria =
-            mock(PostMinorCreditorAccountSearchRequestMinorCreditor.class);
+        MinorCreditorSearchRequest criteria = mock(MinorCreditorSearchRequest.class);
         when(criteria.getBusinessUnitIds()).thenReturn(Arrays.asList((short) 1, null, (short) 2));
         when(criteria.getAccountNumber()).thenReturn(null);
         when(criteria.getCreditor()).thenReturn(null);
@@ -92,8 +90,7 @@ class MinorCreditorSpecsTest {
     @Test
     @SuppressWarnings({"unchecked", "rawtypes"})
     void accountNumber_only_callsHasTextStripAndLike_withStrippedPrefix() {
-        PostMinorCreditorAccountSearchRequestMinorCreditor criteria =
-            mock(PostMinorCreditorAccountSearchRequestMinorCreditor.class);
+        MinorCreditorSearchRequest criteria = mock(MinorCreditorSearchRequest.class);
         when(criteria.getBusinessUnitIds()).thenReturn(null);
         when(criteria.getAccountNumber()).thenReturn("12345678A"); // should become "12345678"
         when(criteria.getCreditor()).thenReturn(null);
@@ -131,8 +128,7 @@ class MinorCreditorSpecsTest {
     @Test
     @SuppressWarnings({"unchecked", "rawtypes"})
     void accountNumber_blank_hasTextFalse_resultsInBadRequestWhenNoOtherFilters() {
-        PostMinorCreditorAccountSearchRequestMinorCreditor criteria =
-            mock(PostMinorCreditorAccountSearchRequestMinorCreditor.class);
+        MinorCreditorSearchRequest criteria = mock(MinorCreditorSearchRequest.class);
         when(criteria.getBusinessUnitIds()).thenReturn(null);
         when(criteria.getAccountNumber()).thenReturn("   ");
         when(criteria.getCreditor()).thenReturn(null);
