@@ -71,10 +71,10 @@ class OpalDefendantAccountServiceTest02 {
             () -> assertNotNull(response),
             () -> assertTrue(response.getVehicleFixedPenaltyFlag()),
             () -> assertEquals("Kingston-upon-Thames Mags Court",
-                response.getFixedPenaltyTicketDetails().getIssuingAuthority()),
-            () -> assertEquals("888", response.getFixedPenaltyTicketDetails().getTicketNumber()),
-            () -> assertEquals("12:34", response.getFixedPenaltyTicketDetails().getTimeOfOffence()),
-            () -> assertEquals("London", response.getFixedPenaltyTicketDetails().getPlaceOfOffence())
+                response.getFixedPenaltyTicketDetails().getIssuingAuthority().get()),
+            () -> assertEquals("888", response.getFixedPenaltyTicketDetails().getTicketNumber().get()),
+            () -> assertEquals("12:34", response.getFixedPenaltyTicketDetails().getTimeOfOffence().get()),
+            () -> assertEquals("London", response.getFixedPenaltyTicketDetails().getPlaceOfOffence().get())
         );
     }
 
@@ -96,10 +96,10 @@ class OpalDefendantAccountServiceTest02 {
             () -> assertNotNull(response),
             () -> assertFalse(response.getVehicleFixedPenaltyFlag()),
             () -> assertEquals("Kingston-upon-Thames Mags Court",
-                response.getFixedPenaltyTicketDetails().getIssuingAuthority()),
-            () -> assertEquals("888", response.getFixedPenaltyTicketDetails().getTicketNumber()),
-            () -> assertEquals("12:12", response.getFixedPenaltyTicketDetails().getTimeOfOffence()),
-            () -> assertEquals("Manchester", response.getFixedPenaltyTicketDetails().getPlaceOfOffence()),
+                response.getFixedPenaltyTicketDetails().getIssuingAuthority().get()),
+            () -> assertEquals("888", response.getFixedPenaltyTicketDetails().getTicketNumber().get()),
+            () -> assertEquals("12:12", response.getFixedPenaltyTicketDetails().getTimeOfOffence().get()),
+            () -> assertEquals("Manchester", response.getFixedPenaltyTicketDetails().getPlaceOfOffence().get()),
             () -> assertNull(response.getVehicleFixedPenaltyDetails().get())
         );
     }
