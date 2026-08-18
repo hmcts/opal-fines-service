@@ -15,6 +15,11 @@ public interface BusinessUnitSummaryMapper {
     @Mapping(target = "welshSpeaking", expression = "java(toWelshSpeaking(entity.isWelshLanguage()))")
     BusinessUnitSummary toBusinessUnitSummary(MinorCreditorAccountHeaderEntity entity);
 
+    @Mapping(target = "businessUnitId", source = "entity.businessUnitId")
+    @Mapping(target = "businessUnitCode", ignore = true)
+    @Mapping(target = "welshSpeaking", expression = "java(toWelshSpeaking(entity.isWelshLanguage()))")
+    BusinessUnitSummaryCommon toBusinessUnitSummaryCommon(MinorCreditorAccountHeaderEntity entity);
+
     @Mapping(target = "welshSpeaking", expression = "java(toWelshSpeaking(businessUnitEntity.getWelshLanguage()))")
     BusinessUnitSummaryCommon toBusinessUnitSummaryCommon(BusinessUnitEntity businessUnitEntity);
 

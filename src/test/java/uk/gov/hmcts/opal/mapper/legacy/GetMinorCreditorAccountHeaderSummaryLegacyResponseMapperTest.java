@@ -8,14 +8,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse.CreditorHeader;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse.Financials;
-import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse.CreditorHeaderLegacy;
 import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse.FinancialsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary;
+import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponseCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponseFinancials;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 
 @ExtendWith(MockitoExtension.class)
 class GetMinorCreditorAccountHeaderSummaryLegacyResponseMapperTest {
@@ -42,11 +43,13 @@ class GetMinorCreditorAccountHeaderSummaryLegacyResponseMapperTest {
         BusinessUnitSummary businessUnitSummary = BusinessUnitSummary.builder().build();
         CreditorHeaderLegacy creditorHeader = CreditorHeaderLegacy.builder().build();
         FinancialsLegacy financials = FinancialsLegacy.builder().build();
-        when(legacyPartyDetailsMapper.toOpal(partyDetails)).thenReturn(PartyDetails.builder().build());
-        when(businessUnitSummaryLegacyMapper.toOpal(businessUnitSummary)).thenReturn(
-            uk.gov.hmcts.opal.dto.common.BusinessUnitSummary.builder().build());
-        when(creditorHeaderLegacyMapper.toOpal(creditorHeader)).thenReturn(CreditorHeader.builder().build());
-        when(financialsLegacyMapper.toOpal(financials)).thenReturn(Financials.builder().build());
+        when(legacyPartyDetailsMapper.toPartyDetailsCommon(partyDetails)).thenReturn(new PartyDetailsCommon());
+        when(businessUnitSummaryLegacyMapper.toBusinessUnitSummaryCommon(businessUnitSummary)).thenReturn(
+            new BusinessUnitSummaryCommon());
+        when(creditorHeaderLegacyMapper.toOpal(creditorHeader)).thenReturn(
+            new MinorCreditorAccountHeaderSummaryResponseCreditor());
+        when(financialsLegacyMapper.toOpal(financials)).thenReturn(
+            new MinorCreditorAccountHeaderSummaryResponseFinancials());
 
         GetMinorCreditorAccountHeaderSummaryLegacyResponse legacy = GetMinorCreditorAccountHeaderSummaryLegacyResponse
             .builder()
@@ -60,8 +63,8 @@ class GetMinorCreditorAccountHeaderSummaryLegacyResponseMapperTest {
         mapper.toOpal(legacy);
 
         // Assert
-        verify(legacyPartyDetailsMapper).toOpal(partyDetails);
-        verify(businessUnitSummaryLegacyMapper).toOpal(businessUnitSummary);
+        verify(legacyPartyDetailsMapper).toPartyDetailsCommon(partyDetails);
+        verify(businessUnitSummaryLegacyMapper).toBusinessUnitSummaryCommon(businessUnitSummary);
         verify(creditorHeaderLegacyMapper).toOpal(creditorHeader);
         verify(financialsLegacyMapper).toOpal(financials);
     }

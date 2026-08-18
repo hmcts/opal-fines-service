@@ -13,6 +13,10 @@ public interface CreditorAccountTypeMapper {
     @Mapping(target = "displayName", source = "enumValue", qualifiedByName = "mapDisplayName")
     CreditorAccountTypeReference toDto(CreditorAccountType enumValue);
 
+    @Mapping(target = "type", source = "enumValue", qualifiedByName = "mapType")
+    @Mapping(target = "displayName", expression = "java(toGeneratedDisplayName(enumValue))")
+    uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReference toGeneratedDto(CreditorAccountType enumValue);
+
     @Named("mapType")
     default String mapType(CreditorAccountType type) {
         return type != null ? type.name() : null;
@@ -21,5 +25,14 @@ public interface CreditorAccountTypeMapper {
     @Named("mapDisplayName")
     default String mapDisplayName(CreditorAccountType type) {
         return type != null ? type.getLabel() : null;
+    }
+
+    default uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReference.DisplayNameEnum toGeneratedDisplayName(
+        CreditorAccountType type
+    ) {
+        String displayName = mapDisplayName(type);
+        return displayName == null
+            ? null
+            : uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReference.DisplayNameEnum.fromValue(displayName);
     }
 }

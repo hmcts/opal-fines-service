@@ -13,15 +13,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
-import uk.gov.hmcts.opal.dto.common.CreditorAccountTypeReference;
-import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.entity.PartyEntity;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
+import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.mapper.common.BusinessUnitSummaryMapper;
-import uk.gov.hmcts.opal.mapper.common.CreditorAccountTypeMapper;
 import uk.gov.hmcts.opal.mapper.common.PartyMapper;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
@@ -37,9 +35,6 @@ class MinorCreditorAccountHeaderEntityMapperTest extends AbstractMapperTest {
 
     @MockitoBean
     private BusinessUnitSummaryMapper businessUnitSummaryMapper;
-
-    @MockitoBean
-    private CreditorAccountTypeMapper creditorAccountTypeMapper;
 
     @MockitoBean
     private EnforcementRepositoryService enforcementService;
@@ -74,13 +69,12 @@ class MinorCreditorAccountHeaderEntityMapperTest extends AbstractMapperTest {
             .partyId(999L)
             .build();
 
-        when(partyMapper.toDto(party)).thenReturn(PartyDetails.builder().build());
-        when(businessUnitSummaryMapper.toBusinessUnitSummary(entity)).thenReturn(BusinessUnitSummary.builder().build());
-        when(creditorAccountTypeMapper.toDto(entity.getCreditorAccountType()))
-            .thenReturn(CreditorAccountTypeReference.builder().build());
+        when(partyMapper.toPartyDetailsCommon(party)).thenReturn(new PartyDetailsCommon());
+        when(businessUnitSummaryMapper.toBusinessUnitSummaryCommon(entity)).thenReturn(
+            new BusinessUnitSummaryCommon());
 
         // Act
-        GetMinorCreditorAccountHeaderSummaryResponse mapped = mapper.toResponse(entity, party);
+        MinorCreditorAccountHeaderSummaryResponse mapped = mapper.toResponse(entity, party);
 
         // Assert
         assertNotNull(mapped);
@@ -95,8 +89,7 @@ class MinorCreditorAccountHeaderEntityMapperTest extends AbstractMapperTest {
         assertEquals(repayment, mapped.getRepayment());
 
 
-        verify(partyMapper).toDto(party);
-        verify(businessUnitSummaryMapper).toBusinessUnitSummary(entity);
-        verify(creditorAccountTypeMapper).toDto(entity.getCreditorAccountType());
+        verify(partyMapper).toPartyDetailsCommon(party);
+        verify(businessUnitSummaryMapper).toBusinessUnitSummaryCommon(entity);
     }
 }
