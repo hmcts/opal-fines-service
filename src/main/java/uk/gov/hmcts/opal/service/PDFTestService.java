@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -77,7 +76,13 @@ public class PDFTestService {
     }
 
     public void run(Integer maxPdfsToMerge) {
-        run(maxPdfsToMerge, new ByteArrayOutputStream());
+        run(maxPdfsToMerge, new OutputStream() {
+
+            @Override
+            public void write(int b) throws IOException {
+
+            }
+        });
     }
 
     public void run(OutputStream destinationOutputStream) {
