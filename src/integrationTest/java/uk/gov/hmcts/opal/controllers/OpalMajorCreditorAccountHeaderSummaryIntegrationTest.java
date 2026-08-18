@@ -229,7 +229,7 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
             Set.of("business_unit_code", "business_unit_id", "business_unit_name", "welsh_speaking"),
             fieldNames(businessUnitDetails)
         );
-        assertTrue(businessUnitDetails.get("business_unit_code").isNull());
+        assertEquals("0046", businessUnitDetails.get("business_unit_code").asText());
         assertEquals("77", businessUnitDetails.get("business_unit_id").asText());
         assertEquals("Camberwell Green", businessUnitDetails.get("business_unit_name").asText());
         assertEquals("N", businessUnitDetails.get("welsh_speaking").asText());

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -1094,6 +1095,87 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
         actions.andExpect(status().isOk()).andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.defendant_accounts[0].aliases[0].surname").value("AliasSurname1"));
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {false, true})
+    @DisplayName("OPAL: Alias surname search only matches aliases starting with input")
+    @JiraStory("PO-2351")
+    @JiraEpic("PO-2294")
+    void testPostDefendantAccountsSearch_Opal_AliasSurnameStartsWith(boolean consolidation) throws Exception {
+        ResultActions actions = mockMvc.perform(
+            post(DEFENDANTS_SEARCH_URL)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON).content("""
+                        {
+                          "active_accounts_only": true,
+                          "business_unit_ids": [9999],
+                          "reference_number": null,
+                          "defendant": {
+                            "include_aliases": true,
+                            "organisation": false,
+                            "surname": "sent",
+                            "exact_match_surname": false,
+                            "forenames": null,
+                            "exact_match_forenames": null,
+                            "address_line_1": null,
+                            "postcode": null,
+                            "organisation_name": null,
+                            "exact_match_organisation_name": null,
+                            "birth_date": null,
+                            "national_insurance_number": null
+                         },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostDefendantAccountsSearch_Opal_AliasSurnameStartsWith: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk()).andExpect(jsonPath("$.count").value(2))
+            .andExpect(jsonPath("$.defendant_accounts[*].defendant_account_id")
+                .value(containsInAnyOrder("235101", "235104")));
+    }
+
+    @ParameterizedTest(name = "consolidated={0}")
+    @ValueSource(booleans = {false, true})
+    @DisplayName("OPAL: Alias surname exact match does not return starts-with aliases")
+    @JiraStory("PO-2351")
+    @JiraEpic("PO-2294")
+    void testPostDefendantAccountsSearch_Opal_AliasSurnameExactMatch(boolean consolidation) throws Exception {
+        ResultActions actions = mockMvc.perform(
+            post(DEFENDANTS_SEARCH_URL)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON).content("""
+                        {
+                          "active_accounts_only": true,
+                          "business_unit_ids": [9999],
+                          "reference_number": null,
+                          "defendant": {
+                            "include_aliases": true,
+                            "organisation": false,
+                            "surname": "sent",
+                            "exact_match_surname": true,
+                            "forenames": null,
+                            "exact_match_forenames": null,
+                            "address_line_1": null,
+                            "postcode": null,
+                            "organisation_name": null,
+                            "exact_match_organisation_name": null,
+                            "birth_date": null,
+                            "national_insurance_number": null
+                         },
+                         "consolidation_search": %s
+                    }""".formatted(consolidation)));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostDefendantAccountsSearch_Opal_AliasSurnameExactMatch: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk()).andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("235104"));
     }
 
     @ParameterizedTest(name = "consolidated={0}")
