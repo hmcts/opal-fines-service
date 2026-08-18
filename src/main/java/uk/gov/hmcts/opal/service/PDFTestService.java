@@ -36,20 +36,22 @@ public class PDFTestService {
     }
 
     public void run(int maxPdfsToMerge, OutputStream destinationOutputStream) {
+        log.info("PDFTestService: starting to merge pdfs: Limit: " + maxPdfsToMerge);
         if (maxPdfsToMerge <= 0) {
             throw new IllegalArgumentException("maxPdfsToMerge must be greater than zero");
         }
+        log.info("TMP: 1");
         Objects.requireNonNull(destinationOutputStream, "destinationOutputStream must not be null");
 
         PDFMergerUtility merger = new PDFMergerUtility();
         merger.setDocumentMergeMode(DocumentMergeMode.OPTIMIZE_RESOURCES_MODE);
         merger.setDestinationStream(destinationOutputStream);
-
+        log.info("TMP: 2");
         List<Resource> pdfResources = getMergeablePdfResources(maxPdfsToMerge);
         if (pdfResources.isEmpty()) {
             throw new IllegalStateException("No source PDFs found under classpath folder: /pdf");
         }
-
+        log.info("TMP: 3");
         List<Path> tempFiles = new ArrayList<>();
         try {
             for (Resource pdfResource : pdfResources) {
