@@ -31,6 +31,7 @@ class BusinessUnitSummaryLegacyMapperTest extends AbstractMapperTest {
         // Assert
         assertNotNull(mapped);
         assertEquals("77", mapped.getBusinessUnitId());
+        assertEquals("CBG", mapped.getBusinessUnitCode());
         assertEquals("Camberwell Green", mapped.getBusinessUnitName());
         assertEquals("Y", mapped.getWelshSpeaking());
     }

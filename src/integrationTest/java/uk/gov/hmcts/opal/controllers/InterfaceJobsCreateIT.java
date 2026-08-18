@@ -34,6 +34,7 @@ import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @TestPropertySource(properties = {
@@ -65,6 +66,7 @@ class InterfaceJobsCreateIT extends AbstractIntegrationTest {
     @DisplayName("PO-2577 INT.04/05 - Returns documented response")
     @JiraStory("PO-2577")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-10080")
     void returnsDocumentedResponse() throws Exception {
         stubPermission();
 
@@ -93,6 +95,7 @@ class InterfaceJobsCreateIT extends AbstractIntegrationTest {
     @DisplayName("PO-2577 INT.01/02/06 - Persists mapped job and file")
     @JiraStory("PO-2577")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-10082")
     void persistsMappedJobAndFile() throws Exception {
         stubPermission();
 
@@ -118,6 +121,7 @@ class InterfaceJobsCreateIT extends AbstractIntegrationTest {
     @DisplayName("PO-2577 INT.08 - Creates duplicate payloads")
     @JiraStory("PO-2577")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-10079")
     void createsDuplicatePayloads() throws Exception {
         stubPermission();
         String requestBody = requestBody("auto-payments-in-duplicate.dat", DUPLICATE_INTERFACE_NAME);
@@ -141,6 +145,7 @@ class InterfaceJobsCreateIT extends AbstractIntegrationTest {
     @DisplayName("PO-2577 INT.04 - Rejects invalid request")
     @JiraStory("PO-2577")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-10083")
     void rejectsInvalidRequest() throws Exception {
         mockMvc.perform(post(URL)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -157,6 +162,7 @@ class InterfaceJobsCreateIT extends AbstractIntegrationTest {
     @DisplayName("PO-2577 INT.03 - Rejects create without permission")
     @JiraStory("PO-2577")
     @JiraEpic("PO-304")
+    @JiraTestKey("PO-10081")
     void rejectsCreateWithoutPermission() throws Exception {
         when(userStateService.getPermittedBusinessUnitIds(
             List.of(BUSINESS_UNIT_ID), FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS))

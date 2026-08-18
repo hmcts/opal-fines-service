@@ -4,7 +4,6 @@ import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_ENABLED_PROPERTY;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
-import tools.jackson.core.JacksonException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -20,12 +19,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.core.JacksonException;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
-import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -111,27 +110,6 @@ public class DefendantAccountController {
 
         return buildResponse(
             defendantAccountPaymentTermsService.getPaymentTerms(defendantAccountId));
-    }
-
-    @PostMapping("/{defendantAccountId}/payment-card-request")
-    @Operation(summary = "Create a payment card request for a given defendant account")
-    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<AddPaymentCardRequestResponse> addPaymentCardRequest(
-        @PathVariable Long defendantAccountId,
-        @RequestHeader("Business-Unit-Id") String businessUnitId,
-        @RequestHeader(value = "Business-Unit-User-Id", required = false) String businessUnitUserId,
-        @RequestHeader(value = "If-Match", required = false) String ifMatch
-    ) {
-        log.debug(":POST:addPaymentCardRequest: for defendantAccountId={}", defendantAccountId);
-
-        AddPaymentCardRequestResponse response = defendantAccountPaymentTermsService.addPaymentCardRequest(
-            defendantAccountId,
-            businessUnitId,
-            businessUnitUserId,
-            ifMatch
-        );
-
-        return buildResponse(response);
     }
 
     @GetMapping("/{defendantAccountId}/fixed-penalty")

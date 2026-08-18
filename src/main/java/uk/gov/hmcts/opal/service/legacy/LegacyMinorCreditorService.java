@@ -61,6 +61,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     private final GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
     private final UpdateMinorCreditorAccountRequestMapper updateMinorCreditorAccountRequestMapper;
     private final LegacyUpdateMinorCreditorAccountResponseMapper updateMinorCreditorAccountResponseMapper;
+    private final LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
 
     @Override
     public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch minorCreditorEntity) {
@@ -113,8 +114,25 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
 
         CreditorHeaderLegacy creditor = response.responseEntity.getCreditor();
         mapped.setVersion(BigInteger.valueOf(creditor.getAccountVersion()));
+        applyResolvedBusinessUnitCode(mapped, response.responseEntity.getBusinessUnit());
 
         return mapped;
+    }
+
+    private void applyResolvedBusinessUnitCode(
+        GetMinorCreditorAccountHeaderSummaryResponse mapped,
+        uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary legacyBusinessUnit
+    ) {
+        if (mapped.getBusinessUnit() == null || legacyBusinessUnit == null) {
+            return;
+        }
+
+        mapped.getBusinessUnit().setBusinessUnitCode(
+            legacyBusinessUnitCodeResolver.resolve(
+                legacyBusinessUnit.getBusinessUnitId(),
+                legacyBusinessUnit.getBusinessUnitCode()
+            )
+        );
     }
 
     @Override

@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.List;
@@ -210,6 +211,42 @@ class InterfaceJobServiceTest {
             requestedBusinessUnitIds, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
         verify(interfaceJobMapper).toSummaryResponse(interfaceJob, firstFile);
         verify(interfaceJobMapper).toSummaryResponse(interfaceJob, secondFile);
+    }
+
+    @Test
+    void deleteInterfaceJobs_whenJobsExist_deletesJobs() {
+        List<Long> interfaceJobIds = List.of(100L, 101L);
+        when(interfaceJobRepository.findAllById(interfaceJobIds))
+            .thenReturn(List.of(mock(InterfaceJobEntity.class)));
+
+        interfaceJobService.deleteInterfaceJobs(interfaceJobIds);
+
+        verify(interfaceJobRepository).findAllById(interfaceJobIds);
+        verify(interfaceJobRepository).deleteAllById(interfaceJobIds);
+    }
+
+    @Test
+    void deleteInterfaceJobs_whenNoIds_throwsEntityNotFoundException() {
+        EntityNotFoundException exception = assertThrows(
+            EntityNotFoundException.class,
+            () -> interfaceJobService.deleteInterfaceJobs(List.of()));
+
+        assertEquals("Interface job ids supplied for deletion not found", exception.getMessage());
+        verifyNoInteractions(interfaceJobRepository);
+    }
+
+    @Test
+    void deleteInterfaceJobs_whenJobsDoNotExist_throwsEntityNotFoundException() {
+        List<Long> interfaceJobIds = List.of(999L);
+        when(interfaceJobRepository.findAllById(interfaceJobIds)).thenReturn(List.of());
+
+        EntityNotFoundException exception = assertThrows(
+            EntityNotFoundException.class,
+            () -> interfaceJobService.deleteInterfaceJobs(interfaceJobIds));
+
+        assertEquals("Interface job ids supplied for deletion not found", exception.getMessage());
+        verify(interfaceJobRepository).findAllById(interfaceJobIds);
+        verify(interfaceJobRepository, never()).deleteAllById(interfaceJobIds);
     }
 
     private InterfaceJobsSummaryItem summaryResponse(

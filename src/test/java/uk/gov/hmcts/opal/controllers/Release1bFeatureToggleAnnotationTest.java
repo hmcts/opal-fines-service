@@ -37,6 +37,7 @@ class Release1bFeatureToggleAnnotationTest {
             PrintRequestController.class,
             ProscutorController.class,
             ResultController.class,
+            ResultsApiController.class,
             RootController.class,
             TestingSupportController.class
         );
@@ -53,13 +54,13 @@ class Release1bFeatureToggleAnnotationTest {
             "DefendantAccountApiController#updateDefendantAccount",
             "DefendantAccountApiController#getConsolidatedAccounts",
             "MinorCreditorController#getMinorCreditorAccountHeaderSummary",
-            "ResultController#getResultById",
+            "ResultsApiController#getResultById",
             "DefendantAccountApiController#postDefendantAccountSearch",
             "DefendantAccountController#addEnforcement",
             "DefendantAccountController#removeDefendantAccountParty",
             "MajorCreditorApiController#getCentralFundByBusinessUnit",
             "DefendantAccountApiController#getEnforcementStatus",
-            "DefendantAccountController#addPaymentCardRequest",
+            "DefendantAccountApiController#addPaymentCardRequest",
             "MinorCreditorApiController#getMinorCreditorAccountAtAGlance",
             "DefendantAccountController#getDefendantAccountFixedPenalty",
             "DefendantAccountController#getDefendantAccountParty",
