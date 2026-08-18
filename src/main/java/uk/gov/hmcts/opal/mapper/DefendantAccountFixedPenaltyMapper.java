@@ -1,6 +1,10 @@
 package uk.gov.hmcts.opal.mapper;
 
+import java.time.LocalTime;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
+import org.openapitools.jackson.nullable.JsonNullable;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.generated.model.FixedPenaltyTicketDetailsCommon;
@@ -10,39 +14,47 @@ import uk.gov.hmcts.opal.generated.model.VehicleFixedPenaltyDetailsCommon;
 @Mapper(componentModel = "spring")
 public interface DefendantAccountFixedPenaltyMapper {
 
-    default GetDefendantAccountFixedPenaltyResponse toResponse(DefendantAccountEntity account,
-        FixedPenaltyOffenceEntity offence) {
-        boolean isVehicle = isVehicleFixedPenalty(offence);
+    String NON_VEHICLE_REGISTRATION = "NV";
 
-        return GetDefendantAccountFixedPenaltyResponse.builder()
-            .vehicleFixedPenaltyFlag(isVehicle)
-            .fixedPenaltyTicketDetails(toFixedPenaltyTicketDetails(account, offence))
-            .vehicleFixedPenaltyDetails(isVehicle ? toVehicleFixedPenaltyDetails(offence) : null)
-            .version(account.getVersion())
-            .build();
-    }
+    @Mapping(target = "vehicleFixedPenaltyFlag", source = "offence", qualifiedByName = "isVehicleFixedPenalty")
+    @Mapping(target = "fixedPenaltyTicketDetails", expression = "java(toFixedPenaltyTicketDetails(account, offence))")
+    @Mapping(target = "vehicleFixedPenaltyDetails", source = "offence",
+        qualifiedByName = "toVehicleFixedPenaltyDetailsOrNull")
+    @Mapping(target = "version", source = "account.version")
+    GetDefendantAccountFixedPenaltyResponse toResponse(DefendantAccountEntity account,
+        FixedPenaltyOffenceEntity offence);
 
-    private static boolean isVehicleFixedPenalty(FixedPenaltyOffenceEntity offence) {
+    @Named("isVehicleFixedPenalty")
+    default boolean isVehicleFixedPenalty(FixedPenaltyOffenceEntity offence) {
         return offence.getVehicleRegistration() != null
-            && !"NV".equalsIgnoreCase(offence.getVehicleRegistration());
+            && !NON_VEHICLE_REGISTRATION.equalsIgnoreCase(offence.getVehicleRegistration());
     }
 
-    private static FixedPenaltyTicketDetailsCommon toFixedPenaltyTicketDetails(DefendantAccountEntity account,
+    @Mapping(target = "issuingAuthority", source = "account.originatorName")
+    @Mapping(target = "ticketNumber", source = "offence.ticketNumber")
+    @Mapping(target = "timeOfOffence", source = "offence.timeOfOffence", qualifiedByName = "localTimeToString")
+    @Mapping(target = "placeOfOffence", source = "offence.offenceLocation")
+    FixedPenaltyTicketDetailsCommon toFixedPenaltyTicketDetails(DefendantAccountEntity account,
+        FixedPenaltyOffenceEntity offence);
+
+    @Mapping(target = "vehicleRegistrationNumber", source = "vehicleRegistration")
+    @Mapping(target = "vehicleDriversLicense", source = "licenceNumber")
+    @Mapping(target = "noticeNumber", source = "noticeNumber")
+    @Mapping(target = "dateNoticeIssued", source = "issuedDate")
+    VehicleFixedPenaltyDetailsCommon toVehicleFixedPenaltyDetails(FixedPenaltyOffenceEntity offence);
+
+    @Named("toVehicleFixedPenaltyDetailsOrNull")
+    default JsonNullable<VehicleFixedPenaltyDetailsCommon> toVehicleFixedPenaltyDetailsOrNull(
         FixedPenaltyOffenceEntity offence) {
-        return FixedPenaltyTicketDetailsCommon.builder()
-            .issuingAuthority(account.getOriginatorName())
-            .ticketNumber(offence.getTicketNumber())
-            .timeOfOffence(offence.getTimeOfOffence() == null ? null : offence.getTimeOfOffence().toString())
-            .placeOfOffence(offence.getOffenceLocation())
-            .build();
+        return JsonNullable.of(isVehicleFixedPenalty(offence) ? toVehicleFixedPenaltyDetails(offence) : null);
     }
 
-    private static VehicleFixedPenaltyDetailsCommon toVehicleFixedPenaltyDetails(FixedPenaltyOffenceEntity offence) {
-        return VehicleFixedPenaltyDetailsCommon.builder()
-            .vehicleRegistrationNumber(offence.getVehicleRegistration())
-            .vehicleDriversLicense(offence.getLicenceNumber())
-            .noticeNumber(offence.getNoticeNumber())
-            .dateNoticeIssued(offence.getIssuedDate())
-            .build();
+    default <T> JsonNullable<T> toJsonNullable(T value) {
+        return JsonNullable.of(value);
+    }
+
+    @Named("localTimeToString")
+    default String localTimeToString(LocalTime value) {
+        return value == null ? null : value.toString();
     }
 }
