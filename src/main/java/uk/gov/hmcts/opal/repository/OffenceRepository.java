@@ -14,6 +14,8 @@ import java.util.function.Function;
 public interface OffenceRepository extends JpaRepository<OffenceEntity, Long>,
     JpaSpecificationExecutor<OffenceEntity> {
 
+    boolean existsByOffenceIdAndBusinessUnitId(Long offenceId, Short businessUnitId);
+
     @Override
     @EntityGraph(value = OffenceEntity.ENTITY_GRAPH_FULL, type = EntityGraph.EntityGraphType.FETCH)
     Optional<OffenceEntity> findById(Long offenceId);

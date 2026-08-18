@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -40,30 +41,30 @@ class DraftAccountReferenceValidationServiceTest {
     @Test
     void validateReferences_whenAllReferencesExist_shouldPass() {
         when(courtLiteRepository.existsById(anyLong())).thenReturn(true);
-        when(offenceRepository.existsById(anyLong())).thenReturn(true);
+        when(offenceRepository.existsByOffenceIdAndBusinessUnitId(anyLong(), eq((short) 77))).thenReturn(true);
         when(resultRepository.existsById(anyString())).thenReturn(true);
         when(majorCreditorRepository.existsById(anyLong())).thenReturn(true);
 
-        assertDoesNotThrow(() -> service.validateReferences(validAccountJson()));
+        assertDoesNotThrow(() -> service.validateReferences(validAccountJson(), (short) 77));
     }
 
     @Test
     void validateReferences_whenSomeReferencesAreMissing_shouldReportAllFailures() {
         when(courtLiteRepository.existsById(anyLong())).thenReturn(false);
-        when(offenceRepository.existsById(anyLong())).thenReturn(false);
+        when(offenceRepository.existsByOffenceIdAndBusinessUnitId(anyLong(), eq((short) 77))).thenReturn(false);
         when(resultRepository.existsById(anyString())).thenReturn(false);
         when(majorCreditorRepository.existsById(anyLong())).thenReturn(false);
 
         InvalidReferenceValidationException exception = assertThrows(InvalidReferenceValidationException.class,
-            () -> service.validateReferences(validAccountJson()));
+            () -> service.validateReferences(validAccountJson(), (short) 77));
 
         String message = exception.getMessage();
         assertContains(message, "$.enforcement_court_id");
-        assertContains(message, "$.offences[0].offence_id");
+        assertContains(message, "account.offences[0].offence_id");
         assertContains(message, "$.offences[0].imposing_court_id");
         assertContains(message, "$.offences[0].impositions[0].result_id");
         assertContains(message, "$.offences[0].impositions[0].major_creditor_id");
-        assertContains(message, "$.offences[1].offence_id");
+        assertContains(message, "account.offences[1].offence_id");
         assertContains(message, "$.offences[1].imposing_court_id");
         assertContains(message, "$.offences[1].impositions[0].result_id");
         assertContains(message, "$.offences[1].impositions[0].major_creditor_id");
@@ -71,7 +72,8 @@ class DraftAccountReferenceValidationServiceTest {
         assertContains(message, "$.payment_terms.enforcements[1].result_id");
 
         verify(courtLiteRepository, times(3)).existsById(anyLong());
-        verify(offenceRepository, times(2)).existsById(anyLong());
+        verify(offenceRepository).existsByOffenceIdAndBusinessUnitId(21L, (short) 77);
+        verify(offenceRepository).existsByOffenceIdAndBusinessUnitId(22L, (short) 77);
         verify(resultRepository, times(4)).existsById(anyString());
         verify(majorCreditorRepository, times(2)).existsById(anyLong());
     }
