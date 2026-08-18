@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
@@ -108,6 +109,28 @@ class DraftAccountReferenceValidationServiceTest {
     }
 
     @Test
+    void validateReferences_whenEnforcementCourtExists_shouldPass() {
+        when(courtLiteRepository.existsById(11L)).thenReturn(true);
+
+        assertDoesNotThrow(() -> service.validateReferences(enforcementCourtOnlyAccountJson(11), BUSINESS_UNIT_ID));
+
+        verify(courtLiteRepository).existsById(11L);
+        verifyNoInteractions(offenceRepository, resultRepository, majorCreditorRepository);
+    }
+
+    @Test
+    void validateReferences_whenEnforcementCourtDoesNotExist_shouldFailWithAccountPath() {
+        when(courtLiteRepository.existsById(999999L)).thenReturn(false);
+
+        InvalidReferenceValidationException exception = assertThrows(InvalidReferenceValidationException.class,
+            () -> service.validateReferences(enforcementCourtOnlyAccountJson(999999), BUSINESS_UNIT_ID));
+
+        assertContains(exception.getMessage(), "account.enforcement_court_id: court id 999999 does not exist");
+        verify(courtLiteRepository).existsById(999999L);
+        verifyNoInteractions(offenceRepository, resultRepository, majorCreditorRepository);
+    }
+
+    @Test
     void validateReferences_whenSomeReferencesAreMissing_shouldReportAllFailures() {
         when(courtLiteRepository.existsById(anyLong())).thenReturn(false);
         when(
@@ -123,7 +146,7 @@ class DraftAccountReferenceValidationServiceTest {
             () -> service.validateReferences(validAccountJson(), BUSINESS_UNIT_ID));
 
         String message = exception.getMessage();
-        assertContains(message, "$.enforcement_court_id");
+        assertContains(message, "account.enforcement_court_id");
         assertContains(message, "account.offences[0].offence_id");
         assertContains(message, "$.offences[0].imposing_court_id");
         assertContains(message, "$.offences[0].impositions[0].result_id");
@@ -300,5 +323,13 @@ class DraftAccountReferenceValidationServiceTest {
             .active(true)
             .enforcement(true)
             .build();
+    }
+
+    private static String enforcementCourtOnlyAccountJson(long enforcementCourtId) {
+        return """
+            {
+              "enforcement_court_id": %d
+            }
+            """.formatted(enforcementCourtId);
     }
 }
