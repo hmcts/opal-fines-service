@@ -921,8 +921,8 @@ dependencies {
 
   implementation 'uk.gov.hmcts:opal-common-lib:0.3.26'
 
-  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.2.1'
-  testImplementation 'uk.gov.hmcts:zephyr-automation:1.2.1'
+  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.2.2'
+  testImplementation 'uk.gov.hmcts:zephyr-automation:1.2.2'
   testImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.15.0'
 
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.46"
@@ -962,7 +962,7 @@ dependencies {
 
   implementation "org.apache.logging.log4j:log4j-api:${log4JVersion}"
   implementation "org.apache.logging.log4j:log4j-to-slf4j:${log4JVersion}"
-  implementation 'org.apache.qpid:qpid-jms-client:2.10.0'
+  implementation 'org.apache.qpid:qpid-jms-client:2.11.0'
   implementation 'com.google.guava:guava:33.6.0-jre'
 
   implementation 'com.networknt:json-schema-validator:1.5.9'

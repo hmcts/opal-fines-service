@@ -23,7 +23,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
@@ -50,11 +49,12 @@ import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.mapper.legacy.GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyMinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateMinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateMinorCreditorAccountRequestMapper;
-import uk.gov.hmcts.opal.mapper.response.GetMinorCreditorAccountAtAGlanceResponseMapper;
+import uk.gov.hmcts.opal.mapper.response.MinorCreditorAccountAtAGlanceResponseMapper;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -64,7 +64,7 @@ class LegacyMinorCreditorServiceTest {
     private GatewayService gatewayService;
 
     @Mock
-    private GetMinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
+    private MinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
 
     @Mock
     private GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
@@ -271,13 +271,13 @@ class LegacyMinorCreditorServiceTest {
             any())
         ).thenReturn(gatewayResponse);
 
-        GetMinorCreditorAccountAtAGlanceResponse mapperResponse = GetMinorCreditorAccountAtAGlanceResponse.builder()
+        MinorCreditorAccountAtAGlanceResponse mapperResponse = MinorCreditorAccountAtAGlanceResponse.builder()
             .creditorAccountId(66L)
             .build();
 
         when(atAGlanceResponseMapper.toDto(legacyResponse)).thenReturn(mapperResponse);
 
-        GetMinorCreditorAccountAtAGlanceResponse result = legacyMinorCreditorService
+        MinorCreditorAccountAtAGlanceResponse result = legacyMinorCreditorService
             .getMinorCreditorAtAGlance(101L);
 
         assertEquals(66L, result.getCreditorAccountId());
@@ -298,13 +298,13 @@ class LegacyMinorCreditorServiceTest {
         when(gatewayService.postToGateway(any(), eq(LegacyGetMinorCreditorAccountAtAGlanceResponse.class),
             any(), any())).thenReturn(responseWithException);
 
-        GetMinorCreditorAccountAtAGlanceResponse mapperResponse = GetMinorCreditorAccountAtAGlanceResponse.builder()
+        MinorCreditorAccountAtAGlanceResponse mapperResponse = MinorCreditorAccountAtAGlanceResponse.builder()
             .creditorAccountId(66L)
             .build();
 
         when(atAGlanceResponseMapper.toDto(legacyResponse)).thenReturn(mapperResponse);
 
-        GetMinorCreditorAccountAtAGlanceResponse result =
+        MinorCreditorAccountAtAGlanceResponse result =
             assertDoesNotThrow(() -> legacyMinorCreditorService.getMinorCreditorAtAGlance(101L));
 
         assertSame(mapperResponse, result);
@@ -334,13 +334,13 @@ class LegacyMinorCreditorServiceTest {
         when(gatewayService.postToGateway(any(), eq(LegacyGetMinorCreditorAccountAtAGlanceResponse.class),
             any(), any())).thenReturn(responseWithFailure);
 
-        GetMinorCreditorAccountAtAGlanceResponse mapperResponse = GetMinorCreditorAccountAtAGlanceResponse.builder()
+        MinorCreditorAccountAtAGlanceResponse mapperResponse = MinorCreditorAccountAtAGlanceResponse.builder()
             .creditorAccountId(66L)
             .build();
 
         when(atAGlanceResponseMapper.toDto(legacyResponse)).thenReturn(mapperResponse);
 
-        GetMinorCreditorAccountAtAGlanceResponse result =
+        MinorCreditorAccountAtAGlanceResponse result =
             assertDoesNotThrow(() -> legacyMinorCreditorService.getMinorCreditorAtAGlance(101L));
 
         assertSame(mapperResponse, result);
