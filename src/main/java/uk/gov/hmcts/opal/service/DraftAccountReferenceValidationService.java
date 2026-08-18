@@ -72,7 +72,8 @@ public class DraftAccountReferenceValidationService {
             String offenceDisplayPath = "account.offences[" + offenceIndex + "]";
 
             Long offenceId = safeReadLong(docContext, offencePath + ".offence_id");
-            if (offenceId != null && !offenceRepository.existsByOffenceIdAndBusinessUnitId(offenceId, businessUnitId)) {
+            if (offenceId != null
+                && !offenceRepository.existsByOffenceIdAvailableToBusinessUnit(offenceId, businessUnitId)) {
                 failures.add(offenceDisplayPath + ".offence_id: offence id " + offenceId + DOES_NOT_EXIST);
             }
 
