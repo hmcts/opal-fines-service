@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.validation;
+package uk.gov.hmcts.opal.annotation;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
@@ -7,6 +7,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import uk.gov.hmcts.opal.validation.JsonNullableRequiredValidator;
 
 @Documented
 @Constraint(validatedBy = JsonNullableRequiredValidator.class)
