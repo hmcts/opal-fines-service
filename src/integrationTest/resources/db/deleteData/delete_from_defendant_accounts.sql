@@ -247,3 +247,13 @@ WHERE party_id IN (990001, 990002);
 DELETE
 FROM defendant_accounts
 WHERE defendant_account_id = 990001;
+
+-- PO-5757 account controls multi-failure seed data
+DELETE FROM payment_terms
+WHERE defendant_account_id = 575700;
+
+DELETE FROM enforcements
+WHERE defendant_account_id = 575700;
+
+DELETE FROM defendant_accounts
+WHERE defendant_account_id = 575700;

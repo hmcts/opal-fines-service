@@ -11,13 +11,12 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.ReportEntryEntity;
 import uk.gov.hmcts.opal.repository.ReportEntryRepository;
-import uk.gov.hmcts.opal.service.iface.ReportEntryServiceInterface;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "opal.ReportEntryService")
 @Qualifier("reportEntryService")
-public class ReportEntryService implements ReportEntryServiceInterface {
+public class ReportEntryService {
 
     private final ReportEntryRepository reportEntryRepository;
 

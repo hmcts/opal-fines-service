@@ -4,6 +4,8 @@ import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.clearInvocations;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -11,6 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.support.SpyInvocationSupport.countInvocationsByMethodName;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -24,6 +27,7 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.repository.BusinessUnitLiteRepository;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -43,6 +47,9 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
 
+    @MockitoSpyBean
+    private BusinessUnitLiteRepository businessUnitLiteRepository;
+
     @Test
     @DisplayName("Get Business Unit by ID - success")
     @JiraStory("PO-304")
@@ -50,17 +57,17 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-5792")
     void testGetBusinessUnitById_success() throws Exception {
-        mockMvc.perform(get(URL_BASE + "/1"))
+        mockMvc.perform(get(URL_BASE + "/9092"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.businessUnitId").value(1))
-            .andExpect(jsonPath("$.businessUnitName").value("AAA Business Unit 001"))
+            .andExpect(jsonPath("$.businessUnitId").value(9092))
+            .andExpect(jsonPath("$.businessUnitName").value("AAA Business Unit 9092"))
             .andExpect(jsonPath("$.businessUnitCode").value("AAAA"))
-            .andExpect(jsonPath("$.businessUnitType").value("Area"))
+            .andExpect(jsonPath("$.businessUnitType").value("Accounting Division"))
             .andExpect(jsonPath("$.accountNumberPrefix").value("XX"))
             .andExpect(jsonPath("$.opalDomain").value("Fines"))
             .andExpect(jsonPath("$.welshLanguage").value(true))
-            .andExpect(jsonPath("$.parentBusinessUnit.businessUnitId").value(99));
+            .andExpect(jsonPath("$.parentBusinessUnit.businessUnitId").value(9091));
     }
 
 
@@ -82,16 +89,16 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
     void testPostBusinessUnitsSearch() throws Exception {
         mockMvc.perform(post(URL_BASE + "/search")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"businessUnitId\":\"1\"}"))
+                .content("{\"businessUnitId\":\"9092\"}"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$[0].businessUnitId").value(1))
-            .andExpect(jsonPath("$[0].businessUnitName").value("AAA Business Unit 001"))
+            .andExpect(jsonPath("$[0].businessUnitId").value(9092))
+            .andExpect(jsonPath("$[0].businessUnitName").value("AAA Business Unit 9092"))
             .andExpect(jsonPath("$[0].businessUnitCode").value("AAAA"))
-            .andExpect(jsonPath("$[0].businessUnitType").value("Area"))
+            .andExpect(jsonPath("$[0].businessUnitType").value("Accounting Division"))
             .andExpect(jsonPath("$[0].accountNumberPrefix").value("XX"))
             .andExpect(jsonPath("$[0].opalDomain").value("Fines"))
-            .andExpect(jsonPath("$[0].parentBusinessUnit.businessUnitId").value(99));
+            .andExpect(jsonPath("$[0].parentBusinessUnit.businessUnitId").value(9091));
     }
 
     @Test
@@ -121,14 +128,15 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(97))
-            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].business_unit_name")
-                .value(hasItem("AAA Business Unit 001")))
-            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].business_unit_code").value(hasItem("AAAA")))
-            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].business_unit_type").value(hasItem("Area")))
-            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].account_number_prefix").value(hasItem("XX")))
-            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].welsh_language").value(hasItem(true)))
-            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].opal_domain").value(hasItem("Fines")));
+            .andExpect(jsonPath("$.count").value(98))
+            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 9092)].business_unit_name")
+                .value(hasItem("AAA Business Unit 9092")))
+            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 9092)].business_unit_code").value(hasItem("AAAA")))
+            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 9092)].business_unit_type")
+                .value(hasItem("Accounting Division")))
+            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 9092)].account_number_prefix").value(hasItem("XX")))
+            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 9092)].welsh_language").value(hasItem(true)))
+            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 9092)].opal_domain").value(hasItem("Fines")));
 
         jsonSchemaValidationService.validateOrError(body, GET_BUNITS_REF_DATA_RESPONSE);
     }
@@ -146,7 +154,7 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(greaterThan(0)))
-            .andExpect(jsonPath("$.refData[*].business_unit_id", hasItem(1)))
+            .andExpect(jsonPath("$.refData[*].business_unit_id").exists())
             .andExpect(jsonPath("$.refData[*].business_unit_type", everyItem(is("Area"))));
     }
 
@@ -157,7 +165,7 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-5796")
     void testGetBusinessUnitRefData_Permission_success() throws Exception {
         userStateStub.setupWithNoPermissions();
-        userStateStub.addPermissions((short) 1, FinesPermission.values());
+        userStateStub.addPermissions((short) 9092, FinesPermission.values());
 
         mockMvc.perform(get(URL_BASE + "?permission=CREATE_MANAGE_DRAFT_ACCOUNTS")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -165,12 +173,13 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(1))
-            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].business_unit_name")
-                .value(hasItem("AAA Business Unit 001")))
-            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].business_unit_code").value(hasItem("AAAA")))
-            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].business_unit_type").value(hasItem("Area")))
-            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].account_number_prefix").value(hasItem("XX")))
-            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 1)].opal_domain").value(hasItem("Fines")));
+            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 9092)].business_unit_name")
+                .value(hasItem("AAA Business Unit 9092")))
+            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 9092)].business_unit_code").value(hasItem("AAAA")))
+            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 9092)].business_unit_type")
+                .value(hasItem("Accounting Division")))
+            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 9092)].account_number_prefix").value(hasItem("XX")))
+            .andExpect(jsonPath("$.refData[?(@.business_unit_id == 9092)].opal_domain").value(hasItem("Fines")));
     }
 
     @Test
@@ -187,4 +196,29 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(0));
     }
+
+    @Test
+    @DisplayName("Get Business Unit Ref Data uses cache on repeated identical request")
+    @JiraStory("PO-7248")
+    @JiraEpic("PO-8248")
+    @JiraTestKey("PO-9373")
+    void testGetBusinessUnitsRefData_usesCacheOnRepeatedRequest() throws Exception {
+        clearInvocations(businessUnitLiteRepository);
+
+        String firstBody = performRequest();
+        String secondBody = performRequest();
+
+        assertEquals(firstBody, secondBody);
+        assertEquals(1, countInvocationsByMethodName(businessUnitLiteRepository, "findBy"));
+    }
+
+    private String performRequest() throws Exception {
+        return mockMvc.perform(get(URL_BASE)
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    }
+
 }

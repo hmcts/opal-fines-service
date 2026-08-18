@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:reference-data
+@Opal @JIRA-LABEL:reference-data @R1CReferenceData
 Feature: Report Definition Reference Data
 
   # NOTE: E2E.01 cannot currently be covered in QA from this service alone.
@@ -8,6 +8,12 @@ Feature: Report Definition Reference Data
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I make a request to the configured report definition api
     Then the report definition matches the documented contract
+
+  @JIRA-STORY:PO-9061 @JIRA-EPIC:PO-2248 @JIRA-TEST-KEY:PO-9061
+  Scenario: Cash till report definition exposes the migrated report parameters and retention period
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+    When get the report with report_id "cash_till"
+    Then the cash till report definition contains the migrated report parameters and retention period
 
   @JIRA-STORY:PO-2250 @JIRA-EPIC:PO-2248 @JIRA-TEST-KEY:PO-7859
   Scenario: Report definition requests without a token are rejected by the security layer

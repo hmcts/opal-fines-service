@@ -1,14 +1,16 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MvcResult;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @DisplayName("Content-Digest response generation integration tests")
@@ -36,7 +38,10 @@ class ContentDigestResponseGenerationIntegrationTest extends AbstractContentDige
     @JiraEpic("PO-2675")
     @JiraTestKey("PO-5802")
     void invalidHeader_returnsContentDigestProblemResponse() throws Exception {
-        MvcResult result = mockMvc.perform(get(ROOT_ENDPOINT).header(CONTENT_DIGEST, invalidDigest()))
+        MvcResult result = mockMvc.perform(post(POST_ENDPOINT)
+            .contentType(APPLICATION_JSON)
+            .content(POST_BODY)
+            .header(CONTENT_DIGEST, invalidDigest()))
             .andExpect(status().isBadRequest())
             .andReturn();
 
@@ -50,7 +55,10 @@ class ContentDigestResponseGenerationIntegrationTest extends AbstractContentDige
     @JiraEpic("PO-2675")
     @JiraTestKey("PO-5803")
     void malformedHeader_returnsContentDigestProblemResponse() throws Exception {
-        MvcResult result = mockMvc.perform(get(ROOT_ENDPOINT).header(CONTENT_DIGEST, malformedDigest()))
+        MvcResult result = mockMvc.perform(post(POST_ENDPOINT)
+            .contentType(APPLICATION_JSON)
+            .content(POST_BODY)
+            .header(CONTENT_DIGEST, malformedDigest()))
             .andExpect(status().isBadRequest())
             .andReturn();
 

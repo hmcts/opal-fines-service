@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:account-enquiry
+@Opal @JIRA-LABEL:account-enquiry @R1B
 Feature: Major Creditor Account Header Summary
 
   @JIRA-STORY:PO-2136 @JIRA-EPIC:PO-1286 @JIRA-TEST-KEY:PO-8039

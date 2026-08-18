@@ -10,25 +10,22 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
-import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
-import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
-import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
@@ -65,10 +62,22 @@ public class DefendantAccountService {
         return defendantAccountServiceProxy.getHeaderSummary(defendantAccountId);
     }
 
+    public GetDefendantAccountConsolidatedAccountsResult getConsolidatedAccounts(Long defendantAccountId) {
+        log.debug(":getConsolidatedAccounts:");
+
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+
+        if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
+            throw new RequiredPermissionException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        }
+
+        return defendantAccountServiceProxy.getConsolidatedAccounts(defendantAccountId);
+    }
+
     public DefendantAccountHistoryResponse getHistory(Long defendantAccountId,
-                                                      LocalDate dateFrom,
-                                                      LocalDate dateTo,
-                                                      List<String> itemTypes) {
+        LocalDate dateFrom,
+        LocalDate dateTo,
+        List<String> itemTypes) {
         log.debug(":getHistory:");
 
         UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
@@ -173,9 +182,9 @@ public class DefendantAccountService {
     }
 
     public UpdateDefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
-                                                           String businessUnitId,
-                                                           UpdateDefendantAccountRequestPayload request,
-                                                           String ifMatch) {
+        String businessUnitId,
+        UpdateDefendantAccountRequestPayload request,
+        String ifMatch) {
         log.debug(":updateDefendantAccount:");
 
         if (ifMatch == null) {

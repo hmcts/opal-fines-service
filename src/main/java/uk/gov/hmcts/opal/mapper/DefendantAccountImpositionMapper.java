@@ -85,7 +85,10 @@ public interface DefendantAccountImpositionMapper {
             return null;
         }
         BigDecimal paidAmount = imposition.paidAmount() == null ? BigDecimal.ZERO : imposition.paidAmount();
-        return imposition.imposedAmount().subtract(paidAmount);
+        if (imposition.imposedAmount().compareTo(BigDecimal.ZERO) > 0) {
+            return imposition.imposedAmount().subtract(paidAmount);
+        }
+        return imposition.imposedAmount().add(paidAmount);
     }
 
     default OffenceReferenceCommon toOffenceReference(DefendantAccountImpositionData imposition) {

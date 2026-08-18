@@ -13,11 +13,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.mapper.history.EnforcementEntityHistoryMapper;
 import uk.gov.hmcts.opal.mapper.history.EnforcementEntityHistoryMapperImpl;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryContext;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryEnforcementDetails;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryFilter;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItemType;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryType;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryContext;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryEnforcementDetails;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryFilter;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryItemType;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryType;
 import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
 
 @ExtendWith(MockitoExtension.class)

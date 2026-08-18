@@ -5,7 +5,9 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectInternalServerErrorWithoutStatus;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,18 +17,26 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlMergeMode;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.repository.ConfigurationItemRepository;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
+@SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
 class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/reports";
+    private static final String BU_WARNING_THRESHOLD_ITEM_NAME = "OPERATIONAL_REPORT_BU_WARNING_THRESHOLD";
+
+    @Autowired
+    private ConfigurationItemRepository configurationItemRepository;
 
 
     @BeforeEach
@@ -174,7 +184,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
             String body = actions.andReturn().getResponse().getContentAsString();
             Set<String> actualFields = objectMapper.readTree(body).properties()
                 .stream()
-                .map(entry -> entry.getKey())
+                .map(Map.Entry::getKey)
                 .collect(java.util.stream.Collectors.toSet());
 
             actions.andExpect(status().isOk());
@@ -235,6 +245,8 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Get report by ID - operational reports return 200 when report permission is set [@PO-7222]")
         @JiraStory("PO-7222")
         @JiraEpic("PO-2248")
+        @JiraTestKey(value = "PO-9512", name = "[1] reportId = \"operational_report_enforcement\"")
+        @JiraTestKey(value = "PO-9513", name = "[2] reportId = \"operational_report_payment\"")
         void getReportById_whenOperationalReportHasPermission_returns200(String reportId) throws Exception {
             mockMvc.perform(get(URL_BASE + "/" + reportId)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
@@ -247,25 +259,11 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @MethodSource("reportCases")
         @DisplayName("Get report by ID - null permission returns forbidden [@PO-2250]")
         @Sql(
-            statements = """
-                UPDATE public.reports
-                   SET permission = NULL
-                 WHERE report_id IN (
-                           'operational_report_enforcement',
-                           'operational_report_payment'
-                       );
-                """,
+            scripts = "classpath:db/insertData/clear_operational_report_permissions.sql",
             executionPhase = BEFORE_TEST_METHOD
         )
         @Sql(
-            statements = """
-                UPDATE public.reports
-                   SET permission = 'SEARCH_AND_VIEW_ACCOUNTS'
-                 WHERE report_id IN (
-                           'operational_report_enforcement',
-                           'operational_report_payment'
-                       );
-                """,
+            scripts = "classpath:db/insertData/set_operational_report_permissions.sql",
             executionPhase = AFTER_TEST_METHOD
         )
         @JiraStory("PO-2250")
@@ -323,15 +321,11 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Nested
     @Sql(
-        statements =
-            "UPDATE reports SET permission = 'SEARCH_AND_VIEW_ACCOUNTS' "
-                + "WHERE report_id IN ('operational_report_enforcement', 'operational_report_payment')",
+        scripts = "classpath:db/insertData/set_operational_report_permissions.sql",
         executionPhase = BEFORE_TEST_METHOD
     )
     @Sql(
-        statements =
-            "UPDATE reports SET permission = 'SEARCH_AND_VIEW_ACCOUNTS' "
-                + "WHERE report_id IN ('operational_report_enforcement', 'operational_report_payment')",
+        scripts = "classpath:db/insertData/set_operational_report_permissions.sql",
         executionPhase = AFTER_TEST_METHOD
     )
     class GetOperationalReportThresholdCases {
@@ -341,12 +335,15 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("Get report by ID - operational reports include BU warning threshold [@PO-7225]")
         @JiraStory("PO-7225")
         @JiraEpic("PO-2248")
+        @JiraTestKey(value = "PO-9505", name = "[1] reportId = \"operational_report_enforcement\"")
+        @JiraTestKey(value = "PO-9506", name = "[2] reportId = \"operational_report_payment\"")
         void getReportById_whenOperationalReport_returnsBuWarningThreshold(String reportId) throws Exception {
             mockMvc.perform(get(URL_BASE + "/" + reportId)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.report_parameters").isMap())
-                .andExpect(jsonPath("$.report_parameters.business_unit_warning_threshold").value(10));
+                .andExpect(jsonPath("$.report_parameters.business_unit_warning_threshold")
+                    .value(10));
         }
 
         @Test
@@ -355,6 +352,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @Sql(scripts = "classpath:db/deleteData/delete_from_reports.sql", executionPhase = AFTER_TEST_METHOD)
         @JiraStory("PO-7225")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-9507")
         void getReportById_whenNonOperationalReport_returnsUnchangedParameters() throws Exception {
             mockMvc.perform(get(URL_BASE + "/it_report_optional")
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
@@ -367,33 +365,23 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @Test
         @DisplayName("Get report by ID - missing BU warning threshold config returns 500 [@PO-7225]")
         @Sql(
-            statements = {
-                "UPDATE reports SET permission = 'SEARCH_AND_VIEW_ACCOUNTS' "
-                    + "WHERE report_id = 'operational_report_enforcement'",
-                "DELETE FROM configuration_items WHERE item_name = 'OPERATIONAL_REPORT_BU_WARNING_THRESHOLD'"
-            },
+            scripts = "classpath:db/insertData/missing_operational_report_bu_threshold.sql",
             executionPhase = BEFORE_TEST_METHOD
         )
         @Sql(
-            statements = {
-                "INSERT INTO configuration_items "
-                    + "(configuration_item_id, item_name, business_unit_id, item_value, item_values) "
-                    + "VALUES (60000000000014, 'OPERATIONAL_REPORT_BU_WARNING_THRESHOLD', NULL, '10', NULL)",
-                "UPDATE reports SET permission = 'SEARCH_AND_VIEW_ACCOUNTS' "
-                    + "WHERE report_id = 'operational_report_enforcement'"
-            },
+            scripts = "classpath:db/deleteData/reset_operational_report_bu_threshold.sql",
             executionPhase = AFTER_TEST_METHOD
         )
         @JiraStory("PO-7225")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-9511")
         void getReportById_whenThresholdConfigMissing_returns500() throws Exception {
             mockMvc.perform(get(URL_BASE + "/operational_report_enforcement")
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.title").value("Internal Server Error"))
-                .andExpect(jsonPath("$.detail")
-                    .value("Missing configuration item: OPERATIONAL_REPORT_BU_WARNING_THRESHOLD"))
-                .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/internal-server-error"))
+                .andExpect(expectInternalServerErrorWithoutStatus(
+                    "Missing configuration item: OPERATIONAL_REPORT_BU_WARNING_THRESHOLD"
+                ))
                 .andExpect(jsonPath("$.retriable").value(false));
         }
 
@@ -402,26 +390,30 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         )
         @MethodSource("uk.gov.hmcts.opal.controllers.ReportsApiControllerIntegrationTest#invalidThresholdValues")
         @Sql(
-            statements = "UPDATE configuration_items SET item_value = '10' "
-                + "WHERE item_name = 'OPERATIONAL_REPORT_BU_WARNING_THRESHOLD' AND business_unit_id IS NULL",
+            scripts = "classpath:db/deleteData/reset_operational_report_bu_threshold.sql",
             executionPhase = AFTER_TEST_METHOD
         )
         @JiraStory("PO-7225")
         @JiraEpic("PO-2248")
+        @JiraTestKey(value = "PO-9508", name = "Get report by ID - invalid BU warning threshold"
+            + " '\"not-an-integer\"' returns 500 [@PO-7225]")
+        @JiraTestKey(value = "PO-9509", name = "Get report by ID - invalid BU warning threshold"
+            + " '\"0\"' returns 500 [@PO-7225]")
+        @JiraTestKey(value = "PO-9510", name = "Get report by ID - invalid BU warning threshold"
+            + " '\"-1\"' returns 500 [@PO-7225]")
         void getReportById_whenThresholdConfigInvalid_returns500(String invalidThresholdValue) throws Exception {
-            jdbcTemplate.update(
-                "UPDATE configuration_items SET item_value = ? "
-                    + "WHERE item_name = 'OPERATIONAL_REPORT_BU_WARNING_THRESHOLD' AND business_unit_id IS NULL",
-                invalidThresholdValue
-            );
+            var threshold = configurationItemRepository
+                .findByItemNameAndBusinessUnitIdIsNull(BU_WARNING_THRESHOLD_ITEM_NAME)
+                .orElseThrow();
+            threshold.setItemValue(invalidThresholdValue);
+            configurationItemRepository.save(threshold);
 
             mockMvc.perform(get(URL_BASE + "/operational_report_enforcement")
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.title").value("Internal Server Error"))
-                .andExpect(jsonPath("$.detail")
-                    .value("Invalid positive integer configuration item: OPERATIONAL_REPORT_BU_WARNING_THRESHOLD"))
-                .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/internal-server-error"))
+                .andExpect(expectInternalServerErrorWithoutStatus(
+                    "Invalid positive integer configuration item: OPERATIONAL_REPORT_BU_WARNING_THRESHOLD"
+                ))
                 .andExpect(jsonPath("$.retriable").value(false));
         }
     }

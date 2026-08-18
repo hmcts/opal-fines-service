@@ -1,31 +1,34 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2.UserBusinessUnits;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers.UserBusinessUnits;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceDataResults;
-import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.UserStateService;
-
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BusinessUnitControllerTest {
@@ -56,25 +59,6 @@ class BusinessUnitControllerTest {
     }
 
     @Test
-    void testSearchBusinessUnits_Success() {
-        // Arrange
-        BusinessUnitEntity entity = BusinessUnitEntity.builder().build();
-        List<BusinessUnitEntity> businessUnitList = List.of(entity);
-
-        when(businessUnitService.searchBusinessUnits(any())).thenReturn(businessUnitList);
-
-        // Act
-        BusinessUnitSearchDto searchDto = BusinessUnitSearchDto.builder().build();
-        ResponseEntity<List<BusinessUnitEntity>> response = businessUnitController
-            .postBusinessUnitsSearch(searchDto);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(businessUnitList, response.getBody());
-        verify(businessUnitService, times(1)).searchBusinessUnits(any());
-    }
-
-    @Test
     void testGetBusinessUnitsRefData_Success() {
         // Arrange
         BusinessUnitReferenceData entity = createBusinessUnitReferenceData();
@@ -100,11 +84,16 @@ class BusinessUnitControllerTest {
     @Test
     void testGetBusinessUnitsRefData_Permission_Success() {
         // Arrange
-        UserStateV2 userState = Mockito.mock(UserStateV2.class);
+        UserStateV2 userState = mock(UserStateV2.class);
+        DomainBusinessUnitUsers domainBusinessUnitUsers = mock(DomainBusinessUnitUsers.class);
         BusinessUnitReferenceData entity = createBusinessUnitReferenceData();
         List<BusinessUnitReferenceData> businessUnitList = List.of(entity);
 
         when(businessUnitService.getReferenceData(any())).thenReturn(businessUnitList);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
+        when(userState.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(domainBusinessUnitUsers);
+        when(domainBusinessUnitUsers.allBusinessUnitUsersWithPermission(any()))
+            .thenReturn(new TestUserBusinessUnits(true));
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.allBusinessUnitUsersWithPermission(any())).thenReturn(new TestUserBusinessUnits(true));
 
@@ -125,13 +114,16 @@ class BusinessUnitControllerTest {
     @Test
     void testGetBusinessUnitsRefData_Permission_Empty() {
         // Arrange
-        UserStateV2 userState = Mockito.mock(UserStateV2.class);
+        UserStateV2 userState = mock(UserStateV2.class);
+        DomainBusinessUnitUsers domainBusinessUnitUsers = mock(DomainBusinessUnitUsers.class);
         BusinessUnitReferenceData entity = createBusinessUnitReferenceData();
         List<BusinessUnitReferenceData> businessUnitList = List.of(entity);
 
         when(businessUnitService.getReferenceData(any())).thenReturn(businessUnitList);
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
-        when(userState.allBusinessUnitUsersWithPermission(any())).thenReturn(new TestUserBusinessUnits(false));
+        when(userState.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(domainBusinessUnitUsers);
+        when(domainBusinessUnitUsers.allBusinessUnitUsersWithPermission(any()))
+            .thenReturn(new TestUserBusinessUnits(false));
 
         // Act
         Optional<String> filter = Optional.empty();
@@ -151,7 +143,7 @@ class BusinessUnitControllerTest {
             (short)1, "Main BU", "MNBU", "Big",
             "Prefix", "Domain", null, List.of(
                 new BusinessUnitReferenceData.ConfigItemRefData("Item Name", "Item Value",
-                                                                List.of("value 1", "value 2"))
+                                                                Map.of("value 1", "value 2"))
         ));
 
     }

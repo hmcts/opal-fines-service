@@ -4,7 +4,7 @@ import java.util.Comparator;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryItem;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItem;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryItem;
 
 @Service
 public class HistoryItemOrderingService {

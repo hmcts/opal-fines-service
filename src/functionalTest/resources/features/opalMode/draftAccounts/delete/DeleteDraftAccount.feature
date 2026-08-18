@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:manual-account-creation @JIRA-STORY:PO-2117 @JIRA-EPIC:PO-2141 @JIRA-LABEL:test-support-endpoint-test
+@Opal @JIRA-LABEL:manual-account-creation @JIRA-STORY:PO-2117 @JIRA-EPIC:PO-2141 @JIRA-LABEL:test-support-endpoint-test @R1A
 Feature: Delete Draft Account
 
   Background:

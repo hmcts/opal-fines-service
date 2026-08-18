@@ -13,7 +13,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
-import uk.gov.hmcts.opal.dto.ResultDto;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.service.opal.ResultService;
 
@@ -37,79 +36,6 @@ class ResultControllerTest {
 
     @InjectMocks
     private ResultController resultController;
-
-    @Test
-    void testGetResultDto_Success() {
-        // Arrange: Build a simple DTO
-        ResultDto dto = ResultDto.builder()
-            .resultId("ABC")
-            .resultTitle("Result AAA-BBB")
-            .resultTitleCy("Result AAA-BBB CY")
-            .build();
-
-        when(resultService.getResult("ABC", false)).thenReturn(dto);
-
-        // Act
-        ResponseEntity<ResultDto> response = resultController.getResultById("ABC", false);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(dto, response.getBody());
-        verify(resultService).getResult("ABC", false);
-    }
-
-    @Test
-    void testGetResultDto_Success_WithSimpleJsonExpectation() {
-        // Arrange
-        ResultDto dto = ResultDto.builder()
-            .resultId("ABC")
-            .resultTitle("Some Title")
-            .resultTitleCy("Welsh Title")
-            .resultType("TYPE1")
-            .active(true)
-            .allowAdditionalAction(true)
-            .allowPaymentTerms(false)
-            .generatesWarrant(true)
-            .requiresLja(false)
-            .manualEnforcement(true)
-            .build();
-
-        when(resultService.getResult("ABC", false)).thenReturn(dto);
-
-        // Act
-        ResponseEntity<ResultDto> response = resultController.getResultById("ABC", false);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("ABC", response.getBody().getResultId());
-        assertEquals("Some Title", response.getBody().getResultTitle());
-        assertEquals("Welsh Title", response.getBody().getResultTitleCy());
-        assertEquals("TYPE1", response.getBody().getResultType());
-        assertEquals(true, response.getBody().isActive());
-        assertEquals(true, response.getBody().getAllowAdditionalAction());
-        assertEquals(false, response.getBody().getAllowPaymentTerms());
-        assertEquals(true, response.getBody().isGeneratesWarrant());
-        assertEquals(false, response.getBody().getRequiresLja());
-        assertEquals(true, response.getBody().isManualEnforcement());
-    }
-
-    @Test
-    void getResultById_whenIncludeWelshTrue_passesFlagToService() {
-        // Arrange
-        ResultDto dto = ResultDto.builder()
-            .resultId("ABC")
-            .build();
-
-        when(resultService.getResult("ABC", true)).thenReturn(dto);
-
-        // Act
-        ResponseEntity<ResultDto> response = resultController.getResultById("ABC", true);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(dto, response.getBody());
-        verify(resultService).getResult("ABC", true);
-    }
 
     @Test
     void getResults_allowsUnfilteredRequestWithoutCheckingRelease1b() {

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.repository;
 
+import java.util.Collection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -13,6 +14,17 @@ public interface DefendantAccountPartiesRepository extends JpaRepository<Defenda
 
 
     DefendantAccountPartiesEntity findByDefendantAccount_DefendantAccountId(Long defendantAccountId);
+
+    long countByDefendantAccount_DefendantAccountId(Long defendantAccountId);
+
+    int countByDefendantAccount_DefendantAccountIdAndDefendantAccountPartyId(
+        Long defendantAccountId, Long defendantAccountPartyId);
+
+    int countByDefendantAccount_DefendantAccountIdAndAssociationType(
+        Long defendantAccountId, AssociationType associationType);
+
+    long countByDefendantAccount_DefendantAccountIdAndParty_OrganisationNameIn(
+        Long defendantAccountId, Collection<String> organisationNames);
 
     @Modifying
     @Query(value = """

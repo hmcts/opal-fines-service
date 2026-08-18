@@ -37,7 +37,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
         Long dapId = 5L;
         String businessUnitId = "10";
         String postedBy = "user@example.com";
-        String postedByName = "Test User";
+        String postedByName = "User Example";
         String businessUserId = "USER123";
         String ifMatch = "1";
 
@@ -70,7 +70,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
         Long dapId = 10L;
         String businessUnitId = "20";
         String postedBy = "admin@example.com";
-        String postedByName = "Admin User";
+        String postedByName = "Admin Example";
         String businessUserId = "ADMIN456";
         String ifMatch = "2";
 
@@ -149,7 +149,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
         String businessUserId = "USER123";
         String ifMatch = "1";
         String postedBy = "user@example.com";
-        String postedByName = "Test User";
+        String postedByName = "User Example";
         RemoveDefendantAccountPartyRequest request = RemoveDefendantAccountPartyRequest.builder().build();
 
         RemoveDefendantAccountPartyResponse expectedResponse = RemoveDefendantAccountPartyResponse.builder()
@@ -181,7 +181,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
         String businessUserId = "ADMIN456";
         String ifMatch = "2";
         String postedBy = "admin@example.com";
-        String postedByName = "Admin User";
+        String postedByName = "Admin Example";
         RemoveDefendantAccountPartyRequest request = RemoveDefendantAccountPartyRequest.builder().build();
 
         RemoveDefendantAccountPartyResponse expectedResponse = RemoveDefendantAccountPartyResponse.builder()

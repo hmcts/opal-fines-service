@@ -13,6 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
@@ -119,6 +120,36 @@ class DefendantAccountServiceProxyTest extends ProxyTestsBase {
         DefendantAccountSearchResultsDto result = serviceProxy.searchDefendantAccounts(dto);
 
         verify(opalService).searchDefendantAccounts(dto);
+        verifyNoInteractions(legacyService);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void shouldDelegateConsolidatedAccountsToLegacyServiceWhenInLegacyMode() {
+        setLegacyMode(true);
+        GetDefendantAccountConsolidatedAccountsResult expected =
+            GetDefendantAccountConsolidatedAccountsResult.builder().build();
+
+        when(legacyService.getConsolidatedAccounts(1L)).thenReturn(expected);
+
+        GetDefendantAccountConsolidatedAccountsResult result = serviceProxy.getConsolidatedAccounts(1L);
+
+        verify(legacyService).getConsolidatedAccounts(1L);
+        verifyNoInteractions(opalService);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void shouldDelegateConsolidatedAccountsToOpalServiceWhenInOpalMode() {
+        setLegacyMode(false);
+        GetDefendantAccountConsolidatedAccountsResult expected =
+            GetDefendantAccountConsolidatedAccountsResult.builder().build();
+
+        when(opalService.getConsolidatedAccounts(1L)).thenReturn(expected);
+
+        GetDefendantAccountConsolidatedAccountsResult result = serviceProxy.getConsolidatedAccounts(1L);
+
+        verify(opalService).getConsolidatedAccounts(1L);
         verifyNoInteractions(legacyService);
         assertEquals(expected, result);
     }

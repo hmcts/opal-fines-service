@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,9 +26,11 @@ import uk.gov.hmcts.opal.dto.ResultResponse;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
+import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountEnforcementServiceInterface;
@@ -39,7 +42,6 @@ import uk.gov.hmcts.opal.service.persistence.LocalJusticeAreaRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.ResultRepositoryService;
 import uk.gov.hmcts.opal.service.proxy.NotesProxy;
 import uk.gov.hmcts.opal.util.VersionUtils;
-import java.util.Objects;
 
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementAction;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementOverrideResult;
@@ -70,15 +72,16 @@ public class OpalDefendantAccountEnforcementService
 
     private final AmendmentService amendmentService;
 
-    private final ReportEntryService reportEntryService;
-
     private final Clock clock;
 
-    private final OpalDefendantAccountService opalDefendantAccountService;
+    private final OpalDefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
 
     private final ObjectMapper objectMapper;
 
+    private final DefendantAccountControlValidator defendantAccountControlValidator;
+
     @Override
+    @Transactional
     public AddEnforcementResponse addEnforcement(
         Long defendantAccountId,
         Short businessUnitId,
@@ -123,7 +126,7 @@ public class OpalDefendantAccountEnforcementService
             "ACCOUNT_ENQUIRY",
             jailDays,
             businessUnitUserId,
-            userState.getDisplayName(),
+            userState.getUserName(),
             reason,
             enforcerId,
             resultResponses,
@@ -131,14 +134,18 @@ public class OpalDefendantAccountEnforcementService
             VersionUtils.extractBigInteger(ifMatch).longValue()
         );
 
+        // The stored procedure updates defendant_accounts outside Hibernate. Refresh the managed account so chained
+        // payment terms and the response use the latest version and enforcement state.
+        defendantAccountRepositoryService.refresh(defendant);
+
         if (request.getPaymentTerms() != null) {
             DefendantAccountEntity defendantEntity = defendantAccountRepositoryService.findById(defendantAccountId);
-            opalDefendantAccountService.addPaymentTermsPreservingLastEnforcement(
+            defendantAccountPaymentTermsService.addPaymentTermsPreservingLastEnforcement(
                 defendantAccountId,
                 businessUnitId.toString(),
                 businessUnitUserId,
+                userState.getUserName(),
                 defendantEntity.getVersion().toString(),
-                null,
                 AddDefendantAccountPaymentTermsRequest.builder()
                     .paymentTerms(request.getPaymentTerms())
                     .requestPaymentCard(false)
@@ -197,6 +204,7 @@ public class OpalDefendantAccountEnforcementService
         }
 
         VersionUtils.verifyIfMatch(defendantEntity, ifMatch, defendantAccountId, "removeEnforcementHold");
+        defendantAccountControlValidator.validateCanRemoveEnforcementHold(defendantEntity);
 
         if (defendantEntity.getLastEnforcement() == null) {
             throw new ResourceConflictException(
@@ -221,7 +229,12 @@ public class OpalDefendantAccountEnforcementService
             buildRemoveEnforcementHoldNoteRequest(defendantAccountId, request),
             VersionUtils.createETag(savedEntity),
             userState,
-            savedEntity
+            new AccountNoteContext(
+                DefendantAccountEntity.class,
+                savedEntity.getDefendantAccountId(),
+                businessUnitId,
+                AssociatedRecordType.DEFENDANT_ACCOUNTS
+            )
         );
 
         amendmentService.auditFinaliseStoredProc(

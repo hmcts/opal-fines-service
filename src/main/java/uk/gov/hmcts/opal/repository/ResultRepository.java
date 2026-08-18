@@ -19,6 +19,9 @@ public interface ResultRepository extends JpaRepository<ResultEntity, String>,
     @EntityGraph(value = ResultEntity.ENTITY_GRAPH_LITE, type = EntityGraph.EntityGraphType.FETCH)
     Optional<ResultEntity> findById(String resultId);
 
+    @EntityGraph(value = ResultEntity.ENTITY_GRAPH_FULL, type = EntityGraph.EntityGraphType.FETCH)
+    Optional<ResultEntity> findWithFullGraphByResultId(String resultId);
+
     @Override
     @EntityGraph(value = ResultEntity.ENTITY_GRAPH_LITE, type = EntityGraph.EntityGraphType.FETCH)
     <S extends ResultEntity, R> R findBy(

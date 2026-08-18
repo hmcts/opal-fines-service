@@ -8,12 +8,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,7 +18,6 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceDataResults;
-import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
@@ -51,17 +47,6 @@ public class BusinessUnitController {
         log.debug(":GET:getBusinessUnitById: businessUnitId: {}", businessUnitId);
 
         BusinessUnitEntity response = businessUnitService.getBusinessUnit(businessUnitId);
-
-        return buildResponse(response);
-    }
-
-    @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Searches BusinessUnits based upon criteria in request body")
-    public ResponseEntity<List<BusinessUnitEntity>> postBusinessUnitsSearch(
-        @RequestBody BusinessUnitSearchDto criteria) {
-        log.debug(":POST:postBusinessUnitsSearch: query: \n{}", criteria);
-
-        List<BusinessUnitEntity> response = businessUnitService.searchBusinessUnits(criteria);
 
         return buildResponse(response);
     }

@@ -12,6 +12,7 @@ import org.json.JSONObject;
 public class Release1bFeatureToggleStepDef extends BaseStepDef {
 
     private static final String DEFENDANT_ACCOUNTS_URI = "/defendant-accounts";
+    private static final String MAPPINGS_URI = "/mappings";
     private static final String MINOR_CREDITOR_ACCOUNTS_URI = "/minor-creditor-accounts";
     private static final String NOTES_URI = "/notes";
     private static final String RESULTS_URI = "/results";
@@ -21,7 +22,6 @@ public class Release1bFeatureToggleStepDef extends BaseStepDef {
     private static final String PLACEHOLDER_RESULT_ID = "FCOMP";
     private static final String DEFAULT_BUSINESS_UNIT_ID = "77";
     private static final String DEFAULT_IF_MATCH = "\"0\"";
-    private static final String DEFAULT_BUSINESS_UNIT_USER_ID = "FEATURE_TOGGLE_TEST";
 
     /**
      * Calls the named release-1b gated endpoint using a valid representative request for that
@@ -115,6 +115,8 @@ public class Release1bFeatureToggleStepDef extends BaseStepDef {
                 callGet(MINOR_CREDITOR_ACCOUNTS_URI + "/" + PLACEHOLDER_MINOR_CREDITOR_ACCOUNT_ID + "/at-a-glance");
             case "Get Minor Creditor Account" ->
                 callGet(MINOR_CREDITOR_ACCOUNTS_URI + "/" + PLACEHOLDER_MINOR_CREDITOR_ACCOUNT_ID);
+            case "Get Mappings" ->
+                callGet(MAPPINGS_URI + "/defendant-account-status");
             default -> throw new IllegalArgumentException("Unknown release-1b gated endpoint: " + endpointName);
         }
     }
@@ -234,12 +236,11 @@ public class Release1bFeatureToggleStepDef extends BaseStepDef {
     /**
      * Returns the headers required for payment-card-request operations.
      *
-     * @return map containing the standard business-unit headers plus Business-Unit-User-Id.
+     * @return map containing the Business-Unit-Id and If-Match headers.
      */
     private Map<String, String> paymentCardRequestHeaders() {
         return Map.of(
             "Business-Unit-Id", DEFAULT_BUSINESS_UNIT_ID,
-            "Business-Unit-User-Id", DEFAULT_BUSINESS_UNIT_USER_ID,
             "If-Match", DEFAULT_IF_MATCH
         );
     }

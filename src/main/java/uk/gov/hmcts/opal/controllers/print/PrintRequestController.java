@@ -26,7 +26,7 @@ import uk.gov.hmcts.opal.service.print.PrintService;
 @Slf4j(topic = "PrintRequestController")
 @Tag(name = "Print Controller")
 @RequiredArgsConstructor
-@ConditionalOnProperty(prefix = "opal.common.poc", name = "enabled", havingValue = "true")
+@ConditionalOnProperty(prefix = "opal.testing-support-endpoints", name = "enabled", havingValue = "true")
 public class PrintRequestController {
 
     private final PrintService printService;

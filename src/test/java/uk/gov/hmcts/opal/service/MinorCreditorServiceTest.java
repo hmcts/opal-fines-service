@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -16,6 +17,7 @@ import static org.mockito.Mockito.when;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
@@ -30,7 +32,6 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
@@ -44,6 +45,7 @@ import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCreditorPayment;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 
 @ExtendWith(MockitoExtension.class)
@@ -54,6 +56,9 @@ class MinorCreditorServiceTest {
 
     @Mock
     MinorCreditorSearchProxy minorCreditorSearchProxy;
+
+    @Mock
+    MinorCreditorSearchRequestValidator minorCreditorSearchRequestValidator;
 
     @InjectMocks
     private MinorCreditorService minorCreditorService;
@@ -66,6 +71,7 @@ class MinorCreditorServiceTest {
 
         when(minorCreditorSearchProxy.searchMinorCreditors(any())).thenReturn(postMinorCreditorAccountsSearchResponse);
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
+        doNothing().when(minorCreditorSearchRequestValidator).validateAndCheckFeature(any(MinorCreditorSearch.class));
 
         // Act
         PostMinorCreditorAccountsSearchResponse result =
@@ -134,7 +140,7 @@ class MinorCreditorServiceTest {
         assertEquals(response, result);
         assertEquals(true, result.getPayment().getPayByBacs());
         assertEquals("123456", result.getPayment().getSortCode());
-        verify(minorCreditorSearchProxy).getMinorCreditorAccount(eq(id));
+        verify(minorCreditorSearchProxy).getMinorCreditorAccount(id);
     }
 
     @Test
@@ -158,8 +164,8 @@ class MinorCreditorServiceTest {
     void getMinorCreditorHistory_withPermission_delegatesToProxy() {
         // Arrange
         Long id = 123L;
-        LocalDate dateFrom = LocalDate.of(2026, 1, 1);
-        LocalDate dateTo = LocalDate.of(2026, 1, 31);
+        LocalDate dateFrom = LocalDate.of(2026, Month.JANUARY, 1);
+        LocalDate dateTo = LocalDate.of(2026, Month.JANUARY, 31);
         List<String> itemTypes = List.of("amendment", "note");
         GetMinorCreditorHistoryResponse response = GetMinorCreditorHistoryResponse.builder()
             .version(BigInteger.ONE)
@@ -180,8 +186,10 @@ class MinorCreditorServiceTest {
             ArgumentCaptor.forClass(MinorCreditorHistoryFilters.class);
         verify(userStateService).getUserStateFromSecurityContext();
         verify(minorCreditorSearchProxy).getMinorCreditorHistory(eq(id), filtersCaptor.capture());
-        assertEquals(LocalDateTime.of(2026, 1, 1, 0, 0), filtersCaptor.getValue().postedFromInclusive());
-        assertEquals(LocalDateTime.of(2026, 2, 1, 0, 0), filtersCaptor.getValue().postedToExclusive());
+        assertEquals(LocalDateTime.of(2026, Month.JANUARY, 1, 0, 0),
+            filtersCaptor.getValue().postedFromInclusive());
+        assertEquals(LocalDateTime.of(2026, Month.FEBRUARY, 1, 0, 0),
+            filtersCaptor.getValue().postedToExclusive());
         assertThat(filtersCaptor.getValue().itemTypes()).containsExactlyInAnyOrder(
             MinorCreditorHistoryItemType.AMENDMENT,
             MinorCreditorHistoryItemType.NOTE
@@ -200,7 +208,7 @@ class MinorCreditorServiceTest {
         PermissionNotAllowedException ex = Assertions.assertThrows(
             PermissionNotAllowedException.class,
             () -> minorCreditorService.getMinorCreditorHistory(
-                123L, LocalDate.of(2026, 1, 1), null, List.of("note"))
+                123L, LocalDate.of(2026, Month.JANUARY, 1), null, List.of("note"))
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verifyNoInteractions(minorCreditorSearchProxy);
@@ -250,8 +258,8 @@ class MinorCreditorServiceTest {
             IllegalArgumentException.class,
             () -> minorCreditorService.getMinorCreditorHistory(
                 123L,
-                LocalDate.of(2026, 2, 1),
-                LocalDate.of(2026, 1, 31),
+                LocalDate.of(2026, Month.FEBRUARY, 1),
+                LocalDate.of(2026, Month.JANUARY, 31),
                 null)
         );
         assertEquals("dateFrom must be on or before dateTo", result.getMessage());
@@ -371,13 +379,13 @@ class MinorCreditorServiceTest {
     void testGetMinorCreditorAccountAtAGlance() {
         // Arrange
         Long id = 123L;
-        GetMinorCreditorAccountAtAGlanceResponse response = GetMinorCreditorAccountAtAGlanceResponse.builder().build();
+        MinorCreditorAccountAtAGlanceResponse response = new MinorCreditorAccountAtAGlanceResponse();
 
         when(minorCreditorSearchProxy.getMinorCreditorAtAGlance(id)).thenReturn(response);
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
 
         // Act
-        GetMinorCreditorAccountAtAGlanceResponse result =
+        MinorCreditorAccountAtAGlanceResponse result =
             minorCreditorService.getMinorCreditorAtAGlance(id);
 
         // Assert

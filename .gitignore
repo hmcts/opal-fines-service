@@ -5,8 +5,12 @@ bruno/environments/local.env
 *.class
 bin/main/application.yaml
 smoke-test-report
+smoke-output
 functional-test-report
 functional-output
+functional-output-demo
+functional-output-r1a-only-demo
+functional-output-r1a-off-demo
 integration-output
 
 target
@@ -46,3 +50,6 @@ bruno/environments/*.env
 # But keep the template (example)
 !bruno/environments/env.template
 /integration-output/
+
+# codex
+.codex/*

@@ -18,6 +18,7 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -32,6 +33,8 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
     protected static final Long COLLO_BUSINESS_UNIT_ID = 77L;
     protected static final Long COLLO_DEFENDANT_ACCOUNT_ID = 99000000000007L;
     protected static final Long INVALID_DEFENDANT_ACCOUNT_ID = 404L;
+    protected static final Long SCRIPTED_BUSINESS_UNIT_ID = 78L;
+    protected static final Long SCRIPTED_DEFENDANT_ACCOUNT_ID = 77L;
 
     protected static final List<ResultResponse> fullResponses = List.of(
         ResultResponse.builder().parameterName("reason").response("test reason").build(),
@@ -44,6 +47,13 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
         ResultResponse.builder().parameterName("reason").response("a").build(),
         ResultResponse.builder().parameterName("collectiontype").response("Wages").build(),
         ResultResponse.builder().parameterName("reserveterms").response("aa").build()
+    );
+
+    protected static final List<ResultResponse> scriptedFullResponses = List.of(
+        ResultResponse.builder().parameterName("reason").response("test reason").build(),
+        ResultResponse.builder().parameterName("jail_days").response("14").build(),
+        ResultResponse.builder().parameterName("enforcer_id").response("780000000021").build(),
+        ResultResponse.builder().parameterName("earliest_release_date").response("2026-05-01T00:00:00").build()
     );
 
     protected static final PaymentTerms paymentTerms = PaymentTerms.builder()
@@ -120,6 +130,76 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
             .andExpect(jsonPath("defendant_account_id").value("99000000000006"))
             .andExpect(jsonPath("version").exists())
             .andExpect(jsonPath("enforcement_id").exists());
+    }
+
+    void postEnforcementImpl_fullRequest_blockedByAccountControls(Logger log) throws Exception {
+        final Integer versionBeforeRequest = getCurrentDefendantAccountVersion(SCRIPTED_DEFENDANT_ACCOUNT_ID);
+        final Integer enforcementCountBeforeRequest =
+            countEnforcementsForDefendantAccount(SCRIPTED_DEFENDANT_ACCOUNT_ID);
+        final Integer paymentTermCountBeforeRequest =
+            countPaymentTermsForDefendantAccount(SCRIPTED_DEFENDANT_ACCOUNT_ID);
+
+        AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
+            .resultId(ResultId.ABDC)
+            .enforcementResultResponses(scriptedFullResponses)
+            .paymentTerms(paymentTerms)
+            .build();
+
+        ResultActions resultActions = postScriptedEnforcement(request);
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+
+        log.info(":testPostEnforcementImpl_fullRequest_blockedByAccountControls: Response body: \n{}",
+                 ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isUnprocessableEntity())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("title").value("Unprocessable Content"))
+            .andExpect(jsonPath("status").value(422))
+            .andExpect(jsonPath("detail").value(
+                "Defendant account update blocked: Zero balance check failed because account_balance is -500.58."
+            ))
+            .andExpect(jsonPath("retriable").value(false));
+
+        assertEquals(versionBeforeRequest, getCurrentDefendantAccountVersion(SCRIPTED_DEFENDANT_ACCOUNT_ID));
+        assertEquals(enforcementCountBeforeRequest,
+                     countEnforcementsForDefendantAccount(SCRIPTED_DEFENDANT_ACCOUNT_ID));
+        assertEquals(paymentTermCountBeforeRequest,
+                     countPaymentTermsForDefendantAccount(SCRIPTED_DEFENDANT_ACCOUNT_ID));
+    }
+
+    void postEnforcementImpl_minimumRequest_blockedByAccountControls(Logger log) throws Exception {
+        final Integer versionBeforeRequest = getCurrentDefendantAccountVersion(SCRIPTED_DEFENDANT_ACCOUNT_ID);
+        final Integer enforcementCountBeforeRequest =
+            countEnforcementsForDefendantAccount(SCRIPTED_DEFENDANT_ACCOUNT_ID);
+        final Integer paymentTermCountBeforeRequest =
+            countPaymentTermsForDefendantAccount(SCRIPTED_DEFENDANT_ACCOUNT_ID);
+
+        AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
+            .resultId(ResultId.ABDC)
+            .enforcementResultResponses(Collections.emptyList())
+            .paymentTerms(paymentTerms)
+            .build();
+
+        ResultActions resultActions = postScriptedEnforcement(request);
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+
+        log.info(":testPostEnforcementImpl_minimumRequest_blockedByAccountControls: Response body: \n{}",
+                 ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isUnprocessableEntity())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("title").value("Unprocessable Content"))
+            .andExpect(jsonPath("status").value(422))
+            .andExpect(jsonPath("detail").value(
+                "Defendant account update blocked: Zero balance check failed because account_balance is -500.58."
+            ))
+            .andExpect(jsonPath("retriable").value(false));
+
+        assertEquals(versionBeforeRequest, getCurrentDefendantAccountVersion(SCRIPTED_DEFENDANT_ACCOUNT_ID));
+        assertEquals(enforcementCountBeforeRequest,
+                     countEnforcementsForDefendantAccount(SCRIPTED_DEFENDANT_ACCOUNT_ID));
+        assertEquals(paymentTermCountBeforeRequest,
+                     countPaymentTermsForDefendantAccount(SCRIPTED_DEFENDANT_ACCOUNT_ID));
     }
 
     void postEnforcementImpl_invalidDefendant_Failure(Logger log) throws Exception {
@@ -212,10 +292,34 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
     }
 
     private Integer getCurrentDefendantAccountVersion(Long defendantAccountId) {
+        return defendantAccountVersionFor(defendantAccountId);
+    }
+
+    private Integer countEnforcementsForDefendantAccount(Long defendantAccountId) {
         return jdbcTemplate.queryForObject(
-            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
+            "SELECT COUNT(*) FROM enforcements WHERE defendant_account_id = ?",
             Integer.class,
             defendantAccountId
         );
     }
+
+    private Integer countPaymentTermsForDefendantAccount(Long defendantAccountId) {
+        return jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM payment_terms WHERE defendant_account_id = ?",
+            Integer.class,
+            defendantAccountId
+        );
+    }
+
+    private ResultActions postScriptedEnforcement(AddDefendantAccountEnforcementRequest request) throws Exception {
+        return mockMvc.perform(
+            post(URL_BASE + "/" + SCRIPTED_DEFENDANT_ACCOUNT_ID + "/enforcements")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("Authorization", userStateStub.getBearerToken())
+                .header("Business-Unit-ID", SCRIPTED_BUSINESS_UNIT_ID.toString())
+                .header("IF-MATCH", "0")
+                .content(objectMapper.writeValueAsString(request))
+                .contentType(MediaType.APPLICATION_JSON));
+    }
+
 }

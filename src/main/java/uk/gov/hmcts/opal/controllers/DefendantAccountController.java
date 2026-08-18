@@ -4,7 +4,6 @@ import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_ENABLED_PROPERTY;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
-import tools.jackson.core.JacksonException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -20,12 +19,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.core.JacksonException;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
-import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -35,7 +34,6 @@ import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
@@ -96,7 +94,7 @@ public class DefendantAccountController {
         log.debug(":POST: :addPaymentTerms: for defendant id: {}", defendantAccountId);
 
         return buildResponse(
-            defendantAccountService.addPaymentTerms(defendantAccountId,
+            defendantAccountPaymentTermsService.addPaymentTerms(defendantAccountId,
                 businessUnitId,
                 ifMatch,
                 addPaymentTermsRequest));
@@ -112,36 +110,6 @@ public class DefendantAccountController {
 
         return buildResponse(
             defendantAccountPaymentTermsService.getPaymentTerms(defendantAccountId));
-    }
-
-    @PostMapping("/{defendantAccountId}/payment-card-request")
-    @Operation(summary = "Create a payment card request for a given defendant account")
-    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<AddPaymentCardRequestResponse> addPaymentCardRequest(
-        @PathVariable Long defendantAccountId,
-        @RequestHeader("Business-Unit-Id") String businessUnitId,
-        @RequestHeader(value = "Business-Unit-User-Id", required = false) String businessUnitUserId,
-        @RequestHeader(value = "If-Match", required = false) String ifMatch
-    ) {
-        log.debug(":POST:addPaymentCardRequest: for defendantAccountId={}", defendantAccountId);
-
-        AddPaymentCardRequestResponse response = defendantAccountPaymentTermsService.addPaymentCardRequest(
-            defendantAccountId,
-            businessUnitId,
-            businessUnitUserId,
-            ifMatch
-        );
-
-        return buildResponse(response);
-    }
-
-
-    @GetMapping(value = "/{defendantAccountId}/at-a-glance")
-    @Operation(summary = "Get At A Glance details for a given defendant account")
-    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<DefendantAccountAtAGlanceResponse> getAtAGlance(@PathVariable Long defendantAccountId) {
-
-        return buildResponse(defendantAccountService.getAtAGlance(defendantAccountId));
     }
 
     @GetMapping("/{defendantAccountId}/fixed-penalty")

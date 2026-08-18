@@ -20,6 +20,8 @@ public interface NoteRepository extends JpaRepository<NoteEntity, Long>, JpaSpec
 
     void deleteByAssociatedRecordId(String defendantAccountId);
 
+    long countByAssociatedRecordId(String associatedRecordId);
+
     @Query(value = """
         SELECT n.note_id AS noteId,
                n.posted_date AS postedDate,

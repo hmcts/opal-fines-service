@@ -14,6 +14,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -134,8 +135,8 @@ class CashTillReportServiceTest {
             Tuple.tuple("7", "Jamie", CashTillDestinationType.SA, "MISC-002",
                 CashTillPaymentMethod.CQ, money("8.40"), false, false));
         assertThat(reportData.getRows()).extracting(CashTillReportRow::getPaymentDateTime).containsExactly(
-            LocalDateTime.of(2026, 5, 3, 10, 15),
-            LocalDateTime.of(2026, 5, 2, 9, 5));
+            LocalDateTime.of(2026, Month.MAY, 3, 10, 15),
+            LocalDateTime.of(2026, Month.MAY, 2, 9, 5));
         assertThat(reportData.getReportMetaData().getPdpoPartyIds())
             .containsExactly(new ParticipantIdentifier("11", PdplIdentifierType.DEFENDANT_ACCOUNT));
 
@@ -366,7 +367,7 @@ class CashTillReportServiceTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("invalidMoneyCases")
-    void convertReportDataToFileType_whenMoneyHasMoreThanTwoDecimalPlaces_throwsException(String description,
+    void convertReportDataToFileType_moneyScaleTooHigh_throwsException(String description,
         Consumer<CashTillReportRow> change, String expectedMessage) {
         CashTillReportRow row = validRow();
         change.accept(row);
@@ -475,7 +476,7 @@ class CashTillReportServiceTest {
             .businessUnit("North, Court")
             .cashTillNumber("9")
             .cashier("Cashier \"A\"")
-            .paymentDateTime(LocalDateTime.of(2026, 5, 2, 14, 5))
+            .paymentDateTime(LocalDateTime.of(2026, Month.MAY, 2, 14, 5))
             .destinationType(CashTillDestinationType.FA)
             .details("ACC123")
             .autoPayment(true)
@@ -492,7 +493,7 @@ class CashTillReportServiceTest {
             .businessUnit("Westshire")
             .cashTillNumber("17")
             .cashier("Pedro")
-            .paymentDateTime(LocalDateTime.of(2026, 5, 1, 9, 30))
+            .paymentDateTime(LocalDateTime.of(2026, Month.MAY, 1, 9, 30))
             .destinationType(CashTillDestinationType.SA)
             .details("MISC123")
             .autoPayment(false)
@@ -509,7 +510,7 @@ class CashTillReportServiceTest {
             .businessUnit("Central")
             .cashTillNumber("22")
             .cashier("Alex")
-            .paymentDateTime(LocalDateTime.of(2026, 5, 3, 10, 15))
+            .paymentDateTime(LocalDateTime.of(2026, Month.MAY, 3, 10, 15))
             .destinationType(CashTillDestinationType.FA)
             .details("ACC999")
             .autoPayment(false)
@@ -544,7 +545,7 @@ class CashTillReportServiceTest {
     private static PaymentInEntity defendantPayment() {
         return PaymentInEntity.builder()
             .paymentInId(1001L)
-            .paymentDate(LocalDateTime.of(2026, 5, 3, 10, 15))
+            .paymentDate(LocalDateTime.of(2026, Month.MAY, 3, 10, 15))
             .paymentAmount(money("12.30"))
             .paymentMethod(PaymentMethod.NC)
             .destinationType(DestinationType.F)
@@ -559,7 +560,7 @@ class CashTillReportServiceTest {
     private static PaymentInEntity miscellaneousPayment() {
         return PaymentInEntity.builder()
             .paymentInId(1002L)
-            .paymentDate(LocalDateTime.of(2026, 5, 2, 9, 5))
+            .paymentDate(LocalDateTime.of(2026, Month.MAY, 2, 9, 5))
             .paymentAmount(money("8.40"))
             .paymentMethod(PaymentMethod.CQ)
             .destinationType(DestinationType.S)

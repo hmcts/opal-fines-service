@@ -10,12 +10,12 @@ import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.NoteType;
 import uk.gov.hmcts.opal.mapper.history.NoteEntityHistoryMapper;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryFilter;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryContext;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItem;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItemType;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryFilter;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryContext;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryItem;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryItemType;
 import uk.gov.hmcts.opal.service.opal.history.core.AccountHistorySource;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryType;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryType;
 import uk.gov.hmcts.opal.service.opal.history.defendant.DefendantAccountHistoryModelAdapter;
 import uk.gov.hmcts.opal.service.persistence.NoteRepositoryService;
 

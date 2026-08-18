@@ -1,0 +1,71 @@
+INSERT INTO results (
+    result_id, result_title, result_title_cy, result_type, active, imposition, imposition_accruing,
+    enforcement, enforcement_override, further_enforcement_warn, further_enforcement_disallow,
+    enforcement_hold, requires_enforcer, generates_hearing, generates_warrant, collection_order,
+    extend_ttp_disallow, extend_ttp_preserve_last_enf, prevent_payment_card, lists_monies,
+    manual_enforcement, allow_payment_terms, requires_employment_data, allow_additional_action,
+    requires_lja
+) VALUES (
+    'HST01', 'History enforcement', 'History enforcement', 'Result', TRUE, FALSE, FALSE,
+    TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,
+    FALSE, FALSE, FALSE, FALSE, FALSE
+) ON CONFLICT (result_id) DO NOTHING;
+
+INSERT INTO defendant_accounts (
+    defendant_account_id, version_number, business_unit_id, account_number, amount_paid,
+    account_balance, amount_imposed, account_status, allow_writeoffs, allow_cheques, account_type,
+    collection_order, payment_card_requested, originator_name
+) VALUES (
+    262200, 0, 78, '262200A', 0.00, 500.00, 500.00, 'L', 'N', 'N', 'Fine', 'N', 'N',
+    'History Sending Court'
+) ON CONFLICT (defendant_account_id) DO NOTHING;
+
+INSERT INTO courts (court_id, business_unit_id, court_code, name)
+VALUES (262200, 78, 2200, 'History Magistrates Court')
+ON CONFLICT (court_id) DO NOTHING;
+
+INSERT INTO amendments (
+    amendment_id, business_unit_id, associated_record_type, associated_record_id, amended_date,
+    amended_by, field_code, old_value, new_value, case_reference, function_code
+) VALUES (
+    26220001, 78, 'defendant_accounts', '262200', TIMESTAMP '2026-01-01 08:00:00',
+    'hist-user-1', 1, 'Old value', 'New value', 'CASE-HIST', 'UPD'
+) ON CONFLICT (amendment_id) DO NOTHING;
+
+INSERT INTO enforcements (
+    enforcement_id, defendant_account_id, posted_date, posted_by, result_id, reason, jail_days,
+    warrant_reference, case_reference, hearing_date, hearing_court_id, posted_by_name,
+    enforcement_account_type
+) VALUES (
+    26220002, 262200, TIMESTAMP '2026-01-02 09:00:00', 'hist-user-2', 'HST01',
+    'History reason', 14, 'WR262200', 'CASE-HIST', TIMESTAMP '2026-02-02 10:00:00',
+    262200, 'History User Two', 'COLL'
+) ON CONFLICT (enforcement_id) DO NOTHING;
+
+INSERT INTO payment_terms (
+    payment_terms_id, defendant_account_id, posted_date, posted_by, terms_type_code, effective_date,
+    instalment_period, instalment_amount, instalment_lump_sum, jail_days, extension, account_balance,
+    posted_by_name, active
+) VALUES (
+    26220003, 262200, TIMESTAMP '2026-01-03 09:00:00', 'hist-user-3', 'I',
+    TIMESTAMP '2026-02-03 00:00:00', 'W', 25.00, 100.00, 7, FALSE, 500.00,
+    'History User Three', TRUE
+) ON CONFLICT (payment_terms_id) DO NOTHING;
+
+INSERT INTO defendant_transactions (
+    defendant_transaction_id, defendant_account_id, posted_date, posted_by, transaction_type,
+    transaction_amount, payment_method, payment_reference, text, status, status_date, status_amount,
+    posted_by_name, associated_record_type, associated_record_id
+) VALUES (
+    26220004, 262200, TIMESTAMP '2026-01-04 09:00:00', 'hist-user-4', 'PAYMNT',
+    -50.00, 'NC', 'PAY262200', 'History payment', 'C', TIMESTAMP '2026-01-04 10:00:00',
+    -50.00, 'History User Four', 'defendant_accounts', '262200'
+) ON CONFLICT (defendant_transaction_id) DO NOTHING;
+
+INSERT INTO notes (
+    note_id, note_type, associated_record_type, associated_record_id, note_text, posted_date,
+    posted_by, posted_by_name
+) VALUES (
+    26220005, 'AA', 'defendant_accounts', '262200', 'History account note',
+    TIMESTAMP '2026-01-05 09:00:00', 'hist-user-5', 'History User Five'
+) ON CONFLICT (note_id) DO NOTHING;

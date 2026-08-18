@@ -11,6 +11,10 @@ components:
     BigInt:
       type: integer
       format: int64
+    BusinessUnitId:
+      type: integer
+      format: int16
+      description: Business unit identifier
     monetaryZeroOrPositive:
       type: number
       description: A monetary value that is zero or positive, with up to two decimal places.

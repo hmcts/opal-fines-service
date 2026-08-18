@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
-import uk.gov.hmcts.opal.controllers.util.DefendantAccountVersionUtil;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 @Slf4j
@@ -41,6 +40,6 @@ abstract class AbstractLegacyDefendantsIntegrationTest extends AbstractIntegrati
     }
 
     protected Integer versionFor(long defendantAccountId) {
-        return DefendantAccountVersionUtil.getVersion(jdbcTemplate, defendantAccountId);
+        return defendantAccountVersionFor(defendantAccountId);
     }
 }

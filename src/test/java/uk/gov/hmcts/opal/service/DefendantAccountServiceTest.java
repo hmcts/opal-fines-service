@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -40,20 +39,18 @@ import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.dto.PaymentTerms;
-import uk.gov.hmcts.opal.dto.PostedDetails;
-import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
-import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
-import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
+import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchReferenceNumberDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.mapper.request.DefendantAccountSearchRequestMapper;
 import uk.gov.hmcts.opal.mapper.response.DefendantAccountSearchResponseMapper;
-import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
@@ -366,13 +363,15 @@ class DefendantAccountServiceTest {
     void getAtAGlance_whenUserHasPermission_returnsProxyResult() {
         // arrange
         Long defendantAccountId = 77L;
+        GetDefendantAccountAtAGlanceResponse proxyResponse = new GetDefendantAccountAtAGlanceResponse();
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         DefendantAccountAtAGlanceResponse proxyResponse = new DefendantAccountAtAGlanceResponse();
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(defendantAccountServiceProxy.getAtAGlance(defendantAccountId)).thenReturn(proxyResponse);
 
         // act
-        DefendantAccountAtAGlanceResponse result =
+        GetDefendantAccountAtAGlanceResponse result =
             defendantAccountService.getAtAGlance(defendantAccountId);
 
         // assert
@@ -477,6 +476,48 @@ class DefendantAccountServiceTest {
 
         verify(userStateService).getUserStateFromSecurityContext();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT);
+        verifyNoInteractions(defendantAccountServiceProxy);
+    }
+
+    @Test
+    void getConsolidatedAccounts_whenUserHasSearchAndViewPermission_returnsProxyResult() {
+        Long defendantAccountId = 77L;
+        GetDefendantAccountConsolidatedAccountsResult proxyResponse =
+            GetDefendantAccountConsolidatedAccountsResult.builder()
+                .version(BigInteger.ONE)
+                .build();
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
+        when(defendantAccountServiceProxy.getConsolidatedAccounts(defendantAccountId)).thenReturn(proxyResponse);
+
+        GetDefendantAccountConsolidatedAccountsResult result =
+            defendantAccountService.getConsolidatedAccounts(defendantAccountId);
+
+        assertSame(proxyResponse, result);
+        verify(userStateService).getUserStateV1FromSecurityContext();
+        verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        verify(defendantAccountServiceProxy).getConsolidatedAccounts(defendantAccountId);
+        verifyNoMoreInteractions(userStateService, userState, defendantAccountServiceProxy);
+    }
+
+    @Test
+    void getConsolidatedAccounts_whenUserLacksSearchAndViewPermission_throwsPermissionNotAllowed() {
+        Long defendantAccountId = 77L;
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
+
+        RequiredPermissionException exception = assertThrows(
+            RequiredPermissionException.class,
+            () -> defendantAccountService.getConsolidatedAccounts(defendantAccountId)
+        );
+
+        assertTrue(
+            exception.getMessage() == null
+                || exception.getMessage().contains(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.getDescription()),
+            "Exception should mention the denied permission"
+        );
+        verify(userStateService).getUserStateV1FromSecurityContext();
+        verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verifyNoInteractions(defendantAccountServiceProxy);
     }
 

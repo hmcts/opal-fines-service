@@ -4,13 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-
-import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -50,8 +49,8 @@ public class MajorCreditorReferenceData implements ToJsonString {
     @JsonProperty("minor_creditor_party_id")
     private Long minorCreditorPartyId;
 
-    @JsonProperty("from_suspense")
-    private Boolean fromSuspense;
+    @JsonProperty("repayment")
+    private Boolean repayment;
 
     @JsonProperty("hold_payout")
     private Boolean holdPayout;

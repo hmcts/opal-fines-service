@@ -35,9 +35,9 @@
           "type": "string",
           "description": "The creditor account type"
         },
-         "from_suspense": {
+         "repayment": {
           "type": "boolean",
-          "description": "The from suspense flag"
+          "description": "The repayment flag"
         },
          "hold_payout": {
           "type": "boolean",
@@ -79,7 +79,7 @@
           "business_unit_id",
           "account_number",
           "creditor_account_type",
-          "from_suspense",
+          "repayment",
           "hold_payout",
           "major_creditor_id",
           "name",

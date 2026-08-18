@@ -28,6 +28,7 @@ import java.util.concurrent.ExecutionException;
 public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
 
     public static final String CREATE_DEFENDANT_ACCOUNT = "createAccount";
+    private static final String PUBLISH_DEFENDANT_ACCOUNT_LOG_PREFIX = ":publishDefendantAccount:";
 
     public static final String ERROR_MESSAGE_TEMPLATE =
         "An error was encountered during publication of the account, please contact the service desk. Error code: [%s]";
@@ -37,7 +38,7 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
 
     @Override
     public DraftAccountEntity publishDefendantAccount(DraftAccountEntity publishEntity, BusinessUnitUserV2 unitUser) {
-        log.info(":publishDefendantAccount: ");
+        log.info(PUBLISH_DEFENDANT_ACCOUNT_LOG_PREFIX + " ");
 
         CompletableFuture<Response<LegacyCreateDefendantAccountResponse>> future = gatewayService.postToGatewayAsync(
             CREATE_DEFENDANT_ACCOUNT, LegacyCreateDefendantAccountResponse.class,
@@ -49,17 +50,19 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
         try {
             Response<LegacyCreateDefendantAccountResponse> response = future.get();
 
-            log.error(":publishDefendantAccount: 1: {}", response.isException());
-            log.error(":publishDefendantAccount: 2: {}", response.code.isError());
-            log.error(":publishDefendantAccount: 3: {}", response.hasErrorResponse());
+            log.error(PUBLISH_DEFENDANT_ACCOUNT_LOG_PREFIX + " 1: {}", response.isException());
+            log.error(PUBLISH_DEFENDANT_ACCOUNT_LOG_PREFIX + " 2: {}", response.code.isError());
+            log.error(PUBLISH_DEFENDANT_ACCOUNT_LOG_PREFIX + " 3: {}", response.hasErrorResponse());
             if (response.isError()) {
-                log.error(":publishDefendantAccount: Legacy Gateway response: HTTP Response Code: {}", response.code);
+                log.error(PUBLISH_DEFENDANT_ACCOUNT_LOG_PREFIX
+                    + " Legacy Gateway response: HTTP Response Code: {}", response.code);
                 if (response.isException()) {
-                    log.error(":publishDefendantAccount:", response.exception);
+                    log.error(PUBLISH_DEFENDANT_ACCOUNT_LOG_PREFIX, response.exception);
                 } else if (response.hasErrorResponse()) {
-                    log.error(":publishDefendantAccount: Legacy Gateway: body: \n{}", response.body);
+                    log.error(PUBLISH_DEFENDANT_ACCOUNT_LOG_PREFIX + " Legacy Gateway: body: \n{}", response.body);
                     LegacyCreateDefendantAccountResponse responseEntity = response.responseEntity;
-                    log.error(":publishDefendantAccount: Legacy Gateway: entity: \n{}", responseEntity.toXml());
+                    log.error(PUBLISH_DEFENDANT_ACCOUNT_LOG_PREFIX
+                        + " Legacy Gateway: entity: \n{}", responseEntity.toXml());
 
                     String errorMessage = String.format(ERROR_MESSAGE_TEMPLATE, LogUtil.getOrCreateOpalOperationId());
 
@@ -74,22 +77,22 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
                     publishEntity = draftAccountTransactional
                         .updateStatus(publishEntity, DraftAccountStatus.PUBLISHING_FAILED, draftAccountTransactional);
                 } else {
-                    log.warn(":publishDefendantAccount: Unexpected Legacy Gateway response");
+                    log.warn(PUBLISH_DEFENDANT_ACCOUNT_LOG_PREFIX + " Unexpected Legacy Gateway response");
                 }
             } else if (response.isSuccessful()) {
-                log.info(":publishDefendantAccount: Legacy Gateway response: Success.");
+                log.info(PUBLISH_DEFENDANT_ACCOUNT_LOG_PREFIX + " Legacy Gateway response: Success.");
                 publishEntity.setAccountId(response.responseEntity.getDefendantAccountId());
                 publishEntity.setAccountNumber(response.responseEntity.getDefendantAccountNumber());
                 publishEntity = draftAccountTransactional
                     .updateStatus(publishEntity, DraftAccountStatus.PUBLISHED, draftAccountTransactional);
             }
         } catch (InterruptedException e) {
-            log.error(":publishDefendantAccount: problem with call to Legacy: {}", e.getMessage());
-            log.error(":publishDefendantAccount:", e);
+            log.error(PUBLISH_DEFENDANT_ACCOUNT_LOG_PREFIX + " problem with call to Legacy: {}", e.getMessage());
+            log.error(PUBLISH_DEFENDANT_ACCOUNT_LOG_PREFIX, e);
             Thread.currentThread().interrupt();
         } catch (ExecutionException e) {
-            log.error(":publishDefendantAccount: problem with call to Legacy: {}", e.getMessage());
-            log.error(":publishDefendantAccount:", e);
+            log.error(PUBLISH_DEFENDANT_ACCOUNT_LOG_PREFIX + " problem with call to Legacy: {}", e.getMessage());
+            log.error(PUBLISH_DEFENDANT_ACCOUNT_LOG_PREFIX, e);
             throw new RuntimeException(e);
         }
         return publishEntity;

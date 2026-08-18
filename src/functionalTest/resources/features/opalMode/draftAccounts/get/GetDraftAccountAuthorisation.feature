@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:manual-account-creation @JIRA-LABEL:authorisation
+@Opal @JIRA-LABEL:manual-account-creation @JIRA-LABEL:authorisation @R1A
 Feature: Get Draft Account Authorisation
 
   @JIRA-STORY:PO-828 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-NFR:PO-2507 @JIRA-TEST-KEY:PO-5642

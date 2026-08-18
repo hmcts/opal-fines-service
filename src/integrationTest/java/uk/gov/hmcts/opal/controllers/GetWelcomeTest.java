@@ -13,6 +13,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
@@ -31,7 +32,10 @@ class GetWelcomeTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-5892")
     void welcomeRootEndpoint() throws Exception {
         log.info(":welcomeRootEndpoint:");
-        MvcResult response = mockMvc.perform(get("/")).andExpect(status().isOk()).andReturn();
+        MvcResult response = mockMvc.perform(get("/"))
+            .andExpect(header().exists("operation_id"))
+            .andExpect(status().isOk())
+            .andReturn();
 
         assertThat(response.getResponse().getContentAsString()).startsWith("Welcome");
     }

@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.disco.opal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -9,9 +10,12 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 import tools.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -27,6 +31,8 @@ import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultType;
+import uk.gov.hmcts.opal.generated.model.GetResultByIdResponseResults;
 import uk.gov.hmcts.opal.mapper.ResultMapper;
 import uk.gov.hmcts.opal.repository.ResultRepository;
 import uk.gov.hmcts.opal.repository.jpa.ResultSpecs;
@@ -220,8 +226,8 @@ class ResultServiceTest {
             entity.getResultTitle(),
             entity.getResultTitleCy(),
             entity.isActive(),
-            entity.getResultType(),
-            entity.getImpositionCreditor(),
+            entity.getResultType() == null ? null : entity.getResultType().getLabel(),
+            entity.getImpositionCreditor() == null ? null : entity.getImpositionCreditor().getLabel(),
             entity.getImpositionAllocationPriority()
         );
 
@@ -236,32 +242,32 @@ class ResultServiceTest {
             .resultId("ABC")
             .resultTitle("Result Title")
             .resultTitleCy("Welsh Title")
-            .resultType("TYPE1")
+            .resultType(ResultType.ACTION)
             .active(true)
             .requiresEmploymentData(true)
             .build();
 
-        uk.gov.hmcts.opal.dto.ResultDto dto = uk.gov.hmcts.opal.dto.ResultDto.builder()
+        GetResultByIdResponseResults dto = GetResultByIdResponseResults.builder()
             .resultId("ABC")
             .resultTitle("Result Title")
             .resultTitleCy("Welsh Title")
-            .resultType("TYPE1")
+            .resultType("Action")
             .active(true)
             .requiresEmploymentData(true)
             .build();
 
-        when(resultRepository.findById("ABC")).thenReturn(Optional.of(entity));
+        when(resultRepository.findWithFullGraphByResultId("ABC")).thenReturn(Optional.of(entity));
         when(resultMapper.toDto(entity)).thenReturn(dto);
 
         // Act
-        uk.gov.hmcts.opal.dto.ResultDto result = resultService.getResult("ABC", false);
+        GetResultByIdResponseResults result = resultService.getResult("ABC", false);
 
         // Assert
         assertNotNull(result);
         assertEquals("ABC", result.getResultId());
         assertEquals("Result Title", result.getResultTitle());
         assertEquals(true, result.getRequiresEmploymentData());
-        verify(resultRepository).findById("ABC");
+        verify(resultRepository).findWithFullGraphByResultId("ABC");
         verify(resultMapper).toDto(entity);
     }
 
@@ -288,16 +294,16 @@ class ResultServiceTest {
             .resultId("ABC")
             .resultParameters(resultParameters)
             .build();
-        uk.gov.hmcts.opal.dto.ResultDto dto = uk.gov.hmcts.opal.dto.ResultDto.builder()
+        GetResultByIdResponseResults dto = GetResultByIdResponseResults.builder()
             .resultId("ABC")
             .resultParameters(resultParameters)
             .build();
 
-        when(resultRepository.findById("ABC")).thenReturn(Optional.of(entity));
+        when(resultRepository.findWithFullGraphByResultId("ABC")).thenReturn(Optional.of(entity));
         when(resultMapper.toDto(entity)).thenReturn(dto);
 
         // Act
-        uk.gov.hmcts.opal.dto.ResultDto result = resultService.getResult("ABC", true);
+        GetResultByIdResponseResults result = resultService.getResult("ABC", true);
 
         // Assert
         JsonNode parameters = ToJsonString.toJsonNode(result.getResultParameters());
@@ -308,6 +314,120 @@ class ResultServiceTest {
         assertEquals(true, parameters.get(1).get("language_dependent").asBoolean());
         assertEquals("text", parameters.get(1).get("type").asText());
         assertEquals("sample_name_2", parameters.get(2).get("name").asText());
+    }
+
+    @ParameterizedTest
+    @MethodSource("supportedParameterTypes")
+    void getResult_whenIncludeWelshTrueAndSupportedType_addsWelshParameter(String type) {
+        String resultParameters = """
+            [
+              {
+                "name": "sample_name",
+                "type": "%s",
+                "hint": "some hint",
+                "language_dependent": true
+              }
+            ]
+            """.formatted(type);
+        ResultEntity entity = ResultEntity.builder()
+            .resultId("ABC")
+            .resultParameters(resultParameters)
+            .build();
+
+        GetResultByIdResponseResults dto = GetResultByIdResponseResults.builder()
+            .resultId("ABC")
+            .resultParameters(resultParameters)
+            .build();
+
+        when(resultRepository.findWithFullGraphByResultId("ABC")).thenReturn(Optional.of(entity));
+        when(resultMapper.toDto(entity)).thenReturn(dto);
+
+        GetResultByIdResponseResults result = resultService.getResult("ABC", true);
+
+        JsonNode parameters = ToJsonString.toJsonNode(result.getResultParameters());
+        assertEquals(2, parameters.size());
+        assertEquals("sample_name", parameters.get(0).get("name").asString());
+        assertEquals("cy_sample_name", parameters.get(1).get("name").asString());
+        assertEquals(type, parameters.get(1).get("type").asString());
+        assertEquals("Provide a welsh version for the defendant", parameters.get(1).get("hint").asString());
+        assertTrue(parameters.get(1).get("language_dependent").asBoolean());
+    }
+
+    @ParameterizedTest
+    @MethodSource("supportedParameterTypes")
+    void getResult_whenIncludeWelshTrueAndSupportedTypeNotLanguageDependent_doesNotAddWelshParameter(
+        String type) throws Exception {
+        String resultParameters = """
+            [
+              {
+                "name": "sample_name",
+                "type": "%s",
+                "language_dependent": false
+              }
+            ]
+            """.formatted(type);
+        ResultEntity entity = ResultEntity.builder()
+            .resultId("ABC")
+            .resultParameters(resultParameters)
+            .build();
+
+        GetResultByIdResponseResults dto = GetResultByIdResponseResults.builder()
+            .resultId("ABC")
+            .resultParameters(resultParameters)
+            .build();
+
+        when(resultRepository.findWithFullGraphByResultId("ABC")).thenReturn(Optional.of(entity));
+        when(resultMapper.toDto(entity)).thenReturn(dto);
+
+        GetResultByIdResponseResults result = resultService.getResult("ABC", true);
+
+        JsonNode parameters = ToJsonString.toJsonNode(result.getResultParameters());
+        assertEquals(1, parameters.size());
+        assertEquals("sample_name", parameters.get(0).get("name").asString());
+    }
+
+    private static Stream<String> supportedParameterTypes() {
+        return Stream.of(
+            "text-60",
+            "text-100",
+            "text-1000",
+            "date",
+            "integer",
+            "decimal",
+            "menu-radio",
+            "menu-checkbox",
+            "menu-autocomplete"
+        );
+    }
+
+    @Test
+    void getResult_whenIncludeWelshTrueAndUnsupportedType_doesNotAddWelshParameter() {
+        String resultParameters = """
+            [
+              {
+                "name": "sample_name",
+                "type": "enforcers",
+                "language_dependent": true
+              }
+            ]
+            """;
+        ResultEntity entity = ResultEntity.builder()
+            .resultId("ABC")
+            .resultParameters(resultParameters)
+            .build();
+        GetResultByIdResponseResults dto = GetResultByIdResponseResults.builder()
+            .resultId("ABC")
+            .resultParameters(resultParameters)
+            .build();
+
+        when(resultRepository.findWithFullGraphByResultId("ABC")).thenReturn(Optional.of(entity));
+        when(resultMapper.toDto(entity)).thenReturn(dto);
+
+        GetResultByIdResponseResults result = resultService.getResult("ABC", true);
+
+        JsonNode parameters = ToJsonString.toJsonNode(result.getResultParameters());
+        assertEquals(1, parameters.size());
+        assertEquals("sample_name", parameters.get(0).get("name").asString());
     }
 
     @Test
@@ -333,16 +453,16 @@ class ResultServiceTest {
             .resultId("ABC")
             .resultParameters(resultParameters)
             .build();
-        uk.gov.hmcts.opal.dto.ResultDto dto = uk.gov.hmcts.opal.dto.ResultDto.builder()
+        GetResultByIdResponseResults dto = GetResultByIdResponseResults.builder()
             .resultId("ABC")
             .resultParameters(resultParameters)
             .build();
 
-        when(resultRepository.findById("ABC")).thenReturn(Optional.of(entity));
+        when(resultRepository.findWithFullGraphByResultId("ABC")).thenReturn(Optional.of(entity));
         when(resultMapper.toDto(entity)).thenReturn(dto);
 
         // Act
-        uk.gov.hmcts.opal.dto.ResultDto result = resultService.getResult("ABC", true);
+        GetResultByIdResponseResults result = resultService.getResult("ABC", true);
 
         // Assert
         JsonNode parameters = ToJsonString.toJsonNode(result.getResultParameters());
@@ -374,16 +494,16 @@ class ResultServiceTest {
             .resultId("ABC")
             .resultParameters(resultParameters)
             .build();
-        uk.gov.hmcts.opal.dto.ResultDto dto = uk.gov.hmcts.opal.dto.ResultDto.builder()
+        GetResultByIdResponseResults dto = GetResultByIdResponseResults.builder()
             .resultId("ABC")
             .resultParameters(resultParameters)
             .build();
 
-        when(resultRepository.findById("ABC")).thenReturn(Optional.of(entity));
+        when(resultRepository.findWithFullGraphByResultId("ABC")).thenReturn(Optional.of(entity));
         when(resultMapper.toDto(entity)).thenReturn(dto);
 
         // Act
-        uk.gov.hmcts.opal.dto.ResultDto result = resultService.getResult("ABC", false);
+        GetResultByIdResponseResults result = resultService.getResult("ABC", false);
 
         // Assert
         JsonNode parameters = ToJsonString.toJsonNode(result.getResultParameters());
@@ -395,7 +515,7 @@ class ResultServiceTest {
     @Test
     void testGetResult_ThrowsWhenNotFound() {
         // Arrange
-        when(resultRepository.findById("MISSING")).thenReturn(Optional.empty());
+        when(resultRepository.findWithFullGraphByResultId("MISSING")).thenReturn(Optional.empty());
 
         // Act + Assert
         org.junit.jupiter.api.Assertions.assertThrows(

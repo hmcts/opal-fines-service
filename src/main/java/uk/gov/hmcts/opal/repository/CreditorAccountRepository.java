@@ -1,9 +1,11 @@
 package uk.gov.hmcts.opal.repository;
 
+import jakarta.persistence.LockModeType;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -25,6 +27,10 @@ public interface CreditorAccountRepository extends JpaRepository<CreditorAccount
         Long creditorAccountId,
         Short businessUnitId
     );
+
+    @Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
+    @Query("select c from CreditorAccountEntity c where c.creditorAccountId = :id")
+    Optional<CreditorAccountEntity> findByCreditorAccountIdForUpdate(@Param("id") Long creditorAccountId);
 
     @Query(value = """
         SELECT ca.creditor_account_id AS "creditorAccountId",

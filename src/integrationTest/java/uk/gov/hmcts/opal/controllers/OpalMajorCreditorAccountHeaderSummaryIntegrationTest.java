@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectEntityNotFound;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -158,10 +159,7 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
             .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(header().doesNotExist(HttpHeaders.ETAG))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
-            .andExpect(jsonPath("$.title").value("Entity Not Found"))
-            .andExpect(jsonPath("$.status").value(404))
-            .andExpect(jsonPath("$.detail").value("The requested entity could not be found"))
+            .andExpect(expectEntityNotFound())
             .andExpect(jsonPath("$.retriable").value(false))
             .andExpect(jsonPath("$.major_creditor").doesNotExist())
             .andExpect(jsonPath("$.business_unit_details").doesNotExist());
@@ -228,9 +226,10 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
 
         JsonNode businessUnitDetails = response.get("business_unit_details");
         assertEquals(
-            Set.of("business_unit_id", "business_unit_name", "welsh_speaking"),
+            Set.of("business_unit_code", "business_unit_id", "business_unit_name", "welsh_speaking"),
             fieldNames(businessUnitDetails)
         );
+        assertTrue(businessUnitDetails.get("business_unit_code").isNull());
         assertEquals("77", businessUnitDetails.get("business_unit_id").asText());
         assertEquals("Camberwell Green", businessUnitDetails.get("business_unit_name").asText());
         assertEquals("N", businessUnitDetails.get("welsh_speaking").asText());
@@ -249,14 +248,14 @@ class OpalMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInteg
                                                String title,
                                                String detail,
                                                String type) {
-        assertEquals(Set.of("type", "title", "status", "detail", "instance", "operation_id", "retriable", "reason"),
+        assertEquals(Set.of("type", "title", "status", "detail", "instance", "operation_id", "retriable"),
             fieldNames(problem));
         assertEquals(statusCode, problem.get("status").asInt());
         assertEquals(title, problem.get("title").asText());
         assertEquals(detail, problem.get("detail").asText());
         assertEquals(type, problem.get("type").asText());
         assertFalse(problem.get("retriable").asBoolean());
-        assertTrue(problem.get("reason").asText().matches(".+"));
+        assertFalse(problem.has("reason"));
         assertTrue(problem.get("operation_id").asText().matches(".+"));
         assertTrue(problem.get("instance").asText().matches("https://hmcts.gov.uk/problems/instance/.+"));
     }

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import java.math.BigInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -9,7 +10,7 @@ import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyNote;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.iface.NotesServiceInterface;
 
 @Service
@@ -27,7 +28,7 @@ public class LegacyNotesService implements NotesServiceInterface {
         GatewayService.Response<LegacyAddNoteResponse> response = gatewayService.postToGateway(
             ADD_NOTE,
             LegacyAddNoteResponse.class,
-            createRequest(request, ifMatch, user, account.getBusinessUnit().getBusinessUnitId().toString()),
+            createRequest(request, ifMatch, user, target.businessUnitId()),
             null
         );
 
@@ -55,7 +56,7 @@ public class LegacyNotesService implements NotesServiceInterface {
             .noteType(request.getActivityNote().getNoteType()).recordType(request.getActivityNote().getRecordType())
             .recordId(request.getActivityNote().getRecordId()).build();
 
-        return LegacyAddNoteRequest.builder().businessUnitId(defendantBusinessUnitId)
-            .businessUnitUserId(user.getUserId().toString()).version(Long.valueOf(version)).activityNote(note).build();
+        return LegacyAddNoteRequest.builder().businessUnitId(businessUnitId)
+            .businessUnitUserId(user.getUserId()).version(new BigInteger(version)).activityNote(note).build();
     }
 }

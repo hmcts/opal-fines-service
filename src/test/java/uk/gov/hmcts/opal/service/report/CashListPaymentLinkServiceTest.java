@@ -8,12 +8,12 @@ import static uk.gov.hmcts.opal.entity.AssociatedRecordType.DEFENDANT_ACCOUNTS;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
@@ -21,6 +21,7 @@ import uk.gov.hmcts.opal.entity.SuspenseItemEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.SuspenseItemRepository;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 
 @ExtendWith(MockitoExtension.class)
 class CashListPaymentLinkServiceTest {
@@ -32,14 +33,13 @@ class CashListPaymentLinkServiceTest {
     private OpalDefendantAccountService defendantAccountService;
 
     @Mock
+    private DefendantAccountRepositoryService defendantAccountRepositoryService;
+
+    @Mock
     private SuspenseItemRepository suspenseItemRepository;
 
+    @InjectMocks
     private CashListPaymentLinkService service;
-
-    @BeforeEach
-    void setUp() {
-        service = new CashListPaymentLinkService(defendantAccountService, suspenseItemRepository);
-    }
 
     @Test
     void getDefendantAccount_loadsDefendantAccountByAssociatedRecordId() {
@@ -47,7 +47,7 @@ class CashListPaymentLinkServiceTest {
         DefendantAccountEntity defendantAccount = DefendantAccountEntity.builder()
             .defendantAccountId(DEFENDANT_ACCOUNT_ID)
             .build();
-        when(defendantAccountService.getDefendantAccountById(DEFENDANT_ACCOUNT_ID))
+        when(defendantAccountRepositoryService.findById(DEFENDANT_ACCOUNT_ID))
             .thenReturn(defendantAccount);
 
         DefendantAccountEntity result = service.getDefendantAccount(payment);
@@ -93,7 +93,7 @@ class CashListPaymentLinkServiceTest {
     @Test
     void getDefendantAccount_throwsWhenDefendantAccountDoesNotExist() {
         PaymentInEntity payment = payment(1L, String.valueOf(DEFENDANT_ACCOUNT_ID));
-        when(defendantAccountService.getDefendantAccountById(DEFENDANT_ACCOUNT_ID))
+        when(defendantAccountRepositoryService.findById(DEFENDANT_ACCOUNT_ID))
             .thenThrow(new EntityNotFoundException("Defendant Account not found with id: " + DEFENDANT_ACCOUNT_ID));
 
         assertThatThrownBy(() -> service.getDefendantAccount(payment))

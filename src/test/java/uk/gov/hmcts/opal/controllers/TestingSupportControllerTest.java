@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.controllers;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,12 +18,27 @@ import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClien
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
+import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
+import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
+import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
+import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
+import uk.gov.hmcts.opal.service.opal.InterfaceJobService;
+import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
+import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
+import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
+import uk.gov.hmcts.opal.service.opal.OpalCreditorAccountService;
+import uk.gov.hmcts.opal.service.DraftAccountService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest(
@@ -56,10 +73,28 @@ class TestingSupportControllerTest {
     private DefendantAccountDeletionService defendantAccountDeletionService;
 
     @MockitoBean
+    private InterfaceJobService interfaceJobService;
+
+    @MockitoBean
     private UserStateClientService userStateClientService;
 
     @MockitoBean
     private UserStateMapper userStateMapper;
+
+    @MockitoBean
+    private MajorCreditorService majorCreditorService;
+
+    @MockitoBean
+    private BusinessUnitService businessUnitService;
+
+    @MockitoBean
+    private OpalCreditorAccountService opalCreditorAccountService;
+
+    @MockitoBean
+    private DraftAccountService draftAccountService;
+
+    @MockitoBean
+    private LocalJusticeAreaService localJusticeAreaService;
 
     @Test
     void isLegacyMode() {
@@ -121,5 +156,100 @@ class TestingSupportControllerTest {
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertFalse(response.hasBody());
+    }
+
+    @Test
+    void deleteInterfaceJobs_shouldDeleteRequestedJobs() {
+        List<Long> interfaceJobIds = List.of(1L, 2L);
+
+        ResponseEntity<Void> response = controller.deleteInterfaceJobs(interfaceJobIds);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertFalse(response.hasBody());
+        verify(interfaceJobService).deleteInterfaceJobs(interfaceJobIds);
+    }
+
+    @Test
+    void deleteDefendantAccountWithAllData() {
+        ResponseEntity<Void> response = controller.deleteDefendantAccountWithAllData(123L);
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertFalse(response.hasBody());
+        verify(defendantAccountDeletionService).deleteDefendantAccountAndAssociatedData(123L);
+    }
+
+    @Test
+    void postMajorCreditorsSearch() {
+        List<MajorCreditorEntity> majorCreditors = List.of(MajorCreditorEntity.builder().build());
+        MajorCreditorSearchDto criteria = MajorCreditorSearchDto.builder().build();
+        when(majorCreditorService.searchMajorCreditors(criteria)).thenReturn(majorCreditors);
+
+        ResponseEntity<List<MajorCreditorEntity>> response = controller.postMajorCreditorsSearch(criteria);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(majorCreditors, response.getBody());
+        verify(majorCreditorService).searchMajorCreditors(criteria);
+    }
+
+    @Test
+    void postBusinessUnitsSearch() {
+        List<BusinessUnitEntity> businessUnits = List.of(BusinessUnitEntity.builder().build());
+        BusinessUnitSearchDto criteria = BusinessUnitSearchDto.builder().build();
+        when(businessUnitService.searchBusinessUnits(criteria)).thenReturn(businessUnits);
+
+        ResponseEntity<List<BusinessUnitEntity>> response = controller.postBusinessUnitsSearch(criteria);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(businessUnits, response.getBody());
+        verify(businessUnitService).searchBusinessUnits(criteria);
+    }
+
+    @Test
+    void deleteMinorCreditorById() {
+        when(opalCreditorAccountService.deleteCreditorAccount(123L, true)).thenReturn("OK");
+
+        ResponseEntity<String> response = controller.deleteMinorCreditorById(123L, "if-match",
+            Optional.of(false));
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("OK", response.getBody());
+        verify(opalCreditorAccountService).deleteCreditorAccount(123L, true);
+    }
+
+    @Test
+    void postDraftAccountsSearch() {
+        List<DraftAccountResponseDto> draftAccounts = List.of(DraftAccountResponseDto.builder().build());
+        DraftAccountSearchDto criteria = DraftAccountSearchDto.builder().build();
+        when(draftAccountService.searchDraftAccounts(criteria)).thenReturn(draftAccounts);
+
+        ResponseEntity<List<DraftAccountResponseDto>> response = controller.postDraftAccountsSearch(criteria);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(draftAccounts, response.getBody());
+        verify(draftAccountService).searchDraftAccounts(criteria);
+    }
+
+    @Test
+    void deleteDraftAccountById() {
+        when(draftAccountService.deleteDraftAccount(123L, true)).thenReturn("OK");
+
+        ResponseEntity<String> response = controller.deleteDraftAccountById(123L, "if-match", Optional.of(false));
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("OK", response.getBody());
+        verify(draftAccountService).deleteDraftAccount(123L, true);
+    }
+
+    @Test
+    void postLocalJusticeAreasSearch() {
+        List<LocalJusticeAreaEntity> localJusticeAreas = List.of(LocalJusticeAreaEntity.builder().build());
+        LocalJusticeAreaSearchDto criteria = LocalJusticeAreaSearchDto.builder().build();
+        when(localJusticeAreaService.searchLocalJusticeAreas(criteria)).thenReturn(localJusticeAreas);
+
+        ResponseEntity<List<LocalJusticeAreaEntity>> response = controller.postLocalJusticeAreasSearch(criteria);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(localJusticeAreas, response.getBody());
+        verify(localJusticeAreaService).searchLocalJusticeAreas(criteria);
     }
 }

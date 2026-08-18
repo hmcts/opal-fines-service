@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.opal;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -24,6 +25,7 @@ import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 
@@ -35,6 +37,9 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
 
     @Mock
     private AmendmentRepositoryService amendmentRepositoryService;
+
+    @Mock
+    private DefendantAccountControlValidator defendantAccountControlValidator;
 
 
     @InjectMocks
@@ -73,7 +78,7 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
         doNothing().when(amendmentRepositoryService)
             .auditInitialiseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS);
         doNothing().when(amendmentRepositoryService)
-            .auditFinaliseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS, (short) 10, "posted", "posted", "CASE-REF",
+            .auditFinaliseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS, (short) 10, "posted", "Posted User", "CASE-REF",
                 "ACCOUNT_ENQUIRY");
 
         RemoveDefendantAccountPartyRequest request = RemoveDefendantAccountPartyRequest.builder()
@@ -86,6 +91,7 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
             (short) 10,
             "businessUser",
             "posted",
+            "Posted User",
             "1",
             request);
 
@@ -93,7 +99,7 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
         assertEquals(BigInteger.valueOf(2L), response.getVersion());
         verify(amendmentRepositoryService).auditInitialiseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS);
         verify(amendmentRepositoryService).auditFinaliseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS, (short) 10,
-            "posted", "posted", "CASE-REF", "ACCOUNT_ENQUIRY");
+            "posted", "Posted User", "CASE-REF", "ACCOUNT_ENQUIRY");
         verify(defendantAccountRepositoryService).findById(1L);
         verify(defendantAccountRepositoryService).saveAndFlush(account);
         assertEquals(0, account.getParties().size());
@@ -115,7 +121,7 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
 
         assertThrows(EntityNotFoundException.class, () ->
             service.removeDefendantAccountParty(1L, 5L, (short) 10,
-                                                "businessUser", "posted", "1", request));
+                                                "businessUser", "posted", "Posted User", "1", request));
     }
 
     @Test
@@ -123,9 +129,10 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
-            service.removeDefendantAccountParty(1L, 5L, (short) 11, "businessUser", "posted", "1", null));
+            service.removeDefendantAccountParty(
+                1L, 5L, (short) 11, "businessUser", "posted", "Posted User", "1", null));
 
-        assertEquals("Defendant Account not found in business unit. Defendant Account: 1 Business Unit: 11",
+        assertEquals("Defendant Account not found in business unit 11",
             exception.getMessage());
         verify(defendantAccountRepositoryService).findById(1L);
         verify(amendmentRepositoryService, never()).auditInitialiseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS);
@@ -133,17 +140,35 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
     }
 
     @Test
+    void removeDefendantAccountParty_whenAccountControlsFail_throwsBeforeMutation() {
+        UnprocessableException exception = new UnprocessableException("blocked");
+
+        when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
+        doThrow(exception).when(defendantAccountControlValidator).validateCanMutateParty(account);
+
+        UnprocessableException result = assertThrows(UnprocessableException.class, () ->
+            service.removeDefendantAccountParty(1L, 5L, (short) 10, "businessUser", "posted", "1", null));
+
+        assertEquals(exception, result);
+        verify(defendantAccountControlValidator).validateCanMutateParty(account);
+        verify(amendmentRepositoryService, never()).auditInitialiseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS);
+        verify(defendantAccountRepositoryService, never()).saveAndFlush(account);
+        assertEquals(1, account.getParties().size());
+    }
+
+    @Test
     void removeDefendantAccountParty_whenAssociationMissing_throwsEntityNotFoundException() {
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
-            service.removeDefendantAccountParty(1L, 999L, (short) 10, "businessUser", "posted", "1", null));
+            service.removeDefendantAccountParty(
+                1L, 999L, (short) 10, "businessUser", "posted", "Posted User", "1", null));
 
         assertEquals("Defendant Account Party not found for accountId=1, partyId=999", exception.getMessage());
         verify(defendantAccountRepositoryService).findById(1L);
         verify(amendmentRepositoryService).auditInitialiseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS);
         verify(amendmentRepositoryService, never())
-            .auditFinaliseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS, (short) 10, "posted", "posted", "CASE-REF",
+            .auditFinaliseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS, (short) 10, "posted", "Posted User", "CASE-REF",
                 "ACCOUNT_ENQUIRY");
         verify(defendantAccountRepositoryService, never()).saveAndFlush(account);
     }

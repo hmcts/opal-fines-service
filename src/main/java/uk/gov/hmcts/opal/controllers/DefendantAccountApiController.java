@@ -11,13 +11,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
+import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.http.api.DefendantAccountApi;
-import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
+import uk.gov.hmcts.opal.generated.model.AddPaymentCardRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
@@ -25,6 +31,7 @@ import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefen
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
+import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.ImpositionService;
 import uk.gov.hmcts.opal.util.VersionUtils;
@@ -37,6 +44,22 @@ public class DefendantAccountApiController implements DefendantAccountApi {
     private final DefendantAccountService defendantAccountService;
     private final DefendantAccountHistoryResponseMapper defendantAccountHistoryResponseMapper;
     private final ImpositionService impositionService;
+    private final DefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
+
+    @Override
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
+    public ResponseEntity<AddPaymentCardRequestDefendantAccount> addPaymentCardRequest(Long id,
+        Short businessUnitId, String ifMatch) {
+        log.debug(":POST:addPaymentCardRequest: for defendantAccountId={}", id);
+
+        AddPaymentCardRequestResponse response =
+            defendantAccountPaymentTermsService.addPaymentCardRequest(id, businessUnitId, ifMatch);
+        AddPaymentCardRequestDefendantAccount generatedResponse = AddPaymentCardRequestDefendantAccount.builder()
+            .defendantAccountId(response.getDefendantAccountId())
+            .build();
+
+        return buildResponse(generatedResponse);
+    }
 
     @Override
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
@@ -56,6 +79,30 @@ public class DefendantAccountApiController implements DefendantAccountApi {
         GetDefendantAccountImpositionsResponse response = impositionService.getImpositions(id);
 
         return ResponseEntity.ok().eTag(VersionUtils.createETag(response)).body(response.getPayload());
+    }
+
+    @Override
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
+    public ResponseEntity<List<ConsolidatedAccountDefendantAccount>> getConsolidatedAccounts(
+        Long defendantAccountId) {
+        log.debug(":GET:getConsolidatedAccounts: for defendant account id: {}", defendantAccountId);
+
+        GetDefendantAccountConsolidatedAccountsResult response =
+            defendantAccountService.getConsolidatedAccounts(defendantAccountId);
+
+        return ResponseEntity.ok().eTag(VersionUtils.createETag(response)).body(response.getPayload());
+    }
+
+    @Override
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
+    public ResponseEntity<AtAGlanceResponseDefendantAccount> getDefendantAccountAtAGlance(Long id) {
+        log.debug(":GET:getDefendantAccountAtAGlance: for defendant account id: {}", id);
+
+        GetDefendantAccountAtAGlanceResponse response = defendantAccountService.getAtAGlance(id);
+
+        return ResponseEntity.ok()
+            .eTag(VersionUtils.createETag(response))
+            .body(response.getPayload());
     }
 
     @Override

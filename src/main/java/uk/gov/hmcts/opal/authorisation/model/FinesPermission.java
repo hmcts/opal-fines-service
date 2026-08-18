@@ -24,7 +24,10 @@ public enum FinesPermission implements PermissionDescriptorV2 {
     AMEND_PAYMENT_TERMS("AMEND_PAYMENT_TERMS", "Amend Payment Terms"),
     ENTER_ENFORCEMENT("ENTER_ENFORCEMENT", "Enter Enforcement"),
     CONSOLIDATE("CONSOLIDATE", "Consolidate"),
-    ADD_AND_REMOVE_PAYMENT_HOLD("ADD_AND_REMOVE_PAYMENT_HOLD", "Add and Remove payment hold");
+    // TODO verify this ID mirrors opal-user-service Permissions.ADD_AND_REMOVE_PAYMENT_HOLD ?
+    ADD_AND_REMOVE_PAYMENT_HOLD("ADD_AND_REMOVE_PAYMENT_HOLD", "Add and Remove payment hold"), // TODO - should this be 12L?
+    PROCESS_AND_ALLOCATE_PAYMENTS("PROCESS_AND_ALLOCATE_PAYMENTS", "Process and Allocate Payments"),
+    AUTO_ENFORCEMENT("AUTO_ENFORCEMENT", "Auto Enforcement");
 
     private final String permissionCode;
     private final String permissionName;

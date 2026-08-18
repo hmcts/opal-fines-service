@@ -2,6 +2,8 @@ package uk.gov.hmcts.opal.service.opal.history.defendant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -17,13 +19,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryItem;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryItemType;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryNoteDetails;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryPostedDetails;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.dto.history.NoteDetails;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.opal.history.HistoryItemOrderingService;
-import uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItem;
 import uk.gov.hmcts.opal.service.opal.history.defendant.sources.AmendmentHistorySource;
 import uk.gov.hmcts.opal.service.opal.history.defendant.sources.DefendantTransactionHistorySource;
 import uk.gov.hmcts.opal.service.opal.history.defendant.sources.EnforcementHistorySource;
@@ -58,7 +63,7 @@ class DefendantAccountHistoryServiceTest {
     @Test
     void getHistory_returnsMappedResponseForIncludedSourcesOnly() {
         DefendantAccountHistoryService service = buildService();
-        DefendantAccountEntity defendantAccount = org.mockito.Mockito.mock(DefendantAccountEntity.class);
+        DefendantAccountEntity defendantAccount = mock(DefendantAccountEntity.class);
         when(defendantAccount.getVersion()).thenReturn(BigInteger.valueOf(3));
         when(defendantAccountRepositoryService.findByDefendantAccountId(262200L))
             .thenReturn(Optional.of(defendantAccount));
@@ -67,35 +72,33 @@ class DefendantAccountHistoryServiceTest {
         );
 
         AccountHistoryItem noteItem = AccountHistoryItem.builder()
-            .postedDetails(org.mockito.Mockito.mock(
-                uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryPostedDetails.class
-            ))
-            .type(uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItemType.NOTE)
-            .details(uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryNoteDetails.builder()
+            .postedDetails(mock(AccountHistoryPostedDetails.class))
+            .type(AccountHistoryItemType.NOTE)
+            .details(AccountHistoryNoteDetails.builder()
                 .noteText("History note")
                 .build())
             .eventDateTime(LocalDateTime.of(2026, 1, 4, 9, 0))
             .sourceId(44L)
             .build();
 
-        when(noteSource.supports(org.mockito.ArgumentMatchers.any())).thenReturn(true);
+        when(noteSource.supports(any())).thenReturn(true);
         when(noteSource.getItemType())
-            .thenReturn(uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItemType.NOTE);
-        when(noteSource.fetch(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any()))
+            .thenReturn(AccountHistoryItemType.NOTE);
+        when(noteSource.fetch(any(), any()))
             .thenReturn(List.of(noteItem));
 
-        when(amendmentSource.supports(org.mockito.ArgumentMatchers.any())).thenReturn(true);
+        when(amendmentSource.supports(any())).thenReturn(true);
         when(amendmentSource.getItemType())
-            .thenReturn(uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItemType.AMENDMENT);
-        when(enforcementSource.supports(org.mockito.ArgumentMatchers.any())).thenReturn(true);
+            .thenReturn(AccountHistoryItemType.AMENDMENT);
+        when(enforcementSource.supports(any())).thenReturn(true);
         when(enforcementSource.getItemType())
-            .thenReturn(uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItemType.ENFORCEMENT);
-        when(paymentTermsSource.supports(org.mockito.ArgumentMatchers.any())).thenReturn(true);
+            .thenReturn(AccountHistoryItemType.ENFORCEMENT);
+        when(paymentTermsSource.supports(any())).thenReturn(true);
         when(paymentTermsSource.getItemType())
-            .thenReturn(uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItemType.PAYMENT_TERMS);
-        when(transactionSource.supports(org.mockito.ArgumentMatchers.any())).thenReturn(true);
+            .thenReturn(AccountHistoryItemType.PAYMENT_TERMS);
+        when(transactionSource.supports(any())).thenReturn(true);
         when(transactionSource.getItemType())
-            .thenReturn(uk.gov.hmcts.opal.service.opal.history.core.AccountHistoryItemType.FINANCIAL);
+            .thenReturn(AccountHistoryItemType.FINANCIAL);
 
         DefendantAccountHistoryResponse response = service.getHistory(
             262200L,
@@ -110,15 +113,15 @@ class DefendantAccountHistoryServiceTest {
         assertEquals(NoteDetails.builder().noteText("History note").build(),
             response.getHistoryItems().get(0).getDetails());
 
-        verify(noteSource).fetch(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+        verify(noteSource).fetch(any(), any());
         verify(amendmentSource, never())
-            .fetch(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+            .fetch(any(), any());
         verify(enforcementSource, never())
-            .fetch(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+            .fetch(any(), any());
         verify(paymentTermsSource, never())
-            .fetch(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+            .fetch(any(), any());
         verify(transactionSource, never())
-            .fetch(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+            .fetch(any(), any());
     }
 
     @Test

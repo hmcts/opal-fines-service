@@ -18,7 +18,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.reference.LjaReferenceData;
 import uk.gov.hmcts.opal.dto.reference.LjaReferenceDataResults;
-import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 
@@ -46,26 +45,6 @@ class LocalJusticeAreaControllerTest {
         assertEquals(entity, response.getBody());
         verify(localJusticeAreaService, times(1)).getLocalJusticeAreaById(anyShort());
     }
-
-    @Test
-    void testSearchLocalJusticeAreas_Success() {
-        // Arrange
-        LocalJusticeAreaEntity entity = LocalJusticeAreaEntity.builder().build();
-        List<LocalJusticeAreaEntity> localJusticeAreaList = List.of(entity);
-
-        when(localJusticeAreaService.searchLocalJusticeAreas(any())).thenReturn(localJusticeAreaList);
-
-        // Act
-        LocalJusticeAreaSearchDto searchDto = LocalJusticeAreaSearchDto.builder().build();
-        ResponseEntity<List<LocalJusticeAreaEntity>> response = localJusticeAreaController
-            .postLocalJusticeAreasSearch(searchDto);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(localJusticeAreaList, response.getBody());
-        verify(localJusticeAreaService, times(1)).searchLocalJusticeAreas(any());
-    }
-
 
     @Test
     void testGetLocalJusticeAreasRefData_Success() {

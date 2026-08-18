@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -28,10 +29,10 @@ public class LegacyPartyDtoTest {
         assertEquals("Scotland", partyDto.getAddressLine5());
         assertEquals("SN15 9TT", partyDto.getPostcode());
         assertEquals("TFO", partyDto.getAccountType());
-        assertEquals(LocalDate.of(2001, 8, 16), partyDto.getDateOfBirth());
+        assertEquals(LocalDate.of(2001, Month.AUGUST, 16), partyDto.getDateOfBirth());
         assertEquals(Short.valueOf((short) 21), partyDto.getAge());
         assertEquals("FF22446688", partyDto.getNiNumber());
-        assertEquals(LocalDateTime.of(2023, 12, 5, 15, 45), partyDto.getLastChangedDate());
+        assertEquals(LocalDateTime.of(2023, Month.DECEMBER, 5, 15, 45), partyDto.getLastChangedDate());
 
         assertNotNull(AccountEnquiryDto.builder().toString());
     }
@@ -81,10 +82,10 @@ public class LegacyPartyDtoTest {
             .addressLine5("Scotland")
             .postcode("SN15 9TT")
             .accountType("TFO")  // TFO = Transfer. Could also be FP = Fixed Penalty
-            .dateOfBirth(LocalDate.of(2001, 8, 16))
+            .dateOfBirth(LocalDate.of(2001, Month.AUGUST, 16))
             .age((short)21)
             .niNumber("FF22446688")
-            .lastChangedDate(LocalDateTime.of(2023, 12, 5, 15, 45))
+            .lastChangedDate(LocalDateTime.of(2023, Month.DECEMBER, 5, 15, 45))
             .build();
     }
 }

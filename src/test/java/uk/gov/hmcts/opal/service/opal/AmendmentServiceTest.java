@@ -93,6 +93,6 @@ class AmendmentServiceTest {
         // Act
         service.auditInitialiseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS);
         service.auditFinaliseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS, (short)77,
-                                        "USER_ME", "User Me", "CaseRef001", "funcCodeA");
+                                        "USER_ME", "User Name", "CaseRef001", "funcCodeA");
     }
 }
