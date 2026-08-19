@@ -167,6 +167,10 @@ opal:
       queue-name: ${SERVICEBUS_REPORT_QUEUE_NAME:report}
       consumer-enabled: ${REPORT_CONSUMER_ENABLED:true}
       publisher-enabled: ${REPORT_PUBLISHER_ENABLED:true}
+  interface-jobs:
+    service-bus:
+      queue-name: ${SERVICEBUS_INTERFACE_JOBS_QUEUE_NAME:auto-payments-process-interface-files}
+      consumer-enabled: ${INTERFACE_JOBS_CONSUMER_ENABLED:true}
 
   hmrc:
     url: ${OPAL_HMRC_URL:http://localhost:4455}
