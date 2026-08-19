@@ -44,6 +44,7 @@ import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsRespo
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
@@ -51,7 +52,7 @@ import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponseCreditor;
-import uk.gov.hmcts.opal.mapper.legacy.GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper;
+import uk.gov.hmcts.opal.mapper.legacy.MinorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyMinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateMinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateMinorCreditorAccountRequestMapper;
@@ -68,7 +69,7 @@ class LegacyMinorCreditorServiceTest {
     private MinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
 
     @Mock
-    private GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
+    private MinorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
 
     @Mock
     private LegacyMinorCreditorAccountResponseMapper minorCreditorAccountResponseMapper;
@@ -434,10 +435,10 @@ class LegacyMinorCreditorServiceTest {
 
         GatewayService.Response<GetMinorCreditorAccountHeaderSummaryLegacyResponse> gatewayResponse =
             new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
-        GetMinorCreditorAccountHeaderSummaryResponse mapperResponse =
-            GetMinorCreditorAccountHeaderSummaryResponse.builder()
-                .businessUnit(BusinessUnitSummary.builder().businessUnitId("77").build())
-                .creditor(GetMinorCreditorAccountHeaderSummaryResponse.CreditorHeader.builder().build())
+        MinorCreditorAccountHeaderSummaryResponse mapperResponse =
+            MinorCreditorAccountHeaderSummaryResponse.builder()
+                .businessUnit(BusinessUnitSummaryCommon.builder().businessUnitId((short) 77).build())
+                .creditor(MinorCreditorAccountHeaderSummaryResponseCreditor.builder().build())
                 .build();
 
         when(gatewayService.postToGateway(
@@ -449,7 +450,7 @@ class LegacyMinorCreditorServiceTest {
         when(headerSummaryResponseMapper.toOpal(legacyResponse)).thenReturn(mapperResponse);
         when(legacyBusinessUnitCodeResolver.resolve("77", "77")).thenReturn("0046");
 
-        GetMinorCreditorAccountHeaderSummaryResponse result = legacyMinorCreditorService.getHeaderSummary(101L);
+        MinorCreditorAccountHeaderSummaryResponse result = legacyMinorCreditorService.getHeaderSummary(101L);
 
         assertEquals("0046", result.getBusinessUnit().getBusinessUnitCode());
     }
