@@ -19,10 +19,10 @@ import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryRespon
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 
 @ExtendWith(MockitoExtension.class)
-class GetMinorCreditorAccountHeaderSummaryLegacyResponseMapperTest {
+class MinorCreditorAccountHeaderSummaryLegacyResponseMapperTest {
 
     @InjectMocks
-    private GetMinorCreditorAccountHeaderSummaryResponseLegacyMapperImpl mapper;
+    private MinorCreditorAccountHeaderSummaryResponseLegacyMapperImpl mapper;
 
     @Mock
     private LegacyPartyDetailsMapper legacyPartyDetailsMapper;
