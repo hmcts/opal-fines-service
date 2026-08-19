@@ -89,7 +89,7 @@ spring:
             non_contextual_creation: true
   data:
     redis:
-        url: ${REDIS_CONNECTION_STRING:redis://redis:6379}
+      url: ${REDIS_CONNECTION_STRING:redis://redis:6379}
   flyway:
     url: ${spring.datasource.url}
     user: ${spring.datasource.username}
@@ -132,6 +132,7 @@ opal:
   redis:
     enabled: ${OPAL_REDIS_ENABLED:true}
     ttl-duration: ${OPAL_REDIS_TTL_DURATION:8H}
+    hmrc-auth-token-ttl-duration: ${OPAL_REDIS_HMRC_AUTH_TOKEN_TTL_DURATION:PT3H30M}
   frontend:
     url: ${OPAL_FRONTEND_URL:http://localhost:4200}
   azure:
@@ -166,6 +167,14 @@ opal:
       queue-name: ${SERVICEBUS_REPORT_QUEUE_NAME:report}
       consumer-enabled: ${REPORT_CONSUMER_ENABLED:true}
       publisher-enabled: ${REPORT_PUBLISHER_ENABLED:true}
+
+  hmrc:
+    url: ${OPAL_HMRC_URL:http://localhost:4455}
+    auth:
+      client-id: ${OPAL_HMRC_AUTH_CLIENT_ID:}
+      client-secret: ${OPAL_HMRC_AUTH_CLIENT_SECRET:}
+      scope: ${OPAL_HMRC_AUTH_SCOPE:}
+      grant-type: ${OPAL_HMRC_AUTH_GRANT_TYPE:client_credentials}
 
 be-developer-config:
   user-role-permissions: ${BE_DEV_ROLE_PERMISSIONS:}
