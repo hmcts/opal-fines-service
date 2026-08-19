@@ -27,6 +27,13 @@ public interface ImpositionRepository extends JpaRepository<ImpositionEntity, Lo
     @EntityGraph(value = ImpositionEntity.ENTITY_GRAPH_LITE, type = EntityGraph.EntityGraphType.FETCH)
     List<ImpositionEntity> findAllByDefendantAccountId(long defendantAccountId);
 
+    @Query("""
+        SELECT imposition.impositionId
+        FROM ImpositionEntity imposition
+        WHERE imposition.defendantAccountId = :defendantAccountId
+        """)
+    List<Long> findImpositionIdsByDefendantAccountId(@Param("defendantAccountId") long defendantAccountId);
+
     long countByDefendantAccountId(long defendantAccountId);
 
     @EntityGraph(value = ImpositionEntity.ENTITY_GRAPH_LITE, type = EntityGraph.EntityGraphType.FETCH)

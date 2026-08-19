@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.controllers.util.OpenApiContractAssertions.assertGet200JsonResponseMatchesBundledSpec;
 
 import java.util.List;
 import org.slf4j.Logger;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
+import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
@@ -1291,6 +1293,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(header().exists("ETag"))
 
             .andExpect(jsonPath("$.business_unit.business_unit_id").value("77"))
+            .andExpect(jsonPath("$.business_unit.business_unit_code").value("0046"))
             .andExpect(jsonPath("$.business_unit.business_unit_name").value("Camberwell Green"))
             .andExpect(jsonPath("$.business_unit.welsh_speaking").value(matchesPattern("Y|N")))
 
@@ -1377,6 +1380,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
         log.info(":testGetMinorCreditorAtAGlance_Success: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
+        JsonNode json = objectMapper.readTree(body);
+
         resultActions
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -1407,6 +1412,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             // payment
             .andExpect(jsonPath("$.payment.is_bacs").value(true))
             .andExpect(jsonPath("$.payment.hold_payment").value(false));
+
+        assertGet200JsonResponseMatchesBundledSpec(json, "/minor-creditor-accounts/{id}/at-a-glance");
     }
 
     void getMinorCreditorAccountImpl_Success(Logger log) throws Exception {

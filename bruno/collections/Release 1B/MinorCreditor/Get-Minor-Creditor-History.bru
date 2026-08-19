@@ -1,7 +1,7 @@
 meta {
   name: Get-Minor-Creditor-History
   type: http
-  seq: 2
+  seq: 3
 }
 
 get {
@@ -10,14 +10,14 @@ get {
   auth: bearer
 }
 
-auth:bearer {
-  token: {{BEARER_TOKEN}}
-}
-
 params:query {
   dateFrom: 2026-05-01
   dateTo: 2026-05-31
   itemTypes: financial
+}
+
+auth:bearer {
+  token: {{BEARER_TOKEN}}
 }
 
 settings {

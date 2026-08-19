@@ -262,6 +262,73 @@ paths:
             application/json+problem:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+  /minor-creditor-accounts/{id}/at-a-glance:
+    get:
+      tags:
+        - Minor Creditor
+      summary: Get Minor Creditor Account At A Glance
+      description: Returns the minor creditor account, defendant and payment details required for the at-a-glance view.
+      operationId: getMinorCreditorAccountAtAGlance
+      security:
+        - permissions:
+            - Search and View Accounts (in at least one business unit)
+            - View Creditor BACS (in at least one business unit)
+      parameters:
+        - in: path
+          name: id
+          description: DB Mapping - creditor_accounts.creditor_account_id
+          schema:
+            type: integer
+            format: int64
+          required: true
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MinorCreditorAccountAtAGlanceResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Not found
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -269,6 +336,63 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    MinorCreditorAccountAtAGlanceResponse:
+      additionalProperties: false
+      type: object
+      x-json-include: NON_NULL
+      x-versioned: true
+      x-implements:
+        - uk.gov.hmcts.opal.dto.ToJsonString
+        - uk.gov.hmcts.opal.util.Versioned
+      required:
+        - party
+        - address
+        - creditor_account_id
+      properties:
+        party:
+          $ref: './CommonStrict.yaml#/components/schemas/partyDetails'
+        address:
+          $ref: './CommonStrict.yaml#/components/schemas/addressDetails'
+        creditor_account_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+        defendant:
+          $ref: '#/components/schemas/MinorCreditorAtAGlanceDefendant'
+        payment:
+          $ref: '#/components/schemas/MinorCreditorAtAGlancePayment'
+    MinorCreditorAtAGlanceDefendant:
+      type: object
+      properties:
+        account_number:
+          type:
+            - string
+            - 'null'
+          minLength: 1
+          maxLength: 10
+        account_id:
+          type:
+            - integer
+            - 'null'
+          format: int64
+        title:
+          type:
+            - string
+            - 'null'
+        forenames:
+          type:
+            - string
+            - 'null'
+        surname:
+          type: string
+    MinorCreditorAtAGlancePayment:
+      type: object
+      properties:
+        is_bacs:
+          type: boolean
+        hold_payment:
+          type: boolean
+      required:
+        - is_bacs
+        - hold_payment
     minorCreditorAccountResponse:
       additionalProperties: false
       type: object

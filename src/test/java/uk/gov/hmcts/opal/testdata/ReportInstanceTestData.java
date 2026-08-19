@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.testdata;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.Arrays;
 import java.util.List;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
@@ -30,12 +31,12 @@ public class ReportInstanceTestData {
     public static final String DEFAULT_REPORT_NAME = "My Report";
     public static final Long DEFAULT_REQUESTED_BY = 42L;
     public static final String DEFAULT_REQUESTED_BY_NAME = "John Doe";
-    public static final LocalDateTime DEFAULT_REQUESTED_AT = LocalDateTime.of(2026, 1, 1, 10, 0);
-    public static final LocalDateTime DEFAULT_CREATED_TIMESTAMP = LocalDateTime.of(2026, 1, 1, 11, 0);
+    public static final LocalDateTime DEFAULT_REQUESTED_AT = LocalDateTime.of(2026, Month.JANUARY, 1, 10, 0);
+    public static final LocalDateTime DEFAULT_CREATED_TIMESTAMP = LocalDateTime.of(2026, Month.JANUARY, 1, 11, 0);
     public static final List<Short> DEFAULT_BUSINESS_UNITS = List.of((short) 10, (short) 20);
     public static final long DEFAULT_NO_OF_RECORDS = 100;
-    public static final LocalDate FROM_DATE = LocalDate.of(2026, 1, 1);
-    public static final LocalDate TO_DATE = LocalDate.of(2026, 12, 31);
+    public static final LocalDate FROM_DATE = LocalDate.of(2026, Month.JANUARY, 1);
+    public static final LocalDate TO_DATE = LocalDate.of(2026, Month.DECEMBER, 31);
     public static final List<Short> BUSINESS_UNITS = List.of((short) 10, (short) 20);
     public static final Long USER_ID = 42L;
 

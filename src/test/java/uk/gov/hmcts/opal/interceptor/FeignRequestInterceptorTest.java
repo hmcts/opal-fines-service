@@ -1,11 +1,10 @@
 package uk.gov.hmcts.opal.interceptor;
 
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import feign.RequestTemplate;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,42 +15,32 @@ import uk.gov.hmcts.opal.service.hmrc.HmrcAuthentication;
 @ExtendWith(MockitoExtension.class)
 class FeignRequestInterceptorTest {
 
-    @Nested
-    class AuthExists {
 
-        @Mock
-        private HmrcAuthentication auth;
+    @Mock
+    private HmrcAuthentication auth;
 
-        @Mock
-        private RequestTemplate request;
+    @Mock
+    private RequestTemplate request;
 
-        @InjectMocks
-        private FeignRequestInterceptor interceptor;
+    @InjectMocks
+    private FeignRequestInterceptor interceptor;
 
-        @Test
-        void appliesAuthenticationTokenWhenAuthIsNotNull() {
-            when(auth.getToken()).thenReturn("some-token");
+    @Test
+    void appliesAuthenticationTokenWhenAuthIsNotNull() {
+        when(request.url()).thenReturn("/some/other/url");
+        when(auth.getToken()).thenReturn("some-token");
 
-            interceptor.apply(request);
+        interceptor.apply(request);
 
-            verify(request).header("Authorization", "Bearer some-token");
-        }
+        verify(request).header("Authorization", "Bearer some-token");
     }
 
-    @Nested
-    class AuthNull {
+    @Test
+    void doesNotApplyWhenUrlIsOAuth() {
+        when(request.url()).thenReturn("/oauth/token");
+        interceptor.apply(request);
 
-        @Mock
-        private RequestTemplate request;
-
-        @InjectMocks
-        private FeignRequestInterceptor interceptor;
-
-        @Test
-        void doesNotApplyAuthTokenWhenNull() {
-            interceptor.apply(request);
-
-            verifyNoInteractions(request);
-        }
+        verify(request).url();
+        verifyNoMoreInteractions(request);
     }
 }
