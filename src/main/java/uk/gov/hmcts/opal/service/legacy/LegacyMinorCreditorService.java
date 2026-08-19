@@ -37,7 +37,7 @@ import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.mapper.MinorCreditorMapper;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
-import uk.gov.hmcts.opal.mapper.legacy.GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper;
+import uk.gov.hmcts.opal.mapper.legacy.MinorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyMinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateMinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateMinorCreditorAccountRequestMapper;
@@ -62,7 +62,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     private final MinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
     private final LegacyMinorCreditorAccountResponseMapper minorCreditorAccountResponseMapper;
     private final CreditorAccountRepository creditorAccountRepository;
-    private final GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
+    private final MinorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
     private final UpdateMinorCreditorAccountRequestMapper updateMinorCreditorAccountRequestMapper;
     private final LegacyUpdateMinorCreditorAccountResponseMapper updateMinorCreditorAccountResponseMapper;
     private final LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
@@ -130,7 +130,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     }
 
     private void applyResolvedBusinessUnitCode(
-        GetMinorCreditorAccountHeaderSummaryResponse mapped,
+        MinorCreditorAccountHeaderSummaryResponse mapped,
         uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary legacyBusinessUnit
     ) {
         if (mapped.getBusinessUnit() == null || legacyBusinessUnit == null) {
