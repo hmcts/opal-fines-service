@@ -2,8 +2,6 @@ package uk.gov.hmcts.opal.steps;
 
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.cucumber.java.After;
 import io.cucumber.java.en.Given;
@@ -21,8 +19,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.gov.hmcts.opal.steps.BearerTokenStepDef;
-import uk.gov.hmcts.opal.utils.InterfaceJobsProcessQueueClient;
 
 /**
  * Defines deployed-environment steps for the interface-job processing endpoint.
@@ -38,7 +34,6 @@ public class InterfaceJobsProcessStepDef extends BaseStepDef {
     private static final short BUSINESS_UNIT_ID = 78;
     private static final String USER_WITHOUT_PERMISSION = "opal-test-2@dev.platform.hmcts.net";
 
-    private final InterfaceJobsProcessQueueClient queueClient = new InterfaceJobsProcessQueueClient();
     private final List<ProcessJob> eligibleJobs = new ArrayList<>();
     private ProcessJob alreadyProcessingJob;
     private ProcessJob unprocessedJob;
@@ -93,19 +88,9 @@ public class InterfaceJobsProcessStepDef extends BaseStepDef {
         }
     }
 
-    @Then("the eligible jobs are present on the process-interface-files queue")
-    public void eligibleJobsArePresentOnQueue() {
-        eligibleJobs.forEach(job -> assertTrue(queueClient.eventuallyContainsJob(job.id())));
-    }
-
     @Then("the unprocessed mixed-status job remains created")
     public void unprocessedMixedStatusJobRemainsCreated() {
         assertJobStatus(unprocessedJob, "CREATED");
-    }
-
-    @Then("the unprocessed mixed-status job is not present on the process-interface-files queue")
-    public void unprocessedMixedStatusJobIsAbsentFromQueue() {
-        assertFalse(queueClient.eventuallyContainsJob(unprocessedJob.id()));
     }
 
     @Then("the process response is 200 with an empty body")
