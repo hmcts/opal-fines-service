@@ -3,24 +3,25 @@ package uk.gov.hmcts.opal.steps;
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.cucumber.java.After;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.gov.hmcts.opal.steps.BearerTokenStepDef;
-import uk.gov.hmcts.opal.utils.InterfaceJobsProcessDatabaseClient;
 import uk.gov.hmcts.opal.utils.InterfaceJobsProcessQueueClient;
 
 /**
@@ -28,12 +29,15 @@ import uk.gov.hmcts.opal.utils.InterfaceJobsProcessQueueClient;
  */
 public class InterfaceJobsProcessStepDef extends BaseStepDef {
 
+    private static final Logger log = LoggerFactory.getLogger(InterfaceJobsProcessStepDef.class);
     private static final String CREATE_PATH = "/interface-jobs";
     private static final String PROCESS_PATH = "/interface-jobs/process";
+    private static final String SUMMARY_PATH = "/interface-jobs/summary";
+    private static final String TESTING_SUPPORT_PATH = "/testing-support/interface-jobs";
+    private static final String INTERFACE_NAME = "E2E Process Interface Jobs";
     private static final short BUSINESS_UNIT_ID = 78;
     private static final String USER_WITHOUT_PERMISSION = "opal-test-2@dev.platform.hmcts.net";
 
-    private final InterfaceJobsProcessDatabaseClient databaseClient = new InterfaceJobsProcessDatabaseClient();
     private final InterfaceJobsProcessQueueClient queueClient = new InterfaceJobsProcessQueueClient();
     private final List<ProcessJob> eligibleJobs = new ArrayList<>();
     private ProcessJob alreadyProcessingJob;
@@ -82,10 +86,10 @@ public class InterfaceJobsProcessStepDef extends BaseStepDef {
         submitProcessRequest(buildProcessRequest(eligibleJobs), jsonRequestWithToken("invalid-token"));
     }
 
-    @Then("the eligible jobs are updated in the database")
-    public void eligibleJobsAreUpdatedInDatabase() throws SQLException {
+    @Then("the eligible jobs are returned as processing by the summary API")
+    public void eligibleJobsAreReturnedAsProcessingBySummaryApi() {
         for (ProcessJob job : eligibleJobs) {
-            assertJobProcessingState(databaseClient.loadJobState(job.id()), job.overrideInhibits());
+            assertJobStatus(job, "PROCESSING");
         }
     }
 
@@ -94,12 +98,9 @@ public class InterfaceJobsProcessStepDef extends BaseStepDef {
         eligibleJobs.forEach(job -> assertTrue(queueClient.eventuallyContainsJob(job.id())));
     }
 
-    @Then("the unprocessed mixed-status job remains unchanged")
-    public void unprocessedMixedStatusJobRemainsUnchanged() throws SQLException {
-        InterfaceJobsProcessDatabaseClient.JobState job = databaseClient.loadJobState(unprocessedJob.id());
-        assertEquals("CREATED", job.status());
-        assertFalse(job.overrideInhibits());
-        assertNull(job.startedDatetime());
+    @Then("the unprocessed mixed-status job remains created")
+    public void unprocessedMixedStatusJobRemainsCreated() {
+        assertJobStatus(unprocessedJob, "CREATED");
     }
 
     @Then("the unprocessed mixed-status job is not present on the process-interface-files queue")
@@ -115,6 +116,27 @@ public class InterfaceJobsProcessStepDef extends BaseStepDef {
         assertEquals("", then().extract().asString(), "The successful process response must have no body");
     }
 
+    @After(order = Integer.MAX_VALUE)
+    public void cleanUpCreatedInterfaceJobs() {
+        List<Long> jobIds = allCreatedJobIds();
+        if (jobIds.isEmpty()) {
+            return;
+        }
+
+        try {
+            RequestSpecification cleanupRequest = authorisedJsonRequest();
+            jobIds.forEach(jobId -> cleanupRequest.queryParam("ids", jobId));
+            Response response = cleanupRequest
+                .when()
+                .delete(getTestUrl() + TESTING_SUPPORT_PATH);
+            if (response.statusCode() != 200 && response.statusCode() != 204) {
+                log.warn("Unable to clean up interface jobs {}: HTTP {}", jobIds, response.statusCode());
+            }
+        } catch (RuntimeException e) {
+            log.warn("Unable to clean up interface jobs {}", jobIds, e);
+        }
+    }
+
     private ProcessJob createInterfaceJob() throws JSONException {
         final boolean overrideInhibits = eligibleJobs.size() % 2 == 0;
         JSONObject request = new JSONObject()
@@ -123,7 +145,7 @@ public class InterfaceJobsProcessStepDef extends BaseStepDef {
                 .put("source", "NATWEST")
                 .put("records", "[{\"account\":\"abc123\"}]")
                 .put("business_unit_id", BUSINESS_UNIT_ID)
-                .put("interface_name", "E2E Process Interface Jobs")
+                .put("interface_name", INTERFACE_NAME)
                 .put("created_datetime", LocalDateTime.now().withNano(0).toString())));
 
         authorisedJsonRequest()
@@ -160,10 +182,36 @@ public class InterfaceJobsProcessStepDef extends BaseStepDef {
         return new JSONObject().put("interface_jobs", interfaceJobs);
     }
 
-    private void assertJobProcessingState(InterfaceJobsProcessDatabaseClient.JobState job, boolean overrideInhibits) {
-        assertEquals("PROCESSING", job.status());
-        assertNotNull(job.startedDatetime());
-        assertEquals(overrideInhibits, job.overrideInhibits());
+    private void assertJobStatus(ProcessJob expectedJob, String expectedStatus) {
+        Response response = authorisedJsonRequest()
+            .queryParam("business_unit_ids", BUSINESS_UNIT_ID)
+            .queryParam("interface_name", INTERFACE_NAME)
+            .when()
+            .get(getTestUrl() + SUMMARY_PATH);
+
+        assertEquals(200, response.statusCode(), "Expected interface-job summary request to succeed");
+
+        List<Map<String, Object>> summaries = response.jsonPath().getList("interface_jobs");
+        Map<String, Object> jobSummary = summaries.stream()
+            .filter(summary -> ((Number) summary.get("interface_job_id")).longValue() == expectedJob.id())
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("Interface job " + expectedJob.id()
+                + " was not returned by the summary API"));
+
+        assertEquals(expectedStatus, jobSummary.get("status"),
+            "Unexpected status for interface job " + expectedJob.id());
+    }
+
+    private List<Long> allCreatedJobIds() {
+        List<Long> jobIds = new ArrayList<>();
+        eligibleJobs.stream().map(ProcessJob::id).forEach(jobIds::add);
+        if (alreadyProcessingJob != null) {
+            jobIds.add(alreadyProcessingJob.id());
+        }
+        if (unprocessedJob != null) {
+            jobIds.add(unprocessedJob.id());
+        }
+        return jobIds.stream().distinct().toList();
     }
 
     private record ProcessJob(long id, boolean overrideInhibits) {
