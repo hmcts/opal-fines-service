@@ -13,16 +13,16 @@ public interface GenericReportServiceInterface {
 
     CreateReportInstanceResponseReports addReportInstance(
         CreateReportInstanceRequestReports request,
-        boolean generateReportContentAsync
-    );
+        Long requestedBy,
+        String requestedByName,
+        boolean generateReportContentAsync);
 
     List<ReportInstanceListReportsInner> searchReportInstances(
         LocalDate fromDate,
         LocalDate toDate,
         List<Short> businessUnits,
         Long userId,
-        String reportId
-    );
+        String reportId);
 
     ReportInstanceReports getReportInstance(Long id);
 
