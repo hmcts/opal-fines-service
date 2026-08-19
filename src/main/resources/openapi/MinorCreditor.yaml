@@ -464,8 +464,6 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 
-
-
 components:
   securitySchemes:
     bearerAuth:
