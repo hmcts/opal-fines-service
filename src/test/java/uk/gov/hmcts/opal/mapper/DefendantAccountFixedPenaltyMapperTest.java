@@ -11,6 +11,9 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
@@ -49,10 +52,13 @@ class DefendantAccountFixedPenaltyMapperTest {
             );
         }
 
-        @Test
-        void whenVehicleRegistrationIsNv_thenMapsNonVehicleFixedPenaltyResponse() {
+        @ParameterizedTest
+        @NullSource
+        @ValueSource(strings = "nv")
+        void whenVehicleRegistrationIsNotAvailable_thenMapsNonVehicleFixedPenaltyResponse(
+            String vehicleRegistration) {
             DefendantAccountEntity account = buildAccount();
-            FixedPenaltyOffenceEntity offence = buildOffence("nv");
+            FixedPenaltyOffenceEntity offence = buildOffence(vehicleRegistration);
 
             GetDefendantAccountFixedPenaltyResponse response = mapper.toResponse(account, offence);
 
