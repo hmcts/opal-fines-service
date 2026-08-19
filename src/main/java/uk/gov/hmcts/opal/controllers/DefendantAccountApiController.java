@@ -23,6 +23,7 @@ import uk.gov.hmcts.opal.generated.model.AddPaymentCardRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
@@ -155,4 +156,9 @@ public class DefendantAccountApiController implements DefendantAccountApi {
             .body(generatedResponse);
     }
 
+    @Override
+    public ResponseEntity<DefendantAccountPaymentTermsResponse> defendantAccountPaymentTerms(Long id) {
+        log.debug(":GET:defendantAccountPaymentTerms: for defendant id: {}", id);
+        return buildResponse(defendantAccountPaymentTermsService.getPaymentTerms(id));
+    }
 }

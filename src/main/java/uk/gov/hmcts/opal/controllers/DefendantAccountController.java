@@ -100,18 +100,6 @@ public class DefendantAccountController {
                 addPaymentTermsRequest));
     }
 
-    @GetMapping(value = "/{defendantAccountId}/payment-terms/latest")
-    @Operation(summary = "Get defendant account details by providing the defendant account summary")
-    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<GetDefendantAccountPaymentTermsResponse> defendantAccountPaymentTerms(
-        @PathVariable Long defendantAccountId) {
-
-        log.debug(":GET:DefendantAccountPaymentTerms: for defendant id: {}", defendantAccountId);
-
-        return buildResponse(
-            defendantAccountPaymentTermsService.getPaymentTerms(defendantAccountId));
-    }
-
     @GetMapping("/{defendantAccountId}/fixed-penalty")
     @Operation(summary = "Retrieve Fixed Penalty Offence details for a given Defendant Account")
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)

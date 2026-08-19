@@ -244,6 +244,11 @@ components:
             - number
             - 'null'
           multipleOf: 0.01
+        daysInDefault:
+          type:
+            - integer
+            - 'null'
+          format: int32
     paymentTermsType:
       title: Payment Terms Type
       type: object
