@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -48,12 +47,12 @@ class DraftAccountReferenceValidationServiceTest {
         when(offenceRepository.existsByOffenceIdAvailableToBusinessUnit(anyLong(), eq((short) 77))).thenReturn(true);
         when(resultRepository.existsById(anyString())).thenReturn(true);
         when(majorCreditorRepository.existsById(anyLong())).thenReturn(true);
-        when(resultRepository.findById(eq("COLLO"))).thenReturn(Optional.of(ResultEntity.builder()
+        when(resultRepository.findById("COLLO")).thenReturn(Optional.of(ResultEntity.builder()
             .resultId("COLLO")
             .enforcement(true)
             .active(true)
             .build()));
-        when(resultRepository.findById(eq("NOENF"))).thenReturn(Optional.of(ResultEntity.builder()
+        when(resultRepository.findById("NOENF")).thenReturn(Optional.of(ResultEntity.builder()
             .resultId("NOENF")
             .enforcement(true)
             .active(true)
@@ -187,23 +186,24 @@ class DraftAccountReferenceValidationServiceTest {
 
     @Test
     void validateReferences_whenPaymentTermsEnforcementResultIsNotAnEnforcement_shouldFail() {
+        String accountJson = validAccountJson();
         when(courtLiteRepository.existsById(anyLong())).thenReturn(true);
         when(offenceRepository.existsById(anyLong())).thenReturn(true);
         when(resultRepository.existsById(anyString())).thenReturn(true);
         when(majorCreditorRepository.existsById(anyLong())).thenReturn(true);
-        when(resultRepository.findById(eq("COLLO"))).thenReturn(Optional.of(ResultEntity.builder()
+        when(resultRepository.findById("COLLO")).thenReturn(Optional.of(ResultEntity.builder()
             .resultId("COLLO")
             .enforcement(false)
             .active(true)
             .build()));
-        when(resultRepository.findById(eq("NOENF"))).thenReturn(Optional.of(ResultEntity.builder()
+        when(resultRepository.findById("NOENF")).thenReturn(Optional.of(ResultEntity.builder()
             .resultId("NOENF")
             .enforcement(true)
             .active(true)
             .build()));
 
         InvalidReferenceValidationException exception = assertThrows(InvalidReferenceValidationException.class,
-            () -> service.validateReferences(validAccountJson()));
+            () -> service.validateReferences(accountJson));
 
         assertContains(exception.getMessage(), "$.payment_terms.enforcements[0].result_id");
         assertContains(exception.getMessage(), "result id COLLO is not an enforcement result");
@@ -211,23 +211,24 @@ class DraftAccountReferenceValidationServiceTest {
 
     @Test
     void validateReferences_whenPaymentTermsEnforcementResultIsInactive_shouldFail() {
+        String accountJson = validAccountJson();
         when(courtLiteRepository.existsById(anyLong())).thenReturn(true);
         when(offenceRepository.existsById(anyLong())).thenReturn(true);
         when(resultRepository.existsById(anyString())).thenReturn(true);
         when(majorCreditorRepository.existsById(anyLong())).thenReturn(true);
-        when(resultRepository.findById(eq("COLLO"))).thenReturn(Optional.of(ResultEntity.builder()
+        when(resultRepository.findById("COLLO")).thenReturn(Optional.of(ResultEntity.builder()
             .resultId("COLLO")
             .enforcement(true)
             .active(false)
             .build()));
-        when(resultRepository.findById(eq("NOENF"))).thenReturn(Optional.of(ResultEntity.builder()
+        when(resultRepository.findById("NOENF")).thenReturn(Optional.of(ResultEntity.builder()
             .resultId("NOENF")
             .enforcement(true)
             .active(true)
             .build()));
 
         InvalidReferenceValidationException exception = assertThrows(InvalidReferenceValidationException.class,
-            () -> service.validateReferences(validAccountJson()));
+            () -> service.validateReferences(accountJson));
 
         assertContains(exception.getMessage(), "$.payment_terms.enforcements[0].result_id");
         assertContains(exception.getMessage(), "result id COLLO is not an active result");
