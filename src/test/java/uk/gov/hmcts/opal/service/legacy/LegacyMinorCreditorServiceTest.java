@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -17,8 +18,10 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -51,6 +54,7 @@ import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.mapper.MinorCreditorMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyMinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateMinorCreditorAccountResponseMapper;
@@ -84,6 +88,9 @@ class LegacyMinorCreditorServiceTest {
 
     @Mock
     private LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
+
+    @Spy
+    private final MinorCreditorMapper minorCreditorMapper = Mappers.getMapper(MinorCreditorMapper.class);
 
     @InjectMocks
     private LegacyMinorCreditorService legacyMinorCreditorService;
@@ -152,6 +159,8 @@ class LegacyMinorCreditorServiceTest {
         assertEquals(1, result.getCreditorAccounts().size());
         assertEquals("2", result.getCreditorAccounts().getFirst().getCreditorAccountId());
         assertEquals("Jane", result.getCreditorAccounts().getFirst().getDefendant().getFirstnames());
+
+        verify(minorCreditorMapper, times(1)).toCreditor(null);
     }
 
     @Test
@@ -215,6 +224,8 @@ class LegacyMinorCreditorServiceTest {
         assertEquals(1, result.getCreditorAccounts().size());
         assertEquals("2", result.getCreditorAccounts().getFirst().getCreditorAccountId());
         assertEquals("Jane", result.getCreditorAccounts().getFirst().getDefendant().getFirstnames());
+
+        verify(minorCreditorMapper, times(1)).toCreditor(any(MinorCreditorAccountSearchCreditor.class));
     }
 
     @Test
@@ -259,6 +270,8 @@ class LegacyMinorCreditorServiceTest {
 
         assertEquals(1, result.getCount());
         assertNull(result.getCreditorAccounts().getFirst().getDefendant());
+
+        verify(minorCreditorMapper, times(1)).toCreditor(null);
     }
 
     @Test
@@ -278,6 +291,8 @@ class LegacyMinorCreditorServiceTest {
 
         assertEquals(0, result.getCount());
         assertEquals(0, result.getCreditorAccounts().size());
+
+        verify(minorCreditorMapper, times(1)).toCreditor(null);
     }
 
     @Test
@@ -300,6 +315,8 @@ class LegacyMinorCreditorServiceTest {
 
         assertEquals(0, result.getCount());
         assertEquals(0, result.getCreditorAccounts().size());
+
+        verify(minorCreditorMapper, never()).toCreditor(any(MinorCreditorAccountSearchCreditor.class));
     }
 
     @Test
@@ -324,6 +341,8 @@ class LegacyMinorCreditorServiceTest {
         ).thenReturn(response);
 
         legacyMinorCreditorService.searchMinorCreditors(search);
+
+        verify(minorCreditorMapper, times(1)).toCreditor(null);
     }
 
     @Test
