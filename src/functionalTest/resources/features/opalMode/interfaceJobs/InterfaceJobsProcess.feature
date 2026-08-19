@@ -7,7 +7,7 @@ Feature: Process interface jobs
     And I create two eligible interface jobs for processing
     When I submit the eligible interface jobs for processing
     Then the process response is 200 with an empty body
-    And the eligible jobs are updated in the database
+    And the eligible jobs are returned as processing by the summary API
     And the eligible jobs are present on the process-interface-files queue
 
   @JIRA-STORY:PO-2593 @JIRA-TEST-KEY:PO-2593-E2E-02
@@ -16,7 +16,7 @@ Feature: Process interface jobs
     And I create an interface job that has already begun processing and an unprocessed interface job
     When I submit the mixed-status interface jobs for processing
     Then the request is rejected as conflict
-    And the unprocessed mixed-status job remains unchanged
+    And the unprocessed mixed-status job remains created
     And the unprocessed mixed-status job is not present on the process-interface-files queue
 
   @JIRA-STORY:PO-2593 @JIRA-TEST-KEY:PO-2593-E2E-03
