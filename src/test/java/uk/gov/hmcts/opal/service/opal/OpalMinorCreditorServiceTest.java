@@ -5,11 +5,13 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
 import jakarta.persistence.EntityNotFoundException;
@@ -26,6 +28,7 @@ import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditor;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchDefendant;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchResultMinorCreditor;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountsSearchResponse;
@@ -34,6 +37,7 @@ import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderEntityMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntity;
+import uk.gov.hmcts.opal.mapper.MinorCreditorMapper;
 import uk.gov.hmcts.opal.mapper.response.MinorCreditorAccountAtAGlanceResponseMapper;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
@@ -53,6 +57,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -83,6 +88,9 @@ class OpalMinorCreditorServiceTest {
 
     @Mock
     private MinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
+
+    @Spy
+    private final MinorCreditorMapper minorCreditorMapper = Mappers.getMapper(MinorCreditorMapper.class);
 
     @InjectMocks
     private OpalMinorCreditorService service;
@@ -194,6 +202,8 @@ class OpalMinorCreditorServiceTest {
         assertNull(d1.getOrganisationName());
         assertNull(d1.getFirstnames());
         assertNull(d1.getSurname());
+
+        verify(minorCreditorMapper, times(2)).toCreditorAccountDto(any(MinorCreditorEntity.class));
     }
 
     @Test
@@ -211,6 +221,8 @@ class OpalMinorCreditorServiceTest {
             .findAll(Mockito.<Specification<MinorCreditorEntity>>any());
         assertEquals(0, response.getCount());
         assertNull(response.getCreditorAccounts());
+
+        verify(minorCreditorMapper, times(0)).toCreditor(any(MinorCreditorAccountSearchCreditor.class));
     }
 
     @Test
@@ -248,6 +260,8 @@ class OpalMinorCreditorServiceTest {
 
         assertEquals(1, response.getCount());
         assertEquals("104", response.getCreditorAccounts().getFirst().getCreditorAccountId());
+
+        verify(minorCreditorMapper, times(1)).toCreditorAccountDto(any(MinorCreditorEntity.class));
     }
 
     @Test
