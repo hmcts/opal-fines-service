@@ -22,9 +22,7 @@ public interface MinorCreditorServiceInterface {
 
     MinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId);
 
-    MinorCreditorAccountHeaderSummaryResponse getHeaderSummary(
-        Long minorCreditorAccountId
-    );
+    MinorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long minorCreditorAccountId);
 
     MinorCreditorAccountResponse updateMinorCreditorAccount(
         Long minorCreditorAccountId,

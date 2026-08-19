@@ -109,8 +109,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
 
         checkResponseForError(response, "getHeaderSummary");
 
-        MinorCreditorAccountHeaderSummaryResponse mapped = headerSummaryResponseMapper
-            .toOpal(response.responseEntity);
+        MinorCreditorAccountHeaderSummaryResponse mapped = headerSummaryResponseMapper.toOpal(response.responseEntity);
 
         CreditorHeaderLegacy creditor = response.responseEntity.getCreditor();
         mapped.setVersion(BigInteger.valueOf(creditor.getAccountVersion()));
