@@ -38,9 +38,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.server.ResponseStatusException;
+import uk.gov.hmcts.opal.generated.model.CreateReportInstanceRequestReports;
+import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
 import uk.gov.hmcts.opal.service.report.FileType;
 import uk.gov.hmcts.opal.service.report.GenericReportService;
+import uk.gov.hmcts.opal.service.report.ReportInstanceCreationService;
 
 @ExtendWith(MockitoExtension.class)
 class ReportInstancesApiControllerTest {
@@ -49,6 +52,9 @@ class ReportInstancesApiControllerTest {
 
     @Mock
     private GenericReportService genericReportService;
+
+    @Mock
+    private ReportInstanceCreationService reportInstanceCreationService;
 
     @Mock
     private HttpServletRequest request;
@@ -83,8 +89,33 @@ class ReportInstancesApiControllerTest {
                     assertEquals(dto, response.getBody().getFirst());
                 },
                 () -> verify(genericReportService)
-                    .searchReportInstances(FROM_DATE, TO_DATE, BUSINESS_UNITS, USER_ID, DEFAULT_REPORT_ID)
-            );
+                    .searchReportInstances(FROM_DATE, TO_DATE, BUSINESS_UNITS, USER_ID, DEFAULT_REPORT_ID));
+        }
+    }
+
+    @Nested
+    class CreateReportInstance {
+
+        @Test
+        void whenRequestProvided_returnsCreatedResult_happyPath() {
+            CreateReportInstanceResponseReports response =
+                CreateReportInstanceResponseReports.builder().reportInstanceId(REPORT_INSTANCE_ID).build();
+            CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
+                .reportId(DEFAULT_REPORT_ID)
+                .businessUnitIds(BUSINESS_UNITS)
+                .reportParameters(Map.of())
+                .build();
+
+            when(reportInstanceCreationService.createReportInstance(request)).thenReturn(response);
+
+            ResponseEntity<CreateReportInstanceResponseReports> actual =
+                reportInstancesApiController.createReportInstance(request);
+
+            assertAll(
+                () -> assertEquals(HttpStatus.CREATED, actual.getStatusCode()),
+                () -> assertEquals(response, actual.getBody()),
+                () -> verify(reportInstanceCreationService).createReportInstance(request),
+                () -> verifyNoInteractions(genericReportService));
         }
     }
 
@@ -102,8 +133,7 @@ class ReportInstancesApiControllerTest {
             assertAll(
                 () -> assertEquals(OK, actual.getStatusCode()),
                 () -> assertEquals(expected, actual.getBody()),
-                () -> verify(genericReportService).getReportInstanceContent(REPORT_INSTANCE_ID, JSON)
-            );
+                () -> verify(genericReportService).getReportInstanceContent(REPORT_INSTANCE_ID, JSON));
         }
 
         @Test
@@ -145,23 +175,19 @@ class ReportInstancesApiControllerTest {
 
             ResponseStatusException exception = assertThrows(
                 ResponseStatusException.class,
-                () -> reportInstancesApiController.getReportInstanceContent(REPORT_INSTANCE_ID)
-            );
+                () -> reportInstancesApiController.getReportInstanceContent(REPORT_INSTANCE_ID));
 
             assertAll(
                 () -> assertEquals(NOT_ACCEPTABLE, exception.getStatusCode()),
                 () -> assertEquals("The requested media type cannot be produced by the server",
                     exception.getReason()),
-                () -> verifyNoInteractions(genericReportService)
-            );
+                () -> verifyNoInteractions(genericReportService));
         }
     }
 
     private void mock_reportContentRequest(String acceptHeader, FileType fileType, Object expectedContent) {
         when(request.getHeader(ACCEPT)).thenReturn(acceptHeader);
-        when(genericReportService.getReportInstanceContent(REPORT_INSTANCE_ID, fileType)).thenReturn(
-            expectedContent
-        );
+        when(genericReportService.getReportInstanceContent(REPORT_INSTANCE_ID, fileType)).thenReturn(expectedContent);
     }
 
     @SuppressWarnings("unchecked")
@@ -174,7 +200,6 @@ class ReportInstancesApiControllerTest {
             () -> assertEquals(OK, actual.getStatusCode()),
             () -> assertEquals(expectedContentType, actual.getHeaders().getContentType()),
             () -> assertArrayEquals(expectedBody, (byte[]) (Object) actual.getBody()),
-            () -> verify(genericReportService).getReportInstanceContent(REPORT_INSTANCE_ID, expectedFileType)
-        );
+            () -> verify(genericReportService).getReportInstanceContent(REPORT_INSTANCE_ID, expectedFileType));
     }
 }
