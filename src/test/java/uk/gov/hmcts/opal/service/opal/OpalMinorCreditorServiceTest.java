@@ -25,6 +25,8 @@ import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
+import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
+import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
