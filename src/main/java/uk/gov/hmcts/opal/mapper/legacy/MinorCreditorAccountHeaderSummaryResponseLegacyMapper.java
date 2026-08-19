@@ -16,7 +16,7 @@ import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryRespon
         FinancialsLegacyMapper.class
     }
 )
-public interface GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper {
+public interface MinorCreditorAccountHeaderSummaryResponseLegacyMapper {
 
     @Mapping(source = "partyDetails", target = "party")
     MinorCreditorAccountHeaderSummaryResponse toOpal(GetMinorCreditorAccountHeaderSummaryLegacyResponse legacy);
