@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.service.opal;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.LockModeType;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -29,7 +28,6 @@ import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItemType;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.GetMinorCreditorHistory200Response;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchDefendant;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchResultMinorCreditor;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
@@ -38,6 +36,7 @@ import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderEntityMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountUpdateMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorHistoryItemMapper;
+import uk.gov.hmcts.opal.mapper.MinorCreditorMapper;
 import uk.gov.hmcts.opal.mapper.response.MinorCreditorAccountAtAGlanceResponseMapper;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
@@ -76,6 +75,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
     private final MinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
     private final EntityManager em;
     private final MinorCreditorSpecs specs = new MinorCreditorSpecs();
+    private final MinorCreditorMapper minorCreditorMapper;
 
     @Override
     public MinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearchRequest criteria) {
@@ -285,39 +285,9 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
         return response;
     }
 
-    private MinorCreditorAccountSearchResultMinorCreditor toCreditorAccountDto(MinorCreditorEntity entity) {
-        return MinorCreditorAccountSearchResultMinorCreditor.builder()
-            .creditorAccountId(String.valueOf(entity.getCreditorId()))
-            .accountNumber(entity.getAccountNumber())
-            .organisation(entity.isOrganisation())
-            .organisationName(entity.getOrganisationName())
-            .firstnames(entity.getForenames())
-            .surname(entity.getSurname())
-            .addressLine1(entity.getAddressLine1())
-            .postcode(entity.getPostCode())
-            .businessUnitName(entity.getBusinessUnitName())
-            .businessUnitId(String.valueOf(entity.getBusinessUnitId()))
-            .accountBalance(java.util.Optional.ofNullable(entity.getCreditorAccountBalance())
-                                .map(BigDecimal::valueOf)
-                                .orElse(BigDecimal.ZERO))
-            .defendant(toDefendantDto(entity))
-            .build();
-    }
-
-    private MinorCreditorAccountSearchDefendant toDefendantDto(MinorCreditorEntity entity) {
-        return MinorCreditorAccountSearchDefendant.builder()
-            .defendantAccountId(entity.getDefendantAccountId() != null
-                                    ? String.valueOf(entity.getDefendantAccountId()) : null)
-            .organisation(entity.isOrganisation())
-            .organisationName(entity.getDefendantOrganisationName())
-            .firstnames(entity.getDefendantFornames())
-            .surname(entity.getDefendantSurname())
-            .build();
-    }
-
     private MinorCreditorAccountsSearchResponse toResponse(List<MinorCreditorEntity> entities) {
         List<MinorCreditorAccountSearchResultMinorCreditor> accounts = entities.stream()
-            .map(this::toCreditorAccountDto)
+            .map(minorCreditorMapper::toCreditorAccountDto)
             .toList();
 
         return MinorCreditorAccountsSearchResponse.builder()

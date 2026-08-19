@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
-import uk.gov.hmcts.opal.dto.Creditor;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyRequest;
@@ -28,13 +27,13 @@ import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsRespo
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditor;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchDefendant;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchResultMinorCreditor;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.mapper.MinorCreditorMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyMinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateMinorCreditorAccountResponseMapper;
@@ -64,6 +63,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     private final UpdateMinorCreditorAccountRequestMapper updateMinorCreditorAccountRequestMapper;
     private final LegacyUpdateMinorCreditorAccountResponseMapper updateMinorCreditorAccountResponseMapper;
     private final LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
+    private final MinorCreditorMapper minorCreditorMapper;
 
     @Override
     public MinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearchRequest minorCreditorEntity) {
@@ -208,7 +208,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     private LegacyMinorCreditorSearchResultsRequest createRequest(MinorCreditorSearchRequest request) {
         return LegacyMinorCreditorSearchResultsRequest.builder()
             .businessUnitIds(request.getBusinessUnitIds())
-            .creditor(toCreditor(request.getCreditor()))
+            .creditor(minorCreditorMapper.toCreditor(request.getCreditor()))
             .accountNumber(request.getAccountNumber())
             .activeAccountsOnly(Boolean.TRUE.equals(request.getActiveAccountsOnly()))
             .build();
@@ -256,23 +256,6 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
         return MinorCreditorAccountsSearchResponse.builder()
             .count(legacyResponse.getCount())
             .creditorAccounts(mappedAccounts)
-            .build();
-    }
-
-    private Creditor toCreditor(MinorCreditorAccountSearchCreditor creditor) {
-        if (creditor == null) {
-            return null;
-        }
-        return Creditor.builder()
-            .addressLine1(creditor.getAddressLine1())
-            .postcode(creditor.getPostcode())
-            .organisationName(creditor.getOrganisationName())
-            .exactMatchOrganisationName(creditor.getExactMatchOrganisationName())
-            .forenames(creditor.getForenames())
-            .surname(creditor.getSurname())
-            .exactMatchSurname(creditor.getExactMatchSurname())
-            .exactMatchForenames(creditor.getExactMatchForenames())
-            .organisation(creditor.getOrganisation())
             .build();
     }
 
