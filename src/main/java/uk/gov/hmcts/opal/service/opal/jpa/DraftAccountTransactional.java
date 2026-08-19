@@ -208,6 +208,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         if (newStatus.isDeleted()) {
             checkDeleterIsNotSubmitter(existingAccount.getSubmittedBy(), userState.getUserName(), draftAccountId,
                 userState, dto.getBusinessUnitId());
+            existingAccount.setAccountStatusDate(LocalDateTime.now(clock));
         }
 
         existingAccount.setTimelineData(
