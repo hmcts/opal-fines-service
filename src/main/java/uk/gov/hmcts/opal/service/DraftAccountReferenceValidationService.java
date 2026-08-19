@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
+import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.repository.CourtLiteRepository;
 import uk.gov.hmcts.opal.repository.MajorCreditorRepository;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
@@ -25,6 +26,8 @@ public class DraftAccountReferenceValidationService {
 
     private static final String ROOT_PATH = "$";
     private static final String DOES_NOT_EXIST = " does not exist";
+    private static final String IS_NOT_AN_ENFORCEMENT_RESULT = " is not an enforcement result";
+    private static final String IS_NOT_AN_ACTIVE_RESULT = " is not an active result";
 
     private final CourtLiteRepository courtLiteRepository;
     private final OffenceRepository offenceRepository;
@@ -133,8 +136,23 @@ public class DraftAccountReferenceValidationService {
             String enforcementPath = ROOT_PATH + ".payment_terms.enforcements[" + enforcementIndex + "]";
 
             String resultId = safeReadString(docContext, enforcementPath + ".result_id", null);
-            if (resultId != null && !resultRepository.existsById(resultId)) {
+            if (resultId == null) {
+                continue;
+            }
+
+            ResultEntity result = resultRepository.findById(resultId).orElse(null);
+            if (result == null) {
                 failures.add(enforcementPath + ".result_id: result id " + resultId + DOES_NOT_EXIST);
+                continue;
+            }
+
+            if (!result.isEnforcement()) {
+                failures.add(enforcementPath + ".result_id: result id " + resultId + IS_NOT_AN_ENFORCEMENT_RESULT);
+                continue;
+            }
+
+            if (!result.isActive()) {
+                failures.add(enforcementPath + ".result_id: result id " + resultId + IS_NOT_AN_ACTIVE_RESULT);
             }
         }
     }
