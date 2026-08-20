@@ -4,9 +4,9 @@ import tools.jackson.core.JacksonException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
-import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountEnforcementServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
@@ -34,11 +34,11 @@ public class DefendantAccountEnforcementServiceProxy implements DefendantAccount
     }
 
     @Override
-    public AddEnforcementResponse addEnforcement(Long defendantAccountId,
+    public AddEnforcementResponseDefendantAccount addEnforcement(Long defendantAccountId,
                                                  Short businessUnitId,
                                                  String businessUnitUserId,
                                                  String ifMatch,
-                                                 AddDefendantAccountEnforcementRequest request)
+                                                 AddEnforcementRequestDefendantAccount request)
         throws JacksonException {
         return getCurrentModeService().addEnforcement(defendantAccountId, businessUnitId, businessUnitUserId,
             ifMatch, request);

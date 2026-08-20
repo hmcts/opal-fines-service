@@ -78,6 +78,14 @@ public class DraftAccountPutSteps extends BaseStepDef {
     }
 
     /**
+     * Asserts that the account-status date has the same calendar date as the Deleted timeline entry.
+     */
+    @Then("the account status date matches the deleted date")
+    public void accountStatusDateMatchesDeletedDate() {
+        assertions.assertAccountStatusDateMatchesDeletedDate(SerenityRest.lastResponse());
+    }
+
+    /**
      * Attempts to put a draft-account using an invalid bearer token.
      */
     @When("I attempt to put a draft account with an invalid token")

@@ -1,7 +1,5 @@
 package uk.gov.hmcts.opal.service.iface;
 
-import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
-import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
@@ -40,9 +38,6 @@ public interface DefendantAccountServiceInterface {
         String postedBy) {
         return updateDefendantAccount(defendantAccountId, businessUnitId, request, postedBy, postedBy);
     }
-
-    AddEnforcementResponse addEnforcement(Long defendantAccountId, String businessUnitId, String businessUnitUserId,
-        String ifMatch, AddDefendantAccountEnforcementRequest request);
 
     EnforcementStatus getEnforcementStatus(Long defendantAccountId);
 }

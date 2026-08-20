@@ -3,8 +3,6 @@ package uk.gov.hmcts.opal.service.proxy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
-import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
@@ -78,13 +76,4 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
         return getCurrentModeService().getEnforcementStatus(defendantAccountId);
     }
 
-    @Override
-    public AddEnforcementResponse addEnforcement(Long defendantAccountId,
-        String businessUnitId,
-        String businessUnitUserId,
-        String ifMatch,
-        AddDefendantAccountEnforcementRequest request) {
-        return getCurrentModeService().addEnforcement(defendantAccountId, businessUnitId, businessUnitUserId,
-            ifMatch, request);
-    }
 }
