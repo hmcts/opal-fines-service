@@ -27,7 +27,7 @@ import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
@@ -224,8 +224,8 @@ class UserStateServiceTest {
         SecurityContextHolder.setContext(securityContext);
     }
 
-    private BusinessUnitUser businessUnitUser(Short businessUnitId, FinesPermission permission) {
-        return BusinessUnitUser.builder()
+    private BusinessUnitUserV2 businessUnitUser(Short businessUnitId, FinesPermission permission) {
+        return BusinessUnitUserV2.builder()
             .businessUnitId(businessUnitId)
             .permissions(Set.of(permission.toCommonPermission()))
             .build();

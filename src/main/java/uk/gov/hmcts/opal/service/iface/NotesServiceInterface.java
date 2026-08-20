@@ -6,6 +6,6 @@ import uk.gov.hmcts.opal.service.AccountNoteContext;
 
 public interface NotesServiceInterface {
 
-    String addNote(AddNoteRequest request, String ifMatch, UserStateV2 user, DefendantAccountEntity account);
+    String addNote(AddNoteRequest request, String ifMatch, UserStateV2 user, AccountNoteContext target);
 
 }

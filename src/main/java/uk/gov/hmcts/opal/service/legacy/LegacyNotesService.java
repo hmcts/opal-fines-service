@@ -22,7 +22,7 @@ public class LegacyNotesService implements NotesServiceInterface {
     private final GatewayService gatewayService;
 
     @Override
-    public String addNote(AddNoteRequest request, String ifMatch, UserStateV2 user, DefendantAccountEntity account) {
+    public String addNote(AddNoteRequest request, String ifMatch, UserStateV2 user, AccountNoteContext target) {
         log.info(":LegacyAddNote");
 
         GatewayService.Response<LegacyAddNoteResponse> response = gatewayService.postToGateway(
@@ -50,7 +50,7 @@ public class LegacyNotesService implements NotesServiceInterface {
     }
 
     private LegacyAddNoteRequest createRequest(AddNoteRequest request, String version, UserStateV2 user,
-                                               String defendantBusinessUnitId) {
+                                               Short businessUnitId) {
 
         LegacyNote note = LegacyNote.builder().noteText(request.getActivityNote().getNoteText())
             .noteType(request.getActivityNote().getNoteType()).recordType(request.getActivityNote().getRecordType())

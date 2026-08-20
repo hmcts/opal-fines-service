@@ -64,7 +64,7 @@ public class MajorCreditorAccountService {
     ) {
         log.debug(":getHistory: id={}", majorCreditorAccountId);
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
 
         if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);

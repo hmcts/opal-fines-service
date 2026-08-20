@@ -105,54 +105,6 @@ class DefendantAccountServiceTest {
         assertFalse(result.getResponse().getHasConsolidatedAccounts());
     }
 
-
-    @Test
-    void getPaymentTerms_whenUserHasPermission_returnsProxyResult() {
-        // arrange
-        Long defendantAccountId = 77L;
-        GetDefendantAccountPaymentTermsResponse proxyResponse = new GetDefendantAccountPaymentTermsResponse();
-        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
-        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
-        when(defendantAccountServiceProxy.getPaymentTerms(defendantAccountId)).thenReturn(proxyResponse);
-
-        // act
-        GetDefendantAccountPaymentTermsResponse result =
-            defendantAccountService.getPaymentTerms(defendantAccountId);
-
-        // assert
-        assertSame(proxyResponse, result, "Should return exactly the proxy response");
-
-        // verify interactions
-        verify(userStateService).getUserStateFromSecurityContext();
-        verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        verify(defendantAccountServiceProxy).getPaymentTerms(defendantAccountId);
-        verifyNoMoreInteractions(userStateService, userState, defendantAccountServiceProxy);
-    }
-
-    @Test
-    void getPaymentTerms_whenUserLacksPermission_throwsPermissionNotAllowed() {
-        // arrange
-        Long defendantAccountId = 77L;
-        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
-        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
-
-        // act + assert
-        PermissionNotAllowedException ex = assertThrows(
-            PermissionNotAllowedException.class,
-            () -> defendantAccountService.getPaymentTerms(defendantAccountId)
-        );
-        assertTrue(
-            ex.getMessage() == null || ex.getMessage().contains(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.name()),
-            "Exception should mention the denied permission"
-        );
-
-        // proxy must not be called
-        verify(userStateService).getUserStateFromSecurityContext();
-        verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        verifyNoInteractions(defendantAccountServiceProxy);
-        verifyNoMoreInteractions(userStateService, userState);
-    }
-
     @Test
     void testGetHeaderSummary_forbiddenWhenUserHasNoPermission() {
         // Arrange
@@ -315,57 +267,10 @@ class DefendantAccountServiceTest {
     }
 
     @Test
-    void addPaymentTerms_overwritesPostedDetailsFromUserState() {
-        Long defendantAccountId = 77L;
-        String businessUnitId = "78";
-        String ifMatch = "\"1\"";
-
-        UserStateV2 userWithPerm = UserStateUtil.permissionUser((short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
-        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userWithPerm);
-
-        AddDefendantAccountPaymentTermsRequest request = AddDefendantAccountPaymentTermsRequest.builder()
-            .paymentTerms(PaymentTerms.builder()
-                .postedDetails(PostedDetails.builder()
-                    .postedBy("FE_USER")
-                    .postedByName("FE_NAME")
-                    .build())
-                .build())
-            .build();
-
-        GetDefendantAccountPaymentTermsResponse proxyResponse = new GetDefendantAccountPaymentTermsResponse();
-        when(defendantAccountServiceProxy.addPaymentTerms(eq(defendantAccountId),
-            eq(businessUnitId),
-            eq("USER01"),
-            eq(ifMatch),
-            any(AddDefendantAccountPaymentTermsRequest.class)))
-            .thenReturn(proxyResponse);
-
-        GetDefendantAccountPaymentTermsResponse result = defendantAccountService.addPaymentTerms(
-            defendantAccountId, businessUnitId, ifMatch, request);
-
-        assertSame(proxyResponse, result);
-
-        ArgumentCaptor<AddDefendantAccountPaymentTermsRequest> captor =
-            ArgumentCaptor.forClass(AddDefendantAccountPaymentTermsRequest.class);
-        verify(defendantAccountServiceProxy).addPaymentTerms(eq(defendantAccountId),
-            eq(businessUnitId),
-            eq("USER01"),
-            eq(ifMatch),
-            captor.capture());
-
-        PostedDetails postedDetails = captor.getValue().getPaymentTerms().getPostedDetails();
-        assertNotNull(postedDetails);
-        assertEquals("USER01", postedDetails.getPostedBy());
-        assertEquals("Normal User", postedDetails.getPostedByName());
-    }
-
-    @Test
     void getAtAGlance_whenUserHasPermission_returnsProxyResult() {
         // arrange
         Long defendantAccountId = 77L;
         GetDefendantAccountAtAGlanceResponse proxyResponse = new GetDefendantAccountAtAGlanceResponse();
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        DefendantAccountAtAGlanceResponse proxyResponse = new DefendantAccountAtAGlanceResponse();
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(defendantAccountServiceProxy.getAtAGlance(defendantAccountId)).thenReturn(proxyResponse);
@@ -503,7 +408,7 @@ class DefendantAccountServiceTest {
     @Test
     void getConsolidatedAccounts_whenUserLacksSearchAndViewPermission_throwsPermissionNotAllowed() {
         Long defendantAccountId = 77L;
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
 
         RequiredPermissionException exception = assertThrows(
@@ -513,10 +418,10 @@ class DefendantAccountServiceTest {
 
         assertTrue(
             exception.getMessage() == null
-                || exception.getMessage().contains(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.getDescription()),
+                || exception.getMessage().contains(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.getPermissionName()),
             "Exception should mention the denied permission"
         );
-        verify(userStateService).getUserStateV1FromSecurityContext();
+        verify(userStateService).getUserStateFromSecurityContext();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verifyNoInteractions(defendantAccountServiceProxy);
     }

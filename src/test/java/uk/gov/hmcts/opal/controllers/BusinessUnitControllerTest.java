@@ -22,8 +22,6 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2.UserBusines
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
-import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers.UserBusinessUnits;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceDataResults;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
@@ -148,7 +146,7 @@ class BusinessUnitControllerTest {
 
     }
 
-    private class TestUserBusinessUnits implements UserBusinessUnits {
+    private static class TestUserBusinessUnits implements UserBusinessUnits {
         private final boolean contains;
 
         public TestUserBusinessUnits(boolean contains) {

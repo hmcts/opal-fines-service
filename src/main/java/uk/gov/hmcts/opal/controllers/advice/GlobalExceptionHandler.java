@@ -61,7 +61,7 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.FORBIDDEN,
             "Forbidden",
-            "User requires permission: " + ex.getPermission().getDescription(),
+            "User requires permission: " + ex.getPermission().getPermissionName(),
             "forbidden",
             false,
             ex

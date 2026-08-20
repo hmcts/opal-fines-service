@@ -17,7 +17,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RecordType;
@@ -39,7 +39,7 @@ class OpalNotesServiceTest {
     @Mock private DefendantAccountRepositoryService defendantAccountRepositoryService;
     @Mock private CreditorAccountRepository creditorAccountRepository;
     @Mock private Clock clock;
-    @Mock private UserState user;
+    @Mock private UserStateV2 user;
 
     @InjectMocks
     private OpalNotesService service;
@@ -58,7 +58,7 @@ class OpalNotesServiceTest {
         saved.setNoteId(999L);
         when(defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(77L))
             .thenReturn(managed);
-        when(user.getDisplayName()).thenReturn("Test User");
+        when(user.getUsername()).thenReturn("Test User");
         when(repository.save(any(NoteEntity.class))).thenReturn(saved);
         AddNoteRequest req = buildRequest("77", RecordType.DEFENDANT_ACCOUNTS);
 
@@ -89,7 +89,7 @@ class OpalNotesServiceTest {
         NoteEntity saved = new NoteEntity();
         saved.setNoteId(1001L);
         when(creditorAccountRepository.findByCreditorAccountIdForUpdate(104L)).thenReturn(Optional.of(managed));
-        when(user.getDisplayName()).thenReturn("Creditor User");
+        when(user.getUsername()).thenReturn("Creditor User");
         when(repository.save(any(NoteEntity.class))).thenReturn(saved);
         AddNoteRequest req = buildRequest("104", RecordType.CREDITOR_ACCOUNTS);
 

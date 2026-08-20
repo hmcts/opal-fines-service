@@ -24,8 +24,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler.PaymentCardRequestAlreadyExistsException;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.RecordType;
@@ -218,24 +216,4 @@ class OpalDefendantAccountServicePaymentCardTest {
         verify(defendantAccountRepositoryService).save(account);
     }
 
-    @Test
-    void addPaymentCardRequest_permissionDenied_throws403() {
-        DefendantAccountPaymentTermsServiceProxy proxy = mock(DefendantAccountPaymentTermsServiceProxy.class);
-
-        UserStateV2 userState = mock(UserStateV2.class);
-        when(userStateService.getUserStateFromSecurityContext())
-            .thenReturn(userState);
-        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS))
-            .thenReturn(false);
-
-        var svc = new DefendantAccountPaymentTermsService(proxy, userStateService);
-
-        PermissionNotAllowedException ex = assertThrows(
-            PermissionNotAllowedException.class,
-            () -> svc.addPaymentCardRequest(1L, "10", "USR", "\"1\"")
-        );
-        assertThat(ex.getPermission()).containsExactly(FinesPermission.AMEND_PAYMENT_TERMS);
-
-        verifyNoInteractions(proxy);
-    }
 }

@@ -13,10 +13,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import org.springframework.http.HttpStatus;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
-import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
@@ -35,10 +31,7 @@ class NotesServiceTest {
     @Mock private NotesProxy notesProxy;
     @Mock private UserStateService userStateService;
     @Mock private AccountNoteContextFactory accountNoteContextFactory;
-    @Mock private UserState userState;
-    @Mock private NoteRepository repository;
-    @Mock private EntityManager em;
-    @Mock private UserStateV2 user;
+    @Mock private UserStateV2 userState;
 
     @InjectMocks
     private NotesService notesService;
@@ -55,65 +48,11 @@ class NotesServiceTest {
             BUSINESS_UNIT_ID,
             AssociatedRecordType.DEFENDANT_ACCOUNTS
         );
-        // Build request payload
-        Note n = new Note();
-        n.setRecordId("77");
-        n.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
-        n.setNoteText("hello world");
-        n.setNoteType("AA");
-
-        request = new AddNoteRequest();
-        request.setActivityNote(n);
-
-        // Detached param passed by caller
-        detachedParam = new DefendantAccountEntity();
-        detachedParam.setDefendantAccountId(77L);
-        detachedParam.setVersionNumber(2L); // irrelevant to service; it re-fetches
-
-        // Managed entity returned by em.find(...)
-        managedInEm = new DefendantAccountEntity();
-        managedInEm.setDefendantAccountId(77L);
-        managedInEm.setVersionNumber(2L);
-        managedInEm.setBusinessUnit(bu((short) 1));
-    }
-
-    @Test
-    void addNote_success_savesFields_returnsId_andLocksManagedEntity() {
-        when(em.find(DefendantAccountEntity.class, 77L)).thenReturn(managedInEm);
-        when(user.getUsername()).thenReturn("Normal User");
-
-        // repository.save returns an entity with generated id
-        NoteEntity persisted = new NoteEntity();
-        persisted.setNoteId(123456789L);
-        when(repository.save(any(NoteEntity.class))).thenReturn(persisted);
-
-        // Use a quoted If-Match to exercise the strip-quotes logic
-        String returnedId = service.addNote(request, "\"2\"", user, detachedParam);
-
-        assertEquals("123456789", returnedId);
-
-        // Verify saved values
-        ArgumentCaptor<NoteEntity> captor = ArgumentCaptor.forClass(NoteEntity.class);
-        verify(repository).save(captor.capture());
-        NoteEntity toSave = captor.getValue();
-
-        assertEquals("hello world", toSave.getNoteText());
-        assertEquals(NoteType.AA, toSave.getNoteType());
-        assertEquals("77", toSave.getAssociatedRecordId());
-        assertEquals(AssociatedRecordType.DEFENDANT_ACCOUNTS, toSave.getAssociatedRecordType());
-        assertEquals("1", toSave.getBusinessUnitUserId()); // short -> "1"
-        assertEquals("Normal User", toSave.getPostedByUsername());
-        assertNotNull(toSave.getPostedDate(), "postedDate should be set");
-        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), toSave.getPostedDate());
-
-        // Lock is called on the MANAGED instance
-        verify(em).lock(eq(managedInEm), eq(LockModeType.OPTIMISTIC_FORCE_INCREMENT));
-        verifyNoMoreInteractions(repository, em);
     }
 
     @Test
     void addNote_shouldThrowPermissionNotAllowedException_whenUserLacksPermission() {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(accountNoteContextFactory.from(request.getActivityNote())).thenReturn(target);
         when(userState.hasBusinessUnitUserWithPermission(
             BUSINESS_UNIT_ID, FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES)).thenReturn(false);
@@ -128,7 +67,7 @@ class NotesServiceTest {
     void addNote_shouldDelegateToNotesProxy_whenUserHasPermission() {
         String expectedResponse = "note-id-456";
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(accountNoteContextFactory.from(request.getActivityNote())).thenReturn(target);
         when(userState.hasBusinessUnitUserWithPermission(
             BUSINESS_UNIT_ID, FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES)).thenReturn(true);

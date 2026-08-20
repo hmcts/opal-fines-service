@@ -7,7 +7,6 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -76,14 +75,14 @@ public class DefendantAccountPaymentTermsService {
 
         log.debug(":addPaymentTerms:");
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
 
         short buId = Short.parseShort(businessUnitId);
         String businessUnitUserId = userState.getBusinessUnitUserForBusinessUnit(buId)
-            .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
+            .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2::getBusinessUnitUserId)
             .filter(id -> !id.isBlank())
-            .orElse(userState.getUserName());
-        String postedByName = userState.getUserName();
+            .orElse(userState.getUsername());
+        String postedByName = userState.getUsername();
 
         if (addPaymentTermsRequest != null && addPaymentTermsRequest.getPaymentTerms() != null) {
             addPaymentTermsRequest.getPaymentTerms().setPostedDetails(PostedDetails.builder()

@@ -11,9 +11,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
-import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptor;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptorV2;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -40,10 +40,10 @@ public class BusinessUnitService {
     }
 
     public String getBusinessUnitUserIdForBusinessUnit(
-        DomainBusinessUnitUsers businessUnitUsers, short businessUnitId, PermissionDescriptor permission) {
+        DomainBusinessUnitUsers businessUnitUsers, short businessUnitId, PermissionDescriptorV2 permission) {
 
         return getBusinessUnitUserForBusinessUnit(businessUnitUsers, businessUnitId)
-            .map(BusinessUnitUser::getBusinessUnitUserId)
+            .map(BusinessUnitUserV2::getBusinessUnitUserId)
             .filter(id -> !id.isBlank())
             .orElseThrow(() -> new PermissionNotAllowedException(businessUnitId, permission));
     }
@@ -52,7 +52,7 @@ public class BusinessUnitService {
      * Null-safe method to route permission check through.
      */
     public boolean hasBusinessUnitUserWithPermission(
-        DomainBusinessUnitUsers businessUnitUsers, short businessUnitId, PermissionDescriptor permission) {
+        DomainBusinessUnitUsers businessUnitUsers, short businessUnitId, PermissionDescriptorV2 permission) {
 
         return getBusinessUnitUserForBusinessUnit(businessUnitUsers, businessUnitId)
             .filter(businessUnitUser -> businessUnitUser.hasPermission(permission))
@@ -107,7 +107,7 @@ public class BusinessUnitService {
         );
     }
 
-    private Optional<BusinessUnitUser> getBusinessUnitUserForBusinessUnit(
+    private Optional<BusinessUnitUserV2> getBusinessUnitUserForBusinessUnit(
         DomainBusinessUnitUsers businessUnitUsers, short businessUnitId) {
 
         if (businessUnitUsers == null || businessUnitUsers.getBusinessUnitUsers() == null) {

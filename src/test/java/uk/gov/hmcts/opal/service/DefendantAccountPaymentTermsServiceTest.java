@@ -24,12 +24,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -146,8 +144,8 @@ class DefendantAccountPaymentTermsServiceTest {
         String businessUnitId = "78";
         String ifMatch = "\"1\"";
 
-        UserState userWithPerm = UserStateUtil.permissionUser((short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userWithPerm);
+        UserStateV2 userWithPerm = UserStateUtil.permissionUser((short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userWithPerm);
 
         AddDefendantAccountPaymentTermsRequest request = AddDefendantAccountPaymentTermsRequest.builder()
             .paymentTerms(PaymentTerms.builder()
@@ -402,16 +400,16 @@ class DefendantAccountPaymentTermsServiceTest {
             .build();
     }
 
-    private static DomainBusinessUnitUsers businessUnitUsers(BusinessUnitUser... businessUnitUsers) {
+    private static DomainBusinessUnitUsers businessUnitUsers(BusinessUnitUserV2... businessUnitUsers) {
         return DomainBusinessUnitUsers.builder()
             .businessUnitUsers(List.of(businessUnitUsers))
             .build();
     }
 
-    private static BusinessUnitUser businessUnitUser(
+    private static BusinessUnitUserV2 businessUnitUser(
         short businessUnitId, String businessUnitUserId, FinesPermission... permissions) {
 
-        return BusinessUnitUser.builder()
+        return BusinessUnitUserV2.builder()
             .businessUnitId(businessUnitId)
             .businessUnitUserId(businessUnitUserId)
             .permissions(UserStateUtil.permissionsFor(permissions))

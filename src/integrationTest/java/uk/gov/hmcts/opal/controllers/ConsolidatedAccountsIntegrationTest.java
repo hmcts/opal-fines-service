@@ -185,8 +185,8 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     @JiraTestKey("PO-9374")
     void getConsolidatedAccounts_whenMissingPermission_returnsForbidden() throws Exception {
         userStateStub.setupWithNoPermissions();
-        doReturn(UserStateUtil.noPermissionsUser())
-            .when(userStateService).getUserStateV1FromSecurityContext();
+        doReturn(UserStateUtil.noFinesPermissionUserStateV2())
+            .when(userStateService).getUserStateFromSecurityContext();
 
         mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID))
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -196,7 +196,7 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
             .andExpect(jsonPath("$.status").value(403))
             .andExpect(jsonPath("$.retriable").value(false))
             .andExpect(jsonPath("$.title").value("Forbidden"))
-            .andExpect(jsonPath("$.detail").value("User requires permission: Search and View Accounts"));
+            .andExpect(jsonPath("$.detail").value("User requires permission: Search and view accounts"));
     }
 
     @Test
@@ -206,7 +206,7 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     @JiraTestKey("PO-9377")
     void getConsolidatedAccounts_whenCredentialsMissing_returnsUnauthorized() throws Exception {
         doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).getUserStateV1FromSecurityContext();
+            .when(userStateService).getUserStateFromSecurityContext();
 
         mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID)))
             .andExpect(status().isUnauthorized())
@@ -264,6 +264,6 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
 
     private void mockUserWithPermission(short businessUnitId) {
         doReturn(UserStateUtil.permissionUser(businessUnitId, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
-            .when(userStateService).getUserStateV1FromSecurityContext();
+            .when(userStateService).getUserStateFromSecurityContext();
     }
 }

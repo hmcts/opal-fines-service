@@ -823,9 +823,9 @@ class OpalDefendantAccountEnforcementServiceTest {
             .build();
         UnprocessableException exception = new UnprocessableException("blocked");
 
-        UserState userState = allPermissionsUser();
+        UserStateV2 userState = allPermissionsUser();
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(defendantAccountRepositoryService.findById(defendantAccountId)).thenReturn(defendantEntity);
         doThrow(exception).when(defendantAccountControlValidator).validateCanRemoveEnforcementHold(defendantEntity);
 

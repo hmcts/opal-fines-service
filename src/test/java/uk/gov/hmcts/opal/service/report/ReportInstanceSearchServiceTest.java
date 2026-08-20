@@ -40,7 +40,7 @@ import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.repository.ReportRepository;
@@ -82,12 +82,12 @@ class ReportInstanceSearchServiceTest {
     }
 
     private void setAuthenticatedUserWithPermissions(FinesPermission... permissions) {
-        Set<Permission> permittedPermissions = Arrays.stream(permissions)
+        Set<PermissionV2> permittedPermissions = Arrays.stream(permissions)
             .map(FinesPermission::toCommonPermission)
             .collect(java.util.stream.Collectors.toSet());
 
-        when(authToken.hasPermission(any(Permission.class))).thenAnswer(invocation ->
-            permittedPermissions.contains(invocation.getArgument(0)));
+        when(authToken.hasPermission(any(PermissionV2.class))).thenAnswer(invocation ->
+            permittedPermissions.contains((PermissionV2)invocation.getArgument(0)));
     }
 
     private void setBusinessUnitUsers(BusinessUnitUserV2... businessUnitUsers) {
