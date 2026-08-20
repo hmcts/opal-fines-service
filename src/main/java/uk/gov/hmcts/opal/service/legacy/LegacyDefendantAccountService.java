@@ -106,8 +106,8 @@ import uk.gov.hmcts.opal.service.opal.history.HistoryItemOrderingService;
 @Slf4j(topic = "opal.LegacyDefendantAccountService")
 public class LegacyDefendantAccountService implements DefendantAccountServiceInterface {
 
-    public static final String GET_HEADER_SUMMARY = "LIBRA.get_header_summary";
-    public static final String GET_DEFENDANT_ACCOUNT_HISTORY = "LIBRA.get_defendant_account_history";
+    public static final String GET_HEADER_SUMMARY = "getDefendantAccountHeaderSummary";
+    public static final String GET_DEFENDANT_ACCOUNT_HISTORY = "getDefendantAccountHistory";
     public static final String SEARCH_DEFENDANT_ACCOUNTS = "searchDefendantAccounts";
     public static final String GET_PAYMENT_TERMS = "LIBRA.get_payment_terms";
     public static final String ADD_PAYMENT_TERMS = "LIBRA.add_payment_terms";
@@ -118,8 +118,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public static final String GET_DEFENDANT_ACCOUNT_PARTY = "LIBRA.get_defendant_account_party";
     public static final String ADD_DEFENDANT_ACCOUNT_PARTY = "LIBRA.add_defendant_account_party";
     public static final String REPLACE_DEFENDANT_ACCOUNT_PARTY = "LIBRA.replace_defendant_account_party";
-    public static final String PATCH_DEFENDANT_ACCOUNT = "LIBRA.patchDefendantAccount";
-    public static final String GET_ENFORCEMENT_STATUS = "LIBRA.of_get_defendant_account_enf_status";
+    public static final String PATCH_DEFENDANT_ACCOUNT = "updateDefendantAccount";
+    public static final String GET_ENFORCEMENT_STATUS = "getDefendantAccountEnforcementStatus";
 
     public static final String ADD_PAYMENT_CARD_REQUEST = "LIBRA.of_add_defendant_account_pcr";
 
@@ -363,7 +363,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 .build();
 
         return DefendantAccountHeaderSummary.builder()
-            .version(new BigInteger(Optional.ofNullable(response.getVersion()).orElse("1")))
+            .version(Optional.ofNullable(response.getVersion()).orElse(BigInteger.ONE))
             .response(defendantAccHeaderSummaryResponse)
             .build();
     }
@@ -518,7 +518,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                     ? JsonNullable.undefined()
                     : JsonNullable.of(toComments(src.getCommentsAndNotes())))
                 .build())
-            .version(BigInteger.valueOf(src.getVersion()))
+            .version(src.getVersion())
             .build();
     }
 

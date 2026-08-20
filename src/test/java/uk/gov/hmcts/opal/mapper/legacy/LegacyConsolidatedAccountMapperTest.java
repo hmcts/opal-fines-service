@@ -20,7 +20,7 @@ class LegacyConsolidatedAccountMapperTest {
     void toResponse_mapsVersionAndSortedPayload() {
         LegacyGetDefendantAccountConsolidatedAccountsResponse legacy =
             LegacyGetDefendantAccountConsolidatedAccountsResponse.builder()
-                .version(7L)
+                .version(BigInteger.valueOf(7L))
                 .consolidatedAccounts(List.of(
                     legacyAccount(233302L, "233302C"),
                     legacyAccount(233301L, "233301C")
@@ -46,7 +46,7 @@ class LegacyConsolidatedAccountMapperTest {
     void toResponse_whenLegacyAccountsNull_returnsEmptyPayload() {
         LegacyGetDefendantAccountConsolidatedAccountsResponse legacy =
             LegacyGetDefendantAccountConsolidatedAccountsResponse.builder()
-                .version(1L)
+                .version(BigInteger.valueOf(1L))
                 .consolidatedAccounts(null)
                 .build();
 

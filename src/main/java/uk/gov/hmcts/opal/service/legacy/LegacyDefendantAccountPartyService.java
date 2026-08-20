@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.legacy;
 
-import java.math.BigInteger;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,10 +47,10 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 @Slf4j(topic = "opal.LegacyDefendantAccountPartyService")
 public class LegacyDefendantAccountPartyService implements DefendantAccountPartyServiceInterface {
 
-    public static final String GET_DEFENDANT_ACCOUNT_PARTY = "LIBRA.get_defendant_account_party";
-    public static final String REPLACE_DEFENDANT_ACCOUNT_PARTY = "LIBRA.replace_defendant_account_party";
-    public static final String ADD_DEFENDANT_ACCOUNT_PARTY = "LIBRA.add_defendant_account_party";
-    public static final String REMOVE_DEFENDANT_ACCOUNT_PARTY = "LIBRA.remove_defendant_account_party";
+    public static final String GET_DEFENDANT_ACCOUNT_PARTY = "getDefendantAccountParty";
+    public static final String REPLACE_DEFENDANT_ACCOUNT_PARTY = "replaceDefendantAccountParty";
+    public static final String ADD_DEFENDANT_ACCOUNT_PARTY = "addDefendantAccountParty";
+    public static final String REMOVE_DEFENDANT_ACCOUNT_PARTY = "removeDefendantAccountParty";
 
     /* ---- Services ---- */
     private final GatewayService gatewayService;
@@ -276,7 +275,7 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
 
         // Return the legacy wrapper with version + correctly-shaped party
         response.setDefendantAccountParty(legacyParty);
-        response.setVersion(BigInteger.valueOf(legacy.getVersion()));
+        response.setVersion(legacy.getVersion());
         return response;
     }
 
@@ -291,7 +290,7 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
         String postedByName, String businessUnitUserId) {
 
         LegacyReplaceDefendantAccountPartyRequest req = LegacyReplaceDefendantAccountPartyRequest.builder()
-            .version(VersionUtils.extractBigInteger(ifMatch).longValue())
+            .version(VersionUtils.extractBigInteger(ifMatch))
             .defendantAccountId(defendantAccountId)
             .businessUnitId(businessUnitId)
             .businessUnitUserId(businessUnitUserId)
@@ -487,7 +486,7 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
         }
 
         return GetDefendantAccountPartyResponse.builder()
-            .version(legacy.getVersion() == null ? null : BigInteger.valueOf(legacy.getVersion()))
+            .version(legacy.getVersion())
             .defendantAccountParty(modernParty)
             .build();
     }

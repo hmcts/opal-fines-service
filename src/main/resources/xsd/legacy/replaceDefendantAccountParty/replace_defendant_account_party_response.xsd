@@ -6,7 +6,7 @@
     <xsd:complexType>
       <xsd:choice>
         <xsd:sequence>
-          <xsd:element name="version" type="xsd:int" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="version" type="xsd:integer" minOccurs="1" maxOccurs="1"/>
           <xsd:element name="defendant_account_party" type="defendant_account_party" minOccurs="1" maxOccurs="1" />
         </xsd:sequence>
         <xsd:sequence>
