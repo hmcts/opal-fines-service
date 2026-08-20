@@ -567,7 +567,8 @@ class MinorCreditorServiceTest {
     }
 
     @Test
-    void updateMinorCreditorAccount_withLegacyPermissionsButWithoutMinorCreditorMaintenance_throwsPermissionNotAllowed() {
+    void updateMinorCreditorAccount_withLegacyPermissionsButWithoutMinorCreditorMaintenance_throwsPermissionNotAllowed(
+    ) {
         // Arrange
         UserState userState = UserStateUtil.permissionUser((short) 10,
             FinesPermission.ACCOUNT_MAINTENANCE,
