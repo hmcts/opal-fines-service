@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -50,8 +51,8 @@ class DraftAccountReferenceValidationServiceTest {
 
     @BeforeEach
     void setUp() {
-        when(courtLiteRepository.existsById(anyLong())).thenReturn(true);
-        when(offenceRepository.existsByOffenceIdAvailableToBusinessUnit(anyLong(), eq(BUSINESS_UNIT_ID)))
+        lenient().when(courtLiteRepository.existsById(anyLong())).thenReturn(true);
+        lenient().when(offenceRepository.existsByOffenceIdAvailableToBusinessUnit(anyLong(), eq(BUSINESS_UNIT_ID)))
             .thenReturn(true);
     }
 

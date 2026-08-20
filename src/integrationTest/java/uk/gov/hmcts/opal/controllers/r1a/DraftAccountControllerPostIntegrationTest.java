@@ -575,6 +575,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @JiraStory("PO-5746")
     @JiraEpic("PO-8248")
     void testPostDraftAccount_accepted_offence_for_business_unit() throws Exception {
+        long countBefore = draftAccountRepository.count();
         String request = validCreateRequestBody();
 
         ResultActions result = mockMvc.perform(post(URL_BASE)
@@ -583,12 +584,19 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request)).andDo(print());
 
+        String responseBody = result.andReturn().getResponse().getContentAsString();
+        JSONObject responseJson = new JSONObject(responseBody);
+        long draftAccountId = responseJson.getLong("draft_account_id");
+
         result.andExpect(status().isCreated()).andExpect(content()
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.draft_account_id").isNumber())
             .andExpect(jsonPath("$.business_unit_id").value(78))
             .andExpect(jsonPath("$.account.offences[0].offence_id").value(35014))
             .andExpect(jsonPath("$.account.offences[0].business_unit_id").value(78));
+
+        assertEquals(countBefore + 1, draftAccountRepository.count());
+        assertEquals(Short.valueOf((short) 78), getDraftAccount(draftAccountId).getBusinessUnit().getBusinessUnitId());
     }
 
     @Test

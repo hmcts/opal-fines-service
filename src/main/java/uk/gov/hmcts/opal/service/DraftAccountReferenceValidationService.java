@@ -123,8 +123,7 @@ public class DraftAccountReferenceValidationService {
     private void validatePaymentTermsEnforcements(
         JsonPathUtil.DocContext docContext,
         List<String> failures,
-        Map<String, Optional<ResultEntity>> resultCache
-    ) {
+        Map<String, Optional<ResultEntity>> resultCache) {
         List<?> enforcements = safeReadList(docContext, ROOT_PATH + ".payment_terms.enforcements");
         if (enforcements == null) {
             return;
@@ -180,8 +179,7 @@ public class DraftAccountReferenceValidationService {
         JsonPathUtil.DocContext docContext,
         String impositionPath,
         ImpositionCreditor impositionCreditor,
-        List<String> failures
-    ) {
+        List<String> failures) {
         if (businessUnitId == null || impositionCreditor == null) {
             return;
         }
@@ -199,8 +197,7 @@ public class DraftAccountReferenceValidationService {
                 minorCreditorPresent,
                 impositionCreditor,
                 true,
-                failures
-            );
+                failures);
             case ANY -> validateMajorOrMinorCreditor(
                 businessUnitId,
                 impositionPath,
@@ -216,30 +213,25 @@ public class DraftAccountReferenceValidationService {
     private void validateCentralFundCreditor(Short businessUnitId, String impositionPath, List<String> failures) {
         if (!creditorAccountRepository.existsByBusinessUnitIdAndCreditorAccountType(
             businessUnitId,
-            CreditorAccountType.CF
-        )) {
+            CreditorAccountType.CF)) {
             failures.add(
                 impositionPath + ".major_creditor_id: no central fund creditor account exists for business unit "
-                    + businessUnitId
-            );
+                    + businessUnitId);
         }
     }
 
     private void validateProsecutionServiceCreditor(
         Short businessUnitId,
         String impositionPath,
-        List<String> failures
-    ) {
+        List<String> failures) {
         if (!creditorAccountRepository.existsByBusinessUnitIdAndCreditorAccountTypeAndProsecutionService(
             businessUnitId,
             CreditorAccountType.MJ,
-            true
-        )) {
+            true)) {
             failures.add(
                 impositionPath
                     + ".major_creditor_id: no prosecution service creditor account exists for business unit "
-                    + businessUnitId
-            );
+                    + businessUnitId);
         }
     }
 
@@ -250,14 +242,12 @@ public class DraftAccountReferenceValidationService {
         boolean minorCreditorPresent,
         ImpositionCreditor impositionCreditor,
         boolean excludeProsecutionService,
-        List<String> failures
-    ) {
+        List<String> failures) {
         if (majorCreditorId == null) {
             if (!minorCreditorPresent) {
                 failures.add(
                     impositionPath + ".minor_creditor: a minor creditor or valid major creditor id is required for "
-                        + "result creditor rule " + impositionCreditor.getLabel()
-                );
+                        + "result creditor rule " + impositionCreditor.getLabel());
             }
             return;
         }
@@ -268,20 +258,17 @@ public class DraftAccountReferenceValidationService {
                 businessUnitId,
                 CreditorAccountType.MJ,
                 false,
-                majorCreditorId
-            )
+                majorCreditorId)
             : creditorAccountRepository.existsByBusinessUnitIdAndCreditorAccountTypeAndMajorCreditorId(
                 businessUnitId,
                 CreditorAccountType.MJ,
-                majorCreditorId
-            );
+                majorCreditorId);
 
         if (!creditorAccountExists) {
             failures.add(
                 impositionPath + ".major_creditor_id: major creditor id " + majorCreditorId
                     + " is not valid for business unit " + businessUnitId
-                    + " and result creditor rule " + impositionCreditor.getLabel()
-            );
+                    + " and result creditor rule " + impositionCreditor.getLabel());
         }
     }
 
