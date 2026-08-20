@@ -630,6 +630,7 @@ class DraftAccountTransactionalTest {
             draftAccountId, updateDto, draftAccountTransactional, BigInteger.ZERO, userState);
 
         assertEquals(DraftAccountStatus.DELETED, result.getAccountStatus());
+        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), result.getAccountStatusDate());
         verify(securityEventLoggingService, never()).logEvent(any(), any(), any(), any(), any(), any());
     }
 

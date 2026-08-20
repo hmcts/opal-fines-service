@@ -483,6 +483,44 @@ INSERT INTO defendant_account_parties (defendant_account_party_id, defendant_acc
 VALUES (999, 999, 999,
         'Defendant', 'Y');
 
+-- PO-2351 alias surname starts-with search records under BU 9999
+INSERT INTO defendant_accounts (defendant_account_id, version_number, business_unit_id, account_number,
+                                amount_paid, account_balance, amount_imposed, account_status,
+                                prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
+                                collection_order, payment_card_requested)
+VALUES
+    (235101, 0, 9999, '235101A', 0.00, 10.00, 10.00, 'L', '235101PCR', 'N', 'N', 'Fine', 'N', 'N'),
+    (235102, 0, 9999, '235102A', 0.00, 10.00, 10.00, 'L', '235102PCR', 'N', 'N', 'Fine', 'N', 'N'),
+    (235103, 0, 9999, '235103A', 0.00, 10.00, 10.00, 'L', '235103PCR', 'N', 'N', 'Fine', 'N', 'N'),
+    (235104, 0, 9999, '235104A', 0.00, 10.00, 10.00, 'L', '235104PCR', 'N', 'N', 'Fine', 'N', 'N')
+ON CONFLICT (defendant_account_id) DO NOTHING;
+
+INSERT INTO parties (party_id, organisation, organisation_name,
+                     surname, forenames, title)
+VALUES
+    (235101, 'N', NULL, 'ControlSurname235101', 'ControlForenames235101', 'Mr'),
+    (235102, 'N', NULL, 'ControlSurname235102', 'ControlForenames235102', 'Mr'),
+    (235103, 'N', NULL, 'ControlSurname235103', 'ControlForenames235103', 'Mr'),
+    (235104, 'N', NULL, 'ControlSurname235104', 'ControlForenames235104', 'Mr')
+ON CONFLICT (party_id) DO NOTHING;
+
+INSERT INTO defendant_account_parties (defendant_account_party_id, defendant_account_id, party_id,
+                                       association_type, debtor)
+VALUES
+    (235101, 235101, 235101, 'Defendant', 'Y'),
+    (235102, 235102, 235102, 'Defendant', 'Y'),
+    (235103, 235103, 235103, 'Defendant', 'Y'),
+    (235104, 235104, 235104, 'Defendant', 'Y')
+ON CONFLICT (defendant_account_party_id) DO NOTHING;
+
+INSERT INTO aliases (alias_id, party_id, surname, forenames, sequence_number, organisation_name)
+VALUES
+    (2351011, 235101, 'Sentinel', 'AliasForenames235101', 1, NULL),
+    (2351021, 235102, 'Desenti', 'AliasForenames235102', 1, NULL),
+    (2351031, 235103, 'Crescent', 'AliasForenames235103', 1, NULL),
+    (2351041, 235104, 'Sent', 'AliasForenames235104', 1, NULL)
+ON CONFLICT (alias_id) DO NOTHING;
+
 -- Debug/inspection row: dedicated account+party with distinctive link id (77444)
 -- Placed under BU 9999 to avoid influencing BU=78 count-based tests
 INSERT INTO defendant_accounts (defendant_account_id, version_number, business_unit_id, account_number,

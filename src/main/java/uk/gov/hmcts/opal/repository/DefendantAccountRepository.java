@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -35,5 +36,17 @@ public interface DefendantAccountRepository extends JpaRepository<DefendantAccou
     @Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
     @Query("select d from DefendantAccountEntity d where d.defendantAccountId = :id")
     Optional<DefendantAccountEntity> findByDefendantAccountIdForUpdate(@Param("id") Long defendantAccountId);
+
+    @Modifying
+    @Query("""
+        UPDATE DefendantAccountEntity d
+        SET d.versionNumber = d.versionNumber + 1
+        WHERE d.defendantAccountId = :defendantAccountId
+        AND d.versionNumber = :expectedVersion
+        """)
+    int incrementVersionNumber(
+        @Param("defendantAccountId") Long defendantAccountId,
+        @Param("expectedVersion") Long expectedVersion
+    );
 
 }
