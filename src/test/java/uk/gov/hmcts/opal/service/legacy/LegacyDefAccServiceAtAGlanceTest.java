@@ -7,7 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigInteger;
@@ -53,6 +55,8 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
 
         GetDefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(123L);
 
+        verify(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.GET_DEFENDANT_AT_A_GLANCE), any(), any(), any());
         assertNotNull(out);
         assertEquals("123", out.getPayload().getDefendantAccountId());
         assertEquals("ACC-42", out.getPayload().getAccountNumber());
