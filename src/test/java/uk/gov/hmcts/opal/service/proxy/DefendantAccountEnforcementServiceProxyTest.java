@@ -7,14 +7,14 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
-import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountEnforcementServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountEnforcementService;
+import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -91,10 +91,9 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
         Short businessUnitId = 10;
         String businessUnitUserId = "BU-USER";
         String ifMatch = "3";
-        AddDefendantAccountEnforcementRequest req =
-            mock(AddDefendantAccountEnforcementRequest.class);
+        AddEnforcementRequestDefendantAccount req = mock(AddEnforcementRequestDefendantAccount.class);
 
-        AddEnforcementResponse expected = AddEnforcementResponse.builder()
+        AddEnforcementResponseDefendantAccount expected = AddEnforcementResponseDefendantAccount.builder()
             .enforcementId("ENF-L")
             .defendantAccountId("77")
             .version(3)
@@ -105,7 +104,7 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
             .thenReturn(expected);
 
         // act
-        AddEnforcementResponse result =
+        AddEnforcementResponseDefendantAccount result =
             serviceProxy.addEnforcement(defendantAccountId, businessUnitId,
                 businessUnitUserId, ifMatch, req);
 
@@ -125,10 +124,9 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
         Short businessUnitId = 10;
         String businessUnitUserId = "BU-USER";
         String ifMatch = "3";
-        AddDefendantAccountEnforcementRequest req =
-            mock(AddDefendantAccountEnforcementRequest.class);
+        AddEnforcementRequestDefendantAccount req = mock(AddEnforcementRequestDefendantAccount.class);
 
-        AddEnforcementResponse expected = AddEnforcementResponse.builder()
+        AddEnforcementResponseDefendantAccount expected = AddEnforcementResponseDefendantAccount.builder()
             .enforcementId("ENF-O")
             .defendantAccountId("77")
             .version(3)
@@ -139,7 +137,7 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
             .thenReturn(expected);
 
         // act
-        AddEnforcementResponse result =
+        AddEnforcementResponseDefendantAccount result =
             serviceProxy.addEnforcement(defendantAccountId, businessUnitId,
                 businessUnitUserId, ifMatch, req);
 

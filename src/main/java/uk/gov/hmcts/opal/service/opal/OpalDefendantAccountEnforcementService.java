@@ -14,16 +14,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
-import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
-import uk.gov.hmcts.opal.dto.ResultResponse;
+import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.EnforcementResultResponseDefendantAccount;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
+import uk.gov.hmcts.opal.mapper.EnforcementPaymentTermsMapper;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
@@ -79,25 +81,25 @@ public class OpalDefendantAccountEnforcementService
 
     private final DefendantAccountControlValidator defendantAccountControlValidator;
 
+    private final EnforcementPaymentTermsMapper enforcementPaymentTermsMapper;
+
     @Override
     @Transactional
-    public AddEnforcementResponse addEnforcement(
+    public AddEnforcementResponseDefendantAccount addEnforcement(
         Long defendantAccountId,
         Short businessUnitId,
         String businessUnitUserId,
         String ifMatch,
-        AddDefendantAccountEnforcementRequest request) throws JacksonException {
+        AddEnforcementRequestDefendantAccount request) throws JacksonException {
 
         String reason = null;
         Integer jailDays = null;
         Long enforcerId = null;
         LocalDateTime earliestReleaseDate = null;
-        List<ResultResponse> enforcementResultResponses =
-            request != null && request.getEnforcementResultResponses() != null
-                ? request.getEnforcementResultResponses()
-                : List.of();
+        List<EnforcementResultResponseDefendantAccount> enforcementResultResponses = request != null
+            && request.getEnforcementResultResponses() != null ? request.getEnforcementResultResponses() : List.of();
 
-        for (ResultResponse result : enforcementResultResponses) {
+        for (EnforcementResultResponseDefendantAccount result : enforcementResultResponses) {
             if (Objects.equals(result.getParameterName(), "reason")) {
                 reason = result.getResponse();
             }
@@ -137,7 +139,8 @@ public class OpalDefendantAccountEnforcementService
         // payment terms and the response use the latest version and enforcement state.
         defendantAccountRepositoryService.refresh(defendant);
 
-        if (request.getPaymentTerms() != null) {
+        EnforcementPaymentTermsCommonStrict enforcementPaymentTerms = request.getPaymentTerms().orElse(null);
+        if (enforcementPaymentTerms != null) {
             DefendantAccountEntity defendantEntity = defendantAccountRepositoryService.findById(defendantAccountId);
             defendantAccountPaymentTermsService.addPaymentTermsPreservingLastEnforcement(
                 defendantAccountId,
@@ -146,7 +149,7 @@ public class OpalDefendantAccountEnforcementService
                 userState.getUserName(),
                 defendantEntity.getVersion().toString(),
                 AddDefendantAccountPaymentTermsRequest.builder()
-                    .paymentTerms(request.getPaymentTerms())
+                    .paymentTerms(enforcementPaymentTermsMapper.toPaymentTerms(enforcementPaymentTerms))
                     .requestPaymentCard(false)
                     .generatePaymentTermsChangeLetter(false)
                     .build()
@@ -155,20 +158,20 @@ public class OpalDefendantAccountEnforcementService
 
         DefendantAccountEntity latestDefendant = defendantAccountRepositoryService.findById(defendantAccountId);
 
-        return AddEnforcementResponse.builder()
+        return AddEnforcementResponseDefendantAccount.builder()
             .defendantAccountId(String.valueOf(defendantAccountId))
             .version(Math.toIntExact(latestDefendant.getVersionNumber()))
             .enforcementId(String.valueOf(enforcementId))
             .build();
     }
 
-    private Map<String, String> toResultResponsesMap(List<ResultResponse> responses) {
+    private Map<String, String> toResultResponsesMap(List<EnforcementResultResponseDefendantAccount> responses) {
         Map<String, String> resultResponsesMap = new LinkedHashMap<>();
         if (responses == null) {
             return resultResponsesMap;
         }
 
-        for (ResultResponse response : responses) {
+        for (EnforcementResultResponseDefendantAccount response : responses) {
             if (response == null || response.getParameterName() == null) {
                 continue;
             }

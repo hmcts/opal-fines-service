@@ -59,7 +59,7 @@ class Release1bFeatureToggleAnnotationTest {
             "DefendantAccountApiController#getConsolidatedAccounts",
             "MinorCreditorController#getMinorCreditorAccountHeaderSummary",
             "DefendantAccountApiController#postDefendantAccountSearch",
-            "DefendantAccountController#addEnforcement",
+            "DefendantAccountApiController#addEnforcement",
             "DefendantAccountController#removeDefendantAccountParty",
             "MinorCreditorApiController#getMinorCreditorAccountAtAGlance",
             "MajorCreditorApiController#getCentralFundByBusinessUnit",
