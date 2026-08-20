@@ -567,11 +567,12 @@ class MinorCreditorServiceTest {
     }
 
     @Test
-    void updateMinorCreditorAccount_withoutMinorCreditorMaintenancePermission_throwsPermissionNotAllowed() {
+    void updateMinorCreditorAccount_withLegacyPermissionsButWithoutMinorCreditorMaintenance_throwsPermissionNotAllowed() {
         // Arrange
         UserState userState = UserStateUtil.permissionUser((short) 10,
             FinesPermission.ACCOUNT_MAINTENANCE,
-            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
+            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+            FinesPermission.VIEW_CREDITOR_BACS);
         PatchMinorCreditorAccountRequest request = unchangedHoldPatchRequest();
 
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
