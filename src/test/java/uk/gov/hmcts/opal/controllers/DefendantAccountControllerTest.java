@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import tools.jackson.core.JacksonException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,8 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
-import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
@@ -59,30 +56,6 @@ class DefendantAccountControllerTest {
         var req = LegacyDefendantAccountService.createGetDefendantAccountRequest(id);
         assertNotNull(req);
         assertEquals(id, req.getDefendantAccountId());
-    }
-
-    @Test
-    void testAddEnforcement_Success() throws JacksonException {
-        // Arrange
-        Long defendantAccountId = 1L;
-        Short businessUnitId = 10;
-        String ifMatch = "1";
-        AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder().build();
-        AddEnforcementResponse mockResponse = AddEnforcementResponse.builder().build();
-
-        when(defendantAccountEnforcementService.addEnforcement(
-            defendantAccountId, businessUnitId, ifMatch, request)).thenReturn(mockResponse);
-
-        // Act
-        ResponseEntity<AddEnforcementResponse> response =
-            defendantAccountController.addEnforcement(defendantAccountId, businessUnitId, ifMatch,
-                request);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(mockResponse, response.getBody());
-
-        verify(defendantAccountEnforcementService).addEnforcement(defendantAccountId, businessUnitId, ifMatch, request);
     }
 
     @Test

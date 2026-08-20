@@ -103,7 +103,7 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
             .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_details.organisation_name")
                 .value("TechCorp Solutions Ltd"))
             .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details").doesNotExist())
-            .andExpect(header().string("ETag", "\"1\""));
+            .andExpect(header().string("ETag", OVER_LONG_VERSION_ETAG));
 
         jsonSchemaValidationService.validateOrError(body, DEFENDANT_PARTY_RESPONSE_SCHEMA);
     }

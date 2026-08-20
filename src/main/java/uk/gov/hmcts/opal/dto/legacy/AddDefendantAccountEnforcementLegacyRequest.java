@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.math.BigInteger;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,7 +32,7 @@ public class AddDefendantAccountEnforcementLegacyRequest {
 
     @JsonProperty("version")
     @NotNull
-    private Integer version;
+    private BigInteger version;
 
     @JsonProperty("result_id")
     @NotBlank

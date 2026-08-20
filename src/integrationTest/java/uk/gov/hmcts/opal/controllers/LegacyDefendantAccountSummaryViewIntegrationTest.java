@@ -41,7 +41,7 @@ public class LegacyDefendantAccountSummaryViewIntegrationTest extends AbstractIn
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(APPLICATION_JSON))
-            .andExpect(header().string(HttpHeaders.ETAG, "\"1\""))
+            .andExpect(header().string(HttpHeaders.ETAG, OVER_LONG_VERSION_ETAG))
             .andExpect(jsonPath("$.defendant_account_id").value("77"))
             .andExpect(jsonPath("$.account_number").value("177A"))
             .andExpect(jsonPath("$.account_status_reference").exists())
@@ -75,7 +75,7 @@ public class LegacyDefendantAccountSummaryViewIntegrationTest extends AbstractIn
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(APPLICATION_JSON))
-            .andExpect(header().string(HttpHeaders.ETAG, "\"1\""))
+            .andExpect(header().string(HttpHeaders.ETAG, OVER_LONG_VERSION_ETAG))
             .andExpect(jsonPath("$.defendant_account_id").value("10001"))
             .andExpect(jsonPath("$.account_number").value("10001A"))
             .andExpect(jsonPath("$.account_status_reference").exists())
