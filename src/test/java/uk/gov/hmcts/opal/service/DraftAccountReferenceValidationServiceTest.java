@@ -49,6 +49,66 @@ class DraftAccountReferenceValidationServiceTest {
     }
 
     @Test
+    void validateReferences_whenOffenceDoesNotExist_shouldReportOffencePath() {
+        when(offenceRepository.existsByOffenceIdAvailableToBusinessUnit(999L, (short) 77))
+            .thenReturn(false);
+
+        InvalidReferenceValidationException exception = assertThrows(
+            InvalidReferenceValidationException.class,
+            () -> service.validateReferences("""
+            {
+              "offences": [
+                {
+                  "offence_id": 999
+                }
+              ]
+            }
+            """, (short) 77)
+        );
+
+        assertContains(
+            exception.getMessage(),
+            "account.offences[0].offence_id: offence id 999 does not exist"
+        );
+
+        verify(offenceRepository)
+            .existsByOffenceIdAvailableToBusinessUnit(999L, (short) 77);
+    }
+
+    @Test
+    void validateReferences_whenMultipleOffencesAreInvalid_shouldReportEachOffencePath() {
+        when(offenceRepository.existsByOffenceIdAvailableToBusinessUnit(999L, (short) 77))
+            .thenReturn(false);
+        when(offenceRepository.existsByOffenceIdAvailableToBusinessUnit(998L, (short) 77))
+            .thenReturn(false);
+
+        InvalidReferenceValidationException exception = assertThrows(
+            InvalidReferenceValidationException.class,
+            () -> service.validateReferences("""
+            {
+              "offences": [
+                {
+                  "offence_id": 999
+                },
+                {
+                  "offence_id": 998
+                }
+              ]
+            }
+            """, (short) 77)
+        );
+
+        String message = exception.getMessage();
+
+        assertContains(message, "Draft account reference validation failed with 2 error(s):");
+        assertContains(message, "account.offences[0].offence_id: offence id 999 does not exist");
+        assertContains(message, "account.offences[1].offence_id: offence id 998 does not exist");
+
+        verify(offenceRepository).existsByOffenceIdAvailableToBusinessUnit(999L, (short) 77);
+        verify(offenceRepository).existsByOffenceIdAvailableToBusinessUnit(998L, (short) 77);
+    }
+
+    @Test
     void validateReferences_whenSomeReferencesAreMissing_shouldReportAllFailures() {
         when(courtLiteRepository.existsById(anyLong())).thenReturn(false);
         when(offenceRepository.existsByOffenceIdAvailableToBusinessUnit(anyLong(), eq((short) 77))).thenReturn(false);

@@ -380,6 +380,30 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     }
 
     @Test
+    @DisplayName("PO-5746: Create draft account - Should return 400 for an invalid offence ID")
+    @JiraStory("PO-5746")
+    @JiraEpic("PO-2219")
+    void shouldReturn400WhenOffenceIdIsInvalid() throws Exception {
+        String request = validCreateRequestBody()
+            .replace("\"offence_id\": 35014", "\"offence_id\": 999998");
+
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                """
+                Draft account reference validation failed with 1 error(s):
+                 - account.offences[0].offence_id: offence id 999998 does not exist
+                """.stripIndent().stripTrailing(),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
     @DisplayName("Create draft account - Should return 400 Bad Request [@PO-973, @PO-691]")
     @JiraStory("PO-973")
     @JiraStory("PO-691")
