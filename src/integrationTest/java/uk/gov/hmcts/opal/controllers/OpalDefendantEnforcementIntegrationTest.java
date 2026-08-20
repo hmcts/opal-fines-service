@@ -43,6 +43,34 @@ public class OpalDefendantEnforcementIntegrationTest extends DefendantEnforcemen
     }
 
     @Test
+    @JiraStory("PO-5757")
+    @JiraEpic("PO-2990")
+    public void testAddEnforcement_whenPaymentTermsOmitted_returnsBadRequest() throws Exception {
+        super.postEnforcementImpl_whenPaymentTermsIsOmitted_returnsBadRequest();
+    }
+
+    @Test
+    @JiraStory("PO-5757")
+    @JiraEpic("PO-2990")
+    public void testAddEnforcement_whenPaymentTermsExplicitlyNull_passesValidation() throws Exception {
+        super.postEnforcementImpl_whenPaymentTermsIsExplicitlyNull_passesValidation();
+    }
+
+    @Test
+    @JiraStory("PO-5757")
+    @JiraEpic("PO-2990")
+    public void testAddEnforcement_whenDaysInDefaultOmitted_returnsBadRequest() throws Exception {
+        super.postEnforcementImpl_whenDaysInDefaultIsOmitted_returnsBadRequest();
+    }
+
+    @Test
+    @JiraStory("PO-5757")
+    @JiraEpic("PO-2990")
+    public void testAddEnforcement_whenDaysInDefaultExplicitlyNull_passesValidation() throws Exception {
+        super.postEnforcementImpl_whenDaysInDefaultIsExplicitlyNull_passesValidation();
+    }
+
+    @Test
     @JiraStory("PO-7193")
     @JiraEpic("PO-1675")
     @JiraTestKey("PO-8269")

@@ -8,11 +8,11 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
 import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
-import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountEnforcementServiceProxy;
 
 @Service
@@ -37,10 +37,10 @@ public class DefendantAccountEnforcementService {
         }
     }
 
-    public AddEnforcementResponse addEnforcement(Long defendantAccountId,
+    public AddEnforcementResponseDefendantAccount addEnforcement(Long defendantAccountId,
         Short businessUnitId,
         String ifMatch,
-        AddDefendantAccountEnforcementRequest request) throws JacksonException {
+        AddEnforcementRequestDefendantAccount request) throws JacksonException {
 
         log.debug(":addEnforcement:");
 
