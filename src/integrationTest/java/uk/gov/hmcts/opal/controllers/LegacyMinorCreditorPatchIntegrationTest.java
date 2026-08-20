@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.math.BigInteger;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -57,7 +58,7 @@ class LegacyMinorCreditorPatchIntegrationTest extends MinorCreditorControllerInt
     private static final String URL_BASE = "/minor-creditor-accounts";
     private static final long PATCH_MINOR_CREDITOR_ACCOUNT_ID = 607L;
     private static final short PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID = 10;
-    private static final String UPDATE_MINOR_CREDITOR_ACCOUNT = "LIBRA.of_update_minor_creditor_account";
+    private static final String UPDATE_MINOR_CREDITOR_ACCOUNT = "updateMinorCreditorAccount";
 
     @MockitoBean
     private GatewayService gatewayService;
@@ -110,7 +111,7 @@ class LegacyMinorCreditorPatchIntegrationTest extends MinorCreditorControllerInt
         org.junit.jupiter.api.Assertions.assertEquals("607", legacyRequest.getCreditorAccountId());
         org.junit.jupiter.api.Assertions.assertEquals("10", legacyRequest.getBusinessUnitId());
         org.junit.jupiter.api.Assertions.assertEquals("L010JG", legacyRequest.getBusinessUnitUserId());
-        org.junit.jupiter.api.Assertions.assertEquals(1, legacyRequest.getAccountVersion());
+        org.junit.jupiter.api.Assertions.assertEquals(BigInteger.ONE, legacyRequest.getAccountVersion());
         org.junit.jupiter.api.Assertions.assertEquals("99008", legacyRequest.getPartyDetails().getPartyId());
         org.junit.jupiter.api.Assertions.assertEquals("Updated Ltd",
             legacyRequest.getPartyDetails().getOrganisationDetails().getOrganisationName());
@@ -240,7 +241,7 @@ class LegacyMinorCreditorPatchIntegrationTest extends MinorCreditorControllerInt
 
     private LegacyUpdateMinorCreditorAccountResponse legacyPatchResponse() {
         return LegacyUpdateMinorCreditorAccountResponse.builder()
-            .accountVersion(2)
+            .accountVersion(BigInteger.valueOf(2))
             .creditorAccountId(PATCH_MINOR_CREDITOR_ACCOUNT_ID)
             .partyDetails(LegacyPartyDetails.builder()
                 .partyId("99008")

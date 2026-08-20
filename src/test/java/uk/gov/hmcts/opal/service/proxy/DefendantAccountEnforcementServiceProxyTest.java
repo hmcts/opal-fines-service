@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.proxy;
 
 import tools.jackson.core.JacksonException;
+import java.math.BigInteger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -96,7 +97,7 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
         AddEnforcementResponseDefendantAccount expected = AddEnforcementResponseDefendantAccount.builder()
             .enforcementId("ENF-L")
             .defendantAccountId("77")
-            .version(3)
+            .version(BigInteger.valueOf(3))
             .build();
 
         when(legacyService.addEnforcement(defendantAccountId, businessUnitId,
@@ -129,7 +130,7 @@ class DefendantAccountEnforcementServiceProxyTest extends ProxyTestsBase {
         AddEnforcementResponseDefendantAccount expected = AddEnforcementResponseDefendantAccount.builder()
             .enforcementId("ENF-O")
             .defendantAccountId("77")
-            .version(3)
+            .version(BigInteger.valueOf(3))
             .build();
 
         when(opalService.addEnforcement(defendantAccountId, businessUnitId,

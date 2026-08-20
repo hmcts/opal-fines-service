@@ -991,7 +991,7 @@ components:
           x-field-extra-annotation: '@jakarta.validation.constraints.NotBlank'
         version:
           type: integer
-          format: int32
+          format: bigint
     atAGlanceResponse:
       title: Defendant Account At A Glance Response
       type: object

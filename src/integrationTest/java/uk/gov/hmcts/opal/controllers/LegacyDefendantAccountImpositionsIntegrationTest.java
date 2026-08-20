@@ -16,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.SchemaPaths.GET_DEFENDANT_ACCOUNT_IMPOSITIONS_RESPONSE;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -181,7 +182,7 @@ class LegacyDefendantAccountImpositionsIntegrationTest extends AbstractIntegrati
 
     private LegacyDefendantAccountImpositionsResponseCommon legacyResponse() {
         return LegacyDefendantAccountImpositionsResponseCommon.builder()
-            .version(1L)
+            .version(BigInteger.ONE)
             .impositions(List.of(LegacyDefendantAccountImpositionCommon.builder()
                 .dateAdded(LocalDate.parse("2026-05-06"))
                 .dateImposed(LocalDate.parse("2026-05-05"))

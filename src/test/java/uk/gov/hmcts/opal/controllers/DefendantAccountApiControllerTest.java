@@ -68,7 +68,7 @@ class DefendantAccountApiControllerTest {
         AddEnforcementResponseDefendantAccount mappedResponse = AddEnforcementResponseDefendantAccount.builder()
             .defendantAccountId("1")
             .enforcementId("2")
-            .version(1)
+            .version(BigInteger.ONE)
             .build();
 
         when(defendantAccountEnforcementService.addEnforcement(1L, (short) 77, "1", request))
@@ -79,7 +79,7 @@ class DefendantAccountApiControllerTest {
 
         assertAll(
             () -> assertEquals(HttpStatus.OK, response.getStatusCode()),
-            () -> assertEquals(1, response.getBody().getVersion()),
+            () -> assertEquals(BigInteger.ONE, response.getBody().getVersion()),
             () -> assertSame(mappedResponse, response.getBody()),
             () -> verify(defendantAccountEnforcementService).addEnforcement(1L, (short) 77, "1", request)
         );
