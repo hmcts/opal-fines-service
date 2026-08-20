@@ -51,7 +51,6 @@ public class DefendantAccountApiController implements DefendantAccountApi {
     private final DefendantAccountEnforcementService defendantAccountEnforcementService;
     private final DefendantAccountHistoryResponseMapper defendantAccountHistoryResponseMapper;
     private final ImpositionService impositionService;
-    private final DefendantAccountEnforcementService defendantAccountEnforcementService;
     private final DefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
 
     @Override

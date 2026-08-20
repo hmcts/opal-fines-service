@@ -61,9 +61,6 @@ class DefendantAccountApiControllerTest {
     @Mock
     private DefendantAccountHistoryResponseMapper defendantAccountHistoryResponseMapper;
 
-    @Mock
-    private DefendantAccountEnforcementService defendantAccountEnforcementService;
-
     @InjectMocks
     private DefendantAccountApiController defendantAccountApiController;
 
