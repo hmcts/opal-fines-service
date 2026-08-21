@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectBadRequest;
 import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectBadRequestWithoutStatus;
 
 import java.util.List;
@@ -72,6 +73,32 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
         jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNT_RESPONSE);
 
+    }
+
+    @Test
+    @DisplayName("Replace draft account - Should return 400 when token-derived fields are supplied")
+    @JiraStory("PO-2461")
+    @JiraEpic("PO-2220")
+    void testReplaceDraftAccount_tokenDerivedFieldsAreSupplied() throws Exception {
+        String request = validReplaceRequestBody(0L).replace(
+            "\"business_unit_id\": 78,",
+            "\"business_unit_id\": 78,\n"
+                + "              \"submitted_by\": \"client-user\",\n"
+                + "              \"submitted_by_name\": \"Client User\","
+        );
+
+        mockMvc.perform(put(URL_BASE + "/" + 5)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", "3")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequest(
+                "Fields are not allowed in draft account requests: submitted_by, submitted_by_name",
+                "https://hmcts.gov.uk/problems/json-schema-validation"
+            ));
     }
 
     @Test
@@ -518,8 +545,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "Adult",
@@ -600,8 +625,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "adultOrYouthOnly",
@@ -705,8 +728,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "pgToPay",
@@ -778,8 +799,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "adultOrYouthOnly",
@@ -836,8 +855,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "pgToPay",
@@ -902,8 +919,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "adultOrYouthOnly",

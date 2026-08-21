@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectBadRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -115,6 +116,33 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     }
 
     @Test
+    @DisplayName("Update draft account - Should return 400 when token-derived fields are supplied")
+    @JiraStory("PO-2461")
+    @JiraEpic("PO-2220")
+    void testUpdateDraftAccount_tokenDerivedFieldsAreSupplied() throws Exception {
+        String request = validUpdateRequestBody("65", "Publishing Pending", "A")
+            .replace(
+                "\"business_unit_id\": 65,",
+                "\"business_unit_id\": 65,\n"
+                    + "              \"validated_by\": \"client-user\",\n"
+                    + "              \"validated_by_name\": \"Client User\","
+            );
+
+        mockMvc.perform(patch(URL_BASE + "/" + 8)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequest(
+                "Fields are not allowed in draft account requests: validated_by, validated_by_name",
+                "https://hmcts.gov.uk/problems/json-schema-validation"
+            ));
+    }
+
+    @Test
     @DisplayName("Patch draft account - user with CHECK_VALIDATE permission should succeed [@PO-1820]")
     @JiraStory("PO-1820")
     @JiraEpic("PO-2220")
@@ -129,7 +157,6 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .content("""
                 {
                   "account_status": "Rejected",
-                  "validated_by": "BUUID1A",
                   "reason_text": "Reason for rejection",
                   "business_unit_id": 78,
                   "version": 0
@@ -151,7 +178,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .andExpect(jsonPath("$.timeline_data[0].username").value("opal-test"))
             .andExpect(jsonPath("$.timeline_data[0].reason_text").doesNotExist())
             .andExpect(jsonPath("$.timeline_data[1].status").value("Rejected"))
-            .andExpect(jsonPath("$.timeline_data[1].username").value("BUUID1A"))
+            .andExpect(jsonPath("$.timeline_data[1].username").value("L078JG"))
             .andExpect(jsonPath("$.timeline_data[1].reason_text").value("Reason for rejection"));
     }
 
@@ -301,8 +328,6 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
         Long draftAccountId = 241L;
         String requestBody = "            {\n"
             + "                \"account_status\": \"Publishing Pending\",\n"
-            + "                \"validated_by\": \"BUUID1\",\n"
-            + "                \"validated_by_name\": \"No Permission\",\n"
             + "                \"business_unit_id\": 5,\n"
             + "                \"version\": 0\n"
             + "            }";
