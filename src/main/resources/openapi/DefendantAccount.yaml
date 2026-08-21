@@ -950,7 +950,6 @@ components:
       required:
         - result_id
         - enforcement_result_responses
-        - payment_terms
       properties:
         result_id:
           $ref: './CommonStrict.yaml#/components/schemas/enforcementResultId'
