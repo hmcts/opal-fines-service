@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -421,10 +422,10 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 .content(request))
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(expectBadRequest(
-                "Fields are not allowed in draft account requests: submitted_by, submitted_by_name",
-                "https://hmcts.gov.uk/problems/json-schema-validation"
-            ));
+            .andExpect(jsonPath("$.detail", containsString("additional properties")))
+            .andExpect(jsonPath("$.detail", containsString("submitted_by")))
+            .andExpect(jsonPath("$.detail", containsString("submitted_by_name")))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
     }
 
     @Test

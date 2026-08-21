@@ -240,9 +240,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(JsonSchemaValidationException.class)
     public ResponseEntity<ProblemDetail> handleJsonSchemaValidationException(JsonSchemaValidationException ex) {
-        String detail = ex.getMessage() != null && ex.getMessage().startsWith("Fields are not allowed")
-            ? ex.getMessage()
-            : "The request does not conform to the required JSON schema";
+        String detail = getJsonSchemaValidationDetail(ex);
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.BAD_REQUEST,
             "Bad Request",
@@ -252,6 +250,13 @@ public class GlobalExceptionHandler {
             ex
         );
         return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
+    }
+
+    private String getJsonSchemaValidationDetail(JsonSchemaValidationException ex) {
+        if (ex.getMessage() != null && ex.getMessage().contains("additional properties")) {
+            return ex.getMessage().split("\\n\\tContent to validate:", 2)[0];
+        }
+        return "The request does not conform to the required JSON schema";
     }
 
     @ExceptionHandler(SchemaConfigurationException.class)
