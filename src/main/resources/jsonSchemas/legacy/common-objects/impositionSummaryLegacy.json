@@ -23,13 +23,13 @@
       "$ref": "./creditorAccountTypeReferenceLegacy.json"
     },
     "imposed_amount": {
-      "$ref": "./monetaryZeroOrPositive.json"
+      "$ref": "./monetaryNegativeOrPositive.json"
     },
     "paid_amount": {
       "$ref": "./monetaryZeroOrPositive.json"
     },
     "balance": {
-      "$ref": "./monetaryZeroOrPositive.json"
+      "$ref": "./monetaryNegativeOrPositive.json"
     },
     "date_imposed": {
       "type": "string",
