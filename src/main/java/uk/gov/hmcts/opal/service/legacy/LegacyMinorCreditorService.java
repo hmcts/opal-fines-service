@@ -153,10 +153,13 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
             minorCreditorAccountResponseMapper.toMinorCreditorAccountResponse(response.responseEntity);
 
         if (mappedResponse != null) {
+            Optional<CreditorAccountEntity> creditorAccount =
+                creditorAccountRepository.findById(minorCreditorAccountId);
             mappedResponse.setBusinessUnitId(
-                creditorAccountRepository.findById(minorCreditorAccountId)
-                    .map(CreditorAccountEntity::getBusinessUnitId)
-                    .orElse(null)
+                creditorAccount.map(CreditorAccountEntity::getBusinessUnitId).orElse(null)
+            );
+            mappedResponse.setRepayment(
+                creditorAccount.map(CreditorAccountEntity::isRepayment).orElse(false)
             );
         }
 

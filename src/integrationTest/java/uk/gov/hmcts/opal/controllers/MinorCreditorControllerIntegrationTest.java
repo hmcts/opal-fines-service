@@ -1437,6 +1437,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(header().string("ETag", minorCreditorVersionEtag()))
 
             .andExpect(jsonPath("$.creditor_account_id").value(minorCreditorAccountId()))
+            .andExpect(jsonPath("$.repayment").value(false))
 
             .andExpect(jsonPath("$.party_details.party_id").value("99000000000901"))
             .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
@@ -1473,6 +1474,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(header().string("ETag", minorCreditorVersionEtag()))
+            .andExpect(jsonPath("$.repayment").value(false))
             .andExpect(jsonPath("$.payment.account_name").doesNotExist())
             .andExpect(jsonPath("$.payment.sort_code").doesNotExist())
             .andExpect(jsonPath("$.payment.account_number").doesNotExist())
