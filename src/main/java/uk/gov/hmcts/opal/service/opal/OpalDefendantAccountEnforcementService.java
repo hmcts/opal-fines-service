@@ -17,14 +17,14 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementResultResponseDefendantAccount;
 import uk.gov.hmcts.opal.dto.RecordType;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.mapper.EnforcementPaymentTermsMapper;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
@@ -184,12 +184,12 @@ public class OpalDefendantAccountEnforcementService
 
     @Override
     @Transactional
-    public RemoveDefendantAccountEnforcementHoldResponse removeEnforcementHold(
+    public RemoveEnforcementHoldResponseDefendantAccount removeEnforcementHold(
         Long defendantAccountId,
         Short businessUnitId,
         String businessUnitUserId,
         String ifMatch,
-        RemoveDefendantAccountEnforcementHoldRequest request) {
+        RemoveEnforcementHoldRequestDefendantAccount request) {
 
         log.debug(":removeEnforcementHold: defendantAccountId={}, businessUnitId={}",
             defendantAccountId, businessUnitId);
@@ -250,7 +250,7 @@ public class OpalDefendantAccountEnforcementService
             "Remove Enforcement Hold"
         );
 
-        return RemoveDefendantAccountEnforcementHoldResponse.builder()
+        return RemoveEnforcementHoldResponseDefendantAccount.builder()
             .defendantAccountId(String.valueOf(savedEntity.getDefendantAccountId()))
             .version(savedEntity.getVersion())
             .build();
@@ -258,7 +258,7 @@ public class OpalDefendantAccountEnforcementService
 
     private AddNoteRequest buildRemoveEnforcementHoldNoteRequest(
         Long defendantAccountId,
-        RemoveDefendantAccountEnforcementHoldRequest request) {
+        RemoveEnforcementHoldRequestDefendantAccount request) {
 
         Note note = Note.builder()
             .recordType(RecordType.DEFENDANT_ACCOUNTS)

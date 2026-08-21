@@ -44,8 +44,8 @@ import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse.EnforcementAction;
@@ -585,8 +585,8 @@ class LegacyDefendantAccountEnforcementServiceTest {
                 .reason("remove hold reason")
                 .build();
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
@@ -596,8 +596,8 @@ class LegacyDefendantAccountEnforcementServiceTest {
                 .version(new BigInteger("7"))
                 .build();
 
-        RemoveDefendantAccountEnforcementHoldResponse expectedResponse =
-            RemoveDefendantAccountEnforcementHoldResponse.builder()
+        RemoveEnforcementHoldResponseDefendantAccount expectedResponse =
+            RemoveEnforcementHoldResponseDefendantAccount.builder()
                 .defendantAccountId("123")
                 .version(new BigInteger("7"))
                 .build();
@@ -622,7 +622,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
             Mockito.nullable(String.class)
         );
 
-        RemoveDefendantAccountEnforcementHoldResponse out =
+        RemoveEnforcementHoldResponseDefendantAccount out =
             legacyDefendantAccountEnforcementService.removeEnforcementHold(
                 123L,
                 (short) 10,
@@ -669,8 +669,8 @@ class LegacyDefendantAccountEnforcementServiceTest {
                 .reason("remove hold reason")
                 .build();
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
@@ -720,8 +720,8 @@ class LegacyDefendantAccountEnforcementServiceTest {
                 .reason("remove hold reason")
                 .build();
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
@@ -774,8 +774,8 @@ class LegacyDefendantAccountEnforcementServiceTest {
                 .reason("remove hold reason")
                 .build();
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
