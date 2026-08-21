@@ -224,11 +224,14 @@ class DefendantAccountApiControllerTest {
         ResponseEntity<GetPartyResponseDefendantAccount> response =
             defendantAccountApiController.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("\"10\"", response.getHeaders().getETag());
-        assertSame(generatedResponse, response.getBody());
-        verify(defendantAccountPartyService).getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
-        verify(defendantAccountPartyResponseMapper).toGeneratedResponse(serviceResponse);
+        assertAll(
+            () -> assertEquals(HttpStatus.OK, response.getStatusCode()),
+            () -> assertEquals("\"10\"", response.getHeaders().getETag()),
+            () -> assertSame(generatedResponse, response.getBody()),
+            () -> verify(defendantAccountPartyService).getDefendantAccountParty(
+                defendantAccountId, defendantAccountPartyId),
+            () -> verify(defendantAccountPartyResponseMapper).toGeneratedResponse(serviceResponse)
+        );
     }
 
     @Test
