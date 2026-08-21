@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.service.opal;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.LockModeType;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -14,12 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.dto.CreditorAccountDto;
-import uk.gov.hmcts.opal.dto.DefendantDto;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
-import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
-import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.PartyEntity;
@@ -33,11 +28,15 @@ import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItemType;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.GetMinorCreditorHistory200Response;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchResultMinorCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderEntityMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountUpdateMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorHistoryItemMapper;
+import uk.gov.hmcts.opal.mapper.MinorCreditorMapper;
 import uk.gov.hmcts.opal.mapper.response.MinorCreditorAccountAtAGlanceResponseMapper;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
@@ -76,9 +75,10 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
     private final MinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
     private final EntityManager em;
     private final MinorCreditorSpecs specs = new MinorCreditorSpecs();
+    private final MinorCreditorMapper minorCreditorMapper;
 
     @Override
-    public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch criteria) {
+    public MinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearchRequest criteria) {
         Specification<MinorCreditorEntity> spec = specs.findBySearchCriteria(criteria);
         List<MinorCreditorEntity> results = minorCreditorRepository.findAll(spec);
         return toResponse(results);
@@ -285,42 +285,12 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
         return response;
     }
 
-    private CreditorAccountDto toCreditorAccountDto(MinorCreditorEntity entity) {
-        return CreditorAccountDto.builder()
-            .creditorAccountId(String.valueOf(entity.getCreditorId()))
-            .accountNumber(entity.getAccountNumber())
-            .organisation(entity.isOrganisation())
-            .organisationName(entity.getOrganisationName())
-            .firstnames(entity.getForenames())
-            .surname(entity.getSurname())
-            .addressLine1(entity.getAddressLine1())
-            .postcode(entity.getPostCode())
-            .businessUnitName(entity.getBusinessUnitName())
-            .businessUnitId(String.valueOf(entity.getBusinessUnitId()))
-            .accountBalance(java.util.Optional.ofNullable(entity.getCreditorAccountBalance())
-                                .map(BigDecimal::valueOf)
-                                .orElse(BigDecimal.ZERO))
-            .defendant(toDefendantDto(entity))
-            .build();
-    }
-
-    private DefendantDto toDefendantDto(MinorCreditorEntity entity) {
-        return DefendantDto.builder()
-            .defendantAccountId(entity.getDefendantAccountId() != null
-                                    ? String.valueOf(entity.getDefendantAccountId()) : null)
-            .organisation(entity.isOrganisation())
-            .organisationName(entity.getDefendantOrganisationName())
-            .firstnames(entity.getDefendantFornames())
-            .surname(entity.getDefendantSurname())
-            .build();
-    }
-
-    private PostMinorCreditorAccountsSearchResponse toResponse(List<MinorCreditorEntity> entities) {
-        List<CreditorAccountDto> accounts = entities.stream()
-            .map(this::toCreditorAccountDto)
+    private MinorCreditorAccountsSearchResponse toResponse(List<MinorCreditorEntity> entities) {
+        List<MinorCreditorAccountSearchResultMinorCreditor> accounts = entities.stream()
+            .map(minorCreditorMapper::toCreditorAccountDto)
             .toList();
 
-        return PostMinorCreditorAccountsSearchResponse.builder()
+        return MinorCreditorAccountsSearchResponse.builder()
             .count(accounts.size())
             .creditorAccounts(accounts.isEmpty() ? null : accounts)
             .build();
