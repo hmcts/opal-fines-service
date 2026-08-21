@@ -25,6 +25,16 @@ class FinesPermissionTest {
     }
 
     @Test
+    void whenMinorCreditorMaintenancePermissionRequested_returnsMappedPermission_happyPath() {
+        Permission permission = FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR.toCommonPermission();
+
+        assertAll(
+            () -> assertEquals(20L, permission.getPermissionId()),
+            () -> assertEquals("Account Maintenance - Minor Creditor", permission.getPermissionName())
+        );
+    }
+
+    @Test
     void whenDraftAccountPermissionsRequested_returnsStableOrder_happyPath() {
         assertArrayEquals(
             new FinesPermission[] {
