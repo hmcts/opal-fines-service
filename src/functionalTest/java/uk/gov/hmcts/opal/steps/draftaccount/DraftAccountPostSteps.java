@@ -154,8 +154,8 @@ public class DraftAccountPostSteps extends BaseStepDef {
      *
      * @throws JSONException if the JSON payload cannot be created from the supplied values.
      */
-    @When("I attempt to create a draft account with an invalid token using created by ID {string}")
-    public void postDraftAccountWithInvalidToken(String createdBy) throws JSONException {
+    @When("I attempt to create a draft account with an invalid token")
+    public void postDraftAccountWithInvalidToken() throws JSONException {
         JSONObject postBody;
         try {
             postBody = requestFactory.buildDefaultCreateRequestBody("77");
