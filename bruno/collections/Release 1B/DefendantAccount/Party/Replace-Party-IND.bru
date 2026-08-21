@@ -5,14 +5,13 @@ meta {
 }
 
 put {
-  url: {{baseURL}}/defendant-accounts/{{defendantAccountId}}/defendant-account-parties/99000000002018
+  url: {{baseURL}}/defendant-accounts/{{defendantAccountId}}/defendant-account-parties/{{defendantAccountPartyId}}
   body: json
   auth: inherit
 }
 
 headers {
   Business-Unit-Id: 77
-  If-Match: 1
 }
 
 body:json {
@@ -20,6 +19,7 @@ body:json {
     "defendant_account_party_type": "Defendant",
     "is_debtor": true,
     "party_details": {
+      "party_id": "{{partyId}}",
       "organisation_flag": false,
       "individual_details": {
         "title": "Mr",
