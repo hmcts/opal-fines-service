@@ -1268,10 +1268,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     void getHeaderSummaryImpl_Success(Logger log) throws Exception {
 
-        Long minorCreditorId = 99000000000800L;
-
         ResultActions resultActions = mockMvc.perform(
-            get(URL_BASE + "/{id}/header-summary", minorCreditorId)
+            get(URL_BASE + "/{id}/header-summary", minorCreditorHeaderSummaryAccountId())
                 .accept(MediaType.APPLICATION_JSON)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("authorization", userStateStub.getBearerToken())
@@ -1284,15 +1282,16 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
 
-            .andExpect(jsonPath("$.creditor.account_id").value(String.valueOf(minorCreditorId)))
-            .andExpect(jsonPath("$.creditor.account_number").value("87654321"))
+            .andExpect(jsonPath("$.creditor.account_id").value(String.valueOf(minorCreditorHeaderSummaryAccountId())))
+            .andExpect(jsonPath("$.creditor.account_number").value(minorCreditorHeaderSummaryAccountNumber()))
             .andExpect(jsonPath("$.creditor.account_type.type").value("MN"))
             .andExpect(jsonPath("$.creditor.account_type.display_name").value("Minor Creditor"))
             .andExpect(jsonPath("$.creditor.has_associated_defendant").value(false))
 
-            .andExpect(header().exists("ETag"))
+            .andExpect(header().string("ETag", minorCreditorVersionEtag()))
 
             .andExpect(jsonPath("$.business_unit.business_unit_id").value("77"))
+            .andExpect(jsonPath("$.business_unit.business_unit_code").value("0046"))
             .andExpect(jsonPath("$.business_unit.business_unit_name").value("Camberwell Green"))
             .andExpect(jsonPath("$.business_unit.welsh_speaking").value(matchesPattern("Y|N")))
 
@@ -1370,10 +1369,12 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void getMinorCreditorAtAGlanceImpl_Success(Logger log) throws Exception {
-        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}/at-a-glance", "99000000000801")
-            .contentType(MediaType.APPLICATION_JSON)
-            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-            .header("authorization", userStateStub.getBearerToken()));
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/{id}/at-a-glance", minorCreditorAccountId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+        );
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
 
@@ -1384,7 +1385,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         resultActions
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(header().string("etag", "\"1\""))
+            .andExpect(header().string("ETag", minorCreditorVersionEtag()))
 
             // party
             .andExpect(jsonPath("$.party.party_id").value("99000000000901"))
@@ -1399,7 +1400,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.address.postcode").value("RG6 1PT"))
 
             // creditor_account_id
-            .andExpect(jsonPath("$.creditor_account_id").value(99000000000801L))
+            .andExpect(jsonPath("$.creditor_account_id").value(minorCreditorAccountId()))
 
             // defendant
             .andExpect(jsonPath("$.defendant.account_number").value("12345678"))
@@ -1421,7 +1422,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
             FinesPermission.VIEW_CREDITOR_BACS);
 
-        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}", "99000000000801")
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}", minorCreditorAccountId())
             .contentType(MediaType.APPLICATION_JSON)
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())
             .header("authorization", userStateStub.getBearerToken()));
@@ -1433,9 +1434,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         resultActions
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(header().string("ETag", "\"1\""))
+            .andExpect(header().string("ETag", minorCreditorVersionEtag()))
 
-            .andExpect(jsonPath("$.creditor_account_id").value(99000000000801L))
+            .andExpect(jsonPath("$.creditor_account_id").value(minorCreditorAccountId()))
 
             .andExpect(jsonPath("$.party_details.party_id").value("99000000000901"))
             .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
@@ -1459,7 +1460,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
 
-        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}", "99000000000801")
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}", minorCreditorAccountId())
             .contentType(MediaType.APPLICATION_JSON)
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())
             .header("authorization", userStateStub.getBearerToken()));
@@ -1471,13 +1472,29 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         resultActions
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(header().string("ETag", "\"1\""))
+            .andExpect(header().string("ETag", minorCreditorVersionEtag()))
             .andExpect(jsonPath("$.payment.account_name").doesNotExist())
             .andExpect(jsonPath("$.payment.sort_code").doesNotExist())
             .andExpect(jsonPath("$.payment.account_number").doesNotExist())
             .andExpect(jsonPath("$.payment.account_reference").doesNotExist())
             .andExpect(jsonPath("$.payment.pay_by_bacs").value(true))
             .andExpect(jsonPath("$.payment.hold_payment").value(false));
+    }
+
+    protected Long minorCreditorHeaderSummaryAccountId() {
+        return 99000000000800L;
+    }
+
+    protected String minorCreditorHeaderSummaryAccountNumber() {
+        return "87654321";
+    }
+
+    protected Long minorCreditorAccountId() {
+        return 99000000000801L;
+    }
+
+    protected String minorCreditorVersionEtag() {
+        return "\"1\"";
     }
 
     void legacyGetMinorCreditorAccountImpl_500Error(Logger log) throws Exception {

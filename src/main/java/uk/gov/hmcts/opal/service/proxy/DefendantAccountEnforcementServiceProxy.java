@@ -4,15 +4,15 @@ import tools.jackson.core.JacksonException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
-import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountEnforcementServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountEnforcementService;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 
 @Service
 @Slf4j(topic = "opal.DefendantAccountEnforcementServiceProxy")
@@ -34,23 +34,23 @@ public class DefendantAccountEnforcementServiceProxy implements DefendantAccount
     }
 
     @Override
-    public AddEnforcementResponse addEnforcement(Long defendantAccountId,
+    public AddEnforcementResponseDefendantAccount addEnforcement(Long defendantAccountId,
                                                  Short businessUnitId,
                                                  String businessUnitUserId,
                                                  String ifMatch,
-                                                 AddDefendantAccountEnforcementRequest request)
+                                                 AddEnforcementRequestDefendantAccount request)
         throws JacksonException {
         return getCurrentModeService().addEnforcement(defendantAccountId, businessUnitId, businessUnitUserId,
             ifMatch, request);
     }
 
     @Override
-    public RemoveDefendantAccountEnforcementHoldResponse removeEnforcementHold(
+    public RemoveEnforcementHoldResponseDefendantAccount removeEnforcementHold(
         Long defendantAccountId,
         Short businessUnitId,
         String businessUnitUserId,
         String ifMatch,
-        RemoveDefendantAccountEnforcementHoldRequest request) {
+        RemoveEnforcementHoldRequestDefendantAccount request) {
 
         return getCurrentModeService().removeEnforcementHold(
             defendantAccountId,

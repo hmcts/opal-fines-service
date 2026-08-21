@@ -90,17 +90,16 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
             "decimal-param", 5.0,
             "integer-param", 5,
             "radio-param", List.of("one"),
-            "checkbox-param", List.of("one","two"),
+            "checkbox-param", List.of("one", "two"),
             "text-60-param", "value",
             "text-100-param", "value",
-            "text-1000-param", "value"
-        );
+            "text-1000-param", "value");
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
-                .reportId(REPORT_1BU_ID)
-                .reportName(null)
-                .businessUnitIds(List.of((short) 1))
-                .reportParameters(parameterMap)
-                .build();
+            .reportId(REPORT_1BU_ID)
+            .reportName(null)
+            .businessUnitIds(List.of((short) 1))
+            .reportParameters(parameterMap)
+            .build();
 
         String payload = objectMapper.writeValueAsString(request);
         log.info(":createReportInstance_singleBU payload: {}", payload);
@@ -277,6 +276,12 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-7745")
     void createReportInstance_reportIDNotFound_404() throws Exception {
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
+        when(userState.getUserId()).thenReturn(USER_ID);
+        when(userState.getUserName()).thenReturn(USER_NAME);
+        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short)1);
+
         CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
             .reportId("unknown-report-id")
             .reportName(null)
@@ -347,8 +352,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(expectBadRequest(
                 "The request body could not be read. It may be missing or invalid JSON.",
-                "https://hmcts.gov.uk/problems/message-not-readable"
-            ))
+                "https://hmcts.gov.uk/problems/message-not-readable"))
             .andExpect(jsonPath("$.retriable").value(false));
     }
 
@@ -375,11 +379,10 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
                 "decimal-param", 5.0,
                 "integer-param", 5L,
                 "radio-param", List.of("one"),
-                "checkbox-param", List.of("one","two"),
+                "checkbox-param", List.of("one", "two"),
                 "text-60-param", "value",
                 "text-100-param", "value",
-                "text-1000-param", "value"
-            ))
+                "text-1000-param", "value"))
             .build();
 
         String payload = objectMapper.writeValueAsString(request);
@@ -453,11 +456,10 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
                 "decimal-param", 5.0,
                 "integer-param", 5L,
                 "radio-param", List.of("one"),
-                "checkbox-param", List.of("one","two"),
+                "checkbox-param", List.of("one", "two"),
                 "text-60-param", "value",
                 "text-100-param", "value",
-                "text-1000-param", "value"
-            ))
+                "text-1000-param", "value"))
             .build();
 
         String payload = objectMapper.writeValueAsString(request);
@@ -495,11 +497,10 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
                 "decimal-param", 5.0,
                 "integer-param", 5L,
                 "radio-param", List.of("one"),
-                "checkbox-param", List.of("one","two"),
+                "checkbox-param", List.of("one", "two"),
                 "text-60-param", "value",
                 "text-100-param", "value",
-                "text-1000-param", "value"
-            ))
+                "text-1000-param", "value"))
             .build();
 
         String payload = objectMapper.writeValueAsString(request);
@@ -537,11 +538,10 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
                 "decimal-param", 5.0,
                 "integer-param", 5L,
                 "radio-param", List.of("one"),
-                "checkbox-param", List.of("one","two"),
+                "checkbox-param", List.of("one", "two"),
                 "text-60-param", "value",
                 "text-100-param", "value",
-                "text-1000-param", "value"
-            ))
+                "text-1000-param", "value"))
             .build();
 
         String payload = objectMapper.writeValueAsString(request);

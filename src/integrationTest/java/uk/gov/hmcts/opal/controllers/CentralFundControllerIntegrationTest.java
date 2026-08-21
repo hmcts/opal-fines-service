@@ -201,7 +201,7 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
             Set.of("business_unit_code", "business_unit_id", "business_unit_name", "welsh_speaking"),
             fieldNames(businessUnitDetails)
         );
-        assertTrue(businessUnitDetails.get("business_unit_code").isNull());
+        assertEquals(centralFund.getBusinessUnitCode(), businessUnitDetails.get("business_unit_code").asText());
         assertEquals(String.valueOf(centralFund.getBusinessUnitId()), businessUnitDetails.get("business_unit_id")
             .asText());
         assertEquals(centralFund.getBusinessUnitName(), businessUnitDetails.get("business_unit_name").asText());

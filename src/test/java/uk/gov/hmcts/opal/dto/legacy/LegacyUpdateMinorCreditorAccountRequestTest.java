@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.dto.legacy;
 
 import tools.jackson.databind.JsonNode;
+import java.math.BigInteger;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails;
@@ -20,7 +21,7 @@ class LegacyUpdateMinorCreditorAccountRequestTest {
             .creditorAccountId("607")
             .businessUnitId("10")
             .businessUnitUserId("USER01")
-            .accountVersion(1)
+            .accountVersion(BigInteger.valueOf(1))
             .partyDetails(LegacyPartyDetails.builder()
                 .partyId("99008")
                 .organisationFlag(true)

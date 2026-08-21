@@ -25,7 +25,7 @@ class LegacyUpdateMinorCreditorAccountResponseMapperTest {
     @Test
     void toMinorCreditorAccountResponse_mapsAllCoreFields() {
         LegacyUpdateMinorCreditorAccountResponse legacy = LegacyUpdateMinorCreditorAccountResponse.builder()
-            .accountVersion(2)
+            .accountVersion(BigInteger.valueOf(2))
             .creditorAccountId(607L)
             .partyDetails(LegacyPartyDetails.builder()
                 .partyId("99008")
@@ -122,7 +122,7 @@ class LegacyUpdateMinorCreditorAccountResponseMapperTest {
     @Test
     void toMinorCreditorAccountResponse_handlesNullNestedObjects() {
         LegacyUpdateMinorCreditorAccountResponse legacy = LegacyUpdateMinorCreditorAccountResponse.builder()
-            .accountVersion(1)
+            .accountVersion(BigInteger.valueOf(1))
             .creditorAccountId(607L)
             .partyDetails(LegacyPartyDetails.builder()
                 .partyId("99008")
@@ -146,9 +146,6 @@ class LegacyUpdateMinorCreditorAccountResponseMapperTest {
 
     @Test
     void mapperConverters_handleNullAndNonNullValues() {
-        assertEquals(BigInteger.valueOf(2L), mapper.integerToBigInteger(2));
-        assertNull(mapper.integerToBigInteger(null));
-
         assertEquals(5, mapper.shortToInteger((short) 5));
         assertNull(mapper.shortToInteger(null));
 

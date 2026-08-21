@@ -1,0 +1,21 @@
+NOTICE:  === Cleanup data before tests ===
+NOTICE:  Cleanup completed
+NOTICE:  === Setting up test data for v_outstanding_auto_payment_count tests ===
+NOTICE:  Test data setup completed
+NOTICE:  === TEST 1: Outstanding file and auto-payment till counts are returned ===
+NOTICE:  TEST 1 PASSED
+NOTICE:  === TEST 2: Business unit with tills but no files returns zero file count ===
+NOTICE:  TEST 2 PASSED
+NOTICE:  === TEST 3: Business unit with files but no eligible tills returns zero till count ===
+NOTICE:  TEST 3 PASSED
+NOTICE:  === TEST 4: Business unit with no matching work is returned with zero counts ===
+NOTICE:  TEST 4 PASSED
+NOTICE:  === TEST 5: Negative scenario excludes non-outstanding jobs and ineligible tills ===
+NOTICE:  TEST 5 PASSED
+NOTICE:  === TEST 6: View is anchored on business_units only ===
+NOTICE:  TEST 6 PASSED
+NOTICE:  === Cleanup test data ===
+NOTICE:  Cleanup completed
+DO
+
+Query returned successfully in 175 msec.

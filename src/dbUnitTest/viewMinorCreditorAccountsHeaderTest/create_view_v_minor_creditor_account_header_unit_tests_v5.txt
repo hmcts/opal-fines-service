@@ -1,0 +1,14 @@
+NOTICE:  === Cleanup data before tests ===
+NOTICE:  === Data cleanup before tests completed ===
+NOTICE:  === Setting up test data for v_minor_creditor_accounts_header tests ===
+NOTICE:  === Setting up test data for v_minor_creditor_accounts_header tests complete ===
+NOTICE:  --- Running test scenario 1 ---
+NOTICE:  --- Running test scenario 2 ---
+NOTICE:  --- Running test scenario 3 ---
+NOTICE:  --- Running test scenario 4 ---
+NOTICE:  --- Running test scenario 5 ---
+NOTICE:  --- Running test scenario 6 ---
+NOTICE:  === All tests completed and passed for v_minor_creditor_accounts_header view ===
+DO
+
+Query returned successfully in 62 msec.

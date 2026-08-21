@@ -46,13 +46,13 @@ import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
 @Slf4j(topic = "opal.LegacyMinorCreditorService")
 public class LegacyMinorCreditorService implements MinorCreditorServiceInterface {
 
-    private static final String SEARCH_MINOR_CREDITORS = "LIBRA.search_minor_creditors";
+    private static final String SEARCH_MINOR_CREDITORS = "getMinorCreditorAccount";
     private static final String GET_MINOR_CREDITOR_ACCOUNT_PARTY = "GET_MINOR_CREDITOR_ACCOUNT_PARTY";
     private static final String GET_MINOR_CREDITORS_ACCOUNT_AT_A_GLANCE =
         "LIBRA.get_minor_creditors_account_at_a_glance";
     private static final String GET_MINOR_CREDITORS_ACCOUNT_HEADER_SUMMARY =
         "LIBRA.get_minor_creditors_account_header_summary";
-    private static final String UPDATE_MINOR_CREDITOR_ACCOUNT = "LIBRA.of_update_minor_creditor_account";
+    private static final String UPDATE_MINOR_CREDITOR_ACCOUNT = "updateMinorCreditorAccount";
 
     private final GatewayService gatewayService;
     private final MinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
@@ -61,6 +61,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     private final GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
     private final UpdateMinorCreditorAccountRequestMapper updateMinorCreditorAccountRequestMapper;
     private final LegacyUpdateMinorCreditorAccountResponseMapper updateMinorCreditorAccountResponseMapper;
+    private final LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
 
     @Override
     public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch minorCreditorEntity) {
@@ -112,9 +113,26 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
             .toOpal(response.responseEntity);
 
         CreditorHeaderLegacy creditor = response.responseEntity.getCreditor();
-        mapped.setVersion(BigInteger.valueOf(creditor.getAccountVersion()));
+        mapped.setVersion(creditor.getAccountVersion());
+        applyResolvedBusinessUnitCode(mapped, response.responseEntity.getBusinessUnit());
 
         return mapped;
+    }
+
+    private void applyResolvedBusinessUnitCode(
+        GetMinorCreditorAccountHeaderSummaryResponse mapped,
+        uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary legacyBusinessUnit
+    ) {
+        if (mapped.getBusinessUnit() == null || legacyBusinessUnit == null) {
+            return;
+        }
+
+        mapped.getBusinessUnit().setBusinessUnitCode(
+            legacyBusinessUnitCodeResolver.resolve(
+                legacyBusinessUnit.getBusinessUnitId(),
+                legacyBusinessUnit.getBusinessUnitCode()
+            )
+        );
     }
 
     @Override

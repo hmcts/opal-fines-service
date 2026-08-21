@@ -72,7 +72,7 @@ class LegacyDefendantAccountConsolidatedAccountsServiceTest {
     void getConsolidatedAccounts_postsLegacyRequestAndReturnsMappedResponse() {
         LegacyGetDefendantAccountConsolidatedAccountsResponse legacyResponse =
             LegacyGetDefendantAccountConsolidatedAccountsResponse.builder()
-                .version(7L)
+                .version(BigInteger.valueOf(7L))
                 .consolidatedAccounts(List.of(
                     legacyAccount(233302L, "233302C"),
                     legacyAccount(233301L, "233301C")
@@ -110,7 +110,7 @@ class LegacyDefendantAccountConsolidatedAccountsServiceTest {
     void getConsolidatedAccounts_whenGatewayReturnsEmptyList_returnsEmptyPayload() {
         LegacyGetDefendantAccountConsolidatedAccountsResponse legacyResponse =
             LegacyGetDefendantAccountConsolidatedAccountsResponse.builder()
-                .version(1L)
+                .version(BigInteger.valueOf(1L))
                 .consolidatedAccounts(List.of())
                 .build();
         GetDefendantAccountConsolidatedAccountsResult expectedResponse = mappedResponse(1L);

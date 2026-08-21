@@ -63,6 +63,9 @@ public class MinorCreditorAccountHeaderEntity {
     @Column(name = "business_unit_name")
     private String businessUnitName;
 
+    @Column(name = "business_unit_code")
+    private String businessUnitCode;
+
     @Column(name = "welsh_language")
     private boolean welshLanguage;
 

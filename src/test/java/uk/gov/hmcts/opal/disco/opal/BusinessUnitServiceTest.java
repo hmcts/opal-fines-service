@@ -1,5 +1,20 @@
 package uk.gov.hmcts.opal.disco.opal;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -10,6 +25,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -18,16 +38,6 @@ import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemEntity;
 import uk.gov.hmcts.opal.repository.BusinessUnitLiteRepository;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BusinessUnitServiceTest {
@@ -52,6 +62,110 @@ class BusinessUnitServiceTest {
 
         // Assert
         assertNotNull(result);
+    }
+
+    @Test
+    void getBusinessUnitUserIdForBusinessUnit_returnsMatchingUserId() {
+        // Arrange
+        DomainBusinessUnitUsers businessUnitUsers = businessUnitUsers(
+            businessUnitUser((short) 78, "L078JG"),
+            businessUnitUser((short) 77, "L077JG")
+        );
+
+        // Act
+        String result = businessUnitService.getBusinessUnitUserIdForBusinessUnit(
+            businessUnitUsers, (short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
+
+        // Assert
+        assertEquals("L078JG", result);
+    }
+
+    @Test
+    void getBusinessUnitUserIdForBusinessUnit_whenBusinessUnitMissing_throwsPermissionNotAllowed() {
+        // Arrange
+        DomainBusinessUnitUsers businessUnitUsers = businessUnitUsers(
+            businessUnitUser((short) 77, "L077JG")
+        );
+
+        // Act
+        PermissionNotAllowedException ex = assertThrows(
+            PermissionNotAllowedException.class,
+            () -> businessUnitService.getBusinessUnitUserIdForBusinessUnit(
+                businessUnitUsers, (short) 78, FinesPermission.AMEND_PAYMENT_TERMS)
+        );
+
+        // Assert
+        assertEquals((short) 78, ex.getBusinessUnitId());
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.AMEND_PAYMENT_TERMS);
+    }
+
+    @Test
+    void getBusinessUnitUserIdForBusinessUnit_whenBusinessUnitUserIdBlank_throwsPermissionNotAllowed() {
+        DomainBusinessUnitUsers businessUnitUsers = businessUnitUsers(
+            businessUnitUser((short) 78, " ")
+        );
+
+        PermissionNotAllowedException ex = assertThrows(
+            PermissionNotAllowedException.class,
+            () -> businessUnitService.getBusinessUnitUserIdForBusinessUnit(
+                businessUnitUsers, (short) 78, FinesPermission.AMEND_PAYMENT_TERMS)
+        );
+
+        assertEquals((short) 78, ex.getBusinessUnitId());
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.AMEND_PAYMENT_TERMS);
+    }
+
+    @Test
+    void hasBusinessUnitUserWithPermission_whenUserHasPermission_returnsTrue() {
+        // Arrange
+        DomainBusinessUnitUsers businessUnitUsers = businessUnitUsers(
+            businessUnitUser((short) 78, "L078JG", FinesPermission.AMEND_PAYMENT_TERMS)
+        );
+
+        // Act
+        boolean result = businessUnitService.hasBusinessUnitUserWithPermission(
+            businessUnitUsers, (short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
+
+        // Assert
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void hasBusinessUnitUserWithPermission_whenBusinessUnitUsersIsNull_returnsFalse() {
+        // Act
+        boolean result = businessUnitService.hasBusinessUnitUserWithPermission(
+            null, (short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
+
+        // Assert
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void hasBusinessUnitUserWithPermission_whenBusinessUnitUserListIsNull_returnsFalse() {
+        // Arrange
+        DomainBusinessUnitUsers businessUnitUsers = DomainBusinessUnitUsers.builder().build();
+
+        // Act
+        boolean result = businessUnitService.hasBusinessUnitUserWithPermission(
+            businessUnitUsers, (short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
+
+        // Assert
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void hasBusinessUnitUserWithPermission_whenPermissionMissing_returnsFalse() {
+        // Arrange
+        DomainBusinessUnitUsers businessUnitUsers = businessUnitUsers(
+            businessUnitUser((short) 78, "L078JG")
+        );
+
+        // Act
+        boolean result = businessUnitService.hasBusinessUnitUserWithPermission(
+            businessUnitUsers, (short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
+
+        // Assert
+        assertThat(result).isFalse();
     }
 
     @SuppressWarnings("unchecked")
@@ -91,7 +205,7 @@ class BusinessUnitServiceTest {
                 ConfigurationItemEntity.builder()
                     .itemName("A Config Item")
                     .itemValue("A value")
-                    .itemValues(List.of("Item Values One", "Item Values Two"))
+                    .itemValues(Map.of("Key1", "Item Values One", "Key2", "Item Values Two"))
                     .build()))
             .build();
 
@@ -112,6 +226,32 @@ class BusinessUnitServiceTest {
             (short)3, "Big Business Unit", null,
             BusinessUnitType.AREA.getLabel(), null,
             null, Boolean.TRUE, List.of(new BusinessUnitReferenceData.ConfigItemRefData(
-            "A Config Item", "A value", List.of("Item Values One", "Item Values Two"))))), result);
+            "A Config Item", "A value", Map.of("Key1", "Item Values One",
+            "Key2", "Item Values Two"))))), result);
+    }
+
+    private static DomainBusinessUnitUsers businessUnitUsers(BusinessUnitUser... businessUnitUsers) {
+        return DomainBusinessUnitUsers.builder()
+            .businessUnitUsers(List.of(businessUnitUsers))
+            .build();
+    }
+
+    private static BusinessUnitUser businessUnitUser(
+        short businessUnitId, String businessUnitUserId, FinesPermission... permissions) {
+
+        return BusinessUnitUser.builder()
+            .businessUnitId(businessUnitId)
+            .businessUnitUserId(businessUnitUserId)
+            .permissions(permissionsFor(permissions))
+            .build();
+    }
+
+    private static Set<Permission> permissionsFor(FinesPermission... permissions) {
+        return Arrays.stream(permissions)
+            .map(permission -> Permission.builder()
+                .permissionId(permission.getId())
+                .permissionName(permission.getDescription())
+                .build())
+            .collect(Collectors.toSet());
     }
 }

@@ -4,6 +4,7 @@ import static uk.gov.hmcts.opal.util.VersionUtils.createETag;
 
 import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Optional;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -14,30 +15,46 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseEntity.BodyBuilder;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.common.controllers.advice.OpalProblemDetailFactory;
+import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.MissingMappingTypeException;
 import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
-import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
-import uk.gov.hmcts.opal.exception.UnsupportedMappingTypeException;
-import uk.gov.hmcts.opal.exception.UnsupportedContentTypeException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
+import uk.gov.hmcts.opal.exception.UnsupportedContentTypeException;
+import uk.gov.hmcts.opal.exception.UnsupportedMappingTypeException;
 import uk.gov.hmcts.opal.util.Versioned;
 
 @Slf4j(topic = "opal.GlobalExceptionHandler")
 @ControllerAdvice
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<ProblemDetail> handleMissingRequestHeaderException(MissingRequestHeaderException ex) {
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.BAD_REQUEST,
+            "Missing Required Header",
+            String.format("Required request header \"%s\" is missing", ex.getHeaderName()),
+            "missing-header",
+            false,
+            ex
+        );
+        return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
+    }
 
     @ExceptionHandler(RequiredPermissionException.class)
     public ResponseEntity<ProblemDetail> handleRequiredPermissionException(RequiredPermissionException ex) {
@@ -49,6 +66,23 @@ public class GlobalExceptionHandler {
             false,
             ex
         );
+
+        return responseWithProblemDetail(HttpStatus.FORBIDDEN, problemDetail);
+    }
+
+    @ExceptionHandler(PermissionNotAllowedException.class)
+    public ResponseEntity<ProblemDetail> handlePermissionNotAllowedException(PermissionNotAllowedException ex) {
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.FORBIDDEN,
+            "Forbidden",
+            "You do not have permission to access this resource",
+            "forbidden",
+            false,
+            ex
+        );
+        if (ex.getBusinessUnitId() != null) {
+            problemDetail.setProperty("businessUnitId", ex.getBusinessUnitId());
+        }
 
         return responseWithProblemDetail(HttpStatus.FORBIDDEN, problemDetail);
     }
@@ -320,6 +354,53 @@ public class GlobalExceptionHandler {
         Optional.ofNullable(versioned).ifPresent(value -> builder.eTag(createETag(value)));
         return builder.body(problemDetail);
     }
+
+    /**
+     * Exception Handler for testing support endpoints, some endpoint have similar paths (e.g. GET /business-units/{id}
+     * and POST /business-units/search) and will therefore throw the HttpRequestMethodNotSupportedException instead of
+     * the expected 404 not found.
+     * @param ex HttpRequestMethodNotSupportedException
+     * @param request HttpServletRequest
+     * @return ProblemDetail either a 404 not found or 405 method not allowed
+     */
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ProblemDetail> handleMethodNotSupportedException(
+        HttpRequestMethodNotSupportedException ex,
+        HttpServletRequest request) {
+
+        if (isDisabledTestingSupportEndpoint(request.getRequestURI())) {
+            log.info("Call to disabled testing support endpoint for request URI {}", request.getRequestURI());
+            ProblemDetail problemDetail = createProblemDetail(
+                HttpStatus.NOT_FOUND,
+                "Not Found",
+                "The requested endpoint could not be found",
+                "not-found",
+                false,
+                ex
+            );
+            return responseWithProblemDetail(HttpStatus.NOT_FOUND, problemDetail);
+        }
+
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Internal Server Error",
+            "An unexpected error occurred while processing your request",
+            "servlet-error",
+            false,
+            ex
+        );
+        return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
+    }
+
+    private boolean isDisabledTestingSupportEndpoint(String path) {
+        return path.equals("/business-units/search")
+            || path.equals("/draft-accounts/search")
+            || path.matches("/draft-accounts/\\d+$")
+            || path.equals("/local-justice-areas/search")
+            || path.equals("/major-creditors/search")
+            || path.matches("/minor-creditor-accounts/\\d+$");
+    }
+
 
     @Getter
     public static class PaymentCardRequestAlreadyExistsException extends RuntimeException {

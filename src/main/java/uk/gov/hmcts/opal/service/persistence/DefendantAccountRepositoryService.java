@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.persistence;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 
 @Service
@@ -45,6 +47,30 @@ public class DefendantAccountRepositoryService {
     @Transactional
     public DefendantAccountEntity save(DefendantAccountEntity defendantAccountEntity) {
         return defendantAccountRepository.save(defendantAccountEntity);
+    }
+
+    @Transactional
+    public BigInteger incrementVersionNumber(long defendantAccountId, BigInteger expectedVersion) {
+        entityManager.flush();
+
+        int rowsUpdated = defendantAccountRepository.incrementVersionNumber(
+            defendantAccountId,
+            expectedVersion.longValueExact()
+        );
+
+        if (rowsUpdated == 0) {
+            throw new ResourceConflictException(
+                "DefendantAccountEntity",
+                defendantAccountId,
+                "Version has changed since it was last read",
+                null
+            );
+        }
+
+        return defendantAccountRepository.findVersionDataByDefendantAccountId(defendantAccountId)
+            .map(versionData -> BigInteger.valueOf(versionData.versionNumber()))
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Defendant Account not found with id: " + defendantAccountId));
     }
 
     /**

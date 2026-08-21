@@ -21,6 +21,7 @@ import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_V
 import static uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService.GET_MAJOR_CREDITOR_ACCOUNT_HISTORY;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,6 +51,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
 @TestPropertySource(properties = {
@@ -79,6 +81,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @DisplayName("PO-2659 INT.01 returns transaction history for major creditor from legacy")
     @JiraStory("PO-2659")
     @JiraEpic("PO-2655")
+    @JiraTestKey("PO-10093")
     void getHistory_returnsLegacyTransactions() throws Exception {
         stubLegacyResponse();
 
@@ -119,6 +122,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @DisplayName("PO-2659 INT.05 and INT.06 forwards inclusive date filters to legacy")
     @JiraStory("PO-2659")
     @JiraEpic("PO-2655")
+    @JiraTestKey("PO-10090")
     void getHistory_forwardsDateFiltersAndForcesFinancialItemType() throws Exception {
         stubLegacyResponse();
 
@@ -136,6 +140,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @DisplayName("PO-2659 returns 400 when dateFrom is after dateTo")
     @JiraStory("PO-2659")
     @JiraEpic("PO-2655")
+    @JiraTestKey("PO-10094")
     void getHistory_whenDateRangeInvalidReturns400BeforeLegacyCall() throws Exception {
         getHistory("dateFrom", "2026-01-31", "dateTo", "2026-01-25")
             .andExpect(status().isBadRequest())
@@ -148,6 +153,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @DisplayName("PO-2659 INT.10 requires Search and View Accounts permission in at least one business unit")
     @JiraStory("PO-2659")
     @JiraEpic("PO-2655")
+    @JiraTestKey("PO-10089")
     void getHistory_enforcesPermission() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.noPermissionsUser());
 
@@ -162,6 +168,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @DisplayName("PO-2659 INT.11 returns only documented fields for legacy major creditor history")
     @JiraStory("PO-2659")
     @JiraEpic("PO-2655")
+    @JiraTestKey("PO-10092")
     void getHistory_returnsOnlyDocumentedFields() throws Exception {
         stubLegacyResponse();
 
@@ -192,6 +199,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @DisplayName("PO-2659 returns 404 when legacy gateway returns not found")
     @JiraStory("PO-2659")
     @JiraEpic("PO-2655")
+    @JiraTestKey("PO-10087")
     void getHistory_whenLegacyGatewayReturnsNotFoundReturns404() throws Exception {
         stubGatewayException(HttpClientErrorException.create(
             HttpStatus.NOT_FOUND, "Not Found", HttpHeaders.EMPTY, null, null));
@@ -205,6 +213,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @DisplayName("PO-2659 returns 408 when legacy gateway times out")
     @JiraStory("PO-2659")
     @JiraEpic("PO-2655")
+    @JiraTestKey("PO-10085")
     void getHistory_whenLegacyGatewayTimesOutReturns408() throws Exception {
         stubGatewayException(HttpClientErrorException.create(
             HttpStatusCode.valueOf(408), "Request Timeout", HttpHeaders.EMPTY, null, null));
@@ -218,6 +227,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @DisplayName("PO-2659 returns 500 when legacy gateway is unavailable")
     @JiraStory("PO-2659")
     @JiraEpic("PO-2655")
+    @JiraTestKey("PO-10091")
     void getHistory_whenLegacyGatewayUnavailableReturns500() throws Exception {
         stubGatewayException(HttpServerErrorException.create(
             HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable", HttpHeaders.EMPTY, null, null));
@@ -231,6 +241,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @DisplayName("PO-2659 returns 500 when legacy gateway returns server error")
     @JiraStory("PO-2659")
     @JiraEpic("PO-2655")
+    @JiraTestKey("PO-10086")
     void getHistory_whenLegacyGatewayReturnsServerErrorReturns500() throws Exception {
         stubGatewayException(HttpServerErrorException.create(
             HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", HttpHeaders.EMPTY, null, null));
@@ -244,6 +255,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @DisplayName("PO-2659 INT.12 repeated legacy GETs return deterministic content")
     @JiraStory("PO-2659")
     @JiraEpic("PO-2655")
+    @JiraTestKey("PO-10088")
     void getHistory_isDeterministicForStableLegacyData() throws Exception {
         stubLegacyResponse();
 
@@ -302,7 +314,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
 
     private GetMajorCreditorAccountHistoryLegacyResponse legacyResponse() {
         return GetMajorCreditorAccountHistoryLegacyResponse.builder()
-            .version(7L)
+            .version(BigInteger.valueOf(7L))
             .historyItems(List.of(
                 historyItem("MJUSR3", "Major User Three", "MJF003", "MADJ", "Manual Adjustment",
                             LocalDateTime.of(2026, 1, 31, 10, 30), new BigDecimal("-31.00")),
