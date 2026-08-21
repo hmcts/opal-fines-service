@@ -82,6 +82,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
     }
 
     @Test
+    @JiraEpic("PO-2630")
     @JiraStory("PO-2969")
     @DisplayName("PO-2969 INT.03 - Get header summary returns TFO originator fields and collection order")
     void int03_getHeaderSummary_returnsTfoOriginatorFieldsAndCollectionOrder() throws Exception {
@@ -104,6 +105,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
     }
 
     @Test
+    @JiraEpic("PO-2630")
     @JiraStory("PO-2969")
     @DisplayName("PO-2969 INT.04 - Get header summary returns NEW originator fields and collection order")
     void int04_getHeaderSummary_returnsNewOriginatorFieldsAndCollectionOrder() throws Exception {
@@ -124,6 +126,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
     }
 
     @Test
+    @JiraEpic("PO-2630")
     @JiraStory("PO-2969")
     @DisplayName("PO-2969 INT.05 - Get header summary returns FP originator fields and collection order")
     void int05_getHeaderSummary_returnsFpOriginatorFieldsAndCollectionOrder() throws Exception {
