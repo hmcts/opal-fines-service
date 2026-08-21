@@ -14,10 +14,13 @@ import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -130,6 +133,22 @@ class JsonSchemaValidationServiceTest {
     }
 
     @Test
+    void testValidateOrError_additionalPropertyExposesStructuredError() {
+        JsonSchemaValidationException sce = assertThrows(
+            JsonSchemaValidationException.class,
+            () -> jsonSchemaValidationService.validateOrError(
+                "{\"unexpected_client_field\": \"value\"}",
+                SchemaPaths.ADD_DRAFT_ACCOUNT_REQUEST
+            )
+        );
+
+        assertTrue(sce.getValidationErrors().stream().anyMatch(error ->
+            "additionalProperties".equals(error.keyword())
+                && "unexpected_client_field".equals(error.property())
+        ));
+    }
+
+    @Test
     void testIsValid_validDateTimeAndEmail_shouldPass() {
         String validJson = """
         {
@@ -156,6 +175,33 @@ class JsonSchemaValidationServiceTest {
             """;
 
         assertTrue(jsonSchemaValidationService.isValid(validJson, "testSchema.json"));
+    }
+
+    @Test
+    void draftAccountRequestSchemasShouldRejectUndocumentedTopLevelProperties() throws IOException {
+        assertDraftAccountRequestSchemaRejectsUndocumentedProperties(SchemaPaths.ADD_DRAFT_ACCOUNT_REQUEST);
+        assertDraftAccountRequestSchemaRejectsUndocumentedProperties(SchemaPaths.REPLACE_DRAFT_ACCOUNT_REQUEST);
+        assertDraftAccountRequestSchemaRejectsUndocumentedProperties(SchemaPaths.UPDATE_DRAFT_ACCOUNT_REQUEST);
+    }
+
+    private static void assertDraftAccountRequestSchemaRejectsUndocumentedProperties(String schemaPath)
+        throws IOException {
+        JsonNode schema = readSchema(schemaPath);
+        JsonNode properties = schema.get("properties");
+        JsonNode additionalProperties = schema.get("additionalProperties");
+
+        assertNotNull(additionalProperties, schemaPath + " should declare additionalProperties");
+        assertFalse(additionalProperties.asBoolean(), schemaPath + " should reject additional properties");
+
+        Stream.of("submitted_by", "submitted_by_name", "validated_by", "validated_by_name")
+            .forEach(field -> assertFalse(properties.has(field), schemaPath + " should not expose " + field));
+    }
+
+    private static JsonNode readSchema(String schemaPath) throws IOException {
+        ClassPathResource resource = new ClassPathResource("jsonSchemas/" + schemaPath);
+        try (InputStream inputStream = resource.getInputStream()) {
+            return new ObjectMapper().readTree(inputStream);
+        }
     }
 
     @Test

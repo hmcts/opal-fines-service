@@ -124,8 +124,6 @@ class DraftAccountPublishTransactionIntegrationTest extends AbstractIntegrationT
         return """
             {
               "account_status": "Publishing Pending",
-              "validated_by": "ignored-by-service",
-              "validated_by_name": "ignored-by-service",
               "business_unit_id": 77,
               "reason_text": "Approve for publish",
               "version": %d

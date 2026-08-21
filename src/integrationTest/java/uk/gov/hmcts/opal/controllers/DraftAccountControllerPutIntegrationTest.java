@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -18,6 +19,8 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
@@ -72,6 +75,30 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
         jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNT_RESPONSE);
 
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"submitted_by", "submitted_by_name"})
+    @DisplayName("Replace draft account - Should return 400 when token-derived fields are supplied")
+    @JiraStory("PO-2461")
+    @JiraEpic("PO-2220")
+    void testReplaceDraftAccount_tokenDerivedFieldIsSupplied(String propertyName) throws Exception {
+        String request = validReplaceRequestBody(0L).replace(
+            "\"business_unit_id\": 78,",
+            "\"business_unit_id\": 78,\n"
+                + "              \"%s\": \"client-user\",".formatted(propertyName)
+        );
+
+        mockMvc.perform(put(URL_BASE + "/" + 5)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", "3")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail", containsString(propertyName)))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
     }
 
     @Test
@@ -518,8 +545,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "Adult",
@@ -600,8 +625,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "adultOrYouthOnly",
@@ -705,8 +728,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "pgToPay",
@@ -778,8 +799,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "adultOrYouthOnly",
@@ -836,8 +855,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "pgToPay",
@@ -902,8 +919,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "adultOrYouthOnly",
