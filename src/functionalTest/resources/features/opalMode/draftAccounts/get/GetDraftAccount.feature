@@ -22,7 +22,7 @@ Feature: Retrieve Draft Account
       | account_snapshot.account_type       | Fine         |
       | account_snapshot.submitted_by       | L073JG       |
       | account_snapshot.business_unit_name | West London  |
-      | account.originator_type             | TFO          |
+      | account.originator_type             | NEW          |
 
     #    Then the logging service contains these PDPO logs:
     #      | created_by_id    | created_by_type | business_identifier                         | individual_id                |expected_count |
@@ -46,7 +46,7 @@ Feature: Retrieve Draft Account
       | account_snapshot.account_type       | Fine         |
       | account_snapshot.submitted_by       | L073JG       |
       | account_snapshot.business_unit_name | West London  |
-      | account.originator_type             | TFO          |
+      | account.originator_type             | NEW          |
 
     #    Then the logging service contains these PDPO logs:
     #      | created_by_id    | created_by_type | business_identifier                         | individual_id                |expected_count |
