@@ -133,6 +133,22 @@ class JsonSchemaValidationServiceTest {
     }
 
     @Test
+    void testValidateOrError_additionalPropertyExposesStructuredError() {
+        JsonSchemaValidationException sce = assertThrows(
+            JsonSchemaValidationException.class,
+            () -> jsonSchemaValidationService.validateOrError(
+                "{\"unexpected_client_field\": \"value\"}",
+                SchemaPaths.ADD_DRAFT_ACCOUNT_REQUEST
+            )
+        );
+
+        assertTrue(sce.getValidationErrors().stream().anyMatch(error ->
+            "additionalProperties".equals(error.keyword())
+                && "unexpected_client_field".equals(error.property())
+        ));
+    }
+
+    @Test
     void testIsValid_validDateTimeAndEmail_shouldPass() {
         String validJson = """
         {
