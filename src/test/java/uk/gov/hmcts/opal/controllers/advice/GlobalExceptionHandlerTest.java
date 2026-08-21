@@ -2,12 +2,16 @@ package uk.gov.hmcts.opal.controllers.advice;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
 import feign.Response;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
+import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.net.URI;
 import java.util.Collection;
@@ -15,15 +19,21 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
@@ -31,17 +41,39 @@ import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.MissingMappingTypeException;
 import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
-import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
-import uk.gov.hmcts.opal.exception.UnsupportedMappingTypeException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.exception.UnsupportedContentTypeException;
+import uk.gov.hmcts.opal.exception.UnsupportedMappingTypeException;
 
 class GlobalExceptionHandlerTest {
 
     private final GlobalExceptionHandler globalExceptionHandler = new GlobalExceptionHandler();
+
+    // ---------- Simple false (non-retriable) buckets ----------
+
+    @Test
+    void handleMissingHeader_false() throws NoSuchMethodException {
+        Method method = TestMissingHeaderClass.class.getMethod("testMethod", String.class);
+        MethodParameter param = new MethodParameter(method, 0);
+        MissingRequestHeaderException ex = new MissingRequestHeaderException("TYPE", param);
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleMissingRequestHeaderException(ex);
+
+        assertEquals(HttpStatus.BAD_REQUEST, r.getStatusCode());
+        ProblemDetail pd = r.getBody();
+        assertEquals(HttpStatus.BAD_REQUEST.value(), pd.getStatus());
+        assertEquals("Missing Required Header", pd.getTitle());
+        assertEquals(URI.create("https://hmcts.gov.uk/problems/missing-header"), pd.getType());
+        assertEquals(false, pd.getProperties().get("retriable"));
+    }
+
+    static class TestMissingHeaderClass {
+        public void testMethod(String type) {
+        }
+    }
 
     @Test
     void handleRequiredPermission_returnsForbiddenProblem() {
@@ -54,6 +86,22 @@ class GlobalExceptionHandlerTest {
         assertEquals("Forbidden", response.getBody().getTitle());
         assertEquals("User requires permission: Search and View Accounts", response.getBody().getDetail());
         assertEquals(false, response.getBody().getProperties().get("retriable"));
+    }
+
+    @Test
+    void handlePermissionNotAllowed_returnsForbiddenProblem() {
+        PermissionNotAllowedException ex =
+            new PermissionNotAllowedException((short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
+
+        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handlePermissionNotAllowedException(ex);
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        assertEquals(MediaType.APPLICATION_PROBLEM_JSON, response.getHeaders().getContentType());
+        assertEquals("Forbidden", response.getBody().getTitle());
+        assertEquals("You do not have permission to access this resource", response.getBody().getDetail());
+        assertEquals(URI.create("https://hmcts.gov.uk/problems/forbidden"), response.getBody().getType());
+        assertEquals(false, response.getBody().getProperties().get("retriable"));
+        assertEquals((short) 78, response.getBody().getProperties().get("businessUnitId"));
     }
 
     @Test
@@ -188,6 +236,47 @@ class GlobalExceptionHandlerTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertEquals("Internal Server Error", response.getBody().getTitle());
         assertEquals("missing config", response.getBody().getDetail());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "/business-units/search",
+        "/draft-accounts/search",
+        "/draft-accounts/123",
+        "/local-justice-areas/search",
+        "/major-creditors/search",
+        "/minor-creditor-accounts/123"
+    })
+    void handleMethodNotSupported_disabledTestingSupportEndpoint_returnsNotFoundProblem(String requestUri) {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getRequestURI()).thenReturn(requestUri);
+
+        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleMethodNotSupportedException(
+            new HttpRequestMethodNotSupportedException("GET"),
+            request
+        );
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Not Found", response.getBody().getTitle());
+        assertEquals("The requested endpoint could not be found", response.getBody().getDetail());
+    }
+
+    @Test
+    void handleMethodNotSupported_enabledTestingSupportEndpoint_returnsInternalServerErrorProblem() {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getRequestURI()).thenReturn("/business-units/123");
+
+        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleMethodNotSupportedException(
+            new HttpRequestMethodNotSupportedException("GET"),
+            request
+        );
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Internal Server Error", response.getBody().getTitle());
+        assertEquals(
+            "An unexpected error occurred while processing your request",
+            response.getBody().getDetail()
+        );
     }
 
     @Test

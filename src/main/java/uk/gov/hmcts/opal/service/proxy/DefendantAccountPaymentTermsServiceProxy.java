@@ -32,7 +32,7 @@ public class DefendantAccountPaymentTermsServiceProxy implements DefendantAccoun
 
     @Override
     public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
-        String businessUnitId,
+        Short businessUnitId,
         String businessUnitUserId,
         String postedByName,
         String ifMatch) {

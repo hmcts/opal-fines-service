@@ -47,7 +47,7 @@ Feature: Report Instances
   @JIRA-STORY:PO-2252 @JIRA-EPIC:PO-2248 @JIRA-TEST-KEY:PO-7868
   Scenario: Create report instance with multiple business units for a single-BU report is rejected
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I create a report instance with report id "operational_report_enforcement" for business units 73 and 1001
+    When I create a report instance with report id "operational_report_enforcement" for business units 73 and 65
     Then the request is rejected with status 422
     And latest report instance create error response matches the standard problem detail contract for status 422
 

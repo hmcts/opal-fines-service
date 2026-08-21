@@ -22,6 +22,7 @@ public interface InterfaceJobMapper {
     @Mapping(target = "createdDateTime", source = "request.createdDatetime")
     @Mapping(target = "startedDateTime", ignore = true)
     @Mapping(target = "completedDateTime", ignore = true)
+    @Mapping(target = "interfaceMessages", ignore = true)
     @Mapping(target = "interfaceFiles", ignore = true)
     InterfaceJobEntity toJobEntity(InterfaceJobsCreateItem request, BusinessUnitEntity businessUnit);
 
@@ -32,6 +33,7 @@ public interface InterfaceJobMapper {
     @Mapping(target = "source", source = "request.source")
     @Mapping(target = "records", source = "request.records")
     @Mapping(target = "recordCount", ignore = true)
+    @Mapping(target = "tillEntities", ignore = true)
     InterfaceFileEntity toFileEntity(InterfaceJobsCreateItem request, InterfaceJobEntity interfaceJob);
 
     @Mapping(target = "interfaceJobId", source = "interfaceJobId")

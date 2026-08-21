@@ -40,7 +40,7 @@ import uk.gov.hmcts.opal.repository.EnforcementAccountTypeRepository;
 import uk.gov.hmcts.opal.service.opal.EnforcementAccountTypeService;
 
 @ExtendWith(MockitoExtension.class)
-public class EnforcementAccountTypeServiceTest {
+class EnforcementAccountTypeServiceTest {
 
     @Mock
     private EnforcementAccountTypeMapper mapper;
@@ -57,12 +57,12 @@ public class EnforcementAccountTypeServiceTest {
     private MockedStatic<SecurityUtil> secutityUtilMock;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         secutityUtilMock = mockStatic(SecurityUtil.class);
     }
 
     @AfterEach
-    public void teardown() {
+    void teardown() {
         secutityUtilMock.close();
     }
 
@@ -89,7 +89,7 @@ public class EnforcementAccountTypeServiceTest {
     }
 
     @Test
-    public void getEnforcementAccountTypes_shouldOrchestrateCallCorrectly() {
+    void getEnforcementAccountTypes_shouldOrchestrateCallCorrectly() {
         withPermission();
 
         List<EnforcementAccountTypeEntity> enfAccountTypes = List.of(
@@ -109,7 +109,7 @@ public class EnforcementAccountTypeServiceTest {
     }
 
     @Test
-    public void getEnforcementAccountTypes_unauthorisedUser_shouldThrowPermissionsException() {
+    void getEnforcementAccountTypes_unauthorisedUser_shouldThrowPermissionsException() {
         withoutPermission();
 
         assertThrows(PermissionNotAllowedException.class, () -> service.getAllEnforcementAccountTypes());
@@ -119,7 +119,7 @@ public class EnforcementAccountTypeServiceTest {
 
 
     @Test
-    public void updateEnforcementAccountTypes_shouldOrchestrateCallCorrectly() {
+    void updateEnforcementAccountTypes_shouldOrchestrateCallCorrectly() {
         withPermission();
 
         EnforcementAccountTypeEntity mockEntity = mock(EnforcementAccountTypeEntity.class);
@@ -136,7 +136,7 @@ public class EnforcementAccountTypeServiceTest {
     }
 
     @Test
-    public void updateEnforcementAccountTypes_missingIdThrowsEntityNotFoundException() {
+    void updateEnforcementAccountTypes_missingIdThrowsEntityNotFoundException() {
         withPermission();
         List<PatchEnforcementAccountTypeRequestInner> request = List.of(
             PatchEnforcementAccountTypeRequestInner.builder().id(1L).build()
@@ -156,7 +156,7 @@ public class EnforcementAccountTypeServiceTest {
     }
 
     @Test
-    public void updateEnforcementAccountTypes_unauthorisedUser_shouldThrowPermissionsException() {
+    void updateEnforcementAccountTypes_unauthorisedUser_shouldThrowPermissionsException() {
         withoutPermission();
 
         List<PatchEnforcementAccountTypeRequestInner> request = List.of(
@@ -173,7 +173,7 @@ public class EnforcementAccountTypeServiceTest {
     }
 
     @Test
-    public void updateEnforcementAccountTypes_invalidRequestThrowsUnprocessableException() {
+    void updateEnforcementAccountTypes_invalidRequestThrowsUnprocessableException() {
         withPermission();
 
         List<PatchEnforcementAccountTypeRequestInner> request = List.of(
@@ -200,7 +200,7 @@ public class EnforcementAccountTypeServiceTest {
     }
 
     @Test
-    public void updateEnforcementAccountTypes_negativeMinBalanceThrowsUnprocessableException() {
+    void updateEnforcementAccountTypes_negativeMinBalanceThrowsUnprocessableException() {
         withPermission();
         List<PatchEnforcementAccountTypeRequestInner> request = List.of(
             PatchEnforcementAccountTypeRequestInner.builder()
@@ -223,7 +223,7 @@ public class EnforcementAccountTypeServiceTest {
     }
 
     @Test
-    public void updateEnforcementAccountTypes_versionMisMatchThrowsException() {
+    void updateEnforcementAccountTypes_versionMisMatchThrowsException() {
         withPermission();
 
         List<PatchEnforcementAccountTypeRequestInner> request = List.of(

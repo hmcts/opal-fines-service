@@ -4,7 +4,6 @@ import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_ENABLED_PROPERTY;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
-import tools.jackson.core.JacksonException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -23,9 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
-import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
-import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
-import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -113,27 +109,6 @@ public class DefendantAccountController {
             defendantAccountPaymentTermsService.getPaymentTerms(defendantAccountId));
     }
 
-    @PostMapping("/{defendantAccountId}/payment-card-request")
-    @Operation(summary = "Create a payment card request for a given defendant account")
-    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<AddPaymentCardRequestResponse> addPaymentCardRequest(
-        @PathVariable Long defendantAccountId,
-        @RequestHeader("Business-Unit-Id") String businessUnitId,
-        @RequestHeader(value = "Business-Unit-User-Id", required = false) String businessUnitUserId,
-        @RequestHeader(value = "If-Match", required = false) String ifMatch
-    ) {
-        log.debug(":POST:addPaymentCardRequest: for defendantAccountId={}", defendantAccountId);
-
-        AddPaymentCardRequestResponse response = defendantAccountPaymentTermsService.addPaymentCardRequest(
-            defendantAccountId,
-            businessUnitId,
-            businessUnitUserId,
-            ifMatch
-        );
-
-        return buildResponse(response);
-    }
-
     @GetMapping("/{defendantAccountId}/fixed-penalty")
     @Operation(summary = "Retrieve Fixed Penalty Offence details for a given Defendant Account")
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
@@ -205,25 +180,6 @@ public class DefendantAccountController {
         return buildResponse(
             defendantAccountPartyService.removeDefendantAccountParty(defendantAccountId,
                 defendantAccountPartyId, businessUnitId, ifMatch, request));
-    }
-
-    @PostMapping("/{defendantAccountId}/enforcements")
-    @Operation(summary = "Create an enforcement for a given defendant account")
-    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<AddEnforcementResponse> addEnforcement(
-        @PathVariable Long defendantAccountId,
-        @RequestHeader("Business-Unit-Id") Short businessUnitId,
-        @RequestHeader(value = "If-Match", required = false) String ifMatch,
-        @RequestBody AddDefendantAccountEnforcementRequest request
-
-    ) throws JacksonException {
-        log.debug(":POST:addEnforcement: for defendantAccountId={}", defendantAccountId);
-
-        AddEnforcementResponse response = defendantAccountEnforcementService.addEnforcement(
-            defendantAccountId, businessUnitId, ifMatch, request
-        );
-
-        return buildResponse(response);
     }
 
     @PatchMapping(value = "/{defendantAccountId}/remove-enf-hold", consumes = MediaType.APPLICATION_JSON_VALUE)

@@ -7,6 +7,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.math.BigInteger;
+
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -45,11 +47,13 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
             "extension": true,
             "reason_for_extension": "Financial hardship",
             "payment_terms_type": {
-              "payment_terms_type_code": "B"
+              "payment_terms_type_code": "B",
+              "payment_terms_type_display_name": "By date"
             },
             "effective_date": "2025-11-15",
             "instalment_period": {
-              "instalment_period_code": "M"
+              "instalment_period_code": "M",
+              "instalment_period_display_name": "Monthly"
             },
             "lump_sum_amount": 0.00,
             "instalment_amount": 150.00,
@@ -97,7 +101,7 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.enforcement_id").value("72"))
             .andExpect(jsonPath("$.defendant_account_id").value("72"))
-            .andExpect(jsonPath("$.version").value(1));
+            .andExpect(jsonPath("$.version").value(new BigInteger(OVER_LONG_VERSION)));
     }
 
     @Test

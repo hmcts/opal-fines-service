@@ -36,7 +36,7 @@ class OperationDetailedReportTest {
     @Test
     void getNumberOfRecords_noRecords_return0() {
         when(detailedReport.getAccountTransactionReports()).thenReturn(null);
-        assertThat(operationDetailedReport.getNumberOfRecords()).isEqualTo(0);
+        assertThat(operationDetailedReport.getNumberOfRecords()).isZero();
     }
 
     @Test

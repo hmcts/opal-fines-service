@@ -141,7 +141,7 @@ paths:
               type: string
               enum:
                 - CREATED
-                - PROCESSED
+                - PROCESSING
                 - IGNORED
                 - FAILED
                 - COMPLETED
@@ -493,7 +493,7 @@ components:
       type: string
       enum:
         - CREATED
-        - PROCESSED
+        - PROCESSING
         - IGNORED
         - FAILED
         - COMPLETED

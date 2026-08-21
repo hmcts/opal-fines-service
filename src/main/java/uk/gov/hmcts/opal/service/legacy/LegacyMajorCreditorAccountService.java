@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.legacy;
 
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
@@ -22,6 +21,7 @@ import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyRe
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse.MajorCreditorLegacy;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountAtAGlanceResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper;
@@ -46,6 +46,7 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
     private final GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
     private final GetMajorCreditorAccountHistoryRequestLegacyMapper historyRequestMapper;
     private final GetMajorCreditorAccountHistoryResponseLegacyMapper historyResponseMapper;
+    private final LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
 
     @Override
     public GetMajorCreditorAccountAtAGlanceResponse getAtAGlance(Long majorCreditorAccountId) {
@@ -85,7 +86,8 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
             response.responseEntity);
 
         MajorCreditorLegacy majorCreditor = response.responseEntity.getMajorCreditor();
-        mapped.setVersion(BigInteger.valueOf(majorCreditor.getAccountVersion()));
+        mapped.setVersion(majorCreditor.getAccountVersion());
+        applyResolvedBusinessUnitCode(mapped, response.responseEntity.getBusinessUnitDetails());
 
         return mapped;
     }
@@ -108,6 +110,22 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
         checkResponseForError(response, "getHistory");
 
         return historyResponseMapper.toOpal(response.responseEntity);
+    }
+
+    private void applyResolvedBusinessUnitCode(
+        GetMajorCreditorAccountHeaderSummaryResponse mapped,
+        BusinessUnitSummary legacyBusinessUnit
+    ) {
+        if (mapped.getBusinessUnitDetails() == null || legacyBusinessUnit == null) {
+            return;
+        }
+
+        mapped.getBusinessUnitDetails().setBusinessUnitCode(
+            legacyBusinessUnitCodeResolver.resolve(
+                legacyBusinessUnit.getBusinessUnitId(),
+                legacyBusinessUnit.getBusinessUnitCode()
+            )
+        );
     }
 
     private static <T> void checkResponseForError(Response<T> response, String method) {

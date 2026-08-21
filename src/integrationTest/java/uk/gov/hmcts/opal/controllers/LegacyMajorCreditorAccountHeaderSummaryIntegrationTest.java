@@ -42,6 +42,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL = "/major-creditor-accounts/{id}/header-summary";
+    private static final long MAJOR_CREDITOR_ACCOUNT_ID = 99000000000801L;
 
     @MockitoSpyBean
     private GatewayService gatewayService;
@@ -55,7 +56,7 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
 
-        ResultActions resultActions = mockMvc.perform(get(URL, 99000000000800L)
+        ResultActions resultActions = mockMvc.perform(get(URL, MAJOR_CREDITOR_ACCOUNT_ID)
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())
             .accept(MediaType.APPLICATION_JSON)
             .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()));
@@ -67,14 +68,15 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
         resultActions
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(header().string(HttpHeaders.ETAG, "\"7\""))
-            .andExpect(jsonPath("$.major_creditor.creditor_account_id").value(99000000000800L))
+            .andExpect(header().string(HttpHeaders.ETAG, OVER_LONG_VERSION_ETAG))
+            .andExpect(jsonPath("$.major_creditor.creditor_account_id").value(MAJOR_CREDITOR_ACCOUNT_ID))
             .andExpect(jsonPath("$.major_creditor.account_number").value("87654321"))
             .andExpect(jsonPath("$.major_creditor.name").value("Major Creditor Test Ltd"))
             .andExpect(jsonPath("$.major_creditor.account_reference.account_type").value("MJ"))
             .andExpect(jsonPath("$.major_creditor.account_reference.display_name").value("Major Creditor"))
             .andExpect(jsonPath("$.major_creditor.account_version").doesNotExist())
             .andExpect(jsonPath("$.business_unit_details.business_unit_id").value("77"))
+            .andExpect(jsonPath("$.business_unit_details.business_unit_code").value("0046"))
             .andExpect(jsonPath("$.business_unit_details.business_unit_name").value("Camberwell Green"))
             .andExpect(jsonPath("$.business_unit_details.welsh_speaking").value("N"))
             .andExpect(jsonPath("$.awaiting_payout").value(123.45));
@@ -87,7 +89,8 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
             requestCaptor.capture(),
             isNull()
         );
-        assertThat(requestCaptor.getValue().getCreditorAccountId()).isEqualTo("99000000000800");
+        assertThat(requestCaptor.getValue().getCreditorAccountId())
+            .isEqualTo(String.valueOf(MAJOR_CREDITOR_ACCOUNT_ID));
     }
 
     @Test
@@ -99,17 +102,17 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
 
-        ResultActions first = mockMvc.perform(get(URL, 99000000000800L)
+        ResultActions first = mockMvc.perform(get(URL, MAJOR_CREDITOR_ACCOUNT_ID)
             .accept(MediaType.APPLICATION_JSON)
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())
             .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()));
-        ResultActions second = mockMvc.perform(get(URL, 99000000000800L)
+        ResultActions second = mockMvc.perform(get(URL, MAJOR_CREDITOR_ACCOUNT_ID)
             .accept(MediaType.APPLICATION_JSON)
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())
             .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()));
 
-        first.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, "\"7\""));
-        second.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, "\"7\""));
+        first.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, OVER_LONG_VERSION_ETAG));
+        second.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, OVER_LONG_VERSION_ETAG));
         assertThat(second.andReturn().getResponse().getContentAsString())
             .isEqualTo(first.andReturn().getResponse().getContentAsString());
     }
@@ -122,7 +125,7 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
     void getHeaderSummary_withoutPermissionReturns403() throws Exception {
         userStateStub.setupWithNoPermissions();
 
-        mockMvc.perform(get(URL, 99000000000800L)
+        mockMvc.perform(get(URL, MAJOR_CREDITOR_ACCOUNT_ID)
                 .accept(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
             .andExpect(status().isForbidden())
@@ -140,7 +143,7 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
 
-        mockMvc.perform(get(URL, 99000000000800L)
+        mockMvc.perform(get(URL, MAJOR_CREDITOR_ACCOUNT_ID)
                 .accept(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
             .andExpect(status().isForbidden())
@@ -155,7 +158,7 @@ class LegacyMajorCreditorAccountHeaderSummaryIntegrationTest extends AbstractInt
     void getHeaderSummary_missingTokenReturns401() throws Exception {
         userStateStub.setupWithNoPermissions();
 
-        mockMvc.perform(get(URL, 99000000000800L)
+        mockMvc.perform(get(URL, MAJOR_CREDITOR_ACCOUNT_ID)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isForbidden())

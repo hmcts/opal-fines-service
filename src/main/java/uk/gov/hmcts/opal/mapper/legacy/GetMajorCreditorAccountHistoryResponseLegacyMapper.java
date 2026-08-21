@@ -64,7 +64,6 @@ public interface GetMajorCreditorAccountHistoryResponseLegacyMapper {
     default BigInteger toVersion(GetMajorCreditorAccountHistoryLegacyResponse legacy) {
         return Optional.ofNullable(legacy)
             .map(GetMajorCreditorAccountHistoryLegacyResponse::getVersion)
-            .map(BigInteger::valueOf)
             .orElse(BigInteger.ONE);
     }
 

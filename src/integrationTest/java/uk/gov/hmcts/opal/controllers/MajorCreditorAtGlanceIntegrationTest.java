@@ -85,7 +85,7 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     private static final String AUTH_HEADER = "Bearer some_value";
     private static final String URL = "/major-creditor-accounts/{id}/at-a-glance";
     private static final long MJ_ACCOUNT_ID = 10770000000041L;
-    private static final long CF_ACCOUNT_ID = 77L;
+    private static final long CF_ACCOUNT_ID = 78L;
 
     @MockitoBean
     private UserStateService userStateService;
@@ -108,7 +108,7 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-7647")
     void getAtAGlance_majorCreditorSuccessReturnsMappedResponseAndEtag() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
+            .thenReturn(UserStateUtil.permissionUser((short) 78, SEARCH_AND_VIEW_ACCOUNTS));
 
         AtAGlanceExpected account = getAtAGlance(MJ_ACCOUNT_ID);
 
@@ -154,7 +154,7 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-7643")
     void getAtAGlance_centralFundSuccessReturnsMappedResponseAndEtag() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
+            .thenReturn(UserStateUtil.permissionUser((short) 78, SEARCH_AND_VIEW_ACCOUNTS));
 
         AtAGlanceExpected account = getAtAGlance(CF_ACCOUNT_ID);
 
@@ -193,7 +193,7 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-7649")
     void getAtAGlance_repeatedGetReturnsSamePayloadAndHeaders() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
+            .thenReturn(UserStateUtil.permissionUser((short) 78, SEARCH_AND_VIEW_ACCOUNTS));
 
         ResultActions first = mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
         ResultActions second = mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
@@ -213,7 +213,7 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-7641")
     void getAtAGlance_sameBusinessUnitPermissionReturns200() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
+            .thenReturn(UserStateUtil.permissionUser((short) 78, SEARCH_AND_VIEW_ACCOUNTS));
 
         mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
             .andExpect(status().isOk());
@@ -239,7 +239,7 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-7646")
     void getAtAGlance_notFoundReturns404() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
+            .thenReturn(UserStateUtil.permissionUser((short) 78, SEARCH_AND_VIEW_ACCOUNTS));
 
         ResultActions actions = mockMvc.perform(get(URL, 999999L)
             .accept(MediaType.APPLICATION_JSON)
@@ -298,7 +298,7 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-7648")
     void getAtAGlance_queryTimeoutReturns408() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
+            .thenReturn(UserStateUtil.permissionUser((short) 78, SEARCH_AND_VIEW_ACCOUNTS));
         doThrow(new QueryTimeoutException("timeout", null, null))
             .when(userStateService).getUserStateV1FromSecurityContext();
 
@@ -315,7 +315,7 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-7645")
     void getAtAGlance_dataAccessFailureReturns503() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
+            .thenReturn(UserStateUtil.permissionUser((short) 78, SEARCH_AND_VIEW_ACCOUNTS));
         doThrow(new DataAccessResourceFailureException("db unavailable"))
             .when(majorCreditorAccountAtAGlanceRepository).findById(MJ_ACCOUNT_ID);
 
@@ -332,7 +332,7 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-7642")
     void getAtAGlance_internalServerErrorReturns500() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
+            .thenReturn(UserStateUtil.permissionUser((short) 78, SEARCH_AND_VIEW_ACCOUNTS));
         doThrow(HttpServerErrorException.create(
             org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR,
             "Internal Server Error",

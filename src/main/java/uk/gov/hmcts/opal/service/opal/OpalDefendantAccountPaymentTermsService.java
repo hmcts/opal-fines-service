@@ -1,19 +1,22 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler.PaymentCardRequestAlreadyExistsException;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
-import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler.PaymentCardRequestAlreadyExistsException;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.mapper.request.PaymentTermsMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
@@ -24,8 +27,6 @@ import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.PaymentCardRequestRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.PaymentTermsRepositoryService;
 import uk.gov.hmcts.opal.util.VersionUtils;
-
-import java.time.LocalDate;
 
 @Service
 @Slf4j(topic = "opal.OpalDefendantAccountService")
@@ -73,14 +74,15 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
     @Override
     @Transactional
     public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
-        String businessUnitId,
+        Short businessUnitId,
         String businessUnitUserId,
         String postedByName,
         String ifMatch) {
 
         log.debug(":addPaymentCardRequest (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
-        DefendantAccountEntity account = loadAndValidateAccount(defendantAccountId, businessUnitId);
+        final String requiredBusinessUnitUserId = requireBusinessUnitUserId(businessUnitUserId, businessUnitId);
+        DefendantAccountEntity account = loadAndValidateAccount(defendantAccountId, String.valueOf(businessUnitId));
         VersionUtils.verifyIfMatch(account, ifMatch, account.getDefendantAccountId(), "addPaymentCardRequest");
         defendantAccountControlValidator.validateCanAddPaymentCardRequest(account);
 
@@ -91,11 +93,19 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
 
         createPaymentCardRequest(defendantAccountId);
 
-        updateDefendantAccountWithPcr(account, businessUnitUserId, postedByName);
+        updateDefendantAccountWithPcr(account, requiredBusinessUnitUserId, postedByName);
 
-        auditComplete(defendantAccountId, account, businessUnitUserId, postedByName);
+        auditComplete(defendantAccountId, account, requiredBusinessUnitUserId, postedByName);
 
         return new AddPaymentCardRequestResponse(defendantAccountId);
+    }
+
+    private String requireBusinessUnitUserId(String businessUnitUserId, Short businessUnitId) {
+        if (businessUnitUserId == null || businessUnitUserId.isBlank()) {
+            throw new PermissionNotAllowedException(
+                businessUnitId, FinesPermission.AMEND_PAYMENT_TERMS);
+        }
+        return businessUnitUserId;
     }
 
     @Override

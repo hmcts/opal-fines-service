@@ -1,11 +1,14 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import java.math.BigInteger;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
+import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
@@ -26,16 +29,14 @@ import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPaymentTermsServiceInterface;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
-import java.math.BigInteger;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "opal.LegacyDefendantAccountPaymentTermsService")
 public class LegacyDefendantAccountPaymentTermsService implements DefendantAccountPaymentTermsServiceInterface {
 
-    public static final String ADD_PAYMENT_TERMS = "LIBRA.add_payment_terms";
-    public static final String GET_PAYMENT_TERMS = "LIBRA.get_payment_terms";
-    public static final String ADD_PAYMENT_CARD_REQUEST = "LIBRA.of_add_defendant_account_pcr";
+    public static final String ADD_PAYMENT_TERMS = "addDefendantAccountPaymentTerms";
+    public static final String GET_PAYMENT_TERMS = "getDefendantAccountPaymentTerms";
+    public static final String ADD_PAYMENT_CARD_REQUEST = "addDefendantAccountPaymentCard";
 
     private final GatewayService gatewayService;
 
@@ -196,7 +197,6 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
 
         return GetDefendantAccountPaymentTermsResponse.builder()
             .version(Optional.ofNullable(addPaymentTermsResponse.getVersion())
-                .map(v -> BigInteger.valueOf(v.longValue()))
                 .orElse(BigInteger.ONE))
             .paymentTerms(toPaymentTerms(addPaymentTermsResponse.getPaymentTerms()))
             .paymentCardLastRequested(addPaymentTermsResponse.getPaymentCardLastRequested())
@@ -221,7 +221,7 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
 
         return GetDefendantAccountPaymentTermsResponse.builder()
             .version(Optional.ofNullable(legacy.getVersion())
-                .map(v -> BigInteger.valueOf(v.longValue())).orElse(BigInteger.ONE))
+                .orElse(BigInteger.ONE))
             .paymentTerms(toPaymentTerms(legacy.getPaymentTerms()))
             .paymentCardLastRequested(legacy.getPaymentCardLastRequested())
             .lastEnforcement(legacy.getLastEnforcement())
@@ -295,16 +295,17 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
     @Override
     public AddPaymentCardRequestResponse addPaymentCardRequest(
         Long defendantAccountId,
-        String businessUnitId,
+        Short businessUnitId,
         String businessUnitUserId,
         String postedByName,
         String ifMatch
     ) {
         log.info(":addPaymentCardRequest (Legacy): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
+        String requiredBusinessUnitUserId = requireBusinessUnitUserId(businessUnitUserId, businessUnitId);
         BigInteger version = VersionUtils.extractBigInteger(ifMatch);
         AddPaymentCardLegacyRequest request = buildLegacyRequest(defendantAccountId, businessUnitId,
-            businessUnitUserId, version.toString());
+            requiredBusinessUnitUserId, version);
 
         AddPaymentCardLegacyResponse response = callGateway(request);
         Long id = Long.valueOf(response.getDefendantAccountId());
@@ -312,15 +313,23 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
         return new AddPaymentCardRequestResponse(id);
     }
 
+    private String requireBusinessUnitUserId(String businessUnitUserId, Short businessUnitId) {
+        if (businessUnitUserId == null || businessUnitUserId.isBlank()) {
+            throw new PermissionNotAllowedException(
+                businessUnitId, FinesPermission.AMEND_PAYMENT_TERMS);
+        }
+        return businessUnitUserId;
+    }
+
     private AddPaymentCardLegacyRequest buildLegacyRequest(
         Long defendantAccountId,
-        String businessUnitId,
+        Short businessUnitId,
         String businessUnitUserId,
-        String version
+        BigInteger version
     ) {
         return AddPaymentCardLegacyRequest.builder()
             .defendantAccountId(String.valueOf(defendantAccountId))
-            .businessUnitId(businessUnitId)
+            .businessUnitId(String.valueOf(businessUnitId))
             .businessUnitUserId(businessUnitUserId)
             .version(version)
             .build();
