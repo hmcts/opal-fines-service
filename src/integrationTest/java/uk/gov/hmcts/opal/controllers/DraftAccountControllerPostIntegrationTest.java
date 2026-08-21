@@ -40,8 +40,6 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     private String validRawJsonCreateRequestBody() {
         AddDraftAccountRequestDto dto = AddDraftAccountRequestDto.builder()
             .businessUnitId((short) 78)
-            .submittedBy("BUUID1")
-            .submittedByName("John")
             .account(validAccountJsonString())
             .accountType(DraftAccountType.FINE)
             .build();
@@ -56,8 +54,6 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     private String invalidLanguageRawJsonCreateRequestBody(String languageField) {
         AddDraftAccountRequestDto dto = AddDraftAccountRequestDto.builder()
             .businessUnitId((short) 78)
-            .submittedBy("BUUID1")
-            .submittedByName("John")
             .account(validAccountJsonStringWithDebtorLanguages()
                 .replace("\"%s\": \"EN\"".formatted(languageField), "\"%s\": \"English\"".formatted(languageField)))
             .accountType(DraftAccountType.FINE)
@@ -254,9 +250,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     void shouldReturn400WhenTimelineDataIsSupplied() throws Exception {
         String request = validCreateRequestBody()
             .replace(
-                "\"submitted_by\": \"BUUID1\",",
-                "\"timeline_data\": " + validTimelineDataString().trim()
-                    + ",\n              \"submitted_by\": \"BUUID1\","
+                "\"business_unit_id\": 78,",
+                "\"business_unit_id\": 78,\n              \"timeline_data\": " + validTimelineDataString().trim() + ","
             );
 
         mockMvc.perform(post(URL_BASE)
@@ -608,8 +603,6 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "Adult",
@@ -733,7 +726,6 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
               "draft_account_id": 5,
               "created_at": "2025-11-01T10:30:00+00:00",
               "business_unit_id": 78,
-              "validated_by": null,
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "adultOrYouthOnly",
@@ -833,9 +825,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 "account_notes": null
               },
               "account_snapshot": null,
-              "account_type": "Fine",
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "Business User 1"
+              "account_type": "Fine"
             }
 
             """;
@@ -849,8 +839,6 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                "account_snapshot":null,
                "account_status_date":null,
                "business_unit_id":77,
-               "submitted_by":"L077JG",
-               "submitted_by_name":"opal-test",
                "account":{
                   "account_type":"Fixed Penalty",
                   "defendant_type":"adultOrYouthOnly",

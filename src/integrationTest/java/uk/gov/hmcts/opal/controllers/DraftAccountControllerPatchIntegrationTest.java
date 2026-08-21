@@ -129,7 +129,6 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .content("""
                 {
                   "account_status": "Rejected",
-                  "validated_by": "BUUID1A",
                   "reason_text": "Reason for rejection",
                   "business_unit_id": 78,
                   "version": 0
@@ -151,7 +150,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .andExpect(jsonPath("$.timeline_data[0].username").value("opal-test"))
             .andExpect(jsonPath("$.timeline_data[0].reason_text").doesNotExist())
             .andExpect(jsonPath("$.timeline_data[1].status").value("Rejected"))
-            .andExpect(jsonPath("$.timeline_data[1].username").value("BUUID1A"))
+            .andExpect(jsonPath("$.timeline_data[1].username").value("L078JG"))
             .andExpect(jsonPath("$.timeline_data[1].reason_text").value("Reason for rejection"));
     }
 
@@ -301,8 +300,6 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
         Long draftAccountId = 241L;
         String requestBody = "            {\n"
             + "                \"account_status\": \"Publishing Pending\",\n"
-            + "                \"validated_by\": \"BUUID1\",\n"
-            + "                \"validated_by_name\": \"No Permission\",\n"
             + "                \"business_unit_id\": 5,\n"
             + "                \"version\": 0\n"
             + "            }";

@@ -41,6 +41,7 @@ import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.MissingMappingTypeException;
 import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
+import uk.gov.hmcts.opal.exception.ProhibitedDraftAccountRequestFieldException;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
@@ -225,6 +226,17 @@ class GlobalExceptionHandlerTest {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("Bad Request", response.getBody().getTitle());
         assertEquals("The request does not conform to the required JSON schema", response.getBody().getDetail());
+    }
+
+    @Test
+    void handleJsonSchemaValidation_exposesProhibitedDraftAccountFieldProblem() {
+        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleJsonSchemaValidationException(
+            new ProhibitedDraftAccountRequestFieldException("submitted_by is not allowed in draft account requests")
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Bad Request", response.getBody().getTitle());
+        assertEquals("submitted_by is not allowed in draft account requests", response.getBody().getDetail());
     }
 
     @Test

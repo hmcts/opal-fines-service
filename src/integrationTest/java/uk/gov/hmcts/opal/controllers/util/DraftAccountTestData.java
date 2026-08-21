@@ -55,12 +55,6 @@ public final class DraftAccountTestData {
         @JsonProperty("business_unit_id")
         int businessUnitId,
 
-        @JsonProperty("submitted_by")
-        String submittedBy,
-
-        @JsonProperty("submitted_by_name")
-        String submittedByName,
-
         @JsonProperty("account_type")
         String accountType,
 
@@ -76,8 +70,6 @@ public final class DraftAccountTestData {
         public static Post defaultData() {
             return new Post(
                 77,
-                "L077JG",
-                "opal-test-post",
                 "Fine",
                 "Submitted",
                 MINIMAL_ACCOUNT_JSON
@@ -94,12 +86,6 @@ public final class DraftAccountTestData {
         @JsonProperty("business_unit_id")
         int businessUnitId,
 
-        @JsonProperty("submitted_by")
-        String submittedBy,
-
-        @JsonProperty("submitted_by_name")
-        String submittedByName,
-
         @JsonProperty("account_type")
         String accountType,
 
@@ -115,8 +101,6 @@ public final class DraftAccountTestData {
         public static Put defaultData() {
             return new Put(
                 77,
-                "L077JG",
-                "opal-test-put",
                 "Fine",
                 "Resubmitted",
                 MINIMAL_ACCOUNT_JSON
@@ -136,12 +120,6 @@ public final class DraftAccountTestData {
         @JsonProperty("account_status")
         String accountStatus,
 
-        @JsonProperty("validated_by")
-        String validatedBy,
-
-        @JsonProperty("validated_by_name")
-        String validatedByName,
-
         @JsonProperty("reason_text")
         String reasonText
 
@@ -151,8 +129,6 @@ public final class DraftAccountTestData {
             return new Patch(
                 77,
                 "Rejected",
-                "L077JG",
-                "opal-test-patch",
                 "Feature toggle test"
             );
         }

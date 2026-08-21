@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -69,11 +70,42 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
             .andExpect(status().isBadRequest());
     }
 
+    @ParameterizedTest(name = "Token-derived request fields return 400 [{index}]")
+    @MethodSource("endpointsWithTokenDerivedFieldsProvider")
+    @JiraStory("PO-2461")
+    @JiraEpic("PO-2219")
+    void methodsShouldReturn400_whenTokenDerivedFieldsAreSupplied(
+        MockHttpServletRequestBuilder requestBuilder, String requestBody, String prohibitedField) throws Exception {
+
+        mockMvc.perform(requestBuilder
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("Accept", "application/json")
+                .header("If-Match", "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail", containsString("not allowed in draft account requests")))
+            .andExpect(jsonPath("$.detail", containsString(prohibitedField)));
+    }
+
     private static Stream<Arguments> endpointsWithInvalidBodiesProvider() {
         return Stream.of(Arguments.of(post(URL_BASE), invalidCreateRequestBody()),
             Arguments.of(put(URL_BASE + "/1"), invalidCreateRequestBody()),
             Arguments.of(patch(URL_BASE + "/1"), invalidCreateRequestBody())
         );
+    }
+
+    private static Stream<Arguments> endpointsWithTokenDerivedFieldsProvider() {
+        return Stream.of("submitted_by", "submitted_by_name", "validated_by", "validated_by_name")
+            .flatMap(prohibitedField -> Stream.of(
+                Arguments.of(post(URL_BASE), requestBodyWithTokenDerivedField(prohibitedField), prohibitedField),
+                Arguments.of(put(URL_BASE + "/1"), requestBodyWithTokenDerivedField(prohibitedField),
+                             prohibitedField),
+                Arguments.of(patch(URL_BASE + "/1"), updateRequestBodyWithTokenDerivedField(prohibitedField),
+                             prohibitedField)
+            ));
     }
 
     //CEP3 - Not Authorised to perform the requested action (403)
@@ -172,12 +204,29 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
         );
     }
 
+    private static String requestBodyWithTokenDerivedField(String fieldName) {
+        return """
+            {
+              "business_unit_id": 78,
+              "%s": "client-supplied",
+              "account": {},
+              "account_type": "Fine"
+            }""".formatted(fieldName);
+    }
+
+    private static String updateRequestBodyWithTokenDerivedField(String fieldName) {
+        return """
+            {
+              "business_unit_id": 78,
+              "account_status": "Publishing Pending",
+              "%s": "client-supplied"
+            }""".formatted(fieldName);
+    }
+
     private static String validCreateRequestBody() {
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "Adult",

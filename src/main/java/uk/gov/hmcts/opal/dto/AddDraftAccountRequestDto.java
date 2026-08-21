@@ -36,9 +36,6 @@ public class AddDraftAccountRequestDto implements ToJsonString, DraftAccountRequ
     @NonNull
     private Short businessUnitId;
 
-    @JsonProperty("validated_by")
-    private String validatedBy;
-
     @JsonProperty(value = "account", required = true)
     @JsonDeserialize(using = KeepAsJsonDeserializer.class)
     @JsonRawValue
@@ -62,9 +59,4 @@ public class AddDraftAccountRequestDto implements ToJsonString, DraftAccountRequ
     @JsonProperty("timeline_data")
     private Object timelineData;
 
-    @JsonProperty("submitted_by")
-    private String submittedBy;
-
-    @JsonProperty("submitted_by_name")
-    private String submittedByName;
 }

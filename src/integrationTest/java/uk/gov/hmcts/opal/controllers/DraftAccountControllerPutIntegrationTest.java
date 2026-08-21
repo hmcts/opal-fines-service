@@ -518,8 +518,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "Adult",
@@ -600,8 +598,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "adultOrYouthOnly",
@@ -705,8 +701,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "pgToPay",
@@ -778,8 +772,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "adultOrYouthOnly",
@@ -836,8 +828,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "pgToPay",
@@ -902,8 +892,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "adultOrYouthOnly",
