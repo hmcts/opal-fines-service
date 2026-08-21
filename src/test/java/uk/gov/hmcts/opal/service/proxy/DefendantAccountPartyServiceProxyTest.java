@@ -10,8 +10,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
+import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PartyDefendantAccount;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountPartyService;
@@ -41,9 +41,9 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
         String businessUserId = "USER123";
         String ifMatch = "1";
 
-        DefendantAccountParty request = DefendantAccountParty.builder().build();
+        PartyDefendantAccount request = PartyDefendantAccount.builder().build();
 
-        GetDefendantAccountPartyResponse expectedResponse = GetDefendantAccountPartyResponse.builder()
+        PartyResponseDefendantAccount expectedResponse = PartyResponseDefendantAccount.builder()
             .version(BigInteger.valueOf(2L))
             .defendantAccountParty(request)
             .build();
@@ -54,7 +54,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
             .thenReturn(expectedResponse);
 
         // act
-        GetDefendantAccountPartyResponse result = proxy.replaceDefendantAccountParty(
+        PartyResponseDefendantAccount result = proxy.replaceDefendantAccountParty(
             accountId, dapId, request, ifMatch, businessUnitId, postedBy, postedByName, businessUserId);
 
         // assert
@@ -74,9 +74,9 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
         String businessUserId = "ADMIN456";
         String ifMatch = "2";
 
-        DefendantAccountParty request = DefendantAccountParty.builder().build();
+        PartyDefendantAccount request = PartyDefendantAccount.builder().build();
 
-        GetDefendantAccountPartyResponse expectedResponse = GetDefendantAccountPartyResponse.builder()
+        PartyResponseDefendantAccount expectedResponse = PartyResponseDefendantAccount.builder()
             .version(BigInteger.valueOf(3L))
             .defendantAccountParty(request)
             .build();
@@ -87,7 +87,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
             .thenReturn(expectedResponse);
 
         // act
-        GetDefendantAccountPartyResponse result = proxy.replaceDefendantAccountParty(
+        PartyResponseDefendantAccount result = proxy.replaceDefendantAccountParty(
             accountId, dapId, request, ifMatch, businessUnitId, postedBy, postedByName, businessUserId);
 
         // assert
@@ -102,7 +102,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
         Long accountId = 1L;
         Long dapId = 5L;
 
-        GetDefendantAccountPartyResponse expectedResponse = GetDefendantAccountPartyResponse.builder()
+        PartyResponseDefendantAccount expectedResponse = PartyResponseDefendantAccount.builder()
             .version(BigInteger.valueOf(1L))
             .build();
 
@@ -111,7 +111,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
             .thenReturn(expectedResponse);
 
         // act
-        GetDefendantAccountPartyResponse result = proxy.getDefendantAccountParty(accountId, dapId);
+        PartyResponseDefendantAccount result = proxy.getDefendantAccountParty(accountId, dapId);
 
         // assert
         assertThat(result).isEqualTo(expectedResponse);
@@ -124,7 +124,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
         Long accountId = 2L;
         Long dapId = 10L;
 
-        GetDefendantAccountPartyResponse expectedResponse = GetDefendantAccountPartyResponse.builder()
+        PartyResponseDefendantAccount expectedResponse = PartyResponseDefendantAccount.builder()
             .version(BigInteger.valueOf(2L))
             .build();
 
@@ -133,7 +133,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
             .thenReturn(expectedResponse);
 
         // act
-        GetDefendantAccountPartyResponse result = proxy.getDefendantAccountParty(accountId, dapId);
+        PartyResponseDefendantAccount result = proxy.getDefendantAccountParty(accountId, dapId);
 
         // assert
         assertThat(result).isEqualTo(expectedResponse);

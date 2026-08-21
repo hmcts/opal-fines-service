@@ -1,12 +1,5 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildContactDetails;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEmployerDetails;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildLanguagePreferences;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildPartyAddressDetails;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildPartyDetails;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildVehicleDetails;
-
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -23,19 +16,22 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
+import org.openapitools.jackson.nullable.JsonNullable;
+import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.dto.RecordType;
-import uk.gov.hmcts.opal.dto.common.AddressDetails;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
-import uk.gov.hmcts.opal.dto.common.EmployerDetails;
-import uk.gov.hmcts.opal.dto.common.IndividualAlias;
-import uk.gov.hmcts.opal.dto.common.IndividualDetails;
-import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
-import uk.gov.hmcts.opal.dto.common.OrganisationAlias;
-import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
-import uk.gov.hmcts.opal.dto.common.PartyDetails;
-import uk.gov.hmcts.opal.dto.common.VehicleDetails;
-import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
+import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddressDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.IndividualAliasCommonStrict;
+import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.LanguagePreferencesCommonStrict;
+import uk.gov.hmcts.opal.generated.model.LanguagePreferenceCommonStrict;
+import uk.gov.hmcts.opal.generated.model.OrganisationAliasCommon;
+import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PartyDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PartyEmployerDetailsDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PartyVehicleDetailsDefendantAccount;
+import uk.gov.hmcts.opal.mapper.response.DefendantAccountPartyEntityResponseMapper;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.entity.AliasEntity;
@@ -77,9 +73,11 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
     private final DefendantAccountControlValidator defendantAccountControlValidator;
 
+    private final DefendantAccountPartyEntityResponseMapper defendantAccountPartyEntityResponseMapper;
+
     @Override
     @Transactional(readOnly = true)
-    public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,
+    public PartyResponseDefendantAccount getDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId) {
         log.debug(":getDefendantAccountParty: Opal mode: accountId={}, partyId={}", defendantAccountId,
             defendantAccountPartyId);
@@ -96,11 +94,8 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
         List<AliasEntity> aliasEntity = aliasRepositoryService.findByPartyId(party.getParty().getPartyId());
 
-        // Map entity to PartyDetails DTO
-        DefendantAccountParty defendantAccountParty = mapDefendantAccountParty(party, aliasEntity);
-
-        return GetDefendantAccountPartyResponse.builder()
-            .defendantAccountParty(defendantAccountParty)
+        return PartyResponseDefendantAccount.builder()
+            .defendantAccountParty(mapDefendantAccountParty(party, aliasEntity))
             .version(account.getVersion())
             .build();
 
@@ -108,17 +103,17 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
     @Override
     @Transactional
-    public GetDefendantAccountPartyResponse addDefendantAccountParty(
+    public PartyResponseDefendantAccount addDefendantAccountParty(
         Long accountId, String businessUnitId,
         String businessUserId, String postedBy, String postedByName, String ifMatch,
-        AddDefendantAccountPartyRequest request) {
+        AddPartyRequestDefendantAccount request) {
 
         if (request == null || request.getDefendantAccountParty() == null) {
             throw new IllegalArgumentException("Request body is required");
         }
 
-        DefendantAccountParty requestParty = request.getDefendantAccountParty();
-        PartyDetails partyDetails = requestParty.getPartyDetails();
+        PartyDefendantAccount requestParty = request.getDefendantAccountParty();
+        PartyDetailsCommonStrict partyDetails = requestParty.getPartyDetails();
 
         if (partyDetails == null || partyDetails.getOrganisationFlag() == null) {
             throw new IllegalArgumentException("party_details.organisation_flag is required");
@@ -139,13 +134,13 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         PartyEntity party = new PartyEntity();
         OpalDefendantAccountBuilders.applyPartyCoreReplace(party, partyDetails);
         OpalDefendantAccountBuilders.applyPartyAddressReplace(party, requestParty.getAddress());
-        OpalDefendantAccountBuilders.applyPartyContactReplace(party, requestParty.getContactDetails());
+        OpalDefendantAccountBuilders.applyPartyContactReplace(party, value(requestParty.getContactDetails()));
         party = partyRepositoryService.save(party);
 
         // Save the association
         DefendantAccountPartiesEntity defendantAccountParty = DefendantAccountPartiesEntity.builder()
             .party(party)
-            .associationType(AssociationType.getByLabel(requestParty.getDefendantAccountPartyType()))
+            .associationType(AssociationType.getByLabel(requestParty.getDefendantAccountPartyType().getValue()))
             .debtor(requestParty.getIsDebtor())
             .build();
 
@@ -159,16 +154,16 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             if (existingDebtor.isPresent()) {
                 debtorDetailRepositoryService.updateDebtorDetail(
                     existingDebtor.get(),
-                    requestParty.getVehicleDetails(),
-                    requestParty.getEmployerDetails(),
-                    requestParty.getLanguagePreferences()
+                    value(requestParty.getVehicleDetails()),
+                    value(requestParty.getEmployerDetails()),
+                    value(requestParty.getLanguagePreferences())
                 );
             } else {
                 debtorDetailRepositoryService.addDebtorDetail(
                     party.getPartyId(),
-                    requestParty.getVehicleDetails(),
-                    requestParty.getEmployerDetails(),
-                    requestParty.getLanguagePreferences()
+                    value(requestParty.getVehicleDetails()),
+                    value(requestParty.getEmployerDetails()),
+                    value(requestParty.getLanguagePreferences())
                 );
             }
         }
@@ -190,30 +185,19 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         // Flush the managed entity to the DB to ensure the updated version is returned.
         BigInteger newVersion = defendantAccountRepositoryService.saveAndFlush(account).getVersion();
 
-        return GetDefendantAccountPartyResponse.builder()
+        return PartyResponseDefendantAccount.builder()
             .defendantAccountParty(mapDefendantAccountParty(defendantAccountParty, aliasEntity))
             .version(newVersion)
             .build();
     }
 
-    private DefendantAccountParty mapDefendantAccountParty(
+    private PartyDefendantAccount mapDefendantAccountParty(
         DefendantAccountPartiesEntity partyEntity, List<AliasEntity> aliases) {
 
         PartyEntity party = partyEntity.getParty();
         DebtorDetailEntity debtorDetail = debtorDetailRepositoryService.findByPartyId(party.getPartyId()).orElse(null);
 
-        return DefendantAccountParty.builder()
-            .defendantAccountPartyType(Optional.ofNullable(partyEntity.getAssociationType())
-                                           .map(AssociationType::getLabel)
-                                           .orElse(null))
-            .isDebtor(partyEntity.getDebtor())
-            .partyDetails(buildPartyDetails(party, aliases))
-            .address(buildPartyAddressDetails(party))
-            .contactDetails(buildContactDetails(party))
-            .vehicleDetails(buildVehicleDetails(debtorDetail))
-            .employerDetails(buildEmployerDetails(debtorDetail))
-            .languagePreferences(buildLanguagePreferences(debtorDetail))
-            .build();
+        return defendantAccountPartyEntityResponseMapper.toGeneratedResponse(partyEntity, debtorDetail, aliases);
     }
 
     private BigInteger bumpVersion(DefendantAccountEntity account) {
@@ -225,8 +209,8 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
     @Override
     @Transactional
-    public GetDefendantAccountPartyResponse replaceDefendantAccountParty(
-        Long accountId, Long dapId, DefendantAccountParty request, String ifMatch, String businessUnitId,
+    public PartyResponseDefendantAccount replaceDefendantAccountParty(
+        Long accountId, Long dapId, PartyDefendantAccount request, String ifMatch, String businessUnitId,
         String postedBy, String postedByName, String businessUserId) {
 
         DefendantAccountEntity account = defendantAccountRepositoryService.findById(accountId);
@@ -280,24 +264,27 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             throw new IllegalArgumentException("Request body is required");
         }
 
-        PartyDetails partyDetails = request.getPartyDetails();
+        PartyDetailsCommonStrict partyDetails = request.getPartyDetails();
         if (isConvertingFromIndividualToOrganisation(party, partyDetails)) {
             removeParentGuardianParties(account, dapId);
         }
 
         Optional.ofNullable(request.getDefendantAccountPartyType())
+            .map(PartyDefendantAccount.DefendantAccountPartyTypeEnum::getValue)
             .map(AssociationType::getByLabel)
             .ifPresent(dap::setAssociationType);
         dap.setDebtor(request.getIsDebtor());
 
-        PartyDetails requestPartyDetails = request.getPartyDetails();
+        PartyDetailsCommonStrict requestPartyDetails = request.getPartyDetails();
         String requestOrganisationName = Optional.ofNullable(requestPartyDetails)
-            .map(PartyDetails::getOrganisationDetails)
-            .map(OrganisationDetails::getOrganisationName)
+            .map(PartyDetailsCommonStrict::getOrganisationDetails)
+            .map(OpalDefendantAccountPartyService::value)
+            .map(OrganisationDetailsCommonStrict::getOrganisationName)
             .orElse("");
         String requestSurname = Optional.ofNullable(requestPartyDetails)
-            .map(PartyDetails::getIndividualDetails)
-            .map(IndividualDetails::getSurname)
+            .map(PartyDetailsCommonStrict::getIndividualDetails)
+            .map(OpalDefendantAccountPartyService::value)
+            .map(IndividualDetailsCommonStrict::getSurname)
             .orElse("");
         log.debug("replaceDefendantAccountParty:     request org: {}, surname: {}",
             requestOrganisationName, requestSurname);
@@ -307,14 +294,14 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
         OpalDefendantAccountBuilders.applyPartyCoreReplace(party, partyDetails);
         OpalDefendantAccountBuilders.applyPartyAddressReplace(party, request.getAddress());
-        OpalDefendantAccountBuilders.applyPartyContactReplace(party, request.getContactDetails());
+        OpalDefendantAccountBuilders.applyPartyContactReplace(party, value(request.getContactDetails()));
 
         log.debug("replaceDefendantAccountParty: post-update org: {}, surname: {}", party.getOrganisationName(),
             party.getSurname());
 
         boolean isDebtor = Boolean.TRUE.equals(request.getIsDebtor());
-        replaceDebtorDetail(party.getPartyId(), request.getVehicleDetails(), request.getEmployerDetails(),
-            request.getLanguagePreferences(), isDebtor
+        replaceDebtorDetail(party.getPartyId(), value(request.getVehicleDetails()), value(request.getEmployerDetails()),
+            value(request.getLanguagePreferences()), isDebtor
         );
 
         replaceAliasesForParty(party.getPartyId(), partyDetails);
@@ -333,7 +320,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             ? Collections.emptyList()
             : aliasRepositoryService.findByPartyId(party.getPartyId());
 
-        return GetDefendantAccountPartyResponse.builder()
+        return PartyResponseDefendantAccount.builder()
             .defendantAccountParty(mapDefendantAccountParty(dap, aliasEntity))
             .version(bumpVersion(account))
             .build();
@@ -384,10 +371,11 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             .build();
     }
 
-    private boolean isConvertingFromIndividualToOrganisation(PartyEntity party, PartyDetails partyDetails) {
+    private boolean isConvertingFromIndividualToOrganisation(PartyEntity party,
+                                                              PartyDetailsCommonStrict partyDetails) {
         return !party.isOrganisation()
             && Boolean.TRUE.equals(Optional.ofNullable(partyDetails)
-                .map(PartyDetails::getOrganisationFlag)
+                .map(PartyDetailsCommonStrict::getOrganisationFlag)
                 .orElse(null));
     }
 
@@ -407,7 +395,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         }
     }
 
-    private void replaceAliasesForParty(Long partyId, PartyDetails pd) {
+    private void replaceAliasesForParty(Long partyId, PartyDetailsCommonStrict pd) {
         if (partyId == null || pd == null || pd.getOrganisationFlag() == null) {
             return;
         }
@@ -427,11 +415,12 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         Set<Long> keepIds = new HashSet<>();
 
         if (Boolean.TRUE.equals(pd.getOrganisationFlag())) {
-            List<OrganisationAlias> orgAliases = Optional.ofNullable(pd.getOrganisationDetails())
-                .map(OrganisationDetails::getOrganisationAliases)
+            List<OrganisationAliasCommon> orgAliases = Optional.ofNullable(value(pd.getOrganisationDetails()))
+                .map(OrganisationDetailsCommonStrict::getOrganisationAliases)
+                .map(OpalDefendantAccountPartyService::value)
                 .orElse(Collections.emptyList());
 
-            for (OrganisationAlias a : orgAliases) {
+            for (OrganisationAliasCommon a : orgAliases) {
                 if (a == null) {
                     continue;
                 }
@@ -453,11 +442,12 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             }
 
         } else {
-            List<IndividualAlias> indAliases = Optional.ofNullable(pd.getIndividualDetails())
-                .map(IndividualDetails::getIndividualAliases)
+            List<IndividualAliasCommonStrict> indAliases = Optional.ofNullable(value(pd.getIndividualDetails()))
+                .map(IndividualDetailsCommonStrict::getIndividualAliases)
+                .map(OpalDefendantAccountPartyService::value)
                 .orElse(Collections.emptyList());
 
-            for (IndividualAlias a : indAliases) {
+            for (IndividualAliasCommonStrict a : indAliases) {
                 if (a == null) {
                     continue;
                 }
@@ -469,7 +459,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
                     byId, party,
                     id, a.getSequenceNumber(),
                     null,
-                    a.getForenames(), a.getSurname(),
+                    value(a.getForenames()), a.getSurname(),
                     false
                 );
                 toPersist.add(row);
@@ -541,8 +531,8 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         }
     }
 
-    private void replaceDebtorDetail(Long partyId, VehicleDetails vehicle, EmployerDetails employer,
-        LanguagePreferences language, boolean isDebtor) {
+    private void replaceDebtorDetail(Long partyId, PartyVehicleDetailsDefendantAccount vehicle,
+        PartyEmployerDetailsDefendantAccount employer, LanguagePreferencesCommonStrict language, boolean isDebtor) {
 
         log.debug("replaceDebtorDetail: partyId: {}, isDebtor: {}", partyId, isDebtor);
 
@@ -560,23 +550,23 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
         log.debug("replaceDebtorDetail:  pre-change debtor: {}", debtor);
 
-        debtor.setVehicleMake(vehicle != null ? vehicle.getVehicleMakeAndModel() : null);
-        debtor.setVehicleRegistration(vehicle != null ? vehicle.getVehicleRegistration() : null);
+        debtor.setVehicleMake(vehicle != null ? value(vehicle.getVehicleMakeAndModel()) : null);
+        debtor.setVehicleRegistration(vehicle != null ? value(vehicle.getVehicleRegistration()) : null);
 
         if (employer != null) {
-            debtor.setEmployerName(employer.getEmployerName());
-            debtor.setEmployeeReference(employer.getEmployerReference());
-            debtor.setEmployerEmail(employer.getEmployerEmailAddress());
-            debtor.setEmployerTelephone(employer.getEmployerTelephoneNumber());
+            debtor.setEmployerName(value(employer.getEmployerName()));
+            debtor.setEmployeeReference(value(employer.getEmployerReference()));
+            debtor.setEmployerEmail(value(employer.getEmployerEmailAddress()));
+            debtor.setEmployerTelephone(value(employer.getEmployerTelephoneNumber()));
 
-            AddressDetails ea = employer.getEmployerAddress();
+            AddressDetailsCommonStrict ea = employer.getEmployerAddress();
             if (ea != null) {
                 debtor.setEmployerAddressLine1(ea.getAddressLine1());
-                debtor.setEmployerAddressLine2(ea.getAddressLine2());
-                debtor.setEmployerAddressLine3(ea.getAddressLine3());
-                debtor.setEmployerAddressLine4(ea.getAddressLine4());
-                debtor.setEmployerAddressLine5(ea.getAddressLine5());
-                debtor.setEmployerPostcode(ea.getPostcode());
+                debtor.setEmployerAddressLine2(value(ea.getAddressLine2()));
+                debtor.setEmployerAddressLine3(value(ea.getAddressLine3()));
+                debtor.setEmployerAddressLine4(value(ea.getAddressLine4()));
+                debtor.setEmployerAddressLine5(value(ea.getAddressLine5()));
+                debtor.setEmployerPostcode(value(ea.getPostcode()));
             } else {
                 debtor.setEmployerAddressLine1(null);
                 debtor.setEmployerAddressLine2(null);
@@ -599,10 +589,8 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         }
 
         if (language != null) {
-            debtor.setDocumentLanguage(language.getDocumentLanguagePreference() != null
-                ? Language.fromCode(language.getDocumentLanguagePreference().getLanguageCode()) : null);
-            debtor.setHearingLanguage(language.getHearingLanguagePreference() != null
-                ? Language.fromCode(language.getHearingLanguagePreference().getLanguageCode()) : null);
+            debtor.setDocumentLanguage(toLanguage(value(language.getDocumentLanguagePreference())));
+            debtor.setHearingLanguage(toLanguage(value(language.getHearingLanguagePreference())));
             debtor.setDocumentLanguageDate(LocalDate.now());
             debtor.setHearingLanguageDate(LocalDate.now());
         } else {
@@ -615,6 +603,14 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         log.debug("replaceDebtorDetail: post-change debtor: {}", debtor);
 
         debtorDetailRepositoryService.save(debtor);
+    }
+
+    private static Language toLanguage(LanguagePreferenceCommonStrict preference) {
+        return preference == null ? null : Language.fromCode(preference.getLanguageCode().getValue());
+    }
+
+    private static <T> T value(JsonNullable<T> nullable) {
+        return nullable == null ? null : nullable.orElse(null);
     }
 
     private void validateAccountExistsInBusinessUnit(DefendantAccountEntity account, String businessUnitId) {

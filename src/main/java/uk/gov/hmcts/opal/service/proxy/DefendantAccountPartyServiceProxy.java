@@ -3,9 +3,9 @@ package uk.gov.hmcts.opal.service.proxy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
-import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
+import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PartyDefendantAccount;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPartyServiceInterface;
@@ -27,19 +27,19 @@ public class DefendantAccountPartyServiceProxy implements DefendantAccountPartyS
     }
 
     @Override
-    public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,
+    public PartyResponseDefendantAccount getDefendantAccountParty(Long defendantAccountId,
                                                                      Long defendantAccountPartyId) {
         return getCurrentModeService().getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
     }
 
     @Override
-    public GetDefendantAccountPartyResponse addDefendantAccountParty(Long defendantAccountId,
+    public PartyResponseDefendantAccount addDefendantAccountParty(Long defendantAccountId,
                                                                          String businessUnitId,
                                                                          String businessUserId,
                                                                          String postedBy,
                                                                          String postedByName,
                                                                          String ifMatch,
-                                                                     AddDefendantAccountPartyRequest request) {
+                                                                     AddPartyRequestDefendantAccount request) {
 
         return getCurrentModeService().addDefendantAccountParty(defendantAccountId,
                                                                 businessUnitId,
@@ -51,9 +51,9 @@ public class DefendantAccountPartyServiceProxy implements DefendantAccountPartyS
     }
 
     @Override
-    public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
+    public PartyResponseDefendantAccount replaceDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId,
-        DefendantAccountParty defendantAccountParty, String ifMatch, String businessUnitId, String postedBy,
+        PartyDefendantAccount defendantAccountParty, String ifMatch, String businessUnitId, String postedBy,
         String postedByName, String businessUserId) {
 
         return getCurrentModeService().replaceDefendantAccountParty(defendantAccountId, defendantAccountPartyId,

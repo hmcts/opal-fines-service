@@ -16,11 +16,13 @@ import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
+import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
+import uk.gov.hmcts.opal.generated.http.api.DefendantAccountApi;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
-import uk.gov.hmcts.opal.generated.http.api.DefendantAccountApi;
+import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddPaymentCardRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
@@ -28,6 +30,8 @@ import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseComm
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
+import uk.gov.hmcts.opal.generated.model.PartyDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
@@ -35,10 +39,10 @@ import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantA
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
+import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
+import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
-import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
-import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.ImpositionService;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
@@ -52,6 +56,7 @@ public class DefendantAccountApiController implements DefendantAccountApi {
     private final DefendantAccountHistoryResponseMapper defendantAccountHistoryResponseMapper;
     private final ImpositionService impositionService;
     private final DefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
+    private final DefendantAccountPartyService defendantAccountPartyService;
 
     @Override
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
@@ -132,6 +137,47 @@ public class DefendantAccountApiController implements DefendantAccountApi {
         log.debug(":GET:getDefendantAccountEnforcementStatus: for defendant id: {}", id);
 
         return buildResponse(defendantAccountService.getEnforcementStatus(id));
+    }
+
+    @Override
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
+    public ResponseEntity<PartyResponseDefendantAccount> getDefendantAccountParty(
+        Long defendantAccountId, Long defendantAccountPartyId) {
+        log.debug(":GET:getDefendantAccountParty: for accountId={}, partyId={}", defendantAccountId,
+            defendantAccountPartyId);
+
+        return buildResponse(defendantAccountPartyService.getDefendantAccountParty(
+            defendantAccountId, defendantAccountPartyId));
+    }
+
+    @Override
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
+    public ResponseEntity<PartyResponseDefendantAccount> addDefendantAccountParty(
+        Long defendantAccountId,
+        Short businessUnitId,
+        AddPartyRequestDefendantAccount request,
+        String ifMatch) {
+        return buildResponse(defendantAccountPartyService.addDefendantAccountParty(
+            defendantAccountId,
+            ifMatch,
+            businessUnitId.toString(),
+            request));
+    }
+
+    @Override
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
+    public ResponseEntity<PartyResponseDefendantAccount> replaceDefendantAccountParty(
+        Long defendantAccountId,
+        Long defendantAccountPartyId,
+        Short businessUnitId,
+        PartyDefendantAccount request,
+        String ifMatch) {
+        return buildResponse(defendantAccountPartyService.replaceDefendantAccountParty(
+            defendantAccountId,
+            defendantAccountPartyId,
+            ifMatch,
+            businessUnitId.toString(),
+            request));
     }
 
     @Override
