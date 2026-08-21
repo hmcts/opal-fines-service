@@ -15,27 +15,29 @@ import org.springframework.data.jpa.domain.Specification;
 import jakarta.persistence.EntityNotFoundException;
 import uk.gov.hmcts.opal.dto.CreditorAccountDto;
 import uk.gov.hmcts.opal.dto.DefendantDto;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse.CreditorHeader;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse.Financials;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
-import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
-import uk.gov.hmcts.opal.dto.common.CreditorAccountTypeReference;
-import uk.gov.hmcts.opal.dto.common.IndividualDetails;
-import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
-import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
+import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReference;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReference.DisplayNameEnum;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReference.TypeEnum;
+import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponseCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponseFinancials;
+import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderEntityMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntity;
 import uk.gov.hmcts.opal.mapper.response.MinorCreditorAccountAtAGlanceResponseMapper;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountAtAGlanceRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountHeaderRepository;
@@ -356,11 +358,11 @@ class OpalMinorCreditorServiceTest {
 
         when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.of(entity));
         when(partyRepository.findById(partyId)).thenReturn(Optional.of(party));
-        GetMinorCreditorAccountHeaderSummaryResponse mapped = buildHeaderSummaryResponse(String.valueOf(id));
+        MinorCreditorAccountHeaderSummaryResponse mapped = buildHeaderSummaryResponse(String.valueOf(id));
         when(headerSummaryMapper.toResponse(entity, party)).thenReturn(mapped);
 
         // Act
-        GetMinorCreditorAccountHeaderSummaryResponse res = service.getHeaderSummary(id);
+        MinorCreditorAccountHeaderSummaryResponse res = service.getHeaderSummary(id);
 
         // Assert
         assertSame(mapped, res);
@@ -517,36 +519,36 @@ class OpalMinorCreditorServiceTest {
            .build();
     }
 
-    private GetMinorCreditorAccountHeaderSummaryResponse buildHeaderSummaryResponse(String creditorAccountId) {
-        return GetMinorCreditorAccountHeaderSummaryResponse.builder()
+    private MinorCreditorAccountHeaderSummaryResponse buildHeaderSummaryResponse(String creditorAccountId) {
+        return MinorCreditorAccountHeaderSummaryResponse.builder()
             .version(BigInteger.valueOf(5L))
-            .party(PartyDetails.builder()
+            .party(PartyDetailsCommon.builder()
                 .partyId("99000000000900")
                 .organisationFlag(true)
-                .organisationDetails(OrganisationDetails.builder()
+                .organisationDetails(OrganisationDetailsCommon.builder()
                     .organisationName("Minor Creditor Test Ltd")
                     .build())
-                .individualDetails(IndividualDetails.builder()
+                .individualDetails(IndividualDetailsCommon.builder()
                     .title("Mr")
                     .forenames("John")
                     .surname("Smith")
                     .build())
                 .build())
-            .businessUnit(BusinessUnitSummary.builder()
-                .businessUnitId("77")
+            .businessUnit(BusinessUnitSummaryCommon.builder()
+                .businessUnitId((short) 77)
                 .businessUnitName("Camberwell Green")
                 .welshSpeaking("N")
                 .build())
-            .creditor(CreditorHeader.builder()
+            .creditor(MinorCreditorAccountHeaderSummaryResponseCreditor.builder()
                 .accountId(creditorAccountId)
                 .accountNumber("404")
                 .accountType(CreditorAccountTypeReference.builder()
-                    .type("MN")
-                    .displayName("Minor Creditor")
+                    .type(TypeEnum.MN)
+                    .displayName(DisplayNameEnum.MINOR_CREDITOR)
                     .build())
                 .hasAssociatedDefendant(false)
                 .build())
-            .financials(Financials.builder()
+            .financials(MinorCreditorAccountHeaderSummaryResponseFinancials.builder()
                 .awarded(BigDecimal.ZERO)
                 .paidOut(BigDecimal.ZERO)
                 .awaitingPayout(BigDecimal.ZERO)

@@ -13,7 +13,6 @@ import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.dto.CreditorAccountDto;
 import uk.gov.hmcts.opal.dto.DefendantDto;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
@@ -33,7 +32,8 @@ import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
-import uk.gov.hmcts.opal.mapper.legacy.GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.mapper.legacy.MinorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyMinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateMinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateMinorCreditorAccountRequestMapper;
@@ -58,7 +58,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     private final MinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
     private final LegacyMinorCreditorAccountResponseMapper minorCreditorAccountResponseMapper;
     private final CreditorAccountRepository creditorAccountRepository;
-    private final GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
+    private final MinorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
     private final UpdateMinorCreditorAccountRequestMapper updateMinorCreditorAccountRequestMapper;
     private final LegacyUpdateMinorCreditorAccountResponseMapper updateMinorCreditorAccountResponseMapper;
     private final LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
@@ -96,7 +96,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     }
 
     @Override
-    public GetMinorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long minorCreditorAccountId) {
+    public MinorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long minorCreditorAccountId) {
 
         Response<GetMinorCreditorAccountHeaderSummaryLegacyResponse> response =
             gatewayService.postToGateway(GET_MINOR_CREDITORS_ACCOUNT_HEADER_SUMMARY,
@@ -109,8 +109,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
 
         checkResponseForError(response, "getHeaderSummary");
 
-        GetMinorCreditorAccountHeaderSummaryResponse mapped = headerSummaryResponseMapper
-            .toOpal(response.responseEntity);
+        MinorCreditorAccountHeaderSummaryResponse mapped = headerSummaryResponseMapper.toOpal(response.responseEntity);
 
         CreditorHeaderLegacy creditor = response.responseEntity.getCreditor();
         mapped.setVersion(creditor.getAccountVersion());
@@ -120,7 +119,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     }
 
     private void applyResolvedBusinessUnitCode(
-        GetMinorCreditorAccountHeaderSummaryResponse mapped,
+        MinorCreditorAccountHeaderSummaryResponse mapped,
         uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary legacyBusinessUnit
     ) {
         if (mapped.getBusinessUnit() == null || legacyBusinessUnit == null) {
