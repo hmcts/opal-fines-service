@@ -32,11 +32,24 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
     private static final String PUT_PARTY_REQUEST = """
         {
                 "defendant_account_party_type": "Defendant",
+                "is_debtor": false,
                 "party_details": {
                 "party_id": "20010",
                 "organisation_flag": true,
                 "organisation_details": { "organisation_name": "StillCo" }
-             }
+             },
+             "address": {
+                 "address_line_1": "",
+                 "address_line_2": null,
+                 "address_line_3": null,
+                 "address_line_4": null,
+                 "address_line_5": null,
+                 "postcode": null
+             },
+             "contact_details": null,
+             "vehicle_details": null,
+             "employer_details": null,
+             "language_preferences": null
         }
         """;
 

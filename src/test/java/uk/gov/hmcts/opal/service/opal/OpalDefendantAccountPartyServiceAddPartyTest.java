@@ -21,21 +21,24 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mapstruct.factory.Mappers;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
+import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.dto.RecordType;
-import uk.gov.hmcts.opal.dto.common.AddressDetails;
-import uk.gov.hmcts.opal.dto.common.ContactDetails;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
-import uk.gov.hmcts.opal.dto.common.EmployerDetails;
-import uk.gov.hmcts.opal.dto.common.IndividualDetails;
-import uk.gov.hmcts.opal.dto.common.LanguagePreference;
-import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
-import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
-import uk.gov.hmcts.opal.dto.common.PartyDetails;
-import uk.gov.hmcts.opal.dto.common.VehicleDetails;
-import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
+import uk.gov.hmcts.opal.generated.model.AddressDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PartyContactDetailsDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PartyDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PartyEmployerDetailsDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.LanguagePreferenceCommonStrict;
+import uk.gov.hmcts.opal.generated.model.LanguagePreferencesCommonStrict;
+import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PartyVehicleDetailsDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.mapper.response.DefendantAccountPartyEntityResponseMapper;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
@@ -52,6 +55,10 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 
 @ExtendWith(MockitoExtension.class)
 class OpalDefendantAccountPartyServiceAddPartyTest {
+
+    @Spy
+    private DefendantAccountPartyEntityResponseMapper defendantAccountPartyEntityResponseMapper =
+        Mappers.getMapper(DefendantAccountPartyEntityResponseMapper.class);
 
     @Mock
     private DefendantAccountRepositoryService defendantAccountRepositoryService;
@@ -115,13 +122,13 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
             .build()));
         when(defendantAccountRepositoryService.saveAndFlush(account)).thenReturn(account);
 
-        AddDefendantAccountPartyRequest req = AddDefendantAccountPartyRequest.builder()
-            .defendantAccountParty(DefendantAccountParty.builder()
-                .defendantAccountPartyType("Defendant")
+        AddPartyRequestDefendantAccount req = AddPartyRequestDefendantAccount.builder()
+            .defendantAccountParty(PartyDefendantAccount.builder()
+                .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
                 .isDebtor(Boolean.TRUE)
-                .partyDetails(PartyDetails.builder()
+                .partyDetails(PartyDetailsCommonStrict.builder()
                     .organisationFlag(Boolean.FALSE)
-                    .individualDetails(IndividualDetails.builder()
+                    .individualDetails(IndividualDetailsCommonStrict.builder()
                         .title("Mr")
                         .forenames("John")
                         .surname("Smith")
@@ -130,19 +137,19 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
                         .nationalInsuranceNumber("AB123456C")
                         .build())
                     .build())
-                .address(AddressDetails.builder().addressLine1("1 Main Street").postcode("AB1 2CD").build())
-                .contactDetails(ContactDetails.builder()
+                .address(AddressDetailsCommonStrict.builder().addressLine1("1 Main Street").postcode("AB1 2CD").build())
+                .contactDetails(PartyContactDetailsDefendantAccount.builder()
                     .primaryEmailAddress("john@example.com")
                     .mobileTelephoneNumber("07123456789")
                     .build())
-                .vehicleDetails(VehicleDetails.builder()
+                .vehicleDetails(PartyVehicleDetailsDefendantAccount.builder()
                     .vehicleMakeAndModel("Ford Focus")
                     .vehicleRegistration("AB12CDE")
                     .build())
-                .employerDetails(EmployerDetails.builder().employerName("Widgets Ltd").build())
-                .languagePreferences(LanguagePreferences.builder()
-                    .documentLanguagePreference(LanguagePreference.fromCode("EN"))
-                    .hearingLanguagePreference(LanguagePreference.fromCode("CY"))
+                .employerDetails(PartyEmployerDetailsDefendantAccount.builder().employerName("Widgets Ltd").build())
+                .languagePreferences(LanguagePreferencesCommonStrict.builder()
+                    .documentLanguagePreference(languagePreference("EN"))
+                    .hearingLanguagePreference(languagePreference("CY"))
                     .build())
                 .build())
             .build();
@@ -152,7 +159,7 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
                 "addDefendantAccountParty"))).thenAnswer(i -> null);
 
             // Act
-            GetDefendantAccountPartyResponse resp =
+            PartyResponseDefendantAccount resp =
                 service.addDefendantAccountParty(accountId, bu, "bu-user-1", "tester", "Tester Name", ifMatch, req);
 
             // Assert
@@ -160,7 +167,7 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
             assertNotNull(resp.getDefendantAccountParty());
             assertEquals("123", resp.getDefendantAccountParty().getPartyDetails().getPartyId());
             assertEquals("John", resp.getDefendantAccountParty().getPartyDetails().getIndividualDetails()
-                .getForenames());
+                .get().getForenames().get());
 
             verify(partyRepositoryService).save(argThat(party ->
                 !party.isOrganisation()
@@ -177,11 +184,11 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
             verify(defendantAccountPartiesRepository, never()).save(any());
             verify(debtorRepoService).addDebtorDetail(
                 eq(123L),
-                argThat(v -> "Ford Focus".equals(v.getVehicleMakeAndModel())
-                    && "AB12CDE".equals(v.getVehicleRegistration())),
-                argThat(e -> "Widgets Ltd".equals(e.getEmployerName())),
-                argThat(l -> l.getDocumentLanguagePreference() != null
-                    && l.getHearingLanguagePreference() != null)
+                argThat(v -> "Ford Focus".equals(v.getVehicleMakeAndModel().get())
+                    && "AB12CDE".equals(v.getVehicleRegistration().get())),
+                argThat(e -> "Widgets Ltd".equals(e.getEmployerName().get())),
+                argThat(l -> l.getDocumentLanguagePreference().isPresent()
+                    && l.getHearingLanguagePreference().isPresent())
             );
             verify(amendmentRepositoryService).auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
             verify(amendmentRepositoryService).auditFinaliseStoredProc(
@@ -203,7 +210,7 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
             .defendantAccountId(accountId).businessUnit(buWrong).versionNumber(1L).build();
 
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
-        AddDefendantAccountPartyRequest request = validOrganisationRequest();
+        AddPartyRequestDefendantAccount request = validOrganisationRequest();
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
             service.addDefendantAccountParty(
@@ -223,7 +230,7 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
 
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
         doThrow(exception).when(defendantAccountControlValidator).validateCanMutateParty(account);
-        AddDefendantAccountPartyRequest request = validOrganisationRequest();
+        AddPartyRequestDefendantAccount request = validOrganisationRequest();
 
         UnprocessableException result = assertThrows(UnprocessableException.class, () ->
             service.addDefendantAccountParty(
@@ -246,7 +253,7 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
 
     @Test
     void addDefendantAccountParty_missingDefendantAccountParty_throws() {
-        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder().build();
+        AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder().build();
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
             service.addDefendantAccountParty(100L, "10", "bu-user-1", "tester", "Tester Name", "\"1\"", request));
@@ -258,9 +265,9 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
 
     @Test
     void addDefendantAccountParty_missingPartyDetails_throws() {
-        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
-            .defendantAccountParty(DefendantAccountParty.builder()
-                .defendantAccountPartyType("Defendant")
+        AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
+            .defendantAccountParty(PartyDefendantAccount.builder()
+                .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
                 .isDebtor(Boolean.FALSE)
                 .build())
             .build();
@@ -275,11 +282,11 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
 
     @Test
     void addDefendantAccountParty_missingOrganisationFlag_throws() {
-        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
-            .defendantAccountParty(DefendantAccountParty.builder()
-                .defendantAccountPartyType("Defendant")
+        AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
+            .defendantAccountParty(PartyDefendantAccount.builder()
+                .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
                 .isDebtor(Boolean.FALSE)
-                .partyDetails(PartyDetails.builder().build())
+                .partyDetails(PartyDetailsCommonStrict.builder().build())
                 .build())
             .build();
 
@@ -298,7 +305,7 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
             new EntityNotFoundException("Defendant Account not found with id: " + accountId);
 
         when(defendantAccountRepositoryService.findById(accountId)).thenThrow(notFound);
-        AddDefendantAccountPartyRequest request = validOrganisationRequest();
+        AddPartyRequestDefendantAccount request = validOrganisationRequest();
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
             service.addDefendantAccountParty(accountId, "10", "bu-user-1", "tester", "Tester Name", "\"1\"", request));
@@ -315,7 +322,7 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
         DefendantAccountEntity account = defendantAccount(accountId, Short.parseShort(businessUnitId), 5L);
 
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
-        AddDefendantAccountPartyRequest request = validOrganisationRequest();
+        AddPartyRequestDefendantAccount request = validOrganisationRequest();
 
         assertThrows(ObjectOptimisticLockingFailureException.class, () ->
             service.addDefendantAccountParty(
@@ -325,14 +332,14 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
         verifyNoAddSideEffects();
     }
 
-    private static AddDefendantAccountPartyRequest validOrganisationRequest() {
-        return AddDefendantAccountPartyRequest.builder()
-            .defendantAccountParty(DefendantAccountParty.builder()
-                .defendantAccountPartyType("Defendant")
+    private static AddPartyRequestDefendantAccount validOrganisationRequest() {
+        return AddPartyRequestDefendantAccount.builder()
+            .defendantAccountParty(PartyDefendantAccount.builder()
+                .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
                 .isDebtor(Boolean.FALSE)
-                .partyDetails(PartyDetails.builder()
+                .partyDetails(PartyDetailsCommonStrict.builder()
                     .organisationFlag(Boolean.TRUE)
-                    .organisationDetails(OrganisationDetails.builder().organisationName("ACME").build())
+                    .organisationDetails(OrganisationDetailsCommonStrict.builder().organisationName("ACME").build())
                     .build())
                 .build())
             .build();
@@ -343,6 +350,15 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
             .defendantAccountId(accountId)
             .businessUnit(BusinessUnitEntity.builder().businessUnitId(businessUnitId).build())
             .versionNumber(version)
+            .build();
+    }
+
+    private static LanguagePreferenceCommonStrict languagePreference(String languageCode) {
+        return LanguagePreferenceCommonStrict.builder()
+            .languageCode(LanguagePreferenceCommonStrict.LanguageCodeEnum.fromValue(languageCode))
+            .languageDisplayName("CY".equals(languageCode)
+                ? LanguagePreferenceCommonStrict.LanguageDisplayNameEnum.WELSH_AND_ENGLISH
+                : LanguagePreferenceCommonStrict.LanguageDisplayNameEnum.ENGLISH_ONLY)
             .build();
     }
 

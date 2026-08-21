@@ -107,6 +107,7 @@ import uk.gov.hmcts.opal.generated.model.LjaReferenceCommonStrict;
 import uk.gov.hmcts.opal.generated.model.LocalJusticeAreaDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.OrganisationAliasCommon;
 import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PartyContactDetailsDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsSummaryCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsTypeCommonStrict;
@@ -1362,13 +1363,13 @@ public class OpalDefendantAccountBuilders {
 
     }
 
-    static void applyPartyCoreReplace(PartyEntity party, PartyDetails details) {
+    static void applyPartyCoreReplace(PartyEntity party, PartyDetailsCommonStrict details) {
 
         Boolean orgFlag = details.getOrganisationFlag();
         party.setOrganisation(orgFlag);
 
         if (orgFlag) {
-            OrganisationDetails od = details.getOrganisationDetails();
+            OrganisationDetailsCommonStrict od = nullableValue(details.getOrganisationDetails());
             if (od != null) {
                 party.setOrganisationName(od.getOrganisationName());
             } else {
@@ -1381,14 +1382,14 @@ public class OpalDefendantAccountBuilders {
             party.setAge(null);
             party.setNiNumber(null);
         } else {
-            IndividualDetails id = details.getIndividualDetails();
+            IndividualDetailsCommonStrict id = nullableValue(details.getIndividualDetails());
             if (id != null) {
-                party.setTitle(id.getTitle());
-                party.setForenames(id.getForenames());
+                party.setTitle(nullableValue(id.getTitle()));
+                party.setForenames(nullableValue(id.getForenames()));
                 party.setSurname(id.getSurname());
-                party.setBirthDate(safeParseLocalDate(id.getDateOfBirth()));
-                party.setAge(safeParseShort(id.getAge()));
-                party.setNiNumber(id.getNationalInsuranceNumber());
+                party.setBirthDate(safeParseLocalDate(nullableValue(id.getDateOfBirth())));
+                party.setAge(safeParseShort(nullableValue(id.getAge())));
+                party.setNiNumber(nullableValue(id.getNationalInsuranceNumber()));
             } else {
                 party.setTitle(null);
                 party.setForenames(null);
@@ -1401,7 +1402,7 @@ public class OpalDefendantAccountBuilders {
         }
     }
 
-    static void applyPartyAddressReplace(PartyEntity party, AddressDetails a) {
+    static void applyPartyAddressReplace(PartyEntity party, AddressDetailsCommonStrict a) {
         if (a == null) {
             party.setAddressLine1(null);
             party.setAddressLine2(null);
@@ -1412,14 +1413,14 @@ public class OpalDefendantAccountBuilders {
             return;
         }
         party.setAddressLine1(a.getAddressLine1());
-        party.setAddressLine2(a.getAddressLine2());
-        party.setAddressLine3(a.getAddressLine3());
-        party.setAddressLine4(a.getAddressLine4());
-        party.setAddressLine5(a.getAddressLine5());
-        party.setPostcode(a.getPostcode());
+        party.setAddressLine2(nullableValue(a.getAddressLine2()));
+        party.setAddressLine3(nullableValue(a.getAddressLine3()));
+        party.setAddressLine4(nullableValue(a.getAddressLine4()));
+        party.setAddressLine5(nullableValue(a.getAddressLine5()));
+        party.setPostcode(nullableValue(a.getPostcode()));
     }
 
-    static void applyPartyContactReplace(PartyEntity party, ContactDetails c) {
+    static void applyPartyContactReplace(PartyEntity party, PartyContactDetailsDefendantAccount c) {
         if (c == null) {
             party.setPrimaryEmailAddress(null);
             party.setSecondaryEmailAddress(null);
@@ -1428,11 +1429,15 @@ public class OpalDefendantAccountBuilders {
             party.setWorkTelephoneNumber(null);
             return;
         }
-        party.setPrimaryEmailAddress(c.getPrimaryEmailAddress());
-        party.setSecondaryEmailAddress(c.getSecondaryEmailAddress());
-        party.setMobileTelephoneNumber(c.getMobileTelephoneNumber());
-        party.setHomeTelephoneNumber(c.getHomeTelephoneNumber());
-        party.setWorkTelephoneNumber(c.getWorkTelephoneNumber());
+        party.setPrimaryEmailAddress(nullableValue(c.getPrimaryEmailAddress()));
+        party.setSecondaryEmailAddress(nullableValue(c.getSecondaryEmailAddress()));
+        party.setMobileTelephoneNumber(nullableValue(c.getMobileTelephoneNumber()));
+        party.setHomeTelephoneNumber(nullableValue(c.getHomeTelephoneNumber()));
+        party.setWorkTelephoneNumber(nullableValue(c.getWorkTelephoneNumber()));
+    }
+
+    static <T> T nullableValue(JsonNullable<T> value) {
+        return value == null ? null : value.orElse(null);
     }
 
     static GetDefendantAccountFixedPenaltyResponse toFixedPenaltyResponse(

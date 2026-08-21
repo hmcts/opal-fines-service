@@ -30,9 +30,9 @@ import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
 import uk.gov.hmcts.opal.disco.legacy.LegacyTestsBase;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
-import uk.gov.hmcts.opal.dto.common.EmployerDetails;
+import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PartyDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PartyEmployerDetailsDefendantAccount;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountPartyLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountPartyLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
@@ -50,7 +50,7 @@ import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
-import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
+import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountPartyLegacyResponseMapper;
 import uk.gov.hmcts.opal.mapper.legacy.RemoveDefendantAccountPartyLegacyResponseMapper;
@@ -86,10 +86,10 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
     @Test
     void addDefendantAccountParty_mapsNullNestedObjects_toNulls() {
-        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+        AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
             .defendantAccountParty(
-                DefendantAccountParty.builder()
-                    .defendantAccountPartyType("Defendant")
+                PartyDefendantAccount.builder()
+                    .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
                     .isDebtor(true)
                     .build()
             )
@@ -134,26 +134,26 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         // Call service; inputs for the request are not important for this mapping test
-        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
+        PartyResponseDefendantAccount out = legacyDefendantAccountPartyService.addDefendantAccountParty(
             77L, "78", "1", "dev_user", "Developer User", "3", request
         );
 
         assertEquals(null, out.getDefendantAccountParty().getPartyDetails().getOrganisationFlag());
-        assertEquals(null, out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails());
-        assertEquals(null, out.getDefendantAccountParty().getPartyDetails().getIndividualDetails());
+        assertEquals(null, out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails().get());
+        assertEquals(null, out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().get());
         assertEquals(null, out.getDefendantAccountParty().getAddress());
-        assertEquals(null, out.getDefendantAccountParty().getContactDetails());
-        assertEquals(null, out.getDefendantAccountParty().getVehicleDetails());
-        assertEquals(null, out.getDefendantAccountParty().getEmployerDetails());
-        assertEquals(null, out.getDefendantAccountParty().getLanguagePreferences());
+        assertEquals(null, out.getDefendantAccountParty().getContactDetails().get());
+        assertEquals(null, out.getDefendantAccountParty().getVehicleDetails().get());
+        assertEquals(null, out.getDefendantAccountParty().getEmployerDetails().get());
+        assertEquals(null, out.getDefendantAccountParty().getLanguagePreferences().get());
     }
 
     @Test
     void addDefendantAccountParty_buildsRequestUsingIfMatchVersionAndIds() {
-        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+        AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
             .defendantAccountParty(
-                DefendantAccountParty.builder()
-                    .defendantAccountPartyType("Defendant")
+                PartyDefendantAccount.builder()
+                    .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
                     .isDebtor(true)
                     .build()
             )
@@ -176,7 +176,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             Mockito.nullable(String.class)
         );
 
-        GetDefendantAccountPartyResponse result = legacyDefendantAccountPartyService.addDefendantAccountParty(
+        PartyResponseDefendantAccount result = legacyDefendantAccountPartyService.addDefendantAccountParty(
             999L, "BU-1", "USR-9", "poster", "Poster Name", "\"10\"", request
         );
 
@@ -200,10 +200,10 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
     @Test
     void addDefendantAccountParty_gatewayErrorStillReturnsMapperResult() {
-        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+        AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
             .defendantAccountParty(
-                DefendantAccountParty.builder()
-                    .defendantAccountPartyType("Defendant")
+                PartyDefendantAccount.builder()
+                    .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
                     .isDebtor(true)
                     .build()
             )
@@ -226,7 +226,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             Mockito.nullable(String.class)
         );
 
-        GetDefendantAccountPartyResponse result = legacyDefendantAccountPartyService.addDefendantAccountParty(
+        PartyResponseDefendantAccount result = legacyDefendantAccountPartyService.addDefendantAccountParty(
             55L, "BU-2", "USR-2", "poster", "Poster Name", "\"2\"", request
         );
 
@@ -237,10 +237,10 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
     @Test
     void addDefendantAccountParty_legacyFailure5xx_logsAndMaps() {
-        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+        AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
             .defendantAccountParty(
-                DefendantAccountParty.builder()
-                    .defendantAccountPartyType("Defendant")
+                PartyDefendantAccount.builder()
+                    .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
                     .isDebtor(true)
                     .build()
             )
@@ -278,14 +278,14 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         // Call the service. The production code logs legacy failure but still returns a mapped response
-        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
+        PartyResponseDefendantAccount out = legacyDefendantAccountPartyService.addDefendantAccountParty(
             77L, "78", "dev_user", "poster", "Poster Name", "\"2\"", request
         );
 
         assertNotNull(out);
         assertEquals(BigInteger.valueOf(2), out.getVersion());
         assertNotNull(out.getDefendantAccountParty());
-        assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType());
+        assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType().getValue());
         assertTrue(out.getDefendantAccountParty().getIsDebtor());
         assertNotNull(out.getDefendantAccountParty().getPartyDetails());
         assertEquals("300", out.getDefendantAccountParty().getPartyDetails().getPartyId());
@@ -293,10 +293,10 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
     @Test
     void addDefendantAccountParty_exceptionBranch_rethrows() {
-        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+        AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
             .defendantAccountParty(
-                DefendantAccountParty.builder()
-                    .defendantAccountPartyType("Defendant")
+                PartyDefendantAccount.builder()
+                    .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
                     .isDebtor(true)
                     .build()
             )
@@ -323,10 +323,10 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
     @Test
     void addDefendantAccountParty_error_exceptionBranch_returnsWrapperWithNulls() {
-        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+        AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
             .defendantAccountParty(
-                DefendantAccountParty.builder()
-                    .defendantAccountPartyType("Defendant")
+                PartyDefendantAccount.builder()
+                    .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
                     .isDebtor(true)
                     .build()
             )
@@ -347,7 +347,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         // act
-        GetDefendantAccountPartyResponse out =
+        PartyResponseDefendantAccount out =
             legacyDefendantAccountPartyService.addDefendantAccountParty(
                 77L, "78",
                 "1", "poster", "Poster Name", "\"2\"", request
@@ -361,10 +361,10 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
     @Test
     void addDefendantAccountParty_mapsOrganisationDetails_andIndividualIsNull() {
-        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+        AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
             .defendantAccountParty(
-                DefendantAccountParty.builder()
-                    .defendantAccountPartyType("Defendant")
+                PartyDefendantAccount.builder()
+                    .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
                     .isDebtor(true)
                     .build()
             )
@@ -406,7 +406,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
 
         // Act
-        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
+        PartyResponseDefendantAccount out = legacyDefendantAccountPartyService.addDefendantAccountParty(
             77L, "78", "1", "poster", "Poster Name", "\"2\"", request
         );
 
@@ -414,7 +414,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         assertNotNull(out);
         assertEquals(BigInteger.valueOf(2), out.getVersion());
         assertNotNull(out.getDefendantAccountParty());
-        assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType());
+        assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType().getValue());
 
         assertNotNull(out.getDefendantAccountParty().getPartyDetails());
         assertEquals("300", out.getDefendantAccountParty().getPartyDetails().getPartyId());
@@ -423,22 +423,22 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         assertNotNull(out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails());
         assertEquals(
             "StillCo Ltd",
-            out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails().getOrganisationName()
+            out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails().get().getOrganisationName()
         );
 
         // Individual must be null when organisation is present
         assertNull(
-            out.getDefendantAccountParty().getPartyDetails().getIndividualDetails(),
+            out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().get(),
             "Individual details must be null when organisation details are present"
         );
     }
 
     @Test
     void addDefendantAccountParty_mapsIndividualDetails_andOrganisationIsNull() {
-        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+        AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
             .defendantAccountParty(
-                DefendantAccountParty.builder()
-                    .defendantAccountPartyType("Defendant")
+                PartyDefendantAccount.builder()
+                    .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
                     .isDebtor(true)
                     .build()
             )
@@ -485,7 +485,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         // Act
-        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
+        PartyResponseDefendantAccount out = legacyDefendantAccountPartyService.addDefendantAccountParty(
             77L, "78", "1", "poster", "Poster Name", "\"2\"", request
         );
 
@@ -493,7 +493,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         assertNotNull(out);
         assertEquals(BigInteger.valueOf(2), out.getVersion());
         assertNotNull(out.getDefendantAccountParty());
-        assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType());
+        assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType().getValue());
 
         assertNotNull(out.getDefendantAccountParty().getPartyDetails());
         assertEquals("301", out.getDefendantAccountParty().getPartyDetails().getPartyId());
@@ -502,30 +502,30 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         assertNotNull(out.getDefendantAccountParty().getPartyDetails().getIndividualDetails());
         assertEquals(
             "Ms",
-            out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().getTitle()
+            out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().get().getTitle().get()
         );
         assertEquals(
             "Jane",
-            out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().getForenames()
+            out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().get().getForenames().get()
         );
         assertEquals(
             "Roe",
-            out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().getSurname()
+            out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().get().getSurname()
         );
 
         // Organisation must be null when individual is present
         assertNull(
-            out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails(),
+            out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails().get(),
             "Organisation details must be null when individual details are present"
         );
     }
 
     @Test
     void addDefendantAccountParty_mapsEmployerDetails_andEmployerAddress() {
-        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+        AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
             .defendantAccountParty(
-                DefendantAccountParty.builder()
-                    .defendantAccountPartyType("Defendant")
+                PartyDefendantAccount.builder()
+                    .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
                     .isDebtor(true)
                     .build()
             )
@@ -581,7 +581,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         // Act
-        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
+        PartyResponseDefendantAccount out = legacyDefendantAccountPartyService.addDefendantAccountParty(
             77L, "78", "1", "poster", "Poster Name", "\"2\"", request
         );
 
@@ -589,29 +589,29 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         assertNotNull(out);
         assertEquals(BigInteger.valueOf(2), out.getVersion());
         assertNotNull(out.getDefendantAccountParty());
-        assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType());
+        assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType().getValue());
 
         // Employer details present and mapped
         assertNotNull(out.getDefendantAccountParty().getEmployerDetails(), "Employer details should be mapped");
-        EmployerDetails emp = out.getDefendantAccountParty().getEmployerDetails();
-        assertEquals("Acme Ltd", emp.getEmployerName());
-        assertEquals("REF-ACME", emp.getEmployerReference());
-        assertEquals("hr@acme.example", emp.getEmployerEmailAddress());
-        assertEquals("02071234567", emp.getEmployerTelephoneNumber());
+        PartyEmployerDetailsDefendantAccount emp = out.getDefendantAccountParty().getEmployerDetails().get();
+        assertEquals("Acme Ltd", emp.getEmployerName().get());
+        assertEquals("REF-ACME", emp.getEmployerReference().get());
+        assertEquals("hr@acme.example", emp.getEmployerEmailAddress().get());
+        assertEquals("02071234567", emp.getEmployerTelephoneNumber().get());
 
         // Employer address mapped
         assertNotNull(emp.getEmployerAddress(), "Employer address should be mapped");
         assertEquals("Acme HQ", emp.getEmployerAddress().getAddressLine1());
-        assertEquals("Floor 1", emp.getEmployerAddress().getAddressLine2());
-        assertEquals("AC1 2CD", emp.getEmployerAddress().getPostcode());
+        assertEquals("Floor 1", emp.getEmployerAddress().getAddressLine2().get());
+        assertEquals("AC1 2CD", emp.getEmployerAddress().getPostcode().get());
     }
 
     @Test
     void addDefendantAccountParty_mapsNullEmployerDetails_toNull() {
-        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+        AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
             .defendantAccountParty(
-                DefendantAccountParty.builder()
-                    .defendantAccountPartyType("Defendant")
+                PartyDefendantAccount.builder()
+                    .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
                     .isDebtor(true)
                     .build()
             )
@@ -650,7 +650,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         // Act
-        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
+        PartyResponseDefendantAccount out = legacyDefendantAccountPartyService.addDefendantAccountParty(
             77L, "78", "1", "poster", "Poster Name", "\"2\"", request
         );
 
@@ -661,17 +661,17 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // Employer details should be null in modern model when legacy had none
         assertNull(
-            out.getDefendantAccountParty().getEmployerDetails(),
+            out.getDefendantAccountParty().getEmployerDetails().get(),
             "Employer details should be null when legacy employerDetails is null"
         );
     }
 
     @Test
     void addDefendantAccountParty_mapsLanguagePreferences() {
-        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+        AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
             .defendantAccountParty(
-                DefendantAccountParty.builder()
-                    .defendantAccountPartyType("Defendant")
+                PartyDefendantAccount.builder()
+                    .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
                     .isDebtor(true)
                     .build()
             )
@@ -725,7 +725,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         // Act
-        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
+        PartyResponseDefendantAccount out = legacyDefendantAccountPartyService.addDefendantAccountParty(
             77L, "78", "1", "poster", "Poster Name", "\"2\"", request
         );
 
@@ -741,17 +741,18 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
         assertEquals(
             "EN",
-            out.getDefendantAccountParty().getLanguagePreferences().getDocumentLanguagePreference().getLanguageCode()
+            out.getDefendantAccountParty().getLanguagePreferences().get()
+                .getDocumentLanguagePreference().get().getLanguageCode().getValue()
         );
 
     }
 
     @Test
     void addDefendantAccountParty_mapsNullLanguagePreferences_toNull() {
-        AddDefendantAccountPartyRequest request = AddDefendantAccountPartyRequest.builder()
+        AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
             .defendantAccountParty(
-                DefendantAccountParty.builder()
-                    .defendantAccountPartyType("Defendant")
+                PartyDefendantAccount.builder()
+                    .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
                     .isDebtor(true)
                     .build()
             )
@@ -790,7 +791,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         // Act
-        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.addDefendantAccountParty(
+        PartyResponseDefendantAccount out = legacyDefendantAccountPartyService.addDefendantAccountParty(
             77L, "78", "1", "poster", "Poster Name", "\"2\"", request
         );
 
@@ -801,7 +802,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // language preferences should be null in modern model when legacy had none
         assertNull(
-            out.getDefendantAccountParty().getLanguagePreferences(),
+            out.getDefendantAccountParty().getLanguagePreferences().get(),
             "Language preferences should be null when legacy languagePreferences is null"
         );
     }
@@ -826,7 +827,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         // assert
-        GetDefendantAccountPartyResponse out =
+        PartyResponseDefendantAccount out =
             legacyDefendantAccountPartyService.getDefendantAccountParty(77L, 77L);
 
         assertNotNull(out);
@@ -834,10 +835,10 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         assertNotNull(out.getDefendantAccountParty());
         // individual kept, organisation null
         assertNotNull(out.getDefendantAccountParty().getPartyDetails().getIndividualDetails());
-        assertNull(out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails());
+        assertNull(out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails().get());
         // empty contact/vehicle dropped
-        assertNull(out.getDefendantAccountParty().getContactDetails());
-        assertNull(out.getDefendantAccountParty().getVehicleDetails());
+        assertNull(out.getDefendantAccountParty().getContactDetails().get());
+        assertNull(out.getDefendantAccountParty().getVehicleDetails().get());
     }
 
     @Test
@@ -861,28 +862,28 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         // act/assert 1) address_line_1 missing -> employerAddress dropped
-        GetDefendantAccountPartyResponse outA =
+        PartyResponseDefendantAccount outA =
             legacyDefendantAccountPartyService.getDefendantAccountParty(555L, 555L);
         assertNotNull(outA);
         assertEquals(BigInteger.valueOf(2L), outA.getVersion());
         assertNotNull(outA.getDefendantAccountParty());
         assertNotNull(outA.getDefendantAccountParty().getPartyDetails().getOrganisationDetails());
-        assertNull(outA.getDefendantAccountParty().getPartyDetails().getIndividualDetails());
+        assertNull(outA.getDefendantAccountParty().getPartyDetails().getIndividualDetails().get());
         assertNotNull(outA.getDefendantAccountParty().getEmployerDetails());
-        assertNull(outA.getDefendantAccountParty().getEmployerDetails().getEmployerAddress());
+        assertNull(outA.getDefendantAccountParty().getEmployerDetails().get().getEmployerAddress());
 
         // act/assert 2) address_line_1 present -> employerAddress kept
-        GetDefendantAccountPartyResponse outB =
+        PartyResponseDefendantAccount outB =
             legacyDefendantAccountPartyService.getDefendantAccountParty(555L, 555L);
         assertNotNull(outB);
         assertEquals(BigInteger.valueOf(2L), outB.getVersion());
         assertNotNull(outB.getDefendantAccountParty());
         assertNotNull(outB.getDefendantAccountParty().getPartyDetails().getOrganisationDetails());
-        assertNull(outB.getDefendantAccountParty().getPartyDetails().getIndividualDetails());
-        var kept = outB.getDefendantAccountParty().getEmployerDetails().getEmployerAddress();
+        assertNull(outB.getDefendantAccountParty().getPartyDetails().getIndividualDetails().get());
+        var kept = outB.getDefendantAccountParty().getEmployerDetails().get().getEmployerAddress();
         assertNotNull(kept);
         assertEquals("1 High St", kept.getAddressLine1());
-        assertEquals("AB1 2CD", kept.getPostcode());
+        assertEquals("AB1 2CD", kept.getPostcode().get());
     }
 
     @Test
@@ -909,7 +910,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         // act
-        GetDefendantAccountPartyResponse out =
+        PartyResponseDefendantAccount out =
             legacyDefendantAccountPartyService.getDefendantAccountParty(11L, 22L);
 
         // assert
@@ -936,7 +937,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         // act
-        GetDefendantAccountPartyResponse out =
+        PartyResponseDefendantAccount out =
             legacyDefendantAccountPartyService.getDefendantAccountParty(12L, 23L);
 
         // assert
@@ -967,7 +968,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         // Act
-        GetDefendantAccountPartyResponse result =
+        PartyResponseDefendantAccount result =
             legacyDefendantAccountPartyService.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
 
         // Assert: non-null and some basic fields
@@ -1014,7 +1015,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         // act
-        GetDefendantAccountPartyResponse out =
+        PartyResponseDefendantAccount out =
             legacyDefendantAccountPartyService.getDefendantAccountParty(123L, 456L);
 
         // assert
@@ -1102,12 +1103,12 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             Mockito.nullable(String.class)
         );
 
-        GetDefendantAccountPartyResponse out =
+        PartyResponseDefendantAccount out =
             legacyDefendantAccountPartyService.getDefendantAccountParty(77L, 77L);
 
         assertNotNull(out.getDefendantAccountParty().getContactDetails());
         assertEquals("sam@example.com",
-            out.getDefendantAccountParty().getContactDetails().getPrimaryEmailAddress());
+            out.getDefendantAccountParty().getContactDetails().get().getPrimaryEmailAddress().get());
     }
 
     @Test
@@ -1142,10 +1143,10 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             Mockito.nullable(String.class)
         );
 
-        GetDefendantAccountPartyResponse out =
+        PartyResponseDefendantAccount out =
             legacyDefendantAccountPartyService.getDefendantAccountParty(555L, 555L);
 
-        assertNull(out.getDefendantAccountParty().getEmployerDetails());
+        assertNull(out.getDefendantAccountParty().getEmployerDetails().get());
     }
 
     @Test
@@ -1187,17 +1188,17 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             Mockito.nullable(String.class)
         );
 
-        GetDefendantAccountPartyResponse out =
+        PartyResponseDefendantAccount out =
             legacyDefendantAccountPartyService.getDefendantAccountParty(77L, 77L);
 
         var mapped = out.getDefendantAccountParty().getAddress();
         assertNotNull(mapped);
         assertEquals("1 High St", mapped.getAddressLine1());
-        assertEquals("Suite 5",  mapped.getAddressLine2());
-        assertEquals("District", mapped.getAddressLine3());
-        assertEquals("County",   mapped.getAddressLine4());
-        assertEquals("Country",  mapped.getAddressLine5());
-        assertEquals("AB1 2CD",  mapped.getPostcode());
+        assertEquals("Suite 5",  mapped.getAddressLine2().get());
+        assertEquals("District", mapped.getAddressLine3().get());
+        assertEquals("County",   mapped.getAddressLine4().get());
+        assertEquals("Country",  mapped.getAddressLine5().get());
+        assertEquals("AB1 2CD",  mapped.getPostcode().get());
     }
 
     @Test
@@ -1241,13 +1242,13 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         var out = legacyDefendantAccountPartyService.getDefendantAccountParty(77L, 77L);
-        var prefs = out.getDefendantAccountParty().getLanguagePreferences();
+        var prefs = out.getDefendantAccountParty().getLanguagePreferences().get();
 
         org.junit.jupiter.api.Assertions.assertNotNull(prefs);
         org.junit.jupiter.api.Assertions.assertEquals("EN",
-            prefs.getDocumentLanguagePreference().getLanguageCode());
+            prefs.getDocumentLanguagePreference().get().getLanguageCode().getValue());
         org.junit.jupiter.api.Assertions.assertEquals("CY",
-            prefs.getHearingLanguagePreference().getLanguageCode());
+            prefs.getHearingLanguagePreference().get().getLanguageCode().getValue());
     }
 
     @Test
@@ -1262,7 +1263,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             Mockito.nullable(String.class)
         );
 
-        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.replaceDefendantAccountParty(
+        PartyResponseDefendantAccount out = legacyDefendantAccountPartyService.replaceDefendantAccountParty(
             77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
         );
 
@@ -1310,7 +1311,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         // Call service; inputs for the request are not important for this mapping test
-        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.replaceDefendantAccountParty(
+        PartyResponseDefendantAccount out = legacyDefendantAccountPartyService.replaceDefendantAccountParty(
             77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
         );
 
@@ -1320,16 +1321,16 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // party details should exist but nested organisation/individual fields should be null
         assertNotNull(out.getDefendantAccountParty().getPartyDetails());
-        assertNull(out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails());
+        assertNull(out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails().get());
         // organisationFlag was null in legacy -> should be null in modern
         assertNull(out.getDefendantAccountParty().getPartyDetails().getOrganisationFlag());
 
         // address/contact/vehicle/employer/languagePreferences were null in legacy -> null in modern
         assertNull(out.getDefendantAccountParty().getAddress());
-        assertNull(out.getDefendantAccountParty().getContactDetails());
-        assertNull(out.getDefendantAccountParty().getVehicleDetails());
-        assertNull(out.getDefendantAccountParty().getEmployerDetails());
-        assertNull(out.getDefendantAccountParty().getLanguagePreferences());
+        assertNull(out.getDefendantAccountParty().getContactDetails().get());
+        assertNull(out.getDefendantAccountParty().getVehicleDetails().get());
+        assertNull(out.getDefendantAccountParty().getEmployerDetails().get());
+        assertNull(out.getDefendantAccountParty().getLanguagePreferences().get());
     }
 
     @Test
@@ -1366,14 +1367,14 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         // Call the service. The production code logs legacy failure but still returns a mapped response
-        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.replaceDefendantAccountParty(
+        PartyResponseDefendantAccount out = legacyDefendantAccountPartyService.replaceDefendantAccountParty(
             77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
         );
 
         assertNotNull(out);
         assertEquals(BigInteger.valueOf(2), out.getVersion());
         assertNotNull(out.getDefendantAccountParty());
-        assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType());
+        assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType().getValue());
         assertTrue(out.getDefendantAccountParty().getIsDebtor());
         assertNotNull(out.getDefendantAccountParty().getPartyDetails());
         assertEquals("300", out.getDefendantAccountParty().getPartyDetails().getPartyId());
@@ -1438,7 +1439,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         // Act
-        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.replaceDefendantAccountParty(
+        PartyResponseDefendantAccount out = legacyDefendantAccountPartyService.replaceDefendantAccountParty(
             77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
         );
 
@@ -1446,7 +1447,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         assertNotNull(out);
         assertEquals(BigInteger.valueOf(2), out.getVersion());
         assertNotNull(out.getDefendantAccountParty());
-        assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType());
+        assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType().getValue());
 
         assertNotNull(out.getDefendantAccountParty().getPartyDetails());
         assertEquals("300", out.getDefendantAccountParty().getPartyDetails().getPartyId());
@@ -1454,10 +1455,10 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         // Organisation should be present
         assertNotNull(out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails());
         assertEquals("StillCo Ltd",
-            out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails().getOrganisationName());
+            out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails().get().getOrganisationName());
 
         // Individual must be null when organisation is present
-        assertNull(out.getDefendantAccountParty().getPartyDetails().getIndividualDetails(),
+        assertNull(out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().get(),
             "Individual details must be null when organisation details are present");
     }
 
@@ -1506,7 +1507,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         // Act
-        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.replaceDefendantAccountParty(
+        PartyResponseDefendantAccount out = legacyDefendantAccountPartyService.replaceDefendantAccountParty(
             77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
         );
 
@@ -1514,7 +1515,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         assertNotNull(out);
         assertEquals(BigInteger.valueOf(2), out.getVersion());
         assertNotNull(out.getDefendantAccountParty());
-        assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType());
+        assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType().getValue());
 
         assertNotNull(out.getDefendantAccountParty().getPartyDetails());
         assertEquals("301", out.getDefendantAccountParty().getPartyDetails().getPartyId());
@@ -1522,14 +1523,14 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         // Individual should be present
         assertNotNull(out.getDefendantAccountParty().getPartyDetails().getIndividualDetails());
         assertEquals("Ms",
-            out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().getTitle());
+            out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().get().getTitle().get());
         assertEquals("Jane",
-            out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().getForenames());
+            out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().get().getForenames().get());
         assertEquals("Roe",
-            out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().getSurname());
+            out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().get().getSurname());
 
         // Organisation must be null when individual is present
-        assertNull(out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails(),
+        assertNull(out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails().get(),
             "Organisation details must be null when individual details are present");
     }
 
@@ -1585,7 +1586,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         // Act
-        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.replaceDefendantAccountParty(
+        PartyResponseDefendantAccount out = legacyDefendantAccountPartyService.replaceDefendantAccountParty(
             77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
         );
 
@@ -1593,21 +1594,21 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         assertNotNull(out);
         assertEquals(BigInteger.valueOf(2), out.getVersion());
         assertNotNull(out.getDefendantAccountParty());
-        assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType());
+        assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType().getValue());
 
         // Employer details present and mapped
         assertNotNull(out.getDefendantAccountParty().getEmployerDetails(), "Employer details should be mapped");
-        EmployerDetails emp = out.getDefendantAccountParty().getEmployerDetails();
-        assertEquals("Acme Ltd", emp.getEmployerName());
-        assertEquals("REF-ACME", emp.getEmployerReference());
-        assertEquals("hr@acme.example", emp.getEmployerEmailAddress());
-        assertEquals("02071234567", emp.getEmployerTelephoneNumber());
+        PartyEmployerDetailsDefendantAccount emp = out.getDefendantAccountParty().getEmployerDetails().get();
+        assertEquals("Acme Ltd", emp.getEmployerName().get());
+        assertEquals("REF-ACME", emp.getEmployerReference().get());
+        assertEquals("hr@acme.example", emp.getEmployerEmailAddress().get());
+        assertEquals("02071234567", emp.getEmployerTelephoneNumber().get());
 
         // Employer address mapped
         assertNotNull(emp.getEmployerAddress(), "Employer address should be mapped");
         assertEquals("Acme HQ", emp.getEmployerAddress().getAddressLine1());
-        assertEquals("Floor 1", emp.getEmployerAddress().getAddressLine2());
-        assertEquals("AC1 2CD", emp.getEmployerAddress().getPostcode());
+        assertEquals("Floor 1", emp.getEmployerAddress().getAddressLine2().get());
+        assertEquals("AC1 2CD", emp.getEmployerAddress().getPostcode().get());
     }
 
     @Test
@@ -1645,7 +1646,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         // Act
-        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.replaceDefendantAccountParty(
+        PartyResponseDefendantAccount out = legacyDefendantAccountPartyService.replaceDefendantAccountParty(
             77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
         );
 
@@ -1655,7 +1656,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         assertNotNull(out.getDefendantAccountParty());
 
         // Employer details should be null in modern model when legacy had none
-        assertNull(out.getDefendantAccountParty().getEmployerDetails(),
+        assertNull(out.getDefendantAccountParty().getEmployerDetails().get(),
             "Employer details should be null when legacy employerDetails is null");
     }
 
@@ -1709,7 +1710,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         // Act
-        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.replaceDefendantAccountParty(
+        PartyResponseDefendantAccount out = legacyDefendantAccountPartyService.replaceDefendantAccountParty(
             77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
         );
 
@@ -1722,7 +1723,8 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         assertNotNull(out.getDefendantAccountParty().getLanguagePreferences(),
             "Language preferences should be mapped when provided by legacy");
         assertEquals("EN",
-            out.getDefendantAccountParty().getLanguagePreferences().getDocumentLanguagePreference().getLanguageCode());
+            out.getDefendantAccountParty().getLanguagePreferences().get()
+                .getDocumentLanguagePreference().get().getLanguageCode().getValue());
 
     }
 
@@ -1761,7 +1763,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
 
         // Act
-        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.replaceDefendantAccountParty(
+        PartyResponseDefendantAccount out = legacyDefendantAccountPartyService.replaceDefendantAccountParty(
             77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
         );
 
@@ -1771,7 +1773,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         assertNotNull(out.getDefendantAccountParty());
 
         // language preferences should be null in modern model when legacy had none
-        assertNull(out.getDefendantAccountParty().getLanguagePreferences(),
+        assertNull(out.getDefendantAccountParty().getLanguagePreferences().get(),
             "Language preferences should be null when legacy languagePreferences is null");
     }
 

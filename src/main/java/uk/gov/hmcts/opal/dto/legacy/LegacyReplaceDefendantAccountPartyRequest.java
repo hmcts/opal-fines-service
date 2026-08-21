@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
+import uk.gov.hmcts.opal.generated.model.PartyDefendantAccount;
 
 @Data
 @Builder
@@ -29,6 +29,6 @@ public class LegacyReplaceDefendantAccountPartyRequest {
     private String businessUnitUserId;
 
     @JsonProperty("defendant_account_party")
-    private DefendantAccountParty defendantAccountParty;
+    private PartyDefendantAccount defendantAccountParty;
 
 }

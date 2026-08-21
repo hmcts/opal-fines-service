@@ -12,8 +12,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
@@ -81,44 +79,6 @@ class DefendantAccountControllerTest {
         verify(defendantAccountPartyService).removeDefendantAccountParty(defendantAccountId,
             defendantAccountPartyId, businessUnitId,
             ifMatch, request);
-    }
-
-    @Test
-    void testAddDefendantAccountParty_Success() {
-        // Arrange
-        Long defendantAccountId = 1L;
-        String businessUnitId = "10";
-        String ifMatch = "1";
-
-        AddDefendantAccountPartyRequest request = new AddDefendantAccountPartyRequest();
-        GetDefendantAccountPartyResponse mockResponse = new GetDefendantAccountPartyResponse();
-
-        when(defendantAccountPartyService.addDefendantAccountParty(
-            defendantAccountId,
-            ifMatch,
-            businessUnitId,
-            request
-        )).thenReturn(mockResponse);
-
-        // Act
-        ResponseEntity<GetDefendantAccountPartyResponse> response =
-            defendantAccountController.addDefendantAccountParty(
-                defendantAccountId,
-                businessUnitId,
-                ifMatch,
-                request
-            );
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(mockResponse, response.getBody());
-
-        verify(defendantAccountPartyService).addDefendantAccountParty(
-            defendantAccountId,
-            ifMatch,
-            businessUnitId,
-            request
-        );
     }
 
 }

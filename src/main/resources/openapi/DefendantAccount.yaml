@@ -43,7 +43,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetPartyResponse'
+                $ref: '#/components/schemas/PartyResponse'
         '400':
           description: Bad request
           content:
@@ -80,6 +80,95 @@ paths:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
+    put:
+      tags:
+        - Defendant Account
+      summary: Replace Defendant Account Party
+      operationId: replaceDefendantAccountParty
+      security:
+        - permissions:
+            - Amend Account (in the business unit supplied in Business-Unit-Id)
+      parameters:
+        - in: path
+          name: defendantAccountId
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: path
+          name: defendantAccountPartyId
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: header
+          name: Business-Unit-Id
+          required: true
+          schema:
+            $ref: './types.yaml#/components/schemas/BusinessUnitId'
+        - in: header
+          name: If-Match
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Party'
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyResponse'
+  /defendant-accounts/{defendantAccountId}/defendant-account-parties:
+    post:
+      tags:
+        - Defendant Account
+      summary: Add Defendant Account Party
+      operationId: addDefendantAccountParty
+      security:
+        - permissions:
+            - Amend Account (in the business unit supplied in Business-Unit-Id)
+      parameters:
+        - in: path
+          name: defendantAccountId
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: header
+          name: Business-Unit-Id
+          required: true
+          schema:
+            $ref: './types.yaml#/components/schemas/BusinessUnitId'
+        - in: header
+          name: If-Match
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddPartyRequest'
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyResponse'
   /defendant-accounts/{id}/enforcement-status:
     get:
       tags:
@@ -1179,7 +1268,7 @@ components:
       properties:
         defendant_account_id:
           type: string
-    GetPartyResponse:
+    PartyResponse:
       title: Get Defendant Account Party Response
       type: object
       additionalProperties: false
@@ -1187,6 +1276,15 @@ components:
       x-versioned: true
       x-implements:
         - uk.gov.hmcts.opal.util.Versioned
+      required:
+        - defendant_account_party
+      properties:
+        defendant_account_party:
+          $ref: '#/components/schemas/Party'
+    AddPartyRequest:
+      title: Add Defendant Account Party Request
+      type: object
+      additionalProperties: false
       required:
         - defendant_account_party
       properties:

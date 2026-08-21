@@ -7,9 +7,9 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
-import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
+import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PartyDefendantAccount;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountPartyServiceProxy;
@@ -23,8 +23,7 @@ public class DefendantAccountPartyService {
 
     private final UserStateService userStateService;
 
-
-    public GetDefendantAccountPartyResponse getDefendantAccountParty(
+    public PartyResponseDefendantAccount getDefendantAccountParty(
         Long defendantAccountId,
         Long defendantAccountPartyId) {
 
@@ -41,9 +40,9 @@ public class DefendantAccountPartyService {
         }
     }
 
-    public GetDefendantAccountPartyResponse addDefendantAccountParty(
+    public PartyResponseDefendantAccount addDefendantAccountParty(
         Long defendantAccountId, String ifMatch,
-        String businessUnitId, AddDefendantAccountPartyRequest request) {
+        String businessUnitId, AddPartyRequestDefendantAccount request) {
 
         log.debug(":addDefendantAccountParty: buId: {},  request: \n{}", businessUnitId, request);
 
@@ -71,11 +70,11 @@ public class DefendantAccountPartyService {
     }
 
 
-    public GetDefendantAccountPartyResponse replaceDefendantAccountParty(
+    public PartyResponseDefendantAccount replaceDefendantAccountParty(
         Long defendantAccountId, Long defendantAccountPartyId, String ifMatch,
-        String businessUnitId, DefendantAccountParty request) {
+        String businessUnitId, PartyDefendantAccount request) {
 
-        log.debug(":replaceDefendantAccountParty: buId: {},  request: \n{}", businessUnitId, request.toPrettyJson());
+        log.debug(":replaceDefendantAccountParty: buId: {}, request: \n{}", businessUnitId, request);
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
