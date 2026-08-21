@@ -267,6 +267,8 @@ public class DefendantAccountSearchRestrictionsStepDef extends BaseStepDef {
     private JSONObject buildDraftAccountCreateRequest(SearchAccountData accountData) throws JSONException, IOException {
         JSONObject requestBody = new JSONObject();
         requestBody.put("business_unit_id", Long.parseLong(DEFAULT_BUSINESS_UNIT_ID));
+        requestBody.put("submitted_by", DEFAULT_SUBMITTED_BY);
+        requestBody.put("submitted_by_name", DEFAULT_SUBMITTED_BY_NAME);
         requestBody.put("account_type", "Fine");
         requestBody.put("account_status", JSONObject.NULL);
         requestBody.put("account", buildAccountFixture(accountData));
@@ -293,6 +295,7 @@ public class DefendantAccountSearchRestrictionsStepDef extends BaseStepDef {
         Map<String, String> patchData = new LinkedHashMap<>();
         patchData.put("business_unit_id", DEFAULT_BUSINESS_UNIT_ID);
         patchData.put("account_status", "Publishing Pending");
+        patchData.put("validated_by", DEFAULT_SUBMITTED_BY + "_REVIEWER");
         patchData.put("If-Match", "0");
         return patchData;
     }
