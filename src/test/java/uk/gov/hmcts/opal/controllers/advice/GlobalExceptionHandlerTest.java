@@ -18,6 +18,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -38,6 +39,7 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
+import uk.gov.hmcts.opal.exception.JsonSchemaValidationException.JsonSchemaValidationError;
 import uk.gov.hmcts.opal.exception.MissingMappingTypeException;
 import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
@@ -225,6 +227,23 @@ class GlobalExceptionHandlerTest {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("Bad Request", response.getBody().getTitle());
         assertEquals("The request does not conform to the required JSON schema", response.getBody().getDetail());
+    }
+
+    @Test
+    void handleJsonSchemaValidation_returnsStructuredAdditionalPropertiesProblem() {
+        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleJsonSchemaValidationException(
+            new JsonSchemaValidationException(
+                "validator message",
+                Set.of(new JsonSchemaValidationError("additionalProperties", "submitted_by", "changed message"))
+            )
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Bad Request", response.getBody().getTitle());
+        assertEquals(
+            "Request contains unexpected additional properties: submitted_by",
+            response.getBody().getDetail()
+        );
     }
 
     @Test

@@ -5,6 +5,7 @@ import static uk.gov.hmcts.opal.util.VersionUtils.createETag;
 import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.Optional;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
+import uk.gov.hmcts.opal.exception.JsonSchemaValidationException.JsonSchemaValidationError;
 import uk.gov.hmcts.opal.exception.MissingMappingTypeException;
 import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
@@ -42,6 +44,7 @@ import uk.gov.hmcts.opal.util.Versioned;
 @ControllerAdvice
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class GlobalExceptionHandler {
+    private static final String ADDITIONAL_PROPERTIES_KEYWORD = "additionalProperties";
 
     @ExceptionHandler(MissingRequestHeaderException.class)
     public ResponseEntity<ProblemDetail> handleMissingRequestHeaderException(MissingRequestHeaderException ex) {
@@ -253,8 +256,16 @@ public class GlobalExceptionHandler {
     }
 
     private String getJsonSchemaValidationDetail(JsonSchemaValidationException ex) {
-        if (ex.getMessage() != null && ex.getMessage().contains("additional properties")) {
-            return ex.getMessage().split("\\n\\tContent to validate:", 2)[0];
+        List<String> additionalProperties = ex.getValidationErrors().stream()
+            .filter(error -> ADDITIONAL_PROPERTIES_KEYWORD.equals(error.keyword()))
+            .map(JsonSchemaValidationError::property)
+            .filter(property -> property != null && !property.isBlank())
+            .distinct()
+            .sorted()
+            .toList();
+
+        if (!additionalProperties.isEmpty()) {
+            return "Request contains unexpected additional properties: " + String.join(", ", additionalProperties);
         }
         return "The request does not conform to the required JSON schema";
     }
