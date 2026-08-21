@@ -19,9 +19,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.response.SearchDataResponse;
 import uk.gov.hmcts.opal.dto.search.AmendmentSearchDto;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
 import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity_;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
@@ -91,8 +91,8 @@ class AmendmentServiceTest {
     @Test
     void testCallStoredProcs() {
         // Act
-        service.auditInitialiseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS);
-        service.auditFinaliseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS, (short)77,
+        service.auditInitialiseStoredProc(1L, AssociatedRecordType.DEFENDANT_ACCOUNTS);
+        service.auditFinaliseStoredProc(1L, AssociatedRecordType.DEFENDANT_ACCOUNTS, ((short) 77),
                                         "USER_ME", "User Name", "CaseRef001", "funcCodeA");
     }
 }

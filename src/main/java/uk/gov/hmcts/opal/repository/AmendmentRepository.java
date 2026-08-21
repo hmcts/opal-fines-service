@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
@@ -15,8 +15,6 @@ import uk.gov.hmcts.opal.repository.projection.MinorCreditorAmendmentHistoryProj
 public interface AmendmentRepository extends JpaRepository<AmendmentEntity, Long>,
     JpaSpecificationExecutor<AmendmentEntity> {
 
-    String DB_PROC_INITIALISE_NAME = "p_audit_initialise";
-    String DB_PROC_FINALISE_NAME = "p_audit_finalise";
     String ASSOC_ACCOUNT_ID = "pi_associated_account_id";
     String RECORD_TYPE = "pi_record_type";
     String BUSINESS_UNIT_ID = "pi_business_unit_id";
@@ -26,14 +24,37 @@ public interface AmendmentRepository extends JpaRepository<AmendmentEntity, Long
     String FUNCTION_CODE = "pi_function_code";
 
 
-    @Procedure(procedureName = DB_PROC_INITIALISE_NAME)
-    void auditInitialise(@Param(ASSOC_ACCOUNT_ID) Long accountId, @Param(RECORD_TYPE) String recordType);
+    @Modifying
+    @Query(
+        nativeQuery = true,
+        value = """
+            CALL p_audit_initialise(
+                :pi_associated_account_id,
+                CAST(:pi_record_type AS t_associated_record_type_enum)
+            )
+        """
+    )
+    void auditInitialise(@Param(ASSOC_ACCOUNT_ID) Long accountId, @Param(RECORD_TYPE) String associatedRecordType);
 
-    @Procedure(procedureName = DB_PROC_FINALISE_NAME)
-    void auditFinalise(@Param(ASSOC_ACCOUNT_ID) Long accountId, @Param(RECORD_TYPE) String recordType,
-                       @Param(BUSINESS_UNIT_ID) Short businessUnitId, @Param(POSTED_BY) String postedBy,
-                       @Param(POSTED_BY_NAME) String postedByName,
-                       @Param(CASE_REFERENCE) String caseRef, @Param(FUNCTION_CODE) String functionCode);
+    @Modifying
+    @Query(
+        nativeQuery = true,
+        value = """
+            CALL p_audit_finalise(
+                        :pi_associated_account_id,
+                        CAST(:pi_record_type AS t_associated_record_type_enum),
+                        :pi_business_unit_id,
+                        :pi_posted_by,
+                        :pi_posted_by_name,
+                        :pi_case_reference,
+                        :pi_function_code
+                    )
+        """
+    )
+    void auditFinalise(@Param(ASSOC_ACCOUNT_ID) Long accountId, @Param(RECORD_TYPE) String associatedRecordType,
+        @Param(BUSINESS_UNIT_ID) Short businessUnitId, @Param(POSTED_BY) String postedBy,
+        @Param(POSTED_BY_NAME) String postedByName, @Param(CASE_REFERENCE) String caseRef,
+        @Param(FUNCTION_CODE) String functionCode);
 
     void deleteByAssociatedRecordId(String defendantAccountId);
 
