@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -40,30 +41,90 @@ class DraftAccountReferenceValidationServiceTest {
     @Test
     void validateReferences_whenAllReferencesExist_shouldPass() {
         when(courtLiteRepository.existsById(anyLong())).thenReturn(true);
-        when(offenceRepository.existsById(anyLong())).thenReturn(true);
+        when(offenceRepository.existsByOffenceIdAvailableToBusinessUnit(anyLong(), eq((short) 77))).thenReturn(true);
         when(resultRepository.existsById(anyString())).thenReturn(true);
         when(majorCreditorRepository.existsById(anyLong())).thenReturn(true);
 
-        assertDoesNotThrow(() -> service.validateReferences(validAccountJson()));
+        assertDoesNotThrow(() -> service.validateReferences(validAccountJson(), (short) 77));
+    }
+
+    @Test
+    void validateReferences_whenOffenceDoesNotExist_shouldReportOffencePath() {
+        when(offenceRepository.existsByOffenceIdAvailableToBusinessUnit(999L, (short) 77))
+            .thenReturn(false);
+
+        InvalidReferenceValidationException exception = assertThrows(
+            InvalidReferenceValidationException.class,
+            () -> service.validateReferences("""
+            {
+              "offences": [
+                {
+                  "offence_id": 999
+                }
+              ]
+            }
+            """, (short) 77)
+        );
+
+        assertContains(
+            exception.getMessage(),
+            "account.offences[0].offence_id: offence id 999 does not exist"
+        );
+
+        verify(offenceRepository)
+            .existsByOffenceIdAvailableToBusinessUnit(999L, (short) 77);
+    }
+
+    @Test
+    void validateReferences_whenMultipleOffencesAreInvalid_shouldReportEachOffencePath() {
+        when(offenceRepository.existsByOffenceIdAvailableToBusinessUnit(999L, (short) 77))
+            .thenReturn(false);
+        when(offenceRepository.existsByOffenceIdAvailableToBusinessUnit(998L, (short) 77))
+            .thenReturn(false);
+
+        InvalidReferenceValidationException exception = assertThrows(
+            InvalidReferenceValidationException.class,
+            () -> service.validateReferences("""
+            {
+              "offences": [
+                {
+                  "offence_id": 999
+                },
+                {
+                  "offence_id": 998
+                }
+              ]
+            }
+            """, (short) 77)
+        );
+
+        String message = exception.getMessage();
+
+        assertContains(message, "Draft account reference validation failed with 2 error(s):");
+        assertContains(message, "account.offences[0].offence_id: offence id 999 does not exist");
+        assertContains(message, "account.offences[1].offence_id: offence id 998 does not exist");
+
+        verify(offenceRepository).existsByOffenceIdAvailableToBusinessUnit(999L, (short) 77);
+        verify(offenceRepository).existsByOffenceIdAvailableToBusinessUnit(998L, (short) 77);
     }
 
     @Test
     void validateReferences_whenSomeReferencesAreMissing_shouldReportAllFailures() {
         when(courtLiteRepository.existsById(anyLong())).thenReturn(false);
-        when(offenceRepository.existsById(anyLong())).thenReturn(false);
+        when(offenceRepository.existsByOffenceIdAvailableToBusinessUnit(anyLong(), eq((short) 77))).thenReturn(false);
         when(resultRepository.existsById(anyString())).thenReturn(false);
         when(majorCreditorRepository.existsById(anyLong())).thenReturn(false);
 
         InvalidReferenceValidationException exception = assertThrows(InvalidReferenceValidationException.class,
-            () -> service.validateReferences(validAccountJson()));
+            () -> service.validateReferences(validAccountJson(), (short) 77));
 
         String message = exception.getMessage();
         assertContains(message, "$.enforcement_court_id");
-        assertContains(message, "$.offences[0].offence_id");
+        assertContains(message, "account.offences[0].offence_id");
         assertContains(message, "$.offences[0].imposing_court_id");
         assertContains(message, "$.offences[0].impositions[0].result_id");
         assertContains(message, "$.offences[0].impositions[0].major_creditor_id");
-        assertContains(message, "$.offences[1].offence_id");
+        assertContains(message, "account.offences[1].offence_id");
         assertContains(message, "$.offences[1].imposing_court_id");
         assertContains(message, "$.offences[1].impositions[0].result_id");
         assertContains(message, "$.offences[1].impositions[0].major_creditor_id");
@@ -71,7 +132,8 @@ class DraftAccountReferenceValidationServiceTest {
         assertContains(message, "$.payment_terms.enforcements[1].result_id");
 
         verify(courtLiteRepository, times(3)).existsById(anyLong());
-        verify(offenceRepository, times(2)).existsById(anyLong());
+        verify(offenceRepository).existsByOffenceIdAvailableToBusinessUnit(21L, (short) 77);
+        verify(offenceRepository).existsByOffenceIdAvailableToBusinessUnit(22L, (short) 77);
         verify(resultRepository, times(4)).existsById(anyString());
         verify(majorCreditorRepository, times(2)).existsById(anyLong());
     }

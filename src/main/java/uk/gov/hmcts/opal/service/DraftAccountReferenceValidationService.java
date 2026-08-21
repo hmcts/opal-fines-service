@@ -31,7 +31,7 @@ public class DraftAccountReferenceValidationService {
     private final MajorCreditorRepository majorCreditorRepository;
 
     @Transactional(readOnly = true)
-    public void validateReferences(String accountJson) {
+    public void validateReferences(String accountJson, Short businessUnitId) {
         JsonPathUtil.DocContext docContext;
         try {
             docContext = createDocContext(accountJson, "DraftAccountReferenceValidationService");
@@ -42,7 +42,7 @@ public class DraftAccountReferenceValidationService {
         List<String> failures = new ArrayList<>();
 
         validateEnforcementCourt(docContext, failures);
-        validateOffences(docContext, failures);
+        validateOffences(docContext, failures, businessUnitId);
         validatePaymentTermsEnforcements(docContext, failures);
 
         if (!failures.isEmpty()) {
@@ -61,7 +61,7 @@ public class DraftAccountReferenceValidationService {
         }
     }
 
-    private void validateOffences(JsonPathUtil.DocContext docContext, List<String> failures) {
+    private void validateOffences(JsonPathUtil.DocContext docContext, List<String> failures, Short businessUnitId) {
         List<?> offences = safeReadList(docContext, ROOT_PATH + ".offences");
         if (offences == null) {
             return;
@@ -69,10 +69,12 @@ public class DraftAccountReferenceValidationService {
 
         for (int offenceIndex = 0; offenceIndex < offences.size(); offenceIndex++) {
             String offencePath = ROOT_PATH + ".offences[" + offenceIndex + "]";
+            String offenceDisplayPath = "account.offences[" + offenceIndex + "]";
 
             Long offenceId = safeReadLong(docContext, offencePath + ".offence_id");
-            if (offenceId != null && !offenceRepository.existsById(offenceId)) {
-                failures.add(offencePath + ".offence_id: offence id " + offenceId + DOES_NOT_EXIST);
+            if (offenceId != null
+                && !offenceRepository.existsByOffenceIdAvailableToBusinessUnit(offenceId, businessUnitId)) {
+                failures.add(offenceDisplayPath + ".offence_id: offence id " + offenceId + DOES_NOT_EXIST);
             }
 
             Long imposingCourtId = safeReadLong(docContext, offencePath + ".imposing_court_id");

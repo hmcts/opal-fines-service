@@ -496,6 +496,31 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     }
 
     @Test
+    @DisplayName("PO-5746: Replace draft account - Should return 400 for an invalid offence ID")
+    @JiraStory("PO-5746")
+    @JiraEpic("PO-2220")
+    void shouldReturn400WhenOffenceIdIsInvalid() throws Exception {
+        String request = validReplaceRequestBody(0L)
+            .replace("\"offence_id\": 35014", "\"offence_id\": 999998");
+
+        mockMvc.perform(put(URL_BASE + "/5")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", getIfMatchForDraftAccount(5L))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                """
+                Draft account reference validation failed with 1 error(s):
+                 - account.offences[0].offence_id: offence id 999998 does not exist
+                """.stripIndent().stripTrailing(),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
     @DisplayName("Replace draft account - user with no permission [@PO-973, @PO-830]")
     @JiraStory("PO-973")
     @JiraStory("PO-830")
@@ -694,7 +719,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         return """
             Draft account reference validation failed with 5 error(s):
              - $.enforcement_court_id: court id 999999 does not exist
-             - $.offences[0].offence_id: offence id 999998 does not exist
+             - account.offences[0].offence_id: offence id 999998 does not exist
              - $.offences[0].imposing_court_id: court id 999997 does not exist
              - $.offences[0].impositions[0].result_id: result id NOT-A-RESULT does not exist
              - $.offences[0].impositions[0].major_creditor_id: major creditor id 999996 does not exist
