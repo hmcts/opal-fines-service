@@ -6,14 +6,20 @@ import static uk.gov.hmcts.opal.util.JsonPathUtil.safeReadLong;
 import static uk.gov.hmcts.opal.util.JsonPathUtil.safeReadString;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
+import uk.gov.hmcts.opal.entity.result.ImpositionCreditor;
+import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
+import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.CourtLiteRepository;
-import uk.gov.hmcts.opal.repository.MajorCreditorRepository;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
 import uk.gov.hmcts.opal.repository.ResultRepository;
 import uk.gov.hmcts.opal.util.JsonPathUtil;
@@ -28,10 +34,10 @@ public class DraftAccountReferenceValidationService {
     private final CourtLiteRepository courtLiteRepository;
     private final OffenceRepository offenceRepository;
     private final ResultRepository resultRepository;
-    private final MajorCreditorRepository majorCreditorRepository;
+    private final CreditorAccountRepository creditorAccountRepository;
 
     @Transactional(readOnly = true)
-    public void validateReferences(String accountJson) {
+    public void validateReferences(Short businessUnitId, String accountJson) {
         JsonPathUtil.DocContext docContext;
         try {
             docContext = createDocContext(accountJson, "DraftAccountReferenceValidationService");
@@ -42,8 +48,8 @@ public class DraftAccountReferenceValidationService {
         List<String> failures = new ArrayList<>();
 
         validateEnforcementCourt(docContext, failures);
-        validateOffences(docContext, failures);
-        validatePaymentTermsEnforcements(docContext, failures);
+        validateOffences(businessUnitId, docContext, failures);
+        validatePaymentTermsEnforcements(docContext, failures, new HashMap<>());
 
         if (!failures.isEmpty()) {
             throw new InvalidReferenceValidationException(buildFailureMessage(failures));
@@ -61,12 +67,13 @@ public class DraftAccountReferenceValidationService {
         }
     }
 
-    private void validateOffences(JsonPathUtil.DocContext docContext, List<String> failures) {
+    private void validateOffences(Short businessUnitId, JsonPathUtil.DocContext docContext, List<String> failures) {
         List<?> offences = safeReadList(docContext, ROOT_PATH + ".offences");
         if (offences == null) {
             return;
         }
 
+        Map<String, Optional<ResultEntity>> resultCache = new HashMap<>();
         for (int offenceIndex = 0; offenceIndex < offences.size(); offenceIndex++) {
             String offencePath = ROOT_PATH + ".offences[" + offenceIndex + "]";
 
@@ -89,20 +96,25 @@ public class DraftAccountReferenceValidationService {
                 String impositionPath = offencePath + ".impositions[" + impositionIndex + "]";
 
                 String resultId = safeReadString(docContext, impositionPath + ".result_id", null);
-                if (resultId != null && !resultRepository.existsById(resultId)) {
+                Optional<ResultEntity> result = findResult(resultId, resultCache);
+                if (resultId != null && result.isEmpty()) {
                     failures.add(impositionPath + ".result_id: result id " + resultId + DOES_NOT_EXIST);
+                    continue;
                 }
-
-                Long majorCreditorId = safeReadLong(docContext, impositionPath + ".major_creditor_id");
-                if (majorCreditorId != null && !majorCreditorRepository.existsById(majorCreditorId)) {
-                    failures.add(impositionPath + ".major_creditor_id: major creditor id " + majorCreditorId
-                        + DOES_NOT_EXIST);
-                }
+                result.ifPresent(resultEntity -> validateImpositionCreditor(
+                    businessUnitId,
+                    docContext,
+                    impositionPath,
+                    resultEntity.getImpositionCreditor(),
+                    failures));
             }
         }
     }
 
-    private void validatePaymentTermsEnforcements(JsonPathUtil.DocContext docContext, List<String> failures) {
+    private void validatePaymentTermsEnforcements(
+        JsonPathUtil.DocContext docContext,
+        List<String> failures,
+        Map<String, Optional<ResultEntity>> resultCache) {
         List<?> enforcements = safeReadList(docContext, ROOT_PATH + ".payment_terms.enforcements");
         if (enforcements == null) {
             return;
@@ -112,9 +124,113 @@ public class DraftAccountReferenceValidationService {
             String enforcementPath = ROOT_PATH + ".payment_terms.enforcements[" + enforcementIndex + "]";
 
             String resultId = safeReadString(docContext, enforcementPath + ".result_id", null);
-            if (resultId != null && !resultRepository.existsById(resultId)) {
+            if (resultId != null && findResult(resultId, resultCache).isEmpty()) {
                 failures.add(enforcementPath + ".result_id: result id " + resultId + DOES_NOT_EXIST);
             }
+        }
+    }
+
+    private Optional<ResultEntity> findResult(String resultId, Map<String, Optional<ResultEntity>> resultCache) {
+        if (resultId == null) {
+            return Optional.empty();
+        }
+        return resultCache.computeIfAbsent(resultId, resultRepository::findById);
+    }
+
+    private void validateImpositionCreditor(
+        Short businessUnitId,
+        JsonPathUtil.DocContext docContext,
+        String impositionPath,
+        ImpositionCreditor impositionCreditor,
+        List<String> failures) {
+        if (businessUnitId == null || impositionCreditor == null) {
+            return;
+        }
+
+        Long majorCreditorId = safeReadLong(docContext, impositionPath + ".major_creditor_id");
+        boolean minorCreditorPresent = docContext.readOrNull(impositionPath + ".minor_creditor") != null;
+
+        switch (impositionCreditor) {
+            case CF -> validateCentralFundCreditor(businessUnitId, impositionPath, failures);
+            case CPS -> validateProsecutionServiceCreditor(businessUnitId, impositionPath, failures);
+            case NOT_CPS -> validateMajorOrMinorCreditor(
+                businessUnitId,
+                impositionPath,
+                majorCreditorId,
+                minorCreditorPresent,
+                impositionCreditor,
+                true,
+                failures);
+            case ANY -> validateMajorOrMinorCreditor(
+                businessUnitId,
+                impositionPath,
+                majorCreditorId,
+                minorCreditorPresent,
+                impositionCreditor,
+                false,
+                failures);
+        }
+    }
+
+    private void validateCentralFundCreditor(Short businessUnitId, String impositionPath, List<String> failures) {
+        if (!creditorAccountRepository.existsByBusinessUnitIdAndCreditorAccountType(
+            businessUnitId,
+            CreditorAccountType.CF)) {
+            failures.add(
+                impositionPath + ".major_creditor_id: no central fund creditor account exists for business unit "
+                    + businessUnitId);
+        }
+    }
+
+    private void validateProsecutionServiceCreditor(
+        Short businessUnitId,
+        String impositionPath,
+        List<String> failures) {
+        if (!creditorAccountRepository.existsByBusinessUnitIdAndCreditorAccountTypeAndProsecutionService(
+            businessUnitId,
+            CreditorAccountType.MJ,
+            true)) {
+            failures.add(
+                impositionPath
+                    + ".major_creditor_id: no prosecution service creditor account exists for business unit "
+                    + businessUnitId);
+        }
+    }
+
+    private void validateMajorOrMinorCreditor(
+        Short businessUnitId,
+        String impositionPath,
+        Long majorCreditorId,
+        boolean minorCreditorPresent,
+        ImpositionCreditor impositionCreditor,
+        boolean excludeProsecutionService,
+        List<String> failures) {
+        if (majorCreditorId == null) {
+            if (!minorCreditorPresent) {
+                failures.add(
+                    impositionPath + ".minor_creditor: a minor creditor or valid major creditor id is required for "
+                        + "result creditor rule " + impositionCreditor.getLabel());
+            }
+            return;
+        }
+
+        boolean creditorAccountExists = excludeProsecutionService
+            ? creditorAccountRepository
+            .existsByBusinessUnitIdAndCreditorAccountTypeAndProsecutionServiceAndMajorCreditorId(
+                businessUnitId,
+                CreditorAccountType.MJ,
+                false,
+                majorCreditorId)
+            : creditorAccountRepository.existsByBusinessUnitIdAndCreditorAccountTypeAndMajorCreditorId(
+                businessUnitId,
+                CreditorAccountType.MJ,
+                majorCreditorId);
+
+        if (!creditorAccountExists) {
+            failures.add(
+                impositionPath + ".major_creditor_id: major creditor id " + majorCreditorId
+                    + " is not valid for business unit " + businessUnitId
+                    + " and result creditor rule " + impositionCreditor.getLabel());
         }
     }
 

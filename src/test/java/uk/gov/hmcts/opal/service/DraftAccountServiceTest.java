@@ -189,7 +189,10 @@ class DraftAccountServiceTest {
 
         // Assert
         assertEquals(draftAccountEntity.getAccount(), result.getAccount());
-        verify(referenceValidationService).validateReferences(addDraftAccountDto.getAccount());
+        verify(referenceValidationService).validateReferences(
+            addDraftAccountDto.getBusinessUnitId(),
+            addDraftAccountDto.getAccount()
+        );
         ArgumentCaptor<AddDraftAccountRequestDto> captor = ArgumentCaptor.forClass(AddDraftAccountRequestDto.class);
         verify(draftAccountTransactional, times(1)).submitDraftAccount(captor.capture());
         assertEquals("USER01", captor.getValue().getSubmittedBy());
@@ -317,7 +320,10 @@ class DraftAccountServiceTest {
         assertEquals(DraftAccountType.FINE, result.getAccountType());
         assertEquals(DraftAccountStatus.RESUBMITTED, result.getAccountStatus());
         assertEquals(createTimelineDataString(), result.getTimelineData());
-        verify(referenceValidationService).validateReferences(replaceDto.getAccount());
+        verify(referenceValidationService).validateReferences(
+            replaceDto.getBusinessUnitId(),
+            replaceDto.getAccount()
+        );
 
         ArgumentCaptor<ReplaceDraftAccountRequestDto> captor =
             ArgumentCaptor.forClass(ReplaceDraftAccountRequestDto.class);
