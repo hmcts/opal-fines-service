@@ -6,13 +6,65 @@ on:
       - opened
       - reopened
       - synchronize
+      - labeled
+      - unlabeled
 permissions:
-  id-token: write
-  contents: read
+  contents: write
+  pull-requests: write
+concurrency:
+  group: flyway-dupe-checker-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: 0
+      - name: Select Flyway migration update mode
+        id: flyway_mode
+        run: |
+          if jq -e 'any(.pull_request.labels[]; .name == "disable_migration_update")' "$GITHUB_EVENT_PATH" >/dev/null; then
+            echo "mode=check-only" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=auto-update" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Reject automatic Flyway migration updates from forks
+        if: steps.flyway_mode.outputs.mode == 'auto-update' && github.event.pull_request.head.repo.full_name != github.repository
+        run: |
+          echo "Automatic Flyway migration updates are supported only for same-repository pull requests. Add the disable_migration_update label to run duplicate detection without automatic renaming." >&2
+          exit 1
+      - name: Fetch master
+        run: git fetch "https://github.com/${{ github.event.pull_request.base.repo.full_name }}.git" master:refs/remotes/origin/master
       - name: Check for duplicate Flyway scripts
-        run: ./bin/ci/flyway-dupe-checker.sh
+        run: ./bin/ci/flyway-dupe-checker.sh --mode=${{ steps.flyway_mode.outputs.mode }} --summary-file flyway-rename-summary.md
+      - name: Detect Flyway migration renames
+        id: flyway_changes
+        run: |
+          if [ -s flyway-rename-summary.md ] && { ! git diff --quiet -- src/main/resources/db/migration || ! git diff --cached --quiet -- src/main/resources/db/migration; }; then
+            echo "renamed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "renamed=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Commit Flyway migration renames
+        if: steps.flyway_changes.outputs.renamed == 'true' && github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/main/resources/db/migration
+          git commit -m "chore: bump flyway migration versions"
+          git push
+      - name: Comment on renamed Flyway migrations
+        if: steps.flyway_changes.outputs.renamed == 'true' && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          {
+            echo "Flyway migration versions were updated:"
+            echo
+            cat flyway-rename-summary.md
+          } > flyway-pr-comment.md
+          gh pr comment "$PR_NUMBER" --body-file flyway-pr-comment.md

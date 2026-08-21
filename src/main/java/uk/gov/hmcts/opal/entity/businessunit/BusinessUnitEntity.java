@@ -66,7 +66,7 @@ public class BusinessUnitEntity {
     @Column(name = "business_unit_name", length = 200, nullable = false)
     private String businessUnitName;
 
-    @Column(name = "business_unit_code", length = 4)
+    @Column(name = "business_unit_code", length = 4, nullable = false)
     private String businessUnitCode;
 
     @Column(name = "business_unit_type", length = 20, nullable = false)

@@ -5,6 +5,7 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -44,7 +45,7 @@ public class GetMajorCreditorAccountHeaderSummaryLegacyResponse implements ToXml
         private Long creditorAccountId;
 
         @XmlElement(name = "account_version")
-        private Long accountVersion;
+        private BigInteger accountVersion;
 
         @XmlElement(name = "account_number")
         private String accountNumber;

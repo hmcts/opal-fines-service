@@ -294,7 +294,7 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
         log.info(":getEnforcementStatus: Response body:\n" + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isOk())
-            .andExpect(header().string("ETag", "\"20\""))
+            .andExpect(header().string("ETag", isLegacy ? OVER_LONG_VERSION_ETAG : "\"20\""))
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(ignoreForLegacy(jsonPath("$.defendant_account_type").value("adult"), isLegacy))
             .andExpect(jsonPath("$.employer_flag").value(true))
