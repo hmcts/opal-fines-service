@@ -5,6 +5,7 @@ import static uk.gov.hmcts.opal.entity.draft.DraftAccountStatus.PUBLISHED;
 import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_ID;
 import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_NO;
 import static uk.gov.hmcts.opal.service.DraftAccountService.EVENT_ACCOUNT_APPROVAL;
+import static uk.gov.hmcts.opal.service.DraftAccountService.EVENT_ACCOUNT_DELETION;
 import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
 import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
 import static uk.gov.hmcts.opal.util.VersionUtils.verifyIfMatch;
@@ -65,7 +66,6 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
 
     private static final EnumSet<DraftAccountStatus> VALID_UPDATE_STATUSES =
         EnumSet.of(DraftAccountStatus.PUBLISHING_PENDING, DraftAccountStatus.REJECTED, DraftAccountStatus.DELETED);
-    public static final String EVENT_NAME_DELETION = "Business Function - Deletion of Draft Account";
 
     private final DraftAccountRepository draftAccountRepository;
 
@@ -386,7 +386,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         UserState userState, Short businessUnitId) {
         if (submitterUsername != null && submitterUsername.equals(updaterUserName)) {
             Map<String, Object> data = getSecurityLogDataMap(userState.getUserId(), draftAccountId, submitterUsername);
-            securityEventLoggingService.logEvent(EVENT_NAME_DELETION,
+            securityEventLoggingService.logEvent(EVENT_ACCOUNT_DELETION,
                   "Failure", businessUnitId, "Deletion", LocalDateTime.now(clock), data);
             throw new SubmitterDeniedException(submitterUsername, "delete");
         }
