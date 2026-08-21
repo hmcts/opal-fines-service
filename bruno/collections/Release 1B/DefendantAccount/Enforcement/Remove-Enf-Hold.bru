@@ -1,0 +1,31 @@
+meta {
+  name: Remove-Enf-Hold
+  type: http
+  seq: 2
+}
+
+patch {
+  url: {{baseURL}}/defendant-accounts/{{enfDefendantAccountId}}/remove-enf-hold
+  body: json
+  auth: bearer
+}
+
+headers {
+  Business-Unit-Id: 78
+  If-Match: 1
+}
+
+auth:bearer {
+  token: {{BEARER_TOKEN}}
+}
+
+body:json {
+  {
+    "reason": "Enforcement hold removed"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
