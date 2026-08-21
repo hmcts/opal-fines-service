@@ -59,22 +59,6 @@ public class DefendantAccountController {
         this.defendantAccountPartyService = defendantAccountPartyService;
     }
 
-    @GetMapping(value = "/{defendantAccountId}/defendant-account-parties/{defendantAccountPartyId}")
-    @Operation(summary = "Get details for a defendant account party")
-    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<GetDefendantAccountPartyResponse> getDefendantAccountParty(
-        @PathVariable Long defendantAccountId,
-        @PathVariable Long defendantAccountPartyId) {
-
-        log.debug(":GET:getDefendantAccountParty: for accountId={}, partyId={}", defendantAccountId,
-            defendantAccountPartyId);
-
-        GetDefendantAccountPartyResponse response =
-            defendantAccountPartyService.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
-
-        return buildResponse(response);
-    }
-
     @PostMapping(value = "/{defendantAccountId}/payment-terms")
     @Operation(summary = "Add Payment Terms to a defendant account")
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)

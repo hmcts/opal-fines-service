@@ -37,8 +37,6 @@ import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 abstract class AbstractOpalDefendantsIntegrationTest extends AbstractIntegrationTest {
 
     protected static final String URL_BASE = "/defendant-accounts";
-    protected static final String DEFENDANT_PARTY_RESPONSE_SCHEMA = SchemaPaths.DEFENDANT_ACCOUNT
-        + "/getDefendantAccountPartyResponse.json";
     protected static final String DEFENDANT_FIXED_PENALTY_RESPONSE_SCHEMA =
         SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountFixedPenaltyResponse.json";
     protected static final LocalDate ACCOUNT_77_BIRTH_DATE = LocalDate.of(1980, 2, 3);

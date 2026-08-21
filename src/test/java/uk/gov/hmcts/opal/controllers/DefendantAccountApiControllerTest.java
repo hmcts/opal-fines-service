@@ -27,6 +27,8 @@ import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
@@ -36,6 +38,7 @@ import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseComm
 import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchReferenceNumberDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
+import uk.gov.hmcts.opal.generated.model.GetPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
@@ -43,6 +46,8 @@ import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAc
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
+import uk.gov.hmcts.opal.mapper.response.DefendantAccountPartyResponseMapper;
+import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.ImpositionService;
 
@@ -56,10 +61,16 @@ class DefendantAccountApiControllerTest {
     private ImpositionService impositionService;
 
     @Mock
-    private DefendantAccountEnforcementService defendantAccountEnforcementService;
+    private DefendantAccountHistoryResponseMapper defendantAccountHistoryResponseMapper;
 
     @Mock
-    private DefendantAccountHistoryResponseMapper defendantAccountHistoryResponseMapper;
+    private DefendantAccountPartyService defendantAccountPartyService;
+
+    @Mock
+    private DefendantAccountPartyResponseMapper defendantAccountPartyResponseMapper;
+
+    @Mock
+    private DefendantAccountEnforcementService defendantAccountEnforcementService;
 
     @InjectMocks
     private DefendantAccountApiController defendantAccountApiController;
@@ -192,6 +203,32 @@ class DefendantAccountApiControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertSame(status, response.getBody());
         verify(defendantAccountService).getEnforcementStatus(defendantId);
+    }
+
+    @Test
+    void given_validRequest_when_getDefendantAccountParty_then_returnsMappedResponseWithEtag() {
+        Long defendantAccountId = 1L;
+        Long defendantAccountPartyId = 2L;
+        GetDefendantAccountPartyResponse serviceResponse = GetDefendantAccountPartyResponse.builder()
+            .version(BigInteger.TEN)
+            .build();
+        GetPartyResponseDefendantAccount generatedResponse =
+            GetPartyResponseDefendantAccount.builder()
+                .version(BigInteger.TEN)
+                .build();
+
+        when(defendantAccountPartyService.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId))
+            .thenReturn(serviceResponse);
+        when(defendantAccountPartyResponseMapper.toGeneratedResponse(serviceResponse)).thenReturn(generatedResponse);
+
+        ResponseEntity<GetPartyResponseDefendantAccount> response =
+            defendantAccountApiController.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("\"10\"", response.getHeaders().getETag());
+        assertSame(generatedResponse, response.getBody());
+        verify(defendantAccountPartyService).getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
+        verify(defendantAccountPartyResponseMapper).toGeneratedResponse(serviceResponse);
     }
 
     @Test

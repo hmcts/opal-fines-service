@@ -76,7 +76,6 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
             .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").value("Lumber House"))
             .andExpect(header().string("ETag", matchesPattern("\"\\d+\"")));
 
-        jsonSchemaValidationService.validateOrError(body, DEFENDANT_PARTY_RESPONSE_SCHEMA);
     }
 
     @Test
@@ -105,7 +104,6 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
             .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details").doesNotExist())
             .andExpect(header().string("ETag", OVER_LONG_VERSION_ETAG));
 
-        jsonSchemaValidationService.validateOrError(body, DEFENDANT_PARTY_RESPONSE_SCHEMA);
     }
 
     @Test

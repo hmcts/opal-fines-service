@@ -1,0 +1,16 @@
+meta {
+  name: Get-Party
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseURL}}/defendant-accounts/{{defendantAccountId}}/defendant-account-parties/99000000002018
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

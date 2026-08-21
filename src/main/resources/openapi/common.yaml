@@ -543,6 +543,7 @@ components:
       title: Party Details
       type: object
       additionalProperties: false
+      x-json-include: NON_NULL
       properties:
         party_id:
           type: string
@@ -584,6 +585,8 @@ components:
           enum:
             - CY
             - EN
+        language_display_name:
+          type: string
       required:
         - language_code
     addressDetails:
