@@ -46,7 +46,7 @@ public class DraftAccountRequestFactory {
         JSONObject postBody = new JSONObject();
 
         addLongToJsonObject(postBody, dataToPost, "business_unit_id");
-        addAllToJsonObject(postBody, dataToPost, "submitted_by", "submitted_by_name", "account_type");
+        addAllToJsonObject(postBody, dataToPost, "account_type");
         addToJsonObjectOrNull(postBody, dataToPost, "account_status");
         postBody.put("account", loadAccountFixture(dataToPost.get("account")));
         return postBody;
@@ -56,17 +56,15 @@ public class DraftAccountRequestFactory {
      * Builds the standard create-draft-account payload used by negative header/content-type tests.
      *
      * @param businessUnitId business-unit identifier to include in the payload.
-     * @param submittedBy submitter identifier to include in the payload.
      * @return request body for the create call.
      * @throws JSONException if the JSON payload cannot be created from the supplied values.
      * @throws IOException if a referenced fixture cannot be read.
      */
-    public JSONObject buildDefaultCreateRequestBody(String businessUnitId, String submittedBy)
+    public JSONObject buildDefaultCreateRequestBody(String businessUnitId)
         throws JSONException, IOException {
         return buildCreateRequestBody(
             Map.of(
                 "business_unit_id", businessUnitId,
-                "submitted_by", submittedBy,
                 "account_type", "Fine",
                 "account_status", "",
                 "account", DEFAULT_ACCOUNT_PATH
@@ -93,8 +91,6 @@ public class DraftAccountRequestFactory {
             addLongToJsonObject(postBody, dataToPost, "business_unit_id");
         }
 
-        addToJsonObjectOrNull(postBody, dataToPost, "submitted_by");
-        addToJsonObject(postBody, dataToPost, "submitted_by_name");
         addToJsonObject(postBody, dataToPost, "account_type");
         addToJsonObjectOrNull(postBody, dataToPost, "account_status");
         postBody.put("account", loadAccountFixture(dataToPost.get("account")));

@@ -144,7 +144,7 @@ public class Release1aFeatureToggleStepDef extends BaseStepDef {
      * @throws JSONException if the JSON payload cannot be assembled.
      */
     private JSONObject buildDraftAccountCreateRequest() throws IOException, JSONException {
-        return requestFactory.buildDefaultCreateRequestBody(DEFAULT_BUSINESS_UNIT_ID, DEFAULT_SUBMITTED_BY);
+        return requestFactory.buildDefaultCreateRequestBody(DEFAULT_BUSINESS_UNIT_ID);
     }
 
     /**
@@ -157,8 +157,6 @@ public class Release1aFeatureToggleStepDef extends BaseStepDef {
     private JSONObject buildDraftAccountReplaceRequest() throws IOException, JSONException {
         Map<String, String> replacementData = new LinkedHashMap<>();
         replacementData.put("business_unit_id", DEFAULT_BUSINESS_UNIT_ID);
-        replacementData.put("submitted_by", DEFAULT_SUBMITTED_BY);
-        replacementData.put("submitted_by_name", DEFAULT_SUBMITTED_BY_NAME);
         replacementData.put("account_type", DEFAULT_ACCOUNT_TYPE);
         replacementData.put("account_status", "");
         replacementData.put("account", DraftAccountRequestFactory.DEFAULT_ACCOUNT_PATH);
@@ -177,8 +175,7 @@ public class Release1aFeatureToggleStepDef extends BaseStepDef {
     private JSONObject buildDraftAccountUpdateRequest() throws JSONException {
         return new JSONObject()
             .put("account_status", "Publishing Pending")
-            .put("business_unit_id", 77)
-            .put("validated_by", DEFAULT_SUBMITTED_BY);
+            .put("business_unit_id", 77);
     }
 
 

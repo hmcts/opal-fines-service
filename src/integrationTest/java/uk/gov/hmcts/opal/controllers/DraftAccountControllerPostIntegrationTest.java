@@ -40,8 +40,6 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     private String validRawJsonCreateRequestBody() {
         AddDraftAccountRequestDto dto = AddDraftAccountRequestDto.builder()
             .businessUnitId((short) 78)
-            .submittedBy("BUUID1")
-            .submittedByName("John")
             .account(validAccountJsonString())
             .accountType(DraftAccountType.FINE)
             .build();
@@ -56,8 +54,6 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     private String invalidLanguageRawJsonCreateRequestBody(String languageField) {
         AddDraftAccountRequestDto dto = AddDraftAccountRequestDto.builder()
             .businessUnitId((short) 78)
-            .submittedBy("BUUID1")
-            .submittedByName("John")
             .account(validAccountJsonStringWithDebtorLanguages()
                 .replace("\"%s\": \"EN\"".formatted(languageField), "\"%s\": \"English\"".formatted(languageField)))
             .accountType(DraftAccountType.FINE)
@@ -254,9 +250,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     void shouldReturn400WhenTimelineDataIsSupplied() throws Exception {
         String request = validCreateRequestBody()
             .replace(
-                "\"submitted_by\": \"BUUID1\",",
+                "\"business_unit_id\": 78,",
                 "\"timeline_data\": " + validTimelineDataString().trim()
-                    + ",\n              \"submitted_by\": \"BUUID1\","
+                    + ",\n              \"business_unit_id\": 78,"
             );
 
         mockMvc.perform(post(URL_BASE)
@@ -402,6 +398,31 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(expectBadRequest(
                 "The request does not conform to the required JSON schema",
+                "https://hmcts.gov.uk/problems/json-schema-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("Create draft account - Should return 400 when token-derived fields are supplied")
+    @JiraStory("PO-2461")
+    @JiraEpic("PO-2219")
+    void testPostDraftAccount_tokenDerivedFieldsAreSupplied() throws Exception {
+        String request = validCreateRequestBody().replace(
+            "\"business_unit_id\": 78,",
+            "\"business_unit_id\": 78,\n"
+                + "              \"submitted_by\": \"client-user\",\n"
+                + "              \"submitted_by_name\": \"Client User\","
+        );
+
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequest(
+                "Fields are not allowed in draft account requests: submitted_by, submitted_by_name",
                 "https://hmcts.gov.uk/problems/json-schema-validation"
             ));
     }
@@ -608,8 +629,6 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "Adult",
@@ -733,7 +752,6 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
               "draft_account_id": 5,
               "created_at": "2025-11-01T10:30:00+00:00",
               "business_unit_id": 78,
-              "validated_by": null,
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "adultOrYouthOnly",
@@ -833,9 +851,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 "account_notes": null
               },
               "account_snapshot": null,
-              "account_type": "Fine",
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "Business User 1"
+              "account_type": "Fine"
             }
 
             """;
@@ -849,8 +865,6 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                "account_snapshot":null,
                "account_status_date":null,
                "business_unit_id":77,
-               "submitted_by":"L077JG",
-               "submitted_by_name":"opal-test",
                "account":{
                   "account_type":"Fixed Penalty",
                   "defendant_type":"adultOrYouthOnly",
