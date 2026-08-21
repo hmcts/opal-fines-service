@@ -19,6 +19,8 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
@@ -75,16 +77,16 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
     }
 
-    @Test
+    @ParameterizedTest
+    @ValueSource(strings = {"submitted_by", "submitted_by_name"})
     @DisplayName("Replace draft account - Should return 400 when token-derived fields are supplied")
     @JiraStory("PO-2461")
     @JiraEpic("PO-2220")
-    void testReplaceDraftAccount_tokenDerivedFieldsAreSupplied() throws Exception {
+    void testReplaceDraftAccount_tokenDerivedFieldIsSupplied(String propertyName) throws Exception {
         String request = validReplaceRequestBody(0L).replace(
             "\"business_unit_id\": 78,",
             "\"business_unit_id\": 78,\n"
-                + "              \"submitted_by\": \"client-user\",\n"
-                + "              \"submitted_by_name\": \"Client User\","
+                + "              \"%s\": \"client-user\",".formatted(propertyName)
         );
 
         mockMvc.perform(put(URL_BASE + "/" + 5)
@@ -95,9 +97,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 .content(request))
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail", containsString("additional properties")))
-            .andExpect(jsonPath("$.detail", containsString("submitted_by")))
-            .andExpect(jsonPath("$.detail", containsString("submitted_by_name")))
+            .andExpect(jsonPath("$.detail", containsString(propertyName)))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
     }
 

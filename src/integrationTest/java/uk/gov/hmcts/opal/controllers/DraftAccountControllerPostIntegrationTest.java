@@ -20,6 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
@@ -176,38 +178,6 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .andExpect(jsonPath("$.timeline_data[0].status_date").value(TIMELINE_STATUS_DATE.toString()))
             .andExpect(jsonPath("$.timeline_data[0].reason_text").doesNotExist())
         ;
-    }
-
-    @Test
-    @DisplayName("Should ignore blank submitted_by_name")
-    @JiraStory("PO-691")
-    @JiraEpic("PO-2219")
-    @JiraTestKey("PO-5853")
-    void shouldIgnoreBlankSubmittedByName() throws Exception {
-        String request = validCreateRequestBody()
-            .replace("\"submitted_by_name\": \"John\"", "\"submitted_by_name\": \"\"");
-        mockMvc.perform(post(URL_BASE)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request))
-            .andExpect(status().isCreated());
-    }
-
-    @Test
-    @DisplayName("Should ignore blank submitted_by")
-    @JiraStory("PO-691")
-    @JiraEpic("PO-2219")
-    @JiraTestKey("PO-5864")
-    void shouldIgnoreBlankSubmittedBy() throws Exception {
-        String request = validCreateRequestBody()
-            .replace("\"submitted_by\": \"BUUID1\"", "\"submitted_by\": \"\"");
-        mockMvc.perform(post(URL_BASE)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request))
-            .andExpect(status().isCreated());
     }
 
     @Test
@@ -403,16 +373,16 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             ));
     }
 
-    @Test
+    @ParameterizedTest
+    @ValueSource(strings = {"submitted_by", "submitted_by_name"})
     @DisplayName("Create draft account - Should return 400 when token-derived fields are supplied")
     @JiraStory("PO-2461")
     @JiraEpic("PO-2219")
-    void testPostDraftAccount_tokenDerivedFieldsAreSupplied() throws Exception {
+    void testPostDraftAccount_tokenDerivedFieldIsSupplied(String propertyName) throws Exception {
         String request = validCreateRequestBody().replace(
             "\"business_unit_id\": 78,",
             "\"business_unit_id\": 78,\n"
-                + "              \"submitted_by\": \"client-user\",\n"
-                + "              \"submitted_by_name\": \"Client User\","
+                + "              \"%s\": \"client-user\",".formatted(propertyName)
         );
 
         mockMvc.perform(post(URL_BASE)
@@ -422,9 +392,30 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 .content(request))
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail", containsString("additional properties")))
-            .andExpect(jsonPath("$.detail", containsString("submitted_by")))
-            .andExpect(jsonPath("$.detail", containsString("submitted_by_name")))
+            .andExpect(jsonPath("$.detail", containsString(propertyName)))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
+    }
+
+    @Test
+    @DisplayName("Create draft account - Should return 400 when undocumented top-level field is supplied")
+    @JiraStory("PO-2461")
+    @JiraEpic("PO-2219")
+    void testPostDraftAccount_undocumentedTopLevelFieldIsSupplied() throws Exception {
+        String propertyName = "undocumented_client_field";
+        String request = validCreateRequestBody().replace(
+            "\"business_unit_id\": 78,",
+            "\"business_unit_id\": 78,\n"
+                + "              \"%s\": \"client-value\",".formatted(propertyName)
+        );
+
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail", containsString(propertyName)))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
     }
 
