@@ -166,7 +166,7 @@ class DraftAccountTransactionalTest {
         assertTimelineLastEntry(
             savedCaptor.getValue().getTimelineData(),
             "TestUser",
-            DraftAccountStatus.SUBMITTED.getLabel(),
+            "Created",
             null
         );
         assertEquals(DraftAccountStatus.SUBMITTED, savedCaptor.getValue().getAccountStatus());
@@ -248,7 +248,7 @@ class DraftAccountTransactionalTest {
         assertTimelineLastEntry(
             savedCaptor.getValue().getTimelineData(),
             "TestUser",
-            DraftAccountStatus.RESUBMITTED.getLabel(),
+            "Submitted",
             null
         );
     }

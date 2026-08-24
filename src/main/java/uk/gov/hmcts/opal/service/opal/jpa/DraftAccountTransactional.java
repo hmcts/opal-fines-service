@@ -368,8 +368,16 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         TimelineData timelineData = existingTimelineData == null || existingTimelineData.isBlank()
             ? new TimelineData()
             : new TimelineData(existingTimelineData);
-        timelineData.insertEntry(username, status.getLabel(), LocalDate.now(clock), reasonText);
+        timelineData.insertEntry(username, timelineStatusLabel(status), LocalDate.now(clock), reasonText);
         return timelineData.toJson();
+    }
+
+    private String timelineStatusLabel(DraftAccountStatus status) {
+        return switch (status) {
+            case SUBMITTED -> "Created";
+            case RESUBMITTED -> "Submitted";
+            default -> status.getLabel();
+        };
     }
 
     private void checkValidatorIsNotSubmitter(String submitterUsername, String updaterUserName, Long draftAccountId,
