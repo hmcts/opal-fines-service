@@ -28,12 +28,9 @@ Feature: Update Draft Accounts
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
       | account_status    | Submitted                                   |
-      | submitted_by      | PATCH002                                    |
-      | submitted_by_name | Laura Clerk                                 |
     When I patch the draft account with the following details
       | business_unit_id | 73                   |
       | account_status   | Rejected             |
-      | validated_by     | PATCH002_REVIEWER    |
       | reason_text      | Reason for rejection |
       | If-Match         | 0                    |
 
@@ -49,7 +46,7 @@ Feature: Update Draft Accounts
       | timeline_data[0].status             | Submitted            |
       | timeline_data[0].username           | L073JG               |
       | timeline_data[1].status             | Rejected             |
-      | timeline_data[1].username           | PATCH002_REVIEWER    |
+      | timeline_data[1].username           | L073JG               |
       | timeline_data[1].reason_text        | Reason for rejection |
 
   @JIRA-STORY:PO-745 @JIRA-STORY:PO-1858 @cleanUpData @JIRA-EPIC:PO-2220 @JIRA-TEST-KEY:PO-5686
@@ -67,7 +64,7 @@ Feature: Update Draft Accounts
     Then the request is rejected as forbidden and the created draft account remains with the following data
       | business_unit_id                    | 73           |
       | account_type                        | Fine         |
-      | account_status                      | Resubmitted  |
+      | account_status                      | Submitted    |
       | account_snapshot.defendant_name     | LNAME, FNAME |
       | account_snapshot.date_of_birth      | 2000-01-01   |
       | account_snapshot.account_type       | Fine         |
