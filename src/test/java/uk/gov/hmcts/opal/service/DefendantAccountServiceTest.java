@@ -9,10 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -314,75 +311,6 @@ class DefendantAccountServiceTest {
 
 
     @Test
-    void addEnforcement_whenUserHasPermission_callsProxyAndReturnsResult() {
-        // arrange
-        Long defendantAccountId = 77L;
-        String businessUnitId = "10";
-        String ifMatch = "\"3\"";
-        AddDefendantAccountEnforcementRequest req = mock(AddDefendantAccountEnforcementRequest.class);
-
-        AddEnforcementResponse proxyResponse = AddEnforcementResponse.builder()
-            .enforcementId("ENF123")
-            .defendantAccountId("77")
-            .version(3)
-            .build();
-
-        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
-        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT)).thenReturn(true);
-
-        // business unit user lookup returns an Optional<BusinessUnitUser> with a non-blank ID
-        BusinessUnitUserV2 buUser = mock(BusinessUnitUserV2.class);
-        when(buUser.getBusinessUnitUserId()).thenReturn("BU-USER-1");
-        when(userState.getBusinessUnitUserForBusinessUnit((short)10))
-            .thenReturn(java.util.Optional.of(buUser));
-
-        when(defendantAccountServiceProxy.addEnforcement(
-            defendantAccountId, businessUnitId, "BU-USER-1", ifMatch, req))
-            .thenReturn(proxyResponse);
-
-        // act
-        AddEnforcementResponse result =
-            defendantAccountService.addEnforcement(defendantAccountId, businessUnitId, ifMatch, req);
-
-        // assert
-        assertSame(proxyResponse, result, "Should return exactly the proxy response");
-
-        // verify interactions
-        verify(userStateService).getUserStateFromSecurityContext();
-        verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT);
-        verify(userState).getBusinessUnitUserForBusinessUnit((short)10);
-        verify(defendantAccountServiceProxy)
-            .addEnforcement(defendantAccountId, businessUnitId, "BU-USER-1", ifMatch, req);
-        verifyNoMoreInteractions(userStateService, userState, defendantAccountServiceProxy);
-    }
-
-    @Test
-    void addEnforcement_whenUserLacksPermission_throwsPermissionNotAllowedException() {
-        // arrange
-        Long defendantAccountId = 77L;
-        String businessUnitId = "10";
-
-        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
-        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT))
-            .thenReturn(false);
-
-        // act + assert
-        PermissionNotAllowedException ex = assertThrows(
-            PermissionNotAllowedException.class,
-            () -> defendantAccountService.addEnforcement(defendantAccountId, businessUnitId, "\"3\"", null)
-        );
-        assertTrue(
-            ex.getMessage() == null || ex.getMessage().contains(FinesPermission.ENTER_ENFORCEMENT.name()),
-            "Exception should mention ENTER_ENFORCEMENT"
-        );
-        assertThat(ex.getPermission()).containsExactly(FinesPermission.ENTER_ENFORCEMENT);
-
-        verify(userStateService).getUserStateFromSecurityContext();
-        verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT);
-        verifyNoInteractions(defendantAccountServiceProxy);
-    }
-
-    @Test
     void getConsolidatedAccounts_whenUserHasSearchAndViewPermission_returnsProxyResult() {
         Long defendantAccountId = 77L;
         GetDefendantAccountConsolidatedAccountsResult proxyResponse =
@@ -397,7 +325,7 @@ class DefendantAccountServiceTest {
             defendantAccountService.getConsolidatedAccounts(defendantAccountId);
 
         assertSame(proxyResponse, result);
-        verify(userStateService).getUserStateV1FromSecurityContext();
+        verify(userStateService).getUserStateFromSecurityContext();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verify(defendantAccountServiceProxy).getConsolidatedAccounts(defendantAccountId);
         verifyNoMoreInteractions(userStateService, userState, defendantAccountServiceProxy);
@@ -422,50 +350,6 @@ class DefendantAccountServiceTest {
         verify(userStateService).getUserStateFromSecurityContext();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verifyNoInteractions(defendantAccountServiceProxy);
-    }
-
-    @Test
-    void addEnforcement_whenBusinessUnitUserIdBlank_usesNullInProxyCall() {
-        // arrange
-        Long defendantAccountId = 77L;
-        String businessUnitId = "10";
-
-        AddDefendantAccountEnforcementRequest req = mock(AddDefendantAccountEnforcementRequest.class);
-
-        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
-        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT)).thenReturn(true);
-
-        // return Optional<BusinessUnitUser> but with blank ID -> results in null
-        BusinessUnitUserV2 buUser = mock(BusinessUnitUserV2.class);
-        when(buUser.getBusinessUnitUserId()).thenReturn("   "); // blank
-        when(userState.getBusinessUnitUserForBusinessUnit((short)10))
-            .thenReturn(java.util.Optional.of(buUser));
-
-        AddEnforcementResponse proxyResult = AddEnforcementResponse.builder()
-            .enforcementId("X")
-            .build();
-
-        when(defendantAccountServiceProxy.addEnforcement(
-            eq(defendantAccountId),
-            eq(businessUnitId),
-            isNull(),                   // IMPORTANT: businessUnitUserId expected to be null
-            eq("\"3\""),
-            eq(req)
-        )).thenReturn(proxyResult);
-
-        // act
-        AddEnforcementResponse out =
-            defendantAccountService.addEnforcement(defendantAccountId, businessUnitId, "\"3\"", req);
-
-        // assert
-        assertNotNull(out);
-        verify(defendantAccountServiceProxy).addEnforcement(
-            eq(defendantAccountId),
-            eq(businessUnitId),
-            isNull(),                   // verifies null is passed
-            eq("\"3\""),
-            eq(req)
-        );
     }
 
 

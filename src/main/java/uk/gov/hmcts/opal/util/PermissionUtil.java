@@ -4,6 +4,7 @@ import org.springframework.security.access.AccessDeniedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
@@ -47,6 +48,7 @@ public class PermissionUtil {
             permission -> {
                 UserStateV2.UserBusinessUnits userBusinessUnits = userStateService
                     .getUserStateFromSecurityContext()
+                    .getDomainBusinessUnitUsers(Domain.FINES)
                     .allBusinessUnitUsersWithPermission(permission);
                 return refData
                     .stream()

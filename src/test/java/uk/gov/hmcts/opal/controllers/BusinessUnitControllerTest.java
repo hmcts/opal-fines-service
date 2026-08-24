@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -93,7 +94,6 @@ class BusinessUnitControllerTest {
         when(domainBusinessUnitUsers.allBusinessUnitUsersWithPermission(any()))
             .thenReturn(new TestUserBusinessUnits(true));
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
-        when(userState.allBusinessUnitUsersWithPermission(any())).thenReturn(new TestUserBusinessUnits(true));
 
         // Act
         Optional<String> filter = Optional.empty();
@@ -110,7 +110,7 @@ class BusinessUnitControllerTest {
     }
 
     @Test
-    void testGetBusinessUnitsRefData_Permission_Empty() {
+    void testGetBusinessUnitsRefData_Permission_Empty() throws Exception {
         // Arrange
         UserStateV2 userState = mock(UserStateV2.class);
         DomainBusinessUnitUsers domainBusinessUnitUsers = mock(DomainBusinessUnitUsers.class);
@@ -118,7 +118,7 @@ class BusinessUnitControllerTest {
         List<BusinessUnitReferenceData> businessUnitList = List.of(entity);
 
         when(businessUnitService.getReferenceData(any())).thenReturn(businessUnitList);
-        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
+        doReturn(userState).when(userStateService).getUserStateFromSecurityContext();
         when(userState.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(domainBusinessUnitUsers);
         when(domainBusinessUnitUsers.allBusinessUnitUsersWithPermission(any()))
             .thenReturn(new TestUserBusinessUnits(false));
@@ -134,6 +134,10 @@ class BusinessUnitControllerTest {
         BusinessUnitReferenceDataResults refDataResults = response.getBody();
         assertEquals(0, refDataResults.getCount());
         verify(businessUnitService, times(1)).getReferenceData(any());
+    }
+
+    private Object getTestUnitBusinessUsers() {
+        return new TestUserBusinessUnits(false);
     }
 
     private BusinessUnitReferenceData createBusinessUnitReferenceData() {
