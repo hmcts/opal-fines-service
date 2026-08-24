@@ -56,7 +56,7 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
             .andExpect(jsonPath("$.fixed_penalty_ticket_number").value("888"))
             .andExpect(jsonPath("$.business_unit_summary.business_unit_id").value("78"))
             .andExpect(jsonPath("$.business_unit_summary.business_unit_code").value("NE"))
-            .andExpect(jsonPath("$.payment_state_summary.imposed_amount").value(700.58))
+            .andExpect(jsonPath("$.payment_state_summary.imposed_amount").value(-700.58))
             .andExpect(jsonPath("$.payment_state_summary.paid_amount").value(200.00))
             .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
             .andExpect(jsonPath("$.party_details.individual_details.forenames").value("Anna"))

@@ -116,9 +116,9 @@ public class EnforcementSummaryReportServiceTest extends AbstractIntegrationTest
                 assertThat(dto.getCollectionOrder()).isEqualTo("Y");
                 assertThat(dto.getLastMovementDate()).isEqualTo(LocalDate.of(2024, 1, 2));
                 assertThat(dto.getImposingCourt()).isEqualTo("AAA Test Court");
-                assertThat(dto.getAmountImposed()).isEqualByComparingTo("700.58");
-                assertThat(dto.getAmountPaid()).isEqualByComparingTo("200.00");
-                assertThat(dto.getBalance()).isEqualByComparingTo("-500.58");
+                assertThat(dto.getAmountImposed()).isEqualByComparingTo("-700.58");
+                assertThat(dto.getAmountPaid()).isEqualByComparingTo("800.00");
+                assertThat(dto.getBalance()).isEqualByComparingTo("99.42");
                 assertThat(dto.getAddress1()).isEqualTo("Lumber House");
                 assertThat(dto.getAddress2()).isEqualTo("77 Gordon Road");
                 assertThat(dto.getAddress3()).isEqualTo("Maidstone, Kent");

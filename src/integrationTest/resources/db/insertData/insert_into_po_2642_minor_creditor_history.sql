@@ -61,7 +61,7 @@ INSERT INTO public.defendant_accounts (
 )
 VALUES
   (99264200001001, 32642, 'P264DEF1',
-   100.00, 20.00, 80.00, 'CS', 'Fine',
+   -100.00, 20.00, -80.00, 'CS', 'Fine',
    1);
 
 INSERT INTO public.creditor_transactions (

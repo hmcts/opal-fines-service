@@ -53,8 +53,8 @@ INSERT INTO defendant_accounts (defendant_account_id, business_unit_id, account_
                                 prosecutor_case_reference, enforcement_case_status, account_type,
                                 version_number)
 VALUES (1001, 78, '100B',
-        '2023-11-03 16:05:10', 9201, 700.58,
-        200.00, 500.58, 'L', NULL,
+        '2023-11-03 16:05:10', 9201, -700.58,
+        200.00, -500.58, 'L', NULL,
         9201, 9201, '2024-01-04 18:06:11',
         '2024-01-02 17:08:09', '2024-01-03 12:00:12', 'REM',
         'Kingston-upon-Thames Mags Court', NULL, NULL,
