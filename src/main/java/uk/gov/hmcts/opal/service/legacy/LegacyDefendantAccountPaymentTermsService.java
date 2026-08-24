@@ -216,7 +216,7 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
             .build();
     }
 
-    private GetDefendantAccountPaymentTermsResponse toPaymentTermsResponse(
+    /*private GetDefendantAccountPaymentTermsResponse toPaymentTermsResponse(
         LegacyGetDefendantAccountPaymentTermsResponse legacy) {
 
         if (legacy == null) {
@@ -230,7 +230,7 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
             .paymentCardLastRequested(legacy.getPaymentCardLastRequested())
             .lastEnforcement(legacy.getLastEnforcement())
             .build();
-    }
+    }*/
 
     private static PaymentTerms toPaymentTerms(LegacyPaymentTerms legacy) {
         if (legacy == null) {

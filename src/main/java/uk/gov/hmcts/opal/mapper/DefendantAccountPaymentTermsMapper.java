@@ -6,9 +6,8 @@ import org.mapstruct.Mapping;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.mapper.request.PaymentTermsMapper;
 
-@Mapper(componentModel = "spring", uses = PaymentTermsMapper.class, imports = BigInteger.class)
+@Mapper(componentModel = "spring", imports = BigInteger.class)
 public interface DefendantAccountPaymentTermsMapper {
 
     @Mapping(target = "paymentTerms", source = ".")
@@ -18,5 +17,6 @@ public interface DefendantAccountPaymentTermsMapper {
     DefendantAccountPaymentTermsResponse toResponse(PaymentTermsEntity entity);
 
     @Mapping(target = "paymentTerms", source = ".")
+    @Mapping(target = "version", defaultExpression = "java((BigInteger.ONE).longValue())")
     DefendantAccountPaymentTermsResponse toResponse(LegacyGetDefendantAccountPaymentTermsResponse response);
 }
