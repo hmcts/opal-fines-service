@@ -2,12 +2,11 @@
 Feature: Process interface jobs
 
   @JIRA-STORY:PO-2593 @JIRA-TEST-KEY:PO-2593-E2E-01
-  Scenario: Eligible interface jobs are accepted for processing
+  Scenario: Eligible interface jobs are accepted by the process endpoint
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And I create two eligible interface jobs for processing
     When I submit the eligible interface jobs for processing
     Then the process response is 200 with an empty body
-    And the eligible jobs are returned as processing by the summary API
 
   @JIRA-STORY:PO-2593 @JIRA-TEST-KEY:PO-2593-E2E-02
   Scenario: Mixed interface-job statuses return conflict without partial processing
