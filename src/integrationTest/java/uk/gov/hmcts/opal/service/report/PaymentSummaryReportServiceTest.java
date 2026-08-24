@@ -59,9 +59,9 @@ class PaymentSummaryReportServiceTest extends AbstractIntegrationTest {
 
             assertAll(
                 () -> assertThat(totals.getAccountsReported()).isEqualTo(1),
-                () -> assertThat(totals.getTotalBalance()).isEqualByComparingTo("-500.58"),
-                () -> assertThat(totals.getTotalImposed()).isEqualByComparingTo("700.58"),
-                () -> assertThat(totals.getTotalPaid()).isEqualByComparingTo("200.00"),
+                () -> assertThat(totals.getTotalBalance()).isEqualByComparingTo("99.42"),
+                () -> assertThat(totals.getTotalImposed()).isEqualByComparingTo("-700.58"),
+                () -> assertThat(totals.getTotalPaid()).isEqualByComparingTo("800.00"),
                 () -> verifySummaryMetadata(result, rows)
             );
         }

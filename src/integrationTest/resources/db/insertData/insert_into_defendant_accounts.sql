@@ -104,8 +104,8 @@ INSERT INTO defendant_accounts
 , jail_days
 )
 VALUES ( 0077, 0, 078, '177A'
-       , '2023-11-03 16:05:10', 780000000185, 700.58
-       , 200.00, 500.58, 'L', NULL
+       , '2023-11-03 16:05:10', 780000000185, -700.58
+       , 200.00, -500.58, 'L', NULL
        , 780000000185, 780000000185, '2024-01-04 18:06:11'
        , '2024-01-02 17:08:09', '2024-01-03 12:00:12', '10'
        , 'Kingston-upon-Thames Mags Court', NULL, 'TFO'
@@ -119,8 +119,8 @@ VALUES ( 0077, 0, 078, '177A'
        , 101
        ),
        ( 0078, 20, 078, '178A'
-       , '2023-11-03 16:05:10', 780000000185, 700.58
-       , 200.00, 500.58, 'L', NULL
+       , '2023-11-03 16:05:10', 780000000185, -700.58
+       , 200.00, -500.58, 'L', NULL
        , 780000000185, 780000000185, '2024-02-24 18:06:11'
        , '2025-01-02 17:08:09', '2025-01-03 12:00:12', 'MPSO'
        , 'Kingston-upon-Thames Mags Court', NULL, NULL
@@ -134,8 +134,8 @@ VALUES ( 0077, 0, 078, '177A'
        , 101
        ),
         (2006, 4, 78, '2006A'
-        ,'2023-11-03 16:05:10', 780000000185, 1007.00
-        , 312.45, 800.12,'L', NULL
+        ,'2023-11-03 16:05:10', 780000000185, -1007.00
+        , 312.45, -800.12,'L', NULL
         , 780000000185, 780000000185, '2024-01-04 18:06:11'
         , '2025-01-02 17:08:09', '2025-01-03 12:00:12', 'MPSO'
         , 'Kingston-upon-Thames Mags Court', NULL, NULL
@@ -250,7 +250,7 @@ INSERT INTO defendant_accounts
  prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
  collection_order, payment_card_requested)
 VALUES (262901, 0, 78, '262901A',
-        0.00, 500.00, 500.00, 'L', '2025-01-02 17:08:09',
+        0.00, -500.00, -500.00, 'L', '2025-01-02 17:08:09',
         '262901PCR', 'N', 'N', 'Fine',
         'N', 'N')
     ON CONFLICT (defendant_account_id) DO NOTHING;
@@ -311,7 +311,7 @@ INSERT INTO defendant_accounts
  prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
  collection_order, payment_card_requested)
 VALUES (262902, 0, 78, '262902A',
-        0.00, 500.00, 500.00, 'L', '2025-01-03 10:00:00',
+        0.00, -500.00, -500.00, 'L', '2025-01-03 10:00:00',
         '262902PCR', 'N', 'N', 'Fine',
         'N', 'N')
     ON CONFLICT (defendant_account_id) DO NOTHING;
@@ -375,7 +375,7 @@ INSERT INTO defendant_accounts (
 )
 VALUES (
   9077, 78, '177B',
-  '2023-11-03 16:05:10', 780000000185, 700.58, 700.58, 0.00,           -- balance 0 => inactive
+  '2023-11-03 16:05:10', 780000000185, -700.58, 700.58, 0.00,           -- balance 0 => inactive
   'CS', '2024-02-01 00:00:00', 780000000185, 780000000185, '2024-01-04 18:06:11',
   '2024-01-02 17:08:09', '2024-01-03 12:00:12', '10',
   'Seed data', NULL, NULL,
@@ -398,7 +398,7 @@ INSERT INTO defendant_accounts
  amount_paid, account_balance, amount_imposed, account_status,
  prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type, collection_order, payment_card_requested)
 VALUES (88, 0, 78, '188A',
-        100.00, 400.00, 500.00, 'L',
+        100.00, -400.00, -500.00, 'L',
         '188PCR', 'N', 'N', 'Fine', 'N', 'N');
 
 
@@ -430,7 +430,7 @@ INSERT INTO defendant_accounts (defendant_account_id, version_number, business_u
                                 prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
                                 collection_order, payment_card_requested)
 VALUES (901, 0, 78, '901A',
-        100.00, 400.00, 500.00, 'L',
+        100.00, -400.00, -500.00, 'L',
         '901PCR', 'N', 'N', 'Fine',
         'N', 'N');
 
@@ -471,7 +471,7 @@ INSERT INTO defendant_accounts (defendant_account_id, version_number, business_u
                                 prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
                                 collection_order, payment_card_requested)
 VALUES (999, 0, 9999, '199A',
-        100.00, 400.00, 500.00, 'L',
+        100.00, -400.00, -500.00, 'L',
         '199PCR', 'N', 'N', 'Fine',
         'N', 'N');
 
@@ -556,7 +556,7 @@ INSERT INTO defendant_accounts (defendant_account_id, version_number, business_u
                                 prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
                                 collection_order, payment_card_requested)
 VALUES (333, 0, 78, '333A',
-        100.00, 100.00, 200.00, 'L',
+        100.00, -100.00, -200.00, 'L',
         '333PCR', 'N', 'N', 'Fine',
         'N', 'N');
 
@@ -571,7 +571,7 @@ INSERT INTO defendant_accounts (defendant_account_id, version_number, business_u
                                 prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
                                 collection_order, payment_card_requested)
 VALUES (555, 0, 78, '555O',
-        250.00, 750.00, 1000.00, 'L',
+        250.00, -750.00, -1000.00, 'L',
         '555PCR', 'N', 'N', 'Fine',
         'N', 'N');
 
@@ -597,7 +597,7 @@ INSERT INTO defendant_accounts (defendant_account_id, version_number, business_u
                                 prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
                                 collection_order, payment_card_requested)
 VALUES (666, 0, 9999, '666C',
-        150.00, 850.00, 1000.00, 'L',
+        150.00, -850.00, -1000.00, 'L',
         '666PCR', 'N', 'N', 'Fine',
         'N', 'N');
 
@@ -623,7 +623,7 @@ INSERT INTO defendant_accounts (defendant_account_id, version_number, business_u
                                 completed_date, prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
                                 collection_order, payment_card_requested)
 VALUES (777, 0, 78, '777CC',
-        500.00, 0.00, 500.00, 'CS',
+        500.00, 0.00, -500.00, 'CS',
         '2024-01-15 10:00:00', '777PCR', 'N', 'N', 'Fine',
         'N', 'N');
 
@@ -659,7 +659,7 @@ INSERT INTO defendant_accounts (defendant_account_id, version_number, business_u
                                 payment_card_requested_by,
                                 prosecutor_case_reference, enforcement_case_status, account_type)
 VALUES (444, 0, 78, '444C',
-        '2023-10-15 14:30:00', 780000000185, 300.00,
+        '2023-10-15 14:30:00', 780000000185, -300.00,
         300.00, 0.00, 'CS',
         '2024-02-15 10:00:00', 780000000185, 780000000185, '2024-02-14 16:00:00',
         '2024-02-15 10:00:00', '2024-02-15 10:00:00', 'PAID',
@@ -717,8 +717,8 @@ INSERT INTO defendant_accounts
 , account_comments, account_note_1, account_note_2, account_note_3
 , version_number)
 VALUES ( 10001, 078, '10001A'
-       , '2023-11-03 16:05:10', 780000000185, 700.58
-       , 200.00, 500.58, 'L', NULL
+       , '2023-11-03 16:05:10', 780000000185, -700.58
+       , 200.00, -500.58, 'L', NULL
        , 780000000185, 780000000185, '2024-01-04 18:06:11'
        , '2024-01-02 17:08:09', '2024-01-03 12:00:12', 'REM'
        , 'Brentwood Mags Court', NULL, 'FP'
@@ -809,8 +809,8 @@ INSERT INTO defendant_accounts
 , account_comments, account_note_1, account_note_2, account_note_3
 , version_number)
 VALUES ( 10002, 078, '10002A'
-       , '2023-11-03 16:05:10', 780000000185, 700.58
-       , 200.00, 500.58, 'L', NULL
+       , '2023-11-03 16:05:10', 780000000185, -700.58
+       , 200.00, -500.58, 'L', NULL
        , 780000000185, 780000000185, '2024-01-04 18:06:11'
        , '2024-01-02 17:08:09', '2024-01-03 12:00:12', 'REM'
        , 'Brentwood Mags Court', NULL, NULL
@@ -898,8 +898,8 @@ INSERT INTO defendant_accounts
 , account_comments, account_note_1, account_note_2, account_note_3
 , version_number)
 VALUES ( 10003, 078, '10003A'
-       , '2023-11-03 16:05:10', 780000000185, 700.58
-       , 200.00, 500.58, 'L', NULL
+       , '2023-11-03 16:05:10', 780000000185, -700.58
+       , 200.00, -500.58, 'L', NULL
        , 780000000185, 780000000185, '2024-01-04 18:06:11'
        , '2024-01-02 17:08:09', '2024-01-03 12:00:12', 'REM'
        , 'Brentwood Mags Court', NULL, NULL
@@ -986,8 +986,8 @@ INSERT INTO defendant_accounts
 , account_comments, account_note_1, account_note_2, account_note_3
 , version_number)
 VALUES ( 10004, 078, '10004A'
-       , '2023-11-03 16:05:10', 780000000185, 700.58
-       , 200.00, 500.58, 'L', NULL
+       , '2023-11-03 16:05:10', 780000000185, -700.58
+       , 200.00, -500.58, 'L', NULL
        , 780000000185, 780000000185, '2024-01-04 18:06:11'
        , '2024-01-02 17:08:09', '2024-01-03 12:00:12', 'REM'
        , 'Kingston-upon-Thames Mags Court', NULL, NULL
@@ -1192,8 +1192,8 @@ INSERT INTO defendant_accounts
 , jail_days
 )
 VALUES ( 991199, 0, 78, '1989'
-       , '2023-11-03 16:05:10', 780000000185, 700.58
-       , 200.00, 500.58, 'L', NULL
+       , '2023-11-03 16:05:10', 780000000185, -700.58
+       , 200.00, -500.58, 'L', NULL
        , 780000000185, 780000000185, '2024-01-04 18:06:11'
        , '2024-01-02 17:08:09', '2024-01-03 12:00:12', 'ABDC'
        , 'Kingston-upon-Thames Mags Court', NULL, NULL
@@ -1242,8 +1242,8 @@ INSERT INTO defendant_accounts
 , jail_days
 )
 VALUES ( 991198, 0, 78, '1988'
-       , '2023-11-03 16:05:10', 780000000185, 700.58
-       , 200.00, 500.58, 'L', NULL
+       , '2023-11-03 16:05:10', 780000000185, -700.58
+       , 200.00, -500.58, 'L', NULL
        , 780000000185, 780000000185, '2024-01-04 18:06:11'
        , '2024-01-02 17:08:09', '2024-01-03 12:00:12', 'ABDC'
        , 'Kingston-upon-Thames Mags Court', NULL, NULL
@@ -1319,7 +1319,7 @@ INSERT INTO defendant_accounts
   amount_paid, account_balance, account_status, account_type )
 VALUES (990001, 0, 78,
         '990001A','PCR990001',
-        100.00,0.00,100.00,
+        -100.00,0.00,-100.00,
         'L','Fine');
 
 UPDATE defendant_accounts
