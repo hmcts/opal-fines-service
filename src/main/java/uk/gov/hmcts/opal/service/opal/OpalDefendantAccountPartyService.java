@@ -377,7 +377,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         return !party.isOrganisation()
             && Boolean.TRUE.equals(Optional.ofNullable(partyDetails)
                 .map(PartyDetailsCommonStrict::getOrganisationFlag)
-                .orElse(null));
+                .orElse(false));
     }
 
     private boolean isParentGuardianReplacement(DefendantAccountPartiesEntity dap) {
