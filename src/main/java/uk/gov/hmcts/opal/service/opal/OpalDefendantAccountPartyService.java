@@ -396,91 +396,86 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         }
     }
 
-    private void replaceAliasesForParty(Long partyId, PartyDetailsCommonStrict pd) {
-        if (partyId == null || pd == null || pd.getOrganisationFlag() == null) {
+    private void replaceAliasesForParty(Long partyId, PartyDetailsCommonStrict partyDetails) {
+        if (partyId == null || partyDetails == null || partyDetails.getOrganisationFlag() == null) {
             return;
         }
 
         PartyEntity party = partyRepositoryService.findById(partyId);
+        Map<Long, AliasEntity> aliasesById = indexAliasesById(aliasRepositoryService.findByPartyId(partyId));
+        List<AliasEntity> aliases = Boolean.TRUE.equals(partyDetails.getOrganisationFlag())
+            ? mapOrganisationAliases(partyDetails, aliasesById, party)
+            : mapIndividualAliases(partyDetails, aliasesById, party);
+        Set<Long> keepIds = collectAliasIds(aliases);
 
-        List<AliasEntity> existing = aliasRepositoryService.findByPartyId(partyId);
-
-        Map<Long, AliasEntity> byId = new HashMap<>();
-        for (AliasEntity e : existing) {
-            if (e.getAliasId() != null) {
-                byId.put(e.getAliasId(), e);
-            }
-        }
-
-        List<AliasEntity> toPersist = new ArrayList<>();
-        Set<Long> keepIds = new HashSet<>();
-
-        if (Boolean.TRUE.equals(pd.getOrganisationFlag())) {
-            List<OrganisationAliasCommon> orgAliases = Optional.ofNullable(value(pd.getOrganisationDetails()))
-                .map(OrganisationDetailsCommonStrict::getOrganisationAliases)
-                .map(OpalDefendantAccountPartyService::value)
-                .orElse(Collections.emptyList());
-
-            for (OrganisationAliasCommon a : orgAliases) {
-                if (a == null) {
-                    continue;
-                }
-
-                String idStr = a.getAliasId();
-                Long id = (idStr == null || idStr.trim().isEmpty()) ? null : Long.valueOf(idStr.trim());
-
-                AliasEntity row = upsertAlias(
-                    byId, party,
-                    id, a.getSequenceNumber(),
-                    a.getOrganisationName(),
-                    null, null,
-                    true
-                );
-                toPersist.add(row);
-                if (row.getAliasId() != null) {
-                    keepIds.add(row.getAliasId());
-                }
-            }
-
-        } else {
-            List<IndividualAliasCommonStrict> indAliases = Optional.ofNullable(value(pd.getIndividualDetails()))
-                .map(IndividualDetailsCommonStrict::getIndividualAliases)
-                .map(OpalDefendantAccountPartyService::value)
-                .orElse(Collections.emptyList());
-
-            for (IndividualAliasCommonStrict a : indAliases) {
-                if (a == null) {
-                    continue;
-                }
-
-                String idStr = a.getAliasId();
-                Long id = (idStr == null || idStr.trim().isEmpty()) ? null : Long.valueOf(idStr.trim());
-
-                AliasEntity row = upsertAlias(
-                    byId, party,
-                    id, a.getSequenceNumber(),
-                    null,
-                    value(a.getForenames()), a.getSurname(),
-                    false
-                );
-                toPersist.add(row);
-                if (row.getAliasId() != null) {
-                    keepIds.add(row.getAliasId());
-                }
-            }
-        }
-
-        if (!toPersist.isEmpty()) {
-            List<AliasEntity> persisted = aliasRepositoryService.saveAll(toPersist);
-            for (AliasEntity p : persisted) {
-                if (p.getAliasId() != null) {
-                    keepIds.add(p.getAliasId());
-                }
-            }
+        if (!aliases.isEmpty()) {
+            keepIds.addAll(collectAliasIds(aliasRepositoryService.saveAll(aliases)));
         }
 
         deletePartyAliasesNotIn(partyId, keepIds);
         aliasRepositoryService.flush();
+    }
+
+    private Map<Long, AliasEntity> indexAliasesById(List<AliasEntity> aliases) {
+        Map<Long, AliasEntity> aliasesById = new HashMap<>();
+        for (AliasEntity alias : aliases) {
+            if (alias.getAliasId() != null) {
+                aliasesById.put(alias.getAliasId(), alias);
+            }
+        }
+        return aliasesById;
+    }
+
+    private List<AliasEntity> mapOrganisationAliases(PartyDetailsCommonStrict partyDetails,
+                                                     Map<Long, AliasEntity> aliasesById, PartyEntity party) {
+
+        List<OrganisationAliasCommon> organisationAliases = Optional
+            .ofNullable(value(partyDetails.getOrganisationDetails()))
+            .map(OrganisationDetailsCommonStrict::getOrganisationAliases)
+            .map(OpalDefendantAccountPartyService::value)
+            .orElse(Collections.emptyList());
+        List<AliasEntity> aliases = new ArrayList<>();
+
+        for (OrganisationAliasCommon alias : organisationAliases) {
+            if (alias != null) {
+                aliases.add(upsertAlias(aliasesById, party, parseAliasId(alias.getAliasId()),
+                    alias.getSequenceNumber(), alias.getOrganisationName(), null, null, true));
+            }
+        }
+        return aliases;
+    }
+
+    private List<AliasEntity> mapIndividualAliases(PartyDetailsCommonStrict partyDetails,
+                                                   Map<Long, AliasEntity> aliasesById, PartyEntity party) {
+
+        List<IndividualAliasCommonStrict> individualAliases = Optional
+            .ofNullable(value(partyDetails.getIndividualDetails()))
+            .map(IndividualDetailsCommonStrict::getIndividualAliases)
+            .map(OpalDefendantAccountPartyService::value)
+            .orElse(Collections.emptyList());
+        List<AliasEntity> aliases = new ArrayList<>();
+
+        for (IndividualAliasCommonStrict alias : individualAliases) {
+            if (alias != null) {
+                aliases.add(upsertAlias(aliasesById, party, parseAliasId(alias.getAliasId()),
+                    alias.getSequenceNumber(), null, value(alias.getForenames()), alias.getSurname(), false));
+            }
+        }
+        return aliases;
+    }
+
+    private Long parseAliasId(String aliasId) {
+        return aliasId == null || aliasId.isBlank() ? null : Long.valueOf(aliasId.trim());
+    }
+
+    private Set<Long> collectAliasIds(List<AliasEntity> aliases) {
+        Set<Long> aliasIds = new HashSet<>();
+        for (AliasEntity alias : aliases) {
+            if (alias.getAliasId() != null) {
+                aliasIds.add(alias.getAliasId());
+            }
+        }
+        return aliasIds;
     }
 
     /**
