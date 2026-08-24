@@ -8,13 +8,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.generated.http.api.InterfaceJobsApi;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateRequest;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateResponse;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsProcessRequest;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsSummaryResponse;
-import uk.gov.hmcts.opal.service.opal.InterfaceJobService.InterfaceJobSearchCriteria;
+import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.InterfaceJobService;
+import uk.gov.hmcts.opal.service.opal.InterfaceJobService.InterfaceJobSearchCriteria;
 import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @RestController
@@ -22,7 +25,21 @@ import uk.gov.hmcts.opal.util.FeatureFlags;
 @RequiredArgsConstructor
 public class InterfaceJobsApiController implements InterfaceJobsApi {
 
+    private final DynamicConfigService dynamicConfigService;
     private final InterfaceJobService interfaceJobService;
+
+    @Override
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1C_PAYMENT,
+        defaultValueProperty = FeatureFlags.RELEASE_1C_PAYMENT_ENABLED_PROPERTY)
+    public ResponseEntity<Void> processInterfaceJobs(InterfaceJobsProcessRequest request) {
+        if (dynamicConfigService.isLegacyMode()) {
+            log.debug(":POST:processInterfaceJobs: rejecting request because service is in legacy mode");
+            throw new FeatureDisabledException("Interface job processing is only available in OPAL mode");
+        }
+
+        interfaceJobService.process(request);
+        return ResponseEntity.ok().build();
+    }
 
     @Override
     @FeatureToggle(feature = FeatureFlags.RELEASE_1C_PAYMENT,
