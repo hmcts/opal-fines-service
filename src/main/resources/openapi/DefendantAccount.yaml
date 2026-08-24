@@ -1359,7 +1359,7 @@ components:
         defendant_account_id:
           type: string
     PartyResponse:
-      title: Get Defendant Account Party Response
+      title: Defendant Account Party Response
       type: object
       additionalProperties: false
       x-json-include: NON_NULL

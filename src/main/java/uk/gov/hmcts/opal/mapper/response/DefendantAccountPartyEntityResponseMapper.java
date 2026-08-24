@@ -45,47 +45,28 @@ public interface DefendantAccountPartyEntityResponseMapper {
                                               @Context List<AliasEntity> aliases);
 
     @Named("toPartyDetails")
-    @Mapping(target = "partyId", source = "partyId")
     @Mapping(target = "organisationFlag", source = "organisation")
     @Mapping(target = "organisationDetails", source = ".", qualifiedByName = "toOrganisationDetails")
     @Mapping(target = "individualDetails", source = ".", qualifiedByName = "toIndividualDetails")
     PartyDetailsCommonStrict toPartyDetails(PartyEntity party, @Context List<AliasEntity> aliases);
 
-    @Mapping(target = "organisationName", source = "party.organisationName")
     @Mapping(target = "organisationAliases", expression = "java(toNullableOrganisationAliases(aliases))")
     OrganisationDetailsCommonStrict mapOrganisationDetails(PartyEntity party, @Context List<AliasEntity> aliases);
 
-    @Mapping(target = "title", source = "party.title")
-    @Mapping(target = "forenames", source = "party.forenames")
-    @Mapping(target = "surname", source = "party.surname")
     @Mapping(target = "dateOfBirth", source = "party.birthDate")
-    @Mapping(target = "age", source = "party.age")
     @Mapping(target = "nationalInsuranceNumber", source = "party.niNumber")
     @Mapping(target = "individualAliases", expression = "java(toNullableIndividualAliases(aliases))")
     IndividualDetailsCommonStrict mapIndividualDetails(PartyEntity party, @Context List<AliasEntity> aliases);
 
-    @Mapping(target = "aliasId", source = "aliasId")
-    @Mapping(target = "sequenceNumber", source = "sequenceNumber")
-    @Mapping(target = "organisationName", source = "organisationName")
     OrganisationAliasCommon toOrganisationAlias(AliasEntity alias);
 
     List<OrganisationAliasCommon> toOrganisationAliases(List<AliasEntity> aliases);
 
-    @Mapping(target = "aliasId", source = "aliasId")
-    @Mapping(target = "sequenceNumber", source = "sequenceNumber")
-    @Mapping(target = "forenames", source = "forenames")
-    @Mapping(target = "surname", source = "surname")
     IndividualAliasCommonStrict toIndividualAlias(AliasEntity alias);
 
     List<IndividualAliasCommonStrict> toIndividualAliases(List<AliasEntity> aliases);
 
     @Named("toAddress")
-    @Mapping(target = "addressLine1", source = "addressLine1")
-    @Mapping(target = "addressLine2", source = "addressLine2")
-    @Mapping(target = "addressLine3", source = "addressLine3")
-    @Mapping(target = "addressLine4", source = "addressLine4")
-    @Mapping(target = "addressLine5", source = "addressLine5")
-    @Mapping(target = "postcode", source = "postcode")
     AddressDetailsCommonStrict toAddress(PartyEntity party);
 
     @BeanMapping(nullValueMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT)
@@ -97,20 +78,13 @@ public interface DefendantAccountPartyEntityResponseMapper {
     @Mapping(target = "postcode", source = "employerPostcode")
     AddressDetailsCommonStrict toEmployerAddress(DebtorDetailEntity debtorDetail);
 
-    @Mapping(target = "primaryEmailAddress", source = "primaryEmailAddress")
-    @Mapping(target = "secondaryEmailAddress", source = "secondaryEmailAddress")
-    @Mapping(target = "mobileTelephoneNumber", source = "mobileTelephoneNumber")
-    @Mapping(target = "homeTelephoneNumber", source = "homeTelephoneNumber")
-    @Mapping(target = "workTelephoneNumber", source = "workTelephoneNumber")
     PartyContactDetailsDefendantAccount mapContactDetails(PartyEntity party);
 
     @BeanMapping(nullValueMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT)
     @Mapping(target = "vehicleMakeAndModel", source = "vehicleMake")
-    @Mapping(target = "vehicleRegistration", source = "vehicleRegistration")
     PartyVehicleDetailsDefendantAccount mapVehicleDetails(DebtorDetailEntity debtorDetail);
 
     @BeanMapping(nullValueMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT)
-    @Mapping(target = "employerName", source = "employerName")
     @Mapping(target = "employerReference", source = "employeeReference")
     @Mapping(target = "employerEmailAddress", source = "employerEmail")
     @Mapping(target = "employerTelephoneNumber", source = "employerTelephone")
