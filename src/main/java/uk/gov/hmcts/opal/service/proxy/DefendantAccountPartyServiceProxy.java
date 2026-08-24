@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.PartyDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPartyServiceInterface;
@@ -53,7 +53,7 @@ public class DefendantAccountPartyServiceProxy implements DefendantAccountPartyS
     @Override
     public PartyResponseDefendantAccount replaceDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId,
-        PartyDefendantAccount defendantAccountParty, String ifMatch, String businessUnitId, String postedBy,
+        DefendantAccountParty defendantAccountParty, String ifMatch, String businessUnitId, String postedBy,
         String postedByName, String businessUserId) {
 
         return getCurrentModeService().replaceDefendantAccountParty(defendantAccountId, defendantAccountPartyId,

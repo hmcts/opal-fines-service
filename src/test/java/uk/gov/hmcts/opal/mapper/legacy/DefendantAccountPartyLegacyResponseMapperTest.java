@@ -15,7 +15,7 @@ import uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.generated.model.LanguagePreferenceCommonStrict;
-import uk.gov.hmcts.opal.generated.model.PartyDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 
 class DefendantAccountPartyLegacyResponseMapperTest {
@@ -55,14 +55,14 @@ class DefendantAccountPartyLegacyResponseMapperTest {
             .build();
 
         PartyResponseDefendantAccount result = mapper.toGeneratedResponse(legacy);
-        PartyDefendantAccount party = result.getDefendantAccountParty();
+        DefendantAccountParty party = result.getDefendantAccountParty();
         LanguagePreferenceCommonStrict language = party.getLanguagePreferences().get()
             .getDocumentLanguagePreference().get();
 
         assertAll(
             () -> assertEquals(BigInteger.valueOf(7), result.getVersion()),
             () -> assertNotNull(party),
-            () -> assertEquals(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT,
+            () -> assertEquals(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT,
                 party.getDefendantAccountPartyType()),
             () -> assertEquals("Alex", party.getPartyDetails().getIndividualDetails().get().getForenames().get()),
             () -> assertEquals("1 High Street", party.getAddress().getAddressLine1()),

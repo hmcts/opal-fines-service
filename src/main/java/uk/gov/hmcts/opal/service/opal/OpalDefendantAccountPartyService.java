@@ -26,7 +26,7 @@ import uk.gov.hmcts.opal.generated.model.LanguagePreferencesCommonStrict;
 import uk.gov.hmcts.opal.generated.model.LanguagePreferenceCommonStrict;
 import uk.gov.hmcts.opal.generated.model.OrganisationAliasCommon;
 import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommonStrict;
-import uk.gov.hmcts.opal.generated.model.PartyDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PartyEmployerDetailsDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PartyVehicleDetailsDefendantAccount;
@@ -112,7 +112,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             throw new IllegalArgumentException("Request body is required");
         }
 
-        PartyDefendantAccount requestParty = request.getDefendantAccountParty();
+        DefendantAccountParty requestParty = request.getDefendantAccountParty();
         PartyDetailsCommonStrict partyDetails = requestParty.getPartyDetails();
 
         if (partyDetails == null || partyDetails.getOrganisationFlag() == null) {
@@ -191,7 +191,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             .build();
     }
 
-    private PartyDefendantAccount mapDefendantAccountParty(
+    private DefendantAccountParty mapDefendantAccountParty(
         DefendantAccountPartiesEntity partyEntity, List<AliasEntity> aliases) {
 
         PartyEntity party = partyEntity.getParty();
@@ -210,7 +210,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
     @Override
     @Transactional
     public PartyResponseDefendantAccount replaceDefendantAccountParty(
-        Long accountId, Long dapId, PartyDefendantAccount request, String ifMatch, String businessUnitId,
+        Long accountId, Long dapId, DefendantAccountParty request, String ifMatch, String businessUnitId,
         String postedBy, String postedByName, String businessUserId) {
 
         DefendantAccountEntity account = defendantAccountRepositoryService.findById(accountId);
@@ -270,7 +270,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         }
 
         Optional.ofNullable(request.getDefendantAccountPartyType())
-            .map(PartyDefendantAccount.DefendantAccountPartyTypeEnum::getValue)
+            .map(DefendantAccountParty.DefendantAccountPartyTypeEnum::getValue)
             .map(AssociationType::getByLabel)
             .ifPresent(dap::setAssociationType);
         dap.setDebtor(request.getIsDebtor());

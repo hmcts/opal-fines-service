@@ -31,7 +31,7 @@ import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
-import uk.gov.hmcts.opal.generated.model.PartyDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
@@ -187,7 +187,7 @@ public class DefendantAccountApiController implements DefendantAccountApi {
         Long defendantAccountId,
         Long defendantAccountPartyId,
         Short businessUnitId,
-        PartyDefendantAccount request,
+        DefendantAccountParty request,
         String ifMatch) {
         return buildResponse(defendantAccountPartyService.replaceDefendantAccountParty(
             defendantAccountId,

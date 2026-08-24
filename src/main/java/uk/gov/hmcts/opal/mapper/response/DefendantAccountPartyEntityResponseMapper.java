@@ -23,7 +23,7 @@ import uk.gov.hmcts.opal.generated.model.LanguagePreferencesCommonStrict;
 import uk.gov.hmcts.opal.generated.model.OrganisationAliasCommon;
 import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PartyContactDetailsDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.PartyDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PartyEmployerDetailsDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PartyVehicleDetailsDefendantAccount;
@@ -40,7 +40,7 @@ public interface DefendantAccountPartyEntityResponseMapper {
     @Mapping(target = "vehicleDetails", expression = "java(toVehicleDetails(debtorDetail))")
     @Mapping(target = "employerDetails", expression = "java(toEmployerDetails(debtorDetail))")
     @Mapping(target = "languagePreferences", expression = "java(toLanguagePreferences(debtorDetail))")
-    PartyDefendantAccount toGeneratedResponse(DefendantAccountPartiesEntity association,
+    DefendantAccountParty toGeneratedResponse(DefendantAccountPartiesEntity association,
                                               DebtorDetailEntity debtorDetail,
                                               @Context List<AliasEntity> aliases);
 
@@ -128,8 +128,8 @@ public interface DefendantAccountPartyEntityResponseMapper {
     LanguagePreferenceCommonStrict toLanguagePreference(Language language);
 
     @Named("toPartyType")
-    default PartyDefendantAccount.DefendantAccountPartyTypeEnum toPartyType(String partyType) {
-        return partyType == null ? null : PartyDefendantAccount.DefendantAccountPartyTypeEnum.fromValue(partyType);
+    default DefendantAccountParty.DefendantAccountPartyTypeEnum toPartyType(String partyType) {
+        return partyType == null ? null : DefendantAccountParty.DefendantAccountPartyTypeEnum.fromValue(partyType);
     }
 
     @Named("toOrganisationDetails")

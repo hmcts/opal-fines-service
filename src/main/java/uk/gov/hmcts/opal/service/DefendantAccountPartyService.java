@@ -9,7 +9,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.PartyDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountPartyServiceProxy;
@@ -72,7 +72,7 @@ public class DefendantAccountPartyService {
 
     public PartyResponseDefendantAccount replaceDefendantAccountParty(
         Long defendantAccountId, Long defendantAccountPartyId, String ifMatch,
-        String businessUnitId, PartyDefendantAccount request) {
+        String businessUnitId, DefendantAccountParty request) {
 
         log.debug(":replaceDefendantAccountParty: buId: {}, request: \n{}", businessUnitId, request);
 

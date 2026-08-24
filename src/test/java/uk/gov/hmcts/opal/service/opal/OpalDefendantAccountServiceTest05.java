@@ -16,7 +16,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.PartyDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.IndividualAliasCommonStrict;
 import uk.gov.hmcts.opal.mapper.response.DefendantAccountPartyEntityResponseMapper;
 import uk.gov.hmcts.opal.entity.AliasEntity;
@@ -98,7 +98,7 @@ class OpalDefendantAccountServiceTest05 {
         PartyResponseDefendantAccount resp = service.getDefendantAccountParty(1L, 100L);
 
         assertNotNull(resp);
-        PartyDefendantAccount partyDto = resp.getDefendantAccountParty();
+        DefendantAccountParty partyDto = resp.getDefendantAccountParty();
         assertNotNull(partyDto.getPartyDetails().getIndividualDetails());
         List<IndividualAliasCommonStrict> indAliases = partyDto.getPartyDetails().getIndividualDetails().get()
             .getIndividualAliases().get();

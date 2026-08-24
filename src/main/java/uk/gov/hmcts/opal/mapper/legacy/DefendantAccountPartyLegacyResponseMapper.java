@@ -23,7 +23,7 @@ import uk.gov.hmcts.opal.generated.model.LanguagePreferenceCommonStrict;
 import uk.gov.hmcts.opal.generated.model.LanguagePreferencesCommonStrict;
 import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PartyContactDetailsDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.PartyDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PartyEmployerDetailsDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
@@ -40,7 +40,7 @@ public interface DefendantAccountPartyLegacyResponseMapper {
 
     @Mapping(target = "defendantAccountPartyType", source = "defendantAccountPartyType",
         qualifiedByName = "toDefendantAccountPartyType")
-    PartyDefendantAccount toGeneratedResponse(DefendantAccountPartyLegacy legacy);
+    DefendantAccountParty toGeneratedResponse(DefendantAccountPartyLegacy legacy);
 
     PartyDetailsCommonStrict toGeneratedResponse(PartyDetailsLegacy legacy);
 
@@ -115,8 +115,8 @@ public interface DefendantAccountPartyLegacyResponseMapper {
     }
 
     @Named("toDefendantAccountPartyType")
-    default PartyDefendantAccount.DefendantAccountPartyTypeEnum toDefendantAccountPartyType(String partyType) {
-        return partyType == null ? null : PartyDefendantAccount.DefendantAccountPartyTypeEnum.fromValue(partyType);
+    default DefendantAccountParty.DefendantAccountPartyTypeEnum toDefendantAccountPartyType(String partyType) {
+        return partyType == null ? null : DefendantAccountParty.DefendantAccountPartyTypeEnum.fromValue(partyType);
     }
 
     @Named("toLanguageCode")

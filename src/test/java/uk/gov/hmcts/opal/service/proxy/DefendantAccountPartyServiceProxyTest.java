@@ -11,7 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.PartyDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountPartyService;
@@ -41,7 +41,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
         String businessUserId = "USER123";
         String ifMatch = "1";
 
-        PartyDefendantAccount request = PartyDefendantAccount.builder().build();
+        DefendantAccountParty request = DefendantAccountParty.builder().build();
 
         PartyResponseDefendantAccount expectedResponse = PartyResponseDefendantAccount.builder()
             .version(BigInteger.valueOf(2L))
@@ -74,7 +74,7 @@ class DefendantAccountPartyServiceProxyTest extends ProxyTestsBase {
         String businessUserId = "ADMIN456";
         String ifMatch = "2";
 
-        PartyDefendantAccount request = PartyDefendantAccount.builder().build();
+        DefendantAccountParty request = DefendantAccountParty.builder().build();
 
         PartyResponseDefendantAccount expectedResponse = PartyResponseDefendantAccount.builder()
             .version(BigInteger.valueOf(3L))

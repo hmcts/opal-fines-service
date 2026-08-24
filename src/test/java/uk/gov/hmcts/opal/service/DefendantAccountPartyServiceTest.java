@@ -25,7 +25,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.PartyDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
@@ -105,7 +105,7 @@ class DefendantAccountPartyServiceTest {
         String businessUnitId = "5";
         short buId = Short.parseShort(businessUnitId);
 
-        PartyDefendantAccount request = new PartyDefendantAccount();
+        DefendantAccountParty request = new DefendantAccountParty();
         PartyResponseDefendantAccount expectedResponse = mock(PartyResponseDefendantAccount.class);
 
         BusinessUnitUser buUser = mock(BusinessUnitUser.class);
@@ -117,7 +117,7 @@ class DefendantAccountPartyServiceTest {
             .thenReturn(true);
 
         when(defendantAccountPartyServiceProxy.replaceDefendantAccountParty(
-            anyLong(), anyLong(), any(PartyDefendantAccount.class), anyString(), anyString(), anyString(), anyString(),
+            anyLong(), anyLong(), any(DefendantAccountParty.class), anyString(), anyString(), anyString(), anyString(),
             anyString()))
             .thenReturn(expectedResponse);
 
@@ -212,7 +212,7 @@ class DefendantAccountPartyServiceTest {
         String businessUnitId = "7";
         short buId = Short.parseShort(businessUnitId);
 
-        PartyDefendantAccount request = new PartyDefendantAccount();
+        DefendantAccountParty request = new DefendantAccountParty();
         PartyResponseDefendantAccount expectedResponse = mock(PartyResponseDefendantAccount.class);
 
         // No BusinessUnitUser present
@@ -223,7 +223,7 @@ class DefendantAccountPartyServiceTest {
             .thenReturn(true);
 
         when(defendantAccountPartyServiceProxy.replaceDefendantAccountParty(
-            anyLong(), anyLong(), any(PartyDefendantAccount.class), anyString(), anyString(), anyString(), anyString(),
+            anyLong(), anyLong(), any(DefendantAccountParty.class), anyString(), anyString(), anyString(), anyString(),
             anyString()))
             .thenReturn(expectedResponse);
 
@@ -317,7 +317,7 @@ class DefendantAccountPartyServiceTest {
         String ifMatch = "W/\"X\"";
         Short businessUnitId = 3;
         String stringBusinessUnitId = String.valueOf(businessUnitId);
-        PartyDefendantAccount request = new PartyDefendantAccount();
+        DefendantAccountParty request = new DefendantAccountParty();
 
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))

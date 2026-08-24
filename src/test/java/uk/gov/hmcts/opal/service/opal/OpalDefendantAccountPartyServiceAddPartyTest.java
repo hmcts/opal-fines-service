@@ -28,7 +28,7 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PartyContactDetailsDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.PartyDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.PartyEmployerDetailsDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.LanguagePreferenceCommonStrict;
@@ -122,8 +122,8 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
         when(defendantAccountRepositoryService.saveAndFlush(account)).thenReturn(account);
 
         AddPartyRequestDefendantAccount req = AddPartyRequestDefendantAccount.builder()
-            .defendantAccountParty(PartyDefendantAccount.builder()
-                .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
+            .defendantAccountParty(DefendantAccountParty.builder()
+                .defendantAccountPartyType(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT)
                 .isDebtor(Boolean.TRUE)
                 .partyDetails(PartyDetailsCommonStrict.builder()
                     .organisationFlag(Boolean.FALSE)
@@ -266,8 +266,8 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
     @Test
     void addDefendantAccountParty_missingPartyDetails_throws() {
         AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
-            .defendantAccountParty(PartyDefendantAccount.builder()
-                .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
+            .defendantAccountParty(DefendantAccountParty.builder()
+                .defendantAccountPartyType(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT)
                 .isDebtor(Boolean.FALSE)
                 .build())
             .build();
@@ -283,8 +283,8 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
     @Test
     void addDefendantAccountParty_missingOrganisationFlag_throws() {
         AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
-            .defendantAccountParty(PartyDefendantAccount.builder()
-                .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
+            .defendantAccountParty(DefendantAccountParty.builder()
+                .defendantAccountPartyType(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT)
                 .isDebtor(Boolean.FALSE)
                 .partyDetails(PartyDetailsCommonStrict.builder().build())
                 .build())
@@ -334,8 +334,8 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
 
     private static AddPartyRequestDefendantAccount validOrganisationRequest() {
         return AddPartyRequestDefendantAccount.builder()
-            .defendantAccountParty(PartyDefendantAccount.builder()
-                .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
+            .defendantAccountParty(DefendantAccountParty.builder()
+                .defendantAccountPartyType(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT)
                 .isDebtor(Boolean.FALSE)
                 .partyDetails(PartyDetailsCommonStrict.builder()
                     .organisationFlag(Boolean.TRUE)

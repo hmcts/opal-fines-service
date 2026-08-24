@@ -16,7 +16,7 @@ import uk.gov.hmcts.opal.entity.debtordetail.Language;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.generated.model.LanguagePreferenceCommonStrict;
-import uk.gov.hmcts.opal.generated.model.PartyDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.mapper.AbstractMapperTest;
 
 class DefendantAccountPartyEntityResponseMapperTest extends AbstractMapperTest {
@@ -52,10 +52,10 @@ class DefendantAccountPartyEntityResponseMapperTest extends AbstractMapperTest {
             .surname("Jones")
             .build();
 
-        PartyDefendantAccount result = mapper.toGeneratedResponse(association, debtorDetail, List.of(alias));
+        DefendantAccountParty result = mapper.toGeneratedResponse(association, debtorDetail, List.of(alias));
 
         assertAll(
-            () -> assertEquals(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT,
+            () -> assertEquals(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT,
                 result.getDefendantAccountPartyType()),
             () -> assertTrue(result.getIsDebtor()),
             () -> assertEquals("123", result.getPartyDetails().getPartyId()),
@@ -84,7 +84,7 @@ class DefendantAccountPartyEntityResponseMapperTest extends AbstractMapperTest {
             .party(party)
             .build();
 
-        PartyDefendantAccount result = mapper.toGeneratedResponse(association, null, List.of());
+        DefendantAccountParty result = mapper.toGeneratedResponse(association, null, List.of());
 
         assertAll(
             () -> assertNull(result.getVehicleDetails().get().getVehicleMakeAndModel().get()),

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.PartyDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountPartyLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountPartyLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyRequest;
@@ -76,7 +76,7 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
     @Override
     public PartyResponseDefendantAccount replaceDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId,
-        PartyDefendantAccount defendantAccountParty, String ifMatch, String businessUnitId, String postedBy,
+        DefendantAccountParty defendantAccountParty, String ifMatch, String businessUnitId, String postedBy,
         String postedByName, String businessUnitUserId) {
 
         LegacyReplaceDefendantAccountPartyRequest req = LegacyReplaceDefendantAccountPartyRequest.builder()

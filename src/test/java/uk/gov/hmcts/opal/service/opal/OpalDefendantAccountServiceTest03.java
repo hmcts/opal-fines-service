@@ -34,7 +34,7 @@ import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PartyContactDetailsDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.PartyDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.PartyEmployerDetailsDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.LanguagePreferenceCommonStrict;
@@ -106,7 +106,7 @@ class OpalDefendantAccountServiceTest03 {
 
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
 
-        PartyDefendantAccount req = PartyDefendantAccount.builder()
+        DefendantAccountParty req = DefendantAccountParty.builder()
             .partyDetails(PartyDetailsCommonStrict.builder()
                 .organisationFlag(Boolean.TRUE)
                 .organisationDetails(OrganisationDetailsCommonStrict.builder().organisationName("ACME").build())
@@ -144,7 +144,7 @@ class OpalDefendantAccountServiceTest03 {
 
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
 
-        PartyDefendantAccount req = PartyDefendantAccount.builder()
+        DefendantAccountParty req = DefendantAccountParty.builder()
             .partyDetails(PartyDetailsCommonStrict.builder().partyId("999").organisationFlag(Boolean.TRUE).build())
             .build();
 
@@ -168,7 +168,7 @@ class OpalDefendantAccountServiceTest03 {
 
         assertThrows(EntityNotFoundException.class, () ->
             service.replaceDefendantAccountParty(accountId, 1L,
-                PartyDefendantAccount.builder().build(), "\"1\"", "10", "tester", "Tester Name", null));
+                DefendantAccountParty.builder().build(), "\"1\"", "10", "tester", "Tester Name", null));
 
         verify(defendantAccountRepositoryService, never()).saveAndFlush(any());
     }
@@ -201,7 +201,7 @@ class OpalDefendantAccountServiceTest03 {
         try (MockedStatic<VersionUtils> vs = mockStatic(VersionUtils.class)) {
             vs.when(() -> VersionUtils.verifyIfMatch(any(), anyString(), anyLong(), anyString()))
                 .thenAnswer(i -> null);
-            PartyDefendantAccount party = PartyDefendantAccount.builder().build();
+            DefendantAccountParty party = DefendantAccountParty.builder().build();
 
             UnprocessableException result = assertThrows(UnprocessableException.class, () ->
                 service.replaceDefendantAccountParty(
@@ -239,8 +239,8 @@ class OpalDefendantAccountServiceTest03 {
         when(partyRepositoryService.findById(222L)).thenReturn(party);
         when(aliasRepoService.findByPartyId(222L)).thenReturn(emptyList());
 
-        PartyDefendantAccount req = PartyDefendantAccount.builder()
-            .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
+        DefendantAccountParty req = DefendantAccountParty.builder()
+            .defendantAccountPartyType(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT)
             .isDebtor(Boolean.FALSE)
             .partyDetails(PartyDetailsCommonStrict.builder()
                 .partyId("222").organisationFlag(Boolean.TRUE)
@@ -292,8 +292,8 @@ class OpalDefendantAccountServiceTest03 {
 
         when(defendantAccountRepositoryService.findById(anyLong())).thenReturn(account);
 
-        PartyDefendantAccount req = PartyDefendantAccount.builder()
-            .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
+        DefendantAccountParty req = DefendantAccountParty.builder()
+            .defendantAccountPartyType(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT)
             .isDebtor(Boolean.TRUE)
             .partyDetails(PartyDetailsCommonStrict.builder()
                 .partyId("444").organisationFlag(Boolean.TRUE)
@@ -371,8 +371,8 @@ class OpalDefendantAccountServiceTest03 {
 
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
 
-        PartyDefendantAccount req = PartyDefendantAccount.builder()
-            .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
+        DefendantAccountParty req = DefendantAccountParty.builder()
+            .defendantAccountPartyType(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT)
             .isDebtor(Boolean.TRUE)
             .partyDetails(PartyDetailsCommonStrict.builder()
                 .partyId("123")
@@ -456,7 +456,7 @@ class OpalDefendantAccountServiceTest03 {
 
         when(defendantAccountRepositoryService.findById(anyLong())).thenReturn(account);
 
-        PartyDefendantAccount req = PartyDefendantAccount.builder()
+        DefendantAccountParty req = DefendantAccountParty.builder()
             .partyDetails(PartyDetailsCommonStrict.builder()
                 .partyId("300").organisationFlag(Boolean.TRUE)
                 .organisationDetails(OrganisationDetailsCommonStrict.builder().organisationName("ACME").build())
@@ -511,8 +511,8 @@ class OpalDefendantAccountServiceTest03 {
 
         when(debtorRepoService.findById(333L)).thenReturn(Optional.of(new DebtorDetailEntity()));
 
-        PartyDefendantAccount req = PartyDefendantAccount.builder()
-            .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
+        DefendantAccountParty req = DefendantAccountParty.builder()
+            .defendantAccountPartyType(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT)
             .isDebtor(Boolean.TRUE)
             .partyDetails(PartyDetailsCommonStrict.builder()
                 .partyId("333").organisationFlag(Boolean.FALSE)
@@ -614,8 +614,8 @@ class OpalDefendantAccountServiceTest03 {
         when(debtorRepoService.findById(4001L)).thenReturn(Optional.of(new DebtorDetailEntity()));
         when(debtorRepoService.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        PartyDefendantAccount req = PartyDefendantAccount.builder()
-            .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
+        DefendantAccountParty req = DefendantAccountParty.builder()
+            .defendantAccountPartyType(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT)
             .isDebtor(Boolean.TRUE)
             .partyDetails(PartyDetailsCommonStrict.builder()
                 .partyId("4001")

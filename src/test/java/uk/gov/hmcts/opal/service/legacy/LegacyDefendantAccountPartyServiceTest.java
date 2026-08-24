@@ -31,7 +31,7 @@ import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
 import uk.gov.hmcts.opal.disco.legacy.LegacyTestsBase;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.PartyDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.PartyEmployerDetailsDefendantAccount;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountPartyLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountPartyLegacyResponse;
@@ -88,8 +88,8 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void addDefendantAccountParty_mapsNullNestedObjects_toNulls() {
         AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
             .defendantAccountParty(
-                PartyDefendantAccount.builder()
-                    .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
+                DefendantAccountParty.builder()
+                    .defendantAccountPartyType(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT)
                     .isDebtor(true)
                     .build()
             )
@@ -152,8 +152,8 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void addDefendantAccountParty_buildsRequestUsingIfMatchVersionAndIds() {
         AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
             .defendantAccountParty(
-                PartyDefendantAccount.builder()
-                    .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
+                DefendantAccountParty.builder()
+                    .defendantAccountPartyType(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT)
                     .isDebtor(true)
                     .build()
             )
@@ -202,8 +202,8 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void addDefendantAccountParty_gatewayErrorStillReturnsMapperResult() {
         AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
             .defendantAccountParty(
-                PartyDefendantAccount.builder()
-                    .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
+                DefendantAccountParty.builder()
+                    .defendantAccountPartyType(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT)
                     .isDebtor(true)
                     .build()
             )
@@ -239,8 +239,8 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void addDefendantAccountParty_legacyFailure5xx_logsAndMaps() {
         AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
             .defendantAccountParty(
-                PartyDefendantAccount.builder()
-                    .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
+                DefendantAccountParty.builder()
+                    .defendantAccountPartyType(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT)
                     .isDebtor(true)
                     .build()
             )
@@ -295,8 +295,8 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void addDefendantAccountParty_exceptionBranch_rethrows() {
         AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
             .defendantAccountParty(
-                PartyDefendantAccount.builder()
-                    .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
+                DefendantAccountParty.builder()
+                    .defendantAccountPartyType(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT)
                     .isDebtor(true)
                     .build()
             )
@@ -325,8 +325,8 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void addDefendantAccountParty_error_exceptionBranch_returnsWrapperWithNulls() {
         AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
             .defendantAccountParty(
-                PartyDefendantAccount.builder()
-                    .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
+                DefendantAccountParty.builder()
+                    .defendantAccountPartyType(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT)
                     .isDebtor(true)
                     .build()
             )
@@ -363,8 +363,8 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void addDefendantAccountParty_mapsOrganisationDetails_andIndividualIsNull() {
         AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
             .defendantAccountParty(
-                PartyDefendantAccount.builder()
-                    .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
+                DefendantAccountParty.builder()
+                    .defendantAccountPartyType(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT)
                     .isDebtor(true)
                     .build()
             )
@@ -437,8 +437,8 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void addDefendantAccountParty_mapsIndividualDetails_andOrganisationIsNull() {
         AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
             .defendantAccountParty(
-                PartyDefendantAccount.builder()
-                    .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
+                DefendantAccountParty.builder()
+                    .defendantAccountPartyType(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT)
                     .isDebtor(true)
                     .build()
             )
@@ -524,8 +524,8 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void addDefendantAccountParty_mapsEmployerDetails_andEmployerAddress() {
         AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
             .defendantAccountParty(
-                PartyDefendantAccount.builder()
-                    .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
+                DefendantAccountParty.builder()
+                    .defendantAccountPartyType(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT)
                     .isDebtor(true)
                     .build()
             )
@@ -610,8 +610,8 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void addDefendantAccountParty_mapsNullEmployerDetails_toNull() {
         AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
             .defendantAccountParty(
-                PartyDefendantAccount.builder()
-                    .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
+                DefendantAccountParty.builder()
+                    .defendantAccountPartyType(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT)
                     .isDebtor(true)
                     .build()
             )
@@ -670,8 +670,8 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void addDefendantAccountParty_mapsLanguagePreferences() {
         AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
             .defendantAccountParty(
-                PartyDefendantAccount.builder()
-                    .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
+                DefendantAccountParty.builder()
+                    .defendantAccountPartyType(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT)
                     .isDebtor(true)
                     .build()
             )
@@ -751,8 +751,8 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void addDefendantAccountParty_mapsNullLanguagePreferences_toNull() {
         AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder()
             .defendantAccountParty(
-                PartyDefendantAccount.builder()
-                    .defendantAccountPartyType(PartyDefendantAccount.DefendantAccountPartyTypeEnum.DEFENDANT)
+                DefendantAccountParty.builder()
+                    .defendantAccountPartyType(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT)
                     .isDebtor(true)
                     .build()
             )

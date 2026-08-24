@@ -47,7 +47,7 @@ import uk.gov.hmcts.opal.generated.model.VehicleFixedPenaltyDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.PartyDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
@@ -298,7 +298,7 @@ class DefendantAccountApiControllerTest {
         Long defendantAccountPartyId = 2L;
         Short businessUnitId = 10;
         String ifMatch = "\"3\"";
-        PartyDefendantAccount request = PartyDefendantAccount.builder().build();
+        DefendantAccountParty request = DefendantAccountParty.builder().build();
         PartyResponseDefendantAccount serviceResponse = PartyResponseDefendantAccount.builder()
             .version(BigInteger.TEN)
             .build();
