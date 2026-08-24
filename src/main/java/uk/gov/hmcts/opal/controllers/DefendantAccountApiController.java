@@ -18,22 +18,27 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
+import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.http.api.DefendantAccountApi;
 import uk.gov.hmcts.opal.generated.model.AddPaymentCardRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
-import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
+import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
+import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.ImpositionService;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
@@ -43,9 +48,24 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 public class DefendantAccountApiController implements DefendantAccountApi {
 
     private final DefendantAccountService defendantAccountService;
+    private final DefendantAccountEnforcementService defendantAccountEnforcementService;
     private final DefendantAccountHistoryResponseMapper defendantAccountHistoryResponseMapper;
     private final ImpositionService impositionService;
     private final DefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
+
+    @Override
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
+    public ResponseEntity<AddEnforcementResponseDefendantAccount> addEnforcement(
+        Long defendantAccountId,
+        Short businessUnitId,
+        AddEnforcementRequestDefendantAccount request,
+        String ifMatch) {
+
+        log.debug(":POST:addEnforcement: for defendantAccountId={}", defendantAccountId);
+
+        return buildResponse(defendantAccountEnforcementService.addEnforcement(
+            defendantAccountId, businessUnitId, ifMatch, request));
+    }
 
     @Override
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
@@ -157,8 +177,20 @@ public class DefendantAccountApiController implements DefendantAccountApi {
     }
 
     @Override
-    public ResponseEntity<DefendantAccountPaymentTermsResponse> defendantAccountPaymentTerms(Long id) {
-        log.debug(":GET:defendantAccountPaymentTerms: for defendant id: {}", id);
-        return buildResponse(defendantAccountPaymentTermsService.getPaymentTerms(id));
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
+    public ResponseEntity<RemoveEnforcementHoldResponseDefendantAccount> removeEnforcementHold(
+        Long defendantAccountId,
+        Short businessUnitId,
+        RemoveEnforcementHoldRequestDefendantAccount request,
+        String ifMatch) {
+        log.debug(":PATCH:removeEnforcementHold: for defendantAccountId={}", defendantAccountId);
+
+        return buildResponse(defendantAccountEnforcementService.removeEnforcementHold(
+            defendantAccountId,
+            businessUnitId,
+            ifMatch,
+            request
+        ));
     }
+
 }

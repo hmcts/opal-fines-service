@@ -289,7 +289,7 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
                 .reason("late")
                 .warrantNumber("123")
                 .build() : null)
-            .version("1234567890123456789012345678901234567890")
+            .version(new BigInteger("1234567890123456789012345678901234567890"))
             .employerFlag("true")
             .build();
     }

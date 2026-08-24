@@ -359,7 +359,7 @@ class LegacyMinorCreditorServiceTest {
     void getMinorCreditorAccount_shouldMapLegacyResponseToDto() {
         LegacyGetMinorCreditorAccountResponse legacyResponse = LegacyGetMinorCreditorAccountResponse.builder()
             .creditorAccountId(101L)
-            .accountVersion(7L)
+            .accountVersion(BigInteger.valueOf(7L))
             .partyDetails(LegacyPartyDetails.builder().build())
             .payment(LegacyCreditorAccountPaymentDetails.builder().payByBacs(true).holdPayment(false).build())
             .build();
@@ -392,7 +392,7 @@ class LegacyMinorCreditorServiceTest {
     void getHeaderSummary_shouldCallResponseMapper() {
         GetMinorCreditorAccountHeaderSummaryLegacyResponse legacyResponse =
             GetMinorCreditorAccountHeaderSummaryLegacyResponse.builder()
-                .creditor(CreditorHeaderLegacy.builder().accountVersion(1).build())
+                .creditor(CreditorHeaderLegacy.builder().accountVersion(BigInteger.valueOf(1)).build())
                 .build();
 
         GatewayService.Response<GetMinorCreditorAccountHeaderSummaryLegacyResponse> gatewayResponse =
@@ -424,7 +424,7 @@ class LegacyMinorCreditorServiceTest {
     void getHeaderSummary_resolvesBusinessUnitCodeFromBusinessUnitId() {
         GetMinorCreditorAccountHeaderSummaryLegacyResponse legacyResponse =
             GetMinorCreditorAccountHeaderSummaryLegacyResponse.builder()
-                .creditor(CreditorHeaderLegacy.builder().accountVersion(1).build())
+                .creditor(CreditorHeaderLegacy.builder().accountVersion(BigInteger.ONE).build())
                 .businessUnit(uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary.builder()
                                   .businessUnitId("77")
                                   .businessUnitCode("77")
@@ -457,7 +457,7 @@ class LegacyMinorCreditorServiceTest {
     void getHeaderSummary_shouldHandleGatewayException() {
         GetMinorCreditorAccountHeaderSummaryLegacyResponse legacyResponse =
             GetMinorCreditorAccountHeaderSummaryLegacyResponse.builder()
-                .creditor(CreditorHeaderLegacy.builder().accountVersion(1).build())
+                .creditor(CreditorHeaderLegacy.builder().accountVersion(BigInteger.valueOf(1)).build())
                 .build();
 
         GatewayService.Response<GetMinorCreditorAccountHeaderSummaryLegacyResponse> responseWithException =
@@ -491,7 +491,7 @@ class LegacyMinorCreditorServiceTest {
     void getHeaderSummary_shouldHandleLegacyFailure() {
         GetMinorCreditorAccountHeaderSummaryLegacyResponse legacyResponse =
             GetMinorCreditorAccountHeaderSummaryLegacyResponse.builder()
-                .creditor(CreditorHeaderLegacy.builder().accountVersion(1).build())
+                .creditor(CreditorHeaderLegacy.builder().accountVersion(BigInteger.valueOf(1)).build())
                 .build();
 
         GatewayService.Response<GetMinorCreditorAccountHeaderSummaryLegacyResponse> responseWithFailure =
@@ -525,7 +525,7 @@ class LegacyMinorCreditorServiceTest {
     void getMinorCreditorAccount_shouldReturnMappedResponseWhenBusinessUnitNotFound() {
         LegacyGetMinorCreditorAccountResponse legacyResponse = LegacyGetMinorCreditorAccountResponse.builder()
             .creditorAccountId(1L)
-            .accountVersion(1L)
+            .accountVersion(BigInteger.valueOf(1L))
             .partyDetails(LegacyPartyDetails.builder().build())
             .payment(LegacyCreditorAccountPaymentDetails.builder().payByBacs(true).holdPayment(false).build())
             .build();
@@ -575,7 +575,7 @@ class LegacyMinorCreditorServiceTest {
             .creditorAccountId("1")
             .businessUnitId("77")
             .businessUnitUserId("test.user")
-            .accountVersion(1)
+            .accountVersion(BigInteger.valueOf(1))
             .partyDetails(LegacyPartyDetails.builder().partyId("99008").build())
             .address(uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy.builder()
                 .addressLine1("99 Updated Road")
@@ -590,7 +590,7 @@ class LegacyMinorCreditorServiceTest {
                 .build())
             .build();
         LegacyUpdateMinorCreditorAccountResponse legacyResponse = LegacyUpdateMinorCreditorAccountResponse.builder()
-            .accountVersion(2)
+            .accountVersion(BigInteger.valueOf(2))
             .creditorAccountId(1L)
             .partyDetails(new LegacyPartyDetails())
             .address(new uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy())
@@ -608,7 +608,7 @@ class LegacyMinorCreditorServiceTest {
             request
         )).thenReturn(legacyRequest);
         when(gatewayService.postToGateway(
-            "LIBRA.of_update_minor_creditor_account",
+            "updateMinorCreditorAccount",
             LegacyUpdateMinorCreditorAccountResponse.class,
             legacyRequest,
             null
@@ -634,7 +634,7 @@ class LegacyMinorCreditorServiceTest {
             request
         );
         verify(gatewayService).postToGateway(
-            "LIBRA.of_update_minor_creditor_account",
+            "updateMinorCreditorAccount",
             LegacyUpdateMinorCreditorAccountResponse.class,
             legacyRequest,
             null

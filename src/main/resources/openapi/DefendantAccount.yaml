@@ -398,6 +398,97 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 
+  /defendant-accounts/{defendantAccountId}/enforcements:
+    post:
+      tags:
+        - Defendant Account
+      summary: Create an enforcement for a given defendant account
+      operationId: addEnforcement
+      security:
+        - permissions:
+            - Enter Enforcement (in the business unit supplied in Business-Unit-Id)
+      parameters:
+        - in: path
+          name: defendantAccountId
+          description: DB Mapping - defendant_accounts.defendant_account_id
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: header
+          name: Business-Unit-Id
+          description: Business unit identifier
+          required: true
+          schema:
+            type: integer
+            format: int16
+        - in: header
+          name: If-Match
+          description: Version of the defendant account. DB Mapping - defendant_accounts.version
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/addEnforcementRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/addEnforcementResponse'
+        '400':
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '409':
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '422':
+          description: Unprocessable content
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
   /defendant-accounts/{defendantAccountId}/consolidated-accounts:
     get:
       tags:
@@ -845,62 +936,95 @@ paths:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
-  /defendant-accounts/{id}/payment-terms/latest:
-    get:
+
+  /defendant-accounts/{defendantAccountId}/remove-enf-hold:
+    patch:
       tags:
         - Defendant Account
-      summary: Get the latest defendant account payment terms
-      description: The Get Defendant Account Latest Payment Terms API will be used to return payment related information for a given defendant account.
-      operationId: defendantAccountPaymentTerms
+      summary: Remove an enforcement hold for a given defendant account
+      operationId: removeEnforcementHold
       security:
         - permissions:
-            - Search and View Accounts (in at least one business unit)
+            - Enter Enforcement (in the business unit supplied in Business-Unit-Id)
       parameters:
         - in: path
-          name: id
+          name: defendantAccountId
           description: DB Mapping - defendant_accounts.defendant_account_id
+          required: true
           schema:
             type: integer
             format: int64
+        - in: header
+          name: Business-Unit-Id
+          description: Business unit identifier
           required: true
+          schema:
+            type: integer
+            format: int16
+        - in: header
+          name: If-Match
+          description: Version of the defendant account. DB Mapping - defendant_accounts.version
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoveEnforcementHoldRequest'
       responses:
-        200:
+        '200':
           description: OK
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DefendantAccountPaymentTermsResponse'
-        400:
+                $ref: '#/components/schemas/RemoveEnforcementHoldResponse'
+        '400':
           description: Bad request
           content:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
-        401:
+        '401':
           description: Unauthorized
           content:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
-        403:
+        '403':
           description: Forbidden
           content:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
-        404:
+        '404':
           description: Not found
           content:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
-        500:
+        '409':
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '422':
+          description: Unprocessable content
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
           description: Internal server error
           content:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
-        503:
+        '503':
           description: Service unavailable
           content:
             application/problem+json:
@@ -913,6 +1037,77 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    addEnforcementRequest:
+      title: Add Enforcement Request
+      type: object
+      additionalProperties: false
+      required:
+        - result_id
+        - enforcement_result_responses
+      properties:
+        result_id:
+          $ref: './CommonStrict.yaml#/components/schemas/enforcementResultId'
+        enforcement_result_responses:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/enforcementResultResponse'
+        payment_terms:
+          $ref: './CommonStrict.yaml#/components/schemas/enforcementPaymentTerms'
+    enforcementResultResponse:
+      title: Enforcement Result Response
+      type: object
+      additionalProperties: false
+      required:
+        - parameter_name
+        - response
+      properties:
+        parameter_name:
+          type: string
+        response:
+          type: string
+    addEnforcementResponse:
+      title: Add Enforcement Response
+      type: object
+      additionalProperties: false
+      x-json-include: NON_NULL
+      required:
+        - defendant_account_id
+        - enforcement_id
+        - version
+      properties:
+        defendant_account_id:
+          type: string
+          x-field-extra-annotation: '@jakarta.validation.constraints.NotBlank'
+        enforcement_id:
+          type: string
+          x-field-extra-annotation: '@jakarta.validation.constraints.NotBlank'
+        version:
+          type: integer
+          format: bigint
+    RemoveEnforcementHoldRequest:
+      title: Remove Enforcement Hold Request
+      type: object
+      additionalProperties: false
+      required:
+        - reason
+      properties:
+        reason:
+          type: string
+          nullable: true
+    RemoveEnforcementHoldResponse:
+      title: Remove Enforcement Hold Response
+      type: object
+      additionalProperties: false
+      x-json-include: NON_NULL
+      x-versioned: true
+      x-implements:
+        - uk.gov.hmcts.opal.util.Versioned
+      required:
+        - defendant_account_id
+      properties:
+        defendant_account_id:
+          type: string
     atAGlanceResponse:
       title: Defendant Account At A Glance Response
       type: object
@@ -1362,23 +1557,3 @@ components:
       required:
         - enforcement_action
         - date_added
-    DefendantAccountPaymentTermsResponse:
-      type: object
-      additionalProperties: false
-      properties:
-        payment_terms:
-          $ref: './CommonStrict.yaml#/components/schemas/paymentTermsSummary'
-        payment_card_last_requested:
-          type: string
-          nullable: true
-          format: date
-        last_enforcement:
-          type: string
-          minLength: 1
-          nullable: true
-        version:
-          $ref: "./types.yaml#/components/schemas/BigInt"
-      required:
-        - payment_terms
-        - payment_card_last_requested
-        - last_enforcement

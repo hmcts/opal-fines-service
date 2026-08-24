@@ -42,8 +42,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
-import tools.jackson.databind.ObjectMapper;
 import tools.jackson.core.exc.StreamConstraintsException;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.entity.ReportEntity;
@@ -144,8 +144,7 @@ class GenericReportServiceTest {
             mapper,
             businessUnitRepository,
             reportInstanceSearchService,
-            getReportInstanceContentService
-        );
+            getReportInstanceContentService);
     }
 
     @Test
@@ -309,8 +308,6 @@ class GenericReportServiceTest {
     @Test
     void addReportInstance_success_singleBU() {
         //setup
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.isSupportsMultiBu()).thenReturn(false);
         when(reportEntity.isCanManuallyCreate()).thenReturn(true);
@@ -319,8 +316,6 @@ class GenericReportServiceTest {
         when(reportInstanceMapper.toResponseDto(reportInstance)).thenReturn(reportInstanceResponse);
         when(reportParameterValidator.validateReportInstanceParameterValues(reportParameters, reportEntity))
             .thenReturn(true);
-
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
         reportInstance.setReportInstanceId(123L);
 
         //test
@@ -330,7 +325,7 @@ class GenericReportServiceTest {
                 .reportName(null)
                 .businessUnitIds(List.of((short) 1))
                 .reportParameters(reportParameters)
-                .build(), true)).isEqualTo(reportInstanceResponse);
+                .build(), USER_ID, "test-user", true)).isEqualTo(reportInstanceResponse);
 
         verify(reportQueuePublisher).publish(123L);
     }
@@ -338,8 +333,6 @@ class GenericReportServiceTest {
     @Test
     void addReportInstance_success_multiBU() {
         //setup
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.isSupportsMultiBu()).thenReturn(true);
         when(reportEntity.isCanManuallyCreate()).thenReturn(true);
@@ -348,9 +341,6 @@ class GenericReportServiceTest {
         when(reportInstanceMapper.toResponseDto(reportInstance)).thenReturn(reportInstanceResponse);
         when(reportParameterValidator.validateReportInstanceParameterValues(reportParameters, reportEntity))
             .thenReturn(true);
-
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
-        when(businessUnitUser2.getBusinessUnitId()).thenReturn((short) 2);
 
         reportInstance.setReportInstanceId(123L);
 
@@ -361,7 +351,7 @@ class GenericReportServiceTest {
                 .reportName(null)
                 .businessUnitIds(List.of((short) 1, (short) 2))
                 .reportParameters(reportParameters)
-                .build(), true)).isEqualTo(reportInstanceResponse);
+                .build(), USER_ID, "test-user", true)).isEqualTo(reportInstanceResponse);
 
         verify(reportQueuePublisher).publish(123L);
     }
@@ -380,7 +370,7 @@ class GenericReportServiceTest {
                     .reportName(null)
                     .businessUnitIds(List.of((short) 1, (short) 2))
                     .reportParameters(reportParameters)
-                    .build(), true));
+                    .build(), USER_ID, "test-user", true));
         assertEquals("Too many business units supplied, this report only allows 1", exception.getDetailedReason());
     }
 
@@ -399,44 +389,18 @@ class GenericReportServiceTest {
                     .reportName(null)
                     .businessUnitIds(List.of((short) 1))
                     .reportParameters(reportParameters)
-                    .build(), true));
+                    .build(), USER_ID, "test-user", true));
         assertEquals("This report cannot be manually created", exception.getDetailedReason());
-    }
-
-    @Test
-    void addReportInstance_userNotAuthorizedWithBU_throwsException() {
-        //setup
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
-        when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
-        when(reportEntity.isSupportsMultiBu()).thenReturn(true);
-        when(reportEntity.isCanManuallyCreate()).thenReturn(true);
-
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
-        //test
-        AccessDeniedException exception = assertThrows(AccessDeniedException.class,
-            () -> genericReportService.addReportInstance(
-                CreateReportInstanceRequestReports.builder()
-                    .reportId(reportId)
-                    .reportName(null)
-                    .businessUnitIds(List.of((short) 1, (short) 2))
-                    .reportParameters(reportParameters)
-                    .build(), true));
-        assertEquals("You cannot generate reports for other business units", exception.getMessage());
     }
 
     @Test
     void addReportInstance_failsValidation_throwsException() {
         //setup
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.isSupportsMultiBu()).thenReturn(true);
         when(reportEntity.isCanManuallyCreate()).thenReturn(true);
         when(reportParameterValidator.validateReportInstanceParameterValues(reportParameters, reportEntity))
             .thenReturn(false);
-
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
         //test
         UnprocessableException exception = assertThrows(UnprocessableException.class,
             () -> genericReportService.addReportInstance(
@@ -445,50 +409,51 @@ class GenericReportServiceTest {
                     .reportName(null)
                     .businessUnitIds(List.of((short) 1))
                     .reportParameters(reportParameters)
-                    .build(), true));
+                    .build(), USER_ID, "test-user", true));
         assertEquals("Validation failed for report instance parameters", exception.getDetailedReason());
     }
 
     @Test
-    void addReportInstance_genReportAsyncFalse_throwsException() {
+    void addReportInstance_genReportAsyncFalse_generatesImmediately() {
         //setup
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.isSupportsMultiBu()).thenReturn(false);
-        when(reportEntity.isCanManuallyCreate()).thenReturn(true);
         when(mapper.writeValueAsString(any())).thenReturn("{}");
         when(reportInstanceRepository.save(any())).thenReturn(reportInstance);
+        when(reportInstanceRepository.findById(123L)).thenReturn(Optional.of(reportInstance));
         when(reportParameterValidator.validateReportInstanceParameterValues(reportParameters, reportEntity))
             .thenReturn(true);
-
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
+        when(reportEntity.getReportId()).thenReturn(reportId);
+        //noinspection rawtypes
+        when((ReportInterface) reportRegistry.get(reportId)).thenReturn(reportInterfaceImplementation);
+        when(reportInterfaceImplementation.generateReportData(reportInstance)).thenReturn(reportData);
+        when(reportData.getNumberOfRecords()).thenReturn(2L);
+        when(reportBlobStore.storeReport(any())).thenReturn(LOCATION);
+        when(reportEntity.getRetentionPeriod()).thenReturn(Duration.ofDays(1));
+        when(reportInstanceMapper.toResponseDto(reportInstance)).thenReturn(reportInstanceResponse);
+        reportInstance.setReportInstanceId(123L);
 
         //test
-        UnprocessableException exception = assertThrows(UnprocessableException.class,
-            () -> genericReportService.addReportInstance(
-                CreateReportInstanceRequestReports.builder()
-                    .reportId(reportId)
-                    .reportName(null)
-                    .businessUnitIds(List.of((short) 1))
-                    .reportParameters(reportParameters)
-                    .build(), false));
-        assertEquals("generateReportContentAsync cannot be false", exception.getDetailedReason());
+        assertThat(genericReportService.addReportInstance(
+            CreateReportInstanceRequestReports.builder()
+                .reportId(reportId)
+                .reportName(null)
+                .businessUnitIds(List.of((short) 1))
+                .reportParameters(reportParameters)
+                .build(), USER_ID, "test-user", false)).isEqualTo(reportInstanceResponse);
+
+        verify(reportBlobStore).storeReport(any());
+        verify(reportQueuePublisher, never()).publish(any());
     }
 
     @Test
     void addReportInstance_invalidJson_throwsException() {
         //setup
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         when(reportRepository.findById(reportId)).thenReturn(Optional.of(reportEntity));
         when(reportEntity.isSupportsMultiBu()).thenReturn(false);
-        when(reportEntity.isCanManuallyCreate()).thenReturn(true);
         when(mapper.writeValueAsString(any())).thenThrow(new StreamConstraintsException("unit test"));
         when(reportParameterValidator.validateReportInstanceParameterValues(reportParameters, reportEntity))
             .thenReturn(true);
-
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
         reportInstance.setReportInstanceId(123L);
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
@@ -498,7 +463,7 @@ class GenericReportServiceTest {
                     .reportName(null)
                     .businessUnitIds(List.of((short) 1))
                     .reportParameters(reportParameters)
-                    .build(), false));
+                    .build(), USER_ID, "test-user", false));
         assertEquals("Report parameters badly formatted", exception.getMessage());
     }
 
@@ -547,15 +512,13 @@ class GenericReportServiceTest {
             AccessDeniedException exception = assertThrows(
                 AccessDeniedException.class,
                 () -> genericReportService.searchReportInstances(FROM_DATE, TO_DATE, null, USER_ID,
-                    RESTRICTED_REPORT_ID)
-            );
+                    RESTRICTED_REPORT_ID));
 
             assertAll(
                 () -> Assertions.assertThat(exception.getMessage())
                     .isEqualTo("User does not have permission for reportId: " + RESTRICTED_REPORT_ID),
                 () -> verify(reportInstanceSearchService).findRequestedReportElseThrowError(RESTRICTED_REPORT_ID),
-                () -> verify(reportInstanceRepository, never()).findAll(specificationMatcher())
-            );
+                () -> verify(reportInstanceRepository, never()).findAll(specificationMatcher()));
         }
 
         @Test
@@ -567,15 +530,13 @@ class GenericReportServiceTest {
             AccessDeniedException exception = assertThrows(
                 AccessDeniedException.class,
                 () -> genericReportService.searchReportInstances(
-                    FROM_DATE, TO_DATE, List.of((short) 10, (short) 20), USER_ID, null)
-            );
+                    FROM_DATE, TO_DATE, List.of((short) 10, (short) 20), USER_ID, null));
 
             assertAll(
                 () -> Assertions.assertThat(exception.getMessage())
                     .isEqualTo("User does not have permission for business unit: 20"),
                 () -> verify(reportInstanceSearchService).validateBusinessUnitIds(List.of((short) 10, (short) 20)),
-                () -> verify(reportInstanceRepository, never()).findAll(specificationMatcher())
-            );
+                () -> verify(reportInstanceRepository, never()).findAll(specificationMatcher()));
         }
 
         @Test
@@ -593,8 +554,7 @@ class GenericReportServiceTest {
                 TO_DATE,
                 List.of((short) 10),
                 USER_ID,
-                PERMITTED_REPORT_ID
-            );
+                PERMITTED_REPORT_ID);
 
             assertAll(
                 () -> Assertions.assertThat(result).hasSize(1),
@@ -602,20 +562,16 @@ class GenericReportServiceTest {
                 () -> verify(reportInstanceSearchService).findRequestedReportElseThrowError(PERMITTED_REPORT_ID),
                 () -> verify(reportInstanceSearchService).findPermittedReportForBusinessUnits(
                     List.of(report),
-                    List.of((short) 10)
-                ),
+                    List.of((short) 10)),
                 () -> verify(reportInstanceRepository).findAll(specificationMatcher()),
-                () -> verify(reportInstanceMapper).toReportInstanceListReportsInnerDto(matching)
-            );
+                () -> verify(reportInstanceMapper).toReportInstanceListReportsInnerDto(matching));
         }
 
         @Test
         void whenReportIdNotProvided_filtersOnlyPermittedReportIds_happyPath() {
             when(reportInstanceSearchService.findPermittedReports()).thenReturn(List.of(report));
             when(reportInstanceSearchService.validateBusinessUnitIds(null)).thenReturn(List.of((short) 10));
-            mock_permittedReportForBusinessUnits(
-                Map.of(PERMITTED_REPORT_ID, List.of((short) 10))
-            );
+            mock_permittedReportForBusinessUnits(Map.of(PERMITTED_REPORT_ID, List.of((short) 10)));
             mockReportInstancesFound(List.of(matching));
             mockDtoMapped();
 
@@ -624,16 +580,14 @@ class GenericReportServiceTest {
                 TO_DATE,
                 null,
                 USER_ID,
-                null
-            );
+                null);
 
             assertAll(
                 () -> Assertions.assertThat(result).hasSize(1),
                 () -> Assertions.assertThat(result).containsExactly(dto),
                 () -> verify(reportInstanceSearchService).findPermittedReports(),
                 () -> verify(reportInstanceRepository).findAll(specificationMatcher()),
-                () -> verify(reportInstanceMapper).toReportInstanceListReportsInnerDto(matching)
-            );
+                () -> verify(reportInstanceMapper).toReportInstanceListReportsInnerDto(matching));
         }
 
         @Test
@@ -655,10 +609,8 @@ class GenericReportServiceTest {
                 () -> verify(reportInstanceSearchService).validateBusinessUnitIds(null),
                 () -> verify(reportInstanceSearchService).findPermittedReportForBusinessUnits(
                     List.of(report),
-                    List.of((short) 10, (short) 20)
-                ),
-                () -> verify(reportInstanceRepository).findAll(specificationMatcher())
-            );
+                    List.of((short) 10, (short) 20)),
+                () -> verify(reportInstanceRepository).findAll(specificationMatcher()));
         }
 
         @Test
@@ -673,8 +625,7 @@ class GenericReportServiceTest {
             assertAll(
                 () -> Assertions.assertThat(result).isEmpty(),
                 () -> verify(reportInstanceRepository, never()).findAll(specificationMatcher()),
-                () -> verify(reportInstanceMapper, never()).toReportInstanceListReportsInnerDto(any())
-            );
+                () -> verify(reportInstanceMapper, never()).toReportInstanceListReportsInnerDto(any()));
         }
 
         private void mockReportInstancesFound(List<ReportInstanceEntity> reportInstances) {
@@ -686,9 +637,8 @@ class GenericReportServiceTest {
         }
 
         private void mock_permittedReportForBusinessUnits(Map<String, List<Short>> permittedReports) {
-            when(reportInstanceSearchService.findPermittedReportForBusinessUnits(any(), any())).thenReturn(
-                permittedReports
-            );
+            when(reportInstanceSearchService.findPermittedReportForBusinessUnits(any(), any()))
+                .thenReturn(permittedReports);
         }
 
         private Specification<ReportInstanceEntity> specificationMatcher() {

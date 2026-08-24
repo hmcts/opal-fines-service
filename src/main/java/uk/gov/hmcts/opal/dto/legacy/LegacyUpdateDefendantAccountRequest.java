@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Size;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
+import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -47,7 +48,7 @@ public class LegacyUpdateDefendantAccountRequest {
     @JsonProperty("version")
     @XmlElement(name = "version")
     @NotNull
-    private Integer version;
+    private BigInteger version;
 
     @JsonProperty("comment_and_notes")
     @XmlElement(name = "comment_and_notes")

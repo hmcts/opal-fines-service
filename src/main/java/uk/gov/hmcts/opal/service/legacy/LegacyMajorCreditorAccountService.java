@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.legacy;
 
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
@@ -87,7 +86,7 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
             response.responseEntity);
 
         MajorCreditorLegacy majorCreditor = response.responseEntity.getMajorCreditor();
-        mapped.setVersion(BigInteger.valueOf(majorCreditor.getAccountVersion()));
+        mapped.setVersion(majorCreditor.getAccountVersion());
         applyResolvedBusinessUnitCode(mapped, response.responseEntity.getBusinessUnitDetails());
 
         return mapped;

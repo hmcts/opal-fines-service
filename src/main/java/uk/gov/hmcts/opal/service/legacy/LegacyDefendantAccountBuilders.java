@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.legacy;
 
-import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -51,7 +50,7 @@ public class LegacyDefendantAccountBuilders {
             .isHmrcCheckEligible(false)  // Always 'false' for Legacy responses
             .lastEnforcementAction(buildEnforcementActionDefendantAccount(legacy.getLastEnforcementAction()))
             .nextEnforcementActionData(null) // Not returned from Legacy
-            .version(new BigInteger(legacy.getVersion()))
+            .version(legacy.getVersion())
             .build();
     }
 
