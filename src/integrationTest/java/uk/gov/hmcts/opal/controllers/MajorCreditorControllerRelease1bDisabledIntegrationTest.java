@@ -49,7 +49,7 @@ public class MajorCreditorControllerRelease1bDisabledIntegrationTest extends Abs
 
         String body = result.andExpect(status().isOk())
             .andExpect(content().contentType(APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(144))
+            .andExpect(jsonPath("$.count").value(145))
             .andExpect(jsonPath("$.refData[*].from_suspense").exists())
             .andExpect(jsonPath("$.refData[*].repayment").doesNotExist())
             .andReturn().getResponse().getContentAsString();

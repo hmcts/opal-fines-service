@@ -21,7 +21,7 @@
     <xsd:complexType name="major_creditor">
         <xsd:sequence>
             <xsd:element name="creditor_account_id" type="xsd:long" minOccurs="1" maxOccurs="1"/>
-            <xsd:element name="account_version" type="xsd:long" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="account_version" type="xsd:integer" minOccurs="1" maxOccurs="1"/>
             <xsd:element name="account_number" type="account_number" minOccurs="1" maxOccurs="1"/>
             <xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1"/>
             <xsd:element name="account_reference" type="creditor_account_type_reference" minOccurs="1" maxOccurs="1"/>

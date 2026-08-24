@@ -216,11 +216,11 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             .build();
     }
 
-    // TODO - Created PO-2452 to fix bumping the version with a more atomically correct method
-    private DefendantAccountEntity bumpVersion(Long accountId) {
-        DefendantAccountEntity entity = defendantAccountRepositoryService.findById(accountId);
-        entity.setVersionNumber(entity.getVersion().add(BigInteger.ONE).longValueExact());
-        return defendantAccountRepositoryService.saveAndFlush(entity);
+    private BigInteger bumpVersion(DefendantAccountEntity account) {
+        return defendantAccountRepositoryService.incrementVersionNumber(
+            account.getDefendantAccountId(),
+            account.getVersion()
+        );
     }
 
     @Override
@@ -335,7 +335,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
         return GetDefendantAccountPartyResponse.builder()
             .defendantAccountParty(mapDefendantAccountParty(dap, aliasEntity))
-            .version(bumpVersion(accountId).getVersion())
+            .version(bumpVersion(account))
             .build();
     }
 

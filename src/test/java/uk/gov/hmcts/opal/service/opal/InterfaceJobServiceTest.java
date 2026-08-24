@@ -1,7 +1,9 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -9,14 +11,18 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.time.Clock;
+import java.time.Instant;
+import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.function.Function;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
@@ -29,6 +35,7 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.entity.InterfaceFileEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobEntity;
+import uk.gov.hmcts.opal.entity.InterfaceJobStatus;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateItem;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateRequest;
@@ -36,13 +43,17 @@ import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateResponse;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateResponseItem;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsFileSource;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsJobStatus;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsProcessItem;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsProcessRequest;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsSummaryItem;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsSummaryResponse;
 import uk.gov.hmcts.opal.mapper.InterfaceJobMapper;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.InterfaceFileRepository;
 import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.InterfaceJobService.InterfaceJobSearchCriteria;
+import uk.gov.hmcts.opal.service.messaging.InterfaceJobQueuePublisher;
 
 @ExtendWith(MockitoExtension.class)
 class InterfaceJobServiceTest {
@@ -62,8 +73,17 @@ class InterfaceJobServiceTest {
     @Mock
     private UserStateService userStateService;
 
-    @InjectMocks
+    @Mock
+    private InterfaceJobQueuePublisher interfaceJobQueuePublisher;
+
     private InterfaceJobService interfaceJobService;
+
+    @BeforeEach
+    void setUp() {
+        Clock clock = Clock.fixed(Instant.parse("2026-07-21T09:15:00Z"), ZoneOffset.UTC);
+        interfaceJobService = new InterfaceJobService(interfaceJobRepository, interfaceFileRepository,
+            interfaceJobMapper, businessUnitService, userStateService, interfaceJobQueuePublisher, clock);
+    }
 
     @Test
     void create_savesJobsAndFiles() {
@@ -212,6 +232,120 @@ class InterfaceJobServiceTest {
         verify(interfaceJobMapper).toSummaryResponse(interfaceJob, secondFile);
     }
 
+    @Test
+    void process_updatesEligibleJobAndPublishesItsId() {
+        InterfaceJobEntity job = processJob(123L, InterfaceJobStatus.CREATED);
+        InterfaceFileEntity file = InterfaceFileEntity.builder().interfaceJob(job).build();
+        job.setInterfaceFiles(List.of(file));
+        when(interfaceJobRepository.findAllByInterfaceJobIdIn(List.of(123L))).thenReturn(List.of(job));
+        permitProcessingBusinessUnit();
+
+        interfaceJobService.process(processRequest(123L, BUSINESS_UNIT_ID, true));
+
+        assertEquals(InterfaceJobStatus.PROCESSING, job.getStatus());
+        assertEquals(LocalDateTime.of(2026, 7, 21, 9, 15), job.getStartedDateTime());
+        assertTrue(file.isOverrideInhibits());
+        verify(interfaceJobQueuePublisher).publish(List.of(123L));
+    }
+
+    @Test
+    void process_allowsFailedJobs() {
+        InterfaceJobEntity job = processJob(123L, InterfaceJobStatus.FAILED);
+        job.setInterfaceFiles(List.of(InterfaceFileEntity.builder().interfaceJob(job).build()));
+        when(interfaceJobRepository.findAllByInterfaceJobIdIn(List.of(123L))).thenReturn(List.of(job));
+        permitProcessingBusinessUnit();
+
+        interfaceJobService.process(processRequest(123L, BUSINESS_UNIT_ID, false));
+
+        assertEquals(InterfaceJobStatus.PROCESSING, job.getStatus());
+        assertFalse(job.getInterfaceFiles().getFirst().isOverrideInhibits());
+        verify(interfaceJobQueuePublisher).publish(List.of(123L));
+    }
+
+    @Test
+    void process_rejectsMissingJobWithoutPublishing() {
+        when(interfaceJobRepository.findAllByInterfaceJobIdIn(List.of(123L))).thenReturn(List.of());
+
+        assertThrows(jakarta.persistence.EntityNotFoundException.class,
+            () -> interfaceJobService.process(processRequest(123L, BUSINESS_UNIT_ID, true)));
+
+        verifyNoInteractions(interfaceJobQueuePublisher, userStateService);
+    }
+
+    @Test
+    void process_rejectsInvalidStatusWithoutChangingOrPublishing() {
+        InterfaceJobEntity job = processJob(123L, InterfaceJobStatus.PROCESSING);
+        when(interfaceJobRepository.findAllByInterfaceJobIdIn(List.of(123L))).thenReturn(List.of(job));
+        permitProcessingBusinessUnit();
+
+        assertThrows(ResourceConflictException.class,
+            () -> interfaceJobService.process(processRequest(123L, BUSINESS_UNIT_ID, true)));
+
+        assertEquals(InterfaceJobStatus.PROCESSING, job.getStatus());
+        verifyNoInteractions(interfaceJobQueuePublisher);
+    }
+
+    @Test
+    void process_rejectsBusinessUnitWithoutPermission() {
+        InterfaceJobEntity job = processJob(123L, InterfaceJobStatus.CREATED);
+        when(interfaceJobRepository.findAllByInterfaceJobIdIn(List.of(123L))).thenReturn(List.of(job));
+        when(userStateService.getPermittedBusinessUnitIds(
+            List.of(BUSINESS_UNIT_ID), FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(List.of());
+
+        assertThrows(PermissionNotAllowedException.class,
+            () -> interfaceJobService.process(processRequest(123L, BUSINESS_UNIT_ID, true)));
+
+        assertEquals(InterfaceJobStatus.CREATED, job.getStatus());
+        verifyNoInteractions(interfaceJobQueuePublisher);
+    }
+
+    @Test
+    void process_rejectsBusinessUnitMismatchWithoutPublishing() {
+        InterfaceJobEntity job = processJob(123L, InterfaceJobStatus.CREATED);
+        when(interfaceJobRepository.findAllByInterfaceJobIdIn(List.of(123L))).thenReturn(List.of(job));
+
+        assertThrows(IllegalArgumentException.class,
+            () -> interfaceJobService.process(processRequest(123L, (short) 72, true)));
+
+        verifyNoInteractions(interfaceJobQueuePublisher, userStateService);
+    }
+
+    @Test
+    void deleteInterfaceJobs_whenJobsExist_deletesJobs() {
+        List<Long> interfaceJobIds = List.of(100L, 101L);
+        when(interfaceJobRepository.findAllById(interfaceJobIds))
+            .thenReturn(List.of(mock(InterfaceJobEntity.class)));
+
+        interfaceJobService.deleteInterfaceJobs(interfaceJobIds);
+
+        verify(interfaceJobRepository).findAllById(interfaceJobIds);
+        verify(interfaceJobRepository).deleteAllById(interfaceJobIds);
+    }
+
+    @Test
+    void deleteInterfaceJobs_whenNoIds_throwsEntityNotFoundException() {
+        EntityNotFoundException exception = assertThrows(
+            EntityNotFoundException.class,
+            () -> interfaceJobService.deleteInterfaceJobs(List.of()));
+
+        assertEquals("Interface job ids supplied for deletion not found", exception.getMessage());
+        verifyNoInteractions(interfaceJobRepository);
+    }
+
+    @Test
+    void deleteInterfaceJobs_whenJobsDoNotExist_throwsEntityNotFoundException() {
+        List<Long> interfaceJobIds = List.of(999L);
+        when(interfaceJobRepository.findAllById(interfaceJobIds)).thenReturn(List.of());
+
+        EntityNotFoundException exception = assertThrows(
+            EntityNotFoundException.class,
+            () -> interfaceJobService.deleteInterfaceJobs(interfaceJobIds));
+
+        assertEquals("Interface job ids supplied for deletion not found", exception.getMessage());
+        verify(interfaceJobRepository).findAllById(interfaceJobIds);
+        verify(interfaceJobRepository, never()).deleteAllById(interfaceJobIds);
+    }
+
     private InterfaceJobsSummaryItem summaryResponse(
         Long interfaceJobId, Long interfaceFileId, String fileName) {
         LocalDateTime now = LocalDateTime.now();
@@ -237,5 +371,31 @@ class InterfaceJobServiceTest {
         assertEquals("createdDateTime", orders.get(1).getProperty());
         assertEquals(Sort.Direction.DESC, orders.get(1).getDirection());
     }
+
+    private void permitProcessingBusinessUnit() {
+        when(userStateService.getPermittedBusinessUnitIds(
+            List.of(BUSINESS_UNIT_ID), FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS))
+            .thenReturn(List.of(BUSINESS_UNIT_ID));
+    }
+
+    private InterfaceJobEntity processJob(Long id, InterfaceJobStatus status) {
+        return InterfaceJobEntity.builder()
+            .interfaceJobId(id)
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId(BUSINESS_UNIT_ID).build())
+            .status(status)
+            .build();
+    }
+
+    private InterfaceJobsProcessRequest processRequest(Long id, Short businessUnitId, boolean overrideInhibits) {
+        return InterfaceJobsProcessRequest.builder()
+            .interfaceJobs(List.of(InterfaceJobsProcessItem.builder()
+                .interfaceJobId(id)
+                .businessUnitId(businessUnitId)
+                .overrideInhibits(overrideInhibits)
+                .build()))
+            .build();
+    }
+
+    private static final Short BUSINESS_UNIT_ID = 71;
 
 }

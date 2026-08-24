@@ -21,6 +21,7 @@ import uk.gov.hmcts.opal.dto.Creditor;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Sql(
     executionPhase = BEFORE_TEST_METHOD,
@@ -41,6 +42,7 @@ public class MinorCreditorControllerSearchIntegrationTest extends AbstractIntegr
     @JiraEpic("PO-2630")
     @JiraStory("PO-2971")
     @DisplayName("AC01 - If account number is populated no other fields can be - should error")
+    @JiraTestKey("PO-10095")
     void postMinorCreditorAccountSearch_withAccountNumberAndOtherFields_shouldFail() throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .activeAccountsOnly(true)
@@ -71,6 +73,7 @@ public class MinorCreditorControllerSearchIntegrationTest extends AbstractIntegr
     @JiraEpic("PO-2630")
     @JiraStory("PO-2971")
     @DisplayName("AC02 - If account number is populated no other fields can be - should be successful")
+    @JiraTestKey("PO-10098")
     void postMinorCreditorAccountSearch_withAccountNumber_shouldPass() throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of((short) 10))
@@ -90,6 +93,7 @@ public class MinorCreditorControllerSearchIntegrationTest extends AbstractIntegr
     @JiraEpic("PO-2630")
     @JiraStory("PO-2971")
     @DisplayName("AC03 - If first name is populated last name must also be populated - should error")
+    @JiraTestKey("PO-10097")
     void postMinorCreditorAccountSearch_withFirstNameWithoutLastName_shouldFail() throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of((short) 10))
@@ -113,6 +117,7 @@ public class MinorCreditorControllerSearchIntegrationTest extends AbstractIntegr
     @JiraEpic("PO-2630")
     @JiraStory("PO-2971")
     @DisplayName("AC04 - If first name is populated last name must also be populated - should be successful")
+    @JiraTestKey("PO-10096")
     void postMinorCreditorAccountSearch_withFirstNameAndLastName_shouldPass() throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of((short) 10))

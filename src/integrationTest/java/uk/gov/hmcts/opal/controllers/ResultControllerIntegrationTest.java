@@ -16,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -41,6 +42,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Slf4j(topic = "opal.ResultControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_results.sql", executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("ResultController Integration Test")
+@Isolated
 class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/results";
@@ -103,6 +105,35 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.requires_lja").value(true))
             .andExpect(jsonPath("$.manual_enforcement").value(false))
             .andExpect(jsonPath("$.enf_next_permitted_actions").value("NOENF,WDN"));
+    }
+
+    @Test
+    @DisplayName("PO-8973 Get result by ID omits optional fields when null")
+    @JiraStory("PO-8973")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-10186")
+    void getResultById_whenOptionalFieldsAreNull_omitsThem() throws Exception {
+        mockMvc.perform(get(URL_BASE + "/DDDDDD"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.result_id").value("DDDDDD"))
+            .andExpect(jsonPath("$.imposition_allocation_priority").doesNotExist())
+            .andExpect(jsonPath("$.imposition_creditor").doesNotExist())
+            .andExpect(jsonPath("$.imposition_category").doesNotExist())
+            .andExpect(jsonPath("$.allow_payment_terms").doesNotExist())
+            .andExpect(jsonPath("$.enf_next_permitted_actions").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("PO-8973 Get result by ID includes optional field when null with ALWAYS")
+    @JiraStory("PO-8973")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-10185")
+    void getResultById_whenOptionalFieldIsNullWithAlways_includesIt() throws Exception {
+        mockMvc.perform(get(URL_BASE + "/DDDDDD"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.allow_additional_action").value(nullValue()));
     }
 
     @Test

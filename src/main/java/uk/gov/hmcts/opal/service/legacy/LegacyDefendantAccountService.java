@@ -21,8 +21,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
-import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
-import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
@@ -39,8 +37,6 @@ import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
-import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyRequest;
-import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse;
@@ -104,27 +100,26 @@ import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 import uk.gov.hmcts.opal.service.opal.history.HistoryItemOrderingService;
-import uk.gov.hmcts.opal.util.VersionUtils;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "opal.LegacyDefendantAccountService")
 public class LegacyDefendantAccountService implements DefendantAccountServiceInterface {
 
-    public static final String GET_HEADER_SUMMARY = "LIBRA.get_header_summary";
-    public static final String GET_DEFENDANT_ACCOUNT_HISTORY = "LIBRA.get_defendant_account_history";
+    public static final String GET_HEADER_SUMMARY = "getDefendantAccountHeaderSummary";
+    public static final String GET_DEFENDANT_ACCOUNT_HISTORY = "getDefendantAccountHistory";
     public static final String SEARCH_DEFENDANT_ACCOUNTS = "searchDefendantAccounts";
     public static final String GET_PAYMENT_TERMS = "LIBRA.get_payment_terms";
     public static final String ADD_PAYMENT_TERMS = "LIBRA.add_payment_terms";
-    public static final String GET_DEFENDANT_AT_A_GLANCE = "LIBRA.getDefendantAtAGlance";
+    public static final String GET_DEFENDANT_AT_A_GLANCE = "getDefendantAccountAtAGlance";
     public static final String ADD_ENFORCEMENT = "LIBRA.addEnforcement";
     public static final String GET_CONSOLIDATED_ACCOUNTS = "LIBRA.get_consolidated_accounts";
 
     public static final String GET_DEFENDANT_ACCOUNT_PARTY = "LIBRA.get_defendant_account_party";
     public static final String ADD_DEFENDANT_ACCOUNT_PARTY = "LIBRA.add_defendant_account_party";
     public static final String REPLACE_DEFENDANT_ACCOUNT_PARTY = "LIBRA.replace_defendant_account_party";
-    public static final String PATCH_DEFENDANT_ACCOUNT = "LIBRA.patchDefendantAccount";
-    public static final String GET_ENFORCEMENT_STATUS = "LIBRA.of_get_defendant_account_enf_status";
+    public static final String PATCH_DEFENDANT_ACCOUNT = "updateDefendantAccount";
+    public static final String GET_ENFORCEMENT_STATUS = "getDefendantAccountEnforcementStatus";
 
     public static final String ADD_PAYMENT_CARD_REQUEST = "LIBRA.of_add_defendant_account_pcr";
 
@@ -133,6 +128,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     private final CourtService courtService;
     private final LocalJusticeAreaService ljaService;
     private final HistoryItemOrderingService historyItemOrderingService;
+    private final LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
 
     /* ---- Mappers ---- */
     private final DefendantAccountHistoryLegacyResponseMapper legacyDefendantAccountHistoryResponseMapper;
@@ -318,7 +314,10 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             : BusinessUnitSummaryCommon.builder()
               .businessUnitId(Short.valueOf(response.getBusinessUnitSummary().getBusinessUnitId()))
               .businessUnitName(response.getBusinessUnitSummary().getBusinessUnitName())
-              .businessUnitCode(response.getBusinessUnitSummary().getBusinessUnitCode())
+              .businessUnitCode(legacyBusinessUnitCodeResolver.resolve(
+                  response.getBusinessUnitSummary().getBusinessUnitId(),
+                  response.getBusinessUnitSummary().getBusinessUnitCode()
+              ))
               .welshSpeaking("N")
               .build();
 
@@ -364,7 +363,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 .build();
 
         return DefendantAccountHeaderSummary.builder()
-            .version(new BigInteger(Optional.ofNullable(response.getVersion()).orElse("1")))
+            .version(Optional.ofNullable(response.getVersion()).orElse(BigInteger.ONE))
             .response(defendantAccHeaderSummaryResponse)
             .build();
     }
@@ -519,7 +518,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                     ? JsonNullable.undefined()
                     : JsonNullable.of(toComments(src.getCommentsAndNotes())))
                 .build())
-            .version(BigInteger.valueOf(src.getVersion()))
+            .version(src.getVersion())
             .build();
     }
 
@@ -866,38 +865,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         checkResponseForError(gwResponse, "updateDefendantAccount");
 
         return legacyUpdateDefendantAccountResponseMapper.toUpdateDefendantAccountResponse(gwResponse.responseEntity);
-    }
-
-    @Override
-    //TODO: Remove method, duplicated in refactored class
-    public AddEnforcementResponse addEnforcement(Long defendantAccountId, String businessUnitId,
-        String businessUnitUserId, String ifMatch, AddDefendantAccountEnforcementRequest request) {
-
-        // build legacy request object
-        AddDefendantAccountEnforcementLegacyRequest legacyRequest =
-            AddDefendantAccountEnforcementLegacyRequest.builder()
-                .defendantAccountId(String.valueOf(defendantAccountId))
-                .businessUnitId(businessUnitId)
-                .businessUnitUserId(businessUnitUserId)
-                .version(VersionUtils.extractBigInteger(ifMatch).intValue())
-                .resultId(request != null && request.getResultId() != null ? request.getResultId().value() : null)
-                .enforcementResultResponses(
-                    mapResultResponses(request != null ? request.getEnforcementResultResponses() : null))
-                .paymentTerms(mapPaymentTerms(request != null ? request.getPaymentTerms() : null))
-                .build();
-
-        Response<AddDefendantAccountEnforcementLegacyResponse> response = gatewayService.postToGateway(
-            ADD_ENFORCEMENT, AddDefendantAccountEnforcementLegacyResponse.class,
-            legacyRequest, null);
-
-        checkResponseForError(response, "AddEnforcement");
-
-        AddDefendantAccountEnforcementLegacyResponse enforcementResponse = response.responseEntity;
-
-        return AddEnforcementResponse.builder().enforcementId(enforcementResponse.getEnforcementId())
-            .defendantAccountId(enforcementResponse.getDefendantAccountId()).version(enforcementResponse.getVersion())
-            .build();
-
     }
 
     private List<ResultResponsesLegacy> mapResultResponses(List<ResultResponse> responses) {

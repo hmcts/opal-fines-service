@@ -31,12 +31,12 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
-import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountEnforcementServiceProxy;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
+import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 
 @ExtendWith(MockitoExtension.class)
 class DefendantAccountEnforcementServiceTest {
@@ -59,12 +59,12 @@ class DefendantAccountEnforcementServiceTest {
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
         String ifMatch = "3";
-        AddDefendantAccountEnforcementRequest req = mock(AddDefendantAccountEnforcementRequest.class);
+        AddEnforcementRequestDefendantAccount req = mock(AddEnforcementRequestDefendantAccount.class);
 
-        AddEnforcementResponse proxyResponse = AddEnforcementResponse.builder()
+        AddEnforcementResponseDefendantAccount proxyResponse = AddEnforcementResponseDefendantAccount.builder()
             .enforcementId("ENF123")
             .defendantAccountId("77")
-            .version(3)
+            .version(BigInteger.valueOf(3))
             .build();
 
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
@@ -81,7 +81,7 @@ class DefendantAccountEnforcementServiceTest {
             .thenReturn(proxyResponse);
 
         // act
-        AddEnforcementResponse result =
+        AddEnforcementResponseDefendantAccount result =
             defendantAccountEnforcementService
                 .addEnforcement(defendantAccountId, businessUnitId, ifMatch, req);
 
@@ -131,7 +131,7 @@ class DefendantAccountEnforcementServiceTest {
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
 
-        AddDefendantAccountEnforcementRequest req = mock(AddDefendantAccountEnforcementRequest.class);
+        AddEnforcementRequestDefendantAccount req = mock(AddEnforcementRequestDefendantAccount.class);
 
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT)).thenReturn(true);
@@ -142,7 +142,7 @@ class DefendantAccountEnforcementServiceTest {
         when(userState.getBusinessUnitUserForBusinessUnit((short)10))
             .thenReturn(java.util.Optional.of(buUser));
 
-        AddEnforcementResponse proxyResult = AddEnforcementResponse.builder()
+        AddEnforcementResponseDefendantAccount proxyResult = AddEnforcementResponseDefendantAccount.builder()
             .enforcementId("X")
             .build();
 
@@ -155,7 +155,7 @@ class DefendantAccountEnforcementServiceTest {
         )).thenReturn(proxyResult);
 
         // act
-        AddEnforcementResponse out =
+        AddEnforcementResponseDefendantAccount out =
             defendantAccountEnforcementService
                 .addEnforcement(defendantAccountId, businessUnitId, "3", req);
 
@@ -201,13 +201,13 @@ class DefendantAccountEnforcementServiceTest {
         Short businessUnitId = 10;
         String ifMatch = "\"7\"";
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
-        RemoveDefendantAccountEnforcementHoldResponse proxyResponse =
-            RemoveDefendantAccountEnforcementHoldResponse.builder().build();
+        RemoveEnforcementHoldResponseDefendantAccount proxyResponse =
+            RemoveEnforcementHoldResponseDefendantAccount.builder().build();
 
         UserState userState = allPermissionsUser();
 
@@ -227,7 +227,7 @@ class DefendantAccountEnforcementServiceTest {
         )).thenReturn(proxyResponse);
 
         // act
-        RemoveDefendantAccountEnforcementHoldResponse result =
+        RemoveEnforcementHoldResponseDefendantAccount result =
             defendantAccountEnforcementService.removeEnforcementHold(
                 defendantAccountId,
                 businessUnitId,
@@ -256,8 +256,8 @@ class DefendantAccountEnforcementServiceTest {
         Short businessUnitId = 10;
         String ifMatch = "\"7\"";
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
@@ -295,13 +295,13 @@ class DefendantAccountEnforcementServiceTest {
         Short businessUnitId = 10;
         String ifMatch = "\"7\"";
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
-        RemoveDefendantAccountEnforcementHoldResponse proxyResponse =
-            RemoveDefendantAccountEnforcementHoldResponse.builder().build();
+        RemoveEnforcementHoldResponseDefendantAccount proxyResponse =
+            RemoveEnforcementHoldResponseDefendantAccount.builder().build();
 
         UserState userState = UserState.builder()
             .userId(1L)
@@ -324,7 +324,7 @@ class DefendantAccountEnforcementServiceTest {
         )).thenReturn(proxyResponse);
 
         // act
-        RemoveDefendantAccountEnforcementHoldResponse result =
+        RemoveEnforcementHoldResponseDefendantAccount result =
             defendantAccountEnforcementService.removeEnforcementHold(
                 defendantAccountId,
                 businessUnitId,
@@ -353,13 +353,13 @@ class DefendantAccountEnforcementServiceTest {
         Short businessUnitId = 10;
         String ifMatch = "\"7\"";
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
-        RemoveDefendantAccountEnforcementHoldResponse proxyResponse =
-            RemoveDefendantAccountEnforcementHoldResponse.builder()
+        RemoveEnforcementHoldResponseDefendantAccount proxyResponse =
+            RemoveEnforcementHoldResponseDefendantAccount.builder()
                 .defendantAccountId("77")
                 .version(BigInteger.valueOf(7))
                 .build();
@@ -382,7 +382,7 @@ class DefendantAccountEnforcementServiceTest {
         )).thenReturn(proxyResponse);
 
         // act
-        RemoveDefendantAccountEnforcementHoldResponse result =
+        RemoveEnforcementHoldResponseDefendantAccount result =
             defendantAccountEnforcementService.removeEnforcementHold(
                 defendantAccountId,
                 businessUnitId,
@@ -412,13 +412,13 @@ class DefendantAccountEnforcementServiceTest {
         Long defendantAccountId = 77L;
         Short businessUnitId = 10;
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
-        RemoveDefendantAccountEnforcementHoldResponse proxyResponse =
-            RemoveDefendantAccountEnforcementHoldResponse.builder()
+        RemoveEnforcementHoldResponseDefendantAccount proxyResponse =
+            RemoveEnforcementHoldResponseDefendantAccount.builder()
                 .defendantAccountId("77")
                 .version(BigInteger.valueOf(7))
                 .build();
@@ -440,7 +440,7 @@ class DefendantAccountEnforcementServiceTest {
             eq(request)
         )).thenReturn(proxyResponse);
 
-        RemoveDefendantAccountEnforcementHoldResponse result =
+        RemoveEnforcementHoldResponseDefendantAccount result =
             defendantAccountEnforcementService.removeEnforcementHold(
                 defendantAccountId,
                 businessUnitId,

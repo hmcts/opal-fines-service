@@ -5,6 +5,7 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlType;
+import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,7 +33,7 @@ import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 public class LegacyGetMinorCreditorAccountResponse implements ToXmlString, HasErrorResponse {
 
     @XmlElement(name = "account_version", required = true)
-    private Long accountVersion;
+    private BigInteger accountVersion;
 
     @XmlElement(name = "creditor_account_id", required = true)
     private Long creditorAccountId;

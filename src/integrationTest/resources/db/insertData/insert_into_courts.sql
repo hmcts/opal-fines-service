@@ -14,6 +14,18 @@
  *
  **/
 
+INSERT INTO business_units
+(
+business_unit_id,business_unit_name,business_unit_code,business_unit_type,
+account_number_prefix,parent_business_unit_id,opal_domain,welsh_language
+)
+VALUES
+(
+991,'Business Unit 99','BU99',
+ 'Area', 'XX',NULL,
+ 'Fines',false
+);
+
 INSERT INTO courts
 (
 court_id, business_unit_id, court_code, parent_court_id, name, name_cy
@@ -25,7 +37,7 @@ court_id, business_unit_id, court_code, parent_court_id, name, name_cy
 )
 VALUES
 (
-000000000007, 99, 007, 730000000103, 'AAA Test Court', NULL
+000000000007, 991, 007, NULL, 'AAA Test Court', NULL
 , 'TestVille', 'TestShire', NULL
 , NULL, NULL, NULL, NULL
 , 1013, NULL, NULL

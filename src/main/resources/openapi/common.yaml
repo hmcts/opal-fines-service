@@ -572,6 +572,7 @@ components:
       required:
         - business_unit_name
         - business_unit_id
+        - business_unit_code
         - welsh_speaking
     languagePreference:
       title: Language Preference

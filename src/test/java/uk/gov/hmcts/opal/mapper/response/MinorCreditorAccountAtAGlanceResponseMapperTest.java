@@ -1,0 +1,171 @@
+package uk.gov.hmcts.opal.mapper.response;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import tools.jackson.databind.ObjectMapper;
+import java.math.BigInteger;
+import java.time.LocalDate;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Isolated;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceResponse.AtAGlanceDefendant;
+import uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyPayment;
+import uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntity;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
+
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = MinorCreditorAccountAtAGlanceResponseMapperTest.MapperTestConfig.class)
+@Isolated
+class MinorCreditorAccountAtAGlanceResponseMapperTest {
+
+    @Autowired
+    private MinorCreditorAccountAtAGlanceResponseMapper mapper;
+
+    @Test
+    void testLegacyToOpalFullConversion() {
+
+        //Arrange
+        LegacyPartyDetails legacyParty = LegacyPartyDetails.builder()
+            .partyId("theEmpire")
+            .organisationFlag(true)
+            .organisationDetails(OrganisationDetails.builder().organisationName("The Empire").build())
+            .individualDetails(IndividualDetails.builder()
+                .title("Emperor")
+                .forenames("Sheev")
+                .surname("Palpatine")
+                .dateOfBirth(LocalDate.of(3000, 12, 25))
+                .age("Ageless")
+                .nationalInsuranceNumber("66")
+                .individualAliases(new IndividualDetails.IndividualAlias[] {
+                    IndividualDetails.IndividualAlias.builder()
+                        .aliasId("sith")
+                        .sequenceNumber((short) 1)
+                        .surname("Sidious")
+                        .forenames("Darth")
+                        .build()})
+                .build())
+            .build();
+
+        AddressDetailsLegacy legacyAddress = AddressDetailsLegacy.builder()
+            .addressLine1("The")
+            .addressLine2("Death")
+            .addressLine3("Star")
+            .addressLine4("2")
+            .addressLine5(null)
+            .postcode("SP4 C3")
+            .build();
+
+        AtAGlanceDefendant defendant = AtAGlanceDefendant.builder()
+            .accountNumber("R3B3LS")
+            .accountId(66L)
+            .build();
+
+        LegacyPayment payment = LegacyPayment.builder()
+            .isBacs(true)
+            .holdPayment(false)
+            .build();
+
+        LegacyGetMinorCreditorAccountAtAGlanceResponse legacyResponse =
+            LegacyGetMinorCreditorAccountAtAGlanceResponse.builder()
+                .party(legacyParty)
+                .address(legacyAddress)
+                .creditorAccountId(66L)
+                .creditorAccountVersion(BigInteger.valueOf(1))
+                .defendant(defendant)
+                .payment(payment)
+                .errorResponse(null)
+                .build();
+
+        //Act
+        MinorCreditorAccountAtAGlanceResponse result = mapper.toDto(legacyResponse);
+
+        //Assert
+        assertEquals(66L, result.getCreditorAccountId());
+        assertEquals(BigInteger.ONE, result.getVersion());
+        assertEquals("theEmpire", result.getParty().getPartyId());
+        assertEquals("The Empire", result.getParty().getOrganisationDetails().get().getOrganisationName());
+        assertEquals("Sheev", result.getParty().getIndividualDetails().get().getForenames().get());
+        assertEquals("Sidious", result.getParty().getIndividualDetails().get()
+            .getIndividualAliases().get().getFirst().getSurname());
+        assertEquals("SP4 C3", result.getAddress().getPostcode().get());
+        assertEquals(66L, result.getDefendant().getAccountId().get());
+        assertTrue(result.getPayment().getIsBacs());
+    }
+
+    @Test
+    void testEntityToOpalFullConversion() {
+        MinorCreditorAccountAtAGlanceEntity entity = MinorCreditorAccountAtAGlanceEntity.builder()
+            .creditorId(66L)
+            .versionNumber(2L)
+            .accountNumber("ORDER-66")
+            .addressLine1("Jedi Temple")
+            .addressLine2("Galactic City")
+            .addressLine3("Coruscant")
+            .addressLine4("Core Worlds")
+            .addressLine5("Galactic Republic")
+            .postcode("C0R U5C")
+            .defendantAccountId(1977L)
+            .defendantAccountNumber("REB-1977")
+            .defendantTitle("Master")
+            .defendantForenames("Luke")
+            .defendantSurname("Skywalker")
+            .payByBacs(Boolean.TRUE)
+            .holdPayout(Boolean.FALSE)
+            .build();
+
+        MinorCreditorAccountAtAGlanceResponse dto = mapper.toDto(entity, null);
+
+        assertNotNull(dto);
+
+        // creditor account
+        assertEquals(66L, dto.getCreditorAccountId());
+        assertEquals(BigInteger.valueOf(2), dto.getVersion());
+
+        // address
+        assertNotNull(dto.getAddress());
+        assertEquals("Jedi Temple", dto.getAddress().getAddressLine1());
+        assertEquals("Galactic City", dto.getAddress().getAddressLine2().get());
+        assertEquals("Coruscant", dto.getAddress().getAddressLine3().get());
+        assertEquals("Core Worlds", dto.getAddress().getAddressLine4().get());
+        assertEquals("Galactic Republic", dto.getAddress().getAddressLine5().get());
+        assertEquals("C0R U5C", dto.getAddress().getPostcode().get());
+
+        // defendant
+        assertNotNull(dto.getDefendant());
+        assertEquals("REB-1977", dto.getDefendant().getAccountNumber().get());
+        assertEquals(1977L, dto.getDefendant().getAccountId().get());
+        assertEquals("Master", dto.getDefendant().getTitle().get());
+        assertEquals("Luke", dto.getDefendant().getForenames().get());
+        assertEquals("Skywalker", dto.getDefendant().getSurname());
+
+        // payment
+        assertNotNull(dto.getPayment());
+        assertTrue(dto.getPayment().getIsBacs());
+        assertFalse(dto.getPayment().getHoldPayment());
+    }
+
+    @Configuration
+    @ComponentScan(basePackages = "uk.gov.hmcts.opal.mapper")
+    static class MapperTestConfig {
+
+        @Bean
+        public ObjectMapper objectMapper() {
+            return new ObjectMapper();
+        }
+    }
+
+}

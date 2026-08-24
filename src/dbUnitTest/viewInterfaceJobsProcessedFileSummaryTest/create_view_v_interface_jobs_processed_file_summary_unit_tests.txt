@@ -1,0 +1,21 @@
+NOTICE:  === Cleanup data before tests ===
+NOTICE:  Cleanup completed
+NOTICE:  === Setting up test data for v_interface_jobs_processed_file_summary tests ===
+NOTICE:  Test data setup completed
+NOTICE:  === TEST 1: Completed file with till and mixed message types returns expected values ===
+NOTICE:  TEST 1 PASSED
+NOTICE:  === TEST 2: Completed file with only Info messages returns zero total errors ===
+NOTICE:  TEST 2 PASSED
+NOTICE:  === TEST 3: Completed file with no messages and no till returns summary with null join columns ===
+NOTICE:  TEST 3 PASSED
+NOTICE:  === TEST 4: Completed manual interface file is included and populated from its till ===
+NOTICE:  TEST 4 PASSED
+NOTICE:  === TEST 5: Negative test - non-completed jobs are excluded from the view ===
+NOTICE:  TEST 5 PASSED
+NOTICE:  === TEST 6: Completed jobs return one row per interface file ===
+NOTICE:  TEST 6 PASSED
+NOTICE:  === Cleanup data after tests ===
+NOTICE:  Cleanup completed
+DO
+
+Query returned successfully in 80 msec.

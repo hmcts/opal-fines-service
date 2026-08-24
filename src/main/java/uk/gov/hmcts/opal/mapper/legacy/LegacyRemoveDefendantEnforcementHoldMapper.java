@@ -3,10 +3,10 @@ package uk.gov.hmcts.opal.mapper.legacy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyRemoveDefendantAccountEnforcementHoldRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyRemoveDefendantAccountEnforcementHoldResponse;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface LegacyRemoveDefendantEnforcementHoldMapper {
@@ -26,10 +26,10 @@ public interface LegacyRemoveDefendantEnforcementHoldMapper {
         Short businessUnitId,
         String businessUnitUserId,
         String ifMatch,
-        RemoveDefendantAccountEnforcementHoldRequest request
+        RemoveEnforcementHoldRequestDefendantAccount request
     );
 
-    RemoveDefendantAccountEnforcementHoldResponse toOpalResponse(
+    RemoveEnforcementHoldResponseDefendantAccount toOpalResponse(
         LegacyRemoveDefendantAccountEnforcementHoldResponse legacyResponse
     );
 }

@@ -55,7 +55,7 @@ class LegacyNotesServiceTest {
         ArgumentCaptor<LegacyAddNoteRequest> reqCap = ArgumentCaptor.forClass(LegacyAddNoteRequest.class);
 
         when(gatewayService.<LegacyAddNoteResponse>postToGateway(
-            eq("LIBRA.add_note"),
+            eq("addNote"),
             eq(LegacyAddNoteResponse.class),
             reqCap.capture(),
             isNull(String.class)
@@ -80,7 +80,7 @@ class LegacyNotesServiceTest {
         assertEquals(RecordType.DEFENDANT_ACCOUNTS, sentNote.getRecordType());
 
         verify(gatewayService).postToGateway(
-            eq("LIBRA.add_note"),
+            eq("addNote"),
             eq(LegacyAddNoteResponse.class),
             any(LegacyAddNoteRequest.class),
             isNull(String.class)

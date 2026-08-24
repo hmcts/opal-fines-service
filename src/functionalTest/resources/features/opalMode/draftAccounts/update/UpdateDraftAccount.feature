@@ -52,9 +52,9 @@ Feature: Update Draft Accounts
       | timeline_data[1].username           | PATCH002_REVIEWER    |
       | timeline_data[1].reason_text        | Reason for rejection |
 
-  @JIRA-STORY:PO-745 @cleanUpData @JIRA-EPIC:PO-2220 @JIRA-TEST-KEY:PO-5686
+  @JIRA-STORY:PO-745 @JIRA-STORY:PO-1858 @cleanUpData @JIRA-EPIC:PO-2220 @JIRA-TEST-KEY:PO-5686
   Scenario: Mark a submitted draft account as deleted
-    And a draft account exists with the following details
+    And a replaceable draft account exists with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
@@ -81,6 +81,8 @@ Feature: Update Draft Accounts
       | timeline_data[1].status             | Deleted             |
       | timeline_data[1].username           | BUUID_REVIEWER      |
       | timeline_data[1].reason_text        | Reason for deletion |
+    And I see the account status date is now after the initial account status date
+    And the account status date matches the deleted date
 
   @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5687
   Scenario: Reject publishing a parent or guardian draft account

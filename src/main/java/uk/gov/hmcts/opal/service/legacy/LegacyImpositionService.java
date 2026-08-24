@@ -23,14 +23,13 @@ import uk.gov.hmcts.opal.generated.model.OffenceReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.ResultReferenceCommon;
 import uk.gov.hmcts.opal.service.iface.ImpositionServiceInterface;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
-import java.math.BigInteger;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "opal.LegacyImpositionService")
 public class LegacyImpositionService implements ImpositionServiceInterface {
 
-    public static final String GET_IMPOSITIONS = "LIBRA.get_impositions";
+    public static final String GET_IMPOSITIONS = "getDefendantAccountImpositions";
 
     /* ---- Services ---- */
     private final GatewayService gatewayService;
@@ -60,7 +59,7 @@ public class LegacyImpositionService implements ImpositionServiceInterface {
 
         return Optional.ofNullable(legacyImpositionsResponse).map(imposition ->
             GetDefendantAccountImpositionsResponse.builder()
-                .version(BigInteger.valueOf(legacyImpositionsResponse.getVersion()))
+                .version(legacyImpositionsResponse.getVersion())
                 .payload(buildImpositionList(legacyImpositionsResponse.getImpositions()))
                 .build()).orElse(null);
     }

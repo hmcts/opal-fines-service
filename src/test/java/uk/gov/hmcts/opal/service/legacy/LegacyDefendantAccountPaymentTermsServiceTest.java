@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -23,6 +24,9 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -30,9 +34,11 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpServerErrorException;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
+import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
@@ -86,13 +92,13 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
 
         // Given
         AddPaymentCardLegacyResponse legacyResp =
-            new AddPaymentCardLegacyResponse("123", "4");
+            new AddPaymentCardLegacyResponse("123", BigInteger.valueOf(4));
 
         GatewayService.Response<AddPaymentCardLegacyResponse> gwResp =
             new GatewayService.Response<>(HttpStatus.OK, legacyResp, null, null);
 
         doReturn(gwResp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.ADD_PAYMENT_CARD_REQUEST),
+            eq(LegacyDefendantAccountPaymentTermsService.ADD_PAYMENT_CARD_REQUEST),
             eq(AddPaymentCardLegacyResponse.class),
             any(AddPaymentCardLegacyRequest.class),
             isNull()
@@ -100,7 +106,8 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
 
         // When
         AddPaymentCardRequestResponse out =
-            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L, "78", null, "Tester Name", "4");
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L,
+                (short) 78, "L080JG", "Tester Name", "4");
 
         // Then
         assertNotNull(out);
@@ -113,28 +120,47 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         // Given
         GatewayService.Response<AddPaymentCardLegacyResponse> gwResp =
             new GatewayService.Response<>(HttpStatus.OK,
-                new AddPaymentCardLegacyResponse("123", "4"),
+                new AddPaymentCardLegacyResponse("123", BigInteger.valueOf(4)),
                 null, null);
 
         ArgumentCaptor<AddPaymentCardLegacyRequest> captor =
             ArgumentCaptor.forClass(AddPaymentCardLegacyRequest.class);
 
         doReturn(gwResp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.ADD_PAYMENT_CARD_REQUEST),
+            eq(LegacyDefendantAccountPaymentTermsService.ADD_PAYMENT_CARD_REQUEST),
             eq(AddPaymentCardLegacyResponse.class),
             captor.capture(),
             isNull()
         );
 
         // When
-        legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L, "78", null, "Tester Name", "9");
+        legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L, (short) 78, "L080JG", "Tester Name", "9");
 
         // Then
         AddPaymentCardLegacyRequest sent = captor.getValue();
         assertEquals("123", sent.getDefendantAccountId());
         assertEquals("78", sent.getBusinessUnitId());
-        assertEquals(String.valueOf(9), sent.getVersion());
-        assertNull(sent.getBusinessUnitUserId());
+        assertEquals(BigInteger.valueOf(9), sent.getVersion());
+        assertEquals("L080JG", sent.getBusinessUnitUserId());
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = " ")
+    void addPaymentCardRequest_legacy_missingBusinessUnitUserId_throws403BeforeGateway(String businessUnitUserId) {
+        // Arrange
+
+        // Act
+        PermissionNotAllowedException ex = assertThrows(
+            PermissionNotAllowedException.class,
+            () -> legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(
+                123L, (short) 78, businessUnitUserId, "Tester Name", "4")
+        );
+
+        // Assert
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.AMEND_PAYMENT_TERMS);
+        assertThat(ex.getBusinessUnitId()).isEqualTo((short) 78);
+        verify(gatewayService, never()).postToGateway(any(), any(), any(), any());
     }
 
     @Test
@@ -144,14 +170,15 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
             new GatewayService.Response<>(HttpStatus.INTERNAL_SERVER_ERROR, null, "<error/>", null);
 
         doReturn(gwResp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.ADD_PAYMENT_CARD_REQUEST),
+            eq(LegacyDefendantAccountPaymentTermsService.ADD_PAYMENT_CARD_REQUEST),
             eq(AddPaymentCardLegacyResponse.class),
             any(),
             isNull()
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(99L, "78", null, "Tester Name", "1")
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(99L,
+                (short) 78, "L080JG", "Tester Name", "1")
         );
     }
 
@@ -164,14 +191,15 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
             new GatewayService.Response<>(HttpStatus.BAD_GATEWAY, ex, null);
 
         doReturn(gwResp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.ADD_PAYMENT_CARD_REQUEST),
+            eq(LegacyDefendantAccountPaymentTermsService.ADD_PAYMENT_CARD_REQUEST),
             eq(AddPaymentCardLegacyResponse.class),
             any(),
             isNull()
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(88L, "78", null, "Tester Name", "2")
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(88L,
+                (short) 78, "L080JG", "Tester Name", "2")
         );
     }
 
@@ -182,14 +210,15 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
             new GatewayService.Response<>(HttpStatus.OK, null, null, null);
 
         doReturn(gwResp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.ADD_PAYMENT_CARD_REQUEST),
+            eq(LegacyDefendantAccountPaymentTermsService.ADD_PAYMENT_CARD_REQUEST),
             eq(AddPaymentCardLegacyResponse.class),
             any(),
             isNull()
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(55L, "78", null, "Tester Name", "3")
+            legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(55L,
+                (short) 78, "L080JG", "Tester Name", "3")
         );
     }
 
@@ -197,7 +226,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
     void addPaymentCardRequest_legacy_invalidIfMatchThrows() {
         assertThrows(IllegalArgumentException.class, () ->
             legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(
-                1L, "78", null, "Tester Name", "notANumber")
+                1L, (short) 78, "L080JG", "Tester Name", "notANumber")
         );
     }
 
@@ -205,7 +234,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
     void legacyPaymentTerms_nonNullEnums_areConverted() {
 
         var legacy = LegacyGetDefendantAccountPaymentTermsResponse.builder()
-            .version(1L)
+            .version(BigInteger.valueOf(1L))
             .paymentTerms(
                 uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms.builder()
                     .paymentTermsType(new uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType(
@@ -217,7 +246,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
             .build();
 
         doReturn(new GatewayService.Response<>(HttpStatus.OK, legacy, null, null))
-            .when(gatewayService).postToGateway(eq(LegacyDefendantAccountService.GET_PAYMENT_TERMS),
+            .when(gatewayService).postToGateway(eq(LegacyDefendantAccountPaymentTermsService.GET_PAYMENT_TERMS),
                 eq(LegacyGetDefendantAccountPaymentTermsResponse.class), any(), any());
 
         GetDefendantAccountPaymentTermsResponse out =
@@ -232,7 +261,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         // Simulate gateway returning a Response with null responseEntity
         doReturn(new GatewayService.Response<>(HttpStatus.OK, null, null, null))
             .when(gatewayService).postToGateway(
-                eq(LegacyDefendantAccountService.GET_PAYMENT_TERMS),
+                eq(LegacyDefendantAccountPaymentTermsService.GET_PAYMENT_TERMS),
                 eq(LegacyGetDefendantAccountPaymentTermsResponse.class),
                 any(), any());
 
@@ -265,7 +294,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
 
         doReturn(new GatewayService.Response<>(HttpStatus.OK, legacy, null, null))
             .when(gatewayService).postToGateway(
-                eq(LegacyDefendantAccountService.GET_PAYMENT_TERMS),
+                eq(LegacyDefendantAccountPaymentTermsService.GET_PAYMENT_TERMS),
                 eq(LegacyGetDefendantAccountPaymentTermsResponse.class),
                 any(), any());
 
@@ -292,7 +321,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         // legacy with version present but no paymentTerms
         LegacyGetDefendantAccountPaymentTermsResponse legacy =
             LegacyGetDefendantAccountPaymentTermsResponse.builder()
-                .version(2L)
+                .version(BigInteger.valueOf(2L))
                 .paymentTerms(null)
                 .paymentCardLastRequested(LocalDate.parse("2024-01-01"))
                 .lastEnforcement("LE-1")
@@ -300,7 +329,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
 
         doReturn(new GatewayService.Response<>(HttpStatus.OK, legacy, null, null))
             .when(gatewayService).postToGateway(
-                eq(LegacyDefendantAccountService.GET_PAYMENT_TERMS),
+                eq(LegacyDefendantAccountPaymentTermsService.GET_PAYMENT_TERMS),
                 eq(LegacyGetDefendantAccountPaymentTermsResponse.class),
                 any(), any());
 
@@ -366,7 +395,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
 
         verify(gatewayService, times(1))
             .postToGateway(
-                eq(LegacyDefendantAccountService.ADD_PAYMENT_TERMS),
+                eq(LegacyDefendantAccountPaymentTermsService.ADD_PAYMENT_TERMS),
                 eq(AddPaymentTermsLegacyResponse.class),
                 requestCaptor.capture(),
                 isNull()
@@ -441,7 +470,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
 
         verify(gatewayService, times(1))
             .postToGateway(
-                eq(LegacyDefendantAccountService.ADD_PAYMENT_TERMS),
+                eq(LegacyDefendantAccountPaymentTermsService.ADD_PAYMENT_TERMS),
                 eq(AddPaymentTermsLegacyResponse.class),
                 requestCaptor.capture(),
                 isNull()
@@ -480,7 +509,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
 
         verify(gatewayService, times(1))
             .postToGateway(
-                eq(LegacyDefendantAccountService.ADD_PAYMENT_TERMS),
+                eq(LegacyDefendantAccountPaymentTermsService.ADD_PAYMENT_TERMS),
                 eq(AddPaymentTermsLegacyResponse.class),
                 requestCaptor.capture(),
                 isNull()
