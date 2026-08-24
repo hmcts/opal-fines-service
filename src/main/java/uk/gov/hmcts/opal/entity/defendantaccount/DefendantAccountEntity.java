@@ -257,4 +257,10 @@ public class DefendantAccountEntity implements Versioned {
     public BigInteger getVersion() {
         return Optional.ofNullable(versionNumber).map(BigInteger::valueOf).orElse(null);
     }
+
+    public boolean isInBusinessUnit(String businessUnitId) {
+        return businessUnit != null
+            && businessUnit.getBusinessUnitId() != null
+            && String.valueOf(businessUnit.getBusinessUnitId()).equals(businessUnitId);
+    }
 }

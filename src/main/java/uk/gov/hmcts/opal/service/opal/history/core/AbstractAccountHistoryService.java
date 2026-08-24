@@ -2,6 +2,10 @@ package uk.gov.hmcts.opal.service.opal.history.core;
 
 import java.util.Comparator;
 import java.util.List;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryContext;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryFilter;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryItem;
+import uk.gov.hmcts.opal.dto.history.AccountHistoryResult;
 
 public abstract class AbstractAccountHistoryService {
 

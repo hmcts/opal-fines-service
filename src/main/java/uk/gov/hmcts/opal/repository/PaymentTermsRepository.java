@@ -13,6 +13,8 @@ public interface PaymentTermsRepository extends JpaRepository<PaymentTermsEntity
 
     PaymentTermsEntity findByDefendantAccount_DefendantAccountId(Long defendantAccountId);
 
+    long countByDefendantAccount_DefendantAccountId(Long defendantAccountId);
+
     void deleteByDefendantAccount_DefendantAccountId(long defendantAccountId);
 
     Optional<PaymentTermsEntity>

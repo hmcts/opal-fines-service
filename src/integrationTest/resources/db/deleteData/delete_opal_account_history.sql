@@ -1,0 +1,13 @@
+DELETE FROM document_instances WHERE document_instance_id = 26220001;
+DELETE FROM notes WHERE note_id = 26220005 OR associated_record_id = '262200';
+DELETE FROM defendant_transactions WHERE defendant_account_id = 262200;
+DELETE FROM impositions WHERE defendant_account_id = 262200;
+DELETE FROM creditor_accounts WHERE creditor_account_id = 262200;
+DELETE FROM payment_terms WHERE defendant_account_id = 262200;
+DELETE FROM enforcements WHERE defendant_account_id = 262210;
+DELETE FROM defendant_accounts WHERE defendant_account_id = 262210;
+DELETE FROM enforcements WHERE defendant_account_id = 262200;
+DELETE FROM amendments WHERE amendment_id = 26220001 OR associated_record_id = '262200';
+DELETE FROM defendant_accounts WHERE defendant_account_id = 262200;
+DELETE FROM courts WHERE court_id = 262200;
+DELETE FROM results WHERE result_id IN ('HST01', 'HST02');

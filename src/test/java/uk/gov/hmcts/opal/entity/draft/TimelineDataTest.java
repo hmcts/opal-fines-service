@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.entity.draft;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.time.Month;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -21,14 +22,14 @@ class TimelineDataTest {
     void addEntry() {
         String json = getTimelineJson();
         TimelineData data = new TimelineData(json);
-        data.insertEntry("qq", "done", LocalDate.of(2025, 6, 18), "testing");
+        data.insertEntry("qq", "done", LocalDate.of(2025, Month.JUNE, 18), "testing");
         assertTrue(data.toJson().endsWith(getEndsWith()));
     }
 
     @Test
     void addEntryWithUserId() {
         TimelineData data = new TimelineData();
-        data.insertEntry("normal@users.com", "USER01", "Submitted", LocalDate.of(2026, 5, 1), "Created");
+        data.insertEntry("normal@users.com", "USER01", "Submitted", LocalDate.of(2026, Month.MAY, 1), "Created");
 
         assertEquals("""
 [ {

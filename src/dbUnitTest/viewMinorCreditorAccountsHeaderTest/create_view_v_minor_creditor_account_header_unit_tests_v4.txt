@@ -1,0 +1,16 @@
+Timing is on.
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewMinorCreditorAccountsHeaderTest/create_view_v_minor_creditor_account_header_unit_tests_v4.sql:50: NOTICE:  === Cleanup data before tests ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewMinorCreditorAccountsHeaderTest/create_view_v_minor_creditor_account_header_unit_tests_v4.sql:50: NOTICE:  === Data cleanup before tests completed ===
+DO
+Time: 62.729 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewMinorCreditorAccountsHeaderTest/create_view_v_minor_creditor_account_header_unit_tests_v4.sql:1319: NOTICE:  === Setting up test data for v_minor_creditor_accounts_header tests ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewMinorCreditorAccountsHeaderTest/create_view_v_minor_creditor_account_header_unit_tests_v4.sql:1319: NOTICE:  === Setting up test data for v_minor_creditor_accounts_header tests complete ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewMinorCreditorAccountsHeaderTest/create_view_v_minor_creditor_account_header_unit_tests_v4.sql:1319: NOTICE:  --- Running test scenario 1 ---
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewMinorCreditorAccountsHeaderTest/create_view_v_minor_creditor_account_header_unit_tests_v4.sql:1319: NOTICE:  --- Running test scenario 2 ---
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewMinorCreditorAccountsHeaderTest/create_view_v_minor_creditor_account_header_unit_tests_v4.sql:1319: NOTICE:  --- Running test scenario 3 ---
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewMinorCreditorAccountsHeaderTest/create_view_v_minor_creditor_account_header_unit_tests_v4.sql:1319: NOTICE:  --- Running test scenario 4 ---
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewMinorCreditorAccountsHeaderTest/create_view_v_minor_creditor_account_header_unit_tests_v4.sql:1319: NOTICE:  --- Running test scenario 5 ---
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewMinorCreditorAccountsHeaderTest/create_view_v_minor_creditor_account_header_unit_tests_v4.sql:1319: NOTICE:  === All tests completed and passed for v_minor_creditor_accounts_header view ===
+DO
+Time: 60.178 ms
+Timing is off.

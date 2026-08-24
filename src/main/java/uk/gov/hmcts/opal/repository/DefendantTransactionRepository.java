@@ -22,5 +22,7 @@ public interface DefendantTransactionRepository extends JpaRepository<DefendantT
 
     List<DefendantTransactionEntity> findByDefendantAccountId(long defendantAccountId);
 
+    long countByDefendantAccountId(long defendantAccountId);
+
     boolean existsByDefendantAccountIdAndPostedDateGreaterThanEqual(long defendantAccountId, LocalDate postedDate);
 }

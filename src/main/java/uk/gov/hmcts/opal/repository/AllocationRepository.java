@@ -8,4 +8,6 @@ import uk.gov.hmcts.opal.entity.AllocationEntity;
 @Repository
 public interface AllocationRepository extends JpaRepository<AllocationEntity, Long>,
     JpaSpecificationExecutor<AllocationEntity> {
+
+    long countByImposition_DefendantAccountId(Long defendantAccountId);
 }

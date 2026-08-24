@@ -14,6 +14,7 @@ import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
 
 @Setter
+@SuppressWarnings("java:S6813")
 public class SummaryRowDtoMapperDecorator
     implements SummaryRowDtoMapper, CommonMappingHelper {
 

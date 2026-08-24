@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.mapper.legacy;
 
-import java.math.BigInteger;
 import java.time.LocalDate;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
@@ -31,7 +30,7 @@ import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 public interface LegacyUpdateMinorCreditorAccountResponseMapper {
 
     @Mappings({
-        @Mapping(target = "version", source = "accountVersion", qualifiedByName = "integerToBigInteger"),
+        @Mapping(target = "version", source = "accountVersion"),
         @Mapping(target = "creditorAccountId", source = "creditorAccountId"),
         @Mapping(target = "partyDetails", source = "partyDetails"),
         @Mapping(target = "address", source = "address"),
@@ -57,11 +56,6 @@ public interface LegacyUpdateMinorCreditorAccountResponseMapper {
     AddressDetailsCommon map(AddressDetailsLegacy source);
 
     MinorCreditorAccountResponseMinorCreditorPayment map(LegacyCreditorAccountPaymentDetails source);
-
-    @Named("integerToBigInteger")
-    default BigInteger integerToBigInteger(Integer value) {
-        return value == null ? null : BigInteger.valueOf(value.longValue());
-    }
 
     @Named("shortToInteger")
     default Integer shortToInteger(Short value) {

@@ -3,10 +3,19 @@ package uk.gov.hmcts.opal.controllers;
 import static org.hamcrest.Matchers.hasItem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.clearInvocations;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.support.SpyInvocationSupport.countInvocationsByMethodName;
+
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -19,19 +28,14 @@ import uk.gov.hmcts.opal.repository.MajorCreditorRepository;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
-
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.MajorCreditorControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_creditor_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
+@Sql(scripts = "classpath:db/deleteData/delete_from_creditor_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @DisplayName("MajorCreditorController Integration Test")
+@Isolated
 class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/major-creditors";
@@ -90,7 +94,7 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
     void testPostMajorCreditorsSearch() throws Exception {
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
             .contentType(MediaType.APPLICATION_JSON)
-            .content("{\"businessUnitId\":\"78\"}"));
+            .content("{\"businessUnitId\":\"992\"}"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostMajorCreditorsSearch: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -134,12 +138,12 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(144))
+            .andExpect(jsonPath("$.count").value(145))
             .andExpect(jsonPath("$.refData[?(@.major_creditor_id == 1)].major_creditor_code").value(hasItem("AAAA")))
             .andExpect(jsonPath("$.refData[?(@.major_creditor_id == 1)].name")
                 .value(hasItem("AAAA Credit Services")))
             .andExpect(jsonPath("$.refData[?(@.major_creditor_id == 1)].postcode").value(hasItem("CR1 1CR")))
-            .andExpect(jsonPath("$.refData[?(@.major_creditor_id == 1)].business_unit_id").value(hasItem(78)))
+            .andExpect(jsonPath("$.refData[?(@.major_creditor_id == 1)].business_unit_id").value(hasItem(992)))
             .andReturn();
 
         jsonSchemaValidationService.validateOrError(body, GET_MAJOR_CREDS_REF_DATA_RESPONSE);
@@ -149,6 +153,7 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Major creditor reference data uses cache on repeated identical request")
     @JiraStory("PO-7248")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-9436")
     void testGetMajorCreditorsRefData_usesCacheOnRepeatedRequest() throws Exception {
         clearInvocations(majorCreditorRepository);
 

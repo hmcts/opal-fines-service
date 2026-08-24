@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
@@ -25,7 +26,7 @@ class GetMajorCreditorAccountHeaderSummaryResponseLegacyMapperTest extends Abstr
             GetMajorCreditorAccountHeaderSummaryLegacyResponse.builder()
                 .majorCreditor(MajorCreditorLegacy.builder()
                                    .creditorAccountId(123L)
-                                   .accountVersion(7L)
+                                   .accountVersion(BigInteger.valueOf(7L))
                                    .accountNumber("87654321")
                                    .name("Major Creditor Ltd")
                                    .accountReference(CreditorAccountTypeReference.builder()
@@ -35,6 +36,7 @@ class GetMajorCreditorAccountHeaderSummaryResponseLegacyMapperTest extends Abstr
                 .businessUnitDetails(BusinessUnitSummary.builder()
                                          .businessUnitId("77")
                                          .businessUnitName("Camberwell Green")
+                                         .businessUnitCode("CBG")
                                          .welshSpeaking("N")
                                          .build())
                 .awaitingPayout(new BigDecimal("123.45"))
@@ -50,6 +52,7 @@ class GetMajorCreditorAccountHeaderSummaryResponseLegacyMapperTest extends Abstr
                      result.getMajorCreditor().getAccountReference().getDisplayName().getValue());
         assertEquals((short) 77, result.getBusinessUnitDetails().getBusinessUnitId());
         assertEquals("Camberwell Green", result.getBusinessUnitDetails().getBusinessUnitName());
+        assertEquals("CBG", result.getBusinessUnitDetails().getBusinessUnitCode());
         assertEquals("N", result.getBusinessUnitDetails().getWelshSpeaking());
         assertEquals(new BigDecimal("123.45"), result.getAwaitingPayout());
         assertEquals(7L, result.getVersion().longValue());

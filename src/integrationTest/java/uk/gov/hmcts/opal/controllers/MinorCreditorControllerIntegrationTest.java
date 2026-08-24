@@ -13,22 +13,28 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.controllers.util.OpenApiContractAssertions.assertGet200JsonResponseMatchesBundledSpec;
 
 import java.util.List;
-import java.util.Map;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
+import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
+import uk.gov.hmcts.opal.repository.AmendmentRepository;
+import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
+import uk.gov.hmcts.opal.repository.PartyRepository;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 /**
@@ -52,6 +58,15 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
+
+    @Autowired
+    private CreditorAccountRepository creditorAccountRepository;
+
+    @Autowired
+    private PartyRepository partyRepository;
+
+    @Autowired
+    private AmendmentRepository amendmentRepository;
 
     void postSearchMinorCreditorImpl_Success(Logger log) throws Exception {
 
@@ -177,6 +192,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     void search_noResultsForUnknownBusinessUnit_returnsEmpty(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of((short) 999))
+            .accountNumber("12345678A")
             .activeAccountsOnly(false)
             .build();
 
@@ -195,9 +211,11 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     void search_orgNamePrefix_normalizedMatches(Logger log) throws Exception {
         // "Acme Supplies Ltd" normalized; mixed case + spaces + punctuation
         MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .activeAccountsOnly(false)
             .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .organisationName(" ac-me  SUPPLIES, ltd. ")
+                .organisation(true)
                 .build())
             .build();
 
@@ -215,6 +233,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     void search_accountNumber_withWildcardChars_treatedLiterally(Logger log) throws Exception {
         // Your helper escapes user input then appends %; verify no matches for literal wildcards
         MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .activeAccountsOnly(true)
             .businessUnitIds(List.of((short) 10))
             .accountNumber("1234567_") // underscore should be escaped -> literal underscore
             .build();
@@ -325,12 +344,12 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.payment.hold_payment").value(true))
             .andExpect(jsonPath("$.payment.pay_by_bacs").value(true));
 
-        assertEquals(true, getCurrentCreditorAccountHoldPayout());
+        assertTrue(getCurrentCreditorAccountHoldPayout());
         assertEquals("Creditor Updated", getCurrentCreditorAccountBankAccountName());
         assertEquals("112233", getCurrentCreditorAccountBankSortCode());
         assertEquals("12345678", getCurrentCreditorAccountBankAccountNumber());
         assertEquals("MC-REF-01", getCurrentCreditorAccountBankAccountReference());
-        assertEquals(true, getCurrentCreditorAccountPayByBacs());
+        assertTrue(getCurrentCreditorAccountPayByBacs());
         Integer updatedVersion = getCurrentCreditorAccountVersion();
         assertEquals(currentVersion + 2, updatedVersion);
     }
@@ -368,8 +387,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     void getMinorCreditorAccount_success_withBacsPermission_returnsBacsFields(Logger log) throws Exception {
         // Arrange
         final Integer currentVersion = getCurrentCreditorAccountVersion(GET_MINOR_CREDITOR_ACCOUNT_ID);
-        final Map<String, Object> currentPartyDetails =
-            getCurrentMinorCreditorPartyDetails(GET_MINOR_CREDITOR_PARTY_ID);
+        final PartyEntity currentPartyDetails = getCurrentMinorCreditorPartyDetails(GET_MINOR_CREDITOR_PARTY_ID);
         final boolean currentHoldPayment = getCurrentCreditorAccountHoldPayout(GET_MINOR_CREDITOR_ACCOUNT_ID);
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions(GET_MINOR_CREDITOR_BUSINESS_UNIT_ID,
@@ -397,14 +415,14 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.creditor_account_id").value(GET_MINOR_CREDITOR_ACCOUNT_ID))
             .andExpect(jsonPath("$.party_details.party_id").value(String.valueOf(GET_MINOR_CREDITOR_PARTY_ID)))
             .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
-            .andExpect(jsonPath("$.party_details.individual_details.surname").value(currentPartyDetails.get("surname")))
+            .andExpect(jsonPath("$.party_details.individual_details.surname").value(currentPartyDetails.getSurname()))
             .andExpect(jsonPath("$.party_details.individual_details.forenames")
-                .value(currentPartyDetails.get("forenames")))
-            .andExpect(jsonPath("$.party_details.individual_details.title").value(currentPartyDetails.get("title")))
-            .andExpect(jsonPath("$.address.address_line_1").value(currentPartyDetails.get("address_line_1")))
-            .andExpect(jsonPath("$.address.address_line_2").value(currentPartyDetails.get("address_line_2")))
-            .andExpect(jsonPath("$.address.address_line_3").value(currentPartyDetails.get("address_line_3")))
-            .andExpect(jsonPath("$.address.postcode").value(currentPartyDetails.get("postcode")))
+                .value(currentPartyDetails.getForenames()))
+            .andExpect(jsonPath("$.party_details.individual_details.title").value(currentPartyDetails.getTitle()))
+            .andExpect(jsonPath("$.address.address_line_1").value(currentPartyDetails.getAddressLine1()))
+            .andExpect(jsonPath("$.address.address_line_2").value(currentPartyDetails.getAddressLine2()))
+            .andExpect(jsonPath("$.address.address_line_3").value(currentPartyDetails.getAddressLine3()))
+            .andExpect(jsonPath("$.address.postcode").value(currentPartyDetails.getPostcode()))
             .andExpect(jsonPath("$.payment.pay_by_bacs").value(true))
             .andExpect(jsonPath("$.payment.sort_code").value("123456"))
             .andExpect(jsonPath("$.payment.account_number").value("12345678"))
@@ -416,8 +434,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     void getMinorCreditorAccount_success_withoutBacsPermission_redactsBacsFields(Logger log) throws Exception {
         // Arrange
         final Integer currentVersion = getCurrentCreditorAccountVersion(GET_MINOR_CREDITOR_ACCOUNT_ID);
-        final Map<String, Object> currentPartyDetails =
-            getCurrentMinorCreditorPartyDetails(GET_MINOR_CREDITOR_PARTY_ID);
+        final PartyEntity currentPartyDetails = getCurrentMinorCreditorPartyDetails(GET_MINOR_CREDITOR_PARTY_ID);
         final boolean currentHoldPayment = getCurrentCreditorAccountHoldPayout(GET_MINOR_CREDITOR_ACCOUNT_ID);
 
         userStateStub.setupWithNoPermissions();
@@ -445,14 +462,14 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(header().string("ETag", "\"" + currentVersion + "\""))
             .andExpect(jsonPath("$.creditor_account_id").value(GET_MINOR_CREDITOR_ACCOUNT_ID))
             .andExpect(jsonPath("$.party_details.party_id").value(String.valueOf(GET_MINOR_CREDITOR_PARTY_ID)))
-            .andExpect(jsonPath("$.party_details.individual_details.surname").value(currentPartyDetails.get("surname")))
+            .andExpect(jsonPath("$.party_details.individual_details.surname").value(currentPartyDetails.getSurname()))
             .andExpect(jsonPath("$.party_details.individual_details.forenames")
-                .value(currentPartyDetails.get("forenames")))
-            .andExpect(jsonPath("$.party_details.individual_details.title").value(currentPartyDetails.get("title")))
-            .andExpect(jsonPath("$.address.address_line_1").value(currentPartyDetails.get("address_line_1")))
-            .andExpect(jsonPath("$.address.address_line_2").value(currentPartyDetails.get("address_line_2")))
-            .andExpect(jsonPath("$.address.address_line_3").value(currentPartyDetails.get("address_line_3")))
-            .andExpect(jsonPath("$.address.postcode").value(currentPartyDetails.get("postcode")))
+                .value(currentPartyDetails.getForenames()))
+            .andExpect(jsonPath("$.party_details.individual_details.title").value(currentPartyDetails.getTitle()))
+            .andExpect(jsonPath("$.address.address_line_1").value(currentPartyDetails.getAddressLine1()))
+            .andExpect(jsonPath("$.address.address_line_2").value(currentPartyDetails.getAddressLine2()))
+            .andExpect(jsonPath("$.address.address_line_3").value(currentPartyDetails.getAddressLine3()))
+            .andExpect(jsonPath("$.address.postcode").value(currentPartyDetails.getPostcode()))
             .andExpect(jsonPath("$.payment.pay_by_bacs").value(true))
             .andExpect(jsonPath("$.payment.sort_code").value(nullValue()))
             .andExpect(jsonPath("$.payment.account_number").value(nullValue()))
@@ -465,8 +482,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         throws Exception {
         // Arrange
         final Integer currentVersion = getCurrentCreditorAccountVersion(GET_MINOR_CREDITOR_ACCOUNT_ID);
-        final Map<String, Object> currentPartyDetails =
-            getCurrentMinorCreditorPartyDetails(GET_MINOR_CREDITOR_PARTY_ID);
+        final PartyEntity currentPartyDetails = getCurrentMinorCreditorPartyDetails(GET_MINOR_CREDITOR_PARTY_ID);
         final boolean currentHoldPayment = getCurrentCreditorAccountHoldPayout(GET_MINOR_CREDITOR_ACCOUNT_ID);
 
         userStateStub.setupWithNoPermissions();
@@ -495,14 +511,14 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(header().string("ETag", "\"" + currentVersion + "\""))
             .andExpect(jsonPath("$.creditor_account_id").value(GET_MINOR_CREDITOR_ACCOUNT_ID))
             .andExpect(jsonPath("$.party_details.party_id").value(String.valueOf(GET_MINOR_CREDITOR_PARTY_ID)))
-            .andExpect(jsonPath("$.party_details.individual_details.surname").value(currentPartyDetails.get("surname")))
+            .andExpect(jsonPath("$.party_details.individual_details.surname").value(currentPartyDetails.getSurname()))
             .andExpect(jsonPath("$.party_details.individual_details.forenames")
-                .value(currentPartyDetails.get("forenames")))
-            .andExpect(jsonPath("$.party_details.individual_details.title").value(currentPartyDetails.get("title")))
-            .andExpect(jsonPath("$.address.address_line_1").value(currentPartyDetails.get("address_line_1")))
-            .andExpect(jsonPath("$.address.address_line_2").value(currentPartyDetails.get("address_line_2")))
-            .andExpect(jsonPath("$.address.address_line_3").value(currentPartyDetails.get("address_line_3")))
-            .andExpect(jsonPath("$.address.postcode").value(currentPartyDetails.get("postcode")))
+                .value(currentPartyDetails.getForenames()))
+            .andExpect(jsonPath("$.party_details.individual_details.title").value(currentPartyDetails.getTitle()))
+            .andExpect(jsonPath("$.address.address_line_1").value(currentPartyDetails.getAddressLine1()))
+            .andExpect(jsonPath("$.address.address_line_2").value(currentPartyDetails.getAddressLine2()))
+            .andExpect(jsonPath("$.address.address_line_3").value(currentPartyDetails.getAddressLine3()))
+            .andExpect(jsonPath("$.address.postcode").value(currentPartyDetails.getPostcode()))
             .andExpect(jsonPath("$.payment.pay_by_bacs").value(true))
             .andExpect(jsonPath("$.payment.sort_code").value(nullValue()))
             .andExpect(jsonPath("$.payment.account_number").value(nullValue()))
@@ -771,11 +787,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     private Integer getCurrentCreditorAccountVersion(Long creditorAccountId) {
-        return jdbcTemplate.queryForObject(
-            "SELECT version_number FROM creditor_accounts WHERE creditor_account_id = ?",
-            Integer.class,
-            creditorAccountId
-        );
+        return creditorAccountRepository.findById(creditorAccountId)
+            .map(creditorAccount -> creditorAccount.getVersionNumber().intValue())
+            .orElseThrow();
     }
 
     private boolean getCurrentCreditorAccountHoldPayout() {
@@ -783,93 +797,53 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     private boolean getCurrentCreditorAccountHoldPayout(Long creditorAccountId) {
-        Boolean holdPayout = jdbcTemplate.queryForObject(
-            "SELECT hold_payout FROM creditor_accounts WHERE creditor_account_id = ?",
-            Boolean.class,
-            creditorAccountId
-        );
-        return Boolean.TRUE.equals(holdPayout);
+        return creditorAccountRepository.findById(creditorAccountId)
+            .map(creditorAccount -> creditorAccount.isHoldPayout())
+            .orElseThrow();
     }
 
-    private Map<String, Object> getCurrentMinorCreditorPartyDetails(Long partyId) {
-        return jdbcTemplate.queryForMap(
-            """
-                SELECT surname, forenames, title, address_line_1, address_line_2, address_line_3, postcode
-                FROM parties
-                WHERE party_id = ?
-                """,
-            partyId
-        );
+    private PartyEntity getCurrentMinorCreditorPartyDetails(Long partyId) {
+        return partyRepository.findById(partyId).orElseThrow();
     }
 
     private boolean getCurrentCreditorAccountPayByBacs() {
-        Boolean payByBacs = jdbcTemplate.queryForObject(
-            "SELECT pay_by_bacs FROM creditor_accounts WHERE creditor_account_id = ?",
-            Boolean.class,
-            PATCH_MINOR_CREDITOR_ACCOUNT_ID
-        );
-        return Boolean.TRUE.equals(payByBacs);
+        return creditorAccountRepository.findById(PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+            .map(creditorAccount -> creditorAccount.isPayByBacs())
+            .orElseThrow();
     }
 
     private String getCurrentCreditorAccountBankAccountName() {
-        return jdbcTemplate.queryForObject(
-            "SELECT bank_account_name FROM creditor_accounts WHERE creditor_account_id = ?",
-            String.class,
-            PATCH_MINOR_CREDITOR_ACCOUNT_ID
-        );
+        return creditorAccountRepository.findById(PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+            .orElseThrow()
+            .getBankAccountName();
     }
 
     private String getCurrentCreditorAccountBankSortCode() {
-        return jdbcTemplate.queryForObject(
-            "SELECT bank_sort_code FROM creditor_accounts WHERE creditor_account_id = ?",
-            String.class,
-            PATCH_MINOR_CREDITOR_ACCOUNT_ID
-        );
+        return creditorAccountRepository.findById(PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+            .orElseThrow()
+            .getBankSortCode();
     }
 
     private String getCurrentCreditorAccountBankAccountNumber() {
-        return jdbcTemplate.queryForObject(
-            "SELECT bank_account_number FROM creditor_accounts WHERE creditor_account_id = ?",
-            String.class,
-            PATCH_MINOR_CREDITOR_ACCOUNT_ID
-        );
+        return creditorAccountRepository.findById(PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+            .orElseThrow()
+            .getBankAccountNumber();
     }
 
     private String getCurrentCreditorAccountBankAccountReference() {
-        return jdbcTemplate.queryForObject(
-            "SELECT bank_account_reference FROM creditor_accounts WHERE creditor_account_id = ?",
-            String.class,
-            PATCH_MINOR_CREDITOR_ACCOUNT_ID
-        );
+        return creditorAccountRepository.findById(PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+            .orElseThrow()
+            .getBankAccountReference();
     }
 
     private int getCurrentAmendmentCountForCreditorAccount() {
-        Integer amendmentCount = jdbcTemplate.queryForObject(
-            """
-                SELECT COUNT(*)
-                FROM amendments
-                WHERE associated_record_type = 'creditor_accounts'
-                  AND associated_record_id = ?
-                """,
-            Integer.class,
-            String.valueOf(PATCH_MINOR_CREDITOR_ACCOUNT_ID)
-        );
-        return amendmentCount != null ? amendmentCount : 0;
+        return amendmentRepository.countByAssociatedRecordId(String.valueOf(PATCH_MINOR_CREDITOR_ACCOUNT_ID));
     }
 
     private String getLatestAmendmentFunctionCodeForCreditorAccount() {
-        return jdbcTemplate.queryForObject(
-            """
-                SELECT function_code
-                FROM amendments
-                WHERE associated_record_type = 'creditor_accounts'
-                  AND associated_record_id = ?
-                ORDER BY amendment_id DESC
-                LIMIT 1
-                """,
-            String.class,
-            String.valueOf(PATCH_MINOR_CREDITOR_ACCOUNT_ID)
-        );
+        return amendmentRepository.findFirstByAssociatedRecordIdOrderByAmendmentIdDesc(
+            String.valueOf(PATCH_MINOR_CREDITOR_ACCOUNT_ID))
+            .getFunctionCode();
     }
 
     // AC1b: Test that both active and inactive accounts are returned regardless of activeAccountsOnly value
@@ -912,10 +886,12 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC1a: Test multiple search parameters - creditor personal details + business unit
     void testAC1a_MultiParam_ForenamesAndSurname(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .activeAccountsOnly(true)
             .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .forenames("John")
                 .surname("Smith")
+                .organisation(false)
                 .build())
             .build();
 
@@ -934,13 +910,14 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                 .value(hasItems("Smith")));
     }
 
-    // AC1a: Test multiple search parameters - postcode + business unit + account number
-    void testAC1a_MultiParam_PostcodeAndAccountNumber(Logger log) throws Exception {
+    // AC1a: Test multiple search parameters - postcode + business unit
+    void testAC1a_MultiParam_PostcodeAndBusinessUnit(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of((short) 10))
-            .accountNumber("12345678")
+            .activeAccountsOnly(true)
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .postcode("MA4 1AL")
+                .organisation(true)
                 .build())
             .build();
 
@@ -960,10 +937,12 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC1a: Test multiple search parameters - organisation details + business unit + address
     void testAC1a_MultiParam_OrganisationAndAddress(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .activeAccountsOnly(true)
             .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .organisationName("Acme")
                 .addressLine1("Acme House")
+                .organisation(true)
                 .build())
             .build();
 
@@ -982,6 +961,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     void testAC1ai_BusinessUnitFiltering(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of((short) 10, (short) 11)) // Multiple business units
+            .accountNumber("12345678A")
             .activeAccountsOnly(false)
             .build();
 
@@ -1003,10 +983,12 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC2a: Test exact match surname functionality - exact match enabled
     void testAC2a_ExactMatchSurnameEnabled(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .activeAccountsOnly(true)
             .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .surname("Smith")
                 .exactMatchSurname(true) // Exact match enabled
+                .organisation(false)
                 .build())
             .build();
 
@@ -1026,10 +1008,12 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC2ai: Test exact match surname functionality - exact match disabled (starts with)
     void testAC2ai_ExactMatchSurnameDisabled(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .activeAccountsOnly(true)
             .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .surname("Smith")
                 .exactMatchSurname(false) // Exact match disabled - should do "starts with"
+                .organisation(false)
                 .build())
             .build();
 
@@ -1047,10 +1031,14 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC2b: Test exact match forenames functionality - exact match enabled
     void testAC2b_ExactMatchForenamesEnabled(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .activeAccountsOnly(true)
             .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .forenames("John")
                 .exactMatchForenames(true) // Exact match enabled
+                .surname("Smith")
+                .exactMatchForenames(false)
+                .organisation(false)
                 .build())
             .build();
 
@@ -1064,16 +1052,21 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.creditor_accounts[*].firstnames")
                 .value(hasItems("John"))) // Should only return exact "John"
             .andExpect(jsonPath("$.creditor_accounts[*].firstnames")
-                .value(org.hamcrest.Matchers.not(hasItems("Johnathan")))); // Should NOT return "Jonathan"
+                .value(org.hamcrest.Matchers.not(hasItems("Johnathan", "Jane"))));
+        // Should NOT return "Jonathan" or "Jane"
     }
 
     // AC2bi: Test exact match forenames functionality - exact match disabled (starts with)
     void testAC2bi_ExactMatchForenamesDisabled(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .activeAccountsOnly(false)
             .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
-                .forenames("John")
+                .forenames("J")
                 .exactMatchForenames(false) // Exact match disabled - should do "starts with"
+                .surname("Smith")
+                .exactMatchSurname(false)
+                .organisation(false)
                 .build())
             .build();
 
@@ -1085,15 +1078,17 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
             .andExpect(jsonPath("$.creditor_accounts[*].firstnames")
-                .value(hasItems("John", "Johnathan"))); // Should return both "John" and "Jonathan"
+                .value(hasItems("John", "Jane"))); // Should return both "John Smith" and "Jane Smithson"
     }
 
     // AC2c: Test "starts with" behavior for Address Line 1
     void testAC2c_AddressLine1StartsWith(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .activeAccountsOnly(true)
             .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .addressLine1("123") // Should match addresses starting with "123"
+                .organisation(false)
                 .build())
             .build();
 
@@ -1111,9 +1106,11 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC2c: Test "starts with" behavior for Postcode
     void testAC2c_PostcodeStartsWith(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .activeAccountsOnly(true)
             .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .postcode("TS") // Should match postcodes starting with "TS"
+                .organisation(false)
                 .build())
             .build();
 
@@ -1132,6 +1129,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     void testAC3a_CompanyNameExactMatch(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of((short) 10))
+            .activeAccountsOnly(true)
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .organisationName("Tech Solutions")
                 .exactMatchOrganisationName(true)
@@ -1154,6 +1152,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC3ai: Test "starts with" behavior for Company name when exact match is not selected
     void testAC3ai_CompanyNameStartsWith(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .activeAccountsOnly(true)
             .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .organisationName("Tech")
@@ -1177,6 +1176,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC3ai: Test "starts with" behavior with partial Company name
     void testAC3ai_CompanyNameStartsWithPartial(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .activeAccountsOnly(true)
             .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .organisationName("Technology")
@@ -1200,6 +1200,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC3b: Test "starts with" behavior for Company Address Line 1
     void testAC3b_CompanyAddressLine1StartsWith(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .activeAccountsOnly(true)
             .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .addressLine1("Tech") // Should match company addresses starting with "Tech"
@@ -1221,6 +1222,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC3b: Test "starts with" behavior for Company Postcode
     void testAC3b_CompanyPostcodeStartsWith(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .activeAccountsOnly(true)
             .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .postcode("TP") // Match company postcodes starting with "T"
@@ -1242,6 +1244,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     // AC3b: Test combined Address Line 1 and Postcode search for companies
     void testAC3b_CompanyAddressAndPostcodeCombined(Logger log) throws Exception {
         MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .activeAccountsOnly(true)
             .businessUnitIds(List.of((short) 10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                 .addressLine1("Tech House") // Specific address
@@ -1265,10 +1268,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     void getHeaderSummaryImpl_Success(Logger log) throws Exception {
 
-        Long minorCreditorId = 99000000000800L;
-
         ResultActions resultActions = mockMvc.perform(
-            get(URL_BASE + "/{id}/header-summary", minorCreditorId)
+            get(URL_BASE + "/{id}/header-summary", minorCreditorHeaderSummaryAccountId())
                 .accept(MediaType.APPLICATION_JSON)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("authorization", userStateStub.getBearerToken())
@@ -1281,15 +1282,16 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
 
-            .andExpect(jsonPath("$.creditor.account_id").value(String.valueOf(minorCreditorId)))
-            .andExpect(jsonPath("$.creditor.account_number").value("87654321"))
+            .andExpect(jsonPath("$.creditor.account_id").value(String.valueOf(minorCreditorHeaderSummaryAccountId())))
+            .andExpect(jsonPath("$.creditor.account_number").value(minorCreditorHeaderSummaryAccountNumber()))
             .andExpect(jsonPath("$.creditor.account_type.type").value("MN"))
             .andExpect(jsonPath("$.creditor.account_type.display_name").value("Minor Creditor"))
             .andExpect(jsonPath("$.creditor.has_associated_defendant").value(false))
 
-            .andExpect(header().exists("ETag"))
+            .andExpect(header().string("ETag", minorCreditorVersionEtag()))
 
             .andExpect(jsonPath("$.business_unit.business_unit_id").value("77"))
+            .andExpect(jsonPath("$.business_unit.business_unit_code").value("0046"))
             .andExpect(jsonPath("$.business_unit.business_unit_name").value("Camberwell Green"))
             .andExpect(jsonPath("$.business_unit.welsh_speaking").value(matchesPattern("Y|N")))
 
@@ -1367,19 +1369,23 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     void getMinorCreditorAtAGlanceImpl_Success(Logger log) throws Exception {
-        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}/at-a-glance", "99000000000801")
-            .contentType(MediaType.APPLICATION_JSON)
-            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-            .header("authorization", userStateStub.getBearerToken()));
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/{id}/at-a-glance", minorCreditorAccountId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+        );
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
 
         log.info(":testGetMinorCreditorAtAGlance_Success: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
+        JsonNode json = objectMapper.readTree(body);
+
         resultActions
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(header().string("etag", "\"1\""))
+            .andExpect(header().string("ETag", minorCreditorVersionEtag()))
 
             // party
             .andExpect(jsonPath("$.party.party_id").value("99000000000901"))
@@ -1394,7 +1400,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.address.postcode").value("RG6 1PT"))
 
             // creditor_account_id
-            .andExpect(jsonPath("$.creditor_account_id").value(99000000000801L))
+            .andExpect(jsonPath("$.creditor_account_id").value(minorCreditorAccountId()))
 
             // defendant
             .andExpect(jsonPath("$.defendant.account_number").value("12345678"))
@@ -1406,6 +1412,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             // payment
             .andExpect(jsonPath("$.payment.is_bacs").value(true))
             .andExpect(jsonPath("$.payment.hold_payment").value(false));
+
+        assertGet200JsonResponseMatchesBundledSpec(json, "/minor-creditor-accounts/{id}/at-a-glance");
     }
 
     void getMinorCreditorAccountImpl_Success(Logger log) throws Exception {
@@ -1414,7 +1422,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
             FinesPermission.VIEW_CREDITOR_BACS);
 
-        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}", "99000000000801")
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}", minorCreditorAccountId())
             .contentType(MediaType.APPLICATION_JSON)
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())
             .header("authorization", userStateStub.getBearerToken()));
@@ -1426,9 +1434,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         resultActions
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(header().string("ETag", "\"1\""))
+            .andExpect(header().string("ETag", minorCreditorVersionEtag()))
 
-            .andExpect(jsonPath("$.creditor_account_id").value(99000000000801L))
+            .andExpect(jsonPath("$.creditor_account_id").value(minorCreditorAccountId()))
 
             .andExpect(jsonPath("$.party_details.party_id").value("99000000000901"))
             .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
@@ -1452,7 +1460,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
 
-        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}", "99000000000801")
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}", minorCreditorAccountId())
             .contentType(MediaType.APPLICATION_JSON)
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())
             .header("authorization", userStateStub.getBearerToken()));
@@ -1464,13 +1472,29 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         resultActions
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(header().string("ETag", "\"1\""))
+            .andExpect(header().string("ETag", minorCreditorVersionEtag()))
             .andExpect(jsonPath("$.payment.account_name").doesNotExist())
             .andExpect(jsonPath("$.payment.sort_code").doesNotExist())
             .andExpect(jsonPath("$.payment.account_number").doesNotExist())
             .andExpect(jsonPath("$.payment.account_reference").doesNotExist())
             .andExpect(jsonPath("$.payment.pay_by_bacs").value(true))
             .andExpect(jsonPath("$.payment.hold_payment").value(false));
+    }
+
+    protected Long minorCreditorHeaderSummaryAccountId() {
+        return 99000000000800L;
+    }
+
+    protected String minorCreditorHeaderSummaryAccountNumber() {
+        return "87654321";
+    }
+
+    protected Long minorCreditorAccountId() {
+        return 99000000000801L;
+    }
+
+    protected String minorCreditorVersionEtag() {
+        return "\"1\"";
     }
 
     void legacyGetMinorCreditorAccountImpl_500Error(Logger log) throws Exception {

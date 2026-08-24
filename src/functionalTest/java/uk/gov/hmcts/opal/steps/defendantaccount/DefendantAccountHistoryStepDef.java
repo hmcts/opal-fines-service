@@ -10,8 +10,10 @@ import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.json.JSONException;
 import org.springframework.http.HttpHeaders;
+import net.serenitybdd.annotations.Steps;
 import uk.gov.hmcts.opal.actions.defendantaccount.DefendantAccountEnforcementsActions;
 import uk.gov.hmcts.opal.assertions.CommonResponseAssertions;
+import uk.gov.hmcts.opal.context.DefendantAccountHistoryScenarioState;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 import uk.gov.hmcts.opal.steps.BearerTokenStepDef;
 import uk.gov.hmcts.opal.workflows.defendantaccount.DefendantAccountEnforcementWorkflow;
@@ -70,11 +72,8 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     private final DefendantAccountEnforcementWorkflow enforcementWorkflow = new DefendantAccountEnforcementWorkflow();
     private final CommonResponseAssertions responseAssertions = new CommonResponseAssertions();
 
-    private Response firstResponse;
-    private Response secondResponse;
-    private LocalDate rememberedDateFrom;
-    private LocalDate rememberedDateTo;
-    private Long lastRequestedAccountId;
+    @Steps
+    private DefendantAccountHistoryScenarioState historyState;
 
     /**
      * Creates a defendant account with the fixture-backed history data needed by the history
@@ -138,7 +137,11 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
         + "boundary")
     public void requestCreatedDefendantAccountHistoryUsingRememberedDateFrom() {
         assertRememberedDateRange();
-        getHistory(BearerTokenStepDef.getToken(), createdDefendantAccountId(), "dateFrom=" + rememberedDateFrom);
+        getHistory(
+            BearerTokenStepDef.getToken(),
+            createdDefendantAccountId(),
+            "dateFrom=" + historyState.getRememberedDateFrom()
+        );
     }
 
     /**
@@ -147,7 +150,11 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     @When("I request defendant account history for the created defendant account using the remembered dateTo boundary")
     public void requestCreatedDefendantAccountHistoryUsingRememberedDateTo() {
         assertRememberedDateRange();
-        getHistory(BearerTokenStepDef.getToken(), createdDefendantAccountId(), "dateTo=" + rememberedDateTo);
+        getHistory(
+            BearerTokenStepDef.getToken(),
+            createdDefendantAccountId(),
+            "dateTo=" + historyState.getRememberedDateTo()
+        );
     }
 
     /**
@@ -176,8 +183,8 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
         + "and itemTypes {string} twice")
     public void requestCreatedHistoryUsingRememberedDateRangeAndItemTypesTwice(String itemTypes) {
         String query = rememberedDateRangeQuery(itemTypes);
-        firstResponse = getHistory(BearerTokenStepDef.getToken(), createdDefendantAccountId(), query);
-        secondResponse = getHistory(BearerTokenStepDef.getToken(), createdDefendantAccountId(), query);
+        historyState.setFirstResponse(getHistory(BearerTokenStepDef.getToken(), createdDefendantAccountId(), query));
+        historyState.setSecondResponse(getHistory(BearerTokenStepDef.getToken(), createdDefendantAccountId(), query));
     }
 
     /**
@@ -268,8 +275,8 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
             .toList();
 
         assertFalse(postedDates.isEmpty(), "History response should contain dates to remember");
-        rememberedDateFrom = postedDates.stream().min(LocalDate::compareTo).orElseThrow();
-        rememberedDateTo = postedDates.stream().max(LocalDate::compareTo).orElseThrow();
+        historyState.setRememberedDateFrom(postedDates.stream().min(LocalDate::compareTo).orElseThrow());
+        historyState.setRememberedDateTo(postedDates.stream().max(LocalDate::compareTo).orElseThrow());
     }
 
     /**
@@ -386,7 +393,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     @Then("the defendant account history response contains only items on or after the remembered dateFrom")
     public void defendantAccountHistoryContainsOnlyItemsOnOrAfterRememberedDateFrom() throws Exception {
         assertRememberedDateRange();
-        assertHistoryContainsOnlyItemsOnOrAfter(rememberedDateFrom);
+        assertHistoryContainsOnlyItemsOnOrAfter(historyState.getRememberedDateFrom());
     }
 
     /**
@@ -397,7 +404,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     @Then("the defendant account history response contains only items on or before the remembered dateTo")
     public void defendantAccountHistoryContainsOnlyItemsOnOrBeforeRememberedDateTo() throws Exception {
         assertRememberedDateRange();
-        assertHistoryContainsOnlyItemsOnOrBefore(rememberedDateTo);
+        assertHistoryContainsOnlyItemsOnOrBefore(historyState.getRememberedDateTo());
     }
 
     /**
@@ -409,7 +416,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     @Then("the defendant account history response includes an item on the remembered dateFrom")
     public void defendantAccountHistoryResponseIncludesAnItemOnRememberedDateFrom() throws Exception {
         assertRememberedDateRange();
-        assertHistoryIncludesItemOn(rememberedDateFrom);
+        assertHistoryIncludesItemOn(historyState.getRememberedDateFrom());
     }
 
     /**
@@ -421,7 +428,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     @Then("the defendant account history response includes an item on the remembered dateTo")
     public void defendantAccountHistoryResponseIncludesAnItemOnRememberedDateTo() throws Exception {
         assertRememberedDateRange();
-        assertHistoryIncludesItemOn(rememberedDateTo);
+        assertHistoryIncludesItemOn(historyState.getRememberedDateTo());
     }
 
     /**
@@ -429,12 +436,18 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
      */
     @Then("the repeated defendant account history responses are identical")
     public void repeatedDefendantAccountHistoryResponsesAreIdentical() {
-        assertNotNull(firstResponse, "First repeated history response was not captured");
-        assertNotNull(secondResponse, "Second repeated history response was not captured");
-        assertEquals(200, firstResponse.statusCode(), "Unexpected first repeated request status");
-        assertEquals(200, secondResponse.statusCode(), "Unexpected second repeated request status");
-        assertEquals(firstResponse.getBody().asString(), secondResponse.getBody().asString());
-        assertEquals(firstResponse.getHeader(HttpHeaders.ETAG), secondResponse.getHeader(HttpHeaders.ETAG));
+        assertNotNull(historyState.getFirstResponse(), "First repeated history response was not captured");
+        assertNotNull(historyState.getSecondResponse(), "Second repeated history response was not captured");
+        assertEquals(200, historyState.getFirstResponse().statusCode(), "Unexpected first repeated request status");
+        assertEquals(200, historyState.getSecondResponse().statusCode(), "Unexpected second repeated request status");
+        assertEquals(
+            historyState.getFirstResponse().getBody().asString(),
+            historyState.getSecondResponse().getBody().asString()
+        );
+        assertEquals(
+            historyState.getFirstResponse().getHeader(HttpHeaders.ETAG),
+            historyState.getSecondResponse().getHeader(HttpHeaders.ETAG)
+        );
     }
 
     /**
@@ -474,16 +487,16 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
         for (String term : INTERNAL_ERROR_TERMS) {
             assertFalse(body.contains(term), "Error response leaked internal detail: " + term);
         }
-        if (lastRequestedAccountId != null) {
+        if (historyState.getLastRequestedAccountId() != null) {
             assertFalse(
-                body.contains(String.valueOf(lastRequestedAccountId)),
+                body.contains(String.valueOf(historyState.getLastRequestedAccountId())),
                 "Error response leaked requested account id"
             );
         }
     }
 
     private Response getHistory(String token, long accountId, String query) {
-        lastRequestedAccountId = accountId;
+        historyState.setLastRequestedAccountId(accountId);
         RequestSpecification request = given()
             .accept("*/*")
             .contentType("application/json");
@@ -527,12 +540,14 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
 
     private String rememberedDateRangeQuery(String itemTypes) {
         assertRememberedDateRange();
-        return "dateFrom=" + rememberedDateFrom + "&dateTo=" + rememberedDateTo + "&itemTypes=" + itemTypes;
+        return "dateFrom=" + historyState.getRememberedDateFrom()
+            + "&dateTo=" + historyState.getRememberedDateTo()
+            + "&itemTypes=" + itemTypes;
     }
 
     private void assertRememberedDateRange() {
-        assertNotNull(rememberedDateFrom, "No remembered dateFrom boundary");
-        assertNotNull(rememberedDateTo, "No remembered dateTo boundary");
+        assertNotNull(historyState.getRememberedDateFrom(), "No remembered dateFrom boundary");
+        assertNotNull(historyState.getRememberedDateTo(), "No remembered dateTo boundary");
     }
 
     private void assertHistoryContainsOnlyItemsOnOrAfter(LocalDate boundary) throws Exception {

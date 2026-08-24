@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.MockedConstruction;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ClassPathResource;
 import tools.jackson.databind.JsonNode;
@@ -21,6 +20,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class JsonSchemaValidationServiceTest {
@@ -56,10 +58,10 @@ class JsonSchemaValidationServiceTest {
 
     @Test
     void testIsValid_failReadSchema() {
-        try (MockedConstruction<ClassPathResource> ignored = Mockito.mockConstruction(ClassPathResource.class,
+        try (MockedConstruction<ClassPathResource> ignored = mockConstruction(ClassPathResource.class,
             (mock, context) -> {
-                Mockito.when(mock.exists()).thenReturn(true);
-                Mockito.when(mock.getURI()).thenThrow(new IOException("Cannot read schema"));
+                when(mock.exists()).thenReturn(true);
+                when(mock.getURI()).thenThrow(new IOException("Cannot read schema"));
             })) {
 
             SchemaConfigurationException sce = assertThrows(
@@ -198,8 +200,8 @@ class JsonSchemaValidationServiceTest {
 
     @Test
     void testIsValid_jsonNodeValidationException_shouldReturnFalse() {
-        JsonNode jsonNode = Mockito.mock(JsonNode.class);
-        Mockito.when(jsonNode.toString()).thenThrow(new RuntimeException("Cannot serialise node"));
+        JsonNode jsonNode = mock(JsonNode.class);
+        when(jsonNode.toString()).thenThrow(new RuntimeException("Cannot serialise node"));
 
         assertFalse(jsonSchemaValidationService.isValid(jsonNode, "testSchema.json"));
     }
@@ -224,22 +226,135 @@ class JsonSchemaValidationServiceTest {
     }
 
     @Test
-    void testMinorCreditorAccountsSearchLegacyRequest_withAccountNumberAndCreditor_shouldFail() {
-        String invalidJson = """
+    void testDefendantAccountsSearchRequest_withNationalInsuranceOnly_shouldPass() {
+        String defendantJson = """
             {
-              "active_accounts_only": true,
-              "account_number": "12345678A",
-              "creditor": {
-                "organisation": false,
-                "surname": "Smith"
-              }
+              "include_aliases": false,
+              "organisation": false,
+              "address_line_1": null,
+              "postcode": null,
+              "organisation_name": null,
+              "exact_match_organisation_name": null,
+              "surname": null,
+              "exact_match_surname": null,
+              "forenames": null,
+              "exact_match_forenames": null,
+              "birth_date": null,
+              "national_insurance_number": "QQ123456C"
             }
             """;
 
-        assertFalse(jsonSchemaValidationService.isValid(
-            invalidJson,
-            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_LEGACY_REQUEST
-        ));
+        assertDefendantAccountsSearchRequestIsValid(defendantJson);
+    }
+
+    @Test
+    void testDefendantAccountsSearchRequest_withNationalInsuranceAndOtherSearchFields_shouldFail() {
+        String defendantJson = """
+            {
+              "include_aliases": false,
+              "organisation": false,
+              "address_line_1": null,
+              "postcode": null,
+              "organisation_name": null,
+              "exact_match_organisation_name": null,
+              "surname": "Smith",
+              "exact_match_surname": true,
+              "forenames": null,
+              "exact_match_forenames": null,
+              "birth_date": null,
+              "national_insurance_number": "QQ123456C"
+            }
+            """;
+
+        assertDefendantAccountsSearchRequestIsInvalid(defendantJson);
+    }
+
+    @Test
+    void testDefendantAccountsSearchRequest_withForenamesAndNoSurname_shouldFail() {
+        String defendantJson = """
+            {
+              "include_aliases": false,
+              "organisation": false,
+              "address_line_1": null,
+              "postcode": null,
+              "organisation_name": null,
+              "exact_match_organisation_name": null,
+              "surname": null,
+              "exact_match_surname": null,
+              "forenames": "John",
+              "exact_match_forenames": false,
+              "birth_date": null,
+              "national_insurance_number": null
+            }
+            """;
+
+        assertDefendantAccountsSearchRequestIsInvalid(defendantJson);
+    }
+
+    @Test
+    void testDefendantAccountsSearchRequest_withBirthDateAndNoSurname_shouldFail() {
+        String defendantJson = """
+            {
+              "include_aliases": false,
+              "organisation": false,
+              "address_line_1": null,
+              "postcode": null,
+              "organisation_name": null,
+              "exact_match_organisation_name": null,
+              "surname": null,
+              "exact_match_surname": null,
+              "forenames": null,
+              "exact_match_forenames": null,
+              "birth_date": "1980-01-01",
+              "national_insurance_number": null
+            }
+            """;
+
+        assertDefendantAccountsSearchRequestIsInvalid(defendantJson);
+    }
+
+    @Test
+    void testDefendantAccountsSearchRequest_withAddressOnlyForPerson_shouldPass() {
+        String defendantJson = """
+            {
+              "include_aliases": false,
+              "organisation": false,
+              "address_line_1": "1 Test Street",
+              "postcode": null,
+              "organisation_name": null,
+              "exact_match_organisation_name": null,
+              "surname": null,
+              "exact_match_surname": null,
+              "forenames": null,
+              "exact_match_forenames": null,
+              "birth_date": null,
+              "national_insurance_number": null
+            }
+            """;
+
+        assertDefendantAccountsSearchRequestIsValid(defendantJson);
+    }
+
+    @Test
+    void testDefendantAccountsSearchRequest_withPostcodeOnlyForOrganisation_shouldPass() {
+        String defendantJson = """
+            {
+              "include_aliases": false,
+              "organisation": true,
+              "address_line_1": null,
+              "postcode": "AB1 2CD",
+              "organisation_name": null,
+              "exact_match_organisation_name": null,
+              "surname": null,
+              "exact_match_surname": null,
+              "forenames": null,
+              "exact_match_forenames": null,
+              "birth_date": null,
+              "national_insurance_number": null
+            }
+            """;
+
+        assertDefendantAccountsSearchRequestIsValid(defendantJson);
     }
 
     @Test
@@ -383,4 +498,321 @@ class JsonSchemaValidationServiceTest {
         assertTrue(jsonSchemaValidationService.isValid(validJson, SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_RESPONSE));
     }
 
+    @Test
+    void testDefendantAccountsSearchResponse_withNullDefendantAccounts_shouldPass() {
+        String validJson = """
+            {
+              "count": 0,
+              "defendant_accounts": null
+            }
+            """;
+
+        assertDefendantAccountsSearchResponseIsValid(validJson);
+    }
+
+    @Test
+    void testDefendantAccountsSearchResponse_withoutConsolidatedFields_shouldPass() {
+        String accountJson = """
+            {
+              "defendant_account_id": "99000000000001",
+              "account_number": "12345678A",
+              "organisation": false,
+              "aliases": [],
+              "address_line_1": "",
+              "postcode": null,
+              "business_unit_name": "Business Unit",
+              "business_unit_id": "77",
+              "prosecutor_case_reference": null,
+              "last_enforcement_action": null,
+              "account_balance": 100.00,
+              "organisation_name": null,
+              "defendant_title": "Mr",
+              "defendant_firstnames": "John",
+              "defendant_surname": "Smith",
+              "birth_date": "1980-01-01",
+              "national_insurance_number": null,
+              "parent_guardian_surname": null,
+              "parent_guardian_firstnames": null
+            }
+            """;
+
+        assertDefendantAccountsSearchResponseIsValid(defendantSearchResponse(accountJson));
+    }
+
+    @Test
+    void testDefendantAccountsSearchResponse_withNullChecks_shouldPass() {
+        String accountJson = """
+            {
+              "defendant_account_id": "99000000000001",
+              "account_number": "12345678A",
+              "organisation": false,
+              "aliases": [],
+              "address_line_1": "",
+              "postcode": null,
+              "business_unit_name": "Business Unit",
+              "business_unit_id": "77",
+              "prosecutor_case_reference": null,
+              "last_enforcement_action": null,
+              "account_balance": 100.00,
+              "organisation_name": null,
+              "defendant_title": "Mr",
+              "defendant_firstnames": "John",
+              "defendant_surname": "Smith",
+              "birth_date": "1980-01-01",
+              "national_insurance_number": null,
+              "parent_guardian_surname": null,
+              "parent_guardian_firstnames": null,
+              "has_collection_order": null,
+              "account_version": null,
+              "checks": null
+            }
+            """;
+
+        assertDefendantAccountsSearchResponseIsValid(defendantSearchResponse(accountJson));
+    }
+
+    @Test
+    void testDefendantAccountsSearchResponse_withOrganisationAccount_shouldPass() {
+        String accountJson = """
+            {
+              "defendant_account_id": "99000000000001",
+              "account_number": "12345678A",
+              "organisation": true,
+              "aliases": [],
+              "address_line_1": "",
+              "postcode": null,
+              "business_unit_name": "Business Unit",
+              "business_unit_id": "77",
+              "prosecutor_case_reference": null,
+              "last_enforcement_action": null,
+              "account_balance": 100.00,
+              "organisation_name": "Acme Ltd",
+              "defendant_title": null,
+              "defendant_firstnames": null,
+              "defendant_surname": null,
+              "birth_date": null,
+              "national_insurance_number": null,
+              "parent_guardian_surname": null,
+              "parent_guardian_firstnames": null
+            }
+            """;
+
+        assertDefendantAccountsSearchResponseIsValid(defendantSearchResponse(accountJson));
+    }
+
+    @Test
+    void testDefendantAccountsSearchResponse_withOrganisationAccountAndPersonFields_shouldFail() {
+        String accountJson = """
+            {
+              "defendant_account_id": "99000000000001",
+              "account_number": "12345678A",
+              "organisation": true,
+              "aliases": [],
+              "address_line_1": "",
+              "postcode": null,
+              "business_unit_name": "Business Unit",
+              "business_unit_id": "77",
+              "prosecutor_case_reference": null,
+              "last_enforcement_action": null,
+              "account_balance": 100.00,
+              "organisation_name": "Acme Ltd",
+              "defendant_title": null,
+              "defendant_firstnames": null,
+              "defendant_surname": "Smith",
+              "birth_date": null,
+              "national_insurance_number": null,
+              "parent_guardian_surname": null,
+              "parent_guardian_firstnames": null
+            }
+            """;
+
+        assertDefendantAccountsSearchResponseIsInvalid(defendantSearchResponse(accountJson));
+    }
+
+    @Test
+    void testDefendantAccountsSearchResponse_withMixedAliasFields_shouldFail() {
+        String accountJson = """
+            {
+              "defendant_account_id": "99000000000001",
+              "account_number": "12345678A",
+              "organisation": false,
+              "aliases": [
+                {
+                  "alias_number": 1,
+                  "organisation_name": "Acme Ltd",
+                  "surname": "Smith",
+                  "forenames": null
+                }
+              ],
+              "address_line_1": "",
+              "postcode": null,
+              "business_unit_name": "Business Unit",
+              "business_unit_id": "77",
+              "prosecutor_case_reference": null,
+              "last_enforcement_action": null,
+              "account_balance": 100.00,
+              "organisation_name": null,
+              "defendant_title": "Mr",
+              "defendant_firstnames": "John",
+              "defendant_surname": "Smith",
+              "birth_date": "1980-01-01",
+              "national_insurance_number": null,
+              "parent_guardian_surname": null,
+              "parent_guardian_firstnames": null
+            }
+            """;
+
+        assertDefendantAccountsSearchResponseIsInvalid(defendantSearchResponse(accountJson));
+    }
+
+    @Test
+    void testMinorCreditorAccountsSearchRequest_withForenamesWithoutSurname_shouldFail() {
+        String invalidJson = """
+            {
+              "active_accounts_only": true,
+              "creditor": {
+                "organisation": false,
+                "forenames": "John",
+                "address_line_1": "1 High Street"
+              }
+            }
+            """;
+
+        assertFalse(jsonSchemaValidationService.isValid(
+            invalidJson,
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST));
+    }
+
+    @Test
+    void testMinorCreditorAccountSearchRequest_withAccountNumber_shouldPass() {
+        String validJson = """
+            {
+              "active_accounts_only": true,
+              "account_number": "12345678A"
+            }
+            """;
+
+        assertTrue(jsonSchemaValidationService.isValid(
+            validJson,
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST));
+    }
+
+    @Test
+    void testMinorCreditorAccountsSearchRequest_withSurnameOnly_shouldPass() {
+        String validJson = """
+            {
+              "active_accounts_only": true,
+              "creditor": {
+                "organisation": false,
+                "surname": "Smith"
+              }
+            }
+            """;
+
+        assertTrue(jsonSchemaValidationService.isValid(
+            validJson,
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST));
+    }
+
+    @Test
+    void testMinorCreditorAccountsSearchRequest_withOrganisationNameOnly_shouldPass() {
+        String validJson = """
+            {
+              "active_accounts_only": true,
+              "creditor": {
+                "organisation": true,
+                "organisation_name": "Acme Ltd"
+              }
+            }
+            """;
+
+        assertTrue(jsonSchemaValidationService.isValid(
+            validJson,
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST));
+    }
+
+    @Test
+    void testMinorCreditorAccountsSearchRequest_withAddressLine1Only_shouldPass() {
+        String validJson = """
+            {
+              "active_accounts_only": true,
+              "creditor": {
+                "organisation": false,
+                "address_line_1": "1 High Street"
+              }
+            }
+            """;
+
+        assertTrue(jsonSchemaValidationService.isValid(
+            validJson,
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST));
+    }
+
+    @Test
+    void testMinorCreditorAccountsSearchRequest_withPostcodeOnly_shouldPass() {
+        String validJson = """
+            {
+              "active_accounts_only": true,
+              "creditor": {
+                "organisation": false,
+                "postcode": "AB1 2CD"
+              }
+            }
+            """;
+
+        assertTrue(jsonSchemaValidationService.isValid(
+            validJson,
+            SchemaPaths.POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_REQUEST));
+    }
+
+    private void assertDefendantAccountsSearchRequestIsValid(String defendantJson) {
+        assertTrue(jsonSchemaValidationService.isValid(
+            defendantSearchRequest(defendantJson),
+            SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_REQUEST
+        ));
+    }
+
+    private void assertDefendantAccountsSearchRequestIsInvalid(String defendantJson) {
+        assertFalse(jsonSchemaValidationService.isValid(
+            defendantSearchRequest(defendantJson),
+            SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_REQUEST
+        ));
+    }
+
+    private String defendantSearchRequest(String defendantJson) {
+        return """
+            {
+              "active_accounts_only": true,
+              "business_unit_ids": [77],
+              "reference_number": null,
+              "defendant": %s,
+              "consolidation_search": null
+            }
+            """.formatted(defendantJson);
+    }
+
+    private void assertDefendantAccountsSearchResponseIsValid(String responseJson) {
+        assertTrue(jsonSchemaValidationService.isValid(
+            responseJson,
+            SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_RESPONSE
+        ));
+    }
+
+    private void assertDefendantAccountsSearchResponseIsInvalid(String responseJson) {
+        assertFalse(jsonSchemaValidationService.isValid(
+            responseJson,
+            SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_RESPONSE
+        ));
+    }
+
+    private String defendantSearchResponse(String accountJson) {
+        return """
+            {
+              "count": 1,
+              "defendant_accounts": [
+                %s
+              ]
+            }
+            """.formatted(accountJson);
+    }
 }

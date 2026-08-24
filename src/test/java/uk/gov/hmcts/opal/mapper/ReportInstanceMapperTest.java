@@ -14,6 +14,7 @@ import static uk.gov.hmcts.opal.entity.report.SupportedFileType.CSV;
 import static uk.gov.hmcts.opal.entity.report.SupportedFileType.PDF;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -65,8 +66,8 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
             .reportInstanceId(1L)
             .report(report)
             .reportName("My Report")
-            .requestedAt(LocalDateTime.of(2026, 1, 1, 10, 0))
-            .createdTimestamp(LocalDateTime.of(2026, 1, 1, 11, 0))
+            .requestedAt(LocalDateTime.of(2026, Month.JANUARY, 1, 10, 0))
+            .createdTimestamp(LocalDateTime.of(2026, Month.JANUARY, 1, 11, 0))
             .requestedBy(42L)
             .requestedByName("John Doe")
             .businessUnit(List.of((short) 10, (short) 20))
@@ -148,7 +149,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
         }
 
         @Test
-        public void toReportInstanceReportsDto_completedReportInstanceNoErrors() {
+        void toReportInstanceReportsDto_completedReportInstanceNoErrors() {
             ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
                 .reportInstanceId(REPORT_INSTANCE_ID)
                 .requestedAt(REQUESTED_AT)
@@ -222,7 +223,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
         }
 
         @Test
-        public void toReportInstanceReportsDto_customReportInstanceNameOverridesReportTitle() {
+        void toReportInstanceReportsDto_customReportInstanceNameOverridesReportTitle() {
             ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
                 .reportInstanceId(REPORT_INSTANCE_ID)
                 .requestedAt(REQUESTED_AT)
@@ -256,7 +257,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
         }
 
         @Test
-        public void toReportInstanceReportsDto_errors() {
+        void toReportInstanceReportsDto_errors() {
             ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
                 .reportInstanceId(REPORT_INSTANCE_ID)
                 .requestedAt(REQUESTED_AT)
@@ -299,7 +300,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
         }
 
         @Test
-        public void toReportInstanceReportsDto_reportInstanceReadyButSupportedFiletypesIsNull() {
+        void toReportInstanceReportsDto_reportInstanceReadyButSupportedFiletypesIsNull() {
             ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
                 .reportInstanceId(REPORT_INSTANCE_ID)
                 .requestedAt(REQUESTED_AT)
@@ -333,7 +334,7 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
         }
 
         @Test
-        public void toReportInstanceReportsDto_reportInstanceReadyButSupportedFiletypesIsEmpty() {
+        void toReportInstanceReportsDto_reportInstanceReadyButSupportedFiletypesIsEmpty() {
             ReportInstanceEntity reportInstanceEntity = ReportInstanceEntity.builder()
                 .reportInstanceId(REPORT_INSTANCE_ID)
                 .requestedAt(REQUESTED_AT)

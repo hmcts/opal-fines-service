@@ -1,5 +1,5 @@
 # Ignored because this feature is awaiting the DB changes for get report instances.
-@Opal @Ignore @JIRA-LABEL:report-instances
+@Opal @Ignore @JIRA-LABEL:report-instances @R1CEnforcementOperationalReporting
 Feature: Get Report Instances
 
   @JIRA-STORY:PO-2251 @JIRA-EPIC:PO-2248

@@ -10,6 +10,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectBadRequest;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectBadRequestWithoutStatus;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -314,9 +316,10 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 .content(request))
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.title").value("Bad Request"))
-            .andExpect(jsonPath("$.detail").value("The request does not conform to the required JSON schema"))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
+            .andExpect(expectBadRequestWithoutStatus(
+                "The request does not conform to the required JSON schema",
+                "https://hmcts.gov.uk/problems/json-schema-validation"
+            ));
     }
 
     @Test
@@ -333,15 +336,17 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 .content(request))
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.title").value("Bad Request"))
-            .andExpect(jsonPath("$.detail").value("The request does not conform to the required JSON schema"))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
+            .andExpect(expectBadRequestWithoutStatus(
+                "The request does not conform to the required JSON schema",
+                "https://hmcts.gov.uk/problems/json-schema-validation"
+            ));
     }
 
     @Test
     @DisplayName("Create draft account - Should return 400 when reference validation fails and leave data unchanged")
     @JiraStory("PO-973")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-9388")
     void shouldReturn400WhenReferenceValidationFailsAndLeaveExistingDataUnchanged() throws Exception {
         DraftAccountEntity before = getDraftAccount(5L);
         long countBefore = draftAccountRepository.count();
@@ -353,9 +358,10 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 .content(invalidReferenceCreateRequestBody()))
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.title").value("Bad Request"))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/invalid-reference-validation"))
-            .andExpect(jsonPath("$.detail").value(expectedReferenceValidationErrorMessage()));
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedReferenceValidationErrorMessage(),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
 
         DraftAccountEntity after = getDraftAccount(5L);
 
@@ -414,10 +420,10 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
 
         resultActions.andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.title").value("Bad Request"))
-            .andExpect(jsonPath("$.detail").value("The request does not conform to the required JSON schema"))
-            .andExpect(jsonPath("$.status").value(400))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
+            .andExpect(expectBadRequest(
+                "The request does not conform to the required JSON schema",
+                "https://hmcts.gov.uk/problems/json-schema-validation"
+            ));
     }
 
     @Test

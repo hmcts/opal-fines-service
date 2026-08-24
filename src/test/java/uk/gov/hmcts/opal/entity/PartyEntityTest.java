@@ -4,13 +4,14 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class PartyEntityTest {
+class PartyEntityTest {
 
     @Test
     void testGettersAndSetters() {
@@ -30,10 +31,10 @@ public class PartyEntityTest {
         party.setAddressLine5("Scotland");
         party.setPostcode("SN15 9TT");
         party.setAccountType(PartyAccountType.CREDITOR);
-        party.setBirthDate(LocalDate.of(2001, 8, 16));
+        party.setBirthDate(LocalDate.of(2001, Month.AUGUST, 16));
         party.setAge((short)21);
         party.setNiNumber("FF22446688");
-        party.setLastChangedDate(LocalDateTime.of(2023, 12, 5, 15, 45));
+        party.setLastChangedDate(LocalDateTime.of(2023, Month.DECEMBER, 5, 15, 45));
 
         // Test getters
         assertEquals(Long.valueOf(1L), party.getPartyId());
@@ -49,10 +50,10 @@ public class PartyEntityTest {
         assertEquals("Scotland", party.getAddressLine5());
         assertEquals("SN15 9TT", party.getPostcode());
         assertEquals(PartyAccountType.CREDITOR, party.getAccountType());
-        assertEquals(LocalDate.of(2001, 8, 16), party.getBirthDate());
+        assertEquals(LocalDate.of(2001, Month.AUGUST, 16), party.getBirthDate());
         assertEquals(Short.valueOf((short) 21), party.getAge());
         assertEquals("FF22446688", party.getNiNumber());
-        assertEquals(LocalDateTime.of(2023, 12, 5, 15, 45), party.getLastChangedDate());
+        assertEquals(LocalDateTime.of(2023, Month.DECEMBER, 5, 15, 45), party.getLastChangedDate());
     }
 
     @Test

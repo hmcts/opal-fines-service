@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:reference-data @JIRA-STORY:PO-926 @JIRA-STORY:PO-1070 @JIRA-EPIC:PO-304
+@Opal @JIRA-LABEL:reference-data @JIRA-STORY:PO-926 @JIRA-STORY:PO-1070 @JIRA-EPIC:PO-304 @R1CReferenceData
 Feature: Offence Search
 
   Background:

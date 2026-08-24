@@ -1,14 +1,19 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
+import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.isNullOrBlank;
+import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.nullifyFalse;
+import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.stripChars;
+import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.stripCharsAndLowerOrNull;
+
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.function.Function;
+import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -18,15 +23,6 @@ import uk.gov.hmcts.opal.dto.search.DefendantDto;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount_;
-
-import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.isNullOrBlank;
-import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.nullifyFalse;
-import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.stripChars;
-import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.stripCharsAndLowerOrNull;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
 
 @Component
 @Slf4j(topic = "opal.SearchDefendantAccountSpecs")
@@ -133,20 +129,13 @@ public abstract class SearchDefendantAccountSpecs<E extends SearchDefendantAccou
     private Predicate matchOrgNameAndAliasesPredicate(From<?, E> root, CriteriaBuilder cb,
         String orgName, boolean exactOrgName, boolean includeAliases) {
 
-        Expression<String> stripedDbOrg = stripChars(cb, root.get(SearchDefendantAccount_.organisationName));
-        Predicate orgNamePredicate = useEqualsOrStartsWith(stripedDbOrg, cb, orgName, exactOrgName);
+        List<Predicate> namePredicates = new ArrayList<>(
+            aliasOrganisationPredicates(root, cb, orgName, exactOrgName, includeAliases));
+        orgNamePredicate(root, cb, orgName, exactOrgName).ifPresent(namePredicates::add);
 
-        List<Predicate> predicatesToOr = new ArrayList<>(Collections.singletonList(orgNamePredicate));;
-
-        if (includeAliases) {
-            predicatesToOr.addAll(
-                applyPredicateFunctionToEachPath(
-                    aliasPath -> useEqualsOrStartsWith(aliasPath, cb, orgName, exactOrgName),
-                listOfStipedAliasPaths(root, cb)));
-        }
-
-        Predicate isOrgPredicate = cb.isTrue(root.get(SearchDefendantAccount_.organisation));
-        return cb.and(isOrgPredicate, cb.or(predicatesToOr.toArray(new Predicate[]{})));
+        return cb.and(
+            isOrganisationPredicate(root, cb),
+            cb.or(predicateArray(namePredicates)));
     }
 
     public Specification<E> matchPersonNamesAndAliases(DefendantDto defendant, boolean includeAliases) {
@@ -181,17 +170,10 @@ public abstract class SearchDefendantAccountSpecs<E extends SearchDefendantAccou
     private Predicate personAliasesPredicate(From<?, E> root, CriteriaBuilder cb,
         String forenames, boolean exactForenames, String surname, boolean exactSurname) {
 
-        List<Predicate> predicatesToOr = new ArrayList<>();
-
-        if (hasContentToSearchOn(forenames)) {
-            predicatesToOr.addAll(listOfAliasEqualsOrStartsWithPredicates(root, cb, forenames, !exactForenames, false));
-        }
-
-        if (hasContentToSearchOn(surname)) {
-            predicatesToOr.addAll(listOfAliasEqualsOrStartsWithPredicates(root, cb, surname, !exactSurname, true));
-        }
-
-        Predicate[] namesAliasPredicates = predicateArray(predicatesToOr);
+        List<Predicate> aliasPredicates = new ArrayList<>(
+            aliasForenamesPredicates(root, cb, forenames, exactForenames));
+        aliasPredicates.addAll(aliasSurnamePredicates(root, cb, surname, exactSurname));
+        Predicate[] namesAliasPredicates = predicateArray(aliasPredicates);
 
         return namesAliasPredicates.length == 0 ? null
             : cb.and(cb.isFalse(root.get(SearchDefendantAccount_.organisation)), cb.or(namesAliasPredicates));
@@ -208,23 +190,74 @@ public abstract class SearchDefendantAccountSpecs<E extends SearchDefendantAccou
             root.get(SearchDefendantAccount_.alias2),
             root.get(SearchDefendantAccount_.alias3),
             root.get(SearchDefendantAccount_.alias4),
-            root.get(SearchDefendantAccount_.alias5)
-        );
+            root.get(SearchDefendantAccount_.alias5));
     }
 
-    private List<Expression<String>> listOfStipedAliasPaths(From<?, E> root, CriteriaBuilder cb) {
+    private List<Expression<String>> strippedAliasPaths(From<?, E> root, CriteriaBuilder cb) {
         return listOfAliasPaths(root).stream()
             .map(path -> stripChars(cb, path))
             .toList();
     }
 
-    private List<Predicate> listOfAliasEqualsOrStartsWithPredicates(
-        From<?, E> root, CriteriaBuilder cb, String searchAlias, boolean useWildcard, boolean useEndsWith) {
+    private Optional<Predicate> orgNamePredicate(From<?, E> root, CriteriaBuilder cb,
+        String orgName, boolean exactOrgName) {
 
-        // Match the Forename to the start, and the Surname to the end, of the concatenated data.
-        return listOfStipedAliasPaths(root, cb).stream()
-            .map(path -> useEndsWithOrStartsWith(path, cb, searchAlias, useWildcard, useEndsWith))
+        return notNullObject(orgName)
+            .map(value -> useEqualsOrStartsWith(
+                stripChars(cb, root.get(SearchDefendantAccount_.organisationName)),
+                cb,
+                value,
+                exactOrgName));
+    }
+
+    private List<Predicate> aliasOrganisationPredicates(From<?, E> root, CriteriaBuilder cb,
+        String orgName, boolean exactOrgName, boolean includeAliases) {
+
+        return includeAliases
+            ? aliasNamePredicates(root, cb, orgName, !exactOrgName)
+            : List.of();
+    }
+
+    private Predicate isOrganisationPredicate(From<?, E> root, CriteriaBuilder cb) {
+        return cb.isTrue(root.get(SearchDefendantAccount_.organisation));
+    }
+
+    private List<Predicate> aliasForenamesPredicates(From<?, E> root, CriteriaBuilder cb,
+        String forenames, boolean exactForenames) {
+
+        return hasContentToSearchOn(forenames)
+            ? aliasNamePredicates(root, cb, forenames, !exactForenames)
+            : List.of();
+    }
+
+    private List<Predicate> aliasSurnamePredicates(From<?, E> root, CriteriaBuilder cb,
+        String surname, boolean exactSurname) {
+
+        return hasContentToSearchOn(surname)
+            ? aliasSurnameNamePredicates(root, cb, surname, exactSurname)
+            : List.of();
+    }
+
+    private List<Predicate> aliasNamePredicates(
+        From<?, E> root, CriteriaBuilder cb, String searchAlias, boolean useWildcard) {
+
+        return strippedAliasPaths(root, cb).stream()
+            .map(path -> useWildcardOrStartsWith(path, cb, searchAlias, useWildcard))
             .toList();
+    }
+
+    private List<Predicate> aliasSurnameNamePredicates(
+        From<?, E> root, CriteriaBuilder cb, String surname, boolean exactSurname) {
+
+        return listOfAliasPaths(root).stream()
+            .map(path -> aliasSurnamePath(path, cb))
+            .map(path -> useEqualsOrStartsWith(path, cb, surname, exactSurname))
+            .toList();
+    }
+
+    private Expression<String> aliasSurnamePath(Path<String> aliasPath, CriteriaBuilder cb) {
+        return stripChars(cb, cb.function(
+            "regexp_replace", String.class, aliasPath, cb.literal("^.*\\s+"), cb.literal("")));
     }
 
     public Predicate matchPersonNamesPredicate(From<?, E> from, CriteriaBuilder cb,
@@ -250,11 +283,6 @@ public abstract class SearchDefendantAccountSpecs<E extends SearchDefendantAccou
                 stripChars(cb, from.get(SearchDefendantAccount_.forenames)), cb, fn, exactForenames));
     }
 
-    private List<Predicate> applyPredicateFunctionToEachPath(Function<Expression<String>, Predicate> fn,
-        Collection<? extends Expression<String>> aliasPaths) {
-        return aliasPaths.stream().map(fn).toList();
-    }
-
     private Predicate useEqualsOrStartsWith(Expression<String> dbPath, CriteriaBuilder cb,
         String comparisonText, boolean useEquals) {
 
@@ -262,14 +290,12 @@ public abstract class SearchDefendantAccountSpecs<E extends SearchDefendantAccou
             : likeLowerCaseStartsWithPredicate(dbPath, cb, comparisonText);
     }
 
-    private Predicate useEndsWithOrStartsWith(Expression<String> dbPath, CriteriaBuilder cb,
-        String comparisonText, boolean useWildcard, boolean useEndsWith) {
+    private Predicate useWildcardOrStartsWith(Expression<String> dbPath, CriteriaBuilder cb,
+        String comparisonText, boolean useWildcard) {
 
         return useWildcard
             ? likeLowerCaseWildcardPredicate(dbPath, cb, comparisonText)
-            : useEndsWith
-                ? likeLowerCaseEndsWithPredicate(dbPath, cb, comparisonText)
-                : likeLowerCaseStartsWithPredicate(dbPath, cb, comparisonText);
+            : likeLowerCaseStartsWithPredicate(dbPath, cb, comparisonText);
     }
 
 }

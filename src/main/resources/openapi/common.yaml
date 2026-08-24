@@ -565,11 +565,14 @@ components:
         business_unit_id:
           type: integer
           format: int16
+        business_unit_code:
+          type: string
         welsh_speaking:
           type: string
       required:
         - business_unit_name
         - business_unit_id
+        - business_unit_code
         - welsh_speaking
     languagePreference:
       title: Language Preference

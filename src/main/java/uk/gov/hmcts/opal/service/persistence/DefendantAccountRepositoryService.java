@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.service.persistence;
 
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 
 @Service
@@ -16,6 +19,8 @@ import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 public class DefendantAccountRepositoryService {
 
     private final DefendantAccountRepository defendantAccountRepository;
+
+    private final EntityManager entityManager;
 
     @Transactional(readOnly = true)
     public DefendantAccountEntity findById(long defendantAccountId) {
@@ -44,6 +49,30 @@ public class DefendantAccountRepositoryService {
         return defendantAccountRepository.save(defendantAccountEntity);
     }
 
+    @Transactional
+    public BigInteger incrementVersionNumber(long defendantAccountId, BigInteger expectedVersion) {
+        entityManager.flush();
+
+        int rowsUpdated = defendantAccountRepository.incrementVersionNumber(
+            defendantAccountId,
+            expectedVersion.longValueExact()
+        );
+
+        if (rowsUpdated == 0) {
+            throw new ResourceConflictException(
+                "DefendantAccountEntity",
+                defendantAccountId,
+                "Version has changed since it was last read",
+                null
+            );
+        }
+
+        return defendantAccountRepository.findVersionDataByDefendantAccountId(defendantAccountId)
+            .map(versionData -> BigInteger.valueOf(versionData.versionNumber()))
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Defendant Account not found with id: " + defendantAccountId));
+    }
+
     /**
      * Convenience method to validate that a given DefendantAccountEntity is associated with the specified
      * business unit id.
@@ -56,9 +85,16 @@ public class DefendantAccountRepositoryService {
         }
     }
 
+    /**
+     * Get entity by defendantAccountId with OPTIMISTIC_FORCE_INCREMENT locking.
+     */
     public DefendantAccountEntity getDefendantAccountByIdForUpdate(long defendantAccountId) {
         return defendantAccountRepository.findByDefendantAccountIdForUpdate(defendantAccountId)
             .orElseThrow(() -> new EntityNotFoundException(
                 "Defendant Account not found with id: " + defendantAccountId));
+    }
+
+    public void refresh(DefendantAccountEntity defendantAccountEntity) {
+        entityManager.refresh(defendantAccountEntity);
     }
 }

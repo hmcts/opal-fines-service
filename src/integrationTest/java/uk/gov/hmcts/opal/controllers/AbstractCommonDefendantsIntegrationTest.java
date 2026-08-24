@@ -6,12 +6,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectEntityNotFound;
 
 import org.junit.jupiter.api.DisplayName;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.ResultMatcher;
@@ -32,10 +31,6 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
     static final String DEFENDANT_PAYMENT_TERMS_RESPONSE_SCHEMA = SchemaPaths.DEFENDANT_ACCOUNT
         + "/getDefendantAccountPaymentTermsResponse.json";
 
-
-    // Limit JdbcTemplate use to narrow test setup or persistence-side-effect checks.
-    @Autowired
-    JdbcTemplate jdbcTemplate;
 
     @MockitoSpyBean
     JsonSchemaValidationService jsonSchemaValidationService;
@@ -60,6 +55,7 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
             .andExpect(jsonPath("$.debtor_type").value("Defendant")).andExpect(jsonPath("$.is_youth").value(false))
             .andExpect(jsonPath("$.fixed_penalty_ticket_number").value("888"))
             .andExpect(jsonPath("$.business_unit_summary.business_unit_id").value("78"))
+            .andExpect(jsonPath("$.business_unit_summary.business_unit_code").value("NE"))
             .andExpect(jsonPath("$.payment_state_summary.imposed_amount").value(700.58))
             .andExpect(jsonPath("$.payment_state_summary.paid_amount").value(200.00))
             .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
@@ -83,6 +79,7 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
             .andExpect(jsonPath("$.defendant_account_id").value("10001"))
             .andExpect(jsonPath("$.account_number").value("10001A"))
             .andExpect(jsonPath("$.debtor_type").value("Defendant")).andExpect(jsonPath("$.is_youth").value(false))
+            .andExpect(jsonPath("$.business_unit_summary.business_unit_code").value("NE"))
             .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
             .andExpect(jsonPath("$.party_details.organisation_details.organisation_name").value("Kings Arms"))
             .andExpect(jsonPath("$.party_details.individual_details").doesNotExist());
@@ -144,8 +141,9 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
 
     void testGetPaymentTerms(Logger log) throws Exception {
         // Make the 'date_last_amended' deterministic for acct 77
-        jdbcTemplate.update(
-            "UPDATE defendant_accounts SET last_changed_date = '2024-01-03 00:00:00' WHERE defendant_account_id = 77");
+        var defendantAccount = defendantAccountRepository.findById(77L).orElseThrow();
+        defendantAccount.setLastChangedDate(java.time.LocalDate.of(2024, 1, 3));
+        defendantAccountRepository.save(defendantAccount);
 
         ResultActions resultActions =
             mockMvc.perform(get(URL_BASE + "/77/payment-terms/latest")
@@ -186,9 +184,7 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
         log.info(":testGetPaymentTerms: Response body:\n" + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isNotFound()) // 404 HTTP status
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
-            .andExpect(jsonPath("$.title").value("Entity Not Found")).andExpect(jsonPath("$.status").value(404))
-            .andExpect(jsonPath("$.detail").value("The requested entity could not be found"));
+            .andExpect(expectEntityNotFound());
 
     }
 
@@ -232,9 +228,7 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
 
         resultActions.andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
-            .andExpect(jsonPath("$.title").value("Entity Not Found")).andExpect(jsonPath("$.status").value(404))
-            .andExpect(jsonPath("$.detail").value("The requested entity could not be found"))
+            .andExpect(expectEntityNotFound())
             .andExpect(jsonPath("$.retriable").value(false));
 
     }
@@ -300,7 +294,7 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
         log.info(":getEnforcementStatus: Response body:\n" + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isOk())
-            .andExpect(header().string("ETag", "\"20\""))
+            .andExpect(header().string("ETag", isLegacy ? OVER_LONG_VERSION_ETAG : "\"20\""))
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(ignoreForLegacy(jsonPath("$.defendant_account_type").value("adult"), isLegacy))
             .andExpect(jsonPath("$.employer_flag").value(true))

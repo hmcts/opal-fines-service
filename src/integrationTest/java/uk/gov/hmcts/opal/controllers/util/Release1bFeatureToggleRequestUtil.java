@@ -59,6 +59,10 @@ public final class Release1bFeatureToggleRequestUtil {
                 getWithAuthorization("/defendant-accounts/" + DEFENDANT_ACCOUNT_ID + "/at-a-glance")
             ),
             Arguments.of(
+                "Get Defendant Account Impositions",
+                getWithAuthorization("/defendant-accounts/" + DEFENDANT_ACCOUNT_ID + "/impositions")
+            ),
+            Arguments.of(
                 "Get Major Creditor Account At A Glance",
                 getWithAuthorization("/major-creditor-accounts/" + MAJOR_CREDITOR_ACCOUNT_ID + "/at-a-glance")
             ),
@@ -78,6 +82,7 @@ public final class Release1bFeatureToggleRequestUtil {
                     .contentType(MediaType.APPLICATION_JSON)
                     .header("Authorization", AUTHORIZATION)
                     .header("If-Match", IF_MATCH)
+                    .header("Business-Unit-Id", "78")
                     .content("""
                         {
                           "activity_note": {
@@ -250,7 +255,6 @@ public final class Release1bFeatureToggleRequestUtil {
                     .contentType(MediaType.APPLICATION_JSON)
                     .header("Authorization", AUTHORIZATION)
                     .header("Business-Unit-Id", BUSINESS_UNIT_ID)
-                    .header("Business-Unit-User-Id", BUSINESS_UNIT_USER_ID)
                     .header("If-Match", IF_MATCH)
             ),
             Arguments.of(
@@ -317,6 +321,10 @@ public final class Release1bFeatureToggleRequestUtil {
                       }
                     }
                     """)
+            ),
+            Arguments.of(
+                "Get Mappings",
+                getWithAuthorization("/mappings/defendant-account-status")
             ),
             Arguments.of(
                 "Get Result By Id",

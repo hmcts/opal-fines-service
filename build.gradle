@@ -1,5 +1,6 @@
 import org.flywaydb.gradle.task.FlywayMigrateTask
 import java.util.concurrent.TimeUnit
+import groovy.io.FileType
 
 buildscript {
   ext {
@@ -15,7 +16,7 @@ buildscript {
   }
 
   dependencies {
-    classpath("org.flywaydb:flyway-database-postgresql:12.10.0")
+    classpath("org.flywaydb:flyway-database-postgresql:13.3.0")
     // Pin transitive Cucumber artifacts used by the Serenity Gradle plugin to avoid
     // Maven metadata range lookups on CI when Maven Central is rate limiting.
     classpath("io.cucumber:query:${cucumberQueryVersion}")
@@ -28,17 +29,17 @@ plugins {
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.1.7'
   id 'org.springframework.boot' version '4.1.0'
-  id 'com.github.ben-manes.versions' version '0.54.0'
-  id 'org.sonarqube' version '7.3.1.8318'
+  id 'com.github.ben-manes.versions' version '0.61.0'
+  id 'org.sonarqube' version '7.4.0.8496'
   id 'uk.gov.hmcts.java' version '0.12.70'
-  id 'org.flywaydb.flyway' version '12.10.0'
+  id 'org.flywaydb.flyway' version '13.3.0'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '5.3.9'
-  id "org.openapi.generator" version "7.23.0"
+  id "org.openapi.generator" version "7.24.0"
 }
 
 ext {
   log4JVersion = "2.26.1"
-  serenityVersion = "5.3.10"
+  serenityVersion = "5.3.11"
   cucumberVersion = "7.23.0" // Keep the forced Cucumber version stable while aligning Serenity with the Gradle plugin
 }
 
@@ -245,10 +246,12 @@ openApiGenerate {
   modelPackage = "uk.gov.hmcts.opal.generated.".toString() + "model"
   importMappings = [
     Nullable: "org.jspecify.annotations.Nullable",
-    Short: "java.lang.Short"
+    Short: "java.lang.Short",
+    BigInteger: "java.math.BigInteger"
   ]
   typeMappings = [
-    "integer+int16": "short"
+    "integer+int16": "short",
+    "integer+bigint": "BigInteger"
   ]
   // Point to your customized mustache templates
   templateDir = "$rootDir/openapi/templates".toString()
@@ -270,6 +273,52 @@ openApiGenerate {
     generateBuilders                    : "true"
   ]
 }
+
+def feignClientList = []
+def dir = new File("$rootDir/src/main/resources/openapi/hmrc/".toString())
+dir.eachFileRecurse(FileType.FILES) { file ->
+  if (file.getName().endsWith(".yaml"))
+    feignClientList << file
+}
+feignClientList.each {
+  def apiName = it.getName().replace(".yaml", "")
+  tasks.register('openApiGenerateFeignClients'+apiName, org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+    generatorName = 'spring'
+    library = 'spring-cloud'
+    inputSpec = "$rootDir/src/main/resources/openapi/hmrc/".toString() + "${apiName}.yaml"
+    outputDir = layout.buildDirectory.dir("generated/openapi").get().asFile.absolutePath
+    apiPackage = "uk.gov.hmcts.opal.hmrc.generated.".toString() + "${apiName}.client"
+    modelPackage = "uk.gov.hmcts.opal.hmrc.generated.".toString() + "${apiName}.model"
+    importMappings = [
+            Nullable: "org.jspecify.annotations.Nullable",
+            Short   : "java.lang.Short"
+    ]
+    typeMappings = [
+            "integer+int16": "short"
+    ]
+    // Point to your customized mustache templates
+    templateDir = "$rootDir/openapi/templates".toString()
+    generateApiTests = false
+    generateModelTests = false
+    skipOperationExample = true
+    openapiNormalizer = [
+            REF_AS_PARENT_IN_ALLOF: "true"
+    ]
+    configOptions = [
+            dateLibrary                         : "java8-localdatetime",
+            useTags                             : "true",
+            useSpringBoot4                      : "true",
+            containerDefaultToNull              : "true",
+            generatedConstructorWithRequiredArgs: "false",
+            useBeanValidation                   : "true",
+            useLombokAnnotations                : "true",
+            generateBuilders                    : "true",
+            useFeignClientUrl                   : "true",
+            feign                               : "true"
+    ]
+  }
+}
+
 // (Temp?) Fix to solve the issue:
 // Toolchain from `executable` property does not match toolchain from `javaLauncher` property.
 gradle.taskGraph.whenReady { taskGraph ->
@@ -291,6 +340,10 @@ tasks.withType(JavaCompile).configureEach {
 // https://github.com/gradle/gradle/issues/16791
 tasks.withType(JavaExec).configureEach {
   javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
+}
+
+tasks.named('sonarResolver') {
+  dependsOn(processResources)
 }
 
 tasks.withType(Test).configureEach {
@@ -370,7 +423,7 @@ tasks.register('functionalOpalTags', Test) {
 
     if (cucumberTags == null || cucumberTags.toString().trim().isEmpty()) {
       throw new GradleException(
-        "Set TAGS or -Ptags when running functionalOpalTags, for example TAGS='@FeatureToggle and @R1BOff'"
+        "Set TAGS or -Ptags when running functionalOpalTags, for example TAGS='@R1BOff'"
       )
     }
 
@@ -396,19 +449,19 @@ tasks.register('functionalOpalTagsR1AOnly', Test) {
   include '**/OpalTaggedTestRunner.class'
 
   doFirst {
-    systemProperty 'cucumber.filter.tags', '@JIRA-LABEL:manual-account-creation and not @Ignore'
+    systemProperty 'cucumber.filter.tags', '@R1A and not @Smoke and not @Ignore'
   }
 
   finalizedBy 'copyR1AOnlyDemoCucumberJson', 'mergeFunctionalOpalTagsR1AOnlyResults', 'aggregate', 'copyR1AOnlyDemoFunctionalReport'
 }
 
-tasks.register('functionalOpalTagsR1AOff', Test) {
-  description = "Runs the demo R1A-off tagged Opal functional tests"
+tasks.register('functionalOpalTagsR1AAndR1BOnly', Test) {
+  description = "Runs the demo R1A-and-R1B-only tagged Opal functional tests"
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
   outputs.upToDateWhen { false }
-  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal-tags-r1a-off"))
+  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal-tags-r1a-r1b-only"))
   testLogging.showStandardStreams = true
   environment("IS_LEGACY_MODE", "false")
   systemProperty 'cucumber.plugin',
@@ -417,10 +470,32 @@ tasks.register('functionalOpalTagsR1AOff', Test) {
   include '**/OpalTaggedTestRunner.class'
 
   doFirst {
-    systemProperty 'cucumber.filter.tags', '@R1AOff and not @Ignore'
+    systemProperty 'cucumber.filter.tags', '(@R1A or @R1B) and not @Ignore'
   }
 
-  finalizedBy 'copyR1AOffDemoCucumberJson', 'mergeFunctionalOpalTagsR1AOffResults', 'aggregate', 'copyR1AOffDemoFunctionalReport'
+  finalizedBy 'copyR1AAndR1BDemoCucumberJson', 'mergeFunctionalOpalTagsR1AAndR1BOnlyResults', 'aggregate', 'copyR1AAndR1BDemoFunctionalReport'
+}
+
+tasks.register('functionalOpalTagsAllFlagsOff', Test) {
+  description = "Runs the demo all-flags-off tagged Opal functional tests"
+  group = "Verification"
+  testClassesDirs = sourceSets.functionalTest.output.classesDirs
+  classpath = sourceSets.functionalTest.runtimeClasspath
+  outputs.upToDateWhen { false }
+  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal-tags-all-flags-off"))
+  testLogging.showStandardStreams = true
+  environment("IS_LEGACY_MODE", "false")
+  systemProperty 'cucumber.plugin',
+    "net.serenitybdd.cucumber.core.plugin.SerenityReporterParallel,pretty,json:${rootDir}/target/zephyr-reports/cucumber-opal-tags.json,timeline:${rootDir}/target/test-results/timeline"
+
+  include '**/OpalTaggedTestRunner.class'
+
+  doFirst {
+    systemProperty 'cucumber.filter.tags',
+      '(@R1AOff or @R1BOff or @R1COff or @R1CWriteOffOff or @R1CEnforcementOperationalReportingOff or @R1CAdministrationOff or @R1CFinancialMovementsOff or @R1CAutoEnforcementOff or @R1CDataRetentionOff or @R1CAutoEnforcementConfigOff or @R1CRmFinancialMovementsOff or @R1CRmFinancialChecksOff or @R1CRmSuspenseOff or @R1CRmPaymentOff or @R1CRmAdminReportsOff or @R1CRmAccountActionsOff or @R1CChecksOff or @R1CSuspenseOff or @R1CPaymentOff or @R1CR1ATidyUpOff or @R1CReferenceDataOff or @R1CBankingInterfacesOff or @R1CCppEnforcementOff or @R1CCppOff or @R1CPrintingOff) and not @Ignore'
+  }
+
+  finalizedBy 'copyAllFlagsOffDemoCucumberJson', 'mergeFunctionalOpalTagsAllFlagsOffResults', 'aggregate', 'copyAllFlagsOffDemoFunctionalReport'
 }
 
 tasks.register('copyOpalTagsCucumberJson', Copy) {
@@ -435,9 +510,15 @@ tasks.register('copyR1AOnlyDemoCucumberJson', Copy) {
   outputs.upToDateWhen { false }
 }
 
-tasks.register('copyR1AOffDemoCucumberJson', Copy) {
+tasks.register('copyR1AAndR1BDemoCucumberJson', Copy) {
   from("${rootDir}/target/zephyr-reports/cucumber-opal-tags.json")
-  into("${rootDir}/functional-output-r1a-off-demo/zephyr")
+  into("${rootDir}/functional-output-r1a-r1b-only-demo/zephyr")
+  outputs.upToDateWhen { false }
+}
+
+tasks.register('copyAllFlagsOffDemoCucumberJson', Copy) {
+  from("${rootDir}/target/zephyr-reports/cucumber-opal-tags.json")
+  into("${rootDir}/functional-output-all-flags-off-demo/zephyr")
   outputs.upToDateWhen { false }
 }
 
@@ -489,12 +570,21 @@ tasks.register('copyR1AOnlyDemoFunctionalReport', Copy) {
   }
 }
 
-tasks.register('copyR1AOffDemoFunctionalReport', Copy) {
+tasks.register('copyR1AAndR1BDemoFunctionalReport', Copy) {
   dependsOn 'aggregate'
   from("${rootDir}/target/site/serenity")
-  into("${rootDir}/functional-output-r1a-off-demo/report")
+  into("${rootDir}/functional-output-r1a-r1b-only-demo/report")
   doLast {
-    logPublishedHtmlReport("Demo R1AOff Functional Test Report", "${rootDir}/functional-output-r1a-off-demo/report")
+    logPublishedHtmlReport("Demo R1A and R1B Functional Test Report", "${rootDir}/functional-output-r1a-r1b-only-demo/report")
+  }
+}
+
+tasks.register('copyAllFlagsOffDemoFunctionalReport', Copy) {
+  dependsOn 'aggregate'
+  from("${rootDir}/target/site/serenity")
+  into("${rootDir}/functional-output-all-flags-off-demo/report")
+  doLast {
+    logPublishedHtmlReport("Demo All Flags Off Functional Test Report", "${rootDir}/functional-output-all-flags-off-demo/report")
   }
 }
 tasks.register('packageTaggedDemoFunctionalOutput', Copy) {
@@ -530,12 +620,22 @@ tasks.register('syncR1AOnlyTaggedFunctionalArtifactsFromExistingResults') {
     )
   }
 }
-tasks.register('syncR1AOffTaggedFunctionalArtifactsFromExistingResults') {
+tasks.register('syncR1AAndR1BTaggedFunctionalArtifactsFromExistingResults') {
   doLast {
     syncFunctionalArtifacts(
-      'Demo R1AOff Functional Test Report',
-      "${rootDir}/functional-output-r1a-off-demo/report",
-      "${rootDir}/functional-output-r1a-off-demo",
+      'Demo R1A and R1B Functional Test Report',
+      "${rootDir}/functional-output-r1a-r1b-only-demo/report",
+      "${rootDir}/functional-output-r1a-r1b-only-demo",
+      'cucumber-opal-tags.json'
+    )
+  }
+}
+tasks.register('syncAllFlagsOffTaggedFunctionalArtifactsFromExistingResults') {
+  doLast {
+    syncFunctionalArtifacts(
+      'Demo All Flags Off Functional Test Report',
+      "${rootDir}/functional-output-all-flags-off-demo/report",
+      "${rootDir}/functional-output-all-flags-off-demo",
       'cucumber-opal-tags.json'
     )
   }
@@ -583,8 +683,13 @@ tasks.register('mergeFunctionalOpalTagsR1AOnlyResults', Copy) {
   into layout.buildDirectory.dir("test-results/functional")
   include '*.xml'
 }
-tasks.register('mergeFunctionalOpalTagsR1AOffResults', Copy) {
-  from layout.buildDirectory.dir("test-results/functional/opal-tags-r1a-off")
+tasks.register('mergeFunctionalOpalTagsR1AAndR1BOnlyResults', Copy) {
+  from layout.buildDirectory.dir("test-results/functional/opal-tags-r1a-r1b-only")
+  into layout.buildDirectory.dir("test-results/functional")
+  include '*.xml'
+}
+tasks.register('mergeFunctionalOpalTagsAllFlagsOffResults', Copy) {
+  from layout.buildDirectory.dir("test-results/functional/opal-tags-all-flags-off")
   into layout.buildDirectory.dir("test-results/functional")
   include '*.xml'
 }
@@ -675,19 +780,22 @@ tasks.named('aggregate') {
     tasks.named('functionalLegacy'),
     tasks.named('functionalOpalTags'),
     tasks.named('functionalOpalTagsR1AOnly'),
-    tasks.named('functionalOpalTagsR1AOff'),
+    tasks.named('functionalOpalTagsR1AAndR1BOnly'),
+    tasks.named('functionalOpalTagsAllFlagsOff'),
     tasks.named('smokeOpal'),
     tasks.named('mergeFunctionalResults'),
     tasks.named('mergeFunctionalWithTagsResults'),
     tasks.named('mergeFunctionalOpalTagsResults'),
     tasks.named('mergeFunctionalOpalTagsR1AOnlyResults'),
-    tasks.named('mergeFunctionalOpalTagsR1AOffResults')
+    tasks.named('mergeFunctionalOpalTagsR1AAndR1BOnlyResults'),
+    tasks.named('mergeFunctionalOpalTagsAllFlagsOffResults')
   )
 }
 
 tasks.configureEach {
   if (name in ['copyFunctionalReport', 'copyDemoFunctionalReport', 'copyR1AOnlyDemoFunctionalReport',
-               'copyR1AOffDemoFunctionalReport', 'copySmokeReport']) {
+               'copyR1AAndR1BDemoFunctionalReport',
+               'copyAllFlagsOffDemoFunctionalReport', 'copySmokeReport']) {
     mustRunAfter tasks.named('aggregate')
   } else if (name == 'copyOpalCucumberJson') {
     mustRunAfter tasks.named('functionalOpal')
@@ -695,8 +803,10 @@ tasks.configureEach {
     mustRunAfter tasks.named('functionalOpalTags')
   } else if (name == 'copyR1AOnlyDemoCucumberJson') {
     mustRunAfter tasks.named('functionalOpalTagsR1AOnly')
-  } else if (name == 'copyR1AOffDemoCucumberJson') {
-    mustRunAfter tasks.named('functionalOpalTagsR1AOff')
+  } else if (name == 'copyR1AAndR1BDemoCucumberJson') {
+    mustRunAfter tasks.named('functionalOpalTagsR1AAndR1BOnly')
+  } else if (name == 'copyAllFlagsOffDemoCucumberJson') {
+    mustRunAfter tasks.named('functionalOpalTagsAllFlagsOff')
   } else if (name == 'copyLegacyCucumberJson') {
     mustRunAfter tasks.named('functionalLegacy')
   } else if (name == 'copySmokeCucumberJson') {
@@ -752,7 +862,7 @@ jacocoTestCoverageVerification.dependsOn jacocoTestReport
 sonarqube {
   properties {
     property "sonar.projectName", "HMCTS :: opal-fines-service"
-    property "sonar.projectKey", "uk.gov.hmcts:opal-fines-service"
+    property "sonar.projectKey", "uk.gov.hmcts:opal-fines-service-v2"
     property "sonar.gradle.skipCompile", "true"
     property "sonar.exclusions", coverageExclusions.join(', ')
     property 'sonar.coverage.exclusions', "**/entity/**,**/model/*,**/exception/*,**/config/**,**/repository/jpa/*,**/opal/dto/*"
@@ -776,11 +886,12 @@ dependencyManagement {
   imports {
     mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.1.2'
     mavenBom "org.springframework.integration:spring-integration-bom:7.1.0"
-    mavenBom "io.netty:netty-bom:4.2.16.Final"
+    mavenBom "io.netty:netty-bom:4.2.17.Final"
+    mavenBom "com.fasterxml.jackson:jackson-bom:2.22.2"
   }
 
   dependencies {
-    dependency group: 'com.google.guava', name: 'guava', version: '33.6.0-jre'
+    dependency group: 'com.google.guava', name: 'guava', version: '33.7.1-jre'
   }
 }
 
@@ -810,15 +921,15 @@ ext['postgresql.version'] = '42.7.13'
 
 dependencies {
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.3.23'
+  implementation 'uk.gov.hmcts:opal-common-lib:0.3.26'
 
-  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.2.1'
-  testImplementation 'uk.gov.hmcts:zephyr-automation:1.2.1'
-  testImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.14.0'
+  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.2.2'
+  testImplementation 'uk.gov.hmcts:zephyr-automation:1.2.2'
+  testImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.15.0'
 
-  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.45"
-  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.52"
-  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.52"
+  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.47"
+  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.54"
+  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.54"
   openapiImplementation "tools.jackson.dataformat:jackson-dataformat-yaml"
 
   implementation 'com.microsoft.azure:applicationinsights-web:3.7.9'
@@ -853,15 +964,15 @@ dependencies {
 
   implementation "org.apache.logging.log4j:log4j-api:${log4JVersion}"
   implementation "org.apache.logging.log4j:log4j-to-slf4j:${log4JVersion}"
-  implementation 'org.apache.qpid:qpid-jms-client:2.10.0'
-  implementation 'com.google.guava:guava:33.6.0-jre'
+  implementation 'org.apache.qpid:qpid-jms-client:2.11.0'
+  implementation 'com.google.guava:guava:33.7.1-jre'
 
   implementation 'com.networknt:json-schema-validator:1.5.9'
   implementation 'com.jayway.jsonpath:json-path:3.0.0'
 
-  implementation 'org.openapitools:jackson-databind-nullable:0.2.10'
-  implementation 'org.flywaydb:flyway-core:12.10.0'
-  runtimeOnly 'org.flywaydb:flyway-database-postgresql:12.10.0', {
+  implementation 'org.openapitools:jackson-databind-nullable:0.2.11'
+  implementation 'org.flywaydb:flyway-core:13.3.0'
+  runtimeOnly 'org.flywaydb:flyway-database-postgresql:13.3.0', {
     exclude group: 'org.flywaydb', module: 'flyway-core'
   }
   implementation 'org.postgresql:postgresql'
@@ -869,7 +980,7 @@ dependencies {
   implementation 'tools.jackson.core:jackson-databind'
   compileOnly 'org.projectlombok:lombok:1.18.46'
   annotationProcessor 'org.projectlombok:lombok:1.18.46'
-  annotationProcessor 'org.hibernate.orm:hibernate-processor:7.4.4.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-processor:7.4.5.Final'
 
   implementation('uk.gov.hmcts:spring-exception-handler:1.0.2') {
     exclude group: 'com.microsoft.azure', module: 'applicationinsights-spring-boot-starter'
@@ -892,7 +1003,7 @@ dependencies {
   implementation 'org.apache.xmlgraphics:fop-core:2.11'
   implementation 'org.apache.xmlgraphics:fop-events:2.11'
   implementation 'org.apache.xmlgraphics:xmlgraphics-commons:2.11'
-  implementation 'org.apache.pdfbox:pdfbox:3.0.7'
+  implementation 'org.apache.pdfbox:pdfbox:3.0.8'
   implementation 'net.sf.saxon:Saxon-HE:13.0'
 
   testImplementation 'com.github.java-json-tools:json-schema-validator:2.2.14'
@@ -902,7 +1013,7 @@ dependencies {
     }
   }
 
-  testImplementation 'org.wiremock.integrations:wiremock-spring-boot:4.2.1'
+  testImplementation 'org.wiremock.integrations:wiremock-spring-boot:4.2.2'
 
   testImplementation 'org.springframework.boot:spring-boot-devtools'
   testImplementation 'org.springframework.boot:spring-boot-test'
@@ -913,16 +1024,16 @@ dependencies {
   testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
   testImplementation 'org.testcontainers:testcontainers-postgresql'
   testImplementation 'com.redis:testcontainers-redis'
-  testImplementation 'io.rest-assured:rest-assured:6.0.0'
-  integrationTestImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.14.0'
+  testImplementation 'io.rest-assured:rest-assured:6.0.1'
+  integrationTestImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.15.0'
   testImplementation 'junit:junit:4.13.2'
-  testImplementation(platform('org.junit:junit-bom:6.1.1'))
+  testImplementation(platform('org.junit:junit-bom:6.1.3'))
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
   testImplementation 'org.springframework.boot:spring-boot-starter-test', {
     exclude group: 'junit', module: 'junit'
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
-  testImplementation 'org.junit.platform:junit-platform-suite:6.1.1'
+  testImplementation 'org.junit.platform:junit-platform-suite:6.1.3'
   testImplementation "io.cucumber:cucumber-junit-platform-engine:${cucumberVersion}"
 
   testImplementation "net.serenity-bdd:serenity-core:${serenityVersion}"
@@ -940,8 +1051,8 @@ dependencies {
 
 
   //Added to override dependency version to resolve vulnerability
-  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.24'
-  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.24'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.25'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.25'
   implementation 'org.apache.commons:commons-lang3:3.20.0'
 
 
@@ -987,6 +1098,8 @@ flyway {
 }
 checkstyle {
   checkstyleMain.exclude '**uk/gov/hmcts/opal/generated/**'
+  checkstyleMain.exclude '**uk/gov/hmcts/opal/hmrc/generated/**'
+  checkstyleMain.exclude '**org/openapitools/configuration/**'
 }
 tasks.register('migratePostgresDatabase', FlywayMigrateTask) {
   baselineOnMigrate = true
@@ -1017,8 +1130,18 @@ tasks.named("openApiGenerate") {
     }
   }
 }
+tasks.register('generateFeignClients') {
+  feignClientList.each {
+    def apiName = it.getName().replace(".yaml", "")
+    dependsOn 'openApiGenerateFeignClients'+apiName
+  }
+  description = "Generates feign clients for HMRC apis"
+  group = "openapi tools"
+}
+
 tasks.named("compileJava") {
   dependsOn 'openApiGenerate'
+  dependsOn 'generateFeignClients'
 }
 
 apply from: "$rootDir/gradle/zephyr.gradle"

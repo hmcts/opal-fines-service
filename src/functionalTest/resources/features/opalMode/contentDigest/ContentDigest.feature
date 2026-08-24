@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:content-digest @JIRA-STORY:PO-2878 @JIRA-EPIC:PO-2675
+@Opal @JIRA-LABEL:content-digest @JIRA-STORY:PO-2878 @JIRA-EPIC:PO-2675 @R1A
 Feature: Content-Digest handling
 
   @JIRA-TEST-KEY:PO-5776

@@ -37,6 +37,12 @@ public interface AmendmentRepository extends JpaRepository<AmendmentEntity, Long
 
     void deleteByAssociatedRecordId(String defendantAccountId);
 
+    int countByAssociatedRecordId(String associatedRecordId);
+
+    AmendmentEntity findFirstByAssociatedRecordIdOrderByAmendmentIdDesc(String associatedRecordId);
+
+    List<AmendmentEntity> findByAssociatedRecordIdOrderByAmendmentIdAsc(String associatedRecordId);
+
     @Query(value = """
         SELECT a.amendment_id AS amendmentId,
                a.amended_date AS postedDate,

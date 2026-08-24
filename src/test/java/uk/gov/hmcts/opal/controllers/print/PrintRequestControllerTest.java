@@ -1,8 +1,16 @@
 package uk.gov.hmcts.opal.controllers.print;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
@@ -19,16 +27,8 @@ import uk.gov.hmcts.opal.dto.print.PrintJobDto;
 import uk.gov.hmcts.opal.service.print.AsyncPrintJobProcessor;
 import uk.gov.hmcts.opal.service.print.PrintService;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
-public class PrintRequestControllerTest {
+class PrintRequestControllerTest {
 
     @Mock
     private PrintService printService;
@@ -87,6 +87,6 @@ public class PrintRequestControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("OK", response.getBody());
         verify(asyncPrintJobProcessor, times(1))
-            .processPendingJobsAsync(eq(LocalDateTime.of(2026, 5, 7, 10, 15)));
+            .processPendingJobsAsync(LocalDateTime.of(2026, Month.MAY, 7, 10, 15));
     }
 }

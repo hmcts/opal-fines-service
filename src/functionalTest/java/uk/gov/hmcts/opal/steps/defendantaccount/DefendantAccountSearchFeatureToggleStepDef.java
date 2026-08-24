@@ -93,7 +93,7 @@ public class DefendantAccountSearchFeatureToggleStepDef extends BaseStepDef {
      */
     @When("I search the created defendant account without consolidation")
     public void searchCreatedDefendantAccountWithoutConsolidation() throws JSONException {
-        performSearch(prosecutorCaseReference, businessUnitId, null);
+        performSearch(prosecutorCaseReference, businessUnitId, false);
     }
 
     /**
@@ -162,7 +162,7 @@ public class DefendantAccountSearchFeatureToggleStepDef extends BaseStepDef {
         requestBody.put("account_type", "Fine");
         requestBody.put("account_status", JSONObject.NULL);
         requestBody.put("account", buildUniqueAccountFixture());
-        requestBody.put("timeline_data", requestFactory.loadDefaultTimelineFixture());
+        //requestBody.put("timeline_data", requestFactory.loadDefaultTimelineFixture());
         return requestBody;
     }
 

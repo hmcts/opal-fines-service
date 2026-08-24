@@ -117,6 +117,10 @@ public abstract class EntitySpecs<E> {
         return collection.isEmpty() ? Optional.empty() : Optional.of(collection);
     }
 
+    public <T> Optional<Collection<T>> notNullOrEmpty(Collection<T> collection) {
+        return notNullObject(collection).flatMap(this::notEmpty);
+    }
+
     public static Predicate likeWildcardPredicate(
         Expression<String> path, CriteriaBuilder cb, String candidate) {
         return likeLowerCaseBothPredicate(path, cb, "%" + candidate + "%");

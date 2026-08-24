@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:account-enquiry
+@Opal @JIRA-LABEL:account-enquiry @R1B
 Feature: Defendant Account Enforcement Overrides
 
   @cleanUpData @JIRA-STORY:PO-1854 @JIRA-EPIC:PO-1675 @JIRA-TEST-KEY:PO-5620

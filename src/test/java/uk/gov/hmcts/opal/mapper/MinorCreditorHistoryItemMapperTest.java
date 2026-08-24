@@ -9,6 +9,7 @@ import static uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItemTyp
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.Month;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItem;
 import uk.gov.hmcts.opal.generated.model.AmendmentTypeCommon;
@@ -28,7 +29,7 @@ class MinorCreditorHistoryItemMapperTest {
     @Test
     void toHistoryItem_mapsAmendmentDetails() {
         // Arrange
-        LocalDateTime postedDate = LocalDateTime.of(2026, 1, 31, 10, 30);
+        LocalDateTime postedDate = LocalDateTime.of(2026, Month.JANUARY, 31, 10, 30);
         MinorCreditorAmendmentHistoryProjection projection =
             mock(MinorCreditorAmendmentHistoryProjection.class);
         when(projection.getAmendmentId()).thenReturn(11L);
@@ -61,7 +62,7 @@ class MinorCreditorHistoryItemMapperTest {
     @Test
     void toHistoryItem_mapsNoteDetails() {
         // Arrange
-        LocalDateTime postedDate = LocalDateTime.of(2026, 1, 30, 9, 15);
+        LocalDateTime postedDate = LocalDateTime.of(2026, Month.JANUARY, 30, 9, 15);
         MinorCreditorNoteHistoryProjection projection = mock(MinorCreditorNoteHistoryProjection.class);
         when(projection.getNoteId()).thenReturn(12L);
         when(projection.getPostedDate()).thenReturn(postedDate);
@@ -87,8 +88,8 @@ class MinorCreditorHistoryItemMapperTest {
     @Test
     void toHistoryItem_mapsTransactionDetails() {
         // Arrange
-        LocalDateTime postedDate = LocalDateTime.of(2026, 1, 29, 8, 0);
-        LocalDateTime statusDate = LocalDateTime.of(2026, 1, 29, 8, 30);
+        LocalDateTime postedDate = LocalDateTime.of(2026, Month.JANUARY, 29, 8, 0);
+        LocalDateTime statusDate = LocalDateTime.of(2026, Month.JANUARY, 29, 8, 30);
         MinorCreditorTransactionHistoryProjection projection =
             mock(MinorCreditorTransactionHistoryProjection.class);
         when(projection.getCreditorTransactionId()).thenReturn(13L);
@@ -133,7 +134,7 @@ class MinorCreditorHistoryItemMapperTest {
     @Test
     void toHistoryItem_mapsNullTransactionOptionals() {
         // Arrange
-        LocalDateTime postedDate = LocalDateTime.of(2026, 1, 29, 8, 0);
+        LocalDateTime postedDate = LocalDateTime.of(2026, Month.JANUARY, 29, 8, 0);
         MinorCreditorTransactionHistoryProjection projection =
             mock(MinorCreditorTransactionHistoryProjection.class);
         when(projection.getCreditorTransactionId()).thenReturn(13L);
@@ -180,7 +181,7 @@ class MinorCreditorHistoryItemMapperTest {
     @Test
     void toPostedDetails_mapsDateComponentAndPostedUser() {
         // Arrange
-        LocalDateTime postedDate = LocalDateTime.of(2026, 1, 31, 23, 59);
+        LocalDateTime postedDate = LocalDateTime.of(2026, Month.JANUARY, 31, 23, 59);
 
         // Act
         PostedDetailsCommon postedDetails = mapper.toPostedDetails(postedDate, "POSTUSR", "Post User");

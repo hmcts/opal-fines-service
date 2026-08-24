@@ -10,7 +10,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -161,10 +160,6 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
         log.info(":testAuditStoredProcedures: found defendant:{} in business unit: {}", defAccId, busUnitId);
 
         transactionalContext.callTheStoredProcedures(defAccId, busUnitId);
-
-        String sql = "SELECT * FROM defendant_accounts WHERE defendant_account_id = ?";
-        Map<String, Object> rowData = jdbcTemplate.queryForMap(sql, defAccId);
-        log.info(":testAuditStoredProcedures: defendant account: {}", rowData);
 
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
             .contentType(MediaType.APPLICATION_JSON)

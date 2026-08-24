@@ -1,28 +1,30 @@
 package uk.gov.hmcts.opal.controllers;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
-import org.slf4j.Logger;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.ResultActions;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
-import uk.gov.hmcts.opal.dto.PaymentTerms;
-import uk.gov.hmcts.opal.dto.PostedDetails;
-import uk.gov.hmcts.opal.dto.ResultId;
-import uk.gov.hmcts.opal.dto.ResultResponse;
-import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
-import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.controllers.util.OpenApiContractAssertions.assertJsonResponseMatchesBundledSpec;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import org.slf4j.Logger;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.ResultActions;
+import tools.jackson.databind.node.ObjectNode;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.EnforcementInstalmentPeriodCommonStrict;
+import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsTypeCommonStrict;
+import uk.gov.hmcts.opal.generated.model.EnforcementPostedDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.EnforcementResultIdCommonStrict;
+import uk.gov.hmcts.opal.generated.model.EnforcementResultResponseDefendantAccount;
 
 abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTest {
 
@@ -32,40 +34,55 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
     protected static final Long COLLO_BUSINESS_UNIT_ID = 77L;
     protected static final Long COLLO_DEFENDANT_ACCOUNT_ID = 99000000000007L;
     protected static final Long INVALID_DEFENDANT_ACCOUNT_ID = 404L;
+    protected static final Long SCRIPTED_BUSINESS_UNIT_ID = 78L;
+    protected static final Long SCRIPTED_DEFENDANT_ACCOUNT_ID = 77L;
 
-    protected static final List<ResultResponse> fullResponses = List.of(
-        ResultResponse.builder().parameterName("reason").response("test reason").build(),
-        ResultResponse.builder().parameterName("jail_days").response("14").build(),
-        ResultResponse.builder().parameterName("enforcer_id").response("50000000001").build(),
-        ResultResponse.builder().parameterName("earliest_release_date").response("2026-05-01T00:00:00").build()
+    protected static final List<EnforcementResultResponseDefendantAccount> fullResponses = List.of(
+        new EnforcementResultResponseDefendantAccount().parameterName("reason").response("test reason"),
+        new EnforcementResultResponseDefendantAccount().parameterName("jail_days").response("14"),
+        new EnforcementResultResponseDefendantAccount().parameterName("enforcer_id").response("50000000001"),
+        new EnforcementResultResponseDefendantAccount().parameterName("earliest_release_date")
+            .response("2026-05-01T00:00:00")
     );
 
-    protected static final List<ResultResponse> colloResponses = List.of(
-        ResultResponse.builder().parameterName("reason").response("a").build(),
-        ResultResponse.builder().parameterName("collectiontype").response("Wages").build(),
-        ResultResponse.builder().parameterName("reserveterms").response("aa").build()
+    protected static final List<EnforcementResultResponseDefendantAccount> colloResponses = List.of(
+        new EnforcementResultResponseDefendantAccount().parameterName("reason").response("a"),
+        new EnforcementResultResponseDefendantAccount().parameterName("collectiontype").response("Wages"),
+        new EnforcementResultResponseDefendantAccount().parameterName("reserveterms").response("aa")
     );
 
-    protected static final PaymentTerms paymentTerms = PaymentTerms.builder()
+    protected static final List<EnforcementResultResponseDefendantAccount> minimumResponses = List.of(
+        new EnforcementResultResponseDefendantAccount().parameterName("reason").response("test reason")
+    );
+
+    protected static final List<EnforcementResultResponseDefendantAccount> scriptedFullResponses = List.of(
+        new EnforcementResultResponseDefendantAccount().parameterName("reason").response("test reason"),
+        new EnforcementResultResponseDefendantAccount().parameterName("jail_days").response("14"),
+        new EnforcementResultResponseDefendantAccount().parameterName("enforcer_id").response("780000000021"),
+        new EnforcementResultResponseDefendantAccount().parameterName("earliest_release_date")
+            .response("2026-05-01T00:00:00")
+    );
+
+    protected static final EnforcementPaymentTermsCommonStrict paymentTerms = new EnforcementPaymentTermsCommonStrict()
         .daysInDefault(7)
         .dateDaysInDefaultImposed(LocalDate.of(2026, 5, 28))
         .extension(true)
         .reasonForExtension("extension reason")
-        .paymentTermsType(PaymentTermsType.fromCode("B"))
+        .paymentTermsType(new EnforcementPaymentTermsTypeCommonStrict()
+            .paymentTermsTypeCode(EnforcementPaymentTermsTypeCommonStrict.PaymentTermsTypeCodeEnum.B))
         .effectiveDate(LocalDate.of(2026, 10, 30))
-        .instalmentPeriod(InstalmentPeriod.fromCode("W"))
+        .instalmentPeriod(new EnforcementInstalmentPeriodCommonStrict()
+            .instalmentPeriodCode(EnforcementInstalmentPeriodCommonStrict.InstalmentPeriodCodeEnum.W))
         .lumpSumAmount(BigDecimal.valueOf(500000L))
         .instalmentAmount(BigDecimal.valueOf(0.50))
-        .postedDetails(PostedDetails.builder()
-                           .postedDate(LocalDate.of(2026, 5, 28).atStartOfDay())
-                           .postedBy("The Republic")
-                           .postedByName("Master Yoda")
-                           .build())
-        .build();
+        .postedDetails(new EnforcementPostedDetailsCommonStrict()
+            .postedDate(LocalDate.of(2026, 5, 28).atStartOfDay())
+            .postedBy("The Republic")
+            .postedByName("Master Yoda"));
 
     void postEnforcementImpl_fullRequest_Success(Logger log) throws Exception {
-        AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
-            .resultId(ResultId.ABDC)
+        AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
+            .resultId(EnforcementResultIdCommonStrict.ABDC)
             .enforcementResultResponses(fullResponses)
             .paymentTerms(paymentTerms)
             .build();
@@ -90,13 +107,16 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
             .andExpect(jsonPath("defendant_account_id").value("99000000000006"))
             .andExpect(jsonPath("version").exists())
             .andExpect(jsonPath("enforcement_id").exists());
+
+        assertJsonResponseMatchesBundledSpec(objectMapper.readTree(body),
+            "/defendant-accounts/{defendantAccountId}/enforcements", "POST", 200, "application/json");
     }
 
     void postEnforcementImpl_minimumRequest_Success(Logger log) throws Exception {
 
-        AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
-            .resultId(ResultId.ABDC)
-            .enforcementResultResponses(Collections.emptyList())
+        AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
+            .resultId(EnforcementResultIdCommonStrict.ABDC)
+            .enforcementResultResponses(minimumResponses)
             .paymentTerms(paymentTerms)
             .build();
 
@@ -122,10 +142,80 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
             .andExpect(jsonPath("enforcement_id").exists());
     }
 
+    void postEnforcementImpl_fullRequest_blockedByAccountControls(Logger log) throws Exception {
+        final Integer versionBeforeRequest = getCurrentDefendantAccountVersion(SCRIPTED_DEFENDANT_ACCOUNT_ID);
+        final Integer enforcementCountBeforeRequest =
+            countEnforcementsForDefendantAccount(SCRIPTED_DEFENDANT_ACCOUNT_ID);
+        final Integer paymentTermCountBeforeRequest =
+            countPaymentTermsForDefendantAccount(SCRIPTED_DEFENDANT_ACCOUNT_ID);
+
+        AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
+            .resultId(EnforcementResultIdCommonStrict.ABDC)
+            .enforcementResultResponses(scriptedFullResponses)
+            .paymentTerms(paymentTerms)
+            .build();
+
+        ResultActions resultActions = postScriptedEnforcement(request);
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+
+        log.info(":testPostEnforcementImpl_fullRequest_blockedByAccountControls: Response body: \n{}",
+            ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isUnprocessableEntity())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("title").value("Unprocessable Content"))
+            .andExpect(jsonPath("status").value(422))
+            .andExpect(jsonPath("detail").value(
+                "Defendant account update blocked: Zero balance check failed because account_balance is -500.58."
+            ))
+            .andExpect(jsonPath("retriable").value(false));
+
+        assertEquals(versionBeforeRequest, getCurrentDefendantAccountVersion(SCRIPTED_DEFENDANT_ACCOUNT_ID));
+        assertEquals(enforcementCountBeforeRequest,
+            countEnforcementsForDefendantAccount(SCRIPTED_DEFENDANT_ACCOUNT_ID));
+        assertEquals(paymentTermCountBeforeRequest,
+            countPaymentTermsForDefendantAccount(SCRIPTED_DEFENDANT_ACCOUNT_ID));
+    }
+
+    void postEnforcementImpl_minimumRequest_blockedByAccountControls(Logger log) throws Exception {
+        final Integer versionBeforeRequest = getCurrentDefendantAccountVersion(SCRIPTED_DEFENDANT_ACCOUNT_ID);
+        final Integer enforcementCountBeforeRequest =
+            countEnforcementsForDefendantAccount(SCRIPTED_DEFENDANT_ACCOUNT_ID);
+        final Integer paymentTermCountBeforeRequest =
+            countPaymentTermsForDefendantAccount(SCRIPTED_DEFENDANT_ACCOUNT_ID);
+
+        AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
+            .resultId(EnforcementResultIdCommonStrict.ABDC)
+            .enforcementResultResponses(minimumResponses)
+            .paymentTerms(paymentTerms)
+            .build();
+
+        ResultActions resultActions = postScriptedEnforcement(request);
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+
+        log.info(":testPostEnforcementImpl_minimumRequest_blockedByAccountControls: Response body: \n{}",
+            ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isUnprocessableEntity())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("title").value("Unprocessable Content"))
+            .andExpect(jsonPath("status").value(422))
+            .andExpect(jsonPath("detail").value(
+                "Defendant account update blocked: Zero balance check failed because account_balance is -500.58."
+            ))
+            .andExpect(jsonPath("retriable").value(false));
+
+        assertEquals(versionBeforeRequest, getCurrentDefendantAccountVersion(SCRIPTED_DEFENDANT_ACCOUNT_ID));
+        assertEquals(enforcementCountBeforeRequest,
+            countEnforcementsForDefendantAccount(SCRIPTED_DEFENDANT_ACCOUNT_ID));
+        assertEquals(paymentTermCountBeforeRequest,
+            countPaymentTermsForDefendantAccount(SCRIPTED_DEFENDANT_ACCOUNT_ID));
+    }
+
     void postEnforcementImpl_invalidDefendant_Failure(Logger log) throws Exception {
-        AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
-            .resultId(ResultId.ABDC)
-            .enforcementResultResponses(Collections.emptyList())
+        AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
+            .resultId(EnforcementResultIdCommonStrict.ABDC)
+            .enforcementResultResponses(minimumResponses)
             .paymentTerms(paymentTerms)
             .build();
 
@@ -148,6 +238,53 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
             .andExpect(jsonPath("title").value("Entity Not Found"));
     }
 
+    /**
+     * Verifies that omitted payment terms pass request validation before the missing account returns 404.
+     */
+    void postEnforcementImpl_whenPaymentTermsIsOmitted_passesValidation() throws Exception {
+        ObjectNode request = validEnforcementRequest();
+        request.remove("payment_terms");
+
+        postEnforcementToNonExistingAccountForFieldValidation(request)
+            .andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+    }
+
+    /**
+     * Verifies that explicit null payment terms pass request validation before the missing account returns 404.
+     */
+    void postEnforcementImpl_whenPaymentTermsIsExplicitlyNull_passesValidation() throws Exception {
+        ObjectNode request = validEnforcementRequest();
+        request.putNull("payment_terms");
+
+        postEnforcementToNonExistingAccountForFieldValidation(request)
+            .andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+    }
+
+    /**
+     * Verifies that required nullable days in default must be included in payment terms.
+     */
+    void postEnforcementImpl_whenDaysInDefaultIsOmitted_returnsBadRequest() throws Exception {
+        ObjectNode request = validEnforcementRequest();
+        ((ObjectNode) request.get("payment_terms")).remove("days_in_default");
+
+        postEnforcementToNonExistingAccountForFieldValidation(request)
+            .andExpect(status().isBadRequest());
+    }
+
+    /**
+     * Verifies that explicit null days in default pass request validation before the missing account returns 404.
+     */
+    void postEnforcementImpl_whenDaysInDefaultIsExplicitlyNull_passesValidation() throws Exception {
+        ObjectNode request = validEnforcementRequest();
+        ((ObjectNode) request.get("payment_terms")).putNull("days_in_default");
+
+        postEnforcementToNonExistingAccountForFieldValidation(request)
+            .andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+    }
+
     void postEnforcementImpl_colloWithPaymentTerms_preservesLastEnforcementAndReturnsResponses(Logger log)
         throws Exception {
         userStateStub.setupWithNoPermissions();
@@ -157,8 +294,8 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS
         );
 
-        AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
-            .resultId(ResultId.COLLO)
+        AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
+            .resultId(EnforcementResultIdCommonStrict.COLLO)
             .enforcementResultResponses(colloResponses)
             .paymentTerms(paymentTerms)
             .build();
@@ -212,10 +349,61 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
     }
 
     private Integer getCurrentDefendantAccountVersion(Long defendantAccountId) {
+        return defendantAccountVersionFor(defendantAccountId);
+    }
+
+    private Integer countEnforcementsForDefendantAccount(Long defendantAccountId) {
         return jdbcTemplate.queryForObject(
-            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
+            "SELECT COUNT(*) FROM enforcements WHERE defendant_account_id = ?",
             Integer.class,
             defendantAccountId
         );
     }
+
+    private Integer countPaymentTermsForDefendantAccount(Long defendantAccountId) {
+        return jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM payment_terms WHERE defendant_account_id = ?",
+            Integer.class,
+            defendantAccountId
+        );
+    }
+
+    /**
+     * Creates a complete valid request payload that tests can mutate to exercise validation rules.
+     */
+    private ObjectNode validEnforcementRequest() throws Exception {
+        AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
+            .resultId(EnforcementResultIdCommonStrict.ABDC)
+            .enforcementResultResponses(minimumResponses)
+            .paymentTerms(paymentTerms)
+            .build();
+
+        return (ObjectNode) objectMapper.readTree(objectMapper.writeValueAsString(request));
+    }
+
+    /**
+     * Posts to a nonexistent account so a 404 confirms that the request passed validation.
+     */
+    private ResultActions postEnforcementToNonExistingAccountForFieldValidation(ObjectNode request) throws Exception {
+        return mockMvc.perform(
+            post(URL_BASE + "/" + INVALID_DEFENDANT_ACCOUNT_ID + "/enforcements")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("Authorization", userStateStub.getBearerToken())
+                .header("Business-Unit-ID", BUSINESS_UNIT_ID.toString())
+                .header("IF-MATCH", "0")
+                .content(request.toString())
+                .contentType(MediaType.APPLICATION_JSON));
+    }
+
+    private ResultActions postScriptedEnforcement(AddEnforcementRequestDefendantAccount request) throws Exception {
+        return mockMvc.perform(
+            post(URL_BASE + "/" + SCRIPTED_DEFENDANT_ACCOUNT_ID + "/enforcements")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("Authorization", userStateStub.getBearerToken())
+                .header("Business-Unit-ID", SCRIPTED_BUSINESS_UNIT_ID.toString())
+                .header("IF-MATCH", "0")
+                .content(objectMapper.writeValueAsString(request))
+                .contentType(MediaType.APPLICATION_JSON));
+    }
+
 }

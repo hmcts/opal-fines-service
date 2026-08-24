@@ -71,7 +71,7 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
                 .value("patch DefAcc note two legacy test"))
             .andExpect(jsonPath("$.comment_and_notes.free_text_note_3")
                 .value("patch DefAcc note three legacy test"))
-            .andExpect(header().string("ETag", "\"" + ++currentVersion + "\""));
+            .andExpect(header().string("ETag", OVER_LONG_VERSION_ETAG));
     }
 
     @Test

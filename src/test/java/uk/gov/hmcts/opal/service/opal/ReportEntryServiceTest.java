@@ -10,6 +10,7 @@ import static uk.gov.hmcts.opal.util.ReportIdConstants.LIST_EXTEND_TTP;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneOffset;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,7 +65,7 @@ class ReportEntryServiceTest {
         assertEquals(LIST_EXTEND_TTP, savedEntry.getReportId());
         assertEquals(String.valueOf(defendantAccountId), savedEntry.getAssociatedRecordId());
         assertEquals(AssociatedRecordType.DEFENDANT_ACCOUNTS, savedEntry.getAssociatedRecordType());
-        assertEquals(LocalDateTime.of(2026, 4, 22, 9, 15), savedEntry.getEntryTimestamp());
+        assertEquals(LocalDateTime.of(2026, Month.APRIL, 22, 9, 15), savedEntry.getEntryTimestamp());
         assertNull(savedEntry.getReportedTimestamp());
     }
 }

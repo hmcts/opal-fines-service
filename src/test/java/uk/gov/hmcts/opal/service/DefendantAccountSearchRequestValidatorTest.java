@@ -9,9 +9,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.SchemaPaths;
@@ -31,12 +31,8 @@ class DefendantAccountSearchRequestValidatorTest {
     @Mock
     private FeatureToggleApi featureToggleApi;
 
+    @InjectMocks
     private DefendantAccountSearchRequestValidator validator;
-
-    @BeforeEach
-    void setUp() {
-        validator = new DefendantAccountSearchRequestValidator(jsonSchemaValidationService, featureToggleApi);
-    }
 
     @Test
     void validateAndCheckFeature_validatesSchemaAndSkipsFlagLookupWhenConsolidationFalse() {
@@ -52,9 +48,9 @@ class DefendantAccountSearchRequestValidatorTest {
             eq(SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_REQUEST)
         );
         verify(featureToggleApi, never()).isFeatureEnabledWithPropertyValueDefault(
-            eq(FeatureFlags.RELEASE_1C),
-            eq(FeatureFlags.RELEASE_1C_ENABLED_PROPERTY),
-            eq(false)
+            FeatureFlags.RELEASE_1C_WRITE_OFF,
+            FeatureFlags.RELEASE_1C_WRITE_OFF_ENABLED_PROPERTY,
+            false
         );
     }
 
@@ -63,8 +59,8 @@ class DefendantAccountSearchRequestValidatorTest {
         // Arrange
         PostDefendantAccountSearchRequestDefendantAccount request = request(true);
         when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
-            FeatureFlags.RELEASE_1C,
-            FeatureFlags.RELEASE_1C_ENABLED_PROPERTY,
+            FeatureFlags.RELEASE_1C_WRITE_OFF,
+            FeatureFlags.RELEASE_1C_WRITE_OFF_ENABLED_PROPERTY,
             false
         )).thenReturn(true);
 
@@ -77,8 +73,8 @@ class DefendantAccountSearchRequestValidatorTest {
             eq(SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_REQUEST)
         );
         verify(featureToggleApi).isFeatureEnabledWithPropertyValueDefault(
-            FeatureFlags.RELEASE_1C,
-            FeatureFlags.RELEASE_1C_ENABLED_PROPERTY,
+            FeatureFlags.RELEASE_1C_WRITE_OFF,
+            FeatureFlags.RELEASE_1C_WRITE_OFF_ENABLED_PROPERTY,
             false
         );
     }
@@ -88,8 +84,8 @@ class DefendantAccountSearchRequestValidatorTest {
         // Arrange
         PostDefendantAccountSearchRequestDefendantAccount request = request(true);
         when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
-            FeatureFlags.RELEASE_1C,
-            FeatureFlags.RELEASE_1C_ENABLED_PROPERTY,
+            FeatureFlags.RELEASE_1C_WRITE_OFF,
+            FeatureFlags.RELEASE_1C_WRITE_OFF_ENABLED_PROPERTY,
             false
         )).thenReturn(false);
 
@@ -98,8 +94,8 @@ class DefendantAccountSearchRequestValidatorTest {
 
         // Assert
         verify(featureToggleApi).isFeatureEnabledWithPropertyValueDefault(
-            FeatureFlags.RELEASE_1C,
-            FeatureFlags.RELEASE_1C_ENABLED_PROPERTY,
+            FeatureFlags.RELEASE_1C_WRITE_OFF,
+            FeatureFlags.RELEASE_1C_WRITE_OFF_ENABLED_PROPERTY,
             false
         );
     }

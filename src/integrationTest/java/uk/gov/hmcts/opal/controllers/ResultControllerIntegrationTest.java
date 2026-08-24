@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.controllers;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -15,12 +16,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -39,6 +42,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Slf4j(topic = "opal.ResultControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_results.sql", executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("ResultController Integration Test")
+@Isolated
 class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/results";
@@ -104,9 +108,39 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("PO-8973 Get result by ID omits optional fields when null")
+    @JiraStory("PO-8973")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-10186")
+    void getResultById_whenOptionalFieldsAreNull_omitsThem() throws Exception {
+        mockMvc.perform(get(URL_BASE + "/DDDDDD"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.result_id").value("DDDDDD"))
+            .andExpect(jsonPath("$.imposition_allocation_priority").doesNotExist())
+            .andExpect(jsonPath("$.imposition_creditor").doesNotExist())
+            .andExpect(jsonPath("$.imposition_category").doesNotExist())
+            .andExpect(jsonPath("$.allow_payment_terms").doesNotExist())
+            .andExpect(jsonPath("$.enf_next_permitted_actions").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("PO-8973 Get result by ID includes optional field when null with ALWAYS")
+    @JiraStory("PO-8973")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-10185")
+    void getResultById_whenOptionalFieldIsNullWithAlways_includesIt() throws Exception {
+        mockMvc.perform(get(URL_BASE + "/DDDDDD"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.allow_additional_action").value(nullValue()));
+    }
+
+    @Test
     @DisplayName("PO-2985 Get result by ID duplicates Welsh result parameters when requested")
     @JiraStory("PO-2985")
     @JiraEpic("PO-2630")
+    @JiraTestKey("PO-9515")
     void getResultById_whenIncludeWelshTrue_returnsWelshResultParameters() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/DDDDDD?include_welsh=true"));
 
@@ -123,6 +157,45 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
                     + "\"hint\":\"Provide a welsh version for the defendant\",\"language_dependent\":true},"
                     + "{\"name\":\"sample_name_2\",\"type\":\"text\",\"hint\":\"some hint 2\","
                     + "\"language_dependent\":false}]"));
+    }
+
+    @Test
+    @DisplayName("PO-9108 Get result by ID duplicates all supported Welsh parameter types")
+    @JiraStory("PO-9108")
+    @JiraEpic("PO-2630")
+    @Sql(
+        scripts = "classpath:db/insertData/insert_into_results_po_9108.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    @Sql(
+        scripts = "classpath:db/deleteData/delete_from_results_po_9108.sql",
+        executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD
+    )
+    @JiraTestKey("PO-9516")
+    void getResultById_whenIncludeWelshTrue_duplicatesAllSupportedParameterTypes() throws Exception {
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "/PO9108?include_welsh=true"));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.result_id").value("PO9108"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        JsonNode parameters = ToJsonString.toJsonNode(
+            ToJsonString.toJsonNode(body).path("result_parameters").asString()
+        );
+
+        assertEquals(20, parameters.size());
+        assertWelshParameterPair(parameters, 0, "text60", "text-60");
+        assertWelshParameterPair(parameters, 2, "text100", "text-100");
+        assertWelshParameterPair(parameters, 4, "text1000", "text-1000");
+        assertWelshParameterPair(parameters, 6, "effective_date", "date");
+        assertWelshParameterPair(parameters, 8, "days", "integer");
+        assertWelshParameterPair(parameters, 10, "amount", "decimal");
+        assertWelshParameterPair(parameters, 12, "radio_choice", "menu-radio");
+        assertWelshParameterPair(parameters, 14, "checkbox_choice", "menu-checkbox");
+        assertWelshParameterPair(parameters, 16, "autocomplete_choice", "menu-autocomplete");
+        assertEquals("not_translated", parameters.get(18).path("name").asString());
+        assertEquals("enforcer", parameters.get(19).path("name").asString());
     }
 
     @Test
@@ -583,6 +656,7 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get result by ID uses cache on repeated identical request")
     @JiraStory("PO-7248")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-9514")
     void testGetResultById_usesCacheOnRepeatedRequest() throws Exception {
         clearInvocations(resultRepository);
 
@@ -590,7 +664,7 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
         String secondBody = performRequest();
 
         assertEquals(firstBody, secondBody);
-        verify(resultRepository, times(1)).findById("BBBBBB");
+        verify(resultRepository, times(1)).findWithFullGraphByResultId("BBBBBB");
     }
 
     private String performRequest() throws Exception {
@@ -599,6 +673,22 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andReturn()
             .getResponse()
             .getContentAsString();
+    }
+
+    private void assertWelshParameterPair(JsonNode parameters, int originalIndex, String name, String type) {
+        JsonNode original = parameters.get(originalIndex);
+
+        assertEquals(name, original.path("name").asString());
+        assertEquals(type, original.path("type").asString());
+        assertTrue(original.path("language_dependent").asBoolean());
+        JsonNode welsh = parameters.get(originalIndex + 1);
+        assertEquals("cy_" + name, welsh.path("name").asString());
+        assertEquals(type, welsh.path("type").asString());
+        assertEquals("Provide a welsh version for the defendant", welsh.path("hint").asString());
+        assertTrue(welsh.path("language_dependent").asBoolean());
+        assertEquals(original.get("min"), welsh.get("min"));
+        assertEquals(original.get("max"), welsh.get("max"));
+        assertEquals(original.get("options"), welsh.get("options"));
     }
 
 }

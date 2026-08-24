@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.config;
 
+import io.lettuce.core.ClientOptions;
+import io.lettuce.core.MaintNotificationsConfig;
 import io.lettuce.core.RedisURI;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -32,6 +34,7 @@ import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializ
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import uk.gov.hmcts.opal.config.cache.CacheNames;
 
 @Slf4j(topic = "opal.CacheConfig")
 @Configuration
@@ -47,13 +50,20 @@ public class CacheConfig {
     @Value("${opal.redis.ttl-duration}")
     private Duration redisTtlDuration;
 
+    @Value("${opal.redis.hmrc-auth-token-ttl-duration}")
+    private Duration redisHmrcAuthTokenTtlDuration;
+
     @Bean
     @ConditionalOnProperty(name = "opal.redis.enabled", havingValue = "true")
     public RedisConnectionFactory redisConnectionFactory() {
         RedisURI redisURI = RedisURI.create(redisUrl);
 
         RedisConfiguration redisConfiguration = LettuceConnectionFactory.createRedisConfiguration(redisURI);
-        LettuceClientConfigurationBuilder clientConfigurationBuilder = LettuceClientConfiguration.builder();
+        // disabling maintenance notifications as these were showing as errors on application insights
+        LettuceClientConfigurationBuilder clientConfigurationBuilder = LettuceClientConfiguration.builder()
+            .clientOptions(ClientOptions.builder()
+                .maintNotificationsConfig(MaintNotificationsConfig.disabled())
+                .build());
         if (redisURI.isSsl()) {
             clientConfigurationBuilder.useSsl();
         }
@@ -83,13 +93,19 @@ public class CacheConfig {
     @ConditionalOnProperty(name = "opal.redis.enabled", havingValue = "true")
     public CacheManager redisCacheManager(RedisConnectionFactory redisConnectionFactory) {
 
-        RedisCacheConfiguration cacheConfig = RedisCacheConfiguration.defaultCacheConfig()
+        RedisCacheConfiguration defaultCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
             .entryTtl(redisTtlDuration)
             .serializeKeysWith(SerializationPair.fromSerializer(redisKeySerializer()))
             .serializeValuesWith(SerializationPair.fromSerializer(redisValueSerializer()));
 
+        RedisCacheConfiguration hmrcAuthCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
+            .entryTtl(redisHmrcAuthTokenTtlDuration)
+            .serializeKeysWith(SerializationPair.fromSerializer(redisKeySerializer()))
+            .serializeValuesWith(SerializationPair.fromSerializer(redisValueSerializer()));
+
         return logCacheDetails(RedisCacheManager.builder(redisConnectionFactory)
-            .cacheDefaults(cacheConfig)
+            .cacheDefaults(defaultCacheConfig)
+            .withCacheConfiguration(CacheNames.HMRC_AUTH_SERVICE, hmrcAuthCacheConfig)
             .build());
     }
 
@@ -127,6 +143,7 @@ public class CacheConfig {
         log.info("Redis Enabled: {}", redisEnabled);
         log.info("Redis Url: {}", redisUrl);
         log.info("Redis TTL (duration): {}", redisTtlDuration);
+        log.info("Redis HMRC Token TTL (duration): {}", redisHmrcAuthTokenTtlDuration);
         if (cacheManager != null) {
             log.info("Cache Manager: {}", cacheManager.getClass().getName());
             if (cacheManager instanceof RedisCacheManager) {
