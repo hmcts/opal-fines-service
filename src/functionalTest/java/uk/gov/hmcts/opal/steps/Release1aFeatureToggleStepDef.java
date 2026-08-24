@@ -30,8 +30,6 @@ public class Release1aFeatureToggleStepDef extends BaseStepDef {
     private static final String PLACEHOLDER_DRAFT_ACCOUNT_ID = "999999";
     private static final String PLACEHOLDER_ENTITY_ID = "1";
     private static final String DEFAULT_BUSINESS_UNIT_ID = "77";
-    private static final String DEFAULT_SUBMITTED_BY = "BUUID";
-    private static final String DEFAULT_SUBMITTED_BY_NAME = "Laura Clerk";
     private static final String DEFAULT_ACCOUNT_TYPE = "Fine";
     private static final String DEFAULT_IF_MATCH = "\"0\"";
 
