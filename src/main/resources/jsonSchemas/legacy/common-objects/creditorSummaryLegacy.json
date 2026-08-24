@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Creditor Summary Legacy",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "creditor_account_type": {
+      "$ref": "./creditorAccountTypeReferenceLegacy.json",
+      "description": "Creditor account type reference."
+    },
+    "creditor_account_id": {
+      "type": "integer",
+      "description": "DB Mapping - creditor_accounts.creditor_account_id."
+    },
+    "major_creditor_name": {
+      "type": "string",
+      "description": "DB Mapping - major_creditors.major_creditor_name."
+    },
+    "minor_creditor_organisation_flag": {
+      "type": "boolean",
+      "description": "DB Mapping - parties.organisation. Set for minor creditors only."
+    },
+    "individual_name": {
+      "$ref": "./individualDetailsLegacy.json",
+      "description": "Individual minor creditor name when the organisation flag is false."
+    },
+    "company_name": {
+      "$ref": "./organisationDetailsLegacy.json",
+      "description": "Company minor creditor name when the organisation flag is true."
+    }
+  },
+  "required": [
+    "creditor_account_type",
+    "creditor_account_id"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "minor_creditor_organisation_flag": { "const": true }
+        },
+        "required": ["minor_creditor_organisation_flag"]
+      },
+      "then": {
+        "required": ["company_name"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "minor_creditor_organisation_flag": { "const": false }
+        },
+        "required": ["minor_creditor_organisation_flag"]
+      },
+      "then": {
+        "required": ["individual_name"]
+      }
+    },
+    {
+      "oneOf": [
+        { "required": ["individual_name"], "not": { "required": ["company_name"] } },
+        { "required": ["company_name"], "not": { "required": ["individual_name"] } },
+        {
+          "not": {
+            "anyOf": [
+              { "required": ["individual_name"] },
+              { "required": ["company_name"] }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

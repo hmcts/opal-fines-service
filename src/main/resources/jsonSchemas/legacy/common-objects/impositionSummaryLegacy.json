@@ -20,7 +20,7 @@
       "$ref": "./resultReferenceLegacy.json"
     },
     "creditor": {
-      "$ref": "./creditorAccountTypeReferenceLegacy.json"
+      "$ref": "./creditorSummaryLegacy.json"
     },
     "imposed_amount": {
       "$ref": "./monetaryNegativeOrPositive.json"
