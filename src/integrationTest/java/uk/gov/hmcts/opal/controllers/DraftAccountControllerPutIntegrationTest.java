@@ -163,8 +163,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     void testReplaceDraftAccount_timelineDataIsSupplied() throws Exception {
         String request = validReplaceRequestBody(0L)
             .replace(
-                "\"version\":0",
-                "\"version\": 0,\n              \"timeline_data\": " + validTimelineDataJson().trim()
+                "\"account_status\": \"Submitted\"",
+                "\"account_status\": \"Submitted\",\n              \"timeline_data\": " + validTimelineDataJson().trim()
             );
         String ifMatch = getIfMatchForDraftAccount(5L);
 
@@ -616,8 +616,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 ]
               },
               "account_type": "Fine",
-              "account_status": "Submitted",
-              "version": 0
+              "account_status": "Submitted"
             }""";
     }
 
@@ -696,12 +695,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 ]
               },
               "account_type": "Fine",
-              "account_status": "Submitted",
-              "version": """ + version
-            +
-            """
-
-                }""";
+              "account_status": "Submitted"
+            }""";
     }
 
     private static String invalidReferenceReplaceRequestBody(Long version) {
@@ -789,8 +784,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 ]
               },
               "account_type": "Fine",
-              "account_status": "Submitted",
-              "version": """ + version + """
+              "account_status": "Submitted"
             }
             """;
     }
@@ -845,8 +839,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 ]
               },
               "account_type": "Fine",
-              "account_status": "Submitted",
-              "version": """ + version + """
+              "account_status": "Submitted"
             }
             """;
     }
@@ -909,8 +902,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 ]
               },
               "account_type": "Fine",
-              "account_status": "Submitted",
-              "version": """ + version + """
+              "account_status": "Submitted"
             }
             """;
     }
@@ -972,8 +964,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 ]
               },
               "account_type": "Fine",
-              "account_status": "Submitted",
-              "version": """ + version + """
+              "account_status": "Submitted"
             }
             """;
     }

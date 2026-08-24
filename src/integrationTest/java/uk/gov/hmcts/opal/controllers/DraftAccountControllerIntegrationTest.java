@@ -247,8 +247,7 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
                 ]
               },
               "account_type": "Fine",
-              "account_status": "Submitted",
-              "version": 0
+              "account_status": "Submitted"
             }""";
     }
 

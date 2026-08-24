@@ -106,8 +106,8 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     void testUpdateDraftAccount_timelineDataIsSupplied() throws Exception {
         String request = validUpdateRequestBody("65", "Publishing Pending", "A")
             .replace(
-                "\"version\": 0",
-                "\"version\": 0,\n              \"timeline_data\": " + validTimelineDataJson().trim()
+                "\"reason_text\": \"Reason A\"",
+                "\"reason_text\": \"Reason A\",\n              \"timeline_data\": " + validTimelineDataJson().trim()
             );
 
         mockMvc.perform(patch(URL_BASE + "/" + 8)
@@ -160,8 +160,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
                 {
                   "account_status": "Rejected",
                   "reason_text": "Reason for rejection",
-                  "business_unit_id": 78,
-                  "version": 0
+                  "business_unit_id": 78
                 }
                 """));
 
@@ -325,8 +324,8 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
             .andExpect(jsonPath("$.account_status").value("Deleted"))
-            .andExpect(jsonPath("$.validated_by").value("L078JG"))
-            .andExpect(jsonPath("$.validated_by_name").value("Pablo"))
+            .andExpect(jsonPath("$.validated_by").doesNotExist())
+            .andExpect(jsonPath("$.validated_by_name").doesNotExist())
             .andExpect(jsonPath("$.timeline_data[1].status").value("Deleted"))
             .andExpect(jsonPath("$.timeline_data[1].username").value("L078JG"))
             .andExpect(jsonPath("$.timeline_data[1].reason_text").value("Reason A"));
@@ -368,8 +367,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
         Long draftAccountId = 241L;
         String requestBody = "            {\n"
             + "                \"account_status\": \"Publishing Pending\",\n"
-            + "                \"business_unit_id\": 5,\n"
-            + "                \"version\": 0\n"
+            + "                \"business_unit_id\": 5\n"
             + "            }";
 
         mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)

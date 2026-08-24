@@ -125,10 +125,9 @@ class DraftAccountPublishTransactionIntegrationTest extends AbstractIntegrationT
             {
               "account_status": "Publishing Pending",
               "business_unit_id": 77,
-              "reason_text": "Approve for publish",
-              "version": %d
+              "reason_text": "Approve for publish"
             }
-            """.formatted(version);
+            """;
     }
 
     private void assertDefendantAccountSearchCount(int expectedCount) throws Exception {

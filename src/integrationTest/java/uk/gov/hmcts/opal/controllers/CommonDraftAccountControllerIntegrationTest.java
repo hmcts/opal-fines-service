@@ -73,8 +73,7 @@ class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTes
             {
               "account_status": "%2$s",
               "business_unit_id": %1$s,
-              "reason_text": "Reason %3$s",
-              "version": 0
+              "reason_text": "Reason %3$s"
             }
             """.formatted(businessUnit, status, delta);
     }

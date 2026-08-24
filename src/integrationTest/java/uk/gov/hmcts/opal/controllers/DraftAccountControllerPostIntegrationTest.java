@@ -353,10 +353,6 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @JiraEpic("PO-2219")
     @JiraTestKey("PO-5861")
     void testPostDraftAccount_trap400Response() throws Exception {
-
-        String expectedErrorMessageStart =
-            "JSON Schema Validation Error: Validating against JSON schema 'addDraftAccountRequest.json',"
-                + " found 15 validation errors:";
         ResultActions resultActions = mockMvc.perform(post(URL_BASE)
             .header("authorization", userStateStub.getBearerToken())
             .contentType(MediaType.APPLICATION_JSON)
@@ -368,7 +364,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         resultActions.andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(expectBadRequest(
-                "The request does not conform to the required JSON schema",
+                "Request contains unexpected additional properties: account_create_request, invalid_field",
                 "https://hmcts.gov.uk/problems/json-schema-validation"
             ));
     }
@@ -692,8 +688,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 ]
               },
               "account_type": "Fine",
-              "account_status": "Submitted",
-              "version": 0
+              "account_status": "Submitted"
             }""";
     }
 
@@ -741,8 +736,6 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     private String validPostRequestBody() {
         return """
             {
-              "draft_account_id": 5,
-              "created_at": "2025-11-01T10:30:00+00:00",
               "business_unit_id": 78,
               "account": {
                 "account_type": "Fine",
@@ -842,7 +835,6 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 },
                 "account_notes": null
               },
-              "account_snapshot": null,
               "account_type": "Fine"
             }
 
@@ -852,10 +844,6 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     private String validFPPostRequestBody() {
         return """
             {
-               "draft_account_id":null,
-               "created_at":null,
-               "account_snapshot":null,
-               "account_status_date":null,
                "business_unit_id":77,
                "account":{
                   "account_type":"Fixed Penalty",
@@ -954,9 +942,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                   "account_notes":null
                },
                "account_type":"Fixed Penalty",
-               "account_status":"Submitted",
-               "account_status_message":null,
-               "version":"0"
+               "account_status":"Submitted"
             }
             """;
     }
