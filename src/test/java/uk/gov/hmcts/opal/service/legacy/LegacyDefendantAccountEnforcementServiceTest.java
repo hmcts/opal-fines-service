@@ -44,8 +44,8 @@ import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse.EnforcementAction;
@@ -120,13 +120,13 @@ class LegacyDefendantAccountEnforcementServiceTest {
             mock(AddDefendantAccountEnforcementLegacyResponse.class);
         when(legacyResp.getEnforcementId()).thenReturn("ENF-1");
         when(legacyResp.getDefendantAccountId()).thenReturn("123");
-        when(legacyResp.getVersion()).thenReturn(1);
+        when(legacyResp.getVersion()).thenReturn(BigInteger.valueOf(1));
 
         GatewayService.Response<AddDefendantAccountEnforcementLegacyResponse> resp =
             new GatewayService.Response<>(HttpStatus.OK, legacyResp, null, null);
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.ADD_ENFORCEMENT),
+            eq(LegacyDefendantAccountEnforcementService.ADD_ENFORCEMENT),
             eq(AddDefendantAccountEnforcementLegacyResponse.class),
             any(),
             Mockito.nullable(String.class)
@@ -144,7 +144,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
         assertNotNull(out);
         assertEquals("ENF-1", out.getEnforcementId());
         assertEquals("123", out.getDefendantAccountId());
-        assertEquals(1, out.getVersion());
+        assertEquals(BigInteger.ONE, out.getVersion());
     }
 
     @Test
@@ -153,7 +153,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
             mock(AddDefendantAccountEnforcementLegacyResponse.class);
         when(legacyResp.getEnforcementId()).thenReturn("ENF-500");
         when(legacyResp.getDefendantAccountId()).thenReturn("500");
-        when(legacyResp.getVersion()).thenReturn(5);
+        when(legacyResp.getVersion()).thenReturn(BigInteger.valueOf(5));
 
         GatewayService.Response<AddDefendantAccountEnforcementLegacyResponse> resp =
             new GatewayService.Response<>(
@@ -162,7 +162,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
             );
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.ADD_ENFORCEMENT),
+            eq(LegacyDefendantAccountEnforcementService.ADD_ENFORCEMENT),
             eq(AddDefendantAccountEnforcementLegacyResponse.class),
             any(),
             Mockito.nullable(String.class)
@@ -179,7 +179,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
         assertNotNull(out);
         assertEquals("ENF-500", out.getEnforcementId());
         assertEquals("500", out.getDefendantAccountId());
-        assertEquals(5, out.getVersion());
+        assertEquals(BigInteger.valueOf(5), out.getVersion());
     }
 
 
@@ -215,7 +215,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
             mock(AddDefendantAccountEnforcementLegacyResponse.class);
         when(legacyResp.getEnforcementId()).thenReturn("ENF-CAP");
         when(legacyResp.getDefendantAccountId()).thenReturn("999");
-        when(legacyResp.getVersion()).thenReturn(11);
+        when(legacyResp.getVersion()).thenReturn(BigInteger.valueOf(11));
 
         GatewayService.Response<AddDefendantAccountEnforcementLegacyResponse> resp =
             new GatewayService.Response<>(HttpStatus.OK, legacyResp, null, null);
@@ -224,7 +224,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Object> reqCaptor = ArgumentCaptor.forClass(Object.class);
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.ADD_ENFORCEMENT),
+            eq(LegacyDefendantAccountEnforcementService.ADD_ENFORCEMENT),
             eq(AddDefendantAccountEnforcementLegacyResponse.class),
             reqCaptor.capture(),
             Mockito.nullable(String.class)
@@ -242,7 +242,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
         assertNotNull(out);
         assertEquals("ENF-CAP", out.getEnforcementId());
         assertEquals("999", out.getDefendantAccountId());
-        assertEquals(11, out.getVersion());
+        assertEquals(BigInteger.valueOf(11), out.getVersion());
 
         // Also assert the service built a legacy request with expected top-level fields and mapped collections
         Object sentLegacyRequest = reqCaptor.getValue();
@@ -278,7 +278,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
             mock(AddDefendantAccountEnforcementLegacyResponse.class);
         when(legacyResp.getEnforcementId()).thenReturn("ENF-500");
         when(legacyResp.getDefendantAccountId()).thenReturn("500");
-        when(legacyResp.getVersion()).thenReturn(5);
+        when(legacyResp.getVersion()).thenReturn(BigInteger.valueOf(5));
 
         GatewayService.Response<AddDefendantAccountEnforcementLegacyResponse> resp =
             new GatewayService.Response<>(
@@ -287,7 +287,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
             );
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.ADD_ENFORCEMENT),
+            eq(LegacyDefendantAccountEnforcementService.ADD_ENFORCEMENT),
             eq(AddDefendantAccountEnforcementLegacyResponse.class),
             any(),
             Mockito.nullable(String.class)
@@ -304,7 +304,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
         assertNotNull(out);
         assertEquals("ENF-500", out.getEnforcementId());
         assertEquals("500", out.getDefendantAccountId());
-        assertEquals(5, out.getVersion());
+        assertEquals(BigInteger.valueOf(5), out.getVersion());
     }
 
     @Test
@@ -314,7 +314,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
             new GatewayService.Response<>(HttpStatus.BAD_GATEWAY, new RuntimeException("boom"), "<err/>");
 
         doReturn(errResp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.ADD_ENFORCEMENT),
+            eq(LegacyDefendantAccountEnforcementService.ADD_ENFORCEMENT),
             eq(AddDefendantAccountEnforcementLegacyResponse.class),
             any(),
             Mockito.nullable(String.class)
@@ -569,7 +569,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
                 .reason("late")
                 .warrantNumber("123")
                 .build() : null)
-            .version("1234567890123456789012345678901234567890")
+            .version(new BigInteger("1234567890123456789012345678901234567890"))
             .employerFlag("true")
             .build();
     }
@@ -585,8 +585,8 @@ class LegacyDefendantAccountEnforcementServiceTest {
                 .reason("remove hold reason")
                 .build();
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
@@ -596,8 +596,8 @@ class LegacyDefendantAccountEnforcementServiceTest {
                 .version(new BigInteger("7"))
                 .build();
 
-        RemoveDefendantAccountEnforcementHoldResponse expectedResponse =
-            RemoveDefendantAccountEnforcementHoldResponse.builder()
+        RemoveEnforcementHoldResponseDefendantAccount expectedResponse =
+            RemoveEnforcementHoldResponseDefendantAccount.builder()
                 .defendantAccountId("123")
                 .version(new BigInteger("7"))
                 .build();
@@ -622,7 +622,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
             Mockito.nullable(String.class)
         );
 
-        RemoveDefendantAccountEnforcementHoldResponse out =
+        RemoveEnforcementHoldResponseDefendantAccount out =
             legacyDefendantAccountEnforcementService.removeEnforcementHold(
                 123L,
                 (short) 10,
@@ -669,8 +669,8 @@ class LegacyDefendantAccountEnforcementServiceTest {
                 .reason("remove hold reason")
                 .build();
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
@@ -720,8 +720,8 @@ class LegacyDefendantAccountEnforcementServiceTest {
                 .reason("remove hold reason")
                 .build();
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
@@ -774,8 +774,8 @@ class LegacyDefendantAccountEnforcementServiceTest {
                 .reason("remove hold reason")
                 .build();
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 

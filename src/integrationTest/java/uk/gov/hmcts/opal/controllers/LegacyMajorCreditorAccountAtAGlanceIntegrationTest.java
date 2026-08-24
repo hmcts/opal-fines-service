@@ -39,6 +39,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 class LegacyMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegrationTest {
 
     private static final String AUTH_HEADER = "Bearer some_value";
+    private static final long MAJOR_CREDITOR_ACCOUNT_ID = 99000000000801L;
     private static final String URL = "/major-creditor-accounts/{id}/at-a-glance";
 
     @MockitoBean
@@ -53,7 +54,7 @@ class LegacyMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegra
         when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
 
-        ResultActions resultActions = mockMvc.perform(get(URL, 99000000000800L)
+        ResultActions resultActions = mockMvc.perform(get(URL, MAJOR_CREDITOR_ACCOUNT_ID)
             .accept(MediaType.APPLICATION_JSON)
             .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
 
@@ -64,8 +65,8 @@ class LegacyMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegra
         resultActions
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(header().string(HttpHeaders.ETAG, "\"7\""))
-            .andExpect(jsonPath("$.major_creditor.creditor_account_id").value(99000000000800L))
+            .andExpect(header().string(HttpHeaders.ETAG, OVER_LONG_VERSION_ETAG))
+            .andExpect(jsonPath("$.major_creditor.creditor_account_id").value(MAJOR_CREDITOR_ACCOUNT_ID))
             .andExpect(jsonPath("$.major_creditor.name").value("Major Creditor Test Ltd"))
             .andExpect(jsonPath("$.major_creditor.code").value("MC01"))
             .andExpect(jsonPath("$.major_creditor.address.line_1").value("1 Test Street"))
@@ -85,15 +86,15 @@ class LegacyMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegra
         when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
 
-        ResultActions first = mockMvc.perform(get(URL, 99000000000800L)
+        ResultActions first = mockMvc.perform(get(URL, MAJOR_CREDITOR_ACCOUNT_ID)
             .accept(MediaType.APPLICATION_JSON)
             .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
-        ResultActions second = mockMvc.perform(get(URL, 99000000000800L)
+        ResultActions second = mockMvc.perform(get(URL, MAJOR_CREDITOR_ACCOUNT_ID)
             .accept(MediaType.APPLICATION_JSON)
             .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
 
-        first.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, "\"7\""));
-        second.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, "\"7\""));
+        first.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, OVER_LONG_VERSION_ETAG));
+        second.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, OVER_LONG_VERSION_ETAG));
         assertThat(second.andReturn().getResponse().getContentAsString())
             .isEqualTo(first.andReturn().getResponse().getContentAsString());
     }
@@ -106,7 +107,7 @@ class LegacyMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegra
     void getAtAGlance_withoutPermissionReturns403() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(noPermissionsUser());
 
-        mockMvc.perform(get(URL, 99000000000800L)
+        mockMvc.perform(get(URL, MAJOR_CREDITOR_ACCOUNT_ID)
                 .accept(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
             .andExpect(status().isForbidden())
@@ -122,11 +123,11 @@ class LegacyMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegra
         when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
 
-        mockMvc.perform(get(URL, 99000000000800L)
+        mockMvc.perform(get(URL, MAJOR_CREDITOR_ACCOUNT_ID)
                 .accept(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
             .andExpect(status().isOk())
-            .andExpect(header().string(HttpHeaders.ETAG, "\"7\""));
+            .andExpect(header().string(HttpHeaders.ETAG, OVER_LONG_VERSION_ETAG));
     }
 
     @Test
@@ -138,7 +139,7 @@ class LegacyMajorCreditorAccountAtAGlanceIntegrationTest extends AbstractIntegra
         doThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized"))
             .when(userStateService).getUserStateV1FromSecurityContext();
 
-        mockMvc.perform(get(URL, 99000000000800L).accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get(URL, MAJOR_CREDITOR_ACCOUNT_ID).accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isUnauthorized())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.detail").value("Unauthorized"));

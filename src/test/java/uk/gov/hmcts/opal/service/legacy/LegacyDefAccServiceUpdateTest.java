@@ -48,7 +48,7 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
             .defendantAccountId(String.valueOf(defendantAccountId))
             .businessUnitId(businessUnitId)
             .businessUnitUserId(postedBy)
-            .version(3)
+            .version(BigInteger.valueOf(3))
             .build();
 
         when(updateDefendantAccountRequestMapper.toLegacyUpdateDefendantAccountRequest(request))
@@ -120,7 +120,7 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
         );
 
         verify(gatewayService).postToGateway(
-            eq("LIBRA.patchDefendantAccount"),
+            eq(LegacyDefendantAccountService.PATCH_DEFENDANT_ACCOUNT),
             eq(LegacyUpdateDefendantAccountResponse.class),
             any(LegacyUpdateDefendantAccountRequest.class),
             isNull()

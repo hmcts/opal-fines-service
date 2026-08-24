@@ -246,10 +246,12 @@ openApiGenerate {
   modelPackage = "uk.gov.hmcts.opal.generated.".toString() + "model"
   importMappings = [
     Nullable: "org.jspecify.annotations.Nullable",
-    Short: "java.lang.Short"
+    Short: "java.lang.Short",
+    BigInteger: "java.math.BigInteger"
   ]
   typeMappings = [
-    "integer+int16": "short"
+    "integer+int16": "short",
+    "integer+bigint": "BigInteger"
   ]
   // Point to your customized mustache templates
   templateDir = "$rootDir/openapi/templates".toString()

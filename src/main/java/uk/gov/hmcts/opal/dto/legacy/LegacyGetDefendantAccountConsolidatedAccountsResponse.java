@@ -6,6 +6,7 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlElementWrapper;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import java.math.BigInteger;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,7 +23,7 @@ public class LegacyGetDefendantAccountConsolidatedAccountsResponse {
 
     @JsonProperty("version")
     @XmlElement(name = "version")
-    private Long version;
+    private BigInteger version;
 
     @JsonProperty("consolidated_accounts")
     @XmlElementWrapper(name = "consolidatedAccounts")

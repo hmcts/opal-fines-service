@@ -45,8 +45,8 @@ public class OpalDefendantEnforcementIntegrationTest extends DefendantEnforcemen
     @Test
     @JiraStory("PO-5757")
     @JiraEpic("PO-2990")
-    public void testAddEnforcement_whenPaymentTermsOmitted_returnsBadRequest() throws Exception {
-        super.postEnforcementImpl_whenPaymentTermsIsOmitted_returnsBadRequest();
+    public void testAddEnforcement_whenPaymentTermsOmitted_passesValidation() throws Exception {
+        super.postEnforcementImpl_whenPaymentTermsIsOmitted_passesValidation();
     }
 
     @Test

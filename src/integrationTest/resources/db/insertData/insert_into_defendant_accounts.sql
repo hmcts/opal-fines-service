@@ -13,6 +13,7 @@
 * 18/03/2026  TMc      2.0      PO-2850 Amended insert statement for DOCUMENTS. Updated value (0) for PRIORITY column, now an ENUM, to '0'
 * 02/04/2026  Shan     3.0      PO-1897 Added additional seed data for PO-1897.
 * 07/05/2026  Shan     3.1      PO-1896 Seed a dedicated defendant account for DefendantPartyPostIntegrationTest.
+* 10/08/2026  TMc      4.0      PO-6322 Included values for business_units.business_unit_code as it is now a NOT NULL field.
 **/
 
 -- Make sure we’re operating in the expected schema
@@ -456,9 +457,11 @@ VALUES
 -- Dummy business unit to satisfy FK constraint but trigger Hibernate fallback
 INSERT INTO business_units (business_unit_id,
                             business_unit_name,
+                            business_unit_code,
                             business_unit_type)
 VALUES (9999,
         '', -- Empty name to simulate "missing"
+        '', -- Empty code to simulate "missing"
         'Area' -- Valid type (must match enum/expected values)
        );
 

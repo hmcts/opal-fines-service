@@ -12,8 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
@@ -34,6 +32,8 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.dto.legacy.ResultResponsesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountEnforcementServiceInterface;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyRemoveDefendantEnforcementHoldMapper;
@@ -44,9 +44,9 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 @Slf4j(topic = "opal.LegacyDefendantAccountEnforcementService")
 public class LegacyDefendantAccountEnforcementService implements DefendantAccountEnforcementServiceInterface {
 
-    public static final String ADD_ENFORCEMENT = "LIBRA.addEnforcement";
-    public static final String GET_ENFORCEMENT_STATUS = "LIBRA.of_get_defendant_account_enf_status";
-    public static final String REMOVE_ENFORCEMENT_HOLD = "LIBRA.of_remove_defendant_account_enf_hold";
+    public static final String ADD_ENFORCEMENT = "addDefendantAccountEnforcement";
+    public static final String GET_ENFORCEMENT_STATUS = "getDefendantAccountEnforcementStatus";
+    public static final String REMOVE_ENFORCEMENT_HOLD = "removeDefendantAccountEnforcementHold";
 
     private final GatewayService gatewayService;
     private final CourtService courtService;
@@ -73,7 +73,7 @@ public class LegacyDefendantAccountEnforcementService implements DefendantAccoun
                 .defendantAccountId(String.valueOf(defendantAccountId))
                 .businessUnitId(String.valueOf(businessUnitId))
                 .businessUnitUserId(businessUnitUserId)
-                .version(VersionUtils.extractBigInteger(ifMatch).intValue())
+                .version(VersionUtils.extractBigInteger(ifMatch))
                 .resultId(request != null && request.getResultId() != null ? request.getResultId().getValue() : null)
                 .enforcementResultResponses(
                     mapResultResponses(request != null ? request.getEnforcementResultResponses() : null))
@@ -105,12 +105,12 @@ public class LegacyDefendantAccountEnforcementService implements DefendantAccoun
     }
 
     @Override
-    public RemoveDefendantAccountEnforcementHoldResponse removeEnforcementHold(
+    public RemoveEnforcementHoldResponseDefendantAccount removeEnforcementHold(
         Long defendantAccountId,
         Short businessUnitId,
         String businessUnitUserId,
         String ifMatch,
-        RemoveDefendantAccountEnforcementHoldRequest request) {
+        RemoveEnforcementHoldRequestDefendantAccount request) {
 
         LegacyRemoveDefendantAccountEnforcementHoldRequest legacyRequest =
             removeEnforcementHoldMapper.toLegacyRequest(
