@@ -27,6 +27,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.mapper.DefendantAccountPaymentTermsMapper;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPaymentTermsServiceInterface;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
@@ -40,6 +41,8 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
     public static final String ADD_PAYMENT_CARD_REQUEST = "LIBRA.of_add_defendant_account_pcr";
 
     private final GatewayService gatewayService;
+
+    private final DefendantAccountPaymentTermsMapper defendantAccountPaymentTermsMapper;
 
     @Override
     public DefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
@@ -61,7 +64,7 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
             log.info(":getPaymentTerms: Legacy Gateway response: Success.");
         }
 
-        return toPaymentTermsResponse(response.responseEntity);
+        return defendantAccountPaymentTermsMapper.toResponse(response.responseEntity);
     }
 
     @Override
