@@ -94,6 +94,166 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 
+  /defendant-accounts/{defendantAccountId}/defendant-account-parties/{defendantAccountPartyId}:
+    get:
+      tags:
+        - Defendant Account
+      summary: Get Defendant Account Party
+      description: Returns the details of a party associated with a defendant account.
+      operationId: getDefendantAccountParty
+      security:
+        - permissions:
+            - Search and View Accounts (in at least one business unit)
+      parameters:
+        - in: path
+          name: defendantAccountId
+          description: DB Mapping - defendant_accounts.defendant_account_id
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: path
+          name: defendantAccountPartyId
+          description: DB Mapping - defendant_account_parties.defendant_account_party_id
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyResponse'
+        '400':
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+    put:
+      tags:
+        - Defendant Account
+      summary: Replace Defendant Account Party
+      operationId: replaceDefendantAccountParty
+      security:
+        - permissions:
+            - Amend Account (in the business unit supplied in Business-Unit-Id)
+      parameters:
+        - in: path
+          name: defendantAccountId
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: path
+          name: defendantAccountPartyId
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: header
+          name: Business-Unit-Id
+          required: true
+          schema:
+            $ref: './types.yaml#/components/schemas/BusinessUnitId'
+        - in: header
+          name: If-Match
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Party'
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyResponse'
+  /defendant-accounts/{defendantAccountId}/defendant-account-parties:
+    post:
+      tags:
+        - Defendant Account
+      summary: Add Defendant Account Party
+      operationId: addDefendantAccountParty
+      security:
+        - permissions:
+            - Amend Account (in the business unit supplied in Business-Unit-Id)
+      parameters:
+        - in: path
+          name: defendantAccountId
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: header
+          name: Business-Unit-Id
+          required: true
+          schema:
+            $ref: './types.yaml#/components/schemas/BusinessUnitId'
+        - in: header
+          name: If-Match
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddPartyRequest'
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyResponse'
   /defendant-accounts/{id}/enforcement-status:
     get:
       tags:
@@ -1198,6 +1358,118 @@ components:
       properties:
         defendant_account_id:
           type: string
+    PartyResponse:
+      title: Get Defendant Account Party Response
+      type: object
+      additionalProperties: false
+      x-json-include: NON_NULL
+      x-versioned: true
+      x-implements:
+        - uk.gov.hmcts.opal.util.Versioned
+      required:
+        - defendant_account_party
+      properties:
+        defendant_account_party:
+          $ref: '#/components/schemas/Party'
+    AddPartyRequest:
+      title: Add Defendant Account Party Request
+      type: object
+      additionalProperties: false
+      required:
+        - defendant_account_party
+      properties:
+        defendant_account_party:
+          $ref: '#/components/schemas/Party'
+    Party:
+      title: Defendant Account Party
+      type: object
+      additionalProperties: false
+      required:
+        - defendant_account_party_type
+        - is_debtor
+        - party_details
+        - address
+        - contact_details
+        - vehicle_details
+        - employer_details
+        - language_preferences
+      properties:
+        defendant_account_party_type:
+          type: string
+          enum:
+            - Defendant
+            - Parent/Guardian
+        is_debtor:
+          type: boolean
+        party_details:
+          $ref: './CommonStrict.yaml#/components/schemas/partyDetails'
+        address:
+          $ref: './CommonStrict.yaml#/components/schemas/addressDetails'
+        contact_details:
+          $ref: '#/components/schemas/PartyContactDetails'
+        vehicle_details:
+          $ref: '#/components/schemas/PartyVehicleDetails'
+        employer_details:
+          $ref: '#/components/schemas/PartyEmployerDetails'
+        language_preferences:
+          $ref: './CommonStrict.yaml#/components/schemas/languagePreferences'
+    PartyContactDetails:
+      title: Contact Details
+      type: [object, 'null']
+      additionalProperties: false
+      required:
+        - primary_email_address
+        - secondary_email_address
+        - mobile_telephone_number
+        - home_telephone_number
+        - work_telephone_number
+      properties:
+        primary_email_address:
+          type: [string, 'null']
+          format: email
+        secondary_email_address:
+          type: [string, 'null']
+          format: email
+        mobile_telephone_number:
+          type: [string, 'null']
+        home_telephone_number:
+          type: [string, 'null']
+        work_telephone_number:
+          type: [string, 'null']
+    PartyVehicleDetails:
+      title: Vehicle Details
+      type: [object, 'null']
+      additionalProperties: false
+      required:
+        - vehicle_make_and_model
+        - vehicle_registration
+      properties:
+        vehicle_make_and_model:
+          type: [string, 'null']
+        vehicle_registration:
+          type: [string, 'null']
+    PartyEmployerDetails:
+      title: Employer Details
+      type: [object, 'null']
+      additionalProperties: false
+      required:
+        - employer_name
+        - employer_reference
+        - employer_email_address
+        - employer_telephone_number
+        - employer_address
+      properties:
+        employer_name:
+          type: [string, 'null']
+        employer_reference:
+          type: [string, 'null']
+        employer_email_address:
+          type: [string, 'null']
+          format: email
+        employer_telephone_number:
+          type: [string, 'null']
+        employer_address:
+          $ref: './CommonStrict.yaml#/components/schemas/addressDetails'
     atAGlanceResponse:
       title: Defendant Account At A Glance Response
       type: object

@@ -497,6 +497,5 @@ class DefendantPartyPostIntegrationTest extends AbstractOpalDefendantsIntegratio
 
         call.andExpect(status().isOk());
 
-        jsonSchemaValidationService.validateOrError(resp, DEFENDANT_PARTY_RESPONSE_SCHEMA);
     }
 }

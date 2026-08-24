@@ -12,11 +12,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
-import uk.gov.hmcts.opal.dto.common.IndividualAlias;
-import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
+import org.mapstruct.factory.Mappers;
+import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PartyDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.IndividualAliasCommonStrict;
+import uk.gov.hmcts.opal.mapper.response.DefendantAccountPartyEntityResponseMapper;
 import uk.gov.hmcts.opal.entity.AliasEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
@@ -30,6 +32,10 @@ import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 
 @ExtendWith(MockitoExtension.class)
 class OpalDefendantAccountServiceTest05 {
+
+    @Spy
+    private DefendantAccountPartyEntityResponseMapper defendantAccountPartyEntityResponseMapper =
+        Mappers.getMapper(DefendantAccountPartyEntityResponseMapper.class);
 
     @Mock
     private DefendantAccountRepositoryService defendantAccountRepositoryService;
@@ -89,29 +95,32 @@ class OpalDefendantAccountServiceTest05 {
         when(debtorRepoService.findByPartyId(10L)).thenReturn(Optional.empty());
 
         // --- Act
-        GetDefendantAccountPartyResponse resp = service.getDefendantAccountParty(1L, 100L);
+        PartyResponseDefendantAccount resp = service.getDefendantAccountParty(1L, 100L);
 
         assertNotNull(resp);
-        DefendantAccountParty partyDto = resp.getDefendantAccountParty();
+        PartyDefendantAccount partyDto = resp.getDefendantAccountParty();
         assertNotNull(partyDto.getPartyDetails().getIndividualDetails());
-        List<IndividualAlias> indAliases = partyDto.getPartyDetails().getIndividualDetails().getIndividualAliases();
+        List<IndividualAliasCommonStrict> indAliases = partyDto.getPartyDetails().getIndividualDetails().get()
+            .getIndividualAliases().get();
         assertNotNull(indAliases);
         assertEquals(2, indAliases.size(), "should include only valid surname-bearing aliases");
 
         assertEquals("201", indAliases.get(0).getAliasId());
         assertEquals(Integer.valueOf(1), indAliases.get(0).getSequenceNumber());
-        assertEquals("Bob", indAliases.get(0).getForenames());
+        assertEquals("Bob", indAliases.get(0).getForenames().get());
         assertEquals("Jones", indAliases.get(0).getSurname());
 
         assertEquals("200", indAliases.get(1).getAliasId());
         assertEquals(Integer.valueOf(2), indAliases.get(1).getSequenceNumber());
-        assertEquals("Alice", indAliases.get(1).getForenames());
+        assertEquals("Alice", indAliases.get(1).getForenames().get());
         assertEquals("Smith", indAliases.get(1).getSurname());
 
         // Organisation aliases must be null/empty for an individual party
-        OrganisationDetails orgAliases = partyDto.getPartyDetails().getOrganisationDetails();
-        if (orgAliases != null) {
-            assertTrue(orgAliases.getOrganisationAliases() == null || orgAliases.getOrganisationAliases().isEmpty());
+        var organisationDetails = partyDto.getPartyDetails().getOrganisationDetails();
+        if (organisationDetails.isPresent() && organisationDetails.get() != null) {
+            var organisationAliases = organisationDetails.get().getOrganisationAliases();
+            assertTrue(!organisationAliases.isPresent() || organisationAliases.get() == null
+                || organisationAliases.get().isEmpty());
         }
     }
 
@@ -166,9 +175,9 @@ class OpalDefendantAccountServiceTest05 {
         var partyDto = resp.getDefendantAccountParty();
         assertTrue(partyDto.getPartyDetails().getOrganisationFlag());
 
-        var orgDetails = partyDto.getPartyDetails().getOrganisationDetails();
+        var orgDetails = partyDto.getPartyDetails().getOrganisationDetails().get();
         assertNotNull(orgDetails);
-        var orgAliases = orgDetails.getOrganisationAliases();
+        var orgAliases = orgDetails.getOrganisationAliases().get();
         assertNotNull(orgAliases);
         assertEquals(2, orgAliases.size());
 
@@ -183,8 +192,10 @@ class OpalDefendantAccountServiceTest05 {
 
         // Individual aliases must be null/empty for an organisation party
         var indDetails = partyDto.getPartyDetails().getIndividualDetails();
-        if (indDetails != null) {
-            assertTrue(indDetails.getIndividualAliases() == null || indDetails.getIndividualAliases().isEmpty());
+        if (indDetails.isPresent() && indDetails.get() != null) {
+            var individualAliases = indDetails.get().getIndividualAliases();
+            assertTrue(!individualAliases.isPresent() || individualAliases.get() == null
+                || individualAliases.get().isEmpty());
         }
     }
 
@@ -232,14 +243,16 @@ class OpalDefendantAccountServiceTest05 {
         var resp = service.getDefendantAccountParty(1L, 100L);
 
         assertNotNull(resp);
-        var ind = resp.getDefendantAccountParty().getPartyDetails().getIndividualDetails();
+        var ind = resp.getDefendantAccountParty().getPartyDetails().getIndividualDetails().get();
         assertNotNull(ind, "individual details should be present for an individual party");
-        assertNull(ind.getIndividualAliases(), "no valid individual aliases → should be null");
+        assertNull(ind.getIndividualAliases().get(), "no valid individual aliases → should be null");
 
         // also ensure org details/aliases are absent or empty
         var org = resp.getDefendantAccountParty().getPartyDetails().getOrganisationDetails();
-        if (org != null) {
-            assertTrue(org.getOrganisationAliases() == null || org.getOrganisationAliases().isEmpty());
+        if (org.isPresent() && org.get() != null) {
+            var organisationAliases = org.get().getOrganisationAliases();
+            assertTrue(!organisationAliases.isPresent() || organisationAliases.get() == null
+                || organisationAliases.get().isEmpty());
         }
     }
 
@@ -277,14 +290,16 @@ class OpalDefendantAccountServiceTest05 {
         var resp = service.getDefendantAccountParty(2L, 200L);
 
         assertNotNull(resp);
-        var org = resp.getDefendantAccountParty().getPartyDetails().getOrganisationDetails();
+        var org = resp.getDefendantAccountParty().getPartyDetails().getOrganisationDetails().get();
         assertNotNull(org, "organisation details should be present for an organisation party");
-        assertNull(org.getOrganisationAliases(), "no valid organisation aliases → should be null");
+        assertNull(org.getOrganisationAliases().get(), "no valid organisation aliases → should be null");
 
         // also ensure individual alias list is absent/empty
         var ind = resp.getDefendantAccountParty().getPartyDetails().getIndividualDetails();
-        if (ind != null) {
-            assertTrue(ind.getIndividualAliases() == null || ind.getIndividualAliases().isEmpty());
+        if (ind.isPresent() && ind.get() != null) {
+            var individualAliases = ind.get().getIndividualAliases();
+            assertTrue(!individualAliases.isPresent() || individualAliases.get() == null
+                || individualAliases.get().isEmpty());
         }
     }
 

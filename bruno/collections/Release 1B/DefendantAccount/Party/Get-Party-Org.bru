@@ -1,23 +1,13 @@
 meta {
-  name: Remove-Party
+  name: Get-Party-Org
   type: http
-  seq: 7
+  seq: 4
 }
 
-delete {
+get {
   url: {{baseURL}}/defendant-accounts/{{defendantAccount_idOrg}}/defendant-account-parties/{{defendantAccount_party_idOrg}}
-  body: json
+  body: none
   auth: inherit
-}
-
-headers {
-  Business-Unit-Id: 77
-}
-
-body:json {
-  {
-    "defendant_account_party_id": "{{defendantAccount_party_idOrg}}"
-  }
 }
 
 settings {
