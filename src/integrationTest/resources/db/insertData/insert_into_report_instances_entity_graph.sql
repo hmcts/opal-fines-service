@@ -6,8 +6,9 @@
 * VERSION HISTORY:
 *
 * Date        Author    Version  Nature of Change
-* ----------  --------  -------  -----------------------------------------------------------------------------------------
+* ----------  --------  -------  -------------------------------------------------------------------------------------------
 * 11/05/2026  A REEVES  1.0      PO-2254 insert data to test report-instances API GET endpoint
+* 10/08/2026  TMc       2.0      PO-6322 Included values for business_units.business_unit_code as it is now a NOT NULL field.
 **/
 INSERT INTO reports (
     report_id,
@@ -66,16 +67,19 @@ INSERT INTO reports (
 INSERT INTO business_units (
     business_unit_id,
     business_unit_name,
+    business_unit_code,
     business_unit_type,
     welsh_language
 ) VALUES (
           1,
           'BU no1',
+          'BU1',
           'Accounting Division',
           false
          ),(
           2,
           'BU no2 - Welsh',
+          'BU2',
           'Accounting Division',
           true
 );

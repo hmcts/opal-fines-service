@@ -17,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -168,7 +169,7 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
         )).thenReturn(new GatewayService.Response<>(
             HttpStatus.OK,
             LegacyGetDefendantAccountConsolidatedAccountsResponse.builder()
-                .version(2L)
+                .version(BigInteger.valueOf(2L))
                 .consolidatedAccounts(List.of())
                 .build(),
             null,
@@ -290,7 +291,7 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
 
     private LegacyGetDefendantAccountConsolidatedAccountsResponse legacyResponse() {
         return LegacyGetDefendantAccountConsolidatedAccountsResponse.builder()
-            .version(9L)
+            .version(BigInteger.valueOf(9L))
             .consolidatedAccounts(List.of(
                 legacyAccount(233302L, "233302C"),
                 legacyAccount(233301L, "233301C")

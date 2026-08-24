@@ -73,7 +73,7 @@ class UpdateMinorCreditorAccountRequestMapperTest {
         assertEquals("607", mapped.getCreditorAccountId());
         assertEquals("10", mapped.getBusinessUnitId());
         assertEquals("USER01", mapped.getBusinessUnitUserId());
-        assertEquals(1, mapped.getAccountVersion());
+        assertEquals(BigInteger.ONE, mapped.getAccountVersion());
 
         assertNotNull(mapped.getPartyDetails());
         assertEquals("99008", mapped.getPartyDetails().getPartyId());
@@ -149,9 +149,6 @@ class UpdateMinorCreditorAccountRequestMapperTest {
     void mapperConverters_handleNullAndNonNullValues() {
         assertEquals("10", mapper.numberToString(10));
         assertNull(mapper.numberToString(null));
-
-        assertEquals(2, mapper.bigIntegerToInteger(BigInteger.TWO));
-        assertNull(mapper.bigIntegerToInteger(null));
 
         assertEquals((short) 3, mapper.integerToShort(3));
         assertNull(mapper.integerToShort(null));

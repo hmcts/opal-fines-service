@@ -22,6 +22,8 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Sql(scripts = "classpath:db/deleteData/delete_from_minor_creditors.sql", executionPhase = AFTER_TEST_METHOD)
 public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerIntegrationTest {
 
+    private static final Long LEGACY_MINOR_CREDITOR_ACCOUNT_ID = 99000000000802L;
+
     @Test
     @JiraStory("PO-1902")
     @JiraEpic("PO-704")
@@ -148,5 +150,20 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
     @JiraTestKey("PO-7601")
     void patchMinorCreditor_missingPayload_returns400() throws Exception {
         super.patchMinorCreditor_missingPayload_returns400();
+    }
+
+    @Override
+    protected Long minorCreditorHeaderSummaryAccountId() {
+        return LEGACY_MINOR_CREDITOR_ACCOUNT_ID;
+    }
+
+    @Override
+    protected Long minorCreditorAccountId() {
+        return LEGACY_MINOR_CREDITOR_ACCOUNT_ID;
+    }
+
+    @Override
+    protected String minorCreditorVersionEtag() {
+        return OVER_LONG_VERSION_ETAG;
     }
 }

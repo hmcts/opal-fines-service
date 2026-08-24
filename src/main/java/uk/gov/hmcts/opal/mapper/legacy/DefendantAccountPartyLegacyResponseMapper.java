@@ -1,11 +1,9 @@
 package uk.gov.hmcts.opal.mapper.legacy;
 
-import java.math.BigInteger;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
-import org.mapstruct.Named;
 import org.mapstruct.NullValueMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
@@ -32,7 +30,7 @@ public interface DefendantAccountPartyLegacyResponseMapper {
     // Mappings are mostly implicit but retained here to guard against method name changes.
     @BeanMapping(nullValueMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT)
     @Mappings({
-        @Mapping(target = "version", source = "version", qualifiedByName = "intToBigInteger"),
+        @Mapping(target = "version", source = "version"),
         @Mapping(target = "defendantAccountParty", source = "defendantAccountParty")
     })
     GetDefendantAccountPartyResponse toDefendantAccountPartyResponse(
@@ -74,8 +72,4 @@ public interface DefendantAccountPartyLegacyResponseMapper {
         return LanguagePreference.fromCode(legacyPreference.getLanguageCode());
     }
 
-    @Named("intToBigInteger")
-    default BigInteger intToBigInteger(Integer value) {
-        return value == null ? null : BigInteger.valueOf(value.longValue());
-    }
 }

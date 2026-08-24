@@ -67,7 +67,7 @@ class LegacyDefendantAccountHistoryIntegrationTest extends AbstractLegacyDefenda
         resultActions
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(header().string(HttpHeaders.ETAG, "\"7\""))
+            .andExpect(header().string(HttpHeaders.ETAG, OVER_LONG_VERSION_ETAG))
             .andExpect(jsonPath("$.historyItems[0].type").value("Note"))
             .andExpect(jsonPath("$.historyItems[0].details.noteText").value("Legacy account note"))
             .andExpect(jsonPath("$.historyItems[1].type").value("Financial"))

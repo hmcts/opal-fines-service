@@ -54,9 +54,9 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.Note;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
@@ -678,8 +678,8 @@ class OpalDefendantAccountEnforcementServiceTest {
         String ifMatch = "\"7\"";
         String updatedIfMatch = "\"7\"";
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
@@ -708,7 +708,7 @@ class OpalDefendantAccountEnforcementServiceTest {
             versionUtils.when(() -> VersionUtils.createETag(defendantEntity)).thenReturn(updatedIfMatch);
 
             // act
-            RemoveDefendantAccountEnforcementHoldResponse result =
+            RemoveEnforcementHoldResponseDefendantAccount result =
                 service.removeEnforcementHold(
                     defendantAccountId,
                     businessUnitId,
@@ -771,8 +771,8 @@ class OpalDefendantAccountEnforcementServiceTest {
         Short businessUnitId = 10;
         String businessUnitUserId = "BU-USER-1";
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
@@ -817,8 +817,8 @@ class OpalDefendantAccountEnforcementServiceTest {
         String businessUnitUserId = "BU-USER-1";
         String ifMatch = "\"7\"";
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
@@ -869,8 +869,8 @@ class OpalDefendantAccountEnforcementServiceTest {
         String businessUnitUserId = "BU-USER-1";
         String ifMatch = "\"7\"";
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
@@ -924,8 +924,8 @@ class OpalDefendantAccountEnforcementServiceTest {
         String businessUnitUserId = "BU-USER-1";
         String ifMatch = "\"7\"";
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
@@ -1025,7 +1025,7 @@ class OpalDefendantAccountEnforcementServiceTest {
 
     private void assertCommonResponse(AddEnforcementResponseDefendantAccount response) {
         assertEquals(String.valueOf(DEFENDANT_ACCOUNT_ID), response.getDefendantAccountId());
-        assertEquals(0, response.getVersion());
+        assertEquals(BigInteger.ZERO, response.getVersion());
         assertEquals(String.valueOf(ENFORCEMENT_ID), response.getEnforcementId());
         verify(defendantAccountRepositoryService).refresh(ArgumentMatchers.any(DefendantAccountEntity.class));
     }
