@@ -159,6 +159,22 @@ class JsonSchemaValidationServiceTest {
     }
 
     @Test
+    void testRefDataUpdateMessageSchema_withLocalJusticeAreaPayload_shouldPass() {
+        String validJson = """
+            {
+              "refDataType": "LOCAL_JUSTICE_AREA",
+              "payload": {
+                "ljaCode": "Z123",
+                "name": "Test LJA",
+                "addressLine1": "1 High Street"
+              }
+            }
+            """;
+
+        assertTrue(jsonSchemaValidationService.isValid(validJson, "ref-data/RefDataUpdateMessage.json"));
+    }
+
+    @Test
     void testIsValid_invalidDateTimeAndEmail_shouldFail() {
         String invalidJson = """
         {

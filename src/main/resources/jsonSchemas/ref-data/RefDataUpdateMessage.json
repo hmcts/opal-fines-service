@@ -1,6 +1,5 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "javaType": "uk.gov.hmcts.opal.generated.refdata.RefDataUpdateMessage",
   "title": "Ref Data Update Message",
   "type": "object",
   "additionalProperties": false,
@@ -10,8 +9,8 @@
       "description": "Identifier for the ref data handler that should process this message"
     },
     "payload": {
-      "existingJavaType": "tools.jackson.databind.JsonNode",
-      "description": "The ref data payload for the current supported message type"
+      "description": "The ref data payload for the current supported message type",
+      "$ref": "resource:/jsonSchemas/ref-data/LocalJusticeAreaUpdateDto.json"
     }
   },
   "required": ["refDataType", "payload"],
@@ -22,76 +21,11 @@
           "const": "LOCAL_JUSTICE_AREA"
         },
         "payload": {
-          "$ref": "#/$defs/LocalJusticeAreaUpdateDto"
+          "$ref": "resource:/jsonSchemas/ref-data/LocalJusticeAreaUpdateDto.json"
         }
       },
       "required": ["refDataType", "payload"],
       "additionalProperties": false
     }
-  ],
-  "$defs": {
-    "LocalJusticeAreaUpdateDto": {
-      "javaType": "uk.gov.hmcts.opal.generated.refdata.LocalJusticeAreaUpdateDto",
-      "title": "Local Justice Area Update DTO",
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "ljaCode": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 4,
-          "description": "Business code for the local justice area"
-        },
-        "name": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 35,
-          "description": "Name of the local justice area"
-        },
-        "addressLine1": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 35,
-          "description": "First line of the address"
-        },
-        "addressLine2": {
-          "type": ["string", "null"],
-          "maxLength": 35,
-          "description": "Second line of the address"
-        },
-        "addressLine3": {
-          "type": ["string", "null"],
-          "maxLength": 35,
-          "description": "Third line of the address"
-        },
-        "addressLine4": {
-          "type": ["string", "null"],
-          "maxLength": 35,
-          "description": "Fourth line of the address"
-        },
-        "addressLine5": {
-          "type": ["string", "null"],
-          "maxLength": 35,
-          "description": "Fifth line of the address"
-        },
-        "postcode": {
-          "type": ["string", "null"],
-          "maxLength": 8,
-          "description": "Postcode of the local justice area"
-        },
-        "endDate": {
-          "type": ["string", "null"],
-          "format": "date-time",
-          "description": "Date from which the LJA is no longer active"
-        },
-        "ljaType": {
-          "type": ["string", "null"],
-          "enum": ["LJA", "CRWCRT", "SJCRT", "NICRT", "SCSCRT"],
-          "existingJavaType": "uk.gov.hmcts.opal.entity.LocalJusticeAreaType",
-          "description": "Type of the local justice area"
-        }
-      },
-      "required": ["ljaCode", "name", "addressLine1"]
-    }
-  }
+  ]
 }
