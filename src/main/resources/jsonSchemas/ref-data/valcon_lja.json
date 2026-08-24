@@ -1,0 +1,267 @@
+{
+  "type": "object",
+  "properties": {
+    "header": {
+      "type": "object",
+      "properties": {
+        "messageId": {
+          "type": "string",
+          "examples": [
+            "437dacf6-511c-4e93-95f3-23e82b12e735"
+          ]
+        },
+        "messageType": {
+          "type": "string",
+          "examples": [
+            "ReferenceData"
+          ]
+        },
+        "dataProduct": {
+          "type": "string",
+          "examples": [
+            "LJA"
+          ]
+        },
+        "operation": {
+          "type": "string",
+          "examples": [
+            "PUBLISH"
+          ]
+        },
+        "sourceSystem": {
+          "type": "string",
+          "examples": [
+            "Semarchy"
+          ]
+        },
+        "createdDateTime": {
+          "type": "string",
+          "examples": [
+            "2026-08-13T08:28:56.935738+00:00"
+          ],
+          "format": "date-time"
+        },
+        "ReleasePackageId": {
+          "type": "integer",
+          "examples": [
+            202
+          ]
+        },
+        "recordCount": {
+          "type": "integer",
+          "examples": [
+            1
+          ]
+        }
+      },
+      "required": [
+        "messageId",
+        "messageType",
+        "dataProduct",
+        "operation",
+        "sourceSystem",
+        "createdDateTime",
+        "ReleasePackageId",
+        "recordCount"
+      ]
+    },
+    "payload": {
+      "type": "object",
+      "properties": {
+        "records": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "LJACode": {
+                "type": "string",
+                "examples": [
+                  "17hg"
+                ]
+              },
+              "LJAName": {
+                "type": "string",
+                "examples": [
+                  "LocalJusticeCourt-UB2007Test"
+                ]
+              },
+              "EndDate": {
+                "type": "string",
+                "examples": [
+                  "2026-07-24"
+                ],
+                "format": "date"
+              },
+              "CourtWelshName": {
+                "type": "null"
+              },
+              "CourtLocationCode": {
+                "type": "null"
+              },
+              "StartDate": {
+                "type": "string",
+                "examples": [
+                  "2026-07-21"
+                ],
+                "format": "date"
+              },
+              "EnforcementCode": {
+                "type": "null"
+              },
+              "ClusterCode": {
+                "type": "null"
+              },
+              "DivisionCode": {
+                "type": "null"
+              },
+              "DefaultStartTime": {
+                "type": "null"
+              },
+              "DefaultDuration": {
+                "type": "null"
+              },
+              "CommonPlatformUUID": {
+                "type": "string",
+                "examples": [
+                  "13tdh"
+                ]
+              },
+              "Notes": {
+                "type": "null"
+              },
+              "CourtHearingOperationAreaIndicator": {
+                "type": "boolean",
+                "examples": [
+                  false
+                ]
+              },
+              "CrownCourtIndicator": {
+                "type": "boolean",
+                "examples": [
+                  false
+                ]
+              },
+              "NorthernIrelandCourtIndicator": {
+                "type": "boolean",
+                "examples": [
+                  false
+                ]
+              },
+              "MagistratesCourtIndicator": {
+                "type": "boolean",
+                "examples": [
+                  true
+                ]
+              },
+              "ScottishDistrictCourtIndicator": {
+                "type": "boolean",
+                "examples": [
+                  false
+                ]
+              },
+              "ScottishSheriffCourtIndicator": {
+                "type": "boolean",
+                "examples": [
+                  false
+                ]
+              },
+              "ScottishJusticeOfPeaceCourtIndicator": {
+                "type": "boolean",
+                "examples": [
+                  false
+                ]
+              },
+              "YouthCourtIndicator": {
+                "type": "boolean",
+                "examples": [
+                  false
+                ]
+              },
+              "Addresses": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "AddressType": {
+                      "type": "string",
+                      "examples": [
+                        "Test Address"
+                      ]
+                    },
+                    "AddressLine1": {
+                      "type": "string",
+                      "examples": [
+                        "Flat 10"
+                      ]
+                    },
+                    "AddressLine2": {
+                      "type": "string",
+                      "examples": [
+                        "198 Barking Road"
+                      ]
+                    },
+                    "AddressLine3": {
+                      "type": "string",
+                      "examples": [
+                        "Newham"
+                      ]
+                    },
+                    "AddressLine4": {
+                      "type": "null"
+                    },
+                    "Postcode": {
+                      "type": "string",
+                      "examples": [
+                        "E16 4EN"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "AddressType",
+                    "AddressLine1",
+                    "AddressLine2",
+                    "AddressLine3",
+                    "AddressLine4",
+                    "Postcode"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "LJACode",
+              "LJAName",
+              "EndDate",
+              "CourtWelshName",
+              "CourtLocationCode",
+              "StartDate",
+              "EnforcementCode",
+              "ClusterCode",
+              "DivisionCode",
+              "DefaultStartTime",
+              "DefaultDuration",
+              "CommonPlatformUUID",
+              "Notes",
+              "CourtHearingOperationAreaIndicator",
+              "CrownCourtIndicator",
+              "NorthernIrelandCourtIndicator",
+              "MagistratesCourtIndicator",
+              "ScottishDistrictCourtIndicator",
+              "ScottishSheriffCourtIndicator",
+              "ScottishJusticeOfPeaceCourtIndicator",
+              "YouthCourtIndicator",
+              "Addresses"
+            ]
+          }
+        }
+      },
+      "required": [
+        "records"
+      ]
+    }
+  },
+  "required": [
+    "header",
+    "payload"
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}
