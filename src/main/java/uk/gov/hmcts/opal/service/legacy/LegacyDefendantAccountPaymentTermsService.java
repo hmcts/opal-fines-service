@@ -64,7 +64,7 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
             log.info(":getPaymentTerms: Legacy Gateway response: Success.");
         }
 
-        return defendantAccountPaymentTermsMapper.toResponse(response.responseEntity);
+        return defendantAccountPaymentTermsMapper.legacyToResponse(response.responseEntity);
     }
 
     @Override
@@ -215,22 +215,6 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
             .defendantAccountId(defendantAccountId)
             .build();
     }
-
-    /*private GetDefendantAccountPaymentTermsResponse toPaymentTermsResponse(
-        LegacyGetDefendantAccountPaymentTermsResponse legacy) {
-
-        if (legacy == null) {
-            return null;
-        }
-
-        return GetDefendantAccountPaymentTermsResponse.builder()
-            .version(Optional.ofNullable(legacy.getVersion())
-                .orElse(BigInteger.ONE))
-            .paymentTerms(toPaymentTerms(legacy.getPaymentTerms()))
-            .paymentCardLastRequested(legacy.getPaymentCardLastRequested())
-            .lastEnforcement(legacy.getLastEnforcement())
-            .build();
-    }*/
 
     private static PaymentTerms toPaymentTerms(LegacyPaymentTerms legacy) {
         if (legacy == null) {

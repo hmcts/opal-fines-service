@@ -16,7 +16,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static uk.gov.hmcts.opal.util.VersionUtils.extractBigInteger;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -27,8 +26,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -41,7 +40,6 @@ import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyResponse;
@@ -50,8 +48,10 @@ import uk.gov.hmcts.opal.dto.legacy.AddPaymentTermsLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.service.opal.CourtService;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountPostedDetailsCommonStrict;
+import uk.gov.hmcts.opal.mapper.DefendantAccountPaymentTermsMapper;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyDefendantAccountPaymentTermsServiceTest {
@@ -62,29 +62,19 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
     @Mock
     private LegacyGatewayProperties gatewayProperties;
 
-    @Mock
-    private CourtService courtService;
-
     private GatewayService gatewayService;
 
-    @InjectMocks
+    private final DefendantAccountPaymentTermsMapper mapper =
+        Mappers.getMapper(DefendantAccountPaymentTermsMapper.class);
+
     private  LegacyDefendantAccountPaymentTermsService legacyDefendantAccountPaymentTermsService;
 
     @BeforeEach
-    void openMocks() throws Exception {
+    void openMocks() {
         gatewayService = spy(new LegacyGatewayService(gatewayProperties, restClient));
-        injectGatewayService(legacyDefendantAccountPaymentTermsService, gatewayService);
 
-    }
-
-    private void injectGatewayService(
-        LegacyDefendantAccountPaymentTermsService legacyDefendantAccountService, GatewayService gatewayService)
-        throws NoSuchFieldException, IllegalAccessException {
-
-        Field field = LegacyDefendantAccountPaymentTermsService.class.getDeclaredField("gatewayService");
-        field.setAccessible(true);
-        field.set(legacyDefendantAccountService, gatewayService);
-
+        legacyDefendantAccountPaymentTermsService =
+            new LegacyDefendantAccountPaymentTermsService(gatewayService, mapper);
     }
 
 
@@ -253,8 +243,8 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         DefendantAccountPaymentTermsResponse out =
             legacyDefendantAccountPaymentTermsService.getPaymentTerms(123L);
 
-        //assertNotNull(out.getPaymentTerms().getPaymentTermsType());
-        //assertNotNull(out.getPaymentTerms().getInstalmentPeriod());
+        assertNotNull(out.getPaymentTerms().getPaymentTermsType());
+        assertNotNull(out.getPaymentTerms().getInstalmentPeriod());
     }
 
     @Test
@@ -304,17 +294,17 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
 
         assertNotNull(out);
         // version null -> defaults to BigInteger.ONE
-        assertEquals(BigInteger.ONE, out.getVersion());
+        assertEquals(1L, out.getVersion());
 
         // payment terms mapped and posted details mapped correctly
-        /*PaymentTerms pt = out.getPaymentTerms();
+        DefendantAccountPaymentTermsCommonStrict pt = out.getPaymentTerms();
         assertNotNull(pt);
-        PostedDetails pd = pt.getPostedDetails();
+        DefendantAccountPostedDetailsCommonStrict pd = pt.getPostedDetails().get();
         assertNotNull(pd);
         assertEquals(
             LocalDateTime.of(2025, 2, 14, 9, 10, 11), pd.getPostedDate());
-        assertEquals("u-x", pd.getPostedBy());
-        assertEquals("User X", pd.getPostedByName());*/
+        assertEquals("u-x", pd.getPostedBy().get());
+        assertEquals("User X", pd.getPostedByName().get());
     }
 
     @Test
@@ -339,7 +329,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
 
         assertNotNull(out);
         assertEquals(2L, out.getVersion());
-        //assertNull(out.getPaymentTerms());
+        assertNull(out.getPaymentTerms());
         assertEquals(LocalDate.parse("2024-01-01"), out.getPaymentCardLastRequested());
         assertEquals("LE-1", out.getLastEnforcement());
     }

@@ -1622,8 +1622,8 @@ components:
       type: object
       additionalProperties: false
       properties:
-        #payment_terms:
-          #$ref: './CommonStrict.yaml#/components/schemas/enforcementPaymentTerms'
+        payment_terms:
+          $ref: './CommonStrict.yaml#/components/schemas/defendantAccountPaymentTerms'
         payment_card_last_requested:
           type: string
           nullable: true

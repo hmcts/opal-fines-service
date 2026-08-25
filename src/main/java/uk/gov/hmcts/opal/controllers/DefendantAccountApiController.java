@@ -194,6 +194,7 @@ public class DefendantAccountApiController implements DefendantAccountApi {
     }
 
     @Override
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<DefendantAccountPaymentTermsResponse> defendantAccountPaymentTerms(Long id) {
         log.debug(":GET:defendantAccountPaymentTerms: for defendant id: {}", id);
         return buildResponse(defendantAccountPaymentTermsService.getPaymentTerms(id));

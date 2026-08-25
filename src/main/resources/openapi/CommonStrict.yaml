@@ -522,3 +522,101 @@ components:
       required:
         - lja_id
         - lja_name
+    defendantAccountPaymentTerms:
+      title: Defendant Account Payment Terms
+      type:
+        - object
+      additionalProperties: false
+      required:
+        - days_in_default
+        - date_days_in_default_imposed
+        - extension
+        - reason_for_extension
+        - payment_terms_type
+        - effective_date
+        - instalment_period
+        - lump_sum_amount
+        - instalment_amount
+        - posted_details
+      properties:
+        days_in_default:
+          type:
+            - integer
+            - 'null'
+          format: int32
+        date_days_in_default_imposed:
+          type:
+            - string
+            - 'null'
+          format: date
+        extension:
+          type: boolean
+        reason_for_extension:
+          type:
+            - string
+            - 'null'
+        payment_terms_type:
+          $ref: '#/components/schemas/defendantAccountPaymentTermsType'
+        effective_date:
+          type:
+            - string
+            - 'null'
+          format: date
+        instalment_period:
+          $ref: '#/components/schemas/defendantAccountInstalmentPeriod'
+        lump_sum_amount:
+          type:
+            - number
+            - 'null'
+          multipleOf: 0.01
+        instalment_amount:
+          type:
+            - number
+            - 'null'
+          multipleOf: 0.01
+        posted_details:
+          $ref: '#/components/schemas/defendantAccountPostedDetails'
+    defendantAccountPaymentTermsType:
+      title: Defendant Account Payment Terms Type
+      type: object
+      additionalProperties: false
+      required:
+        - payment_terms_type_code
+      properties:
+        payment_terms_type_code:
+          type: string
+          enum: [ B, P, I ]
+    defendantAccountInstalmentPeriod:
+      title: Defendant Account Instalment Period
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      required:
+        - instalment_period_code
+      properties:
+        instalment_period_code:
+          type: string
+          enum: [ W, M, F ]
+    defendantAccountPostedDetails:
+      title: Defendant Account Posted Details
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      required:
+        - posted_date
+        - posted_by
+        - posted_by_name
+      properties:
+        posted_date:
+          type: string
+          format: date-time
+        posted_by:
+          type:
+            - string
+            - 'null'
+        posted_by_name:
+          type:
+            - string
+            - 'null'
