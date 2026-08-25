@@ -9,11 +9,14 @@ import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.annotation.JsonNaming;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @XmlRootElement(name = "posted_details")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class LegacyPostedDetails {
