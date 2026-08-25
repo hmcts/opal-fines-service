@@ -15,6 +15,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_NO;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.time.Clock;
 import java.time.Instant;
@@ -290,6 +291,29 @@ class DraftAccountTransactionalTest {
         assertThat(result.getTimelineData()).contains("original-user", "TestUser");
         assertThat(result.getTimelineData().indexOf("original-user"))
             .isLessThan(result.getTimelineData().indexOf("TestUser"));
+    }
+
+    @Test
+    void testAppendTimelineEntry_existingTimelineAndSubmittedStatus_usesSubmittedLabel() throws Exception {
+        String existingTimeline = singleTimelineDataString("original-user", "Created");
+        Method appendTimelineEntry = DraftAccountTransactional.class.getDeclaredMethod(
+            "appendTimelineEntry",
+            String.class,
+            String.class,
+            DraftAccountStatus.class,
+            String.class
+        );
+        appendTimelineEntry.setAccessible(true);
+
+        String updatedTimeline = (String) appendTimelineEntry.invoke(
+            draftAccountTransactional,
+            existingTimeline,
+            "TestUser",
+            DraftAccountStatus.SUBMITTED,
+            null
+        );
+
+        assertTimelineLastEntry(updatedTimeline, "TestUser", "Submitted", null);
     }
 
     @Test

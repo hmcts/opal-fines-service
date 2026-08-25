@@ -360,7 +360,9 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
     }
 
     private String createTimelineData(String username, DraftAccountStatus status, String reasonText) {
-        return appendTimelineEntry(null, username, status, reasonText);
+        TimelineData timelineData = new TimelineData();
+        timelineData.insertEntry(username, initialTimelineStatusLabel(status), LocalDate.now(clock), reasonText);
+        return timelineData.toJson();
     }
 
     private String appendTimelineEntry(String existingTimelineData, String username, DraftAccountStatus status,
@@ -368,14 +370,21 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         TimelineData timelineData = existingTimelineData == null || existingTimelineData.isBlank()
             ? new TimelineData()
             : new TimelineData(existingTimelineData);
-        timelineData.insertEntry(username, timelineStatusLabel(status), LocalDate.now(clock), reasonText);
+        timelineData.insertEntry(username, appendedTimelineStatusLabel(status), LocalDate.now(clock), reasonText);
         return timelineData.toJson();
     }
 
-    private String timelineStatusLabel(DraftAccountStatus status) {
+    private String initialTimelineStatusLabel(DraftAccountStatus status) {
         return switch (status) {
             case SUBMITTED -> "Created";
             case RESUBMITTED -> "Submitted";
+            default -> status.getLabel();
+        };
+    }
+
+    private String appendedTimelineStatusLabel(DraftAccountStatus status) {
+        return switch (status) {
+            case SUBMITTED, RESUBMITTED -> "Submitted";
             default -> status.getLabel();
         };
     }
