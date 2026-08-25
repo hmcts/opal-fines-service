@@ -8,7 +8,7 @@ import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.TermsTypeCode;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PaymentTermsResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementPostedDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.InstalmentPeriodCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsDefendantAccount;
@@ -51,7 +51,7 @@ public interface PaymentTermsMapper {
     @org.mapstruct.Mapping(source = "instalmentPeriod", target = "instalmentPeriod.instalmentPeriodCode")
     PaymentTerms toDto(PaymentTermsEntity savedPaymentTerms);
 
-    default DefendantAccountPaymentTermsResponseDefendantAccount toGeneratedResponse(
+    default PaymentTermsResponseDefendantAccount toGeneratedResponse(
         PaymentTermsEntity entity, DefendantAccountEntity account) {
         if (entity == null) {
             return null;
@@ -80,7 +80,7 @@ public interface PaymentTermsMapper {
                 .build()))
             .build();
 
-        return DefendantAccountPaymentTermsResponseDefendantAccount.builder()
+        return PaymentTermsResponseDefendantAccount.builder()
             .paymentTerms(paymentTerms)
             .paymentCardLastRequested(JsonNullable.of(account.getPaymentCardRequestedDate()))
             .lastEnforcement(JsonNullable.of(account.getLastEnforcement()))

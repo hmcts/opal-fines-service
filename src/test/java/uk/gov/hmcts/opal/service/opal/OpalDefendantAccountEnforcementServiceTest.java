@@ -69,7 +69,7 @@ import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PaymentTermsRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementInstalmentPeriodCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsCommonStrict;
@@ -664,7 +664,7 @@ class OpalDefendantAccountEnforcementServiceTest {
             eq(BUSINESS_UNIT_USER_ID),
             eq(USER_NAME),
             eq(IF_MATCH),
-            ArgumentMatchers.any(DefendantAccountPaymentTermsRequestDefendantAccount.class)
+            ArgumentMatchers.any(PaymentTermsRequestDefendantAccount.class)
         );
     }
 

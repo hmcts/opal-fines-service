@@ -20,7 +20,7 @@ import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PaymentTermsRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementResultResponseDefendantAccount;
 import uk.gov.hmcts.opal.dto.RecordType;
@@ -149,7 +149,7 @@ public class OpalDefendantAccountEnforcementService
                 businessUnitUserId,
                 userState.getUserName(),
                 defendantEntity.getVersion().toString(),
-                DefendantAccountPaymentTermsRequestDefendantAccount.builder()
+                PaymentTermsRequestDefendantAccount.builder()
                     .paymentTerms(enforcementPaymentTermsMapper.toPaymentTerms(enforcementPaymentTerms))
                     .requestPaymentCard(false)
                     .generatePaymentTermsChangeLetter(false)

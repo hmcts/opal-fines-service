@@ -967,7 +967,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/defendantAccountPaymentTermsRequest'
+              $ref: '#/components/schemas/paymentTermsRequest'
       responses:
         '200':
           description: OK
@@ -977,7 +977,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/defendantAccountPaymentTermsResponse'
+                $ref: '#/components/schemas/paymentTermsResponse'
         '400':
           description: Bad request
           content:
@@ -1218,7 +1218,7 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
-    defendantAccountPaymentTermsRequest:
+    paymentTermsRequest:
       title: Add Defendant Account Payment Terms Request
       type: object
       additionalProperties: false
@@ -1237,7 +1237,7 @@ components:
           type:
             - boolean
             - 'null'
-    defendantAccountPaymentTermsResponse:
+    paymentTermsResponse:
       title: Get Defendant Account Payment Terms Response
       type: object
       additionalProperties: false

@@ -33,7 +33,7 @@ import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PaymentTermsRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementPostedDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsDefendantAccount;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
@@ -149,8 +149,7 @@ class DefendantAccountPaymentTermsServiceTest {
         UserState userWithPerm = UserStateUtil.permissionUser((short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userWithPerm);
 
-        DefendantAccountPaymentTermsRequestDefendantAccount request =
-            DefendantAccountPaymentTermsRequestDefendantAccount.builder()
+        PaymentTermsRequestDefendantAccount request = PaymentTermsRequestDefendantAccount.builder()
             .paymentTerms(PaymentTermsDefendantAccount.builder()
                 .postedDetails(EnforcementPostedDetailsCommonStrict.builder()
                     .postedBy("FE_USER")
@@ -167,7 +166,7 @@ class DefendantAccountPaymentTermsServiceTest {
             eq("USER01"),
             eq("normal@users.com"),
             eq(ifMatch),
-            any(DefendantAccountPaymentTermsRequestDefendantAccount.class)))
+            any(PaymentTermsRequestDefendantAccount.class)))
             .thenReturn(proxyResponse);
 
         DefendantAccountPaymentTermsResponse result = defendantAccountPaymentTermsService.addPaymentTerms(
@@ -175,8 +174,8 @@ class DefendantAccountPaymentTermsServiceTest {
 
         assertSame(proxyResponse, result);
 
-        ArgumentCaptor<DefendantAccountPaymentTermsRequestDefendantAccount> captor =
-            ArgumentCaptor.forClass(DefendantAccountPaymentTermsRequestDefendantAccount.class);
+        ArgumentCaptor<PaymentTermsRequestDefendantAccount> captor = ArgumentCaptor
+            .forClass(PaymentTermsRequestDefendantAccount.class);
         verify(defendantAccountPaymentTermsServiceProxy).addPaymentTerms(eq(defendantAccountId),
             eq(businessUnitId),
             eq("USER01"),

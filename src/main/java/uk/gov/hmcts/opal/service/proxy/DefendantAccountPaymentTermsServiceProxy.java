@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PaymentTermsRequestDefendantAccount;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPaymentTermsServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
@@ -47,7 +47,7 @@ public class DefendantAccountPaymentTermsServiceProxy implements DefendantAccoun
         String businessUnitUserId,
         String postedByName,
         String ifMatch,
-        DefendantAccountPaymentTermsRequestDefendantAccount paymentTermsRequest) {
+        PaymentTermsRequestDefendantAccount paymentTermsRequest) {
         return getCurrentModeService().addPaymentTerms(defendantAccountId,
             businessUnitId,
             businessUnitUserId,

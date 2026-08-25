@@ -20,7 +20,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
-import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PaymentTermsRequestDefendantAccount;
 import uk.gov.hmcts.opal.mapper.request.PaymentTermsMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
@@ -118,7 +118,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
         String businessUnitUserId,
         String postedByName,
         String ifMatch,
-        DefendantAccountPaymentTermsRequestDefendantAccount addPaymentTermsRequest) {
+        PaymentTermsRequestDefendantAccount addPaymentTermsRequest) {
         return addPaymentTermsInternal(
             defendantAccountId,
             businessUnitId,
@@ -136,7 +136,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
         String businessUnitUserId,
         String postedByName,
         String ifMatch,
-        DefendantAccountPaymentTermsRequestDefendantAccount addPaymentTermsRequest) {
+        PaymentTermsRequestDefendantAccount addPaymentTermsRequest) {
         return addPaymentTermsInternal(
             defendantAccountId,
             businessUnitId,
@@ -153,7 +153,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
         String businessUnitUserId,
         String postedByName,
         String ifMatch,
-        DefendantAccountPaymentTermsRequestDefendantAccount addPaymentTermsRequest,
+        PaymentTermsRequestDefendantAccount addPaymentTermsRequest,
         boolean preserveLastEnforcement) {
 
         log.debug(
@@ -312,7 +312,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
      * Add payment term related attributes to the defendant account.
      */
     private void addPaymentTerm(DefendantAccountEntity defAccount,
-        DefendantAccountPaymentTermsRequestDefendantAccount paymentTermsRequest) {
+        PaymentTermsRequestDefendantAccount paymentTermsRequest) {
 
         defAccount.setSuspendedCommittalDate(paymentTermsRequest.getPaymentTerms()
             .map(paymentTerms -> paymentTerms.getDateDaysInDefaultImposed().orElse(null))

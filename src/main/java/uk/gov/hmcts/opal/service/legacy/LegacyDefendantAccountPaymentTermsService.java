@@ -27,8 +27,8 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import org.openapitools.jackson.nullable.JsonNullable;
-import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsRequestDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PaymentTermsRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PaymentTermsResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementPostedDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.InstalmentPeriodCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsDefendantAccount;
@@ -76,7 +76,7 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
         String businessUnitUserId,
         String postedByName,
         String ifMatch,
-        DefendantAccountPaymentTermsRequestDefendantAccount paymentTermsRequest) {
+        PaymentTermsRequestDefendantAccount paymentTermsRequest) {
 
         var legacyRequest = createAddPaymentTermsLegacyRequest(
             defendantAccountId, businessUnitId, businessUnitUserId,
@@ -110,7 +110,7 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
         String businessUnitId,
         String businessUnitUserId,
         String ifMatch,
-        DefendantAccountPaymentTermsRequestDefendantAccount addPaymentTermsRequest) {
+        PaymentTermsRequestDefendantAccount addPaymentTermsRequest) {
 
         return AddPaymentTermsLegacyRequest.builder()
             .defendantAccountId(String.valueOf(defendantAccountId))
@@ -205,7 +205,7 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
 
         return DefendantAccountPaymentTermsResponse.builder()
             .version(Optional.ofNullable(addPaymentTermsResponse.getVersion()).orElse(BigInteger.ONE))
-            .payload(DefendantAccountPaymentTermsResponseDefendantAccount.builder()
+            .payload(PaymentTermsResponseDefendantAccount.builder()
                 .paymentTerms(toGeneratedPaymentTerms(addPaymentTermsResponse.getPaymentTerms()))
                 .paymentCardLastRequested(JsonNullable.of(addPaymentTermsResponse.getPaymentCardLastRequested()))
                 .lastEnforcement(JsonNullable.of(addPaymentTermsResponse.getLastEnforcement()))
