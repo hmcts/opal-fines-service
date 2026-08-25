@@ -31,10 +31,11 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
+import uk.gov.hmcts.opal.dto.DefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.dto.PaymentTerms;
-import uk.gov.hmcts.opal.dto.PostedDetails;
-import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.EnforcementPostedDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PaymentTermsDefendantAccount;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountPaymentTermsServiceProxy;
 
@@ -148,31 +149,34 @@ class DefendantAccountPaymentTermsServiceTest {
         UserState userWithPerm = UserStateUtil.permissionUser((short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userWithPerm);
 
-        AddDefendantAccountPaymentTermsRequest request = AddDefendantAccountPaymentTermsRequest.builder()
-            .paymentTerms(PaymentTerms.builder()
-                .postedDetails(PostedDetails.builder()
+        DefendantAccountPaymentTermsRequestDefendantAccount request =
+            DefendantAccountPaymentTermsRequestDefendantAccount.builder()
+            .paymentTerms(PaymentTermsDefendantAccount.builder()
+                .postedDetails(EnforcementPostedDetailsCommonStrict.builder()
                     .postedBy("FE_USER")
                     .postedByName("FE_NAME")
                     .build())
                 .build())
+            .requestPaymentCard(false)
+            .generatePaymentTermsChangeLetter(false)
             .build();
 
-        GetDefendantAccountPaymentTermsResponse proxyResponse = new GetDefendantAccountPaymentTermsResponse();
+        DefendantAccountPaymentTermsResponse proxyResponse = new DefendantAccountPaymentTermsResponse();
         when(defendantAccountPaymentTermsServiceProxy.addPaymentTerms(eq(defendantAccountId),
             eq(businessUnitId),
             eq("USER01"),
             eq("normal@users.com"),
             eq(ifMatch),
-            any(AddDefendantAccountPaymentTermsRequest.class)))
+            any(DefendantAccountPaymentTermsRequestDefendantAccount.class)))
             .thenReturn(proxyResponse);
 
-        GetDefendantAccountPaymentTermsResponse result = defendantAccountPaymentTermsService.addPaymentTerms(
+        DefendantAccountPaymentTermsResponse result = defendantAccountPaymentTermsService.addPaymentTerms(
             defendantAccountId, businessUnitId, ifMatch, request);
 
         assertSame(proxyResponse, result);
 
-        ArgumentCaptor<AddDefendantAccountPaymentTermsRequest> captor =
-            ArgumentCaptor.forClass(AddDefendantAccountPaymentTermsRequest.class);
+        ArgumentCaptor<DefendantAccountPaymentTermsRequestDefendantAccount> captor =
+            ArgumentCaptor.forClass(DefendantAccountPaymentTermsRequestDefendantAccount.class);
         verify(defendantAccountPaymentTermsServiceProxy).addPaymentTerms(eq(defendantAccountId),
             eq(businessUnitId),
             eq("USER01"),
@@ -180,10 +184,11 @@ class DefendantAccountPaymentTermsServiceTest {
             eq(ifMatch),
             captor.capture());
 
-        PostedDetails postedDetails = captor.getValue().getPaymentTerms().getPostedDetails();
+        EnforcementPostedDetailsCommonStrict postedDetails = captor.getValue().getPaymentTerms().orElseThrow()
+            .getPostedDetails().orElseThrow();
         assertNotNull(postedDetails);
-        assertEquals("USER01", postedDetails.getPostedBy());
-        assertEquals("normal@users.com", postedDetails.getPostedByName());
+        assertEquals("USER01", postedDetails.getPostedBy().orElse(null));
+        assertEquals("normal@users.com", postedDetails.getPostedByName().orElse(null));
     }
 
     @Test

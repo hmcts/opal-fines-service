@@ -500,13 +500,13 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "\"0\"");
 
-        mockMvc.perform(
+        ResultActions resultActions = mockMvc.perform(
                 post("/defendant-accounts/77/payment-terms")
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"request_payment_card\": true}")
-            )
-            .andExpect(status().isBadRequest())
+                    .content("{\"request_payment_card\": true}"));
+
+        resultActions.andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
     }

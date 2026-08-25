@@ -40,6 +40,7 @@ import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
+import uk.gov.hmcts.opal.dto.DefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
@@ -430,14 +431,15 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
     }
 
     private static void assertGetDefendantAccountPaymentTermsResponse(
-        GetDefendantAccountPaymentTermsResponse actualResponse, AddPaymentTermsLegacyResponse legacyResponse) {
+        DefendantAccountPaymentTermsResponse actualResponse, AddPaymentTermsLegacyResponse legacyResponse) {
 
         assertNotNull(actualResponse);
         assertThat(actualResponse.getVersion()).isEqualTo(legacyResponse.getVersion());
-        assertNotNull(actualResponse.getPaymentTerms());
-        assertThat(actualResponse.getPaymentCardLastRequested())
+        assertNotNull(actualResponse.getPayload().getPaymentTerms().orElse(null));
+        assertThat(actualResponse.getPayload().getPaymentCardLastRequested().orElse(null))
             .isEqualTo(legacyResponse.getPaymentCardLastRequested());
-        assertThat(actualResponse.getLastEnforcement()).isEqualTo(legacyResponse.getLastEnforcement());
+        assertThat(actualResponse.getPayload().getLastEnforcement().orElse(null))
+            .isEqualTo(legacyResponse.getLastEnforcement());
     }
 
     @Test

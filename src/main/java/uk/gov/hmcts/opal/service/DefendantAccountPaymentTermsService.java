@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
@@ -10,9 +11,10 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
+import uk.gov.hmcts.opal.dto.DefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.dto.PostedDetails;
-import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.EnforcementPostedDetailsCommonStrict;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountPaymentTermsServiceProxy;
 
@@ -69,10 +71,10 @@ public class DefendantAccountPaymentTermsService {
         }
     }
 
-    public GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
+    public DefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
         String businessUnitId,
         String ifMatch,
-        AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
+        DefendantAccountPaymentTermsRequestDefendantAccount defendantAccountPaymentTermsRequest) {
 
         log.debug(":addPaymentTerms:");
 
@@ -85,11 +87,14 @@ public class DefendantAccountPaymentTermsService {
             .orElse(userState.getUserName());
         String postedByName = userState.getUserName();
 
-        if (addPaymentTermsRequest != null && addPaymentTermsRequest.getPaymentTerms() != null) {
-            addPaymentTermsRequest.getPaymentTerms().setPostedDetails(PostedDetails.builder()
-                .postedBy(businessUnitUserId)
-                .postedByName(postedByName)
-                .build());
+        if (defendantAccountPaymentTermsRequest != null
+            && defendantAccountPaymentTermsRequest.getPaymentTerms() != null) {
+            defendantAccountPaymentTermsRequest.getPaymentTerms().ifPresent(paymentTerms -> {
+                paymentTerms.setPostedDetails(JsonNullable.of(EnforcementPostedDetailsCommonStrict.builder()
+                    .postedBy(businessUnitUserId)
+                    .postedByName(postedByName)
+                    .build()));
+            });
         }
 
         if (userState.hasBusinessUnitUserWithPermission(buId,
@@ -99,7 +104,7 @@ public class DefendantAccountPaymentTermsService {
                 businessUnitUserId,
                 postedByName,
                 ifMatch,
-                addPaymentTermsRequest);
+                defendantAccountPaymentTermsRequest);
         } else {
             throw new PermissionNotAllowedException(buId, FinesPermission.AMEND_PAYMENT_TERMS);
         }

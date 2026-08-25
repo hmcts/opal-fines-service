@@ -8,11 +8,13 @@ import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.DefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
@@ -25,6 +27,8 @@ import uk.gov.hmcts.opal.generated.model.AddPaymentCardRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
@@ -84,6 +88,19 @@ public class DefendantAccountApiController implements DefendantAccountApi {
             .build();
 
         return buildResponse(generatedResponse);
+    }
+
+    @Override
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
+    public ResponseEntity<DefendantAccountPaymentTermsResponseDefendantAccount> addPaymentTerms(
+        Long defendantAccountId, String businessUnitId,
+        DefendantAccountPaymentTermsRequestDefendantAccount defendantAccountPaymentTermsRequestDefendantAccount,
+        @Nullable String ifMatch) {
+        log.debug(":POST: :addPaymentTerms: for defendant id: {}", defendantAccountId);
+        DefendantAccountPaymentTermsResponse response = defendantAccountPaymentTermsService.addPaymentTerms(
+            defendantAccountId, businessUnitId, ifMatch, defendantAccountPaymentTermsRequestDefendantAccount);
+
+        return buildResponse(response, response.getPayload());
     }
 
     @Override

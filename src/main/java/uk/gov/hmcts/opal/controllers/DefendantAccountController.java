@@ -25,7 +25,6 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
@@ -68,25 +67,6 @@ public class DefendantAccountController {
             defendantAccountPartyService.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
 
         return buildResponse(response);
-    }
-
-    @PostMapping(value = "/{defendantAccountId}/payment-terms")
-    @Operation(summary = "Add Payment Terms to a defendant account")
-    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<GetDefendantAccountPaymentTermsResponse> addPaymentTerms(
-        @PathVariable Long defendantAccountId,
-        @RequestHeader("Business-Unit-Id") String businessUnitId,
-        @RequestHeader(value = "If-Match", required = false) String ifMatch,
-        @JsonSchemaValidated(schemaPath = SchemaPaths.POST_DEFENDANT_ACCOUNT_ADD_PAYMENT_TERMS)
-        @RequestBody AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
-
-        log.debug(":POST: :addPaymentTerms: for defendant id: {}", defendantAccountId);
-
-        return buildResponse(
-            defendantAccountPaymentTermsService.addPaymentTerms(defendantAccountId,
-                businessUnitId,
-                ifMatch,
-                addPaymentTermsRequest));
     }
 
     @GetMapping(value = "/{defendantAccountId}/payment-terms/latest")

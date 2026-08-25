@@ -56,7 +56,6 @@ import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
-import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
@@ -70,6 +69,7 @@ import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementInstalmentPeriodCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsCommonStrict;
@@ -664,7 +664,7 @@ class OpalDefendantAccountEnforcementServiceTest {
             eq(BUSINESS_UNIT_USER_ID),
             eq(USER_NAME),
             eq(IF_MATCH),
-            ArgumentMatchers.any(AddDefendantAccountPaymentTermsRequest.class)
+            ArgumentMatchers.any(DefendantAccountPaymentTermsRequestDefendantAccount.class)
         );
     }
 

@@ -611,7 +611,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/consolidatedAccount'
+                  $ref: '#/components/schemas/consolidatedAccountDefendantAccount'
         400:
           description: Bad request
           content:
@@ -726,8 +726,7 @@ paths:
       summary: Update a defendant account (partial update)
       operationId: updateDefendantAccount
       tags:
-        - DefendantAccount
-
+        - Defendant Account
       parameters:
         - name: id
           in: path
@@ -935,6 +934,98 @@ paths:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
+  /defendant-accounts/{defendantAccountId}/payment-terms:
+    post:
+      tags:
+        - Defendant Account
+      summary: Add Payment Terms to a defendant account
+      operationId: addPaymentTerms
+      security:
+        - permissions:
+            - Amend Payment Terms (in the business unit supplied in Business-Unit-Id)
+      parameters:
+        - in: path
+          name: defendantAccountId
+          description: DB Mapping - defendant_accounts.defendant_account_id
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: header
+          name: Business-Unit-Id
+          description: Business unit identifier
+          required: true
+          schema:
+            type: string
+        - in: header
+          name: If-Match
+          description: Version of the defendant account. DB Mapping - defendant_accounts.version
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/defendantAccountPaymentTermsRequest'
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/defendantAccountPaymentTermsResponse'
+        '400':
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '409':
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '422':
+          description: Unprocessable content
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
   /defendant-accounts/{id}/history:
     get:
       tags:
@@ -1127,6 +1218,99 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    defendantAccountPaymentTermsRequest:
+      title: Add Defendant Account Payment Terms Request
+      type: object
+      additionalProperties: false
+      required:
+        - payment_terms
+        - request_payment_card
+        - generate_payment_terms_change_letter
+      properties:
+        payment_terms:
+          $ref: '#/components/schemas/paymentTerms'
+        request_payment_card:
+          type:
+            - boolean
+            - 'null'
+        generate_payment_terms_change_letter:
+          type:
+            - boolean
+            - 'null'
+    defendantAccountPaymentTermsResponse:
+      title: Get Defendant Account Payment Terms Response
+      type: object
+      additionalProperties: false
+      required:
+        - payment_terms
+        - payment_card_last_requested
+        - last_enforcement
+      properties:
+        payment_terms:
+          $ref: '#/components/schemas/paymentTerms'
+        payment_card_last_requested:
+          type:
+            - string
+            - 'null'
+          format: date
+        last_enforcement:
+          type:
+            - string
+            - 'null'
+          minLength: 1
+    paymentTerms:
+      title: Payment Terms
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      required:
+        - days_in_default
+        - date_days_in_default_imposed
+        - extension
+        - reason_for_extension
+        - payment_terms_type
+        - effective_date
+        - lump_sum_amount
+        - instalment_amount
+        - posted_details
+      properties:
+        days_in_default:
+          type:
+            - integer
+            - 'null'
+        date_days_in_default_imposed:
+          type:
+            - string
+            - 'null'
+          format: date
+        extension:
+          type: boolean
+        reason_for_extension:
+          type:
+            - string
+            - 'null'
+        payment_terms_type:
+          $ref: './CommonStrict.yaml#/components/schemas/paymentTermsType'
+        effective_date:
+          type:
+            - string
+            - 'null'
+          format: date
+        instalment_period:
+          $ref: './CommonStrict.yaml#/components/schemas/instalmentPeriod'
+        lump_sum_amount:
+          type:
+            - number
+            - 'null'
+          multipleOf: 0.01
+        instalment_amount:
+          type:
+            - number
+            - 'null'
+          multipleOf: 0.01
+        posted_details:
+          $ref: './CommonStrict.yaml#/components/schemas/enforcementPostedDetails'
     addEnforcementRequest:
       title: Add Enforcement Request
       type: object
