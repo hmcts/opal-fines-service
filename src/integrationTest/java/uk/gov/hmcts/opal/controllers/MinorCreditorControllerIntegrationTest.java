@@ -1483,6 +1483,32 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.payment.hold_payment").value(false));
     }
 
+    void getMinorCreditorAccountImpl_repaymentTrue(Logger log) throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions((short) 10,
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
+            FinesPermission.VIEW_CREDITOR_BACS);
+        userStateStub.addPermissions((short) 77,
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
+            FinesPermission.VIEW_CREDITOR_BACS);
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}", repaymentMinorCreditorAccountId())
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken()));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+
+        log.info(":getMinorCreditorAccountImpl_repaymentTrue: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string("ETag", repaymentMinorCreditorVersionEtag()))
+            .andExpect(jsonPath("$.creditor_account_id").value(repaymentMinorCreditorAccountId()))
+            .andExpect(jsonPath("$.repayment").value(true));
+    }
+
     protected Long minorCreditorHeaderSummaryAccountId() {
         return 99000000000800L;
     }
@@ -1496,6 +1522,14 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     }
 
     protected String minorCreditorVersionEtag() {
+        return "\"1\"";
+    }
+
+    protected Long repaymentMinorCreditorAccountId() {
+        return 608L;
+    }
+
+    protected String repaymentMinorCreditorVersionEtag() {
         return "\"1\"";
     }
 
