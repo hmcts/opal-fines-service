@@ -527,7 +527,7 @@ class MinorCreditorServiceTest {
             () -> minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, null)
         );
 
-        assertThat(ex.getPermission()).containsExactly(FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR);
         assertThat(ex.getBusinessUnitId()).isEqualTo(null);
 
     }
@@ -536,11 +536,8 @@ class MinorCreditorServiceTest {
     void updateMinorCreditorAccount_blankBusinessUnitUserId_fallsBackToUsername() {
         // Arrange
         UserState userState = mock(UserState.class);
-        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD))
-            .thenReturn(true);
-        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ACCOUNT_MAINTENANCE))
-            .thenReturn(true);
-        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.VIEW_CREDITOR_BACS))
+        when(userState.hasBusinessUnitUserWithPermission((short) 10,
+            FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR))
             .thenReturn(true);
         when(userState.getUserName()).thenReturn("test.user@hmcts.net");
         when(userState.getBusinessUnitUserForBusinessUnit((short) 10)).thenReturn(Optional.of(
@@ -570,10 +567,13 @@ class MinorCreditorServiceTest {
     }
 
     @Test
-    void updateMinorCreditorAccount_paymentObjectWithoutHoldPermission_evenWhenHoldUnchanged_throwsPermissionNotAllowed(
+    void updateMinorCreditorAccount_withLegacyPermissionsButWithoutMinorCreditorMaintenance_throwsPermissionNotAllowed(
     ) {
         // Arrange
-        UserState userState = UserStateUtil.permissionUser((short) 10, FinesPermission.ACCOUNT_MAINTENANCE);
+        UserState userState = UserStateUtil.permissionUser((short) 10,
+            FinesPermission.ACCOUNT_MAINTENANCE,
+            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+            FinesPermission.VIEW_CREDITOR_BACS);
         PatchMinorCreditorAccountRequest request = unchangedHoldPatchRequest();
 
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
@@ -590,49 +590,45 @@ class MinorCreditorServiceTest {
         );
 
         // Assert
-        assertThat(ex.getPermission()).containsExactly(FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR);
         assertThat(ex.getBusinessUnitId()).isEqualTo((short) 10);
     }
 
     @Test
-    void updateMinorCreditorAccount_viewCreditorBacsPermissionNotAllowed() {
+    void updateMinorCreditorAccount_viewCreditorBacsPermissionNotRequired() {
         // Arrange
-        UserState userState = mock(UserState.class);
-        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD))
-            .thenReturn(true);
-        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ACCOUNT_MAINTENANCE))
-            .thenReturn(true);
-        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.VIEW_CREDITOR_BACS))
-            .thenReturn(false);
+        UserState userState = UserStateUtil.permissionUser((short) 10,
+            FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-
         PatchMinorCreditorAccountRequest request = validPatchRequest();
+        when(minorCreditorSearchProxy.updateMinorCreditorAccount(eq(1L), eq(request), eq(BigInteger.ONE), any(),
+            any(), eq((short) 10))).thenReturn(new MinorCreditorAccountResponse());
 
-        // Act & Assert
-        PermissionNotAllowedException ex = Assertions.assertThrows(
-            PermissionNotAllowedException.class,
-            () -> minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "10")
-        );
-        assertThat(ex.getPermission()).containsExactly(FinesPermission.VIEW_CREDITOR_BACS);
-        assertThat(ex.getBusinessUnitId()).isEqualTo((short) 10);
+        // Act
+        minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "10");
+
+        // Assert
+        verify(minorCreditorSearchProxy).updateMinorCreditorAccount(eq(1L), eq(request), eq(BigInteger.ONE), any(),
+            any(), eq((short) 10));
     }
 
     @Test
-    void updateMinorCreditorAccount_paymentObjectWithoutHoldPermission_whenHoldChanges_throwsPermissionNotAllowed() {
+    void updateMinorCreditorAccount_addAndRemovePaymentHoldPermissionNotRequired() {
         // Arrange
-        UserState userState = UserStateUtil.permissionUser((short) 10, FinesPermission.ACCOUNT_MAINTENANCE);
+        UserState userState = UserStateUtil.permissionUser((short) 10,
+            FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR);
         PatchMinorCreditorAccountRequest request = validPatchRequest();
 
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(minorCreditorSearchProxy.updateMinorCreditorAccount(eq(1L), eq(request), eq(BigInteger.ONE), any(),
+            any(), eq((short) 10))).thenReturn(new MinorCreditorAccountResponse());
 
-        // Act & Assert
-        PermissionNotAllowedException ex = Assertions.assertThrows(
-            PermissionNotAllowedException.class,
-            () -> minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE,
-                "10")
-        );
-        assertThat(ex.getPermission()).containsExactly(FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
-        assertThat(ex.getBusinessUnitId()).isEqualTo((short) 10);
+        // Act
+        minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "10");
+
+        // Assert
+        verify(minorCreditorSearchProxy).updateMinorCreditorAccount(eq(1L), eq(request), eq(BigInteger.ONE), any(),
+            any(), eq((short) 10));
     }
 
     private PatchMinorCreditorAccountRequest validPatchRequest() {
