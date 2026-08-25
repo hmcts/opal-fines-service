@@ -25,8 +25,8 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.service.opal.AmendmentService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -200,7 +200,7 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
         public void callTheStoredProcedures(Long defAccId, Short busUnitId) {
 
             // Initialize before making a change to defendant_accounts table
-            amendmentService.auditInitialiseStoredProc(defAccId, RecordType.DEFENDANT_ACCOUNTS);
+            amendmentService.auditInitialiseStoredProc(defAccId, AssociatedRecordType.DEFENDANT_ACCOUNTS);
 
             // Directly update a defendant_accounts table row - this should cause insertions in the amendments table
             String sql = "UPDATE defendant_accounts SET cheque_clearance_period = ?, "
@@ -211,7 +211,7 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
 
             // Finalize after making a change to defendant_accounts table
             amendmentService.auditFinaliseStoredProc(
-                defAccId, RecordType.DEFENDANT_ACCOUNTS, busUnitId,
+                defAccId, AssociatedRecordType.DEFENDANT_ACCOUNTS, busUnitId,
                 "Tester_A", "Tester Name", "Case_Ref", "Func_Code");
         }
     }

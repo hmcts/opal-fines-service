@@ -30,7 +30,6 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.common.ContactDetails;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
@@ -41,6 +40,7 @@ import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
 import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
@@ -204,7 +204,7 @@ class OpalDefendantAccountServiceTest03 {
             assertEquals(exception, result);
             verify(defendantAccountControlValidator).validateCanMutateParty(account);
             verify(amendmentRepositoryService, never())
-                .auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
+                .auditInitialiseStoredProc(accountId, AssociatedRecordType.DEFENDANT_ACCOUNTS);
             verify(defendantAccountRepositoryService, never()).saveAndFlush(any());
         }
     }
@@ -401,9 +401,10 @@ class OpalDefendantAccountServiceTest03 {
 
             verify(defendantAccountRepositoryService)
                 .incrementVersionNumber(accountId, account.getVersion());
-            verify(amendmentRepositoryService).auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
+            verify(amendmentRepositoryService)
+                .auditInitialiseStoredProc(accountId, AssociatedRecordType.DEFENDANT_ACCOUNTS);
             verify(amendmentRepositoryService).auditFinaliseStoredProc(
-                eq(accountId), eq(RecordType.DEFENDANT_ACCOUNTS),
+                eq(accountId), eq(AssociatedRecordType.DEFENDANT_ACCOUNTS),
                 eq(Short.parseShort(bu)), eq("tester"), eq("Tester Name"), any(), eq("ACCOUNT_ENQUIRY"));
 
             verify(party).setOrganisation(Boolean.TRUE);

@@ -35,7 +35,6 @@ import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
-import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
@@ -43,6 +42,7 @@ import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
@@ -316,7 +316,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             defendantAccountControlValidator.validateCanUpdateProtectedFields(entity);
         }
 
-        amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
+        amendmentService.auditInitialiseStoredProc(defendantAccountId, AssociatedRecordType.DEFENDANT_ACCOUNTS);
 
         if (request.getPayload().getCommentAndNotes() != null) {
             applyCommentAndNotes(entity,
@@ -344,7 +344,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         Short buId = entity.getBusinessUnit().getBusinessUnitId();
         amendmentService.auditFinaliseStoredProc(
             defendantAccountId,
-            RecordType.DEFENDANT_ACCOUNTS,
+            AssociatedRecordType.DEFENDANT_ACCOUNTS,
             buId,
             postedBy,
             postedByName,

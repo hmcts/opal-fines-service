@@ -727,7 +727,7 @@ class OpalDefendantAccountEnforcementServiceTest {
             verify(defendantAccountRepositoryService).findById(defendantAccountId);
             verify(amendmentService).auditInitialiseStoredProc(
                 defendantAccountId,
-                uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS
+                AssociatedRecordType.DEFENDANT_ACCOUNTS
             );
             verify(defendantAccountRepositoryService).saveAndFlush(defendantEntity);
             verify(notesProxy).addNote(
@@ -739,7 +739,7 @@ class OpalDefendantAccountEnforcementServiceTest {
             verifyNoInteractions(reportEntryService);
             verify(amendmentService).auditFinaliseStoredProc(
                 defendantAccountId,
-                uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS,
+                AssociatedRecordType.DEFENDANT_ACCOUNTS,
                 businessUnitId,
                 businessUnitUserId,
                 userState.getUserName(),
@@ -969,12 +969,12 @@ class OpalDefendantAccountEnforcementServiceTest {
             verify(defendantAccountRepositoryService).findById(defendantAccountId);
             verify(amendmentService).auditInitialiseStoredProc(
                 defendantAccountId,
-                uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS
+                AssociatedRecordType.DEFENDANT_ACCOUNTS
             );
             verify(defendantAccountRepositoryService).saveAndFlush(defendantEntity);
             verify(amendmentService, never()).auditFinaliseStoredProc(
                 eq(defendantAccountId),
-                eq(uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS),
+                eq(AssociatedRecordType.DEFENDANT_ACCOUNTS),
                 eq(businessUnitId),
                 eq(businessUnitUserId),
                 eq(userState.getUserName()),
