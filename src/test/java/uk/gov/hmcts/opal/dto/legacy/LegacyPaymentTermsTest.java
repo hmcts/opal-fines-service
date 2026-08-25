@@ -21,6 +21,7 @@ class LegacyPaymentTermsTest {
             .reasonForExtension("reason")
             .paymentTermsType(new LegacyPaymentTermsType(LegacyPaymentTermsType.PaymentTermsTypeCode.B))
             .effectiveDate(LocalDate.parse("2026-08-09"))
+            .instalmentPeriod(new LegacyInstalmentPeriod(LegacyInstalmentPeriod.InstalmentPeriodCode.W))
             .lumpSumAmount(new BigDecimal("100.00"))
             .instalmentAmount(new BigDecimal("25.00"))
             .postedDetails(new LegacyPostedDetails(
@@ -36,6 +37,7 @@ class LegacyPaymentTermsTest {
         assertEquals("reason", json.get("reason_for_extension").asText());
         assertEquals("B", json.get("payment_terms_type").get("payment_terms_type_code").asText());
         assertEquals("2026-08-09", json.get("effective_date").asText());
+        assertEquals("W", json.get("instalment_period").get("instalment_period_code").asText());
         assertEquals(100.00, json.get("lump_sum_amount").asDouble());
         assertEquals(25.00, json.get("instalment_amount").asDouble());
         assertEquals("L077JG", json.get("posted_details").get("posted_by").asText());
@@ -46,10 +48,12 @@ class LegacyPaymentTermsTest {
         assertFalse(json.has("reasonForExtension"));
         assertFalse(json.has("paymentTermsType"));
         assertFalse(json.has("effectiveDate"));
+        assertFalse(json.has("instalmentPeriod"));
         assertFalse(json.has("lumpSumAmount"));
         assertFalse(json.has("instalmentAmount"));
         assertFalse(json.has("postedDetails"));
         assertFalse(json.get("payment_terms_type").has("paymentTermsTypeCode"));
+        assertFalse(json.get("instalment_period").has("instalmentPeriodCode"));
         assertFalse(json.get("posted_details").has("postedBy"));
         assertFalse(json.get("posted_details").has("postedByName"));
     }

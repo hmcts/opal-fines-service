@@ -46,6 +46,7 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyResponse;
@@ -428,8 +429,9 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
                 .reasonForExtension("dmweoapde")
                 .paymentTermsType(new PaymentTermsType(PaymentTermsType.PaymentTermsTypeCode.B))
                 .effectiveDate(LocalDate.parse("2026-08-09"))
+                .instalmentPeriod(new InstalmentPeriod(InstalmentPeriod.InstalmentPeriodCode.W))
                 .lumpSumAmount(new BigDecimal("100.00"))
-                .postedDetails(new PostedDetails(null, "frontend-user", "Frontend User"))
+                .postedDetails(new PostedDetails(null, businessUnitUserId, "opal-test"))
                 .build())
             .build();
 
@@ -462,14 +464,17 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         assertThat(paymentTerms.get("effective_date").asText()).isEqualTo("2026-08-09");
         assertThat(paymentTerms.get("reason_for_extension").asText()).isEqualTo("dmweoapde");
         assertThat(paymentTerms.get("payment_terms_type").get("payment_terms_type_code").asText()).isEqualTo("B");
-        assertThat(paymentTerms.get("posted_details").get("posted_by").asText()).isEqualTo("frontend-user");
-        assertThat(paymentTerms.get("posted_details").get("posted_by_name").asText()).isEqualTo("Frontend User");
+        assertThat(paymentTerms.get("instalment_period").get("instalment_period_code").asText()).isEqualTo("W");
+        assertThat(paymentTerms.get("posted_details").get("posted_by").asText()).isEqualTo(businessUnitUserId);
+        assertThat(paymentTerms.get("posted_details").get("posted_by_name").asText()).isEqualTo("opal-test");
 
         assertThat(paymentTerms.has("effectiveDate")).isFalse();
         assertThat(paymentTerms.has("reasonForExtension")).isFalse();
         assertThat(paymentTerms.has("paymentTermsType")).isFalse();
+        assertThat(paymentTerms.has("instalmentPeriod")).isFalse();
         assertThat(paymentTerms.has("postedDetails")).isFalse();
         assertThat(paymentTerms.get("payment_terms_type").has("paymentTermsTypeCode")).isFalse();
+        assertThat(paymentTerms.get("instalment_period").has("instalmentPeriodCode")).isFalse();
         assertThat(paymentTerms.get("posted_details").has("postedBy")).isFalse();
         assertThat(paymentTerms.get("posted_details").has("postedByName")).isFalse();
     }
