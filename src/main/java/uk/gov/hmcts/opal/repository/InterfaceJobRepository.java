@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.repository;
 
+import java.util.List;
 import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.INTERFACE_JOB_ID;
 import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.BUSINESS_UNIT_ID;
 import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.JPA_PROC_NAME;
@@ -25,6 +26,9 @@ public interface InterfaceJobRepository extends JpaRepository<InterfaceJobEntity
     <S extends InterfaceJobEntity, R> R findBy(
         Specification<InterfaceJobEntity> specification,
         Function<? super JpaSpecificationExecutor.SpecificationFluentQuery<S>, R> queryFunction);
+
+    @EntityGraph(attributePaths = {"businessUnit", "interfaceFiles"})
+    List<InterfaceJobEntity> findAllByInterfaceJobIdIn(List<Long> interfaceJobIds);
 
     @Procedure(name = JPA_PROC_NAME)
     Long processPaymentsInJob(@Param(INTERFACE_JOB_ID) Long interfaceJobId,
