@@ -317,6 +317,49 @@ class DraftAccountTransactionalTest {
     }
 
     @Test
+    void testCreateTimelineData_nonSubmitStatus_usesStatusLabel() throws Exception {
+        Method createTimelineData = DraftAccountTransactional.class.getDeclaredMethod(
+            "createTimelineData",
+            String.class,
+            DraftAccountStatus.class,
+            String.class
+        );
+        createTimelineData.setAccessible(true);
+
+        String timeline = (String) createTimelineData.invoke(
+            draftAccountTransactional,
+            "TestUser",
+            DraftAccountStatus.REJECTED,
+            "Reason"
+        );
+
+        assertTimelineLastEntry(timeline, "TestUser", DraftAccountStatus.REJECTED.getLabel(), "Reason");
+    }
+
+    @Test
+    void testAppendTimelineEntry_nonSubmitStatus_usesStatusLabel() throws Exception {
+        String existingTimeline = singleTimelineDataString("original-user", "Created");
+        Method appendTimelineEntry = DraftAccountTransactional.class.getDeclaredMethod(
+            "appendTimelineEntry",
+            String.class,
+            String.class,
+            DraftAccountStatus.class,
+            String.class
+        );
+        appendTimelineEntry.setAccessible(true);
+
+        String updatedTimeline = (String) appendTimelineEntry.invoke(
+            draftAccountTransactional,
+            existingTimeline,
+            "TestUser",
+            DraftAccountStatus.REJECTED,
+            "Reason"
+        );
+
+        assertTimelineLastEntry(updatedTimeline, "TestUser", DraftAccountStatus.REJECTED.getLabel(), "Reason");
+    }
+
+    @Test
     void testReplaceDraftAccount_draftAccountNotFound() {
         // Arrange
         Long draftAccountId = 1L;
