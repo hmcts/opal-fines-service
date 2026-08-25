@@ -18,9 +18,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
@@ -76,9 +76,10 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
             return account;
         });
         doNothing().when(amendmentRepositoryService)
-            .auditInitialiseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS);
+            .auditInitialiseStoredProc(1L, AssociatedRecordType.DEFENDANT_ACCOUNTS);
         doNothing().when(amendmentRepositoryService)
-            .auditFinaliseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS, (short) 10, "posted", "Posted User", "CASE-REF",
+            .auditFinaliseStoredProc(1L, AssociatedRecordType.DEFENDANT_ACCOUNTS, (short) 10,
+                "posted", "Posted User", "CASE-REF",
                 "ACCOUNT_ENQUIRY");
 
         RemoveDefendantAccountPartyRequest request = RemoveDefendantAccountPartyRequest.builder()
@@ -97,9 +98,10 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
 
         assertEquals("5", response.getDefendantAccountPartyId());
         assertEquals(BigInteger.valueOf(2L), response.getVersion());
-        verify(amendmentRepositoryService).auditInitialiseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS);
-        verify(amendmentRepositoryService).auditFinaliseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS, (short) 10,
-            "posted", "Posted User", "CASE-REF", "ACCOUNT_ENQUIRY");
+        verify(amendmentRepositoryService).auditInitialiseStoredProc(1L, AssociatedRecordType.DEFENDANT_ACCOUNTS);
+        verify(amendmentRepositoryService)
+            .auditFinaliseStoredProc(1L, AssociatedRecordType.DEFENDANT_ACCOUNTS, (short) 10,
+                "posted", "Posted User", "CASE-REF", "ACCOUNT_ENQUIRY");
         verify(defendantAccountRepositoryService).findById(1L);
         verify(defendantAccountRepositoryService).saveAndFlush(account);
         assertEquals(0, account.getParties().size());
@@ -135,7 +137,8 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
         assertEquals("Defendant Account not found in business unit 11",
             exception.getMessage());
         verify(defendantAccountRepositoryService).findById(1L);
-        verify(amendmentRepositoryService, never()).auditInitialiseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS);
+        verify(amendmentRepositoryService, never())
+            .auditInitialiseStoredProc(1L, AssociatedRecordType.DEFENDANT_ACCOUNTS);
         verify(defendantAccountRepositoryService, never()).saveAndFlush(account);
     }
 
@@ -151,7 +154,8 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
 
         assertEquals(exception, result);
         verify(defendantAccountControlValidator).validateCanMutateParty(account);
-        verify(amendmentRepositoryService, never()).auditInitialiseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS);
+        verify(amendmentRepositoryService, never())
+            .auditInitialiseStoredProc(1L, AssociatedRecordType.DEFENDANT_ACCOUNTS);
         verify(defendantAccountRepositoryService, never()).saveAndFlush(account);
         assertEquals(1, account.getParties().size());
     }
@@ -166,9 +170,10 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
 
         assertEquals("Defendant Account Party not found for accountId=1, partyId=999", exception.getMessage());
         verify(defendantAccountRepositoryService).findById(1L);
-        verify(amendmentRepositoryService).auditInitialiseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS);
+        verify(amendmentRepositoryService).auditInitialiseStoredProc(1L, AssociatedRecordType.DEFENDANT_ACCOUNTS);
         verify(amendmentRepositoryService, never())
-            .auditFinaliseStoredProc(1L, RecordType.DEFENDANT_ACCOUNTS, (short) 10, "posted", "Posted User", "CASE-REF",
+            .auditFinaliseStoredProc(1L, AssociatedRecordType.DEFENDANT_ACCOUNTS, (short) 10,
+                "posted", "Posted User", "CASE-REF",
                 "ACCOUNT_ENQUIRY");
         verify(defendantAccountRepositoryService, never()).saveAndFlush(account);
     }
