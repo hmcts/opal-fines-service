@@ -23,14 +23,30 @@
         "type": {
           "type": "string",
           "description": "History item type.",
-          "enum": ["Financial"]
+          "enum": ["Financial", "Note"]
         },
         "details": {
-          "$ref": "#/$defs/creditorTransactionDetails",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/noteDetails"
+            },
+            {
+              "$ref": "#/$defs/creditorTransactionDetails"
+            }
+          ],
           "description": "History item details"
         },
         "amount": {
           "$ref": "./common-objects/monetaryNegativeOrPositive.json"
+        }
+      }
+    },
+    "noteDetails": {
+      "type": "object",
+      "required": ["note_text"],
+      "properties": {
+        "note_text": {
+          "type": "string"
         }
       }
     },

@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectEntityNotFound;
 
 import org.junit.jupiter.api.DisplayName;
 import org.slf4j.Logger;
@@ -54,6 +55,7 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
             .andExpect(jsonPath("$.debtor_type").value("Defendant")).andExpect(jsonPath("$.is_youth").value(false))
             .andExpect(jsonPath("$.fixed_penalty_ticket_number").value("888"))
             .andExpect(jsonPath("$.business_unit_summary.business_unit_id").value("78"))
+            .andExpect(jsonPath("$.business_unit_summary.business_unit_code").value("NE"))
             .andExpect(jsonPath("$.payment_state_summary.imposed_amount").value(700.58))
             .andExpect(jsonPath("$.payment_state_summary.paid_amount").value(200.00))
             .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
@@ -77,6 +79,7 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
             .andExpect(jsonPath("$.defendant_account_id").value("10001"))
             .andExpect(jsonPath("$.account_number").value("10001A"))
             .andExpect(jsonPath("$.debtor_type").value("Defendant")).andExpect(jsonPath("$.is_youth").value(false))
+            .andExpect(jsonPath("$.business_unit_summary.business_unit_code").value("NE"))
             .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
             .andExpect(jsonPath("$.party_details.organisation_details.organisation_name").value("Kings Arms"))
             .andExpect(jsonPath("$.party_details.individual_details").doesNotExist());
@@ -181,9 +184,7 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
         log.info(":testGetPaymentTerms: Response body:\n" + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isNotFound()) // 404 HTTP status
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
-            .andExpect(jsonPath("$.title").value("Entity Not Found")).andExpect(jsonPath("$.status").value(404))
-            .andExpect(jsonPath("$.detail").value("The requested entity could not be found"));
+            .andExpect(expectEntityNotFound());
 
     }
 
@@ -227,9 +228,7 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
 
         resultActions.andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
-            .andExpect(jsonPath("$.title").value("Entity Not Found")).andExpect(jsonPath("$.status").value(404))
-            .andExpect(jsonPath("$.detail").value("The requested entity could not be found"))
+            .andExpect(expectEntityNotFound())
             .andExpect(jsonPath("$.retriable").value(false));
 
     }
@@ -295,7 +294,7 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
         log.info(":getEnforcementStatus: Response body:\n" + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isOk())
-            .andExpect(header().string("ETag", "\"20\""))
+            .andExpect(header().string("ETag", isLegacy ? OVER_LONG_VERSION_ETAG : "\"20\""))
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(ignoreForLegacy(jsonPath("$.defendant_account_type").value("adult"), isLegacy))
             .andExpect(jsonPath("$.employer_flag").value(true))

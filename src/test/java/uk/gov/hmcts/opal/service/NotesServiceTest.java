@@ -2,13 +2,13 @@ package uk.gov.hmcts.opal.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
@@ -33,13 +33,14 @@ class NotesServiceTest {
     @Mock private AccountNoteContextFactory accountNoteContextFactory;
     @Mock private UserState userState;
 
+    @InjectMocks
     private NotesService notesService;
+
     private AddNoteRequest request;
     private AccountNoteContext target;
 
     @BeforeEach
     void setUp() {
-        notesService = new NotesService(notesProxy, userStateService, accountNoteContextFactory);
         request = addNoteRequest();
         target = new AccountNoteContext(
             DefendantAccountEntity.class,
@@ -70,7 +71,7 @@ class NotesServiceTest {
         when(accountNoteContextFactory.from(request.getActivityNote())).thenReturn(target);
         when(userState.hasBusinessUnitUserWithPermission(
             BUSINESS_UNIT_ID, FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES)).thenReturn(true);
-        when(notesProxy.addNote(eq(request), eq(IF_MATCH), eq(userState), eq(target))).thenReturn(expectedResponse);
+        when(notesProxy.addNote(request, IF_MATCH, userState, target)).thenReturn(expectedResponse);
 
         String actualResponse = notesService.addNote(request, IF_MATCH, BUSINESS_UNIT_ID);
 

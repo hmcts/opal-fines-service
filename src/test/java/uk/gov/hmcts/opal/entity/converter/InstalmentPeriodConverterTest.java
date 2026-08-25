@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.entity.paymentterms.InstalmentPeriod;
 
-public class InstalmentPeriodConverterTest {
+class InstalmentPeriodConverterTest {
 
     private final InstalmentPeriodConverter converter = new InstalmentPeriodConverter();
 

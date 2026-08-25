@@ -6,12 +6,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -24,6 +26,7 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
     @DisplayName("OPAL: Add Payment Card Request - account controls return 422 for blocked last enforcement")
     @JiraStory("PO-5757")
     @JiraEpic("PO-2990")
+    @JiraTestKey("PO-9446")
     void opalAddPaymentCardRequest_returns422_whenBlockedByAccountControls() throws Exception {
         // Arrange
         long defendantAccountId = 991199L;
@@ -32,7 +35,6 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
-        headers.add("Business-Unit-User-Id", "TEST_USER_123");
         headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
 
         // Act
@@ -61,7 +63,7 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
     }
 
     @Test
-    @DisplayName("OPAL: Add Payment Card Request – Happy Path [@PO-1719]")
+    @DisplayName("OPAL: Add Payment Card Request – Happy Path without Business-Unit-User-Id [@PO-1719]")
     @JiraStory("PO-1719")
     @JiraEpic("PO-977")
     @JiraTestKey("PO-6039")
@@ -71,13 +73,13 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
-        headers.add("Business-Unit-User-Id", "TEST_USER_123");
         headers.add("If-Match", "\"" + currentVersion + "\"");
 
         ResultActions result = mockMvc.perform(
             post("/defendant-accounts/901/payment-card-request")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
+                .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}")
         );
@@ -91,11 +93,118 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
     }
 
     @Test
+    @DisplayName("OPAL: Add Payment Card Request – Happy Path when Accept header is omitted [@PO-6449]")
+    @JiraStory("PO-6449")
+    @JiraEpic("PO-977")
+    void opalAddPaymentCardRequest_HappyWithoutAcceptHeader() throws Exception {
+        Integer currentVersion = versionFor(333L);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
+        headers.add("Business-Unit-Id", "78");
+        headers.add("If-Match", "\"" + currentVersion + "\"");
+
+        mockMvc.perform(
+                post("/defendant-accounts/333/payment-card-request")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{}")
+            )
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_id").value(333));
+    }
+
+    @Test
+    @DisplayName("OPAL: Add Payment Card Request – Not acceptable when Business-Unit-Id is non-numeric [@PO-6449]")
+    @JiraStory("PO-6449")
+    @JiraEpic("PO-977")
+    void opalAddPaymentCardRequest_InvalidBusinessUnitHeader_returnsTypeMismatch() throws Exception {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
+        headers.add("Business-Unit-Id", "abc");
+        headers.add("If-Match", "\"0\"");
+
+        mockMvc.perform(
+                post("/defendant-accounts/88/payment-card-request")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{}")
+            )
+            .andExpect(status().isNotAcceptable())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/type-mismatch"))
+            .andExpect(jsonPath("$.title").value("Not Acceptable"))
+            .andExpect(jsonPath("$.status").value(406))
+            .andExpect(jsonPath("$.detail").value("Invalid parameter value format"))
+            .andExpect(jsonPath("$.reason").exists());
+    }
+
+    @Test
+    @DisplayName("OPAL: Add Payment Card Request – Forbidden when user has no business-unit user [@PO-6449]")
+    @JiraStory("PO-6449")
+    @JiraEpic("PO-977")
+    void opalAddPaymentCardRequest_Forbidden_NoBusinessUnitUser() throws Exception {
+        userStateStub.setupWithNoPermissions();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.add("Business-Unit-Id", "78");
+        headers.add("If-Match", "\"" + versionFor(88L) + "\"");
+
+        mockMvc.perform(
+                post("/defendant-accounts/88/payment-card-request")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{}")
+            )
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"))
+            .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.businessUnitId").value(78))
+            .andExpect(jsonPath("$.retriable").value(false));
+    }
+
+    @Test
+    @DisplayName("OPAL: Add Payment Card Request – Forbidden when user has no FINES domain [@PO-6449]")
+    @JiraStory("PO-6449")
+    @JiraEpic("PO-977")
+    void opalAddPaymentCardRequest_Forbidden_NoFinesDomain() throws Exception {
+        userStateStub.setUserState(userStateStub.getDefaultUserStateBuilder()
+            .domains(Map.of())
+            .build());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + versionFor(88L) + "\"");
+
+        mockMvc.perform(
+                post("/defendant-accounts/88/payment-card-request")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{}")
+            )
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"))
+            .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.businessUnitId").value(78))
+            .andExpect(jsonPath("$.retriable").value(false));
+    }
+
+    @Test
     @DisplayName("OPAL: Add Payment Card Request – Not Found when account not in header BU [@PO-1719]")
     @JiraStory("PO-1719")
     @JiraEpic("PO-977")
     @JiraTestKey("PO-6041")
     void opalAddPaymentCardRequest_NotFound_WrongBU() throws Exception {
+        userStateStub.addPermissions((short) 99, FinesPermission.AMEND_PAYMENT_TERMS);
         Integer currentVersion = versionFor(88L);
 
         HttpHeaders headers = new HttpHeaders();
@@ -127,28 +236,31 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
     @JiraTestKey("PO-6040")
     void opalAddPaymentCardRequest_Forbidden_NoPermission() throws Exception {
         userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions((short) 78);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("token_without_permission");
+        headers.setBearerAuth(userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
         headers.add("If-Match", "\"0\"");
 
         mockMvc.perform(
                 post("/defendant-accounts/88/payment-card-request")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_JSON)
             )
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"));
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"))
+            .andExpect(jsonPath("$.businessUnitId").value(78));
     }
 
     @Test
-    @DisplayName("OPAL: Add Payment Card Request – Forbiden when missing auth header [@PO-1719]")
+    @DisplayName("OPAL: Add Payment Card Request – Forbidden when missing auth header [@PO-1719]")
     @JiraStory("PO-1719")
     @JiraEpic("PO-977")
     @JiraTestKey("PO-6038")
-    void opalAddPaymentCardRequest_Unauthorized() throws Exception {
+    void opalAddPaymentCardRequest_Forbidden() throws Exception {
         userStateStub.setupWithNoPermissions();
 
         mockMvc.perform(
@@ -160,7 +272,6 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
             )
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"))
             .andExpect(jsonPath("$.retriable").value(false));
     }
 
@@ -199,7 +310,6 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
         HttpHeaders headers1 = new HttpHeaders();
         headers1.add(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
         headers1.add("Business-Unit-Id", "78");
-        headers1.add("Business-Unit-User-Id", "TEST_USER_123");
         headers1.add("If-Match", "\"" + version1 + "\"");
 
         mockMvc.perform(
@@ -215,7 +325,6 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
         HttpHeaders headers2 = new HttpHeaders();
         headers2.setBearerAuth("some_value");
         headers2.add("Business-Unit-Id", "78");
-        headers2.add("Business-Unit-User-Id", "TEST_USER_123");
         headers2.add("If-Match", "\"" + version2 + "\"");
 
         ResultActions result = mockMvc.perform(

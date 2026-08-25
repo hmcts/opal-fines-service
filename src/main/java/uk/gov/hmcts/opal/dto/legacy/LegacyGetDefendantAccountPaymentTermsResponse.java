@@ -5,14 +5,14 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.math.BigInteger;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.ToXmlString;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
-
-import java.time.LocalDate;
 
 @Data
 @Builder
@@ -22,7 +22,7 @@ import java.time.LocalDate;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class LegacyGetDefendantAccountPaymentTermsResponse implements ToXmlString {
 
-    private Long version;
+    private BigInteger version;
 
     @XmlElement(name = "payment_terms")
     private LegacyPaymentTerms paymentTerms;

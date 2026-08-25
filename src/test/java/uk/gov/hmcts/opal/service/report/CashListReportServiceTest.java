@@ -2,12 +2,14 @@ package uk.gov.hmcts.opal.service.report;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -103,8 +105,7 @@ class CashListReportServiceTest {
         assertThatThrownBy(() -> service.generateReportData(reportInstance("{\"till_id\":\"" + TILL_ID + "\"}")))
             .isInstanceOf(EntityNotFoundException.class)
             .hasMessage("Cash List report till not found for till_id: " + TILL_ID);
-        verify(cashListReportAssembler, never()).toReportData(org.mockito.Mockito.any(), org.mockito.Mockito.any(),
-            org.mockito.Mockito.any());
+        verify(cashListReportAssembler, never()).toReportData(any(), any(), any());
     }
 
     @Test
@@ -115,8 +116,7 @@ class CashListReportServiceTest {
         assertThatThrownBy(() -> service.generateReportData(reportInstance("{\"till_id\":" + TILL_ID + "}")))
             .isInstanceOf(EntityNotFoundException.class)
             .hasMessage("Cash List report business unit not found for till_id: " + TILL_ID);
-        verify(cashListReportAssembler, never()).toReportData(org.mockito.Mockito.any(), org.mockito.Mockito.any(),
-            org.mockito.Mockito.any());
+        verify(cashListReportAssembler, never()).toReportData(any(), any(), any());
     }
 
     @Test
@@ -152,7 +152,7 @@ class CashListReportServiceTest {
         return PaymentInEntity.builder()
             .paymentInId(paymentInId)
             .tillEntity(till)
-            .paymentDate(LocalDateTime.of(2026, 5, 26, 14, 30))
+            .paymentDate(LocalDateTime.of(2026, Month.MAY, 26, 14, 30))
             .paymentMethod(PaymentMethod.NC)
             .destinationType(DestinationType.F)
             .build();

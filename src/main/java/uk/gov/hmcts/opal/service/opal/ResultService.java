@@ -4,6 +4,7 @@ package uk.gov.hmcts.opal.service.opal;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
@@ -16,12 +17,12 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
-import uk.gov.hmcts.opal.dto.ResultDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.generated.model.GetResultByIdResponseResults;
 import uk.gov.hmcts.opal.mapper.ResultMapper;
 import uk.gov.hmcts.opal.repository.ResultRepository;
 import uk.gov.hmcts.opal.repository.jpa.ResultSpecs;
@@ -36,6 +37,18 @@ public class ResultService {
     private final ResultSpecs resultSpecs;
     private static final String WELSH_PARAMETER_PREFIX = "cy_";
     private static final String WELSH_PARAMETER_HINT = "Provide a welsh version for the defendant";
+    private static final Set<String> WELSH_PARAMETER_TYPES = Set.of(
+        "text",
+        "text-60",
+        "text-100",
+        "text-1000",
+        "date",
+        "integer",
+        "decimal",
+        "menu-radio",
+        "menu-checkbox",
+        "menu-autocomplete"
+    );
 
     @Transactional(readOnly = true)
     public ResultEntity getResultById(String resultId) {
@@ -50,11 +63,11 @@ public class ResultService {
 
     @Cacheable(value = "resultsCache", key = "#root.method.name + '_' + #resultId + '_' + #includeWelsh")
     @Transactional(readOnly = true)
-    public ResultDto getResult(String resultId, boolean includeWelsh) {
+    public GetResultByIdResponseResults getResult(String resultId, boolean includeWelsh) {
         ResultEntity entity = resultRepository.findWithFullGraphByResultId(resultId)
             .orElseThrow(() -> new EntityNotFoundException("'Result' not found with id: " + resultId));
 
-        ResultDto result = resultMapper.toDto(entity);
+        GetResultByIdResponseResults result = resultMapper.toDto(entity);
         if (includeWelsh) {
             result.setResultParameters(addWelshResultParameters(result.getResultParameters()));
         }
@@ -85,7 +98,7 @@ public class ResultService {
 
     private boolean isWelshParameterRequired(JsonNode parameter) {
         return parameter.isObject()
-            && "text".equals(parameter.path("type").asText())
+            && WELSH_PARAMETER_TYPES.contains(parameter.path("type").asText())
             && parameter.path("language_dependent").asBoolean(false);
     }
 

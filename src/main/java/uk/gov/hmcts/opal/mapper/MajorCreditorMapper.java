@@ -13,7 +13,7 @@ public interface MajorCreditorMapper {
     @Mapping(source = "creditorAccountEntity.creditorAccountType", target = "creditorAccountType")
     @Mapping(source = "creditorAccountEntity.prosecutionService", target = "prosecutionService")
     @Mapping(source = "creditorAccountEntity.minorCreditorPartyId", target = "minorCreditorPartyId")
-    @Mapping(source = "creditorAccountEntity.fromSuspense", target = "fromSuspense")
+    @Mapping(source = "creditorAccountEntity.repayment", target = "repayment")
     @Mapping(source = "creditorAccountEntity.holdPayout", target = "holdPayout")
     @Mapping(source = "creditorAccountEntity.lastChangedDate", target = "lastChangedDate")
     MajorCreditorReferenceData toRefData(MajorCreditorEntity entity);

@@ -23,6 +23,7 @@ import uk.gov.hmcts.opal.util.JsonPathUtil;
 public class DraftAccountReferenceValidationService {
 
     private static final String ROOT_PATH = "$";
+    private static final String DOES_NOT_EXIST = " does not exist";
 
     private final CourtLiteRepository courtLiteRepository;
     private final OffenceRepository offenceRepository;
@@ -56,7 +57,7 @@ public class DraftAccountReferenceValidationService {
         }
 
         if (!courtLiteRepository.existsById(enforcementCourtId)) {
-            failures.add(ROOT_PATH + ".enforcement_court_id: court id " + enforcementCourtId + " does not exist");
+            failures.add(ROOT_PATH + ".enforcement_court_id: court id " + enforcementCourtId + DOES_NOT_EXIST);
         }
     }
 
@@ -71,12 +72,12 @@ public class DraftAccountReferenceValidationService {
 
             Long offenceId = safeReadLong(docContext, offencePath + ".offence_id");
             if (offenceId != null && !offenceRepository.existsById(offenceId)) {
-                failures.add(offencePath + ".offence_id: offence id " + offenceId + " does not exist");
+                failures.add(offencePath + ".offence_id: offence id " + offenceId + DOES_NOT_EXIST);
             }
 
             Long imposingCourtId = safeReadLong(docContext, offencePath + ".imposing_court_id");
             if (imposingCourtId != null && !courtLiteRepository.existsById(imposingCourtId)) {
-                failures.add(offencePath + ".imposing_court_id: court id " + imposingCourtId + " does not exist");
+                failures.add(offencePath + ".imposing_court_id: court id " + imposingCourtId + DOES_NOT_EXIST);
             }
 
             List<?> impositions = safeReadList(docContext, offencePath + ".impositions");
@@ -89,13 +90,13 @@ public class DraftAccountReferenceValidationService {
 
                 String resultId = safeReadString(docContext, impositionPath + ".result_id", null);
                 if (resultId != null && !resultRepository.existsById(resultId)) {
-                    failures.add(impositionPath + ".result_id: result id " + resultId + " does not exist");
+                    failures.add(impositionPath + ".result_id: result id " + resultId + DOES_NOT_EXIST);
                 }
 
                 Long majorCreditorId = safeReadLong(docContext, impositionPath + ".major_creditor_id");
                 if (majorCreditorId != null && !majorCreditorRepository.existsById(majorCreditorId)) {
                     failures.add(impositionPath + ".major_creditor_id: major creditor id " + majorCreditorId
-                        + " does not exist");
+                        + DOES_NOT_EXIST);
                 }
             }
         }
@@ -112,7 +113,7 @@ public class DraftAccountReferenceValidationService {
 
             String resultId = safeReadString(docContext, enforcementPath + ".result_id", null);
             if (resultId != null && !resultRepository.existsById(resultId)) {
-                failures.add(enforcementPath + ".result_id: result id " + resultId + " does not exist");
+                failures.add(enforcementPath + ".result_id: result id " + resultId + DOES_NOT_EXIST);
             }
         }
     }

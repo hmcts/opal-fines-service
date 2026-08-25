@@ -24,7 +24,6 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.common.ContactDetails;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
@@ -36,6 +35,7 @@ import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
@@ -183,9 +183,10 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
                 argThat(l -> l.getDocumentLanguagePreference() != null
                     && l.getHearingLanguagePreference() != null)
             );
-            verify(amendmentRepositoryService).auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
+            verify(amendmentRepositoryService)
+                .auditInitialiseStoredProc(accountId, AssociatedRecordType.DEFENDANT_ACCOUNTS);
             verify(amendmentRepositoryService).auditFinaliseStoredProc(
-                eq(accountId), eq(RecordType.DEFENDANT_ACCOUNTS),
+                eq(accountId), eq(AssociatedRecordType.DEFENDANT_ACCOUNTS),
                 eq(Short.parseShort(bu)), eq("tester"), eq("Tester Name"), any(), eq("ACCOUNT_ENQUIRY"));
             verify(defendantAccountRepositoryService).saveAndFlush(account);
         }
@@ -223,10 +224,11 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
 
         when(defendantAccountRepositoryService.findById(accountId)).thenReturn(account);
         doThrow(exception).when(defendantAccountControlValidator).validateCanMutateParty(account);
+        AddDefendantAccountPartyRequest request = validOrganisationRequest();
 
         UnprocessableException result = assertThrows(UnprocessableException.class, () ->
             service.addDefendantAccountParty(
-                accountId, businessUnitId, "bu-user-1", "tester", "\"1\"", validOrganisationRequest()));
+                accountId, businessUnitId, "bu-user-1", "tester", "\"1\"", request));
 
         assertEquals(exception, result);
         verify(defendantAccountControlValidator).validateCanMutateParty(account);

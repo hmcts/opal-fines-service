@@ -1,7 +1,8 @@
 package uk.gov.hmcts.opal.service.legacy;
 
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -19,8 +20,13 @@ import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountAtAGlanceLegacyRespon
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse.MajorCreditorLegacy;
+import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary;
+import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountAtAGlanceResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper;
+import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHistoryRequestLegacyMapper;
+import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHistoryResponseLegacyMapper;
 import uk.gov.hmcts.opal.service.iface.MajorCreditorAccountServiceInterface;
 
 @Service
@@ -32,10 +38,15 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
         "LIBRA.get_major_creditor_account_at_a_glance";
     public static final String GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY =
         "LIBRA.get_major_creditor_account_header_summary";
+    public static final String GET_MAJOR_CREDITOR_ACCOUNT_HISTORY =
+        "LIBRA.get_major_creditor_account_history";
 
     private final GatewayService gatewayService;
     private final GetMajorCreditorAccountAtAGlanceResponseLegacyMapper atAGlanceResponseMapper;
     private final GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
+    private final GetMajorCreditorAccountHistoryRequestLegacyMapper historyRequestMapper;
+    private final GetMajorCreditorAccountHistoryResponseLegacyMapper historyResponseMapper;
+    private final LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
 
     @Override
     public GetMajorCreditorAccountAtAGlanceResponse getAtAGlance(Long majorCreditorAccountId) {
@@ -75,9 +86,46 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
             response.responseEntity);
 
         MajorCreditorLegacy majorCreditor = response.responseEntity.getMajorCreditor();
-        mapped.setVersion(BigInteger.valueOf(majorCreditor.getAccountVersion()));
+        mapped.setVersion(majorCreditor.getAccountVersion());
+        applyResolvedBusinessUnitCode(mapped, response.responseEntity.getBusinessUnitDetails());
 
         return mapped;
+    }
+
+    @Override
+    public GetMajorCreditorHistoryResponse getHistory(
+        Long majorCreditorAccountId,
+        LocalDate dateFrom,
+        LocalDate dateTo,
+        List<String> itemTypes
+    ) {
+        Response<GetMajorCreditorAccountHistoryLegacyResponse> response =
+            gatewayService.postToGateway(
+                GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
+                GetMajorCreditorAccountHistoryLegacyResponse.class,
+                historyRequestMapper.toLegacyRequest(majorCreditorAccountId, dateFrom, dateTo),
+                null
+            );
+
+        checkResponseForError(response, "getHistory");
+
+        return historyResponseMapper.toOpal(response.responseEntity);
+    }
+
+    private void applyResolvedBusinessUnitCode(
+        GetMajorCreditorAccountHeaderSummaryResponse mapped,
+        BusinessUnitSummary legacyBusinessUnit
+    ) {
+        if (mapped.getBusinessUnitDetails() == null || legacyBusinessUnit == null) {
+            return;
+        }
+
+        mapped.getBusinessUnitDetails().setBusinessUnitCode(
+            legacyBusinessUnitCodeResolver.resolve(
+                legacyBusinessUnit.getBusinessUnitId(),
+                legacyBusinessUnit.getBusinessUnitCode()
+            )
+        );
     }
 
     private static <T> void checkResponseForError(Response<T> response, String method) {
@@ -85,8 +133,8 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
             log.error(":{}: Legacy Gateway response: HTTP Response Code {}", method, response.code);
             if (response.isException()) {
                 log.error(":{}: Exception Message:", method, response.exception);
-                throw createGatewayException(response.code, "Legacy gateway exception",
-                    response.body, response.exception);
+                throw createGatewayException(response.code, "Legacy gateway exception", response.body,
+                                             response.exception);
             } else if (response.isLegacyFailure()) {
                 log.error(":{}: Legacy Failure: Body:\n{}", method, response.body);
                 throw createGatewayException(response.code, "Legacy gateway returned failure", response.body, null);

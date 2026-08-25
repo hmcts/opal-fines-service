@@ -1,70 +1,5 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import java.lang.reflect.Method;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
-import org.mockito.InjectMocks;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.Spy;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
-import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
-import uk.gov.hmcts.opal.dto.EnforcementStatus;
-import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
-import uk.gov.hmcts.opal.dto.PaymentTerms;
-import uk.gov.hmcts.opal.dto.ResultId;
-import uk.gov.hmcts.opal.dto.ResultResponse;
-import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
-import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
-import uk.gov.hmcts.opal.dto.AddNoteRequest;
-import uk.gov.hmcts.opal.dto.Note;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
-import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
-import uk.gov.hmcts.opal.entity.AssociatedRecordType;
-import uk.gov.hmcts.opal.entity.EnforcerEntity;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.entity.PartyEntity;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
-import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
-import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
-import uk.gov.hmcts.opal.exception.ResourceConflictException;
-import uk.gov.hmcts.opal.exception.UnprocessableException;
-import uk.gov.hmcts.opal.service.AccountNoteContext;
-import uk.gov.hmcts.opal.service.UserStateService;
-import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
-import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
-import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
-import uk.gov.hmcts.opal.service.persistence.EnforcerRepositoryService;
-import uk.gov.hmcts.opal.service.persistence.LocalJusticeAreaRepositoryService;
-import uk.gov.hmcts.opal.service.persistence.ResultRepositoryService;
-import uk.gov.hmcts.opal.service.proxy.NotesProxy;
-import uk.gov.hmcts.opal.util.VersionUtils;
-
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -80,14 +15,81 @@ import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mapstruct.factory.Mappers;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.dto.AddNoteRequest;
+import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.dto.Note;
+import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
+import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
+import uk.gov.hmcts.opal.entity.EnforcerEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
+import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.exception.UnprocessableException;
+import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.EnforcementInstalmentPeriodCommonStrict;
+import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsTypeCommonStrict;
+import uk.gov.hmcts.opal.generated.model.EnforcementResultIdCommonStrict;
+import uk.gov.hmcts.opal.generated.model.EnforcementResultResponseDefendantAccount;
+import uk.gov.hmcts.opal.mapper.EnforcementPaymentTermsMapper;
+import uk.gov.hmcts.opal.service.AccountNoteContext;
+import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.EnforcerRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.LocalJusticeAreaRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.ResultRepositoryService;
+import uk.gov.hmcts.opal.service.proxy.NotesProxy;
+import uk.gov.hmcts.opal.util.VersionUtils;
+
 @ExtendWith(MockitoExtension.class)
-public class OpalDefendantAccountEnforcementServiceTest {
+class OpalDefendantAccountEnforcementServiceTest {
 
     private static final Long DEFENDANT_ACCOUNT_ID = 1001L;
     private static final Short BUSINESS_UNIT_ID = 2002;
@@ -129,10 +131,14 @@ public class OpalDefendantAccountEnforcementServiceTest {
     private DefendantAccountRepositoryService defendantAccountRepositoryService;
 
     @Mock
-    private OpalDefendantAccountService opalDefendantAccountService;
+    private OpalDefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
 
     @Mock
     private DefendantAccountControlValidator defendantAccountControlValidator;
+
+    @Spy
+    private EnforcementPaymentTermsMapper enforcementPaymentTermsMapper =
+        Mappers.getMapper(EnforcementPaymentTermsMapper.class);
 
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -201,13 +207,13 @@ public class OpalDefendantAccountEnforcementServiceTest {
         mockDefendantAccount();
         mockCreatedEnforcement();
 
-        AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
-            .resultId(ResultId.ABDC)
+        AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
+            .resultId(EnforcementResultIdCommonStrict.ABDC)
             .enforcementResultResponses(null)
-            .paymentTerms(null)
+            .paymentTerms((EnforcementPaymentTermsCommonStrict) null)
             .build();
 
-        AddEnforcementResponse response = service.addEnforcement(
+        AddEnforcementResponseDefendantAccount response = service.addEnforcement(
             DEFENDANT_ACCOUNT_ID,
             BUSINESS_UNIT_ID,
             BUSINESS_UNIT_USER_ID,
@@ -216,19 +222,19 @@ public class OpalDefendantAccountEnforcementServiceTest {
         );
 
         verify(enforcementRepositoryService).addDefendantAccountEnforcement(
-            eq(RESULT_ID_AS_STRING),
-            eq(DEFENDANT_ACCOUNT_ID),
-            eq(BUSINESS_UNIT_ID),
-            eq(PROSECUTOR_CASE_REFERENCE),
-            eq("ACCOUNT_ENQUIRY"),
-            eq(null),
-            eq(BUSINESS_UNIT_USER_ID),
-            eq(USER_NAME),
-            eq(null),
-            eq(null),
-            eq("{}"),
-            eq(null),
-            eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
+            RESULT_ID_AS_STRING,
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            PROSECUTOR_CASE_REFERENCE,
+            "ACCOUNT_ENQUIRY",
+            null,
+            BUSINESS_UNIT_USER_ID,
+            USER_NAME,
+            null,
+            null,
+            "{}",
+            null,
+            VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
 
         assertCommonResponse(response);
@@ -244,10 +250,10 @@ public class OpalDefendantAccountEnforcementServiceTest {
 
     @Test
     void toResultResponsesMap_skipsNullEntriesAndEntriesWithoutParameterName() throws Exception {
-        List<ResultResponse> responses = new ArrayList<>();
+        List<EnforcementResultResponseDefendantAccount> responses = new ArrayList<>();
         responses.add(null);
-        responses.add(ResultResponse.builder().parameterName(null).response("ignored").build());
-        responses.add(ResultResponse.builder().parameterName("reason").response("a").build());
+        responses.add(new EnforcementResultResponseDefendantAccount().parameterName(null).response("ignored"));
+        responses.add(new EnforcementResultResponseDefendantAccount().parameterName("reason").response("a"));
 
         Map<String, String> result = invokeToResultResponsesMap(responses);
 
@@ -256,25 +262,26 @@ public class OpalDefendantAccountEnforcementServiceTest {
     }
 
     @Test
-    public void testAddEnforcement_whenGivenAllFields_createsEnforcement() throws JacksonException {
+    void testAddEnforcement_whenGivenAllFields_createsEnforcement() throws JacksonException {
         mockAuthorisedUser();
         mockDefendantAccount();
         mockCreatedEnforcement();
 
-        List<ResultResponse> responses = List.of(
-            ResultResponse.builder().parameterName("reason").response("test reason").build(),
-            ResultResponse.builder().parameterName("jail_days").response("14").build(),
-            ResultResponse.builder().parameterName("enforcer_id").response("55").build(),
-            ResultResponse.builder().parameterName("earliest_release_date").response("2026-05-01T00:00:00").build()
+        List<EnforcementResultResponseDefendantAccount> responses = List.of(
+            new EnforcementResultResponseDefendantAccount().parameterName("reason").response("test reason"),
+            new EnforcementResultResponseDefendantAccount().parameterName("jail_days").response("14"),
+            new EnforcementResultResponseDefendantAccount().parameterName("enforcer_id").response("55"),
+            new EnforcementResultResponseDefendantAccount().parameterName("earliest_release_date")
+                .response("2026-05-01T00:00:00")
         );
 
-        AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
-            .resultId(ResultId.ABDC)
+        AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
+            .resultId(EnforcementResultIdCommonStrict.ABDC)
             .enforcementResultResponses(responses)
-            .paymentTerms(null)
+            .paymentTerms((EnforcementPaymentTermsCommonStrict) null)
             .build();
 
-        AddEnforcementResponse response = service.addEnforcement(
+        AddEnforcementResponseDefendantAccount response = service.addEnforcement(
             DEFENDANT_ACCOUNT_ID,
             BUSINESS_UNIT_ID,
             BUSINESS_UNIT_USER_ID,
@@ -290,26 +297,26 @@ public class OpalDefendantAccountEnforcementServiceTest {
         ));
 
         verify(enforcementRepositoryService).addDefendantAccountEnforcement(
-            eq(RESULT_ID_AS_STRING),
-            eq(DEFENDANT_ACCOUNT_ID),
-            eq(BUSINESS_UNIT_ID),
-            eq(PROSECUTOR_CASE_REFERENCE),
-            eq("ACCOUNT_ENQUIRY"),
-            eq((Integer) 14),
-            eq(BUSINESS_UNIT_USER_ID),
-            eq(USER_NAME),
-            eq("test reason"),
-            eq(55L),
-            eq(responsesJson),
-            eq(LocalDateTime.of(2026,5,1,0,0,0)),
-            eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
+            RESULT_ID_AS_STRING,
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            PROSECUTOR_CASE_REFERENCE,
+            "ACCOUNT_ENQUIRY",
+            14,
+            BUSINESS_UNIT_USER_ID,
+            USER_NAME,
+            "test reason",
+            55L,
+            responsesJson,
+            LocalDateTime.of(2026, 5, 1, 0, 0, 0),
+            VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
 
         assertCommonResponse(response);
     }
 
     @Test
-    public void testAddEnforcement_whenOnlyGivenReason_createsEnforcement() throws JacksonException {
+    void testAddEnforcement_whenOnlyGivenReason_createsEnforcement() throws JacksonException {
         UserState userState = mock(UserState.class);
         when(userState.getUserName()).thenReturn(USER_NAME);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
@@ -334,17 +341,17 @@ public class OpalDefendantAccountEnforcementServiceTest {
             anyLong()
         )).thenReturn(ENFORCEMENT_ID);
 
-        List<ResultResponse> responses = List.of(
-            ResultResponse.builder().parameterName("reason").response("test reason").build()
+        List<EnforcementResultResponseDefendantAccount> responses = List.of(
+            new EnforcementResultResponseDefendantAccount().parameterName("reason").response("test reason")
         );
 
-        AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
-            .resultId(ResultId.ABDC)
+        AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
+            .resultId(EnforcementResultIdCommonStrict.ABDC)
             .enforcementResultResponses(responses)
-            .paymentTerms(null)
+            .paymentTerms((EnforcementPaymentTermsCommonStrict) null)
             .build();
 
-        AddEnforcementResponse response = service.addEnforcement(
+        AddEnforcementResponseDefendantAccount response = service.addEnforcement(
             DEFENDANT_ACCOUNT_ID,
             BUSINESS_UNIT_ID,
             BUSINESS_UNIT_USER_ID,
@@ -357,26 +364,26 @@ public class OpalDefendantAccountEnforcementServiceTest {
         ));
 
         verify(enforcementRepositoryService).addDefendantAccountEnforcement(
-            eq(RESULT_ID_AS_STRING),
-            eq(DEFENDANT_ACCOUNT_ID),
-            eq(BUSINESS_UNIT_ID),
-            eq(PROSECUTOR_CASE_REFERENCE),
-            eq("ACCOUNT_ENQUIRY"),
-            eq(null),
-            eq(BUSINESS_UNIT_USER_ID),
-            eq(USER_NAME),
-            eq("test reason"),
-            eq(null),
-            eq(responsesJson),
-            eq(null),
-            eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
+            RESULT_ID_AS_STRING,
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            PROSECUTOR_CASE_REFERENCE,
+            "ACCOUNT_ENQUIRY",
+            null,
+            BUSINESS_UNIT_USER_ID,
+            USER_NAME,
+            "test reason",
+            null,
+            responsesJson,
+            null,
+            VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
 
         assertCommonResponse(response);
     }
 
     @Test
-    public void testAddEnforcement_whenOnlyGivenJailDays_createsEnforcement() throws JacksonException {
+    void testAddEnforcement_whenOnlyGivenJailDays_createsEnforcement() throws JacksonException {
         UserState userState = mock(UserState.class);
         when(userState.getUserName()).thenReturn(USER_NAME);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
@@ -401,17 +408,17 @@ public class OpalDefendantAccountEnforcementServiceTest {
             anyLong()
         )).thenReturn(ENFORCEMENT_ID);
 
-        List<ResultResponse> responses = List.of(
-            ResultResponse.builder().parameterName("jail_days").response("14").build()
+        List<EnforcementResultResponseDefendantAccount> responses = List.of(
+            new EnforcementResultResponseDefendantAccount().parameterName("jail_days").response("14")
         );
 
-        AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
-            .resultId(ResultId.ABDC)
+        AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
+            .resultId(EnforcementResultIdCommonStrict.ABDC)
             .enforcementResultResponses(responses)
-            .paymentTerms(null)
+            .paymentTerms((EnforcementPaymentTermsCommonStrict) null)
             .build();
 
-        AddEnforcementResponse response = service.addEnforcement(
+        AddEnforcementResponseDefendantAccount response = service.addEnforcement(
             DEFENDANT_ACCOUNT_ID,
             BUSINESS_UNIT_ID,
             BUSINESS_UNIT_USER_ID,
@@ -424,26 +431,26 @@ public class OpalDefendantAccountEnforcementServiceTest {
         ));
 
         verify(enforcementRepositoryService).addDefendantAccountEnforcement(
-            eq(RESULT_ID_AS_STRING),
-            eq(DEFENDANT_ACCOUNT_ID),
-            eq(BUSINESS_UNIT_ID),
-            eq(PROSECUTOR_CASE_REFERENCE),
-            eq("ACCOUNT_ENQUIRY"),
-            eq((Integer) 14),
-            eq(BUSINESS_UNIT_USER_ID),
-            eq(USER_NAME),
-            eq(null),
-            eq(null),
-            eq(responsesJson),
-            eq(null),
-            eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
+            RESULT_ID_AS_STRING,
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            PROSECUTOR_CASE_REFERENCE,
+            "ACCOUNT_ENQUIRY",
+            14,
+            BUSINESS_UNIT_USER_ID,
+            USER_NAME,
+            null,
+            null,
+            responsesJson,
+            null,
+            VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
 
         assertCommonResponse(response);
     }
 
     @Test
-    public void testAddEnforcement_whenOnlyGivenEnforcer_createsEnforcement() throws JacksonException {
+    void testAddEnforcement_whenOnlyGivenEnforcer_createsEnforcement() throws JacksonException {
         UserState userState = mock(UserState.class);
         when(userState.getUserName()).thenReturn(USER_NAME);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
@@ -468,17 +475,17 @@ public class OpalDefendantAccountEnforcementServiceTest {
             anyLong()
         )).thenReturn(ENFORCEMENT_ID);
 
-        List<ResultResponse> responses = List.of(
-            ResultResponse.builder().parameterName("enforcer_id").response("55").build()
+        List<EnforcementResultResponseDefendantAccount> responses = List.of(
+            new EnforcementResultResponseDefendantAccount().parameterName("enforcer_id").response("55")
         );
 
-        AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
-            .resultId(ResultId.ABDC)
+        AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
+            .resultId(EnforcementResultIdCommonStrict.ABDC)
             .enforcementResultResponses(responses)
-            .paymentTerms(null)
+            .paymentTerms((EnforcementPaymentTermsCommonStrict) null)
             .build();
 
-        AddEnforcementResponse response = service.addEnforcement(
+        AddEnforcementResponseDefendantAccount response = service.addEnforcement(
             DEFENDANT_ACCOUNT_ID,
             BUSINESS_UNIT_ID,
             BUSINESS_UNIT_USER_ID,
@@ -491,26 +498,26 @@ public class OpalDefendantAccountEnforcementServiceTest {
         ));
 
         verify(enforcementRepositoryService).addDefendantAccountEnforcement(
-            eq(RESULT_ID_AS_STRING),
-            eq(DEFENDANT_ACCOUNT_ID),
-            eq(BUSINESS_UNIT_ID),
-            eq(PROSECUTOR_CASE_REFERENCE),
-            eq("ACCOUNT_ENQUIRY"),
-            eq(null),
-            eq(BUSINESS_UNIT_USER_ID),
-            eq(USER_NAME),
-            eq(null),
-            eq(55L),
-            eq(responsesJson),
-            eq(null),
-            eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
+            RESULT_ID_AS_STRING,
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            PROSECUTOR_CASE_REFERENCE,
+            "ACCOUNT_ENQUIRY",
+            null,
+            BUSINESS_UNIT_USER_ID,
+            USER_NAME,
+            null,
+            55L,
+            responsesJson,
+            null,
+            VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
 
         assertCommonResponse(response);
     }
 
     @Test
-    public void testAddEnforcement_whenOnlyGivenReleaseDate_createsEnforcement() throws JacksonException {
+    void testAddEnforcement_whenOnlyGivenReleaseDate_createsEnforcement() throws JacksonException {
         UserState userState = mock(UserState.class);
         when(userState.getUserName()).thenReturn(USER_NAME);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
@@ -535,17 +542,18 @@ public class OpalDefendantAccountEnforcementServiceTest {
             anyLong()
         )).thenReturn(ENFORCEMENT_ID);
 
-        List<ResultResponse> responses = List.of(
-            ResultResponse.builder().parameterName("earliest_release_date").response("2026-05-01T00:00:00").build()
+        List<EnforcementResultResponseDefendantAccount> responses = List.of(
+            new EnforcementResultResponseDefendantAccount().parameterName("earliest_release_date")
+                .response("2026-05-01T00:00:00")
         );
 
-        AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
-            .resultId(ResultId.ABDC)
+        AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
+            .resultId(EnforcementResultIdCommonStrict.ABDC)
             .enforcementResultResponses(responses)
-            .paymentTerms(null)
+            .paymentTerms((EnforcementPaymentTermsCommonStrict) null)
             .build();
 
-        AddEnforcementResponse response = service.addEnforcement(
+        AddEnforcementResponseDefendantAccount response = service.addEnforcement(
             DEFENDANT_ACCOUNT_ID,
             BUSINESS_UNIT_ID,
             BUSINESS_UNIT_USER_ID,
@@ -558,26 +566,26 @@ public class OpalDefendantAccountEnforcementServiceTest {
         ));
 
         verify(enforcementRepositoryService).addDefendantAccountEnforcement(
-            eq(RESULT_ID_AS_STRING),
-            eq(DEFENDANT_ACCOUNT_ID),
-            eq(BUSINESS_UNIT_ID),
-            eq(PROSECUTOR_CASE_REFERENCE),
-            eq("ACCOUNT_ENQUIRY"),
-            eq(null),
-            eq(BUSINESS_UNIT_USER_ID),
-            eq(USER_NAME),
-            eq(null),
-            eq(null),
-            eq(responsesJson),
-            eq(LocalDateTime.of(2026,5,1,0,0,0)),
-            eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
+            RESULT_ID_AS_STRING,
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            PROSECUTOR_CASE_REFERENCE,
+            "ACCOUNT_ENQUIRY",
+            null,
+            BUSINESS_UNIT_USER_ID,
+            USER_NAME,
+            null,
+            null,
+            responsesJson,
+            LocalDateTime.of(2026, 5, 1, 0, 0, 0),
+            VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
 
         assertCommonResponse(response);
     }
 
     @Test
-    public void testAddEnforcement_whenGivenPaymentTerms_callsPaymentTermsService() throws JacksonException {
+    void testAddEnforcement_whenGivenPaymentTerms_callsPaymentTermsService() throws JacksonException {
         UserState userState = mock(UserState.class);
         when(userState.getUserName()).thenReturn(USER_NAME);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
@@ -604,28 +612,27 @@ public class OpalDefendantAccountEnforcementServiceTest {
 
         when(defendant.getVersion()).thenReturn(VersionUtils.extractBigInteger(IF_MATCH));
 
-        PaymentTerms paymentTerms = PaymentTerms.builder()
+        EnforcementPaymentTermsCommonStrict paymentTerms = new EnforcementPaymentTermsCommonStrict()
             .daysInDefault(7)
             .dateDaysInDefaultImposed(LocalDate.of(2026, 4, 12))
             .extension(true)
             .reasonForExtension("test reason")
-            .paymentTermsType(PaymentTermsType.fromCode("B"))
+            .paymentTermsType(new EnforcementPaymentTermsTypeCommonStrict()
+                .paymentTermsTypeCode(EnforcementPaymentTermsTypeCommonStrict.PaymentTermsTypeCodeEnum.B))
             .effectiveDate(LocalDate.of(2026, 5, 28))
-            .instalmentPeriod(uk.gov.hmcts.opal.dto.common.InstalmentPeriod.builder()
-                                  .instalmentPeriodCode(InstalmentPeriod.InstalmentPeriodCode.W)
-                                  .build())
+            .instalmentPeriod(new EnforcementInstalmentPeriodCommonStrict()
+                .instalmentPeriodCode(EnforcementInstalmentPeriodCommonStrict.InstalmentPeriodCodeEnum.W))
             .lumpSumAmount(BigDecimal.valueOf(100000))
             .instalmentAmount(BigDecimal.valueOf(0.50))
-            .postedDetails(null)
-            .build();
+            .postedDetails(null);
 
-        AddDefendantAccountEnforcementRequest request = AddDefendantAccountEnforcementRequest.builder()
-            .resultId(ResultId.ABDC)
+        AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
+            .resultId(EnforcementResultIdCommonStrict.ABDC)
             .enforcementResultResponses(Collections.emptyList())
             .paymentTerms(paymentTerms)
             .build();
 
-        AddEnforcementResponse response = service.addEnforcement(
+        AddEnforcementResponseDefendantAccount response = service.addEnforcement(
             DEFENDANT_ACCOUNT_ID,
             BUSINESS_UNIT_ID,
             BUSINESS_UNIT_USER_ID,
@@ -651,7 +658,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
 
         assertCommonResponse(response);
 
-        verify(opalDefendantAccountService).addPaymentTermsPreservingLastEnforcement(
+        verify(defendantAccountPaymentTermsService).addPaymentTermsPreservingLastEnforcement(
             eq(DEFENDANT_ACCOUNT_ID),
             eq(BUSINESS_UNIT_ID.toString()),
             eq(BUSINESS_UNIT_USER_ID),
@@ -670,8 +677,8 @@ public class OpalDefendantAccountEnforcementServiceTest {
         String ifMatch = "\"7\"";
         String updatedIfMatch = "\"7\"";
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
@@ -700,7 +707,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             versionUtils.when(() -> VersionUtils.createETag(defendantEntity)).thenReturn(updatedIfMatch);
 
             // act
-            RemoveDefendantAccountEnforcementHoldResponse result =
+            RemoveEnforcementHoldResponseDefendantAccount result =
                 service.removeEnforcementHold(
                     defendantAccountId,
                     businessUnitId,
@@ -720,7 +727,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             verify(defendantAccountRepositoryService).findById(defendantAccountId);
             verify(amendmentService).auditInitialiseStoredProc(
                 defendantAccountId,
-                uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS
+                AssociatedRecordType.DEFENDANT_ACCOUNTS
             );
             verify(defendantAccountRepositoryService).saveAndFlush(defendantEntity);
             verify(notesProxy).addNote(
@@ -732,7 +739,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             verifyNoInteractions(reportEntryService);
             verify(amendmentService).auditFinaliseStoredProc(
                 defendantAccountId,
-                uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS,
+                AssociatedRecordType.DEFENDANT_ACCOUNTS,
                 businessUnitId,
                 businessUnitUserId,
                 userState.getUserName(),
@@ -763,8 +770,8 @@ public class OpalDefendantAccountEnforcementServiceTest {
         Short businessUnitId = 10;
         String businessUnitUserId = "BU-USER-1";
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
@@ -809,8 +816,8 @@ public class OpalDefendantAccountEnforcementServiceTest {
         String businessUnitUserId = "BU-USER-1";
         String ifMatch = "\"7\"";
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
@@ -849,7 +856,7 @@ public class OpalDefendantAccountEnforcementServiceTest {
             assertEquals(exception, result);
             verify(defendantAccountControlValidator).validateCanRemoveEnforcementHold(defendantEntity);
             verifyNoInteractions(amendmentService, reportEntryService, notesProxy);
-            verify(defendantAccountRepositoryService, org.mockito.Mockito.never()).saveAndFlush(defendantEntity);
+            verify(defendantAccountRepositoryService, never()).saveAndFlush(defendantEntity);
             assertEquals("NOENF", defendantEntity.getLastEnforcement());
         }
     }
@@ -861,8 +868,8 @@ public class OpalDefendantAccountEnforcementServiceTest {
         String businessUnitUserId = "BU-USER-1";
         String ifMatch = "\"7\"";
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
@@ -916,8 +923,8 @@ public class OpalDefendantAccountEnforcementServiceTest {
         String businessUnitUserId = "BU-USER-1";
         String ifMatch = "\"7\"";
 
-        RemoveDefendantAccountEnforcementHoldRequest request =
-            RemoveDefendantAccountEnforcementHoldRequest.builder()
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder()
                 .reason("remove hold reason")
                 .build();
 
@@ -962,12 +969,12 @@ public class OpalDefendantAccountEnforcementServiceTest {
             verify(defendantAccountRepositoryService).findById(defendantAccountId);
             verify(amendmentService).auditInitialiseStoredProc(
                 defendantAccountId,
-                uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS
+                AssociatedRecordType.DEFENDANT_ACCOUNTS
             );
             verify(defendantAccountRepositoryService).saveAndFlush(defendantEntity);
-            verify(amendmentService, org.mockito.Mockito.never()).auditFinaliseStoredProc(
+            verify(amendmentService, never()).auditFinaliseStoredProc(
                 eq(defendantAccountId),
-                eq(uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS),
+                eq(AssociatedRecordType.DEFENDANT_ACCOUNTS),
                 eq(businessUnitId),
                 eq(businessUnitUserId),
                 eq(userState.getUserName()),
@@ -1015,9 +1022,9 @@ public class OpalDefendantAccountEnforcementServiceTest {
         assertNull(status.getNextEnforcementActionData());
     }
 
-    private void assertCommonResponse(AddEnforcementResponse response) {
+    private void assertCommonResponse(AddEnforcementResponseDefendantAccount response) {
         assertEquals(String.valueOf(DEFENDANT_ACCOUNT_ID), response.getDefendantAccountId());
-        assertEquals(0, response.getVersion());
+        assertEquals(BigInteger.ZERO, response.getVersion());
         assertEquals(String.valueOf(ENFORCEMENT_ID), response.getEnforcementId());
         verify(defendantAccountRepositoryService).refresh(ArgumentMatchers.any(DefendantAccountEntity.class));
     }
@@ -1061,7 +1068,8 @@ public class OpalDefendantAccountEnforcementServiceTest {
     }
 
     @SuppressWarnings("unchecked")
-    private Map<String, String> invokeToResultResponsesMap(List<ResultResponse> responses) throws Exception {
+    private Map<String, String> invokeToResultResponsesMap(List<EnforcementResultResponseDefendantAccount> responses)
+        throws Exception {
         Method method = OpalDefendantAccountEnforcementService.class
             .getDeclaredMethod("toResultResponsesMap", List.class);
         method.setAccessible(true);

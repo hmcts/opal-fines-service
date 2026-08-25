@@ -19,6 +19,7 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.MinorCreditorHistoryFixtureControllerIntegrationTest")
@@ -30,6 +31,7 @@ class MinorCreditorHistoryFixtureControllerIntegrationTest extends AbstractInteg
     @Test
     @JiraStory("PO-2642")
     @JiraEpic("PO-2653")
+    @JiraTestKey("PO-9440")
     void shouldCreateAndDeleteMinorCreditorHistoryFixture() throws Exception {
         ResultActions createActions = mockMvc.perform(post(URL_BASE)
             .contentType(MediaType.APPLICATION_JSON)
@@ -45,6 +47,10 @@ class MinorCreditorHistoryFixtureControllerIntegrationTest extends AbstractInteg
             .andExpect(jsonPath("$.creditor_account_id").isNumber())
             .andExpect(jsonPath("$.defendant_account_id").isNumber())
             .andExpect(jsonPath("$.party_id").isNumber())
+            .andExpect(jsonPath("$.business_unit_id").value(77))
+            .andExpect(jsonPath("$.account_number").isNotEmpty())
+            .andExpect(jsonPath("$.surname").value("MCHINT"))
+            .andExpect(jsonPath("$.forenames").value("History"))
             .andExpect(jsonPath("$.date_from").isNotEmpty())
             .andExpect(jsonPath("$.date_to").isNotEmpty())
             .andExpect(jsonPath("$.excluded_date").isNotEmpty());

@@ -6,6 +6,7 @@ import jakarta.persistence.LockModeType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -15,13 +16,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.CreditorAccountDto;
 import uk.gov.hmcts.opal.dto.DefendantDto;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
-import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntity;
@@ -32,12 +32,13 @@ import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItem;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItemType;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.GetMinorCreditorHistory200Response;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderEntityMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountUpdateMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorHistoryItemMapper;
-import uk.gov.hmcts.opal.mapper.response.GetMinorCreditorAccountAtAGlanceResponseMapper;
+import uk.gov.hmcts.opal.mapper.response.MinorCreditorAccountAtAGlanceResponseMapper;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.CreditorTransactionRepository;
@@ -55,8 +56,9 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 @RequiredArgsConstructor
 public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
-    private static final LocalDateTime MIN_HISTORY_POSTED_DATE = LocalDateTime.of(1, 1, 1, 0, 0);
-    private static final LocalDateTime MAX_HISTORY_POSTED_DATE = LocalDateTime.of(9999, 12, 31, 23, 59, 59);
+    private static final LocalDateTime MIN_HISTORY_POSTED_DATE = LocalDateTime.of(1, Month.JANUARY, 1, 0, 0);
+    private static final LocalDateTime MAX_HISTORY_POSTED_DATE = LocalDateTime.of(9999, Month.DECEMBER, 31, 23, 59, 59);
+    private static final String MINOR_CREDITOR_ACCOUNT_NOT_FOUND = "Minor creditor account not found: ";
 
     private final MinorCreditorRepository minorCreditorRepository;
     private final MinorCreditorAccountHeaderRepository minorCreditorAccountHeaderRepository;
@@ -71,7 +73,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
     private final MinorCreditorAccountUpdateMapper updateMapper;
     private final MinorCreditorAccountResponseMapper responseMapper;
     private final MinorCreditorHistoryItemMapper historyItemMapper;
-    private final GetMinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
+    private final MinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
     private final EntityManager em;
     private final MinorCreditorSpecs specs = new MinorCreditorSpecs();
 
@@ -89,7 +91,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
         CreditorAccountEntity creditorAccount = creditorAccountRepository.findById(minorCreditorAccountId)
             .orElseThrow(() -> new EntityNotFoundException(
-                "Minor creditor account not found: " + minorCreditorAccountId
+                MINOR_CREDITOR_ACCOUNT_NOT_FOUND + minorCreditorAccountId
             ));
 
         if (creditorAccount.getCreditorAccountType() == null || !creditorAccount.getCreditorAccountType()
@@ -115,7 +117,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
         CreditorAccountEntity creditorAccount = creditorAccountRepository.findById(minorCreditorAccountId)
             .orElseThrow(() -> new EntityNotFoundException(
-                "Minor creditor account not found: " + minorCreditorAccountId
+                MINOR_CREDITOR_ACCOUNT_NOT_FOUND + minorCreditorAccountId
             ));
 
         if (creditorAccount.getCreditorAccountType() == null || !creditorAccount.getCreditorAccountType()
@@ -175,20 +177,20 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
     @Override
     @Transactional(readOnly = true)
-    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId) {
+    public MinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId) {
         log.debug(":getMinorCreditorAtAGlance (Opal): minorCreditorId={}", minorCreditorId);
 
         MinorCreditorAccountAtAGlanceEntity minorCreditorEntity =
             minorCreditorAccountAtAGlanceRepository.findById(minorCreditorId)
             .orElseThrow(() -> new EntityNotFoundException(
-                "Minor creditor account not found: " + minorCreditorId
+                MINOR_CREDITOR_ACCOUNT_NOT_FOUND + minorCreditorId
             ));
         PartyEntity partyEntity = partyRepository.findById(minorCreditorEntity.getPartyId())
             .orElseThrow(() -> new EntityNotFoundException(
                 "Party not found: " + minorCreditorEntity.getPartyId()
             ));
 
-        GetMinorCreditorAccountAtAGlanceResponse response =
+        MinorCreditorAccountAtAGlanceResponse response =
             atAGlanceResponseMapper.toDto(minorCreditorEntity, partyEntity);
 
         if (minorCreditorEntity.getVersionNumber() != null) {
@@ -205,7 +207,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
         MinorCreditorAccountHeaderEntity entity =
             minorCreditorAccountHeaderRepository.findById(minorCreditorAccountId)
                 .orElseThrow(() -> new EntityNotFoundException(
-                    "Minor creditor account not found: " + minorCreditorAccountId
+                    MINOR_CREDITOR_ACCOUNT_NOT_FOUND + minorCreditorAccountId
                 ));
 
         long partyId = entity.getPartyId();
@@ -232,7 +234,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
         CreditorAccountEntity creditorAccount = creditorAccountRepository
             .findByCreditorAccountIdAndBusinessUnitId(minorCreditorAccountId, businessUnitId)
             .orElseThrow(() -> new EntityNotFoundException(
-                "Minor creditor account not found: " + minorCreditorAccountId));
+                MINOR_CREDITOR_ACCOUNT_NOT_FOUND + minorCreditorAccountId));
 
         if (creditorAccount.getCreditorAccountType() == null || !creditorAccount.getCreditorAccountType()
             .isMinorCreditor()) {
@@ -250,7 +252,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
         validatePartyId(request.getPartyDetails().getPartyId(), party.getPartyId());
 
-        amendmentService.auditInitialiseStoredProc(minorCreditorAccountId, RecordType.CREDITOR_ACCOUNTS);
+        amendmentService.auditInitialiseStoredProc(minorCreditorAccountId, AssociatedRecordType.CREDITOR_ACCOUNTS);
 
         updateMapper.updateParty(request.getPartyDetails(), request.getAddress(), party);
 
@@ -270,7 +272,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
         amendmentService.auditFinaliseStoredProc(
             minorCreditorAccountId,
-            RecordType.CREDITOR_ACCOUNTS,
+            AssociatedRecordType.CREDITOR_ACCOUNTS,
             creditorAccount.getBusinessUnitId(),
             postedBy,
             postedByName,

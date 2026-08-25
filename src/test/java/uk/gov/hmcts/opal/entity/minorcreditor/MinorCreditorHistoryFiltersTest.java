@@ -8,6 +8,7 @@ import static uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItemTyp
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -26,12 +27,12 @@ class MinorCreditorHistoryFiltersTest {
     @Test
     void from_withDateRange_setsInclusiveStartAndExclusiveEnd() {
         MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(
-            LocalDate.of(2026, 1, 1),
-            LocalDate.of(2026, 1, 31),
+            LocalDate.of(2026, Month.JANUARY, 1),
+            LocalDate.of(2026, Month.JANUARY, 31),
             null);
 
-        assertThat(filters.postedFromInclusive()).isEqualTo(LocalDateTime.of(2026, 1, 1, 0, 0));
-        assertThat(filters.postedToExclusive()).isEqualTo(LocalDateTime.of(2026, 2, 1, 0, 0));
+        assertThat(filters.postedFromInclusive()).isEqualTo(LocalDateTime.of(2026, Month.JANUARY, 1, 0, 0));
+        assertThat(filters.postedToExclusive()).isEqualTo(LocalDateTime.of(2026, Month.FEBRUARY, 1, 0, 0));
     }
 
     @Test
@@ -61,8 +62,8 @@ class MinorCreditorHistoryFiltersTest {
     @Test
     void from_withDateFromAfterDateTo_throwsIllegalArgumentException() {
         assertThatThrownBy(() -> MinorCreditorHistoryFilters.from(
-            LocalDate.of(2026, 2, 1),
-            LocalDate.of(2026, 1, 31),
+            LocalDate.of(2026, Month.FEBRUARY, 1),
+            LocalDate.of(2026, Month.JANUARY, 31),
             null))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("dateFrom must be on or before dateTo");

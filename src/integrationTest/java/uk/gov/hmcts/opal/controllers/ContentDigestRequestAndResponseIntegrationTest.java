@@ -8,6 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MvcResult;
+import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -59,10 +60,14 @@ class ContentDigestRequestAndResponseIntegrationTest extends AbstractContentDige
     @JiraEpic("PO-2675")
     @JiraTestKey("PO-5801")
     void validHeaderWhenEnforced_returnsSuccessWithResponseContentDigest() throws Exception {
+        String body = BusinessUnitSearchDto.builder()
+            .businessUnitId("1")
+            .build().toJson();
+
         MvcResult result = mockMvc.perform(post(POST_ENDPOINT)
             .contentType(APPLICATION_JSON)
-            .content(POST_BODY)
-            .header(CONTENT_DIGEST, validPostBodyDigest()))
+            .content(body)
+            .header(CONTENT_DIGEST, validPostBodyDigest(body)))
             .andExpect(status().isOk())
             .andReturn();
 

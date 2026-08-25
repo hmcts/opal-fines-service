@@ -2,7 +2,7 @@
  * {{description}}{{^description}}{{classname}}{{/description}}{{#isDeprecated}}
  * @deprecated{{/isDeprecated}}
  */
-@{{jacksonPackage}}.annotation.JsonInclude({{jacksonPackage}}.annotation.JsonInclude.Include.ALWAYS)
+@{{jacksonPackage}}.annotation.JsonInclude({{jacksonPackage}}.annotation.JsonInclude.Include.{{#vendorExtensions.x-json-include}}{{.}}{{/vendorExtensions.x-json-include}}{{^vendorExtensions.x-json-include}}ALWAYS{{/vendorExtensions.x-json-include}})
 {{>additionalModelTypeAnnotations}}
 {{#isDeprecated}}
 @Deprecated
@@ -69,7 +69,7 @@ public {{>sealed}}class {{classname}}{{#parent}} extends {{{parent}}}{{/parent}}
   {{/isPassword}}
   {{/lombok.ToString}}
   {{#vendorExtensions.x-field-extra-annotation}}
-  {{{vendorExtensions.x-field-extra-annotation}}}
+  {{{.}}}
   {{/vendorExtensions.x-field-extra-annotation}}
   {{^vendorExtensions.x-extendable}}
   {{#lombok.Builder}}
@@ -105,6 +105,10 @@ public {{>sealed}}class {{classname}}{{#parent}} extends {{{parent}}}{{/parent}}
   {{/openApiNullable}}
   {{/isContainer}}
   {{/vars}}
+  {{#vendorExtensions.x-versioned}}
+
+  private java.math.BigInteger version;
+  {{/vendorExtensions.x-versioned}}
   {{#vendorExtensions.x-java-no-args-constructor}}
 
   public {{classname}}() {
@@ -285,6 +289,18 @@ public {{>sealed}}class {{classname}}{{#parent}} extends {{{parent}}}{{/parent}}
   {{/lombok.Data}}
   {{! end feature: getter and setter }}
   {{/vars}}
+  {{#vendorExtensions.x-versioned}}
+
+  @Override
+  @com.fasterxml.jackson.annotation.JsonIgnore
+  public java.math.BigInteger getVersion() {
+    return version;
+  }
+
+  public void setVersion(java.math.BigInteger version) {
+    this.version = version;
+  }
+  {{/vendorExtensions.x-versioned}}
   {{^lombok.Data}}
   {{#parentVars}}
 

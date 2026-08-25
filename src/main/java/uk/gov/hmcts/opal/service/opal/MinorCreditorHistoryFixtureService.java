@@ -1,16 +1,15 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import lombok.Builder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Clock;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 /**
  * Creates and removes minor-creditor history fixtures through the testing-support API.
@@ -60,6 +59,10 @@ public class MinorCreditorHistoryFixtureService {
             .creditorAccountId(creditorAccountId)
             .defendantAccountId(defendantAccountId)
             .partyId(partyId)
+            .businessUnitId(BUSINESS_UNIT_ID)
+            .accountNumber(creditorAccountNumber)
+            .surname(fixtureReference)
+            .forenames("History")
             .dateFrom(dateFrom)
             .dateTo(dateTo)
             .excludedDate(excludedDate)
@@ -98,12 +101,8 @@ public class MinorCreditorHistoryFixtureService {
         jdbcTemplate.update("DELETE FROM impositions WHERE creditor_account_id = ?", creditorAccountId);
         jdbcTemplate.update("DELETE FROM creditor_accounts WHERE creditor_account_id = ?", creditorAccountId);
 
-        if (partyId != null) {
-            jdbcTemplate.update("DELETE FROM parties WHERE party_id = ?", partyId);
-        }
-        if (defendantAccountId != null) {
-            jdbcTemplate.update("DELETE FROM defendant_accounts WHERE defendant_account_id = ?", defendantAccountId);
-        }
+        jdbcTemplate.update("DELETE FROM parties WHERE party_id = ?", partyId);
+        jdbcTemplate.update("DELETE FROM defendant_accounts WHERE defendant_account_id = ?", defendantAccountId);
     }
 
     private long nextVal(String sequenceName) {
@@ -146,7 +145,7 @@ public class MinorCreditorHistoryFixtureService {
                 INSERT INTO creditor_accounts (
                   creditor_account_id, business_unit_id, account_number, creditor_account_type,
                   prosecution_service, major_creditor_id, minor_creditor_party_id,
-                  from_suspense, hold_payout, pay_by_bacs,
+                  repayment, hold_payout, pay_by_bacs,
                   bank_sort_code, bank_account_number, bank_account_name, bank_account_reference,
                   bank_account_type, version_number, last_changed_date
                 )
@@ -306,6 +305,14 @@ public class MinorCreditorHistoryFixtureService {
         Long defendantAccountId,
         @JsonProperty("party_id")
         Long partyId,
+        @JsonProperty("business_unit_id")
+        Short businessUnitId,
+        @JsonProperty("account_number")
+        String accountNumber,
+        @JsonProperty("surname")
+        String surname,
+        @JsonProperty("forenames")
+        String forenames,
         @JsonProperty("date_from")
         LocalDate dateFrom,
         @JsonProperty("date_to")

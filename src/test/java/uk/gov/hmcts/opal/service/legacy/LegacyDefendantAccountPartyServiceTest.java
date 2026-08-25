@@ -76,7 +76,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
     @BeforeEach
     void openMocks() {
-        gatewayService = Mockito.spy(new LegacyGatewayService(gatewayProperties, restClient));
+        gatewayService = spy(new LegacyGatewayService(gatewayProperties, restClient));
         legacyDefendantAccountPartyService = new LegacyDefendantAccountPartyService(
             gatewayService,
             mapper,
@@ -97,7 +97,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // Build a legacy response body where nested objects are null
         AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
-            .version(4)
+            .version(BigInteger.valueOf(4))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -127,7 +127,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         Class<AddDefendantAccountPartyLegacyResponse> respType = AddDefendantAccountPartyLegacyResponse.class;
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.ADD_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(AddDefendantAccountPartyLegacyRequest.class),
             Mockito.nullable(String.class)
@@ -160,7 +160,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             .build();
 
         AddDefendantAccountPartyLegacyResponse legacyResponse = AddDefendantAccountPartyLegacyResponse.builder()
-            .version(10)
+            .version(BigInteger.valueOf(10))
             .defendantAccountParty(DefendantAccountPartyLegacy.builder().build())
             .build();
 
@@ -170,7 +170,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         Class<AddDefendantAccountPartyLegacyResponse> respType = AddDefendantAccountPartyLegacyResponse.class;
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.ADD_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(AddDefendantAccountPartyLegacyRequest.class),
             Mockito.nullable(String.class)
@@ -184,7 +184,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             ArgumentCaptor.forClass(AddDefendantAccountPartyLegacyRequest.class);
 
         verify(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.ADD_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             requestCaptor.capture(),
             Mockito.nullable(String.class)
@@ -210,7 +210,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             .build();
 
         AddDefendantAccountPartyLegacyResponse legacyResponse = AddDefendantAccountPartyLegacyResponse.builder()
-            .version(2)
+            .version(BigInteger.valueOf(2))
             .defendantAccountParty(DefendantAccountPartyLegacy.builder().build())
             .build();
 
@@ -220,7 +220,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         Class<AddDefendantAccountPartyLegacyResponse> respType = AddDefendantAccountPartyLegacyResponse.class;
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.ADD_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(AddDefendantAccountPartyLegacyRequest.class),
             Mockito.nullable(String.class)
@@ -248,7 +248,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // Build a minimal legacy response body (service should still map fields even on 5xx)
         AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
-            .version(2)
+            .version(BigInteger.valueOf(2))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -271,7 +271,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         Class<AddDefendantAccountPartyLegacyResponse> respType = AddDefendantAccountPartyLegacyResponse.class;
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.ADD_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(AddDefendantAccountPartyLegacyRequest.class),
             Mockito.nullable(String.class)
@@ -302,29 +302,12 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             )
             .build();
 
-        AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
-            .version(2)
-            .defendantAccountParty(
-                DefendantAccountPartyLegacy.builder()
-                    .defendantAccountPartyType("Defendant")
-                    .isDebtor(true)
-                    .partyDetails(
-                        PartyDetailsLegacy.builder()
-                            .partyId("300")
-                            .organisationFlag(true)
-                            .organisationDetails(null)
-                            .build()
-                    )
-                    .build()
-            )
-            .build();
-
         // We no longer return a response; instead we make the gateway throw a RuntimeException
         Class<AddDefendantAccountPartyLegacyResponse> respType = AddDefendantAccountPartyLegacyResponse.class;
 
         // Option A: use doThrow to throw when the specific call is made
         doThrow(new RuntimeException("boom")).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.ADD_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(AddDefendantAccountPartyLegacyRequest.class),
             Mockito.nullable(String.class)
@@ -357,7 +340,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // stub the spy’d gateway to hit the (String, Class<T>, Object, String) overload
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.ADD_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(AddDefendantAccountPartyLegacyRequest.class),
             Mockito.nullable(String.class)
@@ -388,7 +371,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             .build();
         // Build a legacy entity with only organisationDetails populated
         AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
-            .version(2)
+            .version(BigInteger.valueOf(2))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -415,7 +398,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         Class<AddDefendantAccountPartyLegacyResponse> respType = AddDefendantAccountPartyLegacyResponse.class;
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.ADD_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(AddDefendantAccountPartyLegacyRequest.class),
             Mockito.nullable(String.class)
@@ -463,7 +446,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // Build a legacy entity with only individualDetails populated
         AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
-            .version(2)
+            .version(BigInteger.valueOf(2))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -495,7 +478,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         Class<AddDefendantAccountPartyLegacyResponse> respType = AddDefendantAccountPartyLegacyResponse.class;
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.ADD_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(AddDefendantAccountPartyLegacyRequest.class),
             Mockito.nullable(String.class)
@@ -550,7 +533,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // Build a legacy entity with employer details (including employerAddress)
         AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
-            .version(2)
+            .version(BigInteger.valueOf(2))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -591,7 +574,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         Class<AddDefendantAccountPartyLegacyResponse> respType = AddDefendantAccountPartyLegacyResponse.class;
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.ADD_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(AddDefendantAccountPartyLegacyRequest.class),
             Mockito.nullable(String.class)
@@ -636,7 +619,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // Build a legacy entity with employerDetails == null
         AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
-            .version(2)
+            .version(BigInteger.valueOf(2))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -660,7 +643,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         Class<AddDefendantAccountPartyLegacyResponse> respType = AddDefendantAccountPartyLegacyResponse.class;
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.ADD_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(AddDefendantAccountPartyLegacyRequest.class),
             Mockito.nullable(String.class)
@@ -696,7 +679,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // Build a legacy entity with language preferences populated
         AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
-            .version(5)
+            .version(BigInteger.valueOf(5))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -735,7 +718,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         Class<AddDefendantAccountPartyLegacyResponse> respType = AddDefendantAccountPartyLegacyResponse.class;
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.ADD_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(AddDefendantAccountPartyLegacyRequest.class),
             Mockito.nullable(String.class)
@@ -776,7 +759,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // Build a legacy entity with languagePreferences == null
         AddDefendantAccountPartyLegacyResponse legacyBody = AddDefendantAccountPartyLegacyResponse.builder()
-            .version(6)
+            .version(BigInteger.valueOf(6))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -800,7 +783,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         Class<AddDefendantAccountPartyLegacyResponse> respType = AddDefendantAccountPartyLegacyResponse.class;
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.ADD_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.ADD_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(AddDefendantAccountPartyLegacyRequest.class),
             Mockito.nullable(String.class)
@@ -836,7 +819,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // act: stub the spy’d gateway to return our Response
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.GET_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.GET_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(GetDefendantAccountPartyLegacyRequest.class),
             Mockito.nullable(String.class)
@@ -871,7 +854,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // stub spy’d gateway: first call => respA, second call => respB
         doReturn(respA, respB).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.GET_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.GET_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(GetDefendantAccountPartyLegacyRequest.class),
             Mockito.nullable(String.class)
@@ -907,7 +890,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         // arrange
         GetDefendantAccountPartyLegacyResponse legacy =
             GetDefendantAccountPartyLegacyResponse.builder()
-                .version(99L)
+                .version(BigInteger.valueOf(99L))
                 .defendantAccountParty(null)
                 .build();
 
@@ -919,7 +902,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // stub
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.GET_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.GET_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(GetDefendantAccountPartyLegacyRequest.class),
             Mockito.nullable(String.class)
@@ -946,7 +929,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // stub the spy’d gateway to hit the (String, Class<T>, Object, String) overload
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.GET_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.GET_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(GetDefendantAccountPartyLegacyRequest.class),
             Mockito.nullable(String.class)
@@ -977,7 +960,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // Stub spy’d gateway (choose correct overload)
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.GET_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.GET_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(GetDefendantAccountPartyLegacyRequest.class),
             Mockito.nullable(String.class)
@@ -997,7 +980,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             ArgumentCaptor.forClass(GetDefendantAccountPartyLegacyRequest.class);
 
         verify(gatewayService, times(1)).postToGateway(
-            eq(LegacyDefendantAccountService.GET_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.GET_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             reqCap.capture(),
             Mockito.nullable(String.class)
@@ -1013,7 +996,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         // arrange
         GetDefendantAccountPartyLegacyResponse legacy =
             GetDefendantAccountPartyLegacyResponse.builder()
-                .version(42L)
+                .version(BigInteger.valueOf(42L))
                 .defendantAccountParty(null)
                 .build();
 
@@ -1024,7 +1007,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             GetDefendantAccountPartyLegacyResponse.class;
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.GET_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.GET_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(GetDefendantAccountPartyLegacyRequest.class),
             Mockito.nullable(String.class)
@@ -1040,7 +1023,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         assertNull(out.getDefendantAccountParty());
 
         verify(gatewayService, times(1)).postToGateway(
-            eq(LegacyDefendantAccountService.GET_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.GET_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(GetDefendantAccountPartyLegacyRequest.class),
             Mockito.nullable(String.class)
@@ -1063,7 +1046,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             new GatewayService.Response<>(HttpStatus.OK, null, null, null);
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.GET_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.GET_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(GetDefendantAccountPartyLegacyRequest.class),
             Mockito.nullable(String.class)
@@ -1074,7 +1057,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
         // assert
         verify(gatewayService, times(1)).postToGateway(
-            eq(LegacyDefendantAccountService.GET_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.GET_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             requestCaptor.capture(),
             Mockito.nullable(String.class)
@@ -1102,7 +1085,10 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             .build();
 
         GetDefendantAccountPartyLegacyResponse legacy =
-            GetDefendantAccountPartyLegacyResponse.builder().version(1L).defendantAccountParty(party).build();
+            GetDefendantAccountPartyLegacyResponse.builder()
+                .version(BigInteger.valueOf(1L))
+                .defendantAccountParty(party)
+                .build();
 
         GatewayService.Response<GetDefendantAccountPartyLegacyResponse> resp =
             new GatewayService.Response<>(HttpStatus.OK, legacy, null, null);
@@ -1110,7 +1096,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         Class<GetDefendantAccountPartyLegacyResponse> respType = GetDefendantAccountPartyLegacyResponse.class;
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.GET_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.GET_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(GetDefendantAccountPartyLegacyRequest.class),
             Mockito.nullable(String.class)
@@ -1139,7 +1125,10 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             .build();
 
         GetDefendantAccountPartyLegacyResponse legacy =
-            GetDefendantAccountPartyLegacyResponse.builder().version(2L).defendantAccountParty(party).build();
+            GetDefendantAccountPartyLegacyResponse.builder()
+                .version(BigInteger.valueOf(2L))
+                .defendantAccountParty(party)
+                .build();
 
         GatewayService.Response<GetDefendantAccountPartyLegacyResponse> resp =
             new GatewayService.Response<>(HttpStatus.OK, legacy, null, null);
@@ -1147,7 +1136,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         Class<GetDefendantAccountPartyLegacyResponse> respType = GetDefendantAccountPartyLegacyResponse.class;
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.GET_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.GET_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(GetDefendantAccountPartyLegacyRequest.class),
             Mockito.nullable(String.class)
@@ -1181,7 +1170,10 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             .build();
 
         GetDefendantAccountPartyLegacyResponse legacy =
-            GetDefendantAccountPartyLegacyResponse.builder().version(1L).defendantAccountParty(party).build();
+            GetDefendantAccountPartyLegacyResponse.builder()
+                .version(BigInteger.valueOf(1L))
+                .defendantAccountParty(party)
+                .build();
 
         GatewayService.Response<GetDefendantAccountPartyLegacyResponse> resp =
             new GatewayService.Response<>(HttpStatus.OK, legacy, null, null);
@@ -1189,7 +1181,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         Class<GetDefendantAccountPartyLegacyResponse> respType = GetDefendantAccountPartyLegacyResponse.class;
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.GET_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.GET_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(GetDefendantAccountPartyLegacyRequest.class),
             Mockito.nullable(String.class)
@@ -1232,7 +1224,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             .build();
 
         var legacy = uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponse.builder()
-            .version(1L).defendantAccountParty(party).build();
+            .version(BigInteger.valueOf(1L)).defendantAccountParty(party).build();
 
         var resp = new uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response<>(
             org.springframework.http.HttpStatus.OK, legacy, null, null);
@@ -1241,7 +1233,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponse.class;
 
         org.mockito.Mockito.doReturn(resp).when(gatewayService).postToGateway(
-            org.mockito.ArgumentMatchers.eq(uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService
+            org.mockito.ArgumentMatchers.eq(uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountPartyService
                 .GET_DEFENDANT_ACCOUNT_PARTY),
             org.mockito.ArgumentMatchers.eq(respType),
             org.mockito.ArgumentMatchers.any(uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyRequest.class),
@@ -1264,7 +1256,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             new GatewayService.Response<>(HttpStatus.OK, null, null, null);
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
             eq(LegacyReplaceDefendantAccountPartyResponse.class),
             any(LegacyReplaceDefendantAccountPartyRequest.class),
             Mockito.nullable(String.class)
@@ -1281,7 +1273,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void replaceDefendantAccountParty_mapsNullNestedObjects_toNulls() {
         // Build a legacy response body where nested objects are null
         LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
-            .version(4)
+            .version(BigInteger.valueOf(4))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -1311,7 +1303,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         Class<LegacyReplaceDefendantAccountPartyResponse> respType = LegacyReplaceDefendantAccountPartyResponse.class;
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(LegacyReplaceDefendantAccountPartyRequest.class),
             Mockito.nullable(String.class)
@@ -1344,7 +1336,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void replaceDefendantAccountParty_legacyFailure5xx_logsAndMaps() {
         // Build a minimal legacy response body (service should still map fields even on 5xx)
         LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
-            .version(2)
+            .version(BigInteger.valueOf(2))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -1367,7 +1359,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         Class<LegacyReplaceDefendantAccountPartyResponse> respType = LegacyReplaceDefendantAccountPartyResponse.class;
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(LegacyReplaceDefendantAccountPartyRequest.class),
             Mockito.nullable(String.class)
@@ -1390,29 +1382,12 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     @Test
     void replaceDefendantAccountParty_exceptionBranch_rethrows() {
 
-        LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
-            .version(2)
-            .defendantAccountParty(
-                DefendantAccountPartyLegacy.builder()
-                    .defendantAccountPartyType("Defendant")
-                    .isDebtor(true)
-                    .partyDetails(
-                        PartyDetailsLegacy.builder()
-                            .partyId("300")
-                            .organisationFlag(true)
-                            .organisationDetails(null)
-                            .build()
-                    )
-                    .build()
-            )
-            .build();
-
         // We no longer return a response; instead we make the gateway throw a RuntimeException
         Class<LegacyReplaceDefendantAccountPartyResponse> respType = LegacyReplaceDefendantAccountPartyResponse.class;
 
         // Option A: use doThrow to throw when the specific call is made
         doThrow(new RuntimeException("boom")).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(LegacyReplaceDefendantAccountPartyRequest.class),
             Mockito.nullable(String.class)
@@ -1429,7 +1404,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void replaceDefendantAccountParty_mapsOrganisationDetails_andIndividualIsNull() {
         // Build a legacy entity with only organisationDetails populated
         LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
-            .version(2)
+            .version(BigInteger.valueOf(2))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -1456,7 +1431,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         Class<LegacyReplaceDefendantAccountPartyResponse> respType = LegacyReplaceDefendantAccountPartyResponse.class;
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(LegacyReplaceDefendantAccountPartyRequest.class),
             Mockito.nullable(String.class)
@@ -1492,7 +1467,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void replaceDefendantAccountParty_mapsIndividualDetails_andOrganisationIsNull() {
         // Build a legacy entity with only individualDetails populated
         LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
-            .version(2)
+            .version(BigInteger.valueOf(2))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -1524,7 +1499,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         Class<LegacyReplaceDefendantAccountPartyResponse> respType = LegacyReplaceDefendantAccountPartyResponse.class;
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(LegacyReplaceDefendantAccountPartyRequest.class),
             Mockito.nullable(String.class)
@@ -1562,7 +1537,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void replaceDefendantAccountParty_mapsEmployerDetails_andEmployerAddress() {
         // Build a legacy entity with employer details (including employerAddress)
         LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
-            .version(2)
+            .version(BigInteger.valueOf(2))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -1603,7 +1578,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         Class<LegacyReplaceDefendantAccountPartyResponse> respType = LegacyReplaceDefendantAccountPartyResponse.class;
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(LegacyReplaceDefendantAccountPartyRequest.class),
             Mockito.nullable(String.class)
@@ -1639,7 +1614,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void replaceDefendantAccountParty_mapsNullEmployerDetails_toNull() {
         // Build a legacy entity with employerDetails == null
         LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
-            .version(2)
+            .version(BigInteger.valueOf(2))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -1663,7 +1638,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         Class<LegacyReplaceDefendantAccountPartyResponse> respType = LegacyReplaceDefendantAccountPartyResponse.class;
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(LegacyReplaceDefendantAccountPartyRequest.class),
             Mockito.nullable(String.class)
@@ -1688,7 +1663,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void replaceDefendantAccountParty_mapsLanguagePreferences() {
         // Build a legacy entity with language preferences populated
         LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
-            .version(5)
+            .version(BigInteger.valueOf(5))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -1727,7 +1702,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         Class<LegacyReplaceDefendantAccountPartyResponse> respType = LegacyReplaceDefendantAccountPartyResponse.class;
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(LegacyReplaceDefendantAccountPartyRequest.class),
             Mockito.nullable(String.class)
@@ -1755,7 +1730,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     void replaceDefendantAccountParty_mapsNullLanguagePreferences_toNull() {
         // Build a legacy entity with languagePreferences == null
         LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
-            .version(6)
+            .version(BigInteger.valueOf(6))
             .defendantAccountParty(
                 DefendantAccountPartyLegacy.builder()
                     .defendantAccountPartyType("Defendant")
@@ -1779,7 +1754,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         Class<LegacyReplaceDefendantAccountPartyResponse> respType = LegacyReplaceDefendantAccountPartyResponse.class;
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
+            eq(LegacyDefendantAccountPartyService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
             eq(respType),
             any(LegacyReplaceDefendantAccountPartyRequest.class),
             Mockito.nullable(String.class)
@@ -1907,7 +1882,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             .build();
 
         return GetDefendantAccountPartyLegacyResponse.builder()
-            .version(1L)
+            .version(BigInteger.valueOf(1L))
             .defendantAccountParty(party)
             .build();
     }
@@ -1936,7 +1911,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             .build();
 
         return GetDefendantAccountPartyLegacyResponse.builder()
-            .version(2L)
+            .version(BigInteger.valueOf(2L))
             .defendantAccountParty(party)
             .build();
     }

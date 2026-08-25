@@ -15,11 +15,13 @@ import java.math.BigInteger;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -206,6 +208,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         if (newStatus.isDeleted()) {
             checkDeleterIsNotSubmitter(existingAccount.getSubmittedBy(), userState.getUserName(), draftAccountId,
                 userState, dto.getBusinessUnitId());
+            existingAccount.setAccountStatusDate(LocalDateTime.now(clock));
         }
 
         existingAccount.setTimelineData(
@@ -284,7 +287,8 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
             ObjectMapper mapper = new ObjectMapper();
             ObjectNode rootNode = (ObjectNode) mapper.readTree(existingAccount.getAccountSnapshot());
 
-            String approvedDate = toUtcDateTime(existingAccount.getValidatedDate())
+            LocalDateTime validatedDate = Objects.requireNonNull(existingAccount.getValidatedDate(), "validatedDate");
+            String approvedDate = validatedDate.atOffset(ZoneOffset.UTC)
                 .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
             rootNode.put("approved_date", approvedDate);
 

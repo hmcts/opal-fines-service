@@ -2,7 +2,10 @@ package uk.gov.hmcts.opal.assertions.draftaccount;
 
 import io.restassured.response.Response;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import net.serenitybdd.rest.SerenityRest;
 import uk.gov.hmcts.opal.assertions.CommonResponseAssertions;
@@ -77,6 +80,30 @@ public class DraftAccountAssertions {
         assertTrue(
             apiAccountStatusDate.isAfter(originalAccountStatusDate),
             "Account status date is not after the initial account status date"
+        );
+    }
+
+    /**
+     * Asserts that the account-status timestamp falls on the date recorded for the Deleted
+     * timeline entry.
+     *
+     * @param response retrieved draft-account response to inspect.
+     */
+    public void assertAccountStatusDateMatchesDeletedDate(Response response) {
+        Instant accountStatusDate = Instant.parse(response.jsonPath().getString("account_status_date"));
+        List<Map<String, Object>> timelineEntries = response.jsonPath().getList("timeline_data");
+
+        Map<String, Object> deletedEntry = timelineEntries.stream()
+            .filter(entry -> "Deleted".equals(entry.get("status")))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("No Deleted timeline entry was returned"));
+
+        LocalDate deletedDate = LocalDate.parse(String.valueOf(deletedEntry.get("status_date")));
+
+        assertEquals(
+            deletedDate,
+            accountStatusDate.atZone(ZoneOffset.UTC).toLocalDate(),
+            "Account status date does not match the deleted date"
         );
     }
 

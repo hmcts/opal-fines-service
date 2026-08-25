@@ -24,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.common.EmployerDetails;
@@ -39,6 +38,7 @@ import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.entity.AliasEntity;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.Language;
@@ -60,6 +60,8 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 public class OpalDefendantAccountPartyService implements DefendantAccountPartyServiceInterface {
 
     public static final String FUNCTION_CODE_ACCOUNT_ENQUIRY = "ACCOUNT_ENQUIRY";
+    private static final String DEFENDANT_ACCOUNT_PARTY_NOT_FOUND = "Defendant Account Party not found for accountId=";
+    private static final String PARTY_ID = ", partyId=";
 
     private final DefendantAccountRepositoryService defendantAccountRepositoryService;
 
@@ -90,8 +92,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             .filter(p -> p.getDefendantAccountPartyId().equals(defendantAccountPartyId))
             .findFirst()
             .orElseThrow(() -> new EntityNotFoundException(
-                "Defendant Account Party not found for accountId=" + defendantAccountId
-                    + ", partyId=" + defendantAccountPartyId));
+                DEFENDANT_ACCOUNT_PARTY_NOT_FOUND + defendantAccountId + PARTY_ID + defendantAccountPartyId));
 
         List<AliasEntity> aliasEntity = aliasRepositoryService.findByPartyId(party.getParty().getPartyId());
 
@@ -132,7 +133,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
         VersionUtils.verifyIfMatch(account, ifMatch, accountId, "addDefendantAccountParty");
         defendantAccountControlValidator.validateCanMutateParty(account);
-        amendmentRepositoryService.auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
+        amendmentRepositoryService.auditInitialiseStoredProc(accountId, AssociatedRecordType.DEFENDANT_ACCOUNTS);
 
         // Save the party record
         PartyEntity party = new PartyEntity();
@@ -176,7 +177,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
         amendmentRepositoryService.auditFinaliseStoredProc(
             account.getDefendantAccountId(),
-            RecordType.DEFENDANT_ACCOUNTS,
+            AssociatedRecordType.DEFENDANT_ACCOUNTS,
             Short.parseShort(businessUnitId),
             postedBy,
             postedByName,
@@ -215,11 +216,11 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             .build();
     }
 
-    // TODO - Created PO-2452 to fix bumping the version with a more atomically correct method
-    private DefendantAccountEntity bumpVersion(Long accountId) {
-        DefendantAccountEntity entity = defendantAccountRepositoryService.findById(accountId);
-        entity.setVersionNumber(entity.getVersion().add(BigInteger.ONE).longValueExact());
-        return defendantAccountRepositoryService.saveAndFlush(entity);
+    private BigInteger bumpVersion(DefendantAccountEntity account) {
+        return defendantAccountRepositoryService.incrementVersionNumber(
+            account.getDefendantAccountId(),
+            account.getVersion()
+        );
     }
 
     @Override
@@ -241,13 +242,13 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             .filter(p -> p.getDefendantAccountPartyId().equals(dapId))
             .findFirst()
             .orElseThrow(() -> new EntityNotFoundException(
-                "Defendant Account Party not found for accountId=" + accountId + ", partyId=" + dapId));
+                DEFENDANT_ACCOUNT_PARTY_NOT_FOUND + accountId + PARTY_ID + dapId));
 
         if (isParentGuardianReplacement(dap)) {
             defendantAccountControlValidator.validateCanMutateParty(account);
         }
 
-        amendmentRepositoryService.auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
+        amendmentRepositoryService.auditInitialiseStoredProc(accountId, AssociatedRecordType.DEFENDANT_ACCOUNTS);
 
         PartyEntity party = dap.getParty();
 
@@ -320,7 +321,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
         amendmentRepositoryService.auditFinaliseStoredProc(
             account.getDefendantAccountId(),
-            RecordType.DEFENDANT_ACCOUNTS,
+            AssociatedRecordType.DEFENDANT_ACCOUNTS,
             Short.parseShort(businessUnitId),
             postedBy,
             postedByName,
@@ -334,7 +335,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
         return GetDefendantAccountPartyResponse.builder()
             .defendantAccountParty(mapDefendantAccountParty(dap, aliasEntity))
-            .version(bumpVersion(accountId).getVersion())
+            .version(bumpVersion(account))
             .build();
     }
 
@@ -353,21 +354,21 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
         VersionUtils.verifyIfMatch(account, ifMatch, defendantAccountId, "removeDefendantAccountParty");
         defendantAccountControlValidator.validateCanMutateParty(account);
-        amendmentRepositoryService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
+        amendmentRepositoryService
+            .auditInitialiseStoredProc(defendantAccountId, AssociatedRecordType.DEFENDANT_ACCOUNTS);
 
         // Verify the DAP association is valid for this Defendant Account
-        DefendantAccountPartiesEntity partyToRemove = account.getParties().stream()
+        account.getParties().stream()
             .filter(p -> p.getDefendantAccountPartyId().equals(defendantAccountPartyId))
             .findFirst()
             .orElseThrow(() -> new EntityNotFoundException(
-                "Defendant Account Party not found for accountId=" + defendantAccountId
-                    + ", partyId=" + defendantAccountPartyId));
+                DEFENDANT_ACCOUNT_PARTY_NOT_FOUND + defendantAccountId + PARTY_ID + defendantAccountPartyId));
 
         account.getParties().removeIf(p -> p.getDefendantAccountPartyId().equals(defendantAccountPartyId));
 
         amendmentRepositoryService.auditFinaliseStoredProc(
             account.getDefendantAccountId(),
-            RecordType.DEFENDANT_ACCOUNTS,
+            AssociatedRecordType.DEFENDANT_ACCOUNTS,
             businessUnitId,
             postedBy,
             postedByName,

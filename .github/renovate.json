@@ -55,6 +55,12 @@
       "enabled": false
     },
     {
+      "description": "Keep the base Java Docker image on Java 21 until the service is deliberately migrated to a newer Java runtime",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["hmctsprod.azurecr.io/base/java"],
+      "allowedVersions": "/^21(?:-|$)/"
+    },
+    {
       "description": "Group Tomcat embed dependencies",
       "matchManagers": ["gradle"],
       "matchPackageNames": [

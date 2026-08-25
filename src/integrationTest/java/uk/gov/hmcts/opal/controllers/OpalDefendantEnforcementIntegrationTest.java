@@ -20,6 +20,7 @@ public class OpalDefendantEnforcementIntegrationTest extends DefendantEnforcemen
     @Test
     @JiraStory("PO-5757")
     @JiraEpic("PO-2990")
+    @JiraTestKey("PO-9443")
     public void testAddEnforcement_withFullRequestAndBlockedAccountControls_returns422AndRollsBack() throws Exception {
         super.postEnforcementImpl_fullRequest_blockedByAccountControls(log);
     }
@@ -27,6 +28,7 @@ public class OpalDefendantEnforcementIntegrationTest extends DefendantEnforcemen
     @Test
     @JiraStory("PO-5757")
     @JiraEpic("PO-2990")
+    @JiraTestKey("PO-9444")
     public void testAddEnforcement_withMinimumRequestAndBlockedAccountControls_returns422AndRollsBack()
         throws Exception {
         super.postEnforcementImpl_minimumRequest_blockedByAccountControls(log);
@@ -38,6 +40,34 @@ public class OpalDefendantEnforcementIntegrationTest extends DefendantEnforcemen
     @JiraTestKey("PO-5997")
     public void testAddEnforcement_whenGivenInvalidDefendant_Fails() throws Exception {
         super.postEnforcementImpl_invalidDefendant_Failure(log);
+    }
+
+    @Test
+    @JiraStory("PO-5757")
+    @JiraEpic("PO-2990")
+    public void testAddEnforcement_whenPaymentTermsOmitted_passesValidation() throws Exception {
+        super.postEnforcementImpl_whenPaymentTermsIsOmitted_passesValidation();
+    }
+
+    @Test
+    @JiraStory("PO-5757")
+    @JiraEpic("PO-2990")
+    public void testAddEnforcement_whenPaymentTermsExplicitlyNull_passesValidation() throws Exception {
+        super.postEnforcementImpl_whenPaymentTermsIsExplicitlyNull_passesValidation();
+    }
+
+    @Test
+    @JiraStory("PO-5757")
+    @JiraEpic("PO-2990")
+    public void testAddEnforcement_whenDaysInDefaultOmitted_returnsBadRequest() throws Exception {
+        super.postEnforcementImpl_whenDaysInDefaultIsOmitted_returnsBadRequest();
+    }
+
+    @Test
+    @JiraStory("PO-5757")
+    @JiraEpic("PO-2990")
+    public void testAddEnforcement_whenDaysInDefaultExplicitlyNull_passesValidation() throws Exception {
+        super.postEnforcementImpl_whenDaysInDefaultIsExplicitlyNull_passesValidation();
     }
 
     @Test

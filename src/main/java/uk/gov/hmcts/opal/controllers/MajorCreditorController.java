@@ -7,19 +7,15 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceDataResults;
-import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
 import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
 import uk.gov.hmcts.opal.util.FeatureFlags;
@@ -48,16 +44,6 @@ public class MajorCreditorController {
         return buildResponse(response);
     }
 
-    @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Searches MajorCreditors based upon criteria in request body")
-    public ResponseEntity<List<MajorCreditorEntity>> postMajorCreditorsSearch(
-        @RequestBody MajorCreditorSearchDto criteria) {
-        log.debug(":POST:postMajorCreditorsSearch: query: \n{}", criteria);
-
-        List<MajorCreditorEntity> response = majorCreditorService.searchMajorCreditors(criteria);
-
-        return buildResponse(response);
-    }
 
     @GetMapping
     @Operation(summary = "Returns MajorCreditors as reference data with an optional filter applied")

@@ -21,7 +21,7 @@ paths:
             schema:
               $ref: '#/components/schemas/InterfaceJobsCreateRequest'
       responses:
-        "201":
+        "200":
           description: Interface jobs created
           content:
             application/json:
@@ -66,6 +66,7 @@ paths:
       description: >
         Process the selected interface jobs asynchronously. The user requires the
         Process and Allocate Payments permission in the business unit supplied for each job.
+      operationId: processInterfaceJobs
       requestBody:
         required: true
         content:
@@ -73,8 +74,8 @@ paths:
             schema:
               $ref: '#/components/schemas/InterfaceJobsProcessRequest'
       responses:
-        "202":
-          description: Interface jobs accepted for asynchronous processing
+        "200":
+          description: Interface jobs queued successfully
         "400":
           description: Bad request
           content:
@@ -89,6 +90,24 @@ paths:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         "403":
           description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "404":
+          description: Not found
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "408":
+          description: Request timeout
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "409":
+          description: Conflict
           content:
             application/json+problem:
               schema:
@@ -141,7 +160,7 @@ paths:
               type: string
               enum:
                 - CREATED
-                - PROCESSED
+                - PROCESSING
                 - IGNORED
                 - FAILED
                 - COMPLETED
@@ -493,7 +512,7 @@ components:
       type: string
       enum:
         - CREATED
-        - PROCESSED
+        - PROCESSING
         - IGNORED
         - FAILED
         - COMPLETED

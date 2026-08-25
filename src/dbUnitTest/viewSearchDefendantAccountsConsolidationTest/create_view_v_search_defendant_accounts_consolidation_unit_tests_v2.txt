@@ -1,0 +1,38 @@
+Timing is on.
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewSearchDefendantAccountsConsolidationTest/create_view_v_search_defendant_accounts_consolidation_unit_tests_v2.sql:31: NOTICE:  === Cleanup data before tests ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewSearchDefendantAccountsConsolidationTest/create_view_v_search_defendant_accounts_consolidation_unit_tests_v2.sql:31: NOTICE:  === Data cleanup before tests completed ===
+DO
+Time: 23.129 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewSearchDefendantAccountsConsolidationTest/create_view_v_search_defendant_accounts_consolidation_unit_tests_v2.sql:188: NOTICE:  === Setting up test data ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewSearchDefendantAccountsConsolidationTest/create_view_v_search_defendant_accounts_consolidation_unit_tests_v2.sql:188: NOTICE:  Test data setup completed for accounts 7701, 7702, 7703, 7704, 7705, 7706
+DO
+Time: 17.460 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewSearchDefendantAccountsConsolidationTest/create_view_v_search_defendant_accounts_consolidation_unit_tests_v2.sql:217: NOTICE:  --- TEST 1: All error messages are generated correctly ---
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewSearchDefendantAccountsConsolidationTest/create_view_v_search_defendant_accounts_consolidation_unit_tests_v2.sql:217: NOTICE:  TEST 1 PASSED
+DO
+Time: 8.978 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewSearchDefendantAccountsConsolidationTest/create_view_v_search_defendant_accounts_consolidation_unit_tests_v2.sql:241: NOTICE:  --- TEST 2: Both warning messages are generated correctly ---
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewSearchDefendantAccountsConsolidationTest/create_view_v_search_defendant_accounts_consolidation_unit_tests_v2.sql:241: NOTICE:  TEST 2 PASSED
+DO
+Time: 2.425 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewSearchDefendantAccountsConsolidationTest/create_view_v_search_defendant_accounts_consolidation_unit_tests_v2.sql:260: NOTICE:  --- TEST 3: Clean account returns no errors or warnings ---
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewSearchDefendantAccountsConsolidationTest/create_view_v_search_defendant_accounts_consolidation_unit_tests_v2.sql:260: NOTICE:  TEST 3 PASSED
+DO
+Time: 10.100 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewSearchDefendantAccountsConsolidationTest/create_view_v_search_defendant_accounts_consolidation_unit_tests_v2.sql:277: NOTICE:  --- TEST 4: Account with cleared cheque should not generate warning ---
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewSearchDefendantAccountsConsolidationTest/create_view_v_search_defendant_accounts_consolidation_unit_tests_v2.sql:277: NOTICE:  TEST 4 PASSED
+DO
+Time: 1.798 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewSearchDefendantAccountsConsolidationTest/create_view_v_search_defendant_accounts_consolidation_unit_tests_v2.sql:299: NOTICE:  --- TEST 5: Account status TO generates account status error ---
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewSearchDefendantAccountsConsolidationTest/create_view_v_search_defendant_accounts_consolidation_unit_tests_v2.sql:299: NOTICE:  TEST 5 PASSED
+DO
+Time: 11.260 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewSearchDefendantAccountsConsolidationTest/create_view_v_search_defendant_accounts_consolidation_unit_tests_v2.sql:321: NOTICE:  --- TEST 6: Account status TS generates account status error ---
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewSearchDefendantAccountsConsolidationTest/create_view_v_search_defendant_accounts_consolidation_unit_tests_v2.sql:321: NOTICE:  TEST 6 PASSED
+DO
+Time: 1.640 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewSearchDefendantAccountsConsolidationTest/create_view_v_search_defendant_accounts_consolidation_unit_tests_v2.sql:334: NOTICE:  === Cleaning up test data ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewSearchDefendantAccountsConsolidationTest/create_view_v_search_defendant_accounts_consolidation_unit_tests_v2.sql:334: NOTICE:  Test data cleanup completed
+DO
+Time: 8.913 ms
+Timing is off.

@@ -5,6 +5,7 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,7 +24,7 @@ public class AddDefendantAccountEnforcementLegacyResponse {
     private String defendantAccountId;
 
     @XmlElement(name = "version")
-    private Integer version;
+    private BigInteger version;
 
     @XmlElement(name = "enforcement_id")
     private String enforcementId;

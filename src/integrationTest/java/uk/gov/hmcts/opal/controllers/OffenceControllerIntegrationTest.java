@@ -1,8 +1,25 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.startsWith;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.clearInvocations;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.support.SpyInvocationSupport.countInvocationsByMethodName;
+
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -15,28 +32,13 @@ import uk.gov.hmcts.opal.repository.OffenceRepository;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
-
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.everyItem;
-import static org.hamcrest.Matchers.startsWith;
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.clearInvocations;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.support.SpyInvocationSupport.countInvocationsByMethodName;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.OffenceControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_offences.sql", executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("OffenceController Integration Test")
+@Isolated
 class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String GET_OFFENCES_REF_DATA_RESPONSE =
@@ -345,6 +347,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get offence reference data uses cache on repeated identical request")
     @JiraStory("PO-7248")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-9441")
     void testGetOffenceReferenceData_usesCacheOnRepeatedRequest() throws Exception {
         clearInvocations(offenceRepository);
 
@@ -359,6 +362,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Post offence search uses cache on repeated identical request")
     @JiraStory("PO-7248")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-9442")
     void testPostOffencesSearch_usesCacheOnRepeatedRequest() throws Exception {
         clearInvocations(offenceRepository);
 

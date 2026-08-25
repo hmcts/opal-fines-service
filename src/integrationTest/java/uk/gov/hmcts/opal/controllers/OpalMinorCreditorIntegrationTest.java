@@ -156,8 +156,8 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @JiraStory("PO-713")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-6184")
-    void testAC1a_MultiParam_PostcodeAndBusinessUnitAndAccountNumber() throws Exception {
-        super.testAC1a_MultiParam_PostcodeAndAccountNumber(log);
+    void testAC1a_MultiParam_PostcodeAndBusinessUnit() throws Exception {
+        super.testAC1a_MultiParam_PostcodeAndBusinessUnit(log);
     }
 
     @Test

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.math.BigInteger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -35,7 +36,7 @@ class CreditorHeaderLegacyMapperTest {
             .displayName("Minor Creditor")
             .build();
         CreditorHeaderLegacy legacy = CreditorHeaderLegacy.builder()
-            .accountVersion(3)
+            .accountVersion(BigInteger.valueOf(3))
             .accountId("12345")
             .accountNumber("ACC001")
             .accountType(accountType)

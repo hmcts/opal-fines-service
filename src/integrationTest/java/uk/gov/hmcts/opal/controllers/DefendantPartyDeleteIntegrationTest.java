@@ -25,6 +25,7 @@ class DefendantPartyDeleteIntegrationTest extends AbstractOpalDefendantsIntegrat
     @DisplayName("OPAL: DELETE Remove DAP - account controls return 422 for blocked account status")
     @JiraStory("PO-5757")
     @JiraEpic("PO-2990")
+    @JiraTestKey("PO-9385")
     void delete_removeParty_returns422_whenBlockedByAccountControls() throws Exception {
         // Arrange
         long defendantAccountId = 9077L;

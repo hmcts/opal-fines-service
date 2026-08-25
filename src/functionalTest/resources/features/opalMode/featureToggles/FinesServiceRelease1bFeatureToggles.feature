@@ -102,7 +102,7 @@ Feature: Fines Service Release 1b Feature Toggles
       | endpoint                                   |
       | Get Mappings                               |
 
-  @R1B @JIRA-STORY:PO-2077 @JIRA-EPIC:PO-979
+  @R1B @JIRA-STORY:PO-2077 @JIRA-EPIC:PO-979 @JIRA-TEST-KEY:PO-9541
   Scenario: Get Defendant Account Impositions is available when release 1b is enabled
     When I call the release 1b gated endpoint "Get Defendant Account Impositions"
     Then the request is rejected as not found

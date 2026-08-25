@@ -10,7 +10,9 @@ List<String> zephyrBaseArgs = [
         "jira-default-components=opal-fines-service",
         "execution-environment=${System.getenv('EXECUTION_ENVIRONMENT') ?: ''}",
         "execution-build=${System.getenv('EXECUTION_BUILD') ?: ''}",
-        "execution-test-cycle-description=${System.getenv('EXECUTION_CYCLE_DESCRIPTION') ?: ''}"
+        "execution-test-cycle-description=${System.getenv('EXECUTION_CYCLE_DESCRIPTION') ?: ''}",
+        "success-status-id=${System.getenv('SUCCESS_STATUS_ID') ?: ''}",
+        "failed-status-id=${System.getenv('FAILED_STATUS_ID') ?: ''}"
 ]
 
 List<String> zephyrArgs(String processType, String actionType, String testFolder, String reportPath) {

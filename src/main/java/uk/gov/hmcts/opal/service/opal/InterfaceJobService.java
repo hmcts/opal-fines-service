@@ -1,8 +1,14 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.EntityNotFoundException;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,22 +19,35 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.InterfaceFileEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobEntity_;
 import uk.gov.hmcts.opal.entity.InterfaceJobStatus;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity_;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateItem;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateRequest;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateResponse;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateResponseItem;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsProcessItem;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsProcessRequest;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsSummaryItem;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsSummaryResponse;
 import uk.gov.hmcts.opal.mapper.InterfaceJobMapper;
+import uk.gov.hmcts.opal.repository.InterfaceFileRepository;
 import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
 import uk.gov.hmcts.opal.repository.jpa.InterfaceJobSpecs;
 import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.service.messaging.InterfaceJobQueuePublisher;
 
 @Service
+@Slf4j(topic = "opal.InterfaceJobService")
 @RequiredArgsConstructor
 public class InterfaceJobService {
 
@@ -38,11 +57,48 @@ public class InterfaceJobService {
 
     private final InterfaceJobRepository interfaceJobRepository;
 
+    private final InterfaceFileRepository interfaceFileRepository;
+
     private final InterfaceJobMapper interfaceJobMapper;
+
+    private final BusinessUnitService businessUnitService;
 
     private final UserStateService userStateService;
 
+    private final InterfaceJobQueuePublisher interfaceJobQueuePublisher;
+
+    private final Clock clock;
+
     private final InterfaceJobSpecs specs = new InterfaceJobSpecs();
+
+    @Transactional
+    public InterfaceJobsCreateResponse create(InterfaceJobsCreateRequest request) {
+        return InterfaceJobsCreateResponse.builder()
+            .interfaceJobs(request.getInterfaceJobs().stream()
+                .map(this::create)
+                .toList())
+            .build();
+    }
+
+    private InterfaceJobsCreateResponseItem create(InterfaceJobsCreateItem request) {
+        checkPermission(request.getBusinessUnitId());
+
+        InterfaceJobEntity interfaceJob = interfaceJobMapper.toJobEntity(
+            request, businessUnitService.getBusinessUnit(request.getBusinessUnitId()));
+        InterfaceJobEntity savedJob = interfaceJobRepository.save(interfaceJob);
+        InterfaceFileEntity interfaceFile = interfaceJobMapper.toFileEntity(request, savedJob);
+
+        interfaceFileRepository.save(interfaceFile);
+
+        return interfaceJobMapper.toCreateResponse(savedJob);
+    }
+
+    private void checkPermission(Short businessUnitId) {
+        if (!userStateService.getPermittedBusinessUnitIds(
+            List.of(businessUnitId), FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS).contains(businessUnitId)) {
+            throw new PermissionNotAllowedException(businessUnitId, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
+        }
+    }
 
     @Transactional(readOnly = true)
     public InterfaceJobsSummaryResponse getSummary(InterfaceJobSearchCriteria searchCriteria) {
@@ -65,10 +121,97 @@ public class InterfaceJobService {
         return InterfaceJobsSummaryResponse.builder().interfaceJobs(summaries).build();
     }
 
+    @Transactional
+    public void deleteInterfaceJobs(List<Long> interfaceJobIds) {
+        if (interfaceJobIds.isEmpty() || interfaceJobRepository.findAllById(interfaceJobIds).isEmpty()) {
+            throw new EntityNotFoundException("Interface job ids supplied for deletion not found");
+        }
+        log.warn("DESTRUCTIVE OPERATION: Deleting interface jobs with ids: {}", interfaceJobIds);
+        interfaceJobRepository.deleteAllById(interfaceJobIds);
+    }
+
     private List<InterfaceJobsSummaryItem> toResponses(InterfaceJobEntity interfaceJob) {
         return interfaceJob.getInterfaceFiles().stream()
             .map(interfaceFile -> interfaceJobMapper.toSummaryResponse(interfaceJob, interfaceFile))
             .toList();
+    }
+
+    @Transactional
+    public void process(InterfaceJobsProcessRequest request) {
+        List<InterfaceJobsProcessItem> requestedJobs = request.getInterfaceJobs();
+        List<Long> requestedIds = requestedJobs.stream()
+            .map(InterfaceJobsProcessItem::getInterfaceJobId)
+            .toList();
+
+        Map<Long, InterfaceJobEntity> jobsById = loadProcessJobs(requestedIds);
+        validateRequestedBusinessUnits(requestedJobs, jobsById);
+        validateProcessPermissions(requestedJobs);
+        validateProcessStatuses(requestedIds, jobsById);
+
+        LocalDateTime startedDateTime = LocalDateTime.now(clock);
+        requestedJobs.forEach(requestedJob -> updateForProcessing(
+            requestedJob, jobsById.get(requestedJob.getInterfaceJobId()), startedDateTime));
+
+        interfaceJobQueuePublisher.publish(requestedIds);
+    }
+
+    private Map<Long, InterfaceJobEntity> loadProcessJobs(List<Long> requestedIds) {
+        Map<Long, InterfaceJobEntity> jobsById = interfaceJobRepository.findAllByInterfaceJobIdIn(requestedIds)
+            .stream()
+            .collect(Collectors.toMap(InterfaceJobEntity::getInterfaceJobId, job -> job));
+
+        if (jobsById.size() != requestedIds.stream().distinct().count()) {
+            Set<Long> missingIds = requestedIds.stream()
+                .filter(id -> !jobsById.containsKey(id))
+                .collect(Collectors.toSet());
+            throw new EntityNotFoundException("Interface jobs not found: " + missingIds);
+        }
+        return jobsById;
+    }
+
+    private void validateRequestedBusinessUnits(List<InterfaceJobsProcessItem> requestedJobs,
+                                                Map<Long, InterfaceJobEntity> jobsById) {
+        for (InterfaceJobsProcessItem requestedJob : requestedJobs) {
+            Short persistedBusinessUnitId = jobsById.get(requestedJob.getInterfaceJobId())
+                .getBusinessUnit().getBusinessUnitId();
+            if (!Objects.equals(persistedBusinessUnitId, requestedJob.getBusinessUnitId())) {
+                throw new IllegalArgumentException("Business unit does not match interface job "
+                    + requestedJob.getInterfaceJobId());
+            }
+        }
+    }
+
+    private void validateProcessPermissions(List<InterfaceJobsProcessItem> requestedJobs) {
+        List<Short> requestedBusinessUnitIds = requestedJobs.stream()
+            .map(InterfaceJobsProcessItem::getBusinessUnitId)
+            .distinct()
+            .toList();
+        List<Short> permittedBusinessUnitIds = userStateService.getPermittedBusinessUnitIds(
+            requestedBusinessUnitIds, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
+
+        requestedBusinessUnitIds.stream()
+            .filter(id -> !permittedBusinessUnitIds.contains(id))
+            .findFirst()
+            .ifPresent(id -> {
+                throw new PermissionNotAllowedException(id, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
+            });
+    }
+
+    private void validateProcessStatuses(List<Long> requestedIds, Map<Long, InterfaceJobEntity> jobsById) {
+        for (Long requestedId : requestedIds) {
+            InterfaceJobEntity job = jobsById.get(requestedId);
+            if (job.getStatus() != InterfaceJobStatus.CREATED && job.getStatus() != InterfaceJobStatus.FAILED) {
+                throw new ResourceConflictException(
+                    "InterfaceJob", job.getInterfaceJobId(), "Interface job must be CREATED or FAILED", null);
+            }
+        }
+    }
+
+    private void updateForProcessing(InterfaceJobsProcessItem requestedJob, InterfaceJobEntity job,
+                                     LocalDateTime startedDateTime) {
+        job.setStatus(InterfaceJobStatus.PROCESSING);
+        job.setStartedDateTime(startedDateTime);
+        job.getInterfaceFiles().forEach(file -> file.setOverrideInhibits(requestedJob.getOverrideInhibits()));
     }
 
     @Data

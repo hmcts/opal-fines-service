@@ -45,7 +45,7 @@ class LegacyImpositionServiceTest {
     void getImpositions_postsLegacyRequestAndMapsResponse() {
         LegacyDefendantAccountImpositionsResponseCommon legacyResponse =
             LegacyDefendantAccountImpositionsResponseCommon.builder()
-                .version(4L)
+                .version(BigInteger.valueOf(4L))
                 .impositions(List.of(legacyImposition()))
                 .build();
 

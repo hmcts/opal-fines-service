@@ -18,7 +18,7 @@ import uk.gov.hmcts.opal.service.iface.NotesServiceInterface;
 @Slf4j(topic = "opal.LegacyNotesService")
 public class LegacyNotesService implements NotesServiceInterface {
 
-    private static final String ADD_NOTE = "LIBRA.add_note";
+    private static final String ADD_NOTE = "addNote";
     private final GatewayService gatewayService;
 
     @Override

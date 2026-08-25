@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectEntityNotFoundWithoutType;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
 import static uk.gov.hmcts.opal.controllers.util.ReportInstanceContentTestData.storedReportBytes;
 
@@ -26,6 +27,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
 @Sql(scripts = "classpath:db/insertData/insert_into_report_instance_content_cash_till_data.sql",
@@ -73,6 +75,7 @@ class ReportInstancesApiControllerGetContentIntegrationTest extends AbstractInte
         @Test
         @JiraStory("PO-2253")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-9503")
         void whenJsonRequested_returnsStoredReportContent_happyPath() throws Exception {
             mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept(APPLICATION_JSON))
                 .andExpectAll(
@@ -86,6 +89,7 @@ class ReportInstancesApiControllerGetContentIntegrationTest extends AbstractInte
         @Test
         @JiraStory("PO-2253")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-9504")
         void whenCsvRequested_returnsBinaryContent_happyPath() throws Exception {
             mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept("application/csv"))
                 .andExpectAll(
@@ -106,6 +110,7 @@ class ReportInstancesApiControllerGetContentIntegrationTest extends AbstractInte
         @Test
         @JiraStory("PO-2253")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-9499")
         void whenNoTokenPresent_unauthorizedIsReturned_sadPath() {
             org.assertj.core.api.Assertions.assertThatCode(
                 () -> mockMvc.perform(get(URL_BASE + "/" + REPORT_INSTANCE_ID + "/content").accept(APPLICATION_JSON))
@@ -123,6 +128,7 @@ class ReportInstancesApiControllerGetContentIntegrationTest extends AbstractInte
         @Test
         @JiraStory("PO-2253")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-9500")
         void whenRequestNotAcceptable_notAcceptableIsReturned_sadPath() throws Exception {
             mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept("text/plain"))
                 .andExpect(status().isNotAcceptable());
@@ -131,6 +137,7 @@ class ReportInstancesApiControllerGetContentIntegrationTest extends AbstractInte
         @Test
         @JiraStory("PO-2253")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-9502")
         void whenUserLacksPermission_forbiddenIsReturned_sadPath() throws Exception {
             userStateStub.setupWithNoPermissions();
 
@@ -148,6 +155,7 @@ class ReportInstancesApiControllerGetContentIntegrationTest extends AbstractInte
         @Test
         @JiraStory("PO-2253")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-9501")
         void whenUserLacksPermissionInBusinessUnit_forbiddenIsReturned_sadPath() throws Exception {
             userStateStub.setupWithNoPermissions();
             userStateStub.addPermissions((short) 99, SEARCH_AND_VIEW_ACCOUNTS);
@@ -168,6 +176,7 @@ class ReportInstancesApiControllerGetContentIntegrationTest extends AbstractInte
             executionPhase = BEFORE_TEST_METHOD)
         @JiraStory("PO-2253")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-9497")
         void whenRequestedContentTypeUnsupported_unprocessableContentIsReturned_sadPath() throws Exception {
             mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept(APPLICATION_JSON))
                 .andExpectAll(
@@ -186,6 +195,7 @@ class ReportInstancesApiControllerGetContentIntegrationTest extends AbstractInte
         @Test
         @JiraStory("PO-2253")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-9498")
         void whenStoredContentMissing_internalServerErrorIsReturned_sadPath() throws Exception {
             blobContainerClient.getBlobClient(LOCATION).deleteIfExists();
 
@@ -206,14 +216,13 @@ class ReportInstancesApiControllerGetContentIntegrationTest extends AbstractInte
         @Test
         @JiraStory("PO-2253")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-9496")
         void whenReportInstanceMissing_notFoundIsReturned_sadPath() throws Exception {
             mockMvc.perform(authorisedGetContent(99999999999999L).accept(APPLICATION_JSON))
                 .andExpectAll(
                     status().isNotFound(),
                     content().contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON),
-                    jsonPath("$.title").value("Entity Not Found"),
-                    jsonPath("$.detail").value("The requested entity could not be found"),
-                    jsonPath("$.status").value(404),
+                    expectEntityNotFoundWithoutType(),
                     jsonPath("$.retriable").value(false)
                 );
         }
@@ -225,6 +234,7 @@ class ReportInstancesApiControllerGetContentIntegrationTest extends AbstractInte
             executionPhase = AFTER_TEST_METHOD)
         @JiraStory("PO-2253")
         @JiraEpic("PO-2248")
+        @JiraTestKey("PO-9495")
         void whenReportServiceMissing_internalServerErrorIsReturned_sadPath() throws Exception {
             mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept("application/csv"))
                 .andExpectAll(

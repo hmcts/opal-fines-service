@@ -1,8 +1,8 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.response.SearchDataResponse;
 import uk.gov.hmcts.opal.dto.search.AmendmentSearchDto;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
 import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity_;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
@@ -46,18 +46,18 @@ public class AmendmentService {
 
     //TODO remove in favour of repository service method
     @Transactional
-    public void auditInitialiseStoredProc(Long accountId, RecordType recordType) {
-        amendmentRepository.auditInitialise(accountId, recordType.toString());
+    public void auditInitialiseStoredProc(Long accountId, AssociatedRecordType associatedRecordType) {
+        amendmentRepository.auditInitialise(accountId, associatedRecordType.toString());
     }
 
     //TODO remove in favour of repository service method
     @Transactional
-    public void auditFinaliseStoredProc(Long accountId, RecordType recordType,
+    public void auditFinaliseStoredProc(Long accountId, AssociatedRecordType associatedRecordType,
                                         Short businessUnitId, String postedBy, String postedByName,
                                         String caseRef, String functionCode) {
         amendmentRepository
-            .auditFinalise(accountId, recordType.toString(), businessUnitId, postedBy, postedByName, caseRef,
-                           functionCode);
+            .auditFinalise(accountId, associatedRecordType.toString(), businessUnitId, postedBy, postedByName, caseRef,
+                functionCode);
     }
 
 }
