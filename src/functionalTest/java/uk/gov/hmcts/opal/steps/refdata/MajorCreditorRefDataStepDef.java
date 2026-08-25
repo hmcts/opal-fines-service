@@ -6,12 +6,15 @@ import io.cucumber.java.en.When;
 import org.apache.http.HttpStatus;
 import uk.gov.hmcts.opal.steps.CommonMethods;
 
+import java.util.List;
 import java.util.Map;
 
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.hmcts.opal.config.Constants.MAJOR_CREDITORS_URI;
 
 /**
@@ -39,6 +42,34 @@ public class MajorCreditorRefDataStepDef {
             "majorCreditorId",
             equalTo(1300000000075L)
         );
+    }
+
+    @When("I request the major creditor reference data")
+    public void requestMajorCreditorReferenceData() {
+        methods.getRequest(MAJOR_CREDITORS_URI);
+    }
+
+    @Then("the response contains repayment and does not contain from suspense")
+    public void responseContainsRepaymentAndDoesNotContainFromSuspense() {
+        then().assertThat().statusCode(HttpStatus.SC_OK);
+
+        List<Map<String, Object>> refData = then()
+            .extract()
+            .jsonPath()
+            .getList("refData");
+
+        assertFalse(refData.isEmpty(), "Expected major creditor reference data");
+
+        for (Map<String, Object> majorCreditor : refData) {
+            assertTrue(
+                majorCreditor.containsKey("repayment"),
+                "Expected repayment field in major creditor response"
+            );
+            assertFalse(
+                majorCreditor.containsKey("from_suspense"),
+                "Did not expect from_suspense field in major creditor response"
+            );
+        }
     }
 
     /**
