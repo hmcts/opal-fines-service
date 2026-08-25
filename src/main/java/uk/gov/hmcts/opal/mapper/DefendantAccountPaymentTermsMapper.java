@@ -8,14 +8,13 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsRespons
 import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
+import uk.gov.hmcts.opal.entity.paymentterms.InstalmentPeriod;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.TermsTypeCode;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountInstalmentPeriodCommonStrict;
-import uk.gov.hmcts.opal.generated.model.DefendantAccountInstalmentPeriodCommonStrict.InstalmentPeriodCodeEnum;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsTypeCommonStrict;
-import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsTypeCommonStrict.PaymentTermsTypeCodeEnum;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountPostedDetailsCommonStrict;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
@@ -29,54 +28,29 @@ public interface DefendantAccountPaymentTermsMapper {
 
     @Mapping(target = "daysInDefault", source = "jailDays")
     @Mapping(target = "dateDaysInDefaultImposed", source = "defendantAccount.suspendedCommittalDate")
-    @Mapping(target = "paymentTermsType", source = ".")
-    @Mapping(target = "instalmentPeriod", source = ".")
+    @Mapping(target = "paymentTermsType", source = "termsTypeCode")
+    @Mapping(target = "instalmentPeriod", source = "instalmentPeriod")
     @Mapping(target = "lumpSumAmount", source = "instalmentLumpSum")
     @Mapping(target = "postedDetails", source = ".")
     DefendantAccountPaymentTermsCommonStrict toPaymentTerms(PaymentTermsEntity entity);
+
+    @Mapping(target = "paymentTermsTypeCode", source = "code")
+    DefendantAccountPaymentTermsTypeCommonStrict toPaymentTermsType(TermsTypeCode typeCode);
+
+    @Mapping(target = "instalmentPeriodCode", source = "code")
+    DefendantAccountInstalmentPeriodCommonStrict toInstalmentPeriod(InstalmentPeriod period);
+
+    @Mapping(target = "postedByName", source = "postedByUsername")
+    DefendantAccountPostedDetailsCommonStrict toPostedDetails(PaymentTermsEntity entity);
 
     @Mapping(target = "version", defaultValue = "1L")
     DefendantAccountPaymentTermsResponse legacyToResponse(LegacyGetDefendantAccountPaymentTermsResponse response);
 
     DefendantAccountPaymentTermsCommonStrict legacyToPaymentTerms(LegacyPaymentTerms paymentTerms);
 
-    default DefendantAccountPaymentTermsTypeCommonStrict toPaymentTermsType(PaymentTermsEntity entity) {
-        TermsTypeCode typeCode = entity.getTermsTypeCode();
-        return DefendantAccountPaymentTermsTypeCommonStrict.builder().paymentTermsTypeCode(
-            PaymentTermsTypeCodeEnum.fromValue(typeCode.getCode())).build();
-    }
+    DefendantAccountInstalmentPeriodCommonStrict legacyToInstalmentPeriod(LegacyInstalmentPeriod period);
 
-    default DefendantAccountInstalmentPeriodCommonStrict toInstalmentPeriod(PaymentTermsEntity entity) {
-        return DefendantAccountInstalmentPeriodCommonStrict.builder().instalmentPeriodCode(
-            InstalmentPeriodCodeEnum.fromValue(entity.getInstalmentPeriod().getCode())).build();
-    }
-
-    default DefendantAccountPostedDetailsCommonStrict toPostedDetails(PaymentTermsEntity entity) {
-        return DefendantAccountPostedDetailsCommonStrict.builder()
-            .postedDate(entity.getPostedDate())
-            .postedBy(entity.getPostedBy())
-            .postedByName(entity.getPostedByUsername())
-            .build();
-    }
-
-    default DefendantAccountInstalmentPeriodCommonStrict legacyToInstalmentPeriod(LegacyInstalmentPeriod period) {
-        if (period == null) {
-            return null;
-        }
-        return DefendantAccountInstalmentPeriodCommonStrict.builder().instalmentPeriodCode(
-            InstalmentPeriodCodeEnum.fromValue(period.getInstalmentPeriodCode().name())).build();
-    }
-
-    default DefendantAccountPostedDetailsCommonStrict legacyToPostedDetails(LegacyPostedDetails postedDetails) {
-        if (postedDetails == null) {
-            return null;
-        }
-        return DefendantAccountPostedDetailsCommonStrict.builder()
-            .postedDate(postedDetails.getPostedDate())
-            .postedBy(postedDetails.getPostedBy())
-            .postedByName(postedDetails.getPostedByName())
-            .build();
-    }
+    DefendantAccountPostedDetailsCommonStrict legacyToPostedDetails(LegacyPostedDetails postedDetails);
 
     default <T> JsonNullable<T> toJsonNullable(T value) {
         return JsonNullable.of(value);
