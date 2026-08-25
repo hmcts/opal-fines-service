@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.mapper;
 
-import java.math.BigInteger;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
@@ -19,14 +18,13 @@ import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsTypeCommonS
 import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsTypeCommonStrict.PaymentTermsTypeCodeEnum;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountPostedDetailsCommonStrict;
 
-@Mapper(componentModel = "spring", imports = BigInteger.class, unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface DefendantAccountPaymentTermsMapper {
 
     @Mapping(target = "paymentTerms", source = ".")
     @Mapping(target = "paymentCardLastRequested", source = "defendantAccount.paymentCardRequestedDate")
     @Mapping(target = "lastEnforcement", source = "defendantAccount.lastEnforcement")
-    @Mapping(target = "version", source = "defendantAccount.version",
-        defaultExpression = "java((BigInteger.ONE).longValue())")
+    @Mapping(target = "version", source = "defendantAccount.version", defaultValue = "1L")
     DefendantAccountPaymentTermsResponse toResponse(PaymentTermsEntity entity);
 
     @Mapping(target = "daysInDefault", source = "jailDays")
@@ -36,6 +34,11 @@ public interface DefendantAccountPaymentTermsMapper {
     @Mapping(target = "lumpSumAmount", source = "instalmentLumpSum")
     @Mapping(target = "postedDetails", source = ".")
     DefendantAccountPaymentTermsCommonStrict toPaymentTerms(PaymentTermsEntity entity);
+
+    @Mapping(target = "version", defaultValue = "1L")
+    DefendantAccountPaymentTermsResponse legacyToResponse(LegacyGetDefendantAccountPaymentTermsResponse response);
+
+    DefendantAccountPaymentTermsCommonStrict legacyToPaymentTerms(LegacyPaymentTerms paymentTerms);
 
     default DefendantAccountPaymentTermsTypeCommonStrict toPaymentTermsType(PaymentTermsEntity entity) {
         TermsTypeCode typeCode = entity.getTermsTypeCode();
@@ -55,11 +58,6 @@ public interface DefendantAccountPaymentTermsMapper {
             .postedByName(entity.getPostedByUsername())
             .build();
     }
-
-    @Mapping(target = "version", defaultExpression = "java((BigInteger.ONE).longValue())")
-    DefendantAccountPaymentTermsResponse legacyToResponse(LegacyGetDefendantAccountPaymentTermsResponse response);
-
-    DefendantAccountPaymentTermsCommonStrict legacyToPaymentTerms(LegacyPaymentTerms paymentTerms);
 
     default DefendantAccountInstalmentPeriodCommonStrict legacyToInstalmentPeriod(LegacyInstalmentPeriod period) {
         if (period == null) {
