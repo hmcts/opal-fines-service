@@ -73,7 +73,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
 
     @BeforeEach
     void setUp() {
-        when(userStateService.getUserStateV1FromSecurityContext())
+        when(userStateService.getUserStateFromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
     }
 
@@ -155,7 +155,8 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @JiraEpic("PO-2655")
     @JiraTestKey("PO-10089")
     void getHistory_enforcesPermission() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.noPermissionsUser());
+        when(userStateService.getUserStateFromSecurityContext())
+            .thenReturn(UserStateUtil.noFinesPermissionUserStateV2());
 
         getHistory()
             .andExpect(status().isForbidden())

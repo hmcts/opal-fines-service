@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -40,11 +41,16 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.client.dto.BusinessUnitUserV2Dto;
+import uk.gov.hmcts.opal.common.user.authorisation.client.dto.DomainDto;
+import uk.gov.hmcts.opal.common.user.authorisation.client.dto.PermissionV2Dto;
+import uk.gov.hmcts.opal.common.user.authorisation.client.dto.UserStateV2Dto;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
-import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptor;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptorV2;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2.UserStateV2Builder;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStatus;
@@ -102,7 +108,54 @@ public class UserStateStub {
 
     public String getUserStateAsJson() {
         try {
+            UserStateV2 userState = getUserState();                 //  Temp
+            String userStateAsJson = USER_STATE_MAPPER.writeValueAsString(userState);   //  Temp
+            UserStateV2 decoded = USER_STATE_MAPPER.readValue(userStateAsJson, UserStateV2.class);  //  Temp
             return USER_STATE_MAPPER.writeValueAsString(getUserState());
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to serialise user state", e);
+        }
+    }
+
+    public String getUserStateDtoAsJson() {
+        try {
+            UserStateV2 userState = getUserState();
+            UserStateV2Dto userStateDto = UserStateV2Dto
+                .builder()
+                .userId(userState.getUserId())
+                .username(userState.getUsername())
+                .name(userState.getName())
+                .status(userState.getStatus().name())
+                .version(userState.getVersion())
+                .cacheName(userState.getCacheName())
+                .domains(new HashMap<>() {{
+                        for (Domain domain : userState.getDomains().keySet()) {
+                            DomainBusinessUnitUsers sourceDomain = userState.getDomains().get(domain);
+
+                            put(domain, DomainDto
+                                .builder()
+                                .businessUnitUsers(new ArrayList<>() {{
+                                        for(BusinessUnitUserV2 businessUnitUser :
+                                            sourceDomain.getBusinessUnitUsers()) {
+                                            add(new BusinessUnitUserV2Dto(
+                                                businessUnitUser.getBusinessUnitUserId(),
+                                                businessUnitUser.getBusinessUnitId(),
+                                                new ArrayList<>() {{
+                                                        for (PermissionV2 permission :
+                                                            businessUnitUser.getPermissions()) {
+                                                            add(new PermissionV2Dto(permission.getPermissionCode(),
+                                                                permission.getPermissionName()));
+                                                        }
+                                                    }}
+                                            ));
+                                        }
+                                    }})
+                                .build());
+                        }
+                    }})
+                .build();
+
+            return USER_STATE_MAPPER.writeValueAsString(userStateDto);
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Failed to serialise user state", e);
         }
@@ -223,7 +276,7 @@ public class UserStateStub {
             (short) 78
         );
 
-        List<BusinessUnitUser> businessUnitUsers = new ArrayList<>();
+        List<BusinessUnitUserV2> businessUnitUsers = new ArrayList<>();
         businessUnits
             .forEach(aShort -> businessUnitUsers.add(
                 createBusinessUnitUser("L0" + aShort + "JG", aShort, createAllPermissions())));
@@ -245,22 +298,19 @@ public class UserStateStub {
             .domains(domains);
     }
 
-    private Set<Permission> createAllPermissions() {
+    private Set<PermissionV2> createAllPermissions() {
         return Arrays.stream(FinesPermission.values())
             .map(this::createPermission)
             .collect(Collectors.toSet());
     }
 
-    private Permission createPermission(PermissionDescriptor permissionDescriptor) {
-        return Permission.builder()
-            .permissionId(permissionDescriptor.getId())
-            .permissionName(permissionDescriptor.getDescription())
-            .build();
+    private PermissionV2 createPermission(PermissionDescriptorV2 permissionDescriptor) {
+        return PermissionV2.fromPermissionName(permissionDescriptor.getPermissionName());
     }
 
-    private BusinessUnitUser createBusinessUnitUser(String businessUnitUserId, short businessUnitId,
-        Set<Permission> permissions) {
-        return BusinessUnitUser.builder()
+    private BusinessUnitUserV2 createBusinessUnitUser(String businessUnitUserId, short businessUnitId,
+        Set<PermissionV2> permissions) {
+        return BusinessUnitUserV2.builder()
             .businessUnitUserId(businessUnitUserId)
             .businessUnitId(businessUnitId)
             .permissions(new HashSet<>(permissions))
@@ -282,17 +332,17 @@ public class UserStateStub {
 
 
     public void addPermissions(short businessUnitId, FinesPermission... values) {
-        Set<Permission> permissions = Arrays.stream(values)
+        Set<PermissionV2> permissions = Arrays.stream(values)
             .map(this::createPermission)
             .collect(Collectors.toSet());
 
         DomainBusinessUnitUsers businessUnitUsers = getDomainBusinessUnitUsers();
 
-        Optional<BusinessUnitUser> businessUnitUserOpt =
+        Optional<BusinessUnitUserV2> businessUnitUserOpt =
             businessUnitUsers.getBusinessUnitUserForBusinessUnit(businessUnitId);
 
         if (businessUnitUserOpt.isEmpty()) {
-            BusinessUnitUser businessUnitUser =
+            BusinessUnitUserV2 businessUnitUser =
                 createBusinessUnitUser("L0" + businessUnitId + "JG", businessUnitId, permissions);
             businessUnitUsers.getBusinessUnitUsers().add(businessUnitUser);
             return;

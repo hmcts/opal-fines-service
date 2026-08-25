@@ -16,7 +16,6 @@ import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
@@ -140,12 +139,12 @@ class TestingSupportControllerTest {
 
     @Test
     void getUserState_shouldReturnResponse() {
-        UserState userState = UserStateUtil.permissionUser((short) 1, FinesPermission.ACCOUNT_ENQUIRY);
+        UserStateV2 userState = UserStateUtil.permissionUser((short) 1, FinesPermission.ACCOUNT_ENQUIRY);
         UserStateV2 userStateV2 = mock(UserStateV2.class);
         when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userStateV2));
-        when(userStateMapper.toUserState(userStateV2, Domain.FINES)).thenReturn(userState);
+        when(userStateMapper.toUserStateSpecific(userStateV2, Domain.FINES)).thenReturn(userState);
 
-        ResponseEntity<UserState> response = controller.getUserState(0L);
+        ResponseEntity<UserStateV2> response = controller.getUserState(0L);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(userState, response.getBody());
@@ -153,7 +152,7 @@ class TestingSupportControllerTest {
 
     @Test
     void getUserState_shouldReturnNotFound() {
-        ResponseEntity<UserState> response = controller.getUserState(99L);
+        ResponseEntity<UserStateV2> response = controller.getUserState(99L);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertFalse(response.hasBody());

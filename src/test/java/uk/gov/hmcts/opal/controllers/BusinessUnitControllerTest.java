@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -18,10 +19,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2.UserBusinessUnits;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
-import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers.UserBusinessUnits;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceDataResults;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
@@ -92,6 +93,7 @@ class BusinessUnitControllerTest {
         when(userState.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(domainBusinessUnitUsers);
         when(domainBusinessUnitUsers.allBusinessUnitUsersWithPermission(any()))
             .thenReturn(new TestUserBusinessUnits(true));
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
 
         // Act
         Optional<String> filter = Optional.empty();
@@ -108,7 +110,7 @@ class BusinessUnitControllerTest {
     }
 
     @Test
-    void testGetBusinessUnitsRefData_Permission_Empty() {
+    void testGetBusinessUnitsRefData_Permission_Empty() throws Exception {
         // Arrange
         UserStateV2 userState = mock(UserStateV2.class);
         DomainBusinessUnitUsers domainBusinessUnitUsers = mock(DomainBusinessUnitUsers.class);
@@ -116,7 +118,7 @@ class BusinessUnitControllerTest {
         List<BusinessUnitReferenceData> businessUnitList = List.of(entity);
 
         when(businessUnitService.getReferenceData(any())).thenReturn(businessUnitList);
-        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
+        doReturn(userState).when(userStateService).getUserStateFromSecurityContext();
         when(userState.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(domainBusinessUnitUsers);
         when(domainBusinessUnitUsers.allBusinessUnitUsersWithPermission(any()))
             .thenReturn(new TestUserBusinessUnits(false));
@@ -134,6 +136,10 @@ class BusinessUnitControllerTest {
         verify(businessUnitService, times(1)).getReferenceData(any());
     }
 
+    private Object getTestUnitBusinessUsers() {
+        return new TestUserBusinessUnits(false);
+    }
+
     private BusinessUnitReferenceData createBusinessUnitReferenceData() {
         return new BusinessUnitReferenceData(
             (short)1, "Main BU", "MNBU", "Big",
@@ -144,7 +150,7 @@ class BusinessUnitControllerTest {
 
     }
 
-    private class TestUserBusinessUnits implements UserBusinessUnits {
+    private static class TestUserBusinessUnits implements UserBusinessUnits {
         private final boolean contains;
 
         public TestUserBusinessUnits(boolean contains) {

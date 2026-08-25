@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.entity.NoteEntity;
@@ -33,7 +33,7 @@ public class OpalNotesService implements NotesServiceInterface {
 
     @Override
     @Transactional
-    public String addNote(AddNoteRequest req, String ifMatch, UserState user, AccountNoteContext target) {
+    public String addNote(AddNoteRequest req, String ifMatch, UserStateV2 user, AccountNoteContext target) {
         log.info(":OpalAddNote");
 
         getAccountAndVerifyVersion(target, ifMatch);
@@ -47,7 +47,7 @@ public class OpalNotesService implements NotesServiceInterface {
         note.setAssociatedRecordType(target.associatedRecordType());
         note.setBusinessUnitUserId(target.businessUnitId().toString());
         note.setPostedDate(LocalDateTime.now(clock));
-        note.setPostedByUsername(user.getDisplayName());
+        note.setPostedByUsername(user.getUsername());
 
         NoteEntity entity = repository.save(note);
 

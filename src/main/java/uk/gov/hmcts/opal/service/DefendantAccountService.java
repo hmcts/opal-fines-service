@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
@@ -49,7 +49,7 @@ public class DefendantAccountService {
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
         log.debug(":getHeaderSummary:");
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
 
         if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
@@ -61,7 +61,7 @@ public class DefendantAccountService {
     public GetDefendantAccountConsolidatedAccountsResult getConsolidatedAccounts(Long defendantAccountId) {
         log.debug(":getConsolidatedAccounts:");
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
 
         if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             throw new RequiredPermissionException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
@@ -76,7 +76,7 @@ public class DefendantAccountService {
         List<String> itemTypes) {
         log.debug(":getHistory:");
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
 
         if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
@@ -105,7 +105,7 @@ public class DefendantAccountService {
     public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         log.debug(":searchDefendantAccounts:");
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
 
@@ -127,7 +127,7 @@ public class DefendantAccountService {
     public GetDefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId) {
         log.debug(":getAtAGlance");
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             return defendantAccountServiceProxy.getAtAGlance(defendantAccountId);
@@ -139,7 +139,7 @@ public class DefendantAccountService {
     public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(
         Long defendantAccountId) {
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
 
         if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
@@ -159,7 +159,7 @@ public class DefendantAccountService {
                 "Defendant Account", defendantAccountId, "If-Match header is required", null);
         }
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.ACCOUNT_MAINTENANCE)) {
 
@@ -182,9 +182,9 @@ public class DefendantAccountService {
             }
 
             String postedBy = userState.getBusinessUnitUserForBusinessUnit(Short.parseShort(businessUnitId))
-                .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
+                .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2::getBusinessUnitUserId)
                 .filter(id -> !id.isBlank())
-                .orElse(userState.getUserName());
+                .orElse(userState.getUsername());
 
             //Create internal DTO
             UpdateDefendantAccountRequest updateRequest = UpdateDefendantAccountRequest.builder()
@@ -196,7 +196,7 @@ public class DefendantAccountService {
                 .build();
 
             return defendantAccountServiceProxy.updateDefendantAccount(
-                defendantAccountId, businessUnitId, updateRequest, postedBy, userState.getUserName()
+                defendantAccountId, businessUnitId, updateRequest, postedBy, userState.getUsername()
             );
         } else {
             throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
@@ -207,7 +207,7 @@ public class DefendantAccountService {
 
         log.debug(":getEnforcementStatus:");
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             return defendantAccountServiceProxy.getEnforcementStatus(defendantAccountId);

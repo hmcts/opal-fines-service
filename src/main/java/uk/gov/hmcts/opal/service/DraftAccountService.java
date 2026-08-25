@@ -23,8 +23,8 @@ import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.DraftAccountSummaryDto;
@@ -75,23 +75,23 @@ public class DraftAccountService {
 
     public DraftAccountResponseDto getDraftAccount(long draftAccountId) {
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
 
-        if (userState.anyBusinessUnitUserHasAnyPermission(FinesPermission.DRAFT_ACCOUNT_PERMISSIONS)) {
+        if (userState.anyBusinessUnitUserHasAnyPermission(FinesPermission.draftAccountPermissions())) {
             DraftAccountEntity response = draftAccountTransactional.getDraftAccount(draftAccountId);
             Short buId = response.getBusinessUnit().getBusinessUnitId();
 
             loggingService.pdplForDraftAccount(response, Action.GET, userState);
 
-            if (userState.hasBusinessUnitUserWithAnyPermission(buId, FinesPermission.DRAFT_ACCOUNT_PERMISSIONS)) {
+            if (userState.hasBusinessUnitUserWithAnyPermission(buId, FinesPermission.draftAccountPermissions())) {
                 return toGetResponseDto(response);
 
             } else {
-                throw new PermissionNotAllowedException(buId, FinesPermission.DRAFT_ACCOUNT_PERMISSIONS);
+                throw new PermissionNotAllowedException(buId, FinesPermission.draftAccountPermissions());
 
             }
         } else {
-            throw new PermissionNotAllowedException(FinesPermission.DRAFT_ACCOUNT_PERMISSIONS);
+            throw new PermissionNotAllowedException(FinesPermission.draftAccountPermissions());
 
         }
     }
@@ -101,8 +101,8 @@ public class DraftAccountService {
         Optional<List<String>> optionalSubmittedBys, Optional<List<String>> optionalNotSubmittedBys,
         Optional<LocalDate> accountStatusDateFrom, Optional<LocalDate> accountStatusDateTo) {
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
-        if (userState.anyBusinessUnitUserHasAnyPermission(FinesPermission.DRAFT_ACCOUNT_PERMISSIONS)) {
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
+        if (userState.anyBusinessUnitUserHasAnyPermission(FinesPermission.draftAccountPermissions())) {
 
             List<String> submittedBys = optionalSubmittedBys.orElse(Collections.emptyList());
             List<String> notSubmitted = optionalNotSubmittedBys.orElse(Collections.emptyList());
@@ -124,7 +124,7 @@ public class DraftAccountService {
 
             List<DraftAccountEntity> filtered = entities.stream()
                 .filter(e -> userState.hasBusinessUnitUserWithAnyPermission(
-                    e.getBusinessUnit().getBusinessUnitId(), FinesPermission.DRAFT_ACCOUNT_PERMISSIONS))
+                    e.getBusinessUnit().getBusinessUnitId(), FinesPermission.draftAccountPermissions()))
                 .toList();
 
             log.debug(":getDraftAccounts: filtered summaries count: {}", filtered.size());
@@ -141,7 +141,7 @@ public class DraftAccountService {
                             .toList()
                     ).build();
         } else {
-            throw new PermissionNotAllowedException(FinesPermission.DRAFT_ACCOUNT_PERMISSIONS);
+            throw new PermissionNotAllowedException(FinesPermission.draftAccountPermissions());
         }
     }
 
@@ -169,12 +169,12 @@ public class DraftAccountService {
     @Transactional
     public DraftAccountResponseDto submitDraftAccount(AddDraftAccountRequestDto dto) {
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
 
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
                                                         FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
 
-            BusinessUnitUser unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());
+            BusinessUnitUserV2 unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());
             applySubmittedBy(dto, userState, unitUser);
 
             jsonSchemaValidationService.validateOrError(dto.toJson(), ADD_DRAFT_ACCOUNT_REQUEST_JSON);
@@ -198,11 +198,11 @@ public class DraftAccountService {
     public DraftAccountResponseDto replaceDraftAccount(Long draftAccountId, ReplaceDraftAccountRequestDto dto,
                                                        String ifMatch) {
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
 
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
                                                         FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
-            BusinessUnitUser unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());
+            BusinessUnitUserV2 unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());
             applySubmittedBy(dto, userState, unitUser);
             jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
             referenceValidationService.validateReferences(dto.getAccount());
@@ -225,10 +225,10 @@ public class DraftAccountService {
     public DraftAccountResponseDto updateDraftAccount(Long draftAccountId, UpdateDraftAccountRequestDto dto,
         String ifMatch) {
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
-        Optional<BusinessUnitUser> unitUser = userState.getBusinessUnitUserForBusinessUnit(dto.getBusinessUnitId());
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
+        Optional<BusinessUnitUserV2> unitUser = userState.getBusinessUnitUserForBusinessUnit(dto.getBusinessUnitId());
         log.info(":updateDraftAccount: unit user: {}", unitUser);
-        if (UserState.userHasPermission(unitUser, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS)) {
+        if (UserStateV2.userHasPermission(unitUser, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS)) {
             if (DraftAccountStatus.PUBLISHING_PENDING.equals(dto.getAccountStatus())) {
                 applyValidatedBy(dto, userState, unitUser.orElseThrow());
             }
@@ -271,25 +271,27 @@ public class DraftAccountService {
         return draftAccountMapper.toDto(entity);
     }
 
-    private BusinessUnitUser getBusinessUnitUserOrThrow(UserState userState, Short businessUnitId) {
+    private BusinessUnitUserV2 getBusinessUnitUserOrThrow(UserStateV2 userState, Short businessUnitId) {
         return userState.getBusinessUnitUserForBusinessUnit(businessUnitId)
             .orElseThrow(() -> new PermissionNotAllowedException(businessUnitId,
                                                                 FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
     }
 
-    private void applySubmittedBy(AddDraftAccountRequestDto dto, UserState userState, BusinessUnitUser unitUser) {
+    private void applySubmittedBy(AddDraftAccountRequestDto dto, UserStateV2 userState, BusinessUnitUserV2 unitUser) {
         dto.setSubmittedBy(unitUser.getBusinessUnitUserId());
-        dto.setSubmittedByName(userState.getDisplayName());
+        dto.setSubmittedByName(userState.getName());
         dto.setValidatedBy(null);
     }
 
-    private void applySubmittedBy(ReplaceDraftAccountRequestDto dto, UserState userState, BusinessUnitUser unitUser) {
+    private void applySubmittedBy(ReplaceDraftAccountRequestDto dto, UserStateV2 userState,
+        BusinessUnitUserV2 unitUser) {
         dto.setSubmittedBy(unitUser.getBusinessUnitUserId());
-        dto.setSubmittedByName(userState.getDisplayName());
+        dto.setSubmittedByName(userState.getName());
     }
 
-    private void applyValidatedBy(UpdateDraftAccountRequestDto dto, UserState userState, BusinessUnitUser unitUser) {
+    private void applyValidatedBy(UpdateDraftAccountRequestDto dto, UserStateV2 userState,
+        BusinessUnitUserV2 unitUser) {
         dto.setValidatedBy(unitUser.getBusinessUnitUserId());
-        dto.setValidatedByName(userState.getDisplayName());
+        dto.setValidatedByName(userState.getName());
     }
 }

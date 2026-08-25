@@ -49,10 +49,11 @@ class UserStateClientServiceIT extends AbstractIntegrationWithSecurityTest {
     void getUserStateByAuthenticationTokenTwiceProvingCacheWorks() {
 
         WireMock.configureFor("localhost", 4553);
+
         stubFor(get("/opal/v2/users/0/state")
             .willReturn(aResponse()
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                .withBody(userStateStub.getUserStateAsJson())));
+                .withBody(userStateStub.getUserStateDtoAsJson())));
 
         WireMock.verify(0, getRequestedFor(urlEqualTo("/opal/v2/users/0/state")));
 

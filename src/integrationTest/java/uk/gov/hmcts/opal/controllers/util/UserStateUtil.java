@@ -10,10 +10,11 @@ import java.util.Map;
 import org.springframework.security.oauth2.jwt.Jwt;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 
 import java.util.Arrays;
@@ -54,34 +55,53 @@ public class UserStateUtil {
         return noFinesPermissionsToken().getUserState();
     }
 
-    public static UserState permissionUser(Short buid, FinesPermission... permissions) {
-        return UserState.builder()
+    public static UserStateV2 permissionUser(Short buid, FinesPermission... permissions) {
+        return UserStateV2.builder()
             .userId(1L)
-            .userName("normal@users.com")
+            .username("normal@users.com")
             .name("Normal User")
-            .businessUnitUser(Set.of(permissions(buid, permissionsFor(permissions))))
+            .domains(new HashMap<>() {{
+                        put(Domain.FINES, DomainBusinessUnitUsers
+                            .builder()
+                            .businessUnitUsers(List.of(permissions(buid, permissionsFor(permissions))))
+                            .build());
+                }})
             .build();
     }
 
-    public static UserState permissionUser(Short[] buids, FinesPermission... permissions) {
-        return UserState.builder()
+    public static UserStateV2 permissionUser(Short[] buids, FinesPermission... permissions) {
+        return UserStateV2.builder()
             .userId(1L)
-            .userName("normal@users.com")
+            .username("normal@users.com")
             .name("Normal User")
-            .businessUnitUser(
-                Arrays
-                    .stream(buids)
-                    .map(buid -> permissions(buid, permissionsFor(permissions)))
-                    .collect(Collectors.toSet()))
+            .domains(
+                new HashMap<>() {{
+                        put(FINES, DomainBusinessUnitUsers
+                            .builder()
+                            .businessUnitUsers(
+                                Arrays
+                                    .stream(buids)
+                                    .map(buid -> permissions(buid, permissionsFor(permissions)))
+                                    .collect(Collectors.toList()))
+                            .build());
+                        }}
+            )
             .build();
     }
 
-    public static UserState permissionUser(Short buid, Permission... permissions) {
-        return UserState.builder()
+    public static UserStateV2 permissionUser(Short buid, PermissionV2... permissions) {
+        return UserStateV2.builder()
             .userId(1L)
-            .userName("normal@users.com")
+            .username("normal@users.com")
             .name("Normal User")
-            .businessUnitUser(Set.of(permissions(buid, permissions)))
+            .domains(
+                new HashMap<>() {{
+                        put(FINES, DomainBusinessUnitUsers
+                            .builder()
+                            .businessUnitUsers(List.of(permissions(buid, permissions)))
+                            .build());
+                        }}
+            )
             .build();
     }
 
@@ -98,35 +118,32 @@ public class UserStateUtil {
         return permissionsToken(buid, permissions).getUserState();
     }
 
-    public static BusinessUnitUser permissions(Short buid, Permission... permissions) {
+    public static BusinessUnitUserV2 permissions(Short buid, PermissionV2... permissions) {
         return permissions(buid, new HashSet<>(Arrays.asList(permissions)));
     }
 
-    public static BusinessUnitUser permissions(Short buid, Set<Permission> permissions) {
-        return BusinessUnitUser.builder()
+    public static BusinessUnitUserV2 permissions(Short buid, Set<PermissionV2> permissions) {
+        return BusinessUnitUserV2.builder()
             .businessUnitUserId("USER01")
             .businessUnitId(buid)
             .permissions(permissions)
             .build();
     }
 
-    public static Set<Permission> permissionsFor(FinesPermission... permissions) {
+    public static Set<PermissionV2> permissionsFor(FinesPermission... permissions) {
         return Arrays.stream(permissions)
             .map(UserStateUtil::permissionFor)
             .collect(Collectors.toSet());
     }
 
-    public static Permission permissionFor(FinesPermission permission) {
-        return Permission.builder()
-            .permissionId(permission.getId())
-            .permissionName(permission.getDescription())
-            .build();
+    public static PermissionV2 permissionFor(FinesPermission permission) {
+        return permission.toCommonPermission();
     }
 
     public static OpalJwtAuthenticationToken allFinesPermissionsToken() {
 
         Map<Domain, DomainBusinessUnitUsers> domainsMap = new HashMap<>();
-        BusinessUnitUser businessUnitUser = BusinessUnitUser.builder()
+        BusinessUnitUserV2 businessUnitUser = BusinessUnitUserV2.builder()
             .businessUnitId((short)78)
             .businessUnitUserId("s")
             .permissions(permissionsFor(FinesPermission.values()))

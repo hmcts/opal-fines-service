@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -81,7 +82,8 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
 
     @BeforeEach
     void setupUserState() {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allPermissionsUser());
+        when(userStateService.getUserStateFromSecurityContext())
+            .thenReturn(UserStateUtil.allFinesPermissionUserStateV2());
     }
 
     @Test
@@ -129,7 +131,7 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-9411")
     void getConsolidatedAccounts_whenPermissionInSameBusinessUnit_returnsOk() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext())
+        when(userStateService.getUserStateFromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 78, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
         mockLegacyResponse();
 
@@ -144,7 +146,7 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-9406")
     void getConsolidatedAccounts_whenPermissionInDifferentBusinessUnit_returnsOk() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext())
+        when(userStateService.getUserStateFromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
         mockLegacyResponse();
 
@@ -209,7 +211,8 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-9412")
     void getConsolidatedAccounts_whenUserLacksPermission_returnsForbidden() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.noPermissionsUser());
+        when(userStateService.getUserStateFromSecurityContext())
+            .thenReturn(UserStateUtil.noFinesPermissionUserStateV2());
 
         performGetConsolidatedAccounts(233300L)
             .andExpect(status().isForbidden())
@@ -217,7 +220,7 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
             .andExpect(jsonPath("$.status").value(403))
             .andExpect(jsonPath("$.retriable").value(false))
             .andExpect(jsonPath("$.title").value("Forbidden"))
-            .andExpect(jsonPath("$.detail").value("User requires permission: Search and View Accounts"));
+            .andExpect(jsonPath("$.detail").value("User requires permission: Search and view accounts"));
 
         verifyNoInteractions(gatewayService);
     }
@@ -229,7 +232,7 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
     @JiraTestKey("PO-9407")
     void getConsolidatedAccounts_whenCredentialsMissing_returnsUnauthorized() throws Exception {
         doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).getUserStateV1FromSecurityContext();
+            .when(userStateService).getUserStateFromSecurityContext();
 
         mockMvc.perform(get(URL_BASE + "/233300/consolidated-accounts"))
             .andExpect(status().isUnauthorized())
@@ -247,12 +250,13 @@ class LegacyDefendantAccountConsolidatedAccountsIntegrationTest extends Abstract
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-9410")
     void getConsolidatedAccounts_returnsOnlyDocumentedFields() throws Exception {
-        when(gatewayService.postToGateway(
+        doReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse(), null, null))
+            .when(gatewayService).postToGateway(
             eq(LegacyDefendantAccountService.GET_CONSOLIDATED_ACCOUNTS),
             eq(LegacyGetDefendantAccountConsolidatedAccountsResponse.class),
             any(),
             isNull()
-        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse(), null, null));
+            );
 
         MvcResult result = performGetConsolidatedAccounts(233300L)
             .andExpect(status().isOk())

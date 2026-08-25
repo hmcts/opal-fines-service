@@ -28,7 +28,7 @@ import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
@@ -96,15 +96,17 @@ public class TestingSupportController {
 
     @GetMapping("/testing-support/user-client/{userId}")
     @Operation(summary = "Retrieves user state via User Service client")
-    public ResponseEntity<UserState> getUserState(@PathVariable Long userId) {
+    public ResponseEntity<UserStateV2> getUserState(@PathVariable Long userId) {
         if (!Long.valueOf(CURRENT_USER_ID).equals(userId)) {
             return ResponseEntity.notFound().build();
         }
 
-        return userStateClientService.getUserStateByAuthenticatedUser()
-            .map(userStateV2 -> userStateMapper.toUserState(userStateV2, Domain.FINES))
+        ResponseEntity<UserStateV2> response = userStateClientService.getUserStateByAuthenticatedUser()
+            .map(userStateV2 -> userStateMapper.toUserStateSpecific(userStateV2, Domain.FINES))
             .map(ResponseEntity::ok)
             .orElseGet(() -> ResponseEntity.notFound().build());
+
+        return response;
     }
 
     @DeleteMapping("/testing-support/defendant-accounts/{defendantAccountId}")

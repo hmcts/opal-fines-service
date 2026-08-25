@@ -215,4 +215,5 @@ class OpalDefendantAccountServicePaymentCardTest {
         verify(paymentCardRequestRepositoryService).save(any(PaymentCardRequestEntity.class));
         verify(defendantAccountRepositoryService).save(account);
     }
+
 }

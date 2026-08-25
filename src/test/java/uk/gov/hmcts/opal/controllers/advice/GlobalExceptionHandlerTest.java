@@ -84,7 +84,7 @@ class GlobalExceptionHandlerTest {
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
         assertEquals(MediaType.APPLICATION_PROBLEM_JSON, response.getHeaders().getContentType());
         assertEquals("Forbidden", response.getBody().getTitle());
-        assertEquals("User requires permission: Search and View Accounts", response.getBody().getDetail());
+        assertEquals("User requires permission: Search and view accounts", response.getBody().getDetail());
         assertEquals(false, response.getBody().getProperties().get("retriable"));
     }
 

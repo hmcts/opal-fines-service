@@ -10,7 +10,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.DRAFT_ACCOUNT_PERMISSIONS;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
 
 import java.util.List;
@@ -23,6 +22,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
 import uk.gov.hmcts.opal.service.report.GenericReportService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -253,8 +253,8 @@ class ReportInstancesApiControllerIntegrationTest extends AbstractIntegrationTes
         @JiraStory("PO-9147")
         @JiraEpic("PO-2248")
         void whenUserHasMorePermissions_additionalReportIsFound_happyPath() throws Exception {
-            userStateStub.addPermissions((short) 10, DRAFT_ACCOUNT_PERMISSIONS);
-            userStateStub.addPermissions((short) 20, DRAFT_ACCOUNT_PERMISSIONS);
+            userStateStub.addPermissions((short) 10, FinesPermission.draftAccountPermissions());
+            userStateStub.addPermissions((short) 20, FinesPermission.draftAccountPermissions());
 
             mockMvc.perform(authorisedGet())
                 .andExpectAll(

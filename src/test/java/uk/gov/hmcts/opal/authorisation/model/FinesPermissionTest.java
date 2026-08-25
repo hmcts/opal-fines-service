@@ -10,17 +10,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 
 class FinesPermissionTest {
 
     @Test
     void whenCommonPermissionRequested_returnsMappedPermission_happyPath() {
-        Permission permission = FinesPermission.VIEW_CREDITOR_BACS.toCommonPermission();
+        PermissionV2 permission = FinesPermission.VIEW_CREDITOR_BACS.toCommonPermission();
 
         assertAll(
-            () -> assertEquals(11L, permission.getPermissionId()),
-            () -> assertEquals("View Creditor BACS", permission.getPermissionName())
+            () -> assertEquals("VIEW_CREDITOR_BACS", permission.getPermissionCode()),
+            () -> assertEquals("View creditor BACS", permission.getPermissionName())
         );
     }
 
@@ -31,7 +31,7 @@ class FinesPermissionTest {
                 FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
                 FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS
             },
-            FinesPermission.DRAFT_ACCOUNT_PERMISSIONS
+            FinesPermission.draftAccountPermissions()
         );
     }
 

@@ -59,7 +59,7 @@ public class GetReportInstanceContentService {
         FinesPermission permission = instance.getReport().getPermission();
         OpalJwtAuthenticationToken authToken = getOpalJwtAuthenticationTokenForCurrentUser();
 
-        if (permission == null || !authToken.hasPermission(permission)) {
+        if (permission == null || !authToken.hasPermission(permission.toCommonPermission())) {
             throw new PermissionNotAllowedException(permission);
         }
 
@@ -69,7 +69,7 @@ public class GetReportInstanceContentService {
         }
 
         for (Short businessUnitId : businessUnits) {
-            if (!authToken.hasPermissionInBusinessUnit(permission, businessUnitId)) {
+            if (!authToken.hasPermissionInBusinessUnit(permission.toCommonPermission(), businessUnitId)) {
                 throw new PermissionNotAllowedException(businessUnitId, permission);
             }
         }

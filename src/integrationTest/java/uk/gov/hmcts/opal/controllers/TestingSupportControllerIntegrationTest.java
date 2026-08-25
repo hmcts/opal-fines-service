@@ -26,7 +26,6 @@ import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -157,15 +156,16 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2233")
     @JiraTestKey("PO-6282")
     void testGetUserState() throws Exception {
-        UserState userState = UserStateUtil.permissionUser((short) 5, FinesPermission.ACCOUNT_ENQUIRY);
+        UserStateV2 userState = UserStateUtil.permissionUser((short) 5, FinesPermission.ACCOUNT_ENQUIRY);
         UserStateV2 userStateV2 = mock(UserStateV2.class);
         when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userStateV2));
-        when(userStateMapper.toUserState(userStateV2, Domain.FINES)).thenReturn(userState);
+        when(userStateMapper.toUserStateSpecific(userStateV2, Domain.FINES)).thenReturn(userState);
 
         mockMvc.perform(get("/testing-support/user-client/0"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.user_name").value(userState.getUserName()))
+            .andExpect(jsonPath("$.username").value(userState.getUsername()))
+            .andExpect(jsonPath("$.name").value(userState.getName()))
             .andExpect(jsonPath("$.user_id").value(userState.getUserId()));
     }
 
