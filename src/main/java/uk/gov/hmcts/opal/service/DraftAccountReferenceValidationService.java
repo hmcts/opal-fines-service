@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.repository.CourtLiteRepository;
 import uk.gov.hmcts.opal.repository.MajorCreditorRepository;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
@@ -96,13 +95,7 @@ public class DraftAccountReferenceValidationService {
                 String impositionPath = offencePath + ".impositions[" + impositionIndex + "]";
 
                 String resultId = safeReadString(docContext, impositionPath + ".result_id", null);
-<<<<<<< HEAD
                 validateImpositionResult(resultId, impositionPath + ".result_id", failures);
-=======
-                if (resultId != null && !resultRepository.existsById(resultId)) {
-                    failures.add(impositionPath + RESULT_ID_PREFIX + resultId + DOES_NOT_EXIST);
-                }
->>>>>>> 8435c8eb9 (PO-5752 SonarQube)
 
                 Long majorCreditorId = safeReadLong(docContext, impositionPath + ".major_creditor_id");
                 if (majorCreditorId != null && !majorCreditorRepository.existsById(majorCreditorId)) {
