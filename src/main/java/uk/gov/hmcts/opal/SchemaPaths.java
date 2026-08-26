@@ -12,10 +12,7 @@ public class SchemaPaths {
     public static final String ADD_DRAFT_ACCOUNT_REQUEST = DRAFT_ACCOUNT + "/addDraftAccountRequest.json";
     public static final String REPLACE_DRAFT_ACCOUNT_REQUEST = DRAFT_ACCOUNT + "/replaceDraftAccountRequest.json";
     public static final String UPDATE_DRAFT_ACCOUNT_REQUEST = DRAFT_ACCOUNT + "/updateDraftAccountRequest.json";
-
     public static final String GET_LJA_REF_DATA_RESPONSE = REFERENCE_DATA + "/getLJARefDataResponse.json";
-
-    public static final String GET_RESULTS_REF_DATA_RESPONSE = REFERENCE_DATA + "/getResultsRefDataResponse.json";
 
     public static final String GET_RESULT_BY_ID_RESPONSE = REFERENCE_DATA + "/getResultByIdResponse.json";
 

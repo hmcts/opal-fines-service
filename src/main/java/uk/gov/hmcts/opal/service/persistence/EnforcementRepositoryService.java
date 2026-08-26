@@ -9,7 +9,7 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.common.exceptions.standard.InternalServerErrorException;
-import uk.gov.hmcts.opal.dto.RecordType;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 
@@ -70,8 +70,10 @@ public class EnforcementRepositoryService {
         Long versionNumber
     ) {
 
-        String sql =
-            "CALL p_add_defendant_account_enforcement(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CAST(? AS timestamp), ?, ?)";
+        String sql = """
+            CALL p_add_defendant_account_enforcement(
+                ?, ?, ?, CAST(? AS t_associated_record_type_enum), ?, ?, ?, ?, ?, ?, ?, ?, CAST(? AS timestamp), ?, ?)
+            """;
 
         Connection connection = DataSourceUtils.getConnection(dataSource);
 
@@ -79,7 +81,7 @@ public class EnforcementRepositoryService {
             cs.setString(1, resultId);
             cs.setLong(2, defendantAccountId);
             cs.setShort(3, businessUnitId);
-            cs.setString(4, RecordType.DEFENDANT_ACCOUNTS.toString());
+            cs.setString(4, AssociatedRecordType.DEFENDANT_ACCOUNTS.toString());
             cs.setString(5, caseReference);
             cs.setString(6, functionCode);
             setNullableInteger(cs, 7, jailDays);

@@ -24,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.common.EmployerDetails;
@@ -39,6 +38,7 @@ import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.entity.AliasEntity;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.Language;
@@ -133,7 +133,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
         VersionUtils.verifyIfMatch(account, ifMatch, accountId, "addDefendantAccountParty");
         defendantAccountControlValidator.validateCanMutateParty(account);
-        amendmentRepositoryService.auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
+        amendmentRepositoryService.auditInitialiseStoredProc(accountId, AssociatedRecordType.DEFENDANT_ACCOUNTS);
 
         // Save the party record
         PartyEntity party = new PartyEntity();
@@ -177,7 +177,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
         amendmentRepositoryService.auditFinaliseStoredProc(
             account.getDefendantAccountId(),
-            RecordType.DEFENDANT_ACCOUNTS,
+            AssociatedRecordType.DEFENDANT_ACCOUNTS,
             Short.parseShort(businessUnitId),
             postedBy,
             postedByName,
@@ -248,7 +248,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             defendantAccountControlValidator.validateCanMutateParty(account);
         }
 
-        amendmentRepositoryService.auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
+        amendmentRepositoryService.auditInitialiseStoredProc(accountId, AssociatedRecordType.DEFENDANT_ACCOUNTS);
 
         PartyEntity party = dap.getParty();
 
@@ -321,7 +321,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
         amendmentRepositoryService.auditFinaliseStoredProc(
             account.getDefendantAccountId(),
-            RecordType.DEFENDANT_ACCOUNTS,
+            AssociatedRecordType.DEFENDANT_ACCOUNTS,
             Short.parseShort(businessUnitId),
             postedBy,
             postedByName,
@@ -354,7 +354,8 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
         VersionUtils.verifyIfMatch(account, ifMatch, defendantAccountId, "removeDefendantAccountParty");
         defendantAccountControlValidator.validateCanMutateParty(account);
-        amendmentRepositoryService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
+        amendmentRepositoryService
+            .auditInitialiseStoredProc(defendantAccountId, AssociatedRecordType.DEFENDANT_ACCOUNTS);
 
         // Verify the DAP association is valid for this Defendant Account
         account.getParties().stream()
@@ -367,7 +368,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
         amendmentRepositoryService.auditFinaliseStoredProc(
             account.getDefendantAccountId(),
-            RecordType.DEFENDANT_ACCOUNTS,
+            AssociatedRecordType.DEFENDANT_ACCOUNTS,
             businessUnitId,
             postedBy,
             postedByName,

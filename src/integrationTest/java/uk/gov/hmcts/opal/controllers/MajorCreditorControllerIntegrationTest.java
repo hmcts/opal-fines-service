@@ -5,12 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.clearInvocations;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+import static uk.gov.hmcts.opal.support.SpyInvocationSupport.countInvocationsByMethodName;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.support.SpyInvocationSupport.countInvocationsByMethodName;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -94,7 +94,7 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
     void testPostMajorCreditorsSearch() throws Exception {
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
             .contentType(MediaType.APPLICATION_JSON)
-            .content("{\"businessUnitId\":\"992\"}"));
+            .content("{\"businessUnitId\":\"78\"}"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostMajorCreditorsSearch: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -143,7 +143,9 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[?(@.major_creditor_id == 1)].name")
                 .value(hasItem("AAAA Credit Services")))
             .andExpect(jsonPath("$.refData[?(@.major_creditor_id == 1)].postcode").value(hasItem("CR1 1CR")))
-            .andExpect(jsonPath("$.refData[?(@.major_creditor_id == 1)].business_unit_id").value(hasItem(992)))
+            .andExpect(jsonPath("$.refData[?(@.major_creditor_id == 1)].business_unit_id").value(hasItem(78)))
+            .andExpect(jsonPath("$.refData[*].repayment").exists())
+            .andExpect(jsonPath("$.refData[*].from_suspense").doesNotExist())
             .andReturn();
 
         jsonSchemaValidationService.validateOrError(body, GET_MAJOR_CREDS_REF_DATA_RESPONSE);
@@ -172,5 +174,4 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
             .getResponse()
             .getContentAsString();
     }
-
 }

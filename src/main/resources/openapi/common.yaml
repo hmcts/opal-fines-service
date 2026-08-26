@@ -331,24 +331,6 @@ components:
           $ref: '#/components/schemas/addressDetails'
       required:
         - employer_address
-    fixedPenaltyTicketDetails:
-      title: Fixed Penalty Ticket Details
-      type: object
-      additionalProperties: false
-      properties:
-        issuing_authority:
-          type: string
-        ticket_number:
-          type: string
-        time_of_offence:
-          type: string
-        place_of_offence:
-          type: string
-      required:
-        - issuing_authority
-        - ticket_number
-        - time_of_offence
-        - place_of_offence
     resultReference:
       title: Result Reference
       type: object

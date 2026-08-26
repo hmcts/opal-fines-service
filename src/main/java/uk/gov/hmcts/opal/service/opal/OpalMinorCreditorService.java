@@ -15,8 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
-import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntity;
@@ -252,7 +252,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
         validatePartyId(request.getPartyDetails().getPartyId(), party.getPartyId());
 
-        amendmentService.auditInitialiseStoredProc(minorCreditorAccountId, RecordType.CREDITOR_ACCOUNTS);
+        amendmentService.auditInitialiseStoredProc(minorCreditorAccountId, AssociatedRecordType.CREDITOR_ACCOUNTS);
 
         updateMapper.updateParty(request.getPartyDetails(), request.getAddress(), party);
 
@@ -272,7 +272,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
         amendmentService.auditFinaliseStoredProc(
             minorCreditorAccountId,
-            RecordType.CREDITOR_ACCOUNTS,
+            AssociatedRecordType.CREDITOR_ACCOUNTS,
             creditorAccount.getBusinessUnitId(),
             postedBy,
             postedByName,

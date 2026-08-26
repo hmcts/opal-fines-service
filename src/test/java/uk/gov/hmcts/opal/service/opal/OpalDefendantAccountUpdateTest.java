@@ -32,9 +32,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.dto.RecordType;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
@@ -409,9 +409,9 @@ class OpalDefendantAccountUpdateTest {
 
         service.updateDefendantAccount(77L, "78", req, "11111111A", "Tester Name");
 
-        verify(amendmentService).auditInitialiseStoredProc(77L, RecordType.DEFENDANT_ACCOUNTS);
+        verify(amendmentService).auditInitialiseStoredProc(77L, AssociatedRecordType.DEFENDANT_ACCOUNTS);
         verify(amendmentService).auditFinaliseStoredProc(
-            eq(77L), eq(RecordType.DEFENDANT_ACCOUNTS), eq((short) 78),
+            eq(77L), eq(AssociatedRecordType.DEFENDANT_ACCOUNTS), eq((short) 78),
             eq("11111111A"), eq("Tester Name"), any(), eq("ACCOUNT_ENQUIRY"));
     }
 
