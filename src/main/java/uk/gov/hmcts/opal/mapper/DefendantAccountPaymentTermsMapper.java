@@ -29,7 +29,6 @@ public interface DefendantAccountPaymentTermsMapper {
     @Mapping(target = "daysInDefault", source = "jailDays")
     @Mapping(target = "dateDaysInDefaultImposed", source = "defendantAccount.suspendedCommittalDate")
     @Mapping(target = "paymentTermsType", source = "termsTypeCode")
-    @Mapping(target = "instalmentPeriod", source = "instalmentPeriod")
     @Mapping(target = "lumpSumAmount", source = "instalmentLumpSum")
     @Mapping(target = "postedDetails", source = ".")
     DefendantAccountPaymentTermsCommonStrict toPaymentTerms(PaymentTermsEntity entity);

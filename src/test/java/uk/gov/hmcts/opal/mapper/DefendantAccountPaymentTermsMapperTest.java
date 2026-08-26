@@ -21,6 +21,7 @@ import uk.gov.hmcts.opal.entity.paymentterms.InstalmentPeriod;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.TermsTypeCode;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountInstalmentPeriodCommonStrict.InstalmentPeriodCodeEnum;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsTypeCommonStrict.PaymentTermsTypeCodeEnum;
 
@@ -50,31 +51,23 @@ class DefendantAccountPaymentTermsMapperTest {
 
         DefendantAccountPaymentTermsResponse defendantAccountPaymentTermsResponse = mapper.toResponse(paymentTerms);
 
-        assertThat(defendantAccountPaymentTermsResponse).isNotNull().extracting(
-                DefendantAccountPaymentTermsResponse::getPaymentCardLastRequested,
-                DefendantAccountPaymentTermsResponse::getLastEnforcement,
-                DefendantAccountPaymentTermsResponse::getVersion
-        ).containsExactly(defendantAccount.getPaymentCardRequestedDate(),
-            defendantAccount.getLastEnforcement(), 5L);
+        assertThat(defendantAccountPaymentTermsResponse).isNotNull();
+        assertThat(defendantAccountPaymentTermsResponse.getPaymentCardLastRequested())
+            .isEqualTo(LocalDate.of(2026, 8, 1));
+        assertThat(defendantAccountPaymentTermsResponse.getLastEnforcement()).isEqualTo("123456");
+        assertThat(defendantAccountPaymentTermsResponse.getVersion()).isEqualTo(5L);
 
-        assertThat(defendantAccountPaymentTermsResponse.getPaymentTerms())
-            .isNotNull().satisfies(paymentTermsCommonStrict -> {
-                assertThat(paymentTermsCommonStrict.getDaysInDefault().get()).isEqualTo(10);
-                assertThat(paymentTermsCommonStrict.getDateDaysInDefaultImposed().get())
-                    .isEqualTo(LocalDate.of(2026, 2, 23));
-                assertThat(paymentTermsCommonStrict.getLumpSumAmount().get())
-                    .isEqualTo(new BigDecimal("1000.99"));
-                assertThat(paymentTermsCommonStrict.getPaymentTermsType().getPaymentTermsTypeCode())
-                    .isEqualTo(PaymentTermsTypeCodeEnum.I);
-                assertThat(paymentTermsCommonStrict.getInstalmentPeriod().get().getInstalmentPeriodCode())
-                    .isEqualTo(InstalmentPeriodCodeEnum.F);
-                assertThat(paymentTermsCommonStrict.getPostedDetails().get().getPostedDate())
-                    .isEqualTo(LocalDateTime.of(2026, 6, 10, 10, 0, 0));
-                assertThat(paymentTermsCommonStrict.getPostedDetails().get().getPostedBy().get())
-                    .isEqualTo("John Doe");
-                assertThat(paymentTermsCommonStrict.getPostedDetails().get().getPostedByName().get())
-                    .isEqualTo("j.doe");
-            });
+        var defendantAccountPaymentTerms = defendantAccountPaymentTermsResponse.getPaymentTerms();
+        assertThat(defendantAccountPaymentTerms).isNotNull();
+        assertThat(defendantAccountPaymentTerms.getDaysInDefault().get()).isEqualTo(10);
+        assertThat(defendantAccountPaymentTerms.getDateDaysInDefaultImposed().get())
+            .isEqualTo(LocalDate.of(2026, 2, 23));
+        assertThat(defendantAccountPaymentTerms.getLumpSumAmount().get()).isEqualTo(new BigDecimal("1000.99"));
+        assertThat(defendantAccountPaymentTerms.getPaymentTermsType().getPaymentTermsTypeCode()).isEqualTo(PaymentTermsTypeCodeEnum.I);
+        assertThat(defendantAccountPaymentTerms.getInstalmentPeriod().get().getInstalmentPeriodCode()).isEqualTo(InstalmentPeriodCodeEnum.F);
+        assertThat(defendantAccountPaymentTerms.getPostedDetails().get().getPostedDate()).isEqualTo(LocalDateTime.of(2026, 6, 10, 10, 0, 0));
+        assertThat(defendantAccountPaymentTerms.getPostedDetails().get().getPostedBy().get()).isEqualTo("John Doe");
+        assertThat(defendantAccountPaymentTerms.getPostedDetails().get().getPostedByName().get()).isEqualTo("j.doe");
     }
 
     @Test
@@ -90,8 +83,7 @@ class DefendantAccountPaymentTermsMapperTest {
         DefendantAccountPaymentTermsResponse defendantAccountPaymentTermsResponse =
             mapper.toResponse(entity);
 
-        assertThat(defendantAccountPaymentTermsResponse.getVersion())
-            .isEqualTo(1L);
+        assertThat(defendantAccountPaymentTermsResponse.getVersion()).isEqualTo(1L);
     }
 
     @Test
@@ -143,6 +135,28 @@ class DefendantAccountPaymentTermsMapperTest {
         DefendantAccountPaymentTermsResponse result = mapper.legacyToResponse(source);
 
         assertThat(result.getVersion()).isEqualTo(1L);
+    }
+
+    @Test
+    void shouldMapNullPaymentTermsFieldsAsPresentAndNull() {
+        DefendantAccountEntity defendantAccount = DefendantAccountEntity.builder()
+            .versionNumber(1L)
+            .build();
+
+        PaymentTermsEntity paymentTerms = PaymentTermsEntity.builder()
+            .defendantAccount(defendantAccount)
+            .build();
+
+        DefendantAccountPaymentTermsResponse response = mapper.toResponse(paymentTerms);
+        DefendantAccountPaymentTermsCommonStrict defendantAccountPaymentTerms = response.getPaymentTerms();
+
+        assertThat(defendantAccountPaymentTerms).isNotNull();
+        assertThat(defendantAccountPaymentTerms.getDaysInDefault().isPresent()).isTrue();
+        assertThat(defendantAccountPaymentTerms.getDaysInDefault().get()).isNull();
+        assertThat(defendantAccountPaymentTerms.getDateDaysInDefaultImposed().isPresent()).isTrue();
+        assertThat(defendantAccountPaymentTerms.getDateDaysInDefaultImposed().get()).isNull();
+        assertThat(defendantAccountPaymentTerms.getLumpSumAmount().isPresent()).isTrue();
+        assertThat(defendantAccountPaymentTerms.getLumpSumAmount().get()).isNull();
     }
 
     private static @NonNull LegacyPaymentTerms getLegacyPaymentTerms() {

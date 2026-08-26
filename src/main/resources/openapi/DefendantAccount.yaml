@@ -1643,3 +1643,4 @@ components:
         - payment_terms
         - payment_card_last_requested
         - last_enforcement
+        - version
