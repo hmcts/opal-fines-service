@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -50,6 +51,7 @@ class NotesServiceTest {
             PermissionNotAllowedException.class,
             () -> notesService.addNote(request, IF_MATCH, BUSINESS_UNIT_ID)
         );
+        verifyNoInteractions(notesProxy);
     }
 
     @Test
