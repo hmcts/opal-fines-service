@@ -150,7 +150,7 @@ public class EnforcementDetailedReportServiceTest extends AbstractIntegrationTes
             () -> assertThat(account.getPaymentTerms()).isEqualTo("12/10/2025"),
             () -> assertThat(account.getAmountImposed()).isEqualByComparingTo("-700.58"),
             () -> assertThat(account.getBalance()).isEqualByComparingTo("99.42"),
-            () -> assertThat(account.getArrearsTotal()).isEqualByComparingTo("0"), //todo ???
+            () -> assertThat(account.getArrearsTotal()).isEqualByComparingTo("0"),
             () -> assertThat(account.getFineImpositions()).isEqualByComparingTo("120.00"),
             () -> assertThat(account.getCostImpositions()).isEqualByComparingTo("100.00"),
             () -> assertThat(account.getCompensationImpositions()).isEqualByComparingTo("50.00"),
