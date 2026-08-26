@@ -462,7 +462,6 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 expectedPaymentTermsEnforcementValidationErrorMessage("COLLO is not an active result"),
                 "https://hmcts.gov.uk/problems/invalid-reference-validation"
             ));
->>>>>>> 73904a486 (PO-5752 Add integration coverage for invalid draft enforcement results)
     }
 
     @Test
