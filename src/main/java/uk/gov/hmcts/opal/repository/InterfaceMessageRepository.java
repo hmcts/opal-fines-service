@@ -7,7 +7,7 @@ import static uk.gov.hmcts.opal.entity.interfacemessage.InterfaceMessageStoredPr
 import static uk.gov.hmcts.opal.entity.interfacemessage.InterfaceMessageStoredProcedureNames.MESSAGE_TYPE;
 import static uk.gov.hmcts.opal.entity.interfacemessage.InterfaceMessageStoredProcedureNames.RECORD_DETAIL;
 import static uk.gov.hmcts.opal.entity.interfacemessage.InterfaceMessageStoredProcedureNames.RECORD_INDEX;
-
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -38,4 +38,7 @@ public interface InterfaceMessageRepository extends JpaRepository<InterfaceMessa
                                 @Param(RECORD_INDEX) Long recordIndex,
                                 @Param(RECORD_DETAIL) String recordDetail,
                                 @Param(MESSAGE_DATA) String messageData);
+
+    List<InterfaceMessageEntity> findAllByInterfaceFile_InterfaceFileIdOrderByMessageTextAscInterfaceMessageIdAsc(
+        Long interfaceFileId);
 }
