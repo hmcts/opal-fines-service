@@ -10,8 +10,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.search.AmendmentSearchDto;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.repository.jpa.AmendmentSpecs;
@@ -46,16 +46,16 @@ public class AmendmentRepositoryService {
     }
 
     @Transactional
-    public void auditInitialiseStoredProc(Long accountId, RecordType recordType) {
-        amendmentRepository.auditInitialise(accountId, recordType.toString());
+    public void auditInitialiseStoredProc(Long accountId, AssociatedRecordType associatedRecordType) {
+        amendmentRepository.auditInitialise(accountId, associatedRecordType.toString());
     }
 
     @Transactional
-    public void auditFinaliseStoredProc(Long accountId, RecordType recordType,
+    public void auditFinaliseStoredProc(Long accountId, AssociatedRecordType associatedRecordType,
                                         Short businessUnitId, String postedBy, String postedByName,
                                         String caseRef, String functionCode) {
         amendmentRepository
-            .auditFinalise(accountId, recordType.toString(), businessUnitId, postedBy, postedByName, caseRef,
+            .auditFinalise(accountId, associatedRecordType.toString(), businessUnitId, postedBy, postedByName, caseRef,
                            functionCode);
     }
 

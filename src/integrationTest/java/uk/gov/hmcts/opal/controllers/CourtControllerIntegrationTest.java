@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -34,6 +35,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Slf4j(topic = "opal.CourtControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_courts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_courts.sql", executionPhase = AFTER_TEST_CLASS)
+@Isolated
 class CourtControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/courts";

@@ -239,14 +239,15 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
     }
 
     /**
-     * Verifies that required nullable payment terms must be included in the request.
+     * Verifies that omitted payment terms pass request validation before the missing account returns 404.
      */
-    void postEnforcementImpl_whenPaymentTermsIsOmitted_returnsBadRequest() throws Exception {
+    void postEnforcementImpl_whenPaymentTermsIsOmitted_passesValidation() throws Exception {
         ObjectNode request = validEnforcementRequest();
         request.remove("payment_terms");
 
         postEnforcementToNonExistingAccountForFieldValidation(request)
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
     }
 
     /**

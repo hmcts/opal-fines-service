@@ -36,7 +36,6 @@ class Release1bFeatureToggleAnnotationTest {
             OffenceController.class,
             PrintRequestController.class,
             ProscutorController.class,
-            ResultController.class,
             ResultsApiController.class,
             RootController.class,
             TestingSupportController.class
@@ -65,7 +64,7 @@ class Release1bFeatureToggleAnnotationTest {
             "DefendantAccountController#getDefendantAccountFixedPenalty",
             "DefendantAccountController#getDefendantAccountParty",
             "DefendantAccountController#addDefendantAccountParty",
-            "DefendantAccountController#removeEnforcementHold",
+            "DefendantAccountApiController#removeEnforcementHold",
             "DefendantAccountController#replaceDefendantAccountParty",
             "NotesController#addNote",
             "MajorCreditorApiController#getMajorCreditorAccountAtAGlance",

@@ -150,6 +150,7 @@ paths:
                   - account_type
                   - originator_type
                   - originator_name
+                  - collection_order
                   - business_unit_summary
                   - payment_state_summary
                   - party_details
@@ -210,11 +211,15 @@ paths:
                     enum:
                       - TFO
                       - FP
+                      - NEW
+                      - TFOS
                       - CASE
-                      - MAC
                   originator_name:
                     type: string
                     description: NEW - DB Mapping - defendant.accounts.originator_name
+                  collection_order:
+                    type: boolean
+                    description: DB Mapping - defendant_accounts.collection_order
                   prosecutor_case_reference:
                     type: string
                     description: DB Mapping - defendant.accounts.prosecutor_case_reference
@@ -936,6 +941,100 @@ paths:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+  /defendant-accounts/{defendantAccountId}/remove-enf-hold:
+    patch:
+      tags:
+        - Defendant Account
+      summary: Remove an enforcement hold for a given defendant account
+      operationId: removeEnforcementHold
+      security:
+        - permissions:
+            - Enter Enforcement (in the business unit supplied in Business-Unit-Id)
+      parameters:
+        - in: path
+          name: defendantAccountId
+          description: DB Mapping - defendant_accounts.defendant_account_id
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: header
+          name: Business-Unit-Id
+          description: Business unit identifier
+          required: true
+          schema:
+            type: integer
+            format: int16
+        - in: header
+          name: If-Match
+          description: Version of the defendant account. DB Mapping - defendant_accounts.version
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoveEnforcementHoldRequest'
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RemoveEnforcementHoldResponse'
+        '400':
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '409':
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '422':
+          description: Unprocessable content
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
 components:
   securitySchemes:
     bearerAuth:
@@ -950,7 +1049,6 @@ components:
       required:
         - result_id
         - enforcement_result_responses
-        - payment_terms
       properties:
         result_id:
           $ref: './CommonStrict.yaml#/components/schemas/enforcementResultId'
@@ -992,6 +1090,29 @@ components:
         version:
           type: integer
           format: bigint
+    RemoveEnforcementHoldRequest:
+      title: Remove Enforcement Hold Request
+      type: object
+      additionalProperties: false
+      required:
+        - reason
+      properties:
+        reason:
+          type: string
+          nullable: true
+    RemoveEnforcementHoldResponse:
+      title: Remove Enforcement Hold Response
+      type: object
+      additionalProperties: false
+      x-json-include: NON_NULL
+      x-versioned: true
+      x-implements:
+        - uk.gov.hmcts.opal.util.Versioned
+      required:
+        - defendant_account_id
+      properties:
+        defendant_account_id:
+          type: string
     atAGlanceResponse:
       title: Defendant Account At A Glance Response
       type: object

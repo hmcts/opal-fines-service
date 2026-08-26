@@ -12,10 +12,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.controllers.util.OpenApiContractAssertions.assertGet200JsonResponseMatchesBundledSpec;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -24,10 +26,8 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.repository.ResultRepository;
-import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -41,15 +41,10 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Slf4j(topic = "opal.ResultControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_results.sql", executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("ResultController Integration Test")
+@Isolated
 class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/results";
-    private static final String GET_RESULTS_REF_DATA_RESPONSE =
-        SchemaPaths.REFERENCE_DATA + "/getResultsRefDataResponse.json";
-
-    @MockitoSpyBean
-    private JsonSchemaValidationService jsonSchemaValidationService;
-
     @MockitoSpyBean
     private ResultRepository resultRepository;
 
@@ -227,7 +222,7 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[?(@.result_id == 'ABDC')].result_title")
                            .value(hasItems("Application made for Benefit Deductions")));
 
-        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
+        assertGet200JsonResponseMatchesBundledSpec(ToJsonString.toJsonNode(body), URL_BASE);
     }
 
     @Test
@@ -251,7 +246,6 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[?(@.result_id == 'BWTD')].result_title")
                            .value(hasItems("Bail Warrant - dated")));
 
-        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
 
     @Test
@@ -275,7 +269,6 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[1].result_id").value("DDDDDD"))
             .andExpect(jsonPath("$.refData[1].result_title").value("Bail Warrant - dated"));
 
-        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
 
     @Test
@@ -301,7 +294,6 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[0].imposition_creditor").value(nullValue()))
             .andExpect(jsonPath("$.refData[0].imposition_allocation_order").value(nullValue()));
 
-        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
 
     @Test
@@ -321,7 +313,6 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.refData[0].result_id").value("AAAAAA"));
 
-        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
 
     @Test
@@ -343,7 +334,6 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[*].result_id").value(hasItems("AAAAAA","BBBBBB")))
             .andExpect(jsonPath("$.refData[*].result_id").value(org.hamcrest.Matchers.not(hasItems("DDDDDD"))));
 
-        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
 
     @Test
@@ -363,7 +353,6 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[*].result_id").value(hasItems("AAAAAA","BBBBBB","DDDDDD")))
             .andExpect(jsonPath("$.refData[*].result_id").value(org.hamcrest.Matchers.not(hasItems("CC0000"))));
 
-        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
 
     @Test
@@ -383,7 +372,6 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[*].result_id").value(
                 org.hamcrest.Matchers.not(hasItems("DDDDDD","CC0000"))));
 
-        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
 
     @Test
@@ -403,7 +391,6 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[*].result_id").value(
                 org.hamcrest.Matchers.not(hasItems("AAAAAA","BBBBBB"))));
 
-        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
 
     @Test
@@ -421,7 +408,6 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.refData[*].result_id").value(hasItems("AAAAAA","BBBBBB","DDDDDD","CC0000")));
 
-        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
 
     @Test
@@ -439,7 +425,6 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.refData[*].result_id").value(hasItems("AAAAAA","DDDDDD")));
-        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
 
     @Test
@@ -457,7 +442,6 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.refData[*].result_id").value(hasItems("BBBBBB","CC0000")));
-        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
 
     @Test
@@ -475,7 +459,6 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.refData[*].result_id").value(hasItems("AAAAAA","BBBBBB","DDDDDD","CC0000")));
 
-        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
 
     @Test
@@ -495,7 +478,6 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[*].result_id").value(
                 org.hamcrest.Matchers.not(hasItems("DDDDDD","CC0000"))));
 
-        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
 
     @Test
@@ -515,7 +497,6 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[*].result_id").value(
                 org.hamcrest.Matchers.not(hasItems("AAAAAA","BBBBBB"))));
 
-        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
 
     @Test
@@ -533,7 +514,6 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.refData[*].result_id").value(hasItems("AAAAAA","BBBBBB","DDDDDD","CC0000")));
 
-        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
 
     @Test
@@ -553,7 +533,6 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[*].result_id").value(
                 org.hamcrest.Matchers.not(hasItems("DDDDDD","CC0000"))));
 
-        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
 
     @Test
@@ -575,7 +554,6 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.refData[0].result_id").value("AAAAAA"));
 
-        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
 
     @Test
@@ -603,7 +581,6 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
                 "BWTD"
             )));
 
-        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
 
     @Test
@@ -625,7 +602,6 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[0].result_id").value("NBWT"))
             .andExpect(jsonPath("$.refData[*].result_id").value(org.hamcrest.Matchers.not(hasItems("NAP"))));
 
-        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
 
     @Test
@@ -647,7 +623,6 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[0].result_id").value("NAP"))
             .andExpect(jsonPath("$.refData[*].result_id").value(org.hamcrest.Matchers.not(hasItems("NBWT"))));
 
-        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
 
     @Test

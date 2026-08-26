@@ -178,7 +178,6 @@ public final class OpenApiContractAssertions {
         if (components != null) {
             standalone.put("components", components);
         }
-
         return OBJECT_MAPPER.writeValueAsString(standalone);
     }
 
