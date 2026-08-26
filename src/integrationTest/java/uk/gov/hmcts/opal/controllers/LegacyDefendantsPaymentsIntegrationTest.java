@@ -1,8 +1,13 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -13,6 +18,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
@@ -28,19 +34,28 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Slf4j(topic = "opal.LegacyDefendantsPaymentsIntegrationTest")
 class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIntegrationTest {
 
+    private static final String ADD_PAYMENT_CARD_REQUEST = "addDefendantAccountPaymentCard";
+
     @Test
     @DisplayName("LEGACY: Add Payment Card Request – Happy Path [@PO-2088]")
     @JiraStory("PO-2088")
     @JiraEpic("PO-977")
     @JiraTestKey("PO-5941")
     void testAddPaymentCardRequest_Happy() throws Exception {
+        stubAddPaymentCardResponse(200, """
+            <response>
+              <defendant_account_id>901</defendant_account_id>
+              <version>4</version>
+            </response>
+            """, "\"business_unit_user_id\":\"L078JG\"");
+
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
         headers.add("If-Match", "3");
 
         ResultActions result = mockMvc.perform(
-            post("/defendant-accounts/901/payment-card-request")
+            MockMvcRequestBuilders.post("/defendant-accounts/901/payment-card-request")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -60,13 +75,15 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
     @JiraEpic("PO-977")
     @JiraTestKey("PO-5938")
     void testAddPaymentCardRequest_500() throws Exception {
+        stubAddPaymentCardResponse(500, "<error><message>Internal Server Error</message></error>");
+
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
         headers.add("If-Match", "1");
 
         ResultActions result = mockMvc.perform(
-            post("/defendant-accounts/555/payment-card-request")
+            MockMvcRequestBuilders.post("/defendant-accounts/555/payment-card-request")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -89,7 +106,7 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
         headers.add("Business-Unit-Id", "69");
         headers.add(HttpHeaders.IF_MATCH, "\"1\"");
         var response = mockMvc.perform(
-            post("/defendant-accounts/69/payment-terms")
+            MockMvcRequestBuilders.post("/defendant-accounts/69/payment-terms")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -117,7 +134,7 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
         headers.add(HttpHeaders.IF_MATCH, "\"1\"");
 
         var response = mockMvc.perform(
-            post("/defendant-accounts/500/payment-terms")
+            MockMvcRequestBuilders.post("/defendant-accounts/500/payment-terms")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -130,5 +147,24 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
             .andExpect(jsonPath("$.payment_terms.days_in_default").doesNotExist())
             .andExpect(jsonPath("$.payment_card_last_requested").doesNotExist())
             .andExpect(jsonPath("$.last_enforcement").doesNotExist());
+    }
+
+    private void stubAddPaymentCardResponse(int status, String body) {
+        stubFor(post(urlPathEqualTo("/opal"))
+            .withQueryParam("actionType", equalTo(ADD_PAYMENT_CARD_REQUEST))
+            .willReturn(aResponse()
+                .withStatus(status)
+                .withHeader("Content-Type", MediaType.APPLICATION_XML_VALUE)
+                .withBody(body)));
+    }
+
+    private void stubAddPaymentCardResponse(int status, String body, String expectedRequestBody) {
+        stubFor(post(urlPathEqualTo("/opal"))
+            .withQueryParam("actionType", equalTo(ADD_PAYMENT_CARD_REQUEST))
+            .withRequestBody(containing(expectedRequestBody))
+            .willReturn(aResponse()
+                .withStatus(status)
+                .withHeader("Content-Type", MediaType.APPLICATION_XML_VALUE)
+                .withBody(body)));
     }
 }
