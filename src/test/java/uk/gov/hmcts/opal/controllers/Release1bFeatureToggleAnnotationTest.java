@@ -36,7 +36,6 @@ class Release1bFeatureToggleAnnotationTest {
             OffenceController.class,
             PrintRequestController.class,
             ProscutorController.class,
-            ResultController.class,
             ResultsApiController.class,
             RootController.class,
             TestingSupportController.class
