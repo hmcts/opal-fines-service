@@ -34,6 +34,8 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpServerErrorException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
@@ -142,6 +144,26 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         assertEquals("78", sent.getBusinessUnitId());
         assertEquals(BigInteger.valueOf(9), sent.getVersion());
         assertEquals("L080JG", sent.getBusinessUnitUserId());
+    }
+
+    @Test
+    void addPaymentCardRequest_legacyRequestSerializesBusinessUnitUserIdAsSnakeCase() throws Exception {
+        AddPaymentCardLegacyRequest request = AddPaymentCardLegacyRequest.builder()
+            .defendantAccountId("770000004141")
+            .businessUnitId("77")
+            .businessUnitUserId("L077JG")
+            .version(new BigInteger("835509468493002959816526022013198014020000027379"))
+            .build();
+
+        String json = new ObjectMapper().writeValueAsString(request);
+        JsonNode payload = new ObjectMapper().readTree(json);
+
+        assertEquals("770000004141", payload.get("defendant_account_id").asString());
+        assertEquals("77", payload.get("business_unit_id").asString());
+        assertEquals("L077JG", payload.get("business_unit_user_id").asString());
+        assertEquals(new BigInteger("835509468493002959816526022013198014020000027379"),
+                     payload.get("version").bigIntegerValue());
+        assertNull(payload.get("businessUnitUserId"));
     }
 
     @ParameterizedTest
