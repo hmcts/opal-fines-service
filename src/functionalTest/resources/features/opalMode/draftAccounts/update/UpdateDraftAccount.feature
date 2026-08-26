@@ -21,7 +21,7 @@ Feature: Update Draft Accounts
 
     Then the request is rejected as forbidden
 
-  @JIRA-STORY:PO-745 @cleanUpData @JIRA-EPIC:PO-2220 @JIRA-TEST-KEY:PO-5685
+  @JIRA-STORY:PO-745 @JIRA-STORY:PO-10196 @cleanUpData @JIRA-EPIC:PO-2220 @JIRA-TEST-KEY:PO-5685
   Scenario: Mark a submitted draft account as rejected
     And a draft account exists with the following details
       | business_unit_id  | 73                                          |
@@ -51,6 +51,7 @@ Feature: Update Draft Accounts
       | timeline_data[1].status             | Rejected             |
       | timeline_data[1].username           | PATCH002_REVIEWER    |
       | timeline_data[1].reason_text        | Reason for rejection |
+    And the account status date matches the rejected date
 
   @JIRA-STORY:PO-745 @JIRA-STORY:PO-1858 @cleanUpData @JIRA-EPIC:PO-2220 @JIRA-TEST-KEY:PO-5686
   Scenario: Mark a submitted draft account as deleted

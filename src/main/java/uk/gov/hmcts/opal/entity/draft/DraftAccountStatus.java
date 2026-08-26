@@ -48,4 +48,8 @@ public enum DraftAccountStatus {
     public boolean isDeleted() {
         return this == DELETED;
     }
+
+    public boolean isRejected() {
+        return this == REJECTED;
+    }
 }
