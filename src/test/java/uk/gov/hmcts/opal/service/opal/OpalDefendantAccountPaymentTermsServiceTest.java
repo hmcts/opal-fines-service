@@ -137,6 +137,7 @@ class OpalDefendantAccountPaymentTermsServiceTest {
             defendantAccountId, businessUnitId, "tester", "Tester Name", ifMatch, request);
 
         // Assert
+        assertEquals(account.getVersion(), response.getVersion());
         // 1) Verify PaymentTermsService.addPaymentTerm was called
         verify(paymentTermsService).addPaymentTerm(any(PaymentTermsEntity.class));
         // 2) Verify that defendantAccountRepository.save was called to update lastEnforcement
@@ -146,7 +147,6 @@ class OpalDefendantAccountPaymentTermsServiceTest {
         assertNull(savedAccount.getLastEnforcement(), "Expected lastEnforcement to be cleared to null");
         // 3) Verify that reportEntryService.createExtendTtpReportEntry was called to create report entry
         verify(reportEntryService).createExtendTtpReportEntry(any(Long.class), any(short.class));
-        assertEquals(account.getVersion(), response.getVersion());
     }
 
     @Test
@@ -170,8 +170,6 @@ class OpalDefendantAccountPaymentTermsServiceTest {
         when(defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(defendantAccountId))
             .thenReturn(account);
 
-        PaymentTermsRequestDefendantAccount request = paymentTermsRequest();
-
         PaymentTermsEntity paymentTermsEntity = PaymentTermsEntity.builder()
             .postedBy(null)
             .postedByUsername(null)
@@ -190,6 +188,8 @@ class OpalDefendantAccountPaymentTermsServiceTest {
 
         when(paymentTermsService.addPaymentTerm(any(PaymentTermsEntity.class))).thenReturn(savedPaymentTermsEntity);
         stubGeneratedResponse();
+
+        PaymentTermsRequestDefendantAccount request = paymentTermsRequest();
 
         // Act
         defendantAccountPaymentTermsService.addPaymentTerms(
