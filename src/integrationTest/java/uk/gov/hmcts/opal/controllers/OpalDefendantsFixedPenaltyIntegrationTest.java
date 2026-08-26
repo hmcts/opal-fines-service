@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.controllers.util.OpenApiContractAssertions.assertGet200JsonResponseMatchesBundledSpec;
 import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectEntityNotFound;
 
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +49,8 @@ class OpalDefendantsFixedPenaltyIntegrationTest extends AbstractOpalDefendantsIn
             .andExpect(jsonPath("$.vehicle_fixed_penalty_details.notice_number").value("PN98765"))
             .andExpect(jsonPath("$.vehicle_fixed_penalty_details.date_notice_issued").exists());
 
-        jsonSchemaValidationService.validateOrError(body, DEFENDANT_FIXED_PENALTY_RESPONSE_SCHEMA);
+        assertGet200JsonResponseMatchesBundledSpec(ToJsonString.toJsonNode(body),
+            "/defendant-accounts/{defendantAccountId}/fixed-penalty");
     }
 
     @Test
