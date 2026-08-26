@@ -176,7 +176,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 .value("LNAME"))
             .andExpect(jsonPath("$.account.originator_type").value("NEW"))
             .andExpect(jsonPath("$.timeline_data[0].username").value("L078JG"))
-            .andExpect(jsonPath("$.timeline_data[0].status").value("Submitted"))
+            .andExpect(jsonPath("$.timeline_data[0].status").value("Created"))
             .andExpect(jsonPath("$.timeline_data[0].status_date").value(TIMELINE_STATUS_DATE.toString()))
             .andExpect(jsonPath("$.timeline_data[0].reason_text").doesNotExist())
         ;
