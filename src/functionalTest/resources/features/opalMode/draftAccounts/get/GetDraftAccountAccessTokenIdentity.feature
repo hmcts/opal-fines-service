@@ -39,7 +39,7 @@ Feature: Draft Account Access Token Identity
       | account_snapshot.account_type       | Fine                |
       | account_snapshot.submitted_by       | L073JG              |
       | account_snapshot.business_unit_name | West London         |
-      | timeline_data[0].status             | Submitted           |
+      | timeline_data[0].status             | Created             |
       | timeline_data[0].username           | L073JG              |
       | timeline_data[1].status             | Deleted             |
       | timeline_data[1].username           | L072JG              |
