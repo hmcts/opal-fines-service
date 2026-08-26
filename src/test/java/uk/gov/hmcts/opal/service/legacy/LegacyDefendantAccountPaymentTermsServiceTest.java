@@ -40,7 +40,6 @@ import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
-import uk.gov.hmcts.opal.dto.DefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
@@ -51,6 +50,7 @@ import uk.gov.hmcts.opal.dto.legacy.AddPaymentTermsLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
+import uk.gov.hmcts.opal.generated.model.PaymentTermsResponseDefendantAccount;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 
 @ExtendWith(MockitoExtension.class)
@@ -431,14 +431,14 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
     }
 
     private static void assertGetDefendantAccountPaymentTermsResponse(
-        DefendantAccountPaymentTermsResponse actualResponse, AddPaymentTermsLegacyResponse legacyResponse) {
+        PaymentTermsResponseDefendantAccount actualResponse, AddPaymentTermsLegacyResponse legacyResponse) {
 
         assertNotNull(actualResponse);
         assertThat(actualResponse.getVersion()).isEqualTo(legacyResponse.getVersion());
-        assertNotNull(actualResponse.getPayload().getPaymentTerms().orElse(null));
-        assertThat(actualResponse.getPayload().getPaymentCardLastRequested().orElse(null))
+        assertNotNull(actualResponse.getPaymentTerms().orElse(null));
+        assertThat(actualResponse.getPaymentCardLastRequested().orElse(null))
             .isEqualTo(legacyResponse.getPaymentCardLastRequested());
-        assertThat(actualResponse.getPayload().getLastEnforcement().orElse(null))
+        assertThat(actualResponse.getLastEnforcement().orElse(null))
             .isEqualTo(legacyResponse.getLastEnforcement());
     }
 

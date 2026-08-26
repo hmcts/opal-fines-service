@@ -29,6 +29,7 @@ import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PaymentTermsResponseDefendantAccount;
 import uk.gov.hmcts.opal.mapper.request.PaymentTermsMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
@@ -129,10 +130,11 @@ class OpalDefendantAccountPaymentTermsServiceTest {
 
         // Request DTO (minimal)
         PaymentTermsRequestDefendantAccount request = paymentTermsRequest();
+        stubGeneratedResponse();
 
         // Act
-        defendantAccountPaymentTermsService.addPaymentTerms(defendantAccountId, businessUnitId, "tester", "Tester Name",
-            ifMatch, request);
+        PaymentTermsResponseDefendantAccount response = defendantAccountPaymentTermsService.addPaymentTerms(
+            defendantAccountId, businessUnitId, "tester", "Tester Name", ifMatch, request);
 
         // Assert
         // 1) Verify PaymentTermsService.addPaymentTerm was called
@@ -144,6 +146,7 @@ class OpalDefendantAccountPaymentTermsServiceTest {
         assertNull(savedAccount.getLastEnforcement(), "Expected lastEnforcement to be cleared to null");
         // 3) Verify that reportEntryService.createExtendTtpReportEntry was called to create report entry
         verify(reportEntryService).createExtendTtpReportEntry(any(Long.class), any(short.class));
+        assertEquals(account.getVersion(), response.getVersion());
     }
 
     @Test
@@ -186,6 +189,7 @@ class OpalDefendantAccountPaymentTermsServiceTest {
             .build();
 
         when(paymentTermsService.addPaymentTerm(any(PaymentTermsEntity.class))).thenReturn(savedPaymentTermsEntity);
+        stubGeneratedResponse();
 
         // Act
         defendantAccountPaymentTermsService.addPaymentTerms(
@@ -237,6 +241,7 @@ class OpalDefendantAccountPaymentTermsServiceTest {
         when(paymentTermsService.addPaymentTerm(any(PaymentTermsEntity.class))).thenReturn(savedPaymentTermsEntity);
 
         PaymentTermsRequestDefendantAccount request = paymentTermsRequest();
+        stubGeneratedResponse();
 
         defendantAccountPaymentTermsService.addPaymentTermsPreservingLastEnforcement(
             defendantAccountId,
@@ -291,5 +296,10 @@ class OpalDefendantAccountPaymentTermsServiceTest {
             .requestPaymentCard(false)
             .generatePaymentTermsChangeLetter(false)
             .build();
+    }
+
+    private void stubGeneratedResponse() {
+        when(paymentTermsMapper.toGeneratedResponse(any(PaymentTermsEntity.class), any(DefendantAccountEntity.class)))
+            .thenReturn(new PaymentTermsResponseDefendantAccount());
     }
 }

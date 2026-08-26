@@ -10,7 +10,6 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler.PaymentCardRequestAlreadyExistsException;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
-import uk.gov.hmcts.opal.dto.DefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
@@ -21,6 +20,7 @@ import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PaymentTermsResponseDefendantAccount;
 import uk.gov.hmcts.opal.mapper.request.PaymentTermsMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
@@ -113,7 +113,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
 
     @Override
     @Transactional
-    public DefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
+    public PaymentTermsResponseDefendantAccount addPaymentTerms(Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
         String postedByName,
@@ -131,7 +131,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
     }
 
     @Transactional
-    public DefendantAccountPaymentTermsResponse addPaymentTermsPreservingLastEnforcement(Long defendantAccountId,
+    public PaymentTermsResponseDefendantAccount addPaymentTermsPreservingLastEnforcement(Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
         String postedByName,
@@ -148,7 +148,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
         );
     }
 
-    private DefendantAccountPaymentTermsResponse addPaymentTermsInternal(Long defendantAccountId,
+    private PaymentTermsResponseDefendantAccount addPaymentTermsInternal(Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
         String postedByName,
@@ -238,10 +238,10 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
             "ACCOUNT_ENQUIRY"
         );
 
-        return DefendantAccountPaymentTermsResponse.builder()
-            .version(defAccount.getVersion())
-            .payload(paymentTermsMapper.toGeneratedResponse(savedPaymentTerms, defAccount))
-            .build();
+        PaymentTermsResponseDefendantAccount response = paymentTermsMapper.toGeneratedResponse(
+            savedPaymentTerms, defAccount);
+        response.setVersion(defAccount.getVersion());
+        return response;
     }
 
     /**

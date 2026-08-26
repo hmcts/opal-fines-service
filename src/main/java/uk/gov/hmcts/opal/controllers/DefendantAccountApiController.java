@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
-import uk.gov.hmcts.opal.dto.DefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
@@ -97,10 +96,10 @@ public class DefendantAccountApiController implements DefendantAccountApi {
         PaymentTermsRequestDefendantAccount paymentTermsRequestDefendantAccount,
         @Nullable String ifMatch) {
         log.debug(":POST: :addPaymentTerms: for defendant id: {}", defendantAccountId);
-        DefendantAccountPaymentTermsResponse response = defendantAccountPaymentTermsService.addPaymentTerms(
+        PaymentTermsResponseDefendantAccount response = defendantAccountPaymentTermsService.addPaymentTerms(
             defendantAccountId, businessUnitId, ifMatch, paymentTermsRequestDefendantAccount);
 
-        return buildResponse(response, response.getPayload());
+        return buildResponse(response, response);
     }
 
     @Override

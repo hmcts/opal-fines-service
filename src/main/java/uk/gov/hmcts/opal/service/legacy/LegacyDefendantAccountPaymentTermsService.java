@@ -10,7 +10,6 @@ import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
-import uk.gov.hmcts.opal.dto.DefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
@@ -71,7 +70,7 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
     }
 
     @Override
-    public DefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
+    public PaymentTermsResponseDefendantAccount addPaymentTerms(Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
         String postedByName,
@@ -200,16 +199,14 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
         };
     }
 
-    private static DefendantAccountPaymentTermsResponse createGetDefendantAccountPaymentTermsResponse(
+    private static PaymentTermsResponseDefendantAccount createGetDefendantAccountPaymentTermsResponse(
         AddPaymentTermsLegacyResponse addPaymentTermsResponse) {
 
-        return DefendantAccountPaymentTermsResponse.builder()
+        return PaymentTermsResponseDefendantAccount.builder()
             .version(Optional.ofNullable(addPaymentTermsResponse.getVersion()).orElse(BigInteger.ONE))
-            .payload(PaymentTermsResponseDefendantAccount.builder()
-                .paymentTerms(toGeneratedPaymentTerms(addPaymentTermsResponse.getPaymentTerms()))
-                .paymentCardLastRequested(JsonNullable.of(addPaymentTermsResponse.getPaymentCardLastRequested()))
-                .lastEnforcement(JsonNullable.of(addPaymentTermsResponse.getLastEnforcement()))
-                .build())
+            .paymentTerms(toGeneratedPaymentTerms(addPaymentTermsResponse.getPaymentTerms()))
+            .paymentCardLastRequested(JsonNullable.of(addPaymentTermsResponse.getPaymentCardLastRequested()))
+            .lastEnforcement(JsonNullable.of(addPaymentTermsResponse.getLastEnforcement()))
             .build();
     }
 

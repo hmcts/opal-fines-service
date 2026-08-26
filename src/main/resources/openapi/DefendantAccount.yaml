@@ -977,7 +977,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/paymentTermsResponse'
+                $ref: '#/components/schemas/PaymentTermsResponse'
         '400':
           description: Bad request
           content:
@@ -1237,10 +1237,13 @@ components:
           type:
             - boolean
             - 'null'
-    paymentTermsResponse:
+    PaymentTermsResponse:
       title: Get Defendant Account Payment Terms Response
       type: object
       additionalProperties: false
+      x-versioned: true
+      x-implements:
+        - uk.gov.hmcts.opal.util.Versioned
       required:
         - payment_terms
         - payment_card_last_requested

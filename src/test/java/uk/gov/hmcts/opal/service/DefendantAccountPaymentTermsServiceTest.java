@@ -31,9 +31,9 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
-import uk.gov.hmcts.opal.dto.DefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PaymentTermsResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementPostedDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsDefendantAccount;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
@@ -160,7 +160,7 @@ class DefendantAccountPaymentTermsServiceTest {
             .generatePaymentTermsChangeLetter(false)
             .build();
 
-        DefendantAccountPaymentTermsResponse proxyResponse = new DefendantAccountPaymentTermsResponse();
+        PaymentTermsResponseDefendantAccount proxyResponse = new PaymentTermsResponseDefendantAccount();
         when(defendantAccountPaymentTermsServiceProxy.addPaymentTerms(eq(defendantAccountId),
             eq(businessUnitId),
             eq("USER01"),
@@ -169,7 +169,7 @@ class DefendantAccountPaymentTermsServiceTest {
             any(PaymentTermsRequestDefendantAccount.class)))
             .thenReturn(proxyResponse);
 
-        DefendantAccountPaymentTermsResponse result = defendantAccountPaymentTermsService.addPaymentTerms(
+        PaymentTermsResponseDefendantAccount result = defendantAccountPaymentTermsService.addPaymentTerms(
             defendantAccountId, businessUnitId, ifMatch, request);
 
         assertSame(proxyResponse, result);

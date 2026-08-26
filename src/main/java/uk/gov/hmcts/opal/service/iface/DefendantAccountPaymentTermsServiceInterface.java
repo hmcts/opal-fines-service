@@ -1,9 +1,9 @@
 package uk.gov.hmcts.opal.service.iface;
 
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
-import uk.gov.hmcts.opal.dto.DefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PaymentTermsResponseDefendantAccount;
 
 public interface DefendantAccountPaymentTermsServiceInterface {
 
@@ -14,7 +14,7 @@ public interface DefendantAccountPaymentTermsServiceInterface {
         String businessUnitUserId,
         String postedByName, String ifMatch);
 
-    DefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
+    PaymentTermsResponseDefendantAccount addPaymentTerms(Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
         String postedByName,
