@@ -28,7 +28,9 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
@@ -225,6 +227,27 @@ class GlobalExceptionHandlerTest {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("Bad Request", response.getBody().getTitle());
         assertEquals("The request does not conform to the required JSON schema", response.getBody().getDetail());
+    }
+
+    @Test
+    void handleMethodArgumentNotValid_returnsSchemaValidationProblem() throws NoSuchMethodException {
+        Method method = TestRequestValidationClass.class.getMethod("testMethod", String.class);
+        MethodArgumentNotValidException exception = new MethodArgumentNotValidException(
+            new MethodParameter(method, 0), new BeanPropertyBindingResult(new Object(), "request"));
+
+        ResponseEntity<ProblemDetail> response = globalExceptionHandler
+            .handleMethodArgumentNotValidException(exception);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(MediaType.APPLICATION_PROBLEM_JSON, response.getHeaders().getContentType());
+        assertEquals("Bad Request", response.getBody().getTitle());
+        assertEquals("The request does not conform to the required JSON schema", response.getBody().getDetail());
+        assertEquals(URI.create("https://hmcts.gov.uk/problems/json-schema-validation"), response.getBody().getType());
+    }
+
+    static class TestRequestValidationClass {
+        public void testMethod(String request) {
+        }
     }
 
     @Test
