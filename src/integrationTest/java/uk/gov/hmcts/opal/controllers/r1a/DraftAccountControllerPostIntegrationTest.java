@@ -23,7 +23,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
@@ -152,7 +154,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         + "[@PO-973, @PO-591]")
     @JiraStory("PO-973")
     @JiraStory("PO-591")
-    @JiraEpic("PO-2219")
+    @JiraEpic("PO-8248")
     @JiraTestKey("PO-5863")
     void testPostDraftAccount_permission() throws Exception {
 
@@ -186,7 +188,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @Test
     @DisplayName("Should ignore blank submitted_by_name")
     @JiraStory("PO-691")
-    @JiraEpic("PO-2219")
+    @JiraEpic("PO-8248")
     @JiraTestKey("PO-5853")
     void shouldIgnoreBlankSubmittedByName() throws Exception {
         String request = validCreateRequestBody()
@@ -202,7 +204,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @Test
     @DisplayName("Should ignore blank submitted_by")
     @JiraStory("PO-691")
-    @JiraEpic("PO-2219")
+    @JiraEpic("PO-8248")
     @JiraTestKey("PO-5864")
     void shouldIgnoreBlankSubmittedBy() throws Exception {
         String request = validCreateRequestBody()
@@ -397,7 +399,70 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/invalid-reference-validation"))
             .andExpect(jsonPath("$.detail").value(containsString("$.offences[0].impositions[0].result_id")))
             .andExpect(jsonPath("$.detail").value(containsString("result id COLLO is not an imposition result")));
+    }
 
+    @Test
+    @DisplayName("Create draft account - Should return 400 when payment term enforcement result is missing")
+    @JiraStory("PO-5752")
+    @JiraEpic("PO-8248")
+    @Sql(scripts = "classpath:db/deleteData/delete_from_results_collo.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Transactional
+    void shouldReturn400WhenPaymentTermEnforcementResultIsMissing() throws Exception {
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(withPaymentTermsEnforcement(validCreateRequestBody(), "COLLO")))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedPaymentTermsEnforcementValidationErrorMessage("COLLO does not exist"),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("Create draft account - Should return 400 when payment term enforcement result is not an enforcement")
+    @JiraStory("PO-5752")
+    @JiraEpic("PO-8248")
+    @Sql(scripts = "classpath:db/insertData/insert_into_results_collo_non_enforcement.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Transactional
+    void shouldReturn400WhenPaymentTermEnforcementResultIsNotAnEnforcement() throws Exception {
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(withPaymentTermsEnforcement(validCreateRequestBody(), "COLLO")))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedPaymentTermsEnforcementValidationErrorMessage("COLLO is not an enforcement result"),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("Create draft account - Should return 400 when payment term enforcement result is inactive")
+    @JiraStory("PO-5752")
+    @JiraEpic("PO-8248")
+    @Sql(scripts = "classpath:db/insertData/insert_into_results_collo_inactive.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Transactional
+    void shouldReturn400WhenPaymentTermEnforcementResultIsInactive() throws Exception {
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(withPaymentTermsEnforcement(validCreateRequestBody(), "COLLO")))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedPaymentTermsEnforcementValidationErrorMessage("COLLO is not an active result"),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+>>>>>>> 73904a486 (PO-5752 Add integration coverage for invalid draft enforcement results)
     }
 
     @Test
@@ -798,6 +863,13 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
              - $.offences[0].impositions[0].result_id: result id NOT-A-RESULT does not exist
              - $.offences[0].impositions[0].major_creditor_id: major creditor id 999996 does not exist
             """.stripIndent().stripTrailing();
+    }
+
+    private static String expectedPaymentTermsEnforcementValidationErrorMessage(String resultError) {
+        return """
+            Draft account reference validation failed with 1 error(s):
+             - $.payment_terms.enforcements[0].result_id: result id %s
+            """.formatted(resultError).stripIndent().stripTrailing();
     }
 
     private static String invalidCreateRequestBody() {
