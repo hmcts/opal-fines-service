@@ -19,7 +19,6 @@ import java.util.stream.StreamSupport;
 import org.openapitools.jackson.nullable.JsonNullable;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
@@ -36,7 +35,6 @@ import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverrideResult;
 import uk.gov.hmcts.opal.dto.common.EnforcementStatusSummary;
 import uk.gov.hmcts.opal.dto.common.Enforcer;
-import uk.gov.hmcts.opal.dto.common.FixedPenaltyTicketDetails;
 import uk.gov.hmcts.opal.dto.common.IndividualAlias;
 import uk.gov.hmcts.opal.dto.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
@@ -52,7 +50,6 @@ import uk.gov.hmcts.opal.dto.common.PaymentTermsSummary;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails.VehicleDetailsBuilder;
-import uk.gov.hmcts.opal.dto.common.VehicleFixedPenaltyDetails;
 import uk.gov.hmcts.opal.dto.search.AliasDto;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.AliasEntity;
@@ -65,7 +62,6 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
-import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.Language;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
@@ -112,7 +108,6 @@ import uk.gov.hmcts.opal.generated.model.PaymentTermsSummaryCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsTypeCommonStrict;
 import uk.gov.hmcts.opal.generated.model.ResultReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.ResultResponsesCommon;
-import uk.gov.hmcts.opal.util.DateTimeUtils;
 
 public class OpalDefendantAccountBuilders {
 
@@ -1433,40 +1428,6 @@ public class OpalDefendantAccountBuilders {
         party.setMobileTelephoneNumber(c.getMobileTelephoneNumber());
         party.setHomeTelephoneNumber(c.getHomeTelephoneNumber());
         party.setWorkTelephoneNumber(c.getWorkTelephoneNumber());
-    }
-
-    static GetDefendantAccountFixedPenaltyResponse toFixedPenaltyResponse(
-        DefendantAccountEntity account, FixedPenaltyOffenceEntity offence) {
-
-        boolean isVehicle =
-            offence.getVehicleRegistration() != null
-                && !"NV".equalsIgnoreCase(offence.getVehicleRegistration());
-
-        FixedPenaltyTicketDetails ticketDetails = FixedPenaltyTicketDetails.builder()
-            .issuingAuthority(account.getOriginatorName())
-            .ticketNumber(offence.getTicketNumber())
-            .timeOfOffence(
-                offence.getTimeOfOffence() != null
-                    ? offence.getTimeOfOffence().toString()
-                    : null
-            )
-            .placeOfOffence(offence.getOffenceLocation())
-            .build();
-
-        VehicleFixedPenaltyDetails vehicleDetails = isVehicle
-            ? VehicleFixedPenaltyDetails.builder()
-            .vehicleRegistrationNumber(offence.getVehicleRegistration())
-            .vehicleDriversLicense(offence.getLicenceNumber())
-            .noticeNumber(offence.getNoticeNumber())
-            .dateNoticeIssued(DateTimeUtils.toString(offence.getIssuedDate()))
-            .build()
-            : null;
-        return GetDefendantAccountFixedPenaltyResponse.builder()
-            .vehicleFixedPenaltyFlag(isVehicle)
-            .fixedPenaltyTicketDetails(ticketDetails)
-            .vehicleFixedPenaltyDetails(vehicleDetails)
-            .version(account.getVersion())
-            .build();
     }
 
     record ParsedAlias(
