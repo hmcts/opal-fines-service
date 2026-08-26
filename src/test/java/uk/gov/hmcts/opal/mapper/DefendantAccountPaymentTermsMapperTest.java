@@ -53,13 +53,12 @@ class DefendantAccountPaymentTermsMapperTest {
         assertThat(defendantAccountPaymentTermsResponse).isNotNull().extracting(
                 DefendantAccountPaymentTermsResponse::getPaymentCardLastRequested,
                 DefendantAccountPaymentTermsResponse::getLastEnforcement,
-                DefendantAccountPaymentTermsResponse::getVersion)
-            .containsExactly(defendantAccount.getPaymentCardRequestedDate(),
-                defendantAccount.getLastEnforcement(), 5L);
+                DefendantAccountPaymentTermsResponse::getVersion
+        ).containsExactly(defendantAccount.getPaymentCardRequestedDate(),
+            defendantAccount.getLastEnforcement(), 5L);
 
         assertThat(defendantAccountPaymentTermsResponse.getPaymentTerms())
-            .isNotNull()
-            .satisfies(paymentTermsCommonStrict -> {
+            .isNotNull().satisfies(paymentTermsCommonStrict -> {
                 assertThat(paymentTermsCommonStrict.getDaysInDefault().get()).isEqualTo(10);
                 assertThat(paymentTermsCommonStrict.getDateDaysInDefaultImposed().get())
                     .isEqualTo(LocalDate.of(2026, 2, 23));
