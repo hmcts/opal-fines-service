@@ -23,12 +23,16 @@ public class LegacyNotesService implements NotesServiceInterface {
 
     @Override
     public String addNote(AddNoteRequest request, String ifMatch, UserState user, AccountNoteContext target) {
+        return addNote(request, ifMatch, user, target.businessUnitId());
+    }
+
+    public String addNote(AddNoteRequest request, String ifMatch, UserState user, Short businessUnitId) {
         log.info(":LegacyAddNote");
 
         GatewayService.Response<LegacyAddNoteResponse> response = gatewayService.postToGateway(
             ADD_NOTE,
             LegacyAddNoteResponse.class,
-            createRequest(request, ifMatch, user, target.businessUnitId()),
+            createRequest(request, ifMatch, user, businessUnitId),
             null
         );
 
