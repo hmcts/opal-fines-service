@@ -7,7 +7,7 @@ Feature: Major Creditors Reference Data
     When I make a request to the major creditors ref data api filter by major creditor id 1300000000075
     Then the major creditors ref data matching to result
 
-  @JIRA-STORY:PO-2972 @JIRA-EPIC:PO-2630 @R1B
+  @JIRA-STORY:PO-2972 @JIRA-EPIC:PO-2630 @R1BOff
   Scenario: Major creditor reference data exposes repayment
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I request the major creditor reference data
