@@ -13,6 +13,8 @@ public class LegacyDefendantAccountFixedPenaltyService implements DefendantAccou
 
     @Override
     public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(Long defendantAccountId) {
+        log.debug(":getFixedPenalty: id: {}", defendantAccountId);
+
         throw new UnsupportedOperationException("Legacy GetDefendantAccountFixedPenalty not implemented yet");
     }
 }
