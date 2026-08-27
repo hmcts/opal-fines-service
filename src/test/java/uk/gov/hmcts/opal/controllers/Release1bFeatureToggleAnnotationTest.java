@@ -31,7 +31,6 @@ class Release1bFeatureToggleAnnotationTest {
             MajorCreditorApiController.class,
             MajorCreditorController.class,
             MinorCreditorApiController.class,
-            MinorCreditorController.class,
             NotesController.class,
             OffenceController.class,
             PrintRequestController.class,
