@@ -16,7 +16,7 @@ import uk.gov.hmcts.contino.GradleBuilder
 import java.time.DayOfWeek
 import java.time.ZonedDateTime
 
-@Library("Infrastructure@2.4.4")
+@Library("Infrastructure@2.5.3")
 
 def type = "java"
 def product = "opal"
