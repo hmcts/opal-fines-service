@@ -1,11 +1,13 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -175,7 +177,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 .value("LNAME"))
             .andExpect(jsonPath("$.account.originator_type").value("NEW"))
             .andExpect(jsonPath("$.timeline_data[0].username").value("L078JG"))
-            .andExpect(jsonPath("$.timeline_data[0].status").value("Submitted"))
+            .andExpect(jsonPath("$.timeline_data[0].status").value("Created"))
             .andExpect(jsonPath("$.timeline_data[0].status_date").value(TIMELINE_STATUS_DATE.toString()))
             .andExpect(jsonPath("$.timeline_data[0].reason_text").doesNotExist())
         ;
@@ -377,6 +379,92 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         assertEquals(before.getValidatedByName(), after.getValidatedByName());
         assertEquals(before.getAccountSnapshot(), after.getAccountSnapshot());
         assertEquals(before.getTimelineData(), after.getTimelineData());
+    }
+
+    @Test
+    @DisplayName("Create draft account - Should return 400 when imposition result is not an imposition")
+    @JiraStory("PO-5747")
+    @JiraEpic("PO-5741")
+    void shouldReturn400WhenImpositionResultIsNotAnImposition() throws Exception {
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(nonImpositionResultCreateRequestBody()))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Bad Request"))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/invalid-reference-validation"))
+            .andExpect(jsonPath("$.detail").value(containsString("$.offences[0].impositions[0].result_id")))
+            .andExpect(jsonPath("$.detail").value(containsString("result id COLLO is not an imposition result")));
+
+    }
+
+    @Test
+    @DisplayName("PO-5746: Create draft account - Should return 400 for an invalid offence ID")
+    @JiraStory("PO-5746")
+    @JiraEpic("PO-2219")
+    void shouldReturn400WhenOffenceIdIsInvalid() throws Exception {
+        String request = validCreateRequestBody()
+            .replace("\"offence_id\": 35014", "\"offence_id\": 999998");
+
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                """
+                Draft account reference validation failed with 1 error(s):
+                 - account.offences[0].offence_id: offence id 999998 does not exist
+                """.stripIndent().stripTrailing(),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("Post draft account - Should Return 201 For Offences Belonging To The Same Business Unit")
+    @JiraStory("PO-5746")
+    @JiraEpic("PO-8248")
+    void testPostDraftAccount_accepted_offence_for_business_unit() throws Exception {
+        String request = validCreateRequestBody();
+
+        ResultActions result = mockMvc.perform(post(URL_BASE)
+                .header("authorization", userStateStub.getBearerToken())
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request)).andDo(print());
+
+        result.andExpect(status().isCreated()).andExpect(content()
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.draft_account_id").value(204))
+            .andExpect(jsonPath("$.business_unit_id").value(78))
+            .andExpect(jsonPath("$.account.offences[0].offence_id").value(35014))
+            .andExpect(jsonPath("$.account.offences[0].business_unit_id").value(78));
+    }
+
+    @Test
+    @DisplayName("Post draft account - Should Return 400 For Offences Belonging To Another Business Unit")
+    @JiraStory("PO-5746")
+    @JiraEpic("PO-8248")
+    void testPostDraftAccount_reject_offence_for_another_business_unit() throws Exception {
+        String request = validCreateRequestBody()
+            .replace("\"business_unit_id\": 78", "\"business_unit_id\": 65")
+            .replace("\"offence_id\": 35014", "\"offence_id\": 999999");
+
+        ResultActions result = mockMvc.perform(post(URL_BASE)
+            .header("authorization", userStateStub.getBearerToken())
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(request));
+
+        result.andExpect(status().isBadRequest()).andExpect(expectBadRequestWithoutStatus("""
+                Draft account reference validation failed with 1 error(s):
+                 - account.offences[0].offence_id: offence id 999999 does not exist
+                """.stripIndent().stripTrailing(),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"));
     }
 
     @Test
@@ -661,7 +749,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                         "amount_paid": 200.00,
                         "major_creditor_id": null
                       }
-                    ]
+                    ],
+                    "business_unit_id": "78"
                   }
                 ],
                 "payment_terms": {
@@ -686,6 +775,11 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             }""";
     }
 
+    private static String nonImpositionResultCreateRequestBody() {
+        return validCreateRequestBody()
+            .replace("\"result_id\": \"FO\"", "\"result_id\": \"COLLO\"");
+    }
+
     private static String invalidReferenceCreateRequestBody() {
         return validCreateRequestBody()
             .replace("\"enforcement_court_id\": 260000000048", "\"enforcement_court_id\": 999999")
@@ -699,7 +793,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         return """
             Draft account reference validation failed with 5 error(s):
              - $.enforcement_court_id: court id 999999 does not exist
-             - $.offences[0].offence_id: offence id 999998 does not exist
+             - account.offences[0].offence_id: offence id 999998 does not exist
              - $.offences[0].imposing_court_id: court id 999997 does not exist
              - $.offences[0].impositions[0].result_id: result id NOT-A-RESULT does not exist
              - $.offences[0].impositions[0].major_creditor_id: major creditor id 999996 does not exist

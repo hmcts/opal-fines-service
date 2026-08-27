@@ -11,7 +11,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -22,18 +21,14 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
-import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
@@ -45,19 +40,16 @@ import uk.gov.hmcts.opal.service.DefendantAccountService;
 public class DefendantAccountController {
 
     private final DefendantAccountService defendantAccountService;
-    private final DefendantAccountFixedPenaltyService defendantAccountFixedPenaltyService;
     private final DefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
     private final DefendantAccountEnforcementService defendantAccountEnforcementService;
     private final DefendantAccountPartyService defendantAccountPartyService;
 
     public DefendantAccountController(DefendantAccountService defendantAccountService,
-        DefendantAccountFixedPenaltyService defendantAccountFixedPenaltyService,
         DefendantAccountPaymentTermsService defendantAccountPaymentTermsService,
         DefendantAccountEnforcementService defendantAccountEnforcementService,
         DefendantAccountPartyService defendantAccountPartyService) {
         this.defendantAccountService = defendantAccountService;
         this.defendantAccountPaymentTermsService = defendantAccountPaymentTermsService;
-        this.defendantAccountFixedPenaltyService = defendantAccountFixedPenaltyService;
         this.defendantAccountEnforcementService = defendantAccountEnforcementService;
         this.defendantAccountPartyService = defendantAccountPartyService;
     }
@@ -109,18 +101,6 @@ public class DefendantAccountController {
             defendantAccountPaymentTermsService.getPaymentTerms(defendantAccountId));
     }
 
-    @GetMapping("/{defendantAccountId}/fixed-penalty")
-    @Operation(summary = "Retrieve Fixed Penalty Offence details for a given Defendant Account")
-    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<GetDefendantAccountFixedPenaltyResponse> getDefendantAccountFixedPenalty(
-        @PathVariable Long defendantAccountId) {
-        log.debug(":GET:getDefendantAccountFixedPenalty: for defendantAccountId={}", defendantAccountId);
-
-        GetDefendantAccountFixedPenaltyResponse response =
-            defendantAccountFixedPenaltyService.getDefendantAccountFixedPenalty(defendantAccountId);
-
-        return buildResponse(response);
-    }
 
     @PostMapping(value = "/{defendantAccountId}/defendant-account-parties")
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
@@ -182,24 +162,4 @@ public class DefendantAccountController {
                 defendantAccountPartyId, businessUnitId, ifMatch, request));
     }
 
-    @PatchMapping(value = "/{defendantAccountId}/remove-enf-hold", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Remove an enforcement hold for a given defendant account")
-    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<RemoveDefendantAccountEnforcementHoldResponse> removeEnforcementHold(
-        @PathVariable Long defendantAccountId,
-        @RequestHeader("Business-Unit-Id") Short businessUnitId,
-        @RequestHeader(value = "If-Match", required = false) String ifMatch,
-        @RequestBody RemoveDefendantAccountEnforcementHoldRequest request
-    ) {
-        log.debug(":PATCH:removeEnforcementHold: for defendantAccountId={}", defendantAccountId);
-
-        return buildResponse(
-            defendantAccountEnforcementService.removeEnforcementHold(
-                defendantAccountId,
-                businessUnitId,
-                ifMatch,
-                request
-            )
-        );
-    }
 }
