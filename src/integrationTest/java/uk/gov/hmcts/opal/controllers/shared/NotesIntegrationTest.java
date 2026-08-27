@@ -24,6 +24,10 @@ import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.generated.model.ActivityNoteNotes;
+import uk.gov.hmcts.opal.generated.model.ActivityNoteNotes.RecordTypeEnum;
+import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
+import uk.gov.hmcts.opal.generated.model.NoteNotes;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 abstract class NotesIntegrationTest extends AbstractIntegrationTest {
@@ -40,17 +44,20 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-1566")
     void postNotesImpl(Logger log) throws Exception {
         // Arrange
-        Note note = new Note();
-        note.setNoteText("test");
-        note.setRecordId("77");
-        note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
-        note.setNoteType("AA");
+        AddNoteRequestNotes request = AddNoteRequestNotes.builder()
+            .activityNote(ActivityNoteNotes.builder()
+                .noteText("test")
+                .recordId("77")
+                .recordType(RecordTypeEnum.DEFENDANT_ACCOUNTS)
+                .noteType(ActivityNoteNotes.NoteTypeEnum.AA)
+                .build())
+            .build();
 
-        AddNoteRequest request = new AddNoteRequest();
-        request.setActivityNote(note);
 
         final String payload = objectMapper.writeValueAsString(request);
         log.info(":testPostNotes payload: {}", payload);
+
+        log.info(":  alt request payload: {}", request.toJsonString());
 
         // Read the current version immediately before use
         final Integer versionBefore = defendantAccountVersionFor(77L);

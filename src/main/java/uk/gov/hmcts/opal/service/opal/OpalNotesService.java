@@ -10,10 +10,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.dto.AddNoteRequest;
-import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.NoteType;
+import uk.gov.hmcts.opal.generated.model.ActivityNoteNotes;
+import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
+import uk.gov.hmcts.opal.generated.model.NoteNotes;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
@@ -33,16 +34,16 @@ public class OpalNotesService implements NotesServiceInterface {
 
     @Override
     @Transactional
-    public String addNote(AddNoteRequest req, String ifMatch, UserState user, AccountNoteContext target) {
+    public String addNote(AddNoteRequestNotes req, String ifMatch, UserState user, AccountNoteContext target) {
         log.info(":OpalAddNote");
 
         getAccountAndVerifyVersion(target, ifMatch);
 
-        Note requestNote = req.getActivityNote();
+        ActivityNoteNotes requestNote = req.getActivityNote();
 
         NoteEntity note = new NoteEntity();
         note.setNoteText(requestNote.getNoteText());
-        note.setNoteType(NoteType.valueOf(requestNote.getNoteType()));
+        note.setNoteType(NoteType.valueOf(requestNote.getNoteType().getValue()));
         note.setAssociatedRecordId(requestNote.getRecordId());
         note.setAssociatedRecordType(target.associatedRecordType());
         note.setBusinessUnitUserId(target.businessUnitId().toString());
