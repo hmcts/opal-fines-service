@@ -178,7 +178,7 @@ public class DraftAccountService {
             applySubmittedBy(dto, userState, unitUser);
 
             jsonSchemaValidationService.validateOrError(dto.toJson(), ADD_DRAFT_ACCOUNT_REQUEST_JSON);
-            referenceValidationService.validateReferences(dto.getAccount());
+            referenceValidationService.validateReferences(dto.getAccount(), dto.getBusinessUnitId());
             DraftAccountEntity entity = draftAccountTransactional.submitDraftAccount(dto);
             log.debug(":submitDraftAccount: created in DB: {}", entity);
 
@@ -205,7 +205,7 @@ public class DraftAccountService {
             BusinessUnitUser unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());
             applySubmittedBy(dto, userState, unitUser);
             jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
-            referenceValidationService.validateReferences(dto.getAccount());
+            referenceValidationService.validateReferences(dto.getAccount(), dto.getBusinessUnitId());
             DraftAccountEntity replacedEntity = draftAccountTransactional
                 .replaceDraftAccount(draftAccountId, dto, draftAccountTransactional, ifMatch);
             verifyUpdated(replacedEntity, dto, draftAccountId, "replaceDraftAccount");
