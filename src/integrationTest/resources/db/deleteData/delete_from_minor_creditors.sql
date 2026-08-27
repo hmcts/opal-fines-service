@@ -29,11 +29,11 @@ WHERE creditor_account_id = 606;
 
 -- Delete test creditor accounts
 DELETE FROM public.creditor_accounts
-WHERE creditor_account_id IN (104, 105, 999950, 999951, 999952, 999953, 999954, 999955, 606, 607);
+WHERE creditor_account_id IN (104, 105, 999950, 999951, 999952, 999953, 999954, 999955, 606, 607, 608);
 
 -- Delete test creditor parties
 DELETE FROM public.parties
-WHERE party_id IN (9000, 9001, 9002, 9003, 9004, 9005, 9006, 99007, 99008);
+WHERE party_id IN (9000, 9001, 9002, 9003, 9004, 9005, 9006, 99007, 99008, 99009);
 
 -- Delete test defendant accounts
 DELETE FROM public.defendant_accounts

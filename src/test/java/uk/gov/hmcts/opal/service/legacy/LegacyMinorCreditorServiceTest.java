@@ -471,13 +471,14 @@ class LegacyMinorCreditorServiceTest {
         when(minorCreditorAccountResponseMapper.toMinorCreditorAccountResponse(legacyResponse))
             .thenReturn(mappedResponse);
         when(creditorAccountRepository.findById(101L)).thenReturn(
-            Optional.of(CreditorAccountEntity.builder().businessUnitId((short) 77).build())
+            Optional.of(CreditorAccountEntity.builder().businessUnitId((short) 77).repayment(true).build())
         );
 
         MinorCreditorAccountResponse result = legacyMinorCreditorService.getMinorCreditorAccount(101L);
 
         assertEquals(101L, result.getCreditorAccountId());
         assertEquals((short) 77, result.getBusinessUnitId());
+        assertEquals(true, result.getRepayment());
     }
 
     @Test
@@ -642,6 +643,7 @@ class LegacyMinorCreditorServiceTest {
 
         assertEquals(1L, result.getCreditorAccountId());
         assertNull(result.getBusinessUnitId());
+        assertEquals(false, result.getRepayment());
     }
 
     @Test
