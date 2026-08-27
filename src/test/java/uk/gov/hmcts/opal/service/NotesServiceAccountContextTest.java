@@ -15,7 +15,6 @@ import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.generated.model.ActivityNoteNotes;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
-import uk.gov.hmcts.opal.generated.model.NoteNotes;
 
 @ExtendWith(MockitoExtension.class)
 class NotesServiceAccountContextTest {
