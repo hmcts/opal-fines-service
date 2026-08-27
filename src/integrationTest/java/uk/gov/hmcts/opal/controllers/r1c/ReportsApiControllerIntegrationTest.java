@@ -35,6 +35,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String URL_BASE = "/reports";
     private static final String BU_WARNING_THRESHOLD_ITEM_NAME = "OPERATIONAL_REPORT_BU_WARNING_THRESHOLD";
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private ConfigurationItemRepository configurationItemRepository;
 
@@ -331,7 +332,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
     class GetOperationalReportThresholdCases {
 
         @ParameterizedTest
-        @MethodSource("uk.gov.hmcts.opal.controllers.ReportsApiControllerIntegrationTest#operationalReportCases")
+        @MethodSource("uk.gov.hmcts.opal.controllers.r1c.ReportsApiControllerIntegrationTest#operationalReportCases")
         @DisplayName("Get report by ID - operational reports include BU warning threshold [@PO-7225]")
         @JiraStory("PO-7225")
         @JiraEpic("PO-2248")
@@ -388,7 +389,7 @@ class ReportsApiControllerIntegrationTest extends AbstractIntegrationTest {
         @ParameterizedTest(
             name = "Get report by ID - invalid BU warning threshold ''{0}'' returns 500 [@PO-7225]"
         )
-        @MethodSource("uk.gov.hmcts.opal.controllers.ReportsApiControllerIntegrationTest#invalidThresholdValues")
+        @MethodSource("uk.gov.hmcts.opal.controllers.r1c.ReportsApiControllerIntegrationTest#invalidThresholdValues")
         @Sql(
             scripts = "classpath:db/deleteData/reset_operational_report_bu_threshold.sql",
             executionPhase = AFTER_TEST_METHOD
