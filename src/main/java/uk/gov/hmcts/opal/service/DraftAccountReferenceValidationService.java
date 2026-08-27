@@ -10,6 +10,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.repository.CourtLiteRepository;
@@ -89,9 +90,7 @@ public class DraftAccountReferenceValidationService {
                 String impositionPath = offencePath + ".impositions[" + impositionIndex + "]";
 
                 String resultId = safeReadString(docContext, impositionPath + ".result_id", null);
-                if (resultId != null && !resultRepository.existsById(resultId)) {
-                    failures.add(impositionPath + ".result_id: result id " + resultId + DOES_NOT_EXIST);
-                }
+                validateImpositionResult(resultId, impositionPath + ".result_id", failures);
 
                 Long majorCreditorId = safeReadLong(docContext, impositionPath + ".major_creditor_id");
                 if (majorCreditorId != null && !majorCreditorRepository.existsById(majorCreditorId)) {
@@ -99,6 +98,26 @@ public class DraftAccountReferenceValidationService {
                         + DOES_NOT_EXIST);
                 }
             }
+        }
+    }
+
+    private void validateImpositionResult(String resultId, String resultPath, List<String> failures) {
+        if (resultId == null) {
+            return;
+        }
+
+        ResultEntity result = resultRepository.findById(resultId).orElse(null);
+        if (result == null) {
+            failures.add(resultPath + ": result id " + resultId + DOES_NOT_EXIST);
+            return;
+        }
+
+        if (!result.isImposition()) {
+            failures.add(resultPath + ": result id " + resultId + " is not an imposition result");
+        }
+
+        if (!result.isActive()) {
+            failures.add(resultPath + ": result id " + resultId + " is not active");
         }
     }
 
