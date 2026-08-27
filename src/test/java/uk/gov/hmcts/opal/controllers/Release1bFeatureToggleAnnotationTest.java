@@ -75,8 +75,8 @@ class Release1bFeatureToggleAnnotationTest {
             "MinorCreditorApiController#getMinorCreditorHistory",
             "DefendantAccountApiController#getImpositions",
             "MinorCreditorApiController#patchMinorCreditorAccount",
-            "MinorCreditorController#postMinorCreditorsSearch",
             "DefendantAccountApiController#getDefendantAccountHeaderSummary",
+            "MinorCreditorApiController#postMinorCreditorSearch",
             "MajorCreditorApiController#getMajorCreditorAccountAtAGlance"
         );
 
