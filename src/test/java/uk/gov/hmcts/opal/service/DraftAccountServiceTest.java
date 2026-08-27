@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -246,12 +248,67 @@ class DraftAccountServiceTest {
 
     @Test
     void testDeleteDraftAccount_success() {
+        DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder()
+            .draftAccountId(1L)
+            .submittedBy("Pablo")
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
+            .build();
+        var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        when(draftAccountTransactional.getDraftAccount(1L)).thenReturn(draftAccountEntity);
+        when(draftAccountTransactional.deleteDraftAccount(1L, draftAccountTransactional)).thenReturn(true);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+
         // Act
         String result = draftAccountService.deleteDraftAccount(1, true);
 
         // Assert
         assertEquals(String.format(DraftAccountService.ACCOUNT_DELETED_MESSAGE_FORMAT, 1), result);
+        verify(draftAccountTransactional).getDraftAccount(1L);
         verify(draftAccountTransactional).deleteDraftAccount(1L, draftAccountTransactional);
+        verify(securityEventLoggingService).logEvent(
+            DraftAccountService.EVENT_ACCOUNT_DELETION,
+            "Success",
+            (short) 2,
+            "Deletion",
+            LocalDateTime.of(2026, Month.APRIL, 22, 0, 0),
+            Map.of(
+                "UserIdentifier", 1L,
+                "DraftAccountIdentifier", 1L,
+                "DraftAccountSubmittedByUserIdentifier", "Pablo"
+            )
+        );
+    }
+
+    @Test
+    void testDeleteDraftAccount_successWhenSecurityLoggingFails() {
+        DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder()
+            .draftAccountId(1L)
+            .submittedBy("Pablo")
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
+            .build();
+        var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        when(draftAccountTransactional.getDraftAccount(1L)).thenReturn(draftAccountEntity);
+        when(draftAccountTransactional.deleteDraftAccount(1L, draftAccountTransactional)).thenReturn(true);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        doThrow(new RuntimeException("logging failed")).when(securityEventLoggingService).logEvent(
+            any(), any(), any(), any(), any(), any());
+
+        String result = draftAccountService.deleteDraftAccount(1, true);
+
+        assertEquals(String.format(DraftAccountService.ACCOUNT_DELETED_MESSAGE_FORMAT, 1), result);
+        verify(draftAccountTransactional).deleteDraftAccount(1L, draftAccountTransactional);
+        verify(securityEventLoggingService).logEvent(
+            DraftAccountService.EVENT_ACCOUNT_DELETION,
+            "Success",
+            (short) 2,
+            "Deletion",
+            LocalDateTime.of(2026, Month.APRIL, 22, 0, 0),
+            Map.of(
+                "UserIdentifier", 1L,
+                "DraftAccountIdentifier", 1L,
+                "DraftAccountSubmittedByUserIdentifier", "Pablo"
+            )
+        );
     }
 
     @Test
@@ -266,6 +323,7 @@ class DraftAccountServiceTest {
                 .deleteDraftAccount(1, true)
         );
         assertEquals("Draft Account not found with id: 1", enfe.getMessage());
+        verify(securityEventLoggingService, never()).logEvent(any(), any(), any(), any(), any(), any());
     }
 
     @Test
@@ -384,14 +442,16 @@ class DraftAccountServiceTest {
     void testUpdateDraftAccount_businessUnitMismatch() {
         // Arrange
         Long draftAccountId = 1L;
-        UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
+        final UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .build();
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
+            .accountStatus(DraftAccountStatus.SUBMITTED)
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 3).build())
             .versionNumber(0L)
             .build();
+        when(draftAccountTransactional.getDraftAccount(draftAccountId)).thenReturn(existingAccount);
         when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any(), any()))
             .thenReturn(existingAccount);
         when(userStateService.getUserStateV1FromSecurityContext())
@@ -426,6 +486,12 @@ class DraftAccountServiceTest {
             .timelineData(createTimelineDataString())
             .versionNumber(1L)
             .build();
+        when(draftAccountTransactional.getDraftAccount(draftAccountId)).thenReturn(
+            DraftAccountEntity.builder()
+                .draftAccountId(draftAccountId)
+                .accountStatus(DraftAccountStatus.SUBMITTED)
+                .build()
+        );
         when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any(), any()))
             .thenReturn(updatedAccount);
         var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
@@ -477,6 +543,12 @@ class DraftAccountServiceTest {
             .build();
         var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
 
+        when(draftAccountTransactional.getDraftAccount(draftAccountId)).thenReturn(
+            DraftAccountEntity.builder()
+                .draftAccountId(draftAccountId)
+                .accountStatus(DraftAccountStatus.SUBMITTED)
+                .build()
+        );
         when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any(), any()))
             .thenReturn(updatedAccount);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
@@ -506,6 +578,118 @@ class DraftAccountServiceTest {
         verify(draftAccountPublishProxy, never()).publishDefendantAccount(any(), any());
         verify(pdplLoggingService).pdplForDraftAccount(updatedAccount, Action.RESUBMIT, userState);
         verify(jsonSchemaValidationService).validateOrError(any(), any());
+    }
+
+    @Test
+    void testUpdateDraftAccount_deleted_logsSecurityEventSuccess() {
+        Long draftAccountId = 1L;
+        UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
+            .accountStatus(DraftAccountStatus.DELETED)
+            .validatedBy("PATCH002_REVIEWER")
+            .validatedByName("Laura Reviewer")
+            .businessUnitId((short) 2)
+            .build();
+        DraftAccountEntity updatedAccount = DraftAccountEntity.builder()
+            .draftAccountId(draftAccountId)
+            .accountStatus(DraftAccountStatus.DELETED)
+            .submittedBy("Pablo")
+            .validatedBy("PATCH002_REVIEWER")
+            .validatedByName("Laura Reviewer")
+            .timelineData(createTimelineDataString())
+            .versionNumber(1L)
+            .build();
+        var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
+
+        when(draftAccountTransactional.getDraftAccount(draftAccountId)).thenReturn(
+            DraftAccountEntity.builder()
+                .draftAccountId(draftAccountId)
+                .accountStatus(DraftAccountStatus.SUBMITTED)
+                .build()
+        );
+        when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any(), any()))
+            .thenReturn(updatedAccount);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(draftAccountMapper.toResponseDto(updatedAccount)).thenReturn(
+            DraftAccountResponseDto.builder()
+                .draftAccountId(draftAccountId)
+                .accountStatus(DraftAccountStatus.DELETED)
+                .validatedBy("PATCH002_REVIEWER")
+                .validatedByName("Laura Reviewer")
+                .timelineData(updatedAccount.getTimelineData())
+                .build()
+        );
+
+        DraftAccountResponseDto result = draftAccountService
+            .updateDraftAccount(draftAccountId, updateDto, "0");
+
+        assertNotNull(result);
+        assertEquals(DraftAccountStatus.DELETED, result.getAccountStatus());
+        verify(draftAccountPublishProxy, never()).publishDefendantAccount(any(), any());
+        verify(pdplLoggingService).pdplForDraftAccount(updatedAccount, Action.RESUBMIT, userState);
+        verify(jsonSchemaValidationService).validateOrError(any(), any());
+        verify(securityEventLoggingService).logEvent(
+            DraftAccountService.EVENT_ACCOUNT_DELETION,
+            "Success",
+            (short) 2,
+            "Deletion",
+            LocalDateTime.of(2026, Month.APRIL, 22, 0, 0),
+            Map.of(
+                "UserIdentifier", 1L,
+                "DraftAccountIdentifier", draftAccountId,
+                "DraftAccountSubmittedByUserIdentifier", "Pablo"
+            )
+        );
+    }
+
+    @Test
+    void testUpdateDraftAccount_alreadyDeleted_doesNotLogSecurityEventSuccess() {
+        Long draftAccountId = 1L;
+        UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
+            .accountStatus(DraftAccountStatus.DELETED)
+            .validatedBy("PATCH002_REVIEWER")
+            .validatedByName("Laura Reviewer")
+            .businessUnitId((short) 2)
+            .build();
+        DraftAccountEntity existingAccount = DraftAccountEntity.builder()
+            .draftAccountId(draftAccountId)
+            .accountStatus(DraftAccountStatus.DELETED)
+            .submittedBy("Pablo")
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
+            .build();
+        DraftAccountEntity updatedAccount = DraftAccountEntity.builder()
+            .draftAccountId(draftAccountId)
+            .accountStatus(DraftAccountStatus.DELETED)
+            .submittedBy("Pablo")
+            .validatedBy("PATCH002_REVIEWER")
+            .validatedByName("Laura Reviewer")
+            .timelineData(createTimelineDataString())
+            .versionNumber(1L)
+            .build();
+        var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
+
+        when(draftAccountTransactional.getDraftAccount(draftAccountId)).thenReturn(existingAccount);
+        when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any(), any()))
+            .thenReturn(updatedAccount);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(draftAccountMapper.toResponseDto(updatedAccount)).thenReturn(
+            DraftAccountResponseDto.builder()
+                .draftAccountId(draftAccountId)
+                .accountStatus(DraftAccountStatus.DELETED)
+                .validatedBy("PATCH002_REVIEWER")
+                .validatedByName("Laura Reviewer")
+                .timelineData(updatedAccount.getTimelineData())
+                .build()
+        );
+
+        DraftAccountResponseDto result = draftAccountService
+            .updateDraftAccount(draftAccountId, updateDto, "0");
+
+        assertNotNull(result);
+        assertEquals(DraftAccountStatus.DELETED, result.getAccountStatus());
+        verify(pdplLoggingService).pdplForDraftAccount(updatedAccount, Action.RESUBMIT, userState);
+        verify(securityEventLoggingService, never()).logEvent(
+            eq(DraftAccountService.EVENT_ACCOUNT_DELETION),
+            any(), any(), any(), any(), any());
     }
 
     private void publishPending_success(DraftAccountEntity updatedAccount, Long draftAccountId,
