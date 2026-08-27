@@ -370,6 +370,43 @@ tasks.register('integration', Test) {
   finalizedBy 'packageIntegrationOutput'
 }
 
+def registerReleaseIntegrationTask = { String release ->
+  def releaseName = release.toLowerCase()
+  def reportFileName = "Junit5Report-Integration${release}.json"
+  def outputDirectory = "${rootDir}/integration-output-${releaseName}"
+  def copyTaskName = "copy${release}IntegrationJunit5Report"
+  def packageTaskName = "package${release}IntegrationOutput"
+
+  tasks.register(copyTaskName, Copy) {
+    from("target/zephyr-reports/${reportFileName}")
+    into("${outputDirectory}/zephyr")
+    outputs.upToDateWhen { false }
+  }
+
+  tasks.register(packageTaskName, Copy) {
+    dependsOn copyTaskName
+    into(outputDirectory)
+    from(layout.buildDirectory.dir("reports/tests/integration${release}")) {
+      into("report")
+    }
+  }
+
+  tasks.register("integration${release}", Test) {
+    description = "Runs ${release} controller integration tests"
+    group = "Verification"
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    include "uk/gov/hmcts/opal/controllers/${releaseName}/**"
+    systemProperty 'zephyr.report.location', "${rootDir}/target/zephyr-reports/${reportFileName}"
+    doFirst {
+      pullLatestLegacyStubImageIfLocal()
+    }
+    finalizedBy packageTaskName
+  }
+}
+
+['R1A', 'R1B', 'R1C'].each(registerReleaseIntegrationTask)
+
 tasks.register('checkTestJiraAnnotations', JavaExec) {
   description = "Checks runnable integration and functional tests have Jira story and epic annotations"
   group = "Verification"
