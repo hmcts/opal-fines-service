@@ -522,6 +522,66 @@ components:
       required:
         - lja_id
         - lja_name
+    fixedPenaltyTicketDetails:
+      title: Fixed Penalty Ticket Details
+      type: object
+      additionalProperties: false
+      properties:
+        issuing_authority:
+          type:
+            - string
+            - 'null'
+          minLength: 1
+        ticket_number:
+          type:
+            - string
+            - 'null'
+          minLength: 1
+        time_of_offence:
+          type:
+            - string
+            - 'null'
+          minLength: 1
+        place_of_offence:
+          type:
+            - string
+            - 'null'
+          minLength: 1
+      required:
+        - issuing_authority
+        - ticket_number
+        - time_of_offence
+        - place_of_offence
+    vehicleFixedPenaltyDetails:
+      title: Vehicle Fixed Penalty Details
+      type: object
+      additionalProperties: false
+      properties:
+        vehicle_registration_number:
+          type:
+            - string
+            - 'null'
+          minLength: 1
+        vehicle_drivers_license:
+          type:
+            - string
+            - 'null'
+          minLength: 1
+        notice_number:
+          type:
+            - string
+            - 'null'
+          minLength: 1
+        date_notice_issued:
+          type:
+            - string
+            - 'null'
+          format: date
+      required:
+        - vehicle_registration_number
+        - vehicle_drivers_license
+        - notice_number
+        - date_notice_issued
     defendantAccountPaymentTerms:
       title: Defendant Account Payment Terms
       type:
