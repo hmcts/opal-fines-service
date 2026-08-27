@@ -108,7 +108,7 @@ VALUES ( 0077, 0, 078, '177A'
        , 200.00, 500.58, 'L', NULL
        , 780000000185, 780000000185, '2024-01-04 18:06:11'
        , '2024-01-02 17:08:09', '2024-01-03 12:00:12', '10'
-       , 'Kingston-upon-Thames Mags Court', NULL, NULL
+       , 'Kingston-upon-Thames Mags Court', NULL, 'TFO'
        , 'N', 'N', 14, 21
        , 'FWEC', 780000000021, 240
        , 'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00'
@@ -721,7 +721,7 @@ VALUES ( 10001, 078, '10001A'
        , 200.00, 500.58, 'L', NULL
        , 780000000185, 780000000185, '2024-01-04 18:06:11'
        , '2024-01-02 17:08:09', '2024-01-03 12:00:12', 'REM'
-       , 'Brentwood Mags Court', NULL, NULL
+       , 'Brentwood Mags Court', NULL, 'FP'
        , 'N', 'N', 14, 21
        , 'FWEC', 780000000021, 240
        , 'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00'
@@ -1321,6 +1321,12 @@ VALUES (990001, 0, 78,
         '990001A','PCR990001',
         100.00,0.00,100.00,
         'L','Fine');
+
+UPDATE defendant_accounts
+SET originator_name = 'Header Summary New Originator',
+    originator_type = 'NEW',
+    collection_order = FALSE
+WHERE defendant_account_id = 990001;
 
 INSERT INTO parties
 ( party_id, organisation, surname, forenames )

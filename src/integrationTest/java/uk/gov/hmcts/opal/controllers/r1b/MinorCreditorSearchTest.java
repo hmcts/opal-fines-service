@@ -17,8 +17,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.dto.Creditor;
-import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
+import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -44,11 +45,11 @@ public class MinorCreditorSearchTest extends AbstractIntegrationTest {
     @DisplayName("AC01 - If account number is populated no other fields can be - should error")
     @JiraTestKey("PO-10095")
     void postMinorCreditorAccountSearch_withAccountNumberAndOtherFields_shouldFail() throws Exception {
-        MinorCreditorSearch search = MinorCreditorSearch.builder()
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
             .activeAccountsOnly(true)
             .accountNumber("JS987654")
             .businessUnitIds(List.of((short) 10))
-            .creditor(Creditor.builder()
+            .creditor(MinorCreditorAccountSearchCreditor.builder()
                 .addressLine1("44 Hold St.")
                 .postcode("DE1 2DE")
                 .organisationName("Tech Solutions")
@@ -64,7 +65,7 @@ public class MinorCreditorSearchTest extends AbstractIntegrationTest {
         ResultActions result = mockMvc.perform(post(MINOR_CREDITOR_SEARCH_URL)
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())
             .header(AUTHORISATION_HEADER, userStateStub.getBearerToken())
-            .contentType(APPLICATION_JSON).content(search.toJson()));
+            .contentType(APPLICATION_JSON).content(ToJsonString.toPrettyJsonString(search)));
 
         expectErrorResponse(result);
     }
@@ -75,7 +76,7 @@ public class MinorCreditorSearchTest extends AbstractIntegrationTest {
     @DisplayName("AC02 - If account number is populated no other fields can be - should be successful")
     @JiraTestKey("PO-10098")
     void postMinorCreditorAccountSearch_withAccountNumber_shouldPass() throws Exception {
-        MinorCreditorSearch search = MinorCreditorSearch.builder()
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
             .businessUnitIds(List.of((short) 10))
             .activeAccountsOnly(true)
             .accountNumber("JS987654")
@@ -84,7 +85,7 @@ public class MinorCreditorSearchTest extends AbstractIntegrationTest {
         ResultActions result = mockMvc.perform(post(MINOR_CREDITOR_SEARCH_URL)
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())
             .header(AUTHORISATION_HEADER, userStateStub.getBearerToken())
-            .contentType(APPLICATION_JSON).content(search.toJson()));
+            .contentType(APPLICATION_JSON).content(ToJsonString.toPrettyJsonString(search)));
 
         expectOkResponse(result);
     }
@@ -95,10 +96,10 @@ public class MinorCreditorSearchTest extends AbstractIntegrationTest {
     @DisplayName("AC03 - If first name is populated last name must also be populated - should error")
     @JiraTestKey("PO-10097")
     void postMinorCreditorAccountSearch_withFirstNameWithoutLastName_shouldFail() throws Exception {
-        MinorCreditorSearch search = MinorCreditorSearch.builder()
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
             .businessUnitIds(List.of((short) 10))
             .activeAccountsOnly(true)
-            .creditor(Creditor.builder()
+            .creditor(MinorCreditorAccountSearchCreditor.builder()
                 .forenames("John")
                 .exactMatchForenames(false)
                 .organisation(false)
@@ -108,7 +109,7 @@ public class MinorCreditorSearchTest extends AbstractIntegrationTest {
         ResultActions result = mockMvc.perform(post(MINOR_CREDITOR_SEARCH_URL)
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())
             .header(AUTHORISATION_HEADER, userStateStub.getBearerToken())
-            .contentType(APPLICATION_JSON).content(search.toJson()));
+            .contentType(APPLICATION_JSON).content(ToJsonString.toPrettyJsonString(search)));
 
         expectErrorResponse(result);
     }
@@ -119,10 +120,10 @@ public class MinorCreditorSearchTest extends AbstractIntegrationTest {
     @DisplayName("AC04 - If first name is populated last name must also be populated - should be successful")
     @JiraTestKey("PO-10096")
     void postMinorCreditorAccountSearch_withFirstNameAndLastName_shouldPass() throws Exception {
-        MinorCreditorSearch search = MinorCreditorSearch.builder()
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
             .businessUnitIds(List.of((short) 10))
             .activeAccountsOnly(true)
-            .creditor(Creditor.builder()
+            .creditor(MinorCreditorAccountSearchCreditor.builder()
                 .forenames("John")
                 .surname("Smith")
                 .exactMatchForenames(false)
@@ -134,7 +135,7 @@ public class MinorCreditorSearchTest extends AbstractIntegrationTest {
         ResultActions result = mockMvc.perform(post(MINOR_CREDITOR_SEARCH_URL)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header(AUTHORISATION_HEADER, userStateStub.getBearerToken())
-                .contentType(APPLICATION_JSON).content(search.toJson()));
+                .contentType(APPLICATION_JSON).content(ToJsonString.toPrettyJsonString(search)));
 
         expectOkResponse(result);
     }
@@ -157,8 +158,8 @@ public class MinorCreditorSearchTest extends AbstractIntegrationTest {
             .andExpect(content().contentType(APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Bad Request"))
             .andExpect(expectBadRequest(
-                "The request does not conform to the required JSON schema",
-                "https://hmcts.gov.uk/problems/json-schema-validation"))
+                "Invalid arguments were provided in the request",
+                "https://hmcts.gov.uk/problems/illegal-argument"))
             .andExpect(jsonPath("$.instance").exists())
             .andExpect(jsonPath("$.status").value(400))
             .andExpect(jsonPath("$.operation_id").exists())
