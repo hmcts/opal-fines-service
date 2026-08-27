@@ -31,15 +31,16 @@ import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
-import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.ReplacePartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
+import uk.gov.hmcts.opal.mapper.request.ReplacePartyRequestMapper;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
@@ -62,6 +63,7 @@ public class DefendantAccountApiController implements DefendantAccountApi {
     private final DefendantAccountFixedPenaltyService defendantAccountFixedPenaltyService;
     private final DefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
     private final DefendantAccountPartyService defendantAccountPartyService;
+    private final ReplacePartyRequestMapper replacePartyRequestMapper;
 
     @Override
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
@@ -187,14 +189,14 @@ public class DefendantAccountApiController implements DefendantAccountApi {
         Long defendantAccountId,
         Long defendantAccountPartyId,
         Short businessUnitId,
-        DefendantAccountParty request,
+        ReplacePartyRequestDefendantAccount request,
         String ifMatch) {
         return buildResponse(defendantAccountPartyService.replaceDefendantAccountParty(
             defendantAccountId,
             defendantAccountPartyId,
             ifMatch,
             businessUnitId.toString(),
-            request));
+            replacePartyRequestMapper.toDefendantAccountParty(request)));
     }
 
     @Override

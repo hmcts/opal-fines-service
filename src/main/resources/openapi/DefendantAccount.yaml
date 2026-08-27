@@ -201,7 +201,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DefendantAccountParty'
+              $ref: '#/components/schemas/ReplacePartyRequest'
       responses:
         '200':
           description: OK
@@ -1380,6 +1380,30 @@ components:
       properties:
         defendant_account_party:
           $ref: '#/components/schemas/DefendantAccountParty'
+    ReplacePartyRequest:
+      title: Replace Defendant Account Party Request
+      type: object
+      additionalProperties: false
+      properties:
+        defendant_account_party_type:
+          type: string
+          enum:
+            - Defendant
+            - Parent/Guardian
+        is_debtor:
+          type: boolean
+        party_details:
+          $ref: './common.yaml#/components/schemas/partyDetails'
+        address:
+          $ref: './common.yaml#/components/schemas/addressDetails'
+        contact_details:
+          $ref: '#/components/schemas/PartyContactDetails'
+        vehicle_details:
+          $ref: '#/components/schemas/PartyVehicleDetails'
+        employer_details:
+          $ref: '#/components/schemas/PartyEmployerDetails'
+        language_preferences:
+          $ref: './CommonStrict.yaml#/components/schemas/languagePreferences'
     DefendantAccountParty:
       title: Defendant Account Party
       type: object

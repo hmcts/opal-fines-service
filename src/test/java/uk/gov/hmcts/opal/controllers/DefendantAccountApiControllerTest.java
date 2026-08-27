@@ -50,7 +50,9 @@ import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefen
 import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.ReplacePartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
+import uk.gov.hmcts.opal.mapper.request.ReplacePartyRequestMapper;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
@@ -71,6 +73,9 @@ class DefendantAccountApiControllerTest {
 
     @Mock
     private DefendantAccountPartyService defendantAccountPartyService;
+
+    @Mock
+    private ReplacePartyRequestMapper replacePartyRequestMapper;
 
     @Mock
     private DefendantAccountEnforcementService defendantAccountEnforcementService;
@@ -298,14 +303,16 @@ class DefendantAccountApiControllerTest {
         Long defendantAccountPartyId = 2L;
         Short businessUnitId = 10;
         String ifMatch = "\"3\"";
-        DefendantAccountParty request = DefendantAccountParty.builder().build();
+        ReplacePartyRequestDefendantAccount request = ReplacePartyRequestDefendantAccount.builder().build();
+        DefendantAccountParty mappedRequest = DefendantAccountParty.builder().build();
         PartyResponseDefendantAccount serviceResponse = PartyResponseDefendantAccount.builder()
             .version(BigInteger.TEN)
             .build();
 
         when(defendantAccountPartyService.replaceDefendantAccountParty(
-            defendantAccountId, defendantAccountPartyId, ifMatch, businessUnitId.toString(), request))
+            defendantAccountId, defendantAccountPartyId, ifMatch, businessUnitId.toString(), mappedRequest))
             .thenReturn(serviceResponse);
+        when(replacePartyRequestMapper.toDefendantAccountParty(request)).thenReturn(mappedRequest);
 
         ResponseEntity<PartyResponseDefendantAccount> response =
             defendantAccountApiController.replaceDefendantAccountParty(
@@ -316,7 +323,7 @@ class DefendantAccountApiControllerTest {
             () -> assertEquals("\"10\"", response.getHeaders().getETag()),
             () -> assertSame(serviceResponse, response.getBody()),
             () -> verify(defendantAccountPartyService).replaceDefendantAccountParty(
-                defendantAccountId, defendantAccountPartyId, ifMatch, businessUnitId.toString(), request)
+                defendantAccountId, defendantAccountPartyId, ifMatch, businessUnitId.toString(), mappedRequest)
         );
     }
 
