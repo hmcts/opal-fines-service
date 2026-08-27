@@ -21,30 +21,28 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mapstruct.factory.Mappers;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
-import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.AddressDetailsCommonStrict;
-import uk.gov.hmcts.opal.generated.model.PartyContactDetailsDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
-import uk.gov.hmcts.opal.generated.model.PartyEmployerDetailsDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommonStrict;
-import uk.gov.hmcts.opal.generated.model.LanguagePreferenceCommonStrict;
-import uk.gov.hmcts.opal.generated.model.LanguagePreferencesCommonStrict;
-import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommonStrict;
-import uk.gov.hmcts.opal.generated.model.PartyDetailsCommonStrict;
-import uk.gov.hmcts.opal.generated.model.PartyVehicleDetailsDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
-import uk.gov.hmcts.opal.mapper.response.DefendantAccountPartyEntityResponseMapper;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
+import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddressDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
+import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.LanguagePreferenceCommonStrict;
+import uk.gov.hmcts.opal.generated.model.LanguagePreferencesCommonStrict;
+import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PartyContactDetailsDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PartyEmployerDetailsDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PartyVehicleDetailsDefendantAccount;
+import uk.gov.hmcts.opal.mapper.response.DefendantAccountPartyEntityResponseMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.service.persistence.AliasRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
@@ -56,9 +54,8 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 @ExtendWith(MockitoExtension.class)
 class OpalDefendantAccountPartyServiceAddPartyTest {
 
-    @Spy
-    private DefendantAccountPartyEntityResponseMapper defendantAccountPartyEntityResponseMapper =
-        Mappers.getMapper(DefendantAccountPartyEntityResponseMapper.class);
+    @Mock
+    private DefendantAccountPartyEntityResponseMapper defendantAccountPartyEntityResponseMapper;
 
     @Mock
     private DefendantAccountRepositoryService defendantAccountRepositoryService;
@@ -122,6 +119,10 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
             .build()));
         when(defendantAccountRepositoryService.saveAndFlush(account)).thenReturn(account);
 
+        DefendantAccountParty mappedParty = DefendantAccountParty.builder().build();
+        when(defendantAccountPartyEntityResponseMapper.toGeneratedResponse(any(), any(), any())).thenReturn(
+            mappedParty);
+
         AddPartyRequestDefendantAccount req = AddPartyRequestDefendantAccount.builder()
             .defendantAccountParty(DefendantAccountParty.builder()
                 .defendantAccountPartyType(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT)
@@ -164,10 +165,7 @@ class OpalDefendantAccountPartyServiceAddPartyTest {
 
             // Assert
             assertNotNull(resp);
-            assertNotNull(resp.getDefendantAccountParty());
-            assertEquals("123", resp.getDefendantAccountParty().getPartyDetails().getPartyId());
-            assertEquals("John", resp.getDefendantAccountParty().getPartyDetails().getIndividualDetails()
-                .get().getForenames().get());
+            assertEquals(mappedParty, resp.getDefendantAccountParty());
 
             verify(partyRepositoryService).save(argThat(party ->
                 !party.isOrganisation()

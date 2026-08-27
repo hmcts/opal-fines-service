@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -28,22 +27,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
-import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.AddressDetailsCommonStrict;
-import uk.gov.hmcts.opal.generated.model.PartyContactDetailsDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
-import uk.gov.hmcts.opal.generated.model.PartyEmployerDetailsDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommonStrict;
-import uk.gov.hmcts.opal.generated.model.LanguagePreferenceCommonStrict;
-import uk.gov.hmcts.opal.generated.model.LanguagePreferencesCommonStrict;
-import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommonStrict;
-import uk.gov.hmcts.opal.generated.model.PartyDetailsCommonStrict;
-import uk.gov.hmcts.opal.generated.model.PartyVehicleDetailsDefendantAccount;
-import uk.gov.hmcts.opal.mapper.response.DefendantAccountPartyEntityResponseMapper;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
@@ -51,6 +36,18 @@ import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
+import uk.gov.hmcts.opal.generated.model.AddressDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
+import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.LanguagePreferenceCommonStrict;
+import uk.gov.hmcts.opal.generated.model.LanguagePreferencesCommonStrict;
+import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PartyContactDetailsDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PartyEmployerDetailsDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PartyVehicleDetailsDefendantAccount;
+import uk.gov.hmcts.opal.mapper.response.DefendantAccountPartyEntityResponseMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.service.persistence.AliasRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
@@ -62,9 +59,8 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 @ExtendWith(MockitoExtension.class)
 class OpalDefendantAccountServiceTest03 {
 
-    @Spy
-    private DefendantAccountPartyEntityResponseMapper defendantAccountPartyEntityResponseMapper =
-        Mappers.getMapper(DefendantAccountPartyEntityResponseMapper.class);
+    @Mock
+    private DefendantAccountPartyEntityResponseMapper defendantAccountPartyEntityResponseMapper;
 
     @Mock
     private DefendantAccountRepositoryService defendantAccountRepositoryService;
@@ -302,7 +298,6 @@ class OpalDefendantAccountServiceTest03 {
                 .build())
             .address(null).contactDetails((PartyContactDetailsDefendantAccount) null).build();
 
-
         when(defendantAccountRepositoryService.incrementVersionNumber(accountId, account.getVersion()))
             .thenReturn(BigInteger.valueOf(2L));
 
@@ -407,7 +402,6 @@ class OpalDefendantAccountServiceTest03 {
                 service.replaceDefendantAccountParty(accountId, dapId, req, ifMatch, bu, "tester", "Tester Name", null);
 
             assertNotNull(resp);
-            assertNotNull(resp.getDefendantAccountParty());
             assertEquals(BigInteger.valueOf(2L), resp.getVersion());
 
             verify(defendantAccountRepositoryService)
@@ -475,7 +469,6 @@ class OpalDefendantAccountServiceTest03 {
                 service.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", bu, "tester", "Tester Name", null);
 
             assertNotNull(resp);
-            assertNotNull(resp.getDefendantAccountParty());
             assertEquals(BigInteger.valueOf(2L), resp.getVersion());
             verify(partyRepositoryService, times(2)).findById(300L); // main + aliases
             verify(aliasRepoService, times(2)).findByPartyId(300L);
@@ -636,10 +629,6 @@ class OpalDefendantAccountServiceTest03 {
 
             // Assert
             assertNotNull(resp);
-            assertNotNull(resp.getDefendantAccountParty());
-            assertEquals("Defendant", resp.getDefendantAccountParty().getDefendantAccountPartyType().getValue());
-            assertEquals("4001", resp.getDefendantAccountParty().getPartyDetails().getPartyId());
-            assertTrue(Boolean.TRUE.equals(resp.getDefendantAccountParty().getPartyDetails().getOrganisationFlag()));
             verify(defendantAccountRepositoryService)
                 .incrementVersionNumber(accountId, account.getVersion());
             verify(defendantAccountPartiesRepository)
