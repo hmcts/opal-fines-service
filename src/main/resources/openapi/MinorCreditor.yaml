@@ -466,6 +466,7 @@ components:
         - creditor_account_id
         - party_details
         - address
+        - repayment
         - payment
       properties:
         creditor_account_id:
@@ -474,6 +475,9 @@ components:
           $ref: './common.yaml#/components/schemas/partyDetails'
         address:
           $ref: './common.yaml#/components/schemas/addressDetails'
+        repayment:
+          type: boolean
+          description: DB Mapping - creditor_accounts.repayment
         payment:
           allOf:
             - $ref: './common.yaml#/components/schemas/creditorAccountPaymentDetails'
