@@ -9,7 +9,6 @@ import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.generated.model.ActivityNoteNotes;
-import uk.gov.hmcts.opal.generated.model.NoteNotes;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 

@@ -23,7 +23,6 @@ import uk.gov.hmcts.opal.generated.model.AddPaymentTermsRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementResultResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
-import uk.gov.hmcts.opal.generated.model.NoteNotes;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;

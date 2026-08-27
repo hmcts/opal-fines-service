@@ -31,7 +31,6 @@ import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.AccountNoteContextFactory;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
-import uk.gov.hmcts.opal.generated.model.NoteNotes;
 
 @ExtendWith(MockitoExtension.class)
 class OpalNotesServiceTest {
