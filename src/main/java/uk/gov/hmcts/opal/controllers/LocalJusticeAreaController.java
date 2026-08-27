@@ -17,6 +17,8 @@ import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.reference.LjaReferenceData;
 import uk.gov.hmcts.opal.dto.reference.LjaReferenceDataResults;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
+import uk.gov.hmcts.opal.service.legacy.LegacyLocalJusticeAreaService;
 import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 import uk.gov.hmcts.opal.util.FeatureFlags;
 
@@ -27,10 +29,16 @@ import uk.gov.hmcts.opal.util.FeatureFlags;
 @Tag(name = "LocalJusticeArea Controller")
 public class LocalJusticeAreaController {
 
+    private final DynamicConfigService dynamicConfigService;
     private final LocalJusticeAreaService opalLocalJusticeAreaService;
+    private final LegacyLocalJusticeAreaService legacyLocalJusticeAreaService;
 
-    public LocalJusticeAreaController(LocalJusticeAreaService opalLocalJusticeAreaService) {
+    public LocalJusticeAreaController(DynamicConfigService dynamicConfigService,
+                                      LocalJusticeAreaService opalLocalJusticeAreaService,
+                                      LegacyLocalJusticeAreaService legacyLocalJusticeAreaService) {
+        this.dynamicConfigService = dynamicConfigService;
         this.opalLocalJusticeAreaService = opalLocalJusticeAreaService;
+        this.legacyLocalJusticeAreaService = legacyLocalJusticeAreaService;
     }
 
     @GetMapping(value = "/{localJusticeAreaId}")
@@ -46,8 +54,6 @@ public class LocalJusticeAreaController {
         return buildResponse(response);
     }
 
-
-
     @GetMapping
     @Operation(summary = "Returns Local Justice Area as reference data with an optional filter applied")
     @FeatureToggle(feature = FeatureFlags.RELEASE_1A,
@@ -56,7 +62,9 @@ public class LocalJusticeAreaController {
         @RequestParam("q") Optional<String> filter, @RequestParam("lja_type") Optional<List<String>> ljaType) {
         log.debug(":GET:getLocalJusticeAreaRefData: filter: {}  ljaType: {}", filter, ljaType);
 
-        List<LjaReferenceData> refData = opalLocalJusticeAreaService.getReferenceData(filter, ljaType);
+        List<LjaReferenceData> refData = dynamicConfigService.isLegacyMode()
+            ? legacyLocalJusticeAreaService.getReferenceData(filter, ljaType)
+            : opalLocalJusticeAreaService.getReferenceData(filter, ljaType);
 
         log.debug(":GET:getLocalJusticeAreaRefData: local justice area reference data count: {}", refData.size());
         return ResponseEntity.ok(LjaReferenceDataResults.builder().refData(refData).build());

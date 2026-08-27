@@ -32,7 +32,7 @@ import uk.gov.hmcts.opal.mapper.legacy.LegacyConsolidatedAccountMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 import uk.gov.hmcts.opal.service.opal.CourtService;
-import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
+import uk.gov.hmcts.opal.service.legacy.LegacyLocalJusticeAreaService;
 import uk.gov.hmcts.opal.service.opal.history.HistoryItemOrderingService;
 
 @ExtendWith(MockitoExtension.class)
@@ -48,7 +48,7 @@ class LegacyDefendantAccountConsolidatedAccountsServiceTest {
     private CourtService courtService;
 
     @Mock
-    private LocalJusticeAreaService ljaService;
+    private LegacyLocalJusticeAreaService ljaService;
 
     @Mock
     private HistoryItemOrderingService historyItemOrderingService;

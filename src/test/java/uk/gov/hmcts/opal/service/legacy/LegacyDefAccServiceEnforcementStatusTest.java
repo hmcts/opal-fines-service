@@ -33,7 +33,7 @@ import uk.gov.hmcts.opal.dto.legacy.common.EnforcerReference;
 import uk.gov.hmcts.opal.dto.legacy.common.LjaReference;
 import uk.gov.hmcts.opal.dto.legacy.common.ResultReference;
 import uk.gov.hmcts.opal.dto.legacy.common.ResultResponses;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.LegacyLocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
@@ -56,7 +56,7 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
 
         when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short)123).build());
         when(ljaService.getLocalJusticeAreaById(anyShort())).thenReturn(
-            LocalJusticeAreaEntity.builder().ljaCode("6-7").build());
+            LegacyLocalJusticeAreaEntity.builder().ljaCode("6-7").build());
 
         ResponseEntity<String> serverSuccessResponse =
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);

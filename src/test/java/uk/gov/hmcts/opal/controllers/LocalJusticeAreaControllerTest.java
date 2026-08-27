@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.controllers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyShort;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -19,13 +20,21 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.reference.LjaReferenceData;
 import uk.gov.hmcts.opal.dto.reference.LjaReferenceDataResults;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
+import uk.gov.hmcts.opal.service.legacy.LegacyLocalJusticeAreaService;
 import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 
 @ExtendWith(MockitoExtension.class)
 class LocalJusticeAreaControllerTest {
 
     @Mock
+    private DynamicConfigService dynamicConfigService;
+
+    @Mock
     private LocalJusticeAreaService localJusticeAreaService;
+
+    @Mock
+    private LegacyLocalJusticeAreaService legacyLocalJusticeAreaService;
 
     @InjectMocks
     private LocalJusticeAreaController localJusticeAreaController;
@@ -52,6 +61,7 @@ class LocalJusticeAreaControllerTest {
         LjaReferenceData entity = createLjaReferenceData();
         List<LjaReferenceData> localJusticeAreaList = List.of(entity);
 
+        when(dynamicConfigService.isLegacyMode()).thenReturn(false);
         when(localJusticeAreaService.getReferenceData(any(), any())).thenReturn(localJusticeAreaList);
 
         // Act
@@ -65,7 +75,34 @@ class LocalJusticeAreaControllerTest {
         LjaReferenceDataResults refDataResults = response.getBody();
         assertEquals(1, refDataResults.getCount());
         assertEquals(localJusticeAreaList, refDataResults.getRefData());
+        verify(dynamicConfigService).isLegacyMode();
         verify(localJusticeAreaService, times(1)).getReferenceData(any(), any());
+        verify(legacyLocalJusticeAreaService, never()).getReferenceData(any(), any());
+    }
+
+    @Test
+    void testGetLocalJusticeAreasRefData_LegacyMode() {
+        // Arrange
+        LjaReferenceData entity = createLjaReferenceData();
+        List<LjaReferenceData> localJusticeAreaList = List.of(entity);
+
+        when(dynamicConfigService.isLegacyMode()).thenReturn(true);
+        when(legacyLocalJusticeAreaService.getReferenceData(any(), any())).thenReturn(localJusticeAreaList);
+
+        // Act
+        Optional<String> filter = Optional.empty();
+        Optional<List<String>> ljaTypes = Optional.empty();
+        ResponseEntity<LjaReferenceDataResults> response = localJusticeAreaController
+            .getLocalJusticeAreaRefData(filter, ljaTypes);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        LjaReferenceDataResults refDataResults = response.getBody();
+        assertEquals(1, refDataResults.getCount());
+        assertEquals(localJusticeAreaList, refDataResults.getRefData());
+        verify(dynamicConfigService).isLegacyMode();
+        verify(legacyLocalJusticeAreaService, times(1)).getReferenceData(any(), any());
+        verify(localJusticeAreaService, never()).getReferenceData(any(), any());
     }
 
     private LjaReferenceData createLjaReferenceData() {

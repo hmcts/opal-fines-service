@@ -22,7 +22,7 @@ import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.CourtService;
-import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
+import uk.gov.hmcts.opal.service.legacy.LegacyLocalJusticeAreaService;
 import uk.gov.hmcts.opal.service.opal.history.HistoryItemOrderingService;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,7 +38,7 @@ abstract class AbstractLegacyDefAccServiceTest extends LegacyTestsBase {
     protected CourtService courtService;
 
     @Mock
-    protected LocalJusticeAreaService ljaService;
+    protected LegacyLocalJusticeAreaService ljaService;
 
     @Mock
     protected BusinessUnitRepository businessUnitRepository;

@@ -254,7 +254,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @JiraEpic("PO-2750")
     @JiraTestKey("PO-5971")
     void testGetLocalJusticeAreasRefData_returnsSameResultsInStableOrderForMultipleCalls() throws Exception {
-        String cacheName = "ljaReferenceDataCache";
+        String cacheName = "opalLjaReferenceDataCache";
         var actions1 = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "CRWCRT", "SJCRT"));
         String body1 = actions1.andReturn().getResponse().getContentAsString();
         var cache1 = cacheManager.getCache(cacheName);
