@@ -38,6 +38,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String HISTORY_PATH = "/minor-creditor-accounts/%d/history";
+    private static final long LEGACY_HISTORY_ACCOUNT_ID = 99264500000001L;
     private static final String HISTORY_TEST_USER = "opal-test@dev.platform.hmcts.net";
     private static final String HISTORY_RESPONSE_SCHEMA =
         "opal/minor-creditor/getMinorCreditorHistoryResponse.json";
@@ -103,6 +104,16 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     }
 
     /**
+     * Requests history for the created minor creditor with a raw query string.
+     *
+     * @param query query string to append to the request URI.
+     */
+    @When("I request minor creditor account history for the created minor creditor account with query {string}")
+    public void requestCreatedMinorCreditorHistoryWithQuery(String query) {
+        getHistory(BearerTokenStepDef.getToken(), createdMinorCreditorAccountIdOrFail(), query);
+    }
+
+    /**
      * Requests history for the created minor creditor with a remembered date range and item-types
      * filter.
      *
@@ -117,6 +128,27 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
             createdMinorCreditorAccountIdOrFail(),
             "dateFrom=" + rememberedDateFrom + "&dateTo=" + rememberedDateTo + "&itemTypes=" + itemTypes
         );
+    }
+
+    /**
+     * Requests history using the fixture's inclusive lower date boundary.
+     */
+    @When("I request minor creditor account history for the created minor creditor account using the remembered "
+        + "dateFrom")
+    public void requestCreatedMinorCreditorHistoryUsingRememberedDateFrom() {
+        assertRememberedDateRange();
+        getHistory(BearerTokenStepDef.getToken(), createdMinorCreditorAccountIdOrFail(),
+            "dateFrom=" + rememberedDateFrom);
+    }
+
+    /**
+     * Requests history using the fixture's inclusive upper date boundary.
+     */
+    @When("I request minor creditor account history for the created minor creditor account using the remembered dateTo")
+    public void requestCreatedMinorCreditorHistoryUsingRememberedDateTo() {
+        assertRememberedDateRange();
+        getHistory(BearerTokenStepDef.getToken(), createdMinorCreditorAccountIdOrFail(),
+            "dateTo=" + rememberedDateTo);
     }
 
     /**
@@ -151,6 +183,42 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     @When("I request minor creditor account history for a non-existent minor creditor account with an invalid token")
     public void requestMinorCreditorHistoryForNonExistentMinorCreditorAccountWithInvalidToken() {
         getHistory("invalid-token", nonExistentMinorCreditorAccountId(), null);
+    }
+
+    /**
+     * Requests history for the account seeded in the legacy API stub.
+     */
+    @When("I request minor creditor account history for the seeded legacy minor creditor account")
+    public void requestMinorCreditorHistoryForSeededLegacyAccount() {
+        getHistory(BearerTokenStepDef.getToken(), LEGACY_HISTORY_ACCOUNT_ID, null);
+    }
+
+    /**
+     * Requests history for the seeded legacy account with a raw query string.
+     *
+     * @param query query string to append to the request URI.
+     */
+    @When("I request minor creditor account history for the seeded legacy minor creditor account with query {string}")
+    public void requestSeededLegacyMinorCreditorHistoryWithQuery(String query) {
+        getHistory(BearerTokenStepDef.getToken(), LEGACY_HISTORY_ACCOUNT_ID, query);
+    }
+
+    /**
+     * Requests history for the seeded legacy account without an Authorization header.
+     */
+    @When("I request minor creditor account history for the seeded legacy minor creditor account without a token")
+    public void requestSeededLegacyMinorCreditorHistoryWithoutToken() {
+        getHistory(null, LEGACY_HISTORY_ACCOUNT_ID, null);
+    }
+
+    /**
+     * Requests history for the seeded legacy account using a specific test user.
+     *
+     * @param user user email used to resolve a bearer token.
+     */
+    @When("the {string} user requests minor creditor account history for the seeded legacy minor creditor account")
+    public void userRequestsSeededLegacyMinorCreditorHistory(String user) {
+        getHistory(BearerTokenStepDef.getAccessTokenForUser(user), LEGACY_HISTORY_ACCOUNT_ID, null);
     }
 
     /**
@@ -300,6 +368,34 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
                 postedDateOf(historyItem).isAfter(rememberedDateTo),
                 "History item was after dateTo boundary"
             );
+        }
+    }
+
+    /**
+     * Asserts every returned item is on or after an explicitly supplied date.
+     *
+     * @param dateFrom inclusive lower date boundary.
+     */
+    @Then("the minor creditor account history response contains only items on or after {string}")
+    public void minorCreditorHistoryContainsOnlyItemsOnOrAfter(String dateFrom) {
+        LocalDate boundary = LocalDate.parse(dateFrom);
+        for (JsonNode historyItem : historyItems()) {
+            assertFalse(postedDateOf(historyItem).isBefore(boundary),
+                "History item was before dateFrom boundary " + boundary);
+        }
+    }
+
+    /**
+     * Asserts every returned item is on or before an explicitly supplied date.
+     *
+     * @param dateTo inclusive upper date boundary.
+     */
+    @Then("the minor creditor account history response contains only items on or before {string}")
+    public void minorCreditorHistoryContainsOnlyItemsOnOrBefore(String dateTo) {
+        LocalDate boundary = LocalDate.parse(dateTo);
+        for (JsonNode historyItem : historyItems()) {
+            assertFalse(postedDateOf(historyItem).isAfter(boundary),
+                "History item was after dateTo boundary " + boundary);
         }
     }
 

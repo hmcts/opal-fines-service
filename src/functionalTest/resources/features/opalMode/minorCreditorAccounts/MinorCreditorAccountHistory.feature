@@ -50,3 +50,28 @@ Feature: Minor Creditor Account History
       | Note      |
     And the minor creditor account history excludes the following item types
       | Financial |
+
+  @cleanUpData @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653
+  Scenario: E2E.06 Individual and multiple category filters
+    Given a minor creditor account with representative history exists for submitted by "MCHIST006"
+    When I request minor creditor account history for the created minor creditor account with query "itemTypes=amendment"
+    Then the minor creditor account history response is returned as documented
+    And the minor creditor account history contains only the following item types
+      | Amendment |
+    When I request minor creditor account history for the created minor creditor account with query "itemTypes=financial,note"
+    Then the minor creditor account history response is returned as documented
+    And the minor creditor account history contains only the following item types
+      | Financial |
+      | Note      |
+
+  @cleanUpData @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653
+  Scenario: E2E.07 Independent inclusive date filters
+    Given a minor creditor account with representative history exists for submitted by "MCHIST007"
+    When I request minor creditor account history for the created minor creditor account
+    Then the minor creditor account history response is returned as documented
+    When I request minor creditor account history for the created minor creditor account using the remembered dateFrom
+    Then the minor creditor account history response is returned as documented
+    And the minor creditor account history response contains only items on or after the remembered dateFrom
+    When I request minor creditor account history for the created minor creditor account using the remembered dateTo
+    Then the minor creditor account history response is returned as documented
+    And the minor creditor account history response contains only items on or before the remembered dateTo
