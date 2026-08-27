@@ -336,4 +336,35 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
         resultActions.andExpect(status().is5xxServerError());
 
     }
+
+    @DisplayName("post notes for a legacy-only defendant account [PO-10341]")
+    @JiraStory("PO-10341")
+    void legacyOnlyAccountAddNoteSuccess(Logger log) throws Exception {
+
+        userStateStub.addPermissions((short) 78, ADD_ACCOUNT_ACTIVITY_NOTES);
+
+        Note note = new Note();
+        note.setNoteText("legacy-only account note");
+        note.setRecordId("770000004141");
+        note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
+        note.setNoteType("AA");
+
+        AddNoteRequest request = new AddNoteRequest();
+        request.setActivityNote(note);
+
+        ResultActions resultActions = mockMvc.perform(
+            post(URL_BASE + "/add")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken())
+                .header(HttpHeaders.IF_MATCH, "1")
+                .header("Business-Unit-Id", 78)
+                .with(authentication(allFinesPermissionsToken()))
+        );
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":legacyOnlyAccountAddNoteSuccess: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isCreated());
+    }
 }
