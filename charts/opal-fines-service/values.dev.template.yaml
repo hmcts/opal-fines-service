@@ -65,6 +65,7 @@ java:
     APPLICATIONINSIGHTS_ROLE_NAME: "opal-fines-service-pr-${CHANGE_ID}"
     SERVICEBUS_LOGGING_PDPL_QUEUE_NAME: "{{ .Release.Name}}-servicebus-logging-pdpl"
     SERVICEBUS_REPORT_QUEUE_NAME: "{{ .Release.Name}}-servicebus-report"
+    SERVICEBUS_INTERFACE_JOBS_QUEUE_NAME: "{{ .Release.Name}}-servicebus-auto-payments-process-interface-files"
     SERVICEBUS_LOGGING_PDPL_PROTOCOL: amqps
     SERVICEBUS_PROTOCOL: amqps
   postgresql:
@@ -187,6 +188,7 @@ servicebus:
       - name: "logging-pdpl"
       - name: "report"
       - name: "banking-interfaces-preprocess-interface-file-fines"
+      - name: "auto-payments-process-interface-files"
 hmcts-redis:
   enabled: true
   master:

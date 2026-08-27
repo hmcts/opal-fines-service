@@ -220,7 +220,7 @@ public class OpalDefendantAccountEnforcementService
 
         amendmentService.auditInitialiseStoredProc(
             defendantAccountId,
-            RecordType.DEFENDANT_ACCOUNTS
+            AssociatedRecordType.DEFENDANT_ACCOUNTS
         );
 
         defendantEntity.setLastEnforcement(null);
@@ -242,7 +242,7 @@ public class OpalDefendantAccountEnforcementService
 
         amendmentService.auditFinaliseStoredProc(
             defendantAccountId,
-            RecordType.DEFENDANT_ACCOUNTS,
+            AssociatedRecordType.DEFENDANT_ACCOUNTS,
             businessUnitId,
             businessUnitUserId,
             userState.getUserName(),

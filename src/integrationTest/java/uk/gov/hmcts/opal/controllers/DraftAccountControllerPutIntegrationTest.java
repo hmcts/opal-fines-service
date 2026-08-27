@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -66,7 +67,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             .andExpect(jsonPath("$.account.originator_type").value("TFO"))
             .andExpect(jsonPath("$.timeline_data").isArray())
             .andExpect(jsonPath("$.timeline_data[1].username").value("L078JG"))
-            .andExpect(jsonPath("$.timeline_data[1].status").value("Resubmitted"))
+            .andExpect(jsonPath("$.timeline_data[1].status").value("Submitted"))
             .andExpect(jsonPath("$.timeline_data[1].status_date").value(TIMELINE_STATUS_DATE.toString()))
             .andExpect(jsonPath("$.timeline_data[1].reason_text").doesNotExist());
 
@@ -456,6 +457,27 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     }
 
     @Test
+    @DisplayName("Replace draft account - Should return 400 when imposition result is not an imposition")
+    @JiraStory("PO-5747")
+    @JiraEpic("PO-5741")
+    void shouldReturn400WhenImpositionResultIsNotAnImposition() throws Exception {
+        String ifMatch = getIfMatchForDraftAccount(5L);
+
+        mockMvc.perform(put(URL_BASE + "/5")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", ifMatch)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(nonImpositionResultReplaceRequestBody(0L)))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Bad Request"))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/invalid-reference-validation"))
+            .andExpect(jsonPath("$.detail").value(containsString("$.offences[0].impositions[0].result_id")))
+            .andExpect(jsonPath("$.detail").value(containsString("result id COLLO is not an imposition result")));
+    }
+
+    @Test
     @DisplayName("Replace draft account - Should return 400 when reference validation fails and leave data unchanged")
     @JiraStory("PO-973")
     @JiraEpic("PO-2220")
@@ -704,6 +726,11 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             """
 
                 }""";
+    }
+
+    private static String nonImpositionResultReplaceRequestBody(Long version) {
+        return validReplaceRequestBody(version)
+            .replace("\"result_id\": \"FO\"", "\"result_id\": \"COLLO\"");
     }
 
     private static String invalidReferenceReplaceRequestBody(Long version) {
