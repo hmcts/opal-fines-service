@@ -35,6 +35,8 @@ import uk.gov.hmcts.opal.service.AccountNoteContext;
 @ExtendWith(MockitoExtension.class)
 class LegacyNotesServiceTest {
 
+    private static final String LEGACY_VERSION = "835509468493002959816526022013198014020000027379";
+
     @Mock private GatewayService gatewayService;
     @Mock private UserState user;
 
@@ -86,6 +88,34 @@ class LegacyNotesServiceTest {
             isNull(String.class)
         );
         verifyNoMoreInteractions(gatewayService);
+    }
+
+    @Test
+    void addNote_success_acceptsQuotedLegacyETag() {
+
+        LegacyAddNoteResponse entity = legacyRespWithNote("770000004141", "hello");
+
+        @SuppressWarnings("unchecked")
+        GatewayService.Response<LegacyAddNoteResponse> resp = mock(GatewayService.Response.class);
+        ReflectionTestUtils.setField(resp, "responseEntity", entity);
+        when(resp.isSuccessful()).thenReturn(true);
+
+        ArgumentCaptor<LegacyAddNoteRequest> reqCap = ArgumentCaptor.forClass(LegacyAddNoteRequest.class);
+
+        when(gatewayService.<LegacyAddNoteResponse>postToGateway(
+            eq("addNote"),
+            eq(LegacyAddNoteResponse.class),
+            reqCap.capture(),
+            isNull(String.class)
+        )).thenReturn(resp);
+
+        AddNoteRequest req = addReq("770000004141", "hello");
+        when(user.getUserId()).thenReturn(999L);
+
+        String id = service.addNote(req, '"' + LEGACY_VERSION + '"', user, targetWithBu((short) 77));
+
+        assertEquals("770000004141", id);
+        assertEquals(new BigInteger(LEGACY_VERSION), reqCap.getValue().getVersion());
     }
 
     @Test
