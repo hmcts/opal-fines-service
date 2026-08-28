@@ -1,0 +1,20 @@
+meta {
+  name: Get-Fixed-Penalty
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseURL}}/defendant-accounts/{{defendantAccountWithImpositionsId}}/fixed-penalty
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{BEARER_TOKEN}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -39,6 +39,7 @@ class MinorCreditorAccountResponseMapperTest {
         CreditorAccountEntity account = CreditorAccountEntity.builder()
             .creditorAccountId(101L)
             .creditorAccountType(CreditorAccountType.MN)
+            .repayment(true)
             .bankAccountName("A NAME")
             .bankSortCode("112233")
             .bankAccountNumber("12345678")
@@ -79,6 +80,7 @@ class MinorCreditorAccountResponseMapperTest {
         assertEquals("Any Region", mapped.getAddress().getAddressLine5());
         assertEquals("AB1 2CD", mapped.getAddress().getPostcode());
 
+        assertEquals(true, mapped.getRepayment());
         assertNotNull(mapped.getPayment());
         assertEquals("A NAME", mapped.getPayment().getAccountName());
         assertEquals("112233", mapped.getPayment().getSortCode());
@@ -94,6 +96,7 @@ class MinorCreditorAccountResponseMapperTest {
         CreditorAccountEntity account = CreditorAccountEntity.builder()
             .creditorAccountId(202L)
             .creditorAccountType(CreditorAccountType.MN)
+            .repayment(false)
             .bankAccountName("ORG NAME")
             .bankSortCode("445566")
             .bankAccountNumber("87654321")
@@ -133,6 +136,7 @@ class MinorCreditorAccountResponseMapperTest {
         assertEquals("Org Region", mapped.getAddress().getAddressLine5());
         assertEquals("ZZ1 9ZZ", mapped.getAddress().getPostcode());
 
+        assertEquals(false, mapped.getRepayment());
         assertNotNull(mapped.getPayment());
         assertEquals("ORG NAME", mapped.getPayment().getAccountName());
         assertEquals("445566", mapped.getPayment().getSortCode());

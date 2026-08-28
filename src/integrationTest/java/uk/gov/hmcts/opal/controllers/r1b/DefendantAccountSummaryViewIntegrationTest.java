@@ -1,0 +1,169 @@
+package uk.gov.hmcts.opal.controllers.r1b;
+
+
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.web.servlet.ResultActions;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
+
+@DisplayName("Defendant Account Summary View Integration Tests")
+class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
+
+    @Test
+    @JiraEpic("PO-2332")
+    @JiraStory("PO-2334")
+    @DisplayName("PO-2334 INT.01 - Get header summary returns has consolidated accounts true")
+    @JiraTestKey("PO-8761")
+    void int01_getHeaderSummary_returnsHasConsolidatedAccountsTrue() throws Exception {
+
+        ResultActions resultActions = mockMvc.perform(
+            get("/defendant-accounts/990001/header-summary")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+        );
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_id").value("990001"))
+            .andExpect(jsonPath("$.account_number").value("990001A"))
+            .andExpect(jsonPath("$.account_status_reference").exists())
+            .andExpect(jsonPath("$.account_type").value("Fine"))
+            .andExpect(jsonPath("$.business_unit_summary").exists())
+            .andExpect(jsonPath("$.defendant_account_party_id").value("990001"))
+            .andExpect(jsonPath("$.is_youth").value(false))
+            .andExpect(jsonPath("$.has_consolidated_accounts").value(true))
+            .andExpect(jsonPath("$.debtor_type").value("Defendant"))
+            .andExpect(jsonPath("$.payment_state_summary").exists())
+            .andExpect(jsonPath("$.party_details").exists())
+            .andExpect(jsonPath("$.parent_guardian_party_id").value("990002"))
+            .andExpect(jsonPath("$.fixed_penalty_ticket_number").value("FPN990001"))
+            .andExpect(jsonPath("$.prosecutor_case_reference").value("PCR990001"));
+    }
+
+    @Test
+    @JiraEpic("PO-2332")
+    @JiraStory("PO-2334")
+    @DisplayName("PO-2334 INT.02 - Get header summary returns has consolidated accounts false")
+    @JiraTestKey("PO-8763")
+    void int02_getHeaderSummary_returnsHasConsolidatedAccountsFalse() throws Exception {
+
+        ResultActions resultActions = mockMvc.perform(
+            get("/defendant-accounts/77/header-summary")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+        );
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_id").value("77"))
+            .andExpect(jsonPath("$.account_number").value("177A"))
+            .andExpect(jsonPath("$.account_status_reference").exists())
+            .andExpect(jsonPath("$.account_type").value("Fine"))
+            .andExpect(jsonPath("$.payment_state_summary").exists())
+            .andExpect(jsonPath("$.party_details").exists())
+            .andExpect(jsonPath("$.business_unit_summary").exists())
+            .andExpect(jsonPath("$.business_unit_summary.business_unit_code").value("NE"))
+            .andExpect(jsonPath("$.defendant_account_party_id").value("77"))
+            .andExpect(jsonPath("$.is_youth").value(false))
+            .andExpect(jsonPath("$.has_consolidated_accounts").value(false))
+            .andExpect(jsonPath("$.debtor_type").value("Defendant"))
+            .andExpect(jsonPath("$.payment_state_summary").exists())
+            .andExpect(jsonPath("$.party_details").exists())
+            .andExpect(jsonPath("$.parent_guardian_party_id").isEmpty())
+            .andExpect(jsonPath("$.fixed_penalty_ticket_number").value("888"))
+            .andExpect(jsonPath("$.prosecutor_case_reference").value("090A"));
+    }
+
+    @Test
+    @JiraEpic("PO-2630")
+    @JiraStory("PO-2969")
+    @DisplayName("PO-2969 INT.03 - Get header summary returns TFO originator fields and collection order")
+    void int03_getHeaderSummary_returnsTfoOriginatorFieldsAndCollectionOrder() throws Exception {
+
+        ResultActions resultActions = mockMvc.perform(
+            get("/defendant-accounts/77/header-summary")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+        );
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(APPLICATION_JSON))
+            .andExpect(jsonPath("$.account_number").value("177A"))
+            .andExpect(jsonPath("$.originator_type").value("TFO"))
+            .andExpect(jsonPath("$.originator_name").value("Kingston-upon-Thames Mags Court"))
+            .andExpect(jsonPath("$.collection_order").value(true))
+            .andExpect(jsonPath("$.prosecutor_case_reference").value("090A"))
+            .andExpect(jsonPath("$.payment_state_summary").exists())
+            .andExpect(jsonPath("$.party_details").exists());
+    }
+
+    @Test
+    @JiraEpic("PO-2630")
+    @JiraStory("PO-2969")
+    @DisplayName("PO-2969 INT.04 - Get header summary returns NEW originator fields and collection order")
+    void int04_getHeaderSummary_returnsNewOriginatorFieldsAndCollectionOrder() throws Exception {
+
+        ResultActions resultActions = mockMvc.perform(
+            get("/defendant-accounts/990001/header-summary")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+        );
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_id").value("990001"))
+            .andExpect(jsonPath("$.originator_type").value("NEW"))
+            .andExpect(jsonPath("$.originator_name").value("Header Summary New Originator"))
+            .andExpect(jsonPath("$.collection_order").value(false))
+            .andExpect(jsonPath("$.has_consolidated_accounts").value(true));
+    }
+
+    @Test
+    @JiraEpic("PO-2630")
+    @JiraStory("PO-2969")
+    @DisplayName("PO-2969 INT.05 - Get header summary returns FP originator fields and collection order")
+    void int05_getHeaderSummary_returnsFpOriginatorFieldsAndCollectionOrder() throws Exception {
+
+        ResultActions resultActions = mockMvc.perform(
+            get("/defendant-accounts/10001/header-summary")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+        );
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_id").value("10001"))
+            .andExpect(jsonPath("$.originator_type").value("FP"))
+            .andExpect(jsonPath("$.originator_name").value("Brentwood Mags Court"))
+            .andExpect(jsonPath("$.collection_order").value(true))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(true));
+    }
+
+    @Test
+    @JiraEpic("PO-2332")
+    @JiraStory("PO-2334")
+    @DisplayName("PO-2629 INT.08 - Get defendant account header summary returns forbidden response")
+    @JiraTestKey("PO-8762")
+    void int08_getDefendantAccountHeaderSummary_returnsForbiddenResponse() throws Exception {
+
+        ResultActions resultActions = mockMvc.perform(
+            get("/defendant-accounts/77/header-summary")
+                .with(userStateStub.getInvalidAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+        );
+
+        resultActions.andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"))
+            .andExpect(jsonPath("$.title").value("Forbidden"))
+            .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"));
+    }
+}
