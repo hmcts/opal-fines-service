@@ -9,6 +9,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -24,6 +25,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
+import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
@@ -266,7 +268,68 @@ class LegacyNotesServiceTest {
             () -> service.addNote(req, '"' + LEGACY_VERSION + '"', user, targetWithBu((short) 77))
         );
 
-        assertEquals("Legacy gateway returned failure", exception.getMessage());
+        assertEquals("Legacy gateway returned failure: -20001 User not found", exception.getMessage());
+    }
+
+    @Test
+    void addNote_errorResponseOnErrorPath_includesLegacyErrorDetails() {
+
+        LegacyAddNoteResponse entity = LegacyAddNoteResponse.builder()
+            .errorResponse(ErrorResponse.builder()
+                .errorCode("-20001")
+                .errorMessage("User not found")
+                .build())
+            .build();
+
+        @SuppressWarnings("unchecked")
+        GatewayService.Response<LegacyAddNoteResponse> resp = mock(GatewayService.Response.class);
+        ReflectionTestUtils.setField(resp, "responseEntity", entity);
+        when(resp.isError()).thenReturn(true);
+
+        when(gatewayService.<LegacyAddNoteResponse>postToGateway(
+            anyString(),
+            eq(LegacyAddNoteResponse.class),
+            any(LegacyAddNoteRequest.class),
+            isNull(String.class)
+        )).thenReturn(resp);
+
+        AddNoteRequest req = addReq("770000004141", "test");
+        givenBusinessUnitUser((short) 77, "L077JG");
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> service.addNote(req, '"' + LEGACY_VERSION + '"', user, targetWithBu((short) 77))
+        );
+
+        assertEquals("Legacy gateway returned failure: -20001 User not found", exception.getMessage());
+    }
+
+    @Test
+    void addNote_missingBusinessUnitUserId_throwsForbiddenBeforeGateway() {
+
+        AddNoteRequest req = addReq("770000004141", "test");
+        when(user.getBusinessUnitUserForBusinessUnit((short) 77)).thenReturn(Optional.empty());
+
+        assertThrows(
+            PermissionNotAllowedException.class,
+            () -> service.addNote(req, '"' + LEGACY_VERSION + '"', user, targetWithBu((short) 77))
+        );
+
+        verifyNoInteractions(gatewayService);
+    }
+
+    @Test
+    void addNote_blankBusinessUnitUserId_throwsForbiddenBeforeGateway() {
+
+        AddNoteRequest req = addReq("770000004141", "test");
+        givenBusinessUnitUser((short) 77, " ");
+
+        assertThrows(
+            PermissionNotAllowedException.class,
+            () -> service.addNote(req, '"' + LEGACY_VERSION + '"', user, targetWithBu((short) 77))
+        );
+
+        verifyNoInteractions(gatewayService);
     }
 
     // ---------- helpers ----------

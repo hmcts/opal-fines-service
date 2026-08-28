@@ -341,7 +341,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-10341")
     void legacyOnlyAccountAddNoteSuccess(Logger log) throws Exception {
 
-        userStateStub.addPermissions((short) 78, ADD_ACCOUNT_ACTIVITY_NOTES);
+        userStateStub.addPermissions((short) 77, ADD_ACCOUNT_ACTIVITY_NOTES);
 
         Note note = new Note();
         note.setNoteText("legacy-only account note");
@@ -358,8 +358,8 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                 .content(objectMapper.writeValueAsString(request))
                 .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken())
                 .header(HttpHeaders.IF_MATCH, "\"1\"")
-                .header("Business-Unit-Id", 78)
-                .with(authentication(allFinesPermissionsToken()))
+                .header("Business-Unit-Id", 77)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
         );
 
         String body = resultActions.andReturn().getResponse().getContentAsString();

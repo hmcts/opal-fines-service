@@ -5,7 +5,10 @@ import static uk.gov.hmcts.opal.util.VersionUtils.extractBigInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
+import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
@@ -30,11 +33,14 @@ public class LegacyNotesService implements NotesServiceInterface {
 
     public String addNote(AddNoteRequest request, String ifMatch, UserState user, Short businessUnitId) {
         log.info(":LegacyAddNote");
+        LegacyAddNoteRequest legacyRequest = createRequest(request, ifMatch, user, businessUnitId);
+        log.debug(":LegacyAddNote: request metadata: businessUnitId={}, businessUnitUserId={}",
+            legacyRequest.getBusinessUnitId(), legacyRequest.getBusinessUnitUserId());
 
         GatewayService.Response<LegacyAddNoteResponse> response = gatewayService.postToGateway(
             ADD_NOTE,
             LegacyAddNoteResponse.class,
-            createRequest(request, ifMatch, user, businessUnitId),
+            legacyRequest,
             null
         );
 
@@ -46,7 +52,7 @@ public class LegacyNotesService implements NotesServiceInterface {
 
         if (response.responseEntity != null && response.responseEntity.getErrorResponse() != null) {
             log.error(":LegacyAddNote: Legacy Gateway error response: {}", response.responseEntity.getErrorResponse());
-            throw new IllegalArgumentException("Legacy gateway returned failure");
+            throw new IllegalArgumentException(legacyFailureMessage(response.responseEntity.getErrorResponse()));
         }
 
         if (response.responseEntity == null || response.responseEntity.getNote() == null) {
@@ -72,11 +78,17 @@ public class LegacyNotesService implements NotesServiceInterface {
         return user.getBusinessUnitUserForBusinessUnit(businessUnitId)
             .map(BusinessUnitUser::getBusinessUnitUserId)
             .filter(id -> !id.isBlank())
-            .orElse(user.getUserName());
+            .orElseThrow(() -> new PermissionNotAllowedException(
+                businessUnitId, FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES));
     }
 
     private void handleGatewayError(GatewayService.Response<LegacyAddNoteResponse> response) {
         log.error(":LegacyAddNote: Legacy Gateway response: HTTP Response Code: {}", response.code);
+
+        if (response.responseEntity != null && response.responseEntity.getErrorResponse() != null) {
+            log.error(":LegacyAddNote: Legacy Gateway error response: {}", response.responseEntity.getErrorResponse());
+            throw new IllegalArgumentException(legacyFailureMessage(response.responseEntity.getErrorResponse()));
+        }
 
         if (response.isException()) {
             log.error(":LegacyAddNote:", response.exception);
@@ -93,5 +105,17 @@ public class LegacyNotesService implements NotesServiceInterface {
         }
 
         throw new IllegalArgumentException("Legacy gateway error: " + response.code);
+    }
+
+    private String legacyFailureMessage(ErrorResponse errorResponse) {
+        String errorCode = errorResponse.getErrorCode();
+        String errorMessage = errorResponse.getErrorMessage();
+        if (errorCode == null || errorCode.isBlank()) {
+            return "Legacy gateway returned failure: " + errorMessage;
+        }
+        if (errorMessage == null || errorMessage.isBlank()) {
+            return "Legacy gateway returned failure: " + errorCode;
+        }
+        return "Legacy gateway returned failure: " + errorCode + " " + errorMessage;
     }
 }
