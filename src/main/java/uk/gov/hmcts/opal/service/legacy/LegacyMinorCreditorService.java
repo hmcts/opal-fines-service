@@ -114,12 +114,10 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
         GetMinorCreditorAccountHeaderSummaryResponse mapped = headerSummaryResponseMapper
             .toOpal(response.responseEntity);
 
-        if (mapped != null) {
-            Optional<CreditorAccountEntity> creditorAccount = creditorAccountRepository
-                .findById(minorCreditorAccountId);
-            mapped.setRepayment(creditorAccount.map(CreditorAccountEntity::isRepayment)
-                .orElse(false));
-        }
+        Optional<CreditorAccountEntity> creditorAccount = creditorAccountRepository
+            .findById(minorCreditorAccountId);
+        mapped.setRepayment(creditorAccount.map(CreditorAccountEntity::isRepayment)
+            .orElse(false));
 
 
         CreditorHeaderLegacy creditor = response.responseEntity.getCreditor();
