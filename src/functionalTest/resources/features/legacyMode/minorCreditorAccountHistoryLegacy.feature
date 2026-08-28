@@ -12,7 +12,7 @@ Feature: Minor Creditor Account History API In Legacy Mode
       | Note      | 3 |
     And the minor creditor account history is ordered newest first
 
-  @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653 @JIRA-NFR:PO-2507
+  @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653
   Scenario: E2E.02 Authentication propagation returns 401 when authentication is missing or invalid
     When I request minor creditor account history for a non-existent minor creditor account without a token
     Then the minor creditor account history error response matches the standard problem detail contract for status 401
