@@ -28,8 +28,8 @@ import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.PaymentTermsRequestDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.PaymentTermsResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddPaymentTermsRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.GetPaymentTermsResponseDefendantAccount;
 import uk.gov.hmcts.opal.mapper.request.PaymentTermsMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
@@ -129,11 +129,11 @@ class OpalDefendantAccountPaymentTermsServiceTest {
         when(resultService.getResultById("55")).thenReturn(resultEntityLite);
 
         // Request DTO (minimal)
-        PaymentTermsRequestDefendantAccount request = paymentTermsRequest();
+        AddPaymentTermsRequestDefendantAccount request = paymentTermsRequest();
         stubGeneratedResponse();
 
         // Act
-        PaymentTermsResponseDefendantAccount response = defendantAccountPaymentTermsService.addPaymentTerms(
+        GetPaymentTermsResponseDefendantAccount response = defendantAccountPaymentTermsService.addPaymentTerms(
             defendantAccountId, businessUnitId, "tester", "Tester Name", ifMatch, request);
 
         // Assert
@@ -189,7 +189,7 @@ class OpalDefendantAccountPaymentTermsServiceTest {
         when(paymentTermsService.addPaymentTerm(any(PaymentTermsEntity.class))).thenReturn(savedPaymentTermsEntity);
         stubGeneratedResponse();
 
-        PaymentTermsRequestDefendantAccount request = paymentTermsRequest();
+        AddPaymentTermsRequestDefendantAccount request = paymentTermsRequest();
 
         // Act
         defendantAccountPaymentTermsService.addPaymentTerms(
@@ -240,7 +240,7 @@ class OpalDefendantAccountPaymentTermsServiceTest {
 
         when(paymentTermsService.addPaymentTerm(any(PaymentTermsEntity.class))).thenReturn(savedPaymentTermsEntity);
 
-        PaymentTermsRequestDefendantAccount request = paymentTermsRequest();
+        AddPaymentTermsRequestDefendantAccount request = paymentTermsRequest();
         stubGeneratedResponse();
 
         defendantAccountPaymentTermsService.addPaymentTermsPreservingLastEnforcement(
@@ -278,7 +278,7 @@ class OpalDefendantAccountPaymentTermsServiceTest {
             .thenReturn(account);
         doThrow(exception).when(defendantAccountControlValidator).validateCanAddPaymentTerms(account);
 
-        PaymentTermsRequestDefendantAccount request = paymentTermsRequest();
+        AddPaymentTermsRequestDefendantAccount request = paymentTermsRequest();
 
         UnprocessableException result = assertThrows(UnprocessableException.class, () ->
             defendantAccountPaymentTermsService.addPaymentTerms(
@@ -290,8 +290,8 @@ class OpalDefendantAccountPaymentTermsServiceTest {
         verify(defendantAccountRepository, never()).save(any());
     }
 
-    private static PaymentTermsRequestDefendantAccount paymentTermsRequest() {
-        return PaymentTermsRequestDefendantAccount.builder()
+    private static AddPaymentTermsRequestDefendantAccount paymentTermsRequest() {
+        return AddPaymentTermsRequestDefendantAccount.builder()
             .paymentTerms(PaymentTermsDefendantAccount.builder().build())
             .requestPaymentCard(false)
             .generatePaymentTermsChangeLetter(false)
@@ -300,6 +300,6 @@ class OpalDefendantAccountPaymentTermsServiceTest {
 
     private void stubGeneratedResponse() {
         when(paymentTermsMapper.toGeneratedResponse(any(PaymentTermsEntity.class), any(DefendantAccountEntity.class)))
-            .thenReturn(new PaymentTermsResponseDefendantAccount());
+            .thenReturn(new GetPaymentTermsResponseDefendantAccount());
     }
 }

@@ -21,26 +21,26 @@ public interface EnforcementPaymentTermsMapper {
         EnforcementInstalmentPeriodCommonStrict instalmentPeriod = source.getInstalmentPeriod().orElse(null);
 
         return PaymentTermsDefendantAccount.builder()
-            .daysInDefault(source.getDaysInDefault())
-            .dateDaysInDefaultImposed(source.getDateDaysInDefaultImposed())
+            .daysInDefault(source.getDaysInDefault().orElse(null))
+            .dateDaysInDefaultImposed(source.getDateDaysInDefaultImposed().orElse(null))
             .extension(source.getExtension())
-            .reasonForExtension(source.getReasonForExtension())
+            .reasonForExtension(source.getReasonForExtension().orElse(null))
             .paymentTermsType(paymentTermsType == null ? null : PaymentTermsTypeCommonStrict.builder()
                 .paymentTermsTypeCode(PaymentTermsTypeCommonStrict.PaymentTermsTypeCodeEnum.fromValue(
                     paymentTermsType.getPaymentTermsTypeCode().getValue()))
                 .paymentTermsTypeDisplayName(toPaymentTermsDisplayName(
                     paymentTermsType.getPaymentTermsTypeCode().getValue()))
                 .build())
-            .effectiveDate(source.getEffectiveDate())
+            .effectiveDate(source.getEffectiveDate().orElse(null))
             .instalmentPeriod(JsonNullable.of(instalmentPeriod == null ? null : InstalmentPeriodCommonStrict.builder()
                 .instalmentPeriodCode(InstalmentPeriodCommonStrict.InstalmentPeriodCodeEnum.fromValue(
                     instalmentPeriod.getInstalmentPeriodCode().getValue()))
                 .instalmentPeriodDisplayName(toInstalmentPeriodDisplayName(
                     instalmentPeriod.getInstalmentPeriodCode().getValue()))
                 .build()))
-            .lumpSumAmount(source.getLumpSumAmount())
-            .instalmentAmount(source.getInstalmentAmount())
-            .postedDetails(source.getPostedDetails())
+            .lumpSumAmount(source.getLumpSumAmount().orElse(null))
+            .instalmentAmount(source.getInstalmentAmount().orElse(null))
+            .postedDetails(JsonNullable.of(source.getPostedDetails().orElse(null)))
             .build();
     }
 

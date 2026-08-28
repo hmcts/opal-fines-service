@@ -8,7 +8,7 @@ import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.TermsTypeCode;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.generated.model.PaymentTermsResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.GetPaymentTermsResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementPostedDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.InstalmentPeriodCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsDefendantAccount;
@@ -31,16 +31,16 @@ public interface PaymentTermsMapper {
 
         EnforcementPostedDetailsCommonStrict postedDetails = toValue(source.getPostedDetails());
         return PaymentTermsEntity.builder()
-            .jailDays(toValue(source.getDaysInDefault()))
+            .jailDays(source.getDaysInDefault())
             .termsTypeCode(toTermsTypeCode(source.getPaymentTermsType() == null
                 ? null : source.getPaymentTermsType().getPaymentTermsTypeCode()))
-            .effectiveDate(toValue(source.getEffectiveDate()))
+            .effectiveDate(source.getEffectiveDate())
             .instalmentPeriod(toInstalmentPeriod(toValue(source.getInstalmentPeriod()) == null
                 ? null : toValue(source.getInstalmentPeriod()).getInstalmentPeriodCode()))
-            .instalmentLumpSum(toValue(source.getLumpSumAmount()))
-            .instalmentAmount(toValue(source.getInstalmentAmount()))
+            .instalmentLumpSum(source.getLumpSumAmount())
+            .instalmentAmount(source.getInstalmentAmount())
             .extension(source.getExtension())
-            .reasonForExtension(toValue(source.getReasonForExtension()))
+            .reasonForExtension(source.getReasonForExtension())
             .postedDate(postedDetails == null ? null : postedDetails.getPostedDate())
             .postedBy(postedDetails == null ? null : toValue(postedDetails.getPostedBy()))
             .postedByUsername(postedDetails == null ? null : toValue(postedDetails.getPostedByName()))
@@ -51,28 +51,28 @@ public interface PaymentTermsMapper {
     @org.mapstruct.Mapping(source = "instalmentPeriod", target = "instalmentPeriod.instalmentPeriodCode")
     PaymentTerms toDto(PaymentTermsEntity savedPaymentTerms);
 
-    default PaymentTermsResponseDefendantAccount toGeneratedResponse(
+    default GetPaymentTermsResponseDefendantAccount toGeneratedResponse(
         PaymentTermsEntity entity, DefendantAccountEntity account) {
         if (entity == null) {
             return null;
         }
 
         PaymentTermsDefendantAccount paymentTerms = PaymentTermsDefendantAccount.builder()
-            .daysInDefault(JsonNullable.of(entity.getJailDays()))
-            .dateDaysInDefaultImposed(JsonNullable.of(account.getSuspendedCommittalDate()))
+            .daysInDefault(entity.getJailDays())
+            .dateDaysInDefaultImposed(account.getSuspendedCommittalDate())
             .extension(entity.getExtension())
-            .reasonForExtension(JsonNullable.of(entity.getReasonForExtension()))
+            .reasonForExtension(entity.getReasonForExtension())
             .paymentTermsType(PaymentTermsTypeCommonStrict.builder()
                 .paymentTermsTypeCode(toGeneratedTermsTypeCode(entity.getTermsTypeCode()))
                 .paymentTermsTypeDisplayName(mapDisplayName(entity.getTermsTypeCode()))
                 .build())
-            .effectiveDate(JsonNullable.of(entity.getEffectiveDate()))
+            .effectiveDate(entity.getEffectiveDate())
             .instalmentPeriod(JsonNullable.of(InstalmentPeriodCommonStrict.builder()
                 .instalmentPeriodCode(toGeneratedInstalmentPeriodCode(entity.getInstalmentPeriod()))
                 .instalmentPeriodDisplayName(mapDisplayName(entity.getInstalmentPeriod()))
                 .build()))
-            .lumpSumAmount(JsonNullable.of(entity.getInstalmentLumpSum()))
-            .instalmentAmount(JsonNullable.of(entity.getInstalmentAmount()))
+            .lumpSumAmount(entity.getInstalmentLumpSum())
+            .instalmentAmount(entity.getInstalmentAmount())
             .postedDetails(JsonNullable.of(EnforcementPostedDetailsCommonStrict.builder()
                 .postedDate(entity.getPostedDate())
                 .postedBy(JsonNullable.of(entity.getPostedBy()))
@@ -80,10 +80,10 @@ public interface PaymentTermsMapper {
                 .build()))
             .build();
 
-        return PaymentTermsResponseDefendantAccount.builder()
+        return GetPaymentTermsResponseDefendantAccount.builder()
             .paymentTerms(paymentTerms)
-            .paymentCardLastRequested(JsonNullable.of(account.getPaymentCardRequestedDate()))
-            .lastEnforcement(JsonNullable.of(account.getLastEnforcement()))
+            .paymentCardLastRequested(account.getPaymentCardRequestedDate())
+            .lastEnforcement(account.getLastEnforcement())
             .build();
     }
 

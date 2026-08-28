@@ -12,8 +12,8 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.generated.model.PaymentTermsRequestDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.PaymentTermsResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddPaymentTermsRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.GetPaymentTermsResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementPostedDetailsCommonStrict;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountPaymentTermsServiceProxy;
@@ -71,10 +71,10 @@ public class DefendantAccountPaymentTermsService {
         }
     }
 
-    public PaymentTermsResponseDefendantAccount addPaymentTerms(Long defendantAccountId,
+    public GetPaymentTermsResponseDefendantAccount addPaymentTerms(Long defendantAccountId,
         String businessUnitId,
         String ifMatch,
-        PaymentTermsRequestDefendantAccount defendantAccountPaymentTermsRequest) {
+        AddPaymentTermsRequestDefendantAccount defendantAccountPaymentTermsRequest) {
 
         log.debug(":addPaymentTerms:");
 
@@ -89,12 +89,11 @@ public class DefendantAccountPaymentTermsService {
 
         if (defendantAccountPaymentTermsRequest != null
             && defendantAccountPaymentTermsRequest.getPaymentTerms() != null) {
-            defendantAccountPaymentTermsRequest.getPaymentTerms().ifPresent(paymentTerms -> {
-                paymentTerms.setPostedDetails(JsonNullable.of(EnforcementPostedDetailsCommonStrict.builder()
+            defendantAccountPaymentTermsRequest.getPaymentTerms().setPostedDetails(JsonNullable.of(
+                EnforcementPostedDetailsCommonStrict.builder()
                     .postedBy(businessUnitUserId)
                     .postedByName(postedByName)
                     .build()));
-            });
         }
 
         if (userState.hasBusinessUnitUserWithPermission(buId,

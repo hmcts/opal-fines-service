@@ -48,16 +48,16 @@ class EnforcementPaymentTermsMapperTest {
             PaymentTermsDefendantAccount result = mapper.toPaymentTerms(source);
 
             assertAll(
-                () -> assertEquals(7, result.getDaysInDefault().orElse(null)),
-                () -> assertEquals(LocalDate.of(2026, 5, 28), result.getDateDaysInDefaultImposed().orElse(null)),
+                () -> assertEquals(7, result.getDaysInDefault()),
+                () -> assertEquals(LocalDate.of(2026, 5, 28), result.getDateDaysInDefaultImposed()),
                 () -> assertFalse(result.getExtension()),
-                () -> assertEquals("extension reason", result.getReasonForExtension().orElse(null)),
+                () -> assertEquals("extension reason", result.getReasonForExtension()),
                 () -> assertEquals("P", result.getPaymentTermsType().getPaymentTermsTypeCode().getValue()),
-                () -> assertEquals(LocalDate.of(2026, 10, 30), result.getEffectiveDate().orElse(null)),
+                () -> assertEquals(LocalDate.of(2026, 10, 30), result.getEffectiveDate()),
                 () -> assertEquals("M",
                     result.getInstalmentPeriod().orElseThrow().getInstalmentPeriodCode().getValue()),
-                () -> assertEquals(new BigDecimal("500.00"), result.getLumpSumAmount().orElse(null)),
-                () -> assertEquals(new BigDecimal("10.50"), result.getInstalmentAmount().orElse(null)),
+                () -> assertEquals(new BigDecimal("500.00"), result.getLumpSumAmount()),
+                () -> assertEquals(new BigDecimal("10.50"), result.getInstalmentAmount()),
                 () -> assertEquals(LocalDateTime.of(2026, 5, 28, 12, 30),
                     result.getPostedDetails().orElseThrow().getPostedDate()),
                 () -> assertEquals("user-id", result.getPostedDetails().orElseThrow().getPostedBy().orElse(null)),
@@ -82,15 +82,15 @@ class EnforcementPaymentTermsMapperTest {
             PaymentTermsDefendantAccount result = mapper.toPaymentTerms(source);
 
             assertAll(
-                () -> assertNull(result.getDaysInDefault().orElse(null)),
-                () -> assertNull(result.getDateDaysInDefaultImposed().orElse(null)),
+                () -> assertNull(result.getDaysInDefault()),
+                () -> assertNull(result.getDateDaysInDefaultImposed()),
                 () -> assertTrue(result.getExtension()),
-                () -> assertNull(result.getReasonForExtension().orElse(null)),
+                () -> assertNull(result.getReasonForExtension()),
                 () -> assertNull(result.getPaymentTermsType()),
-                () -> assertNull(result.getEffectiveDate().orElse(null)),
+                () -> assertNull(result.getEffectiveDate()),
                 () -> assertNull(result.getInstalmentPeriod().orElse(null)),
-                () -> assertNull(result.getLumpSumAmount().orElse(null)),
-                () -> assertNull(result.getInstalmentAmount().orElse(null)),
+                () -> assertNull(result.getLumpSumAmount()),
+                () -> assertNull(result.getInstalmentAmount()),
                 () -> assertNull(result.getPostedDetails().orElse(null))
             );
         }

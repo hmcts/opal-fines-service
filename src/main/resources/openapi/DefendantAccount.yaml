@@ -967,7 +967,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/paymentTermsRequest'
+              $ref: '#/components/schemas/addPaymentTermsRequest'
       responses:
         '200':
           description: OK
@@ -977,7 +977,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaymentTermsResponse'
+                $ref: '#/components/schemas/getPaymentTermsResponse'
         '400':
           description: Bad request
           content:
@@ -1218,7 +1218,7 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
-    paymentTermsRequest:
+    addPaymentTermsRequest:
       title: Add Defendant Account Payment Terms Request
       type: object
       additionalProperties: false
@@ -1237,7 +1237,7 @@ components:
           type:
             - boolean
             - 'null'
-    PaymentTermsResponse:
+    getPaymentTermsResponse:
       title: Get Defendant Account Payment Terms Response
       type: object
       additionalProperties: false
@@ -1252,65 +1252,47 @@ components:
         payment_terms:
           $ref: '#/components/schemas/paymentTerms'
         payment_card_last_requested:
-          type:
-            - string
-            - 'null'
+          type: string
           format: date
         last_enforcement:
-          type:
-            - string
-            - 'null'
+          type: string
           minLength: 1
     paymentTerms:
       title: Payment Terms
-      type:
-        - object
-        - 'null'
+      type: object
       additionalProperties: false
       required:
         - days_in_default
         - date_days_in_default_imposed
         - extension
-        - reason_for_extension
         - payment_terms_type
         - effective_date
+        - instalment_period
         - lump_sum_amount
         - instalment_amount
         - posted_details
       properties:
         days_in_default:
-          type:
-            - integer
-            - 'null'
+          type: integer
         date_days_in_default_imposed:
-          type:
-            - string
-            - 'null'
+          type: string
           format: date
         extension:
           type: boolean
         reason_for_extension:
-          type:
-            - string
-            - 'null'
+          type: string
         payment_terms_type:
           $ref: './CommonStrict.yaml#/components/schemas/paymentTermsType'
         effective_date:
-          type:
-            - string
-            - 'null'
+          type: string
           format: date
         instalment_period:
           $ref: './CommonStrict.yaml#/components/schemas/instalmentPeriod'
         lump_sum_amount:
-          type:
-            - number
-            - 'null'
+          type: number
           multipleOf: 0.01
         instalment_amount:
-          type:
-            - number
-            - 'null'
+          type: number
           multipleOf: 0.01
         posted_details:
           $ref: './CommonStrict.yaml#/components/schemas/enforcementPostedDetails'

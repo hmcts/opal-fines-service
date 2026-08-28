@@ -25,9 +25,9 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
-import org.openapitools.jackson.nullable.JsonNullable;
-import uk.gov.hmcts.opal.generated.model.PaymentTermsRequestDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.PaymentTermsResponseDefendantAccount;
+import uk.gov.hmcts.opal.mapper.legacy.LegacyPaymentTermsMapper;
+import uk.gov.hmcts.opal.generated.model.AddPaymentTermsRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.GetPaymentTermsResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementPostedDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.InstalmentPeriodCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsDefendantAccount;
@@ -45,6 +45,7 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
     public static final String ADD_PAYMENT_CARD_REQUEST = "addDefendantAccountPaymentCard";
 
     private final GatewayService gatewayService;
+    private final LegacyPaymentTermsMapper legacyPaymentTermsMapper;
 
     @Override
     public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
@@ -70,12 +71,12 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
     }
 
     @Override
-    public PaymentTermsResponseDefendantAccount addPaymentTerms(Long defendantAccountId,
+    public GetPaymentTermsResponseDefendantAccount addPaymentTerms(Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
         String postedByName,
         String ifMatch,
-        PaymentTermsRequestDefendantAccount paymentTermsRequest) {
+        AddPaymentTermsRequestDefendantAccount paymentTermsRequest) {
 
         var legacyRequest = createAddPaymentTermsLegacyRequest(
             defendantAccountId, businessUnitId, businessUnitUserId,
@@ -109,7 +110,7 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
         String businessUnitId,
         String businessUnitUserId,
         String ifMatch,
-        PaymentTermsRequestDefendantAccount addPaymentTermsRequest) {
+        AddPaymentTermsRequestDefendantAccount addPaymentTermsRequest) {
 
         return AddPaymentTermsLegacyRequest.builder()
             .defendantAccountId(String.valueOf(defendantAccountId))
@@ -117,7 +118,7 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
             .businessUnitUserId(businessUnitUserId)
             .version(VersionUtils.extractBigInteger(ifMatch))
             .paymentTerms(mapPaymentTerms(addPaymentTermsRequest == null
-                ? null : addPaymentTermsRequest.getPaymentTerms().orElse(null)))
+                ? null : addPaymentTermsRequest.getPaymentTerms()))
             .requestPaymentCard(addPaymentTermsRequest == null
                 ? null : addPaymentTermsRequest.getRequestPaymentCard().orElse(null))
             .generatePaymentTermsChangeLetter(addPaymentTermsRequest != null
@@ -131,15 +132,15 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
         }
 
         return LegacyPaymentTerms.builder()
-            .daysInDefault(pt.getDaysInDefault().orElse(null))
-            .dateDaysInDefaultImposed(pt.getDateDaysInDefaultImposed().orElse(null))
+            .daysInDefault(pt.getDaysInDefault())
+            .dateDaysInDefaultImposed(pt.getDateDaysInDefaultImposed())
             .extension(Boolean.TRUE.equals(pt.getExtension()))
-            .reasonForExtension(pt.getReasonForExtension().orElse(null))
+            .reasonForExtension(pt.getReasonForExtension())
             .paymentTermsType(mapLegacyPaymentTermsType(pt.getPaymentTermsType()))
-            .effectiveDate(pt.getEffectiveDate().orElse(null))
+            .effectiveDate(pt.getEffectiveDate())
             .instalmentPeriod(mapLegacyInstalmentPeriod(pt.getInstalmentPeriod().orElse(null)))
-            .lumpSumAmount(pt.getLumpSumAmount().orElse(null))
-            .instalmentAmount(pt.getInstalmentAmount().orElse(null))
+            .lumpSumAmount(pt.getLumpSumAmount())
+            .instalmentAmount(pt.getInstalmentAmount())
             .postedDetails(mapLegacyPostedDetails(pt.getPostedDetails().orElse(null)))
             .build();
     }
@@ -199,46 +200,14 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
         };
     }
 
-    private static PaymentTermsResponseDefendantAccount createGetDefendantAccountPaymentTermsResponse(
+    private GetPaymentTermsResponseDefendantAccount createGetDefendantAccountPaymentTermsResponse(
         AddPaymentTermsLegacyResponse addPaymentTermsResponse) {
 
-        return PaymentTermsResponseDefendantAccount.builder()
+        return GetPaymentTermsResponseDefendantAccount.builder()
             .version(Optional.ofNullable(addPaymentTermsResponse.getVersion()).orElse(BigInteger.ONE))
-            .paymentTerms(toGeneratedPaymentTerms(addPaymentTermsResponse.getPaymentTerms()))
-            .paymentCardLastRequested(JsonNullable.of(addPaymentTermsResponse.getPaymentCardLastRequested()))
-            .lastEnforcement(JsonNullable.of(addPaymentTermsResponse.getLastEnforcement()))
-            .build();
-    }
-
-    private static PaymentTermsDefendantAccount toGeneratedPaymentTerms(LegacyPaymentTerms legacy) {
-        if (legacy == null) {
-            return null;
-        }
-
-        return PaymentTermsDefendantAccount.builder()
-            .daysInDefault(JsonNullable.of(legacy.getDaysInDefault()))
-            .dateDaysInDefaultImposed(JsonNullable.of(legacy.getDateDaysInDefaultImposed()))
-            .extension(legacy.isExtension())
-            .reasonForExtension(JsonNullable.of(legacy.getReasonForExtension()))
-            .paymentTermsType(PaymentTermsTypeCommonStrict.builder()
-                .paymentTermsTypeCode(legacy.getPaymentTermsType() == null ? null
-                    : PaymentTermsTypeCommonStrict.PaymentTermsTypeCodeEnum.fromValue(
-                        legacy.getPaymentTermsType().getPaymentTermsTypeCode().name()))
-                .build())
-            .effectiveDate(JsonNullable.of(legacy.getEffectiveDate()))
-            .instalmentPeriod(JsonNullable.of(InstalmentPeriodCommonStrict.builder()
-                .instalmentPeriodCode(legacy.getInstalmentPeriod() == null ? null
-                    : InstalmentPeriodCommonStrict.InstalmentPeriodCodeEnum.fromValue(
-                        legacy.getInstalmentPeriod().getInstalmentPeriodCode().name()))
-                .build()))
-            .lumpSumAmount(JsonNullable.of(legacy.getLumpSumAmount()))
-            .instalmentAmount(JsonNullable.of(legacy.getInstalmentAmount()))
-            .postedDetails(JsonNullable.of(legacy.getPostedDetails() == null ? null
-                : EnforcementPostedDetailsCommonStrict.builder()
-                    .postedDate(legacy.getPostedDetails().getPostedDate())
-                    .postedBy(JsonNullable.of(legacy.getPostedDetails().getPostedBy()))
-                    .postedByName(JsonNullable.of(legacy.getPostedDetails().getPostedByName()))
-                    .build()))
+            .paymentTerms(legacyPaymentTermsMapper.toOpal(addPaymentTermsResponse.getPaymentTerms()))
+            .paymentCardLastRequested(addPaymentTermsResponse.getPaymentCardLastRequested())
+            .lastEnforcement(addPaymentTermsResponse.getLastEnforcement())
             .build();
     }
 
