@@ -251,7 +251,6 @@ class LegacyNotesServiceTest {
         @SuppressWarnings("unchecked")
         GatewayService.Response<LegacyAddNoteResponse> resp = mock(GatewayService.Response.class);
         ReflectionTestUtils.setField(resp, "responseEntity", entity);
-        when(resp.isSuccessful()).thenReturn(true);
 
         when(gatewayService.<LegacyAddNoteResponse>postToGateway(
             anyString(),
@@ -284,7 +283,6 @@ class LegacyNotesServiceTest {
         @SuppressWarnings("unchecked")
         GatewayService.Response<LegacyAddNoteResponse> resp = mock(GatewayService.Response.class);
         ReflectionTestUtils.setField(resp, "responseEntity", entity);
-        when(resp.isError()).thenReturn(true);
 
         when(gatewayService.<LegacyAddNoteResponse>postToGateway(
             anyString(),

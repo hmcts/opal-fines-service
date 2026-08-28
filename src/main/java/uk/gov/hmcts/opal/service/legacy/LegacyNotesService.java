@@ -44,20 +44,7 @@ public class LegacyNotesService implements NotesServiceInterface {
             null
         );
 
-        if (response.isError()) {
-            handleGatewayError(response);
-        } else if (response.isSuccessful()) {
-            log.info(":LegacyAddNote: Legacy Gateway response: Success.");
-        }
-
-        if (response.responseEntity != null && response.responseEntity.getErrorResponse() != null) {
-            log.error(":LegacyAddNote: Legacy Gateway error response: {}", response.responseEntity.getErrorResponse());
-            throw new IllegalArgumentException(legacyFailureMessage(response.responseEntity.getErrorResponse()));
-        }
-
-        if (response.responseEntity == null || response.responseEntity.getNote() == null) {
-            throw new IllegalArgumentException("Legacy add note response missing activity note");
-        }
+        validateGatewayResponse(response);
 
         return response.responseEntity.getNote().getRecordId();
     }
@@ -82,13 +69,25 @@ public class LegacyNotesService implements NotesServiceInterface {
                 businessUnitId, FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES));
     }
 
-    private void handleGatewayError(GatewayService.Response<LegacyAddNoteResponse> response) {
-        log.error(":LegacyAddNote: Legacy Gateway response: HTTP Response Code: {}", response.code);
-
+    private void validateGatewayResponse(GatewayService.Response<LegacyAddNoteResponse> response) {
         if (response.responseEntity != null && response.responseEntity.getErrorResponse() != null) {
             log.error(":LegacyAddNote: Legacy Gateway error response: {}", response.responseEntity.getErrorResponse());
             throw new IllegalArgumentException(legacyFailureMessage(response.responseEntity.getErrorResponse()));
         }
+
+        if (response.isError()) {
+            handleGatewayError(response);
+        } else if (response.isSuccessful()) {
+            log.info(":LegacyAddNote: Legacy Gateway response: Success.");
+        }
+
+        if (response.responseEntity == null || response.responseEntity.getNote() == null) {
+            throw new IllegalArgumentException("Legacy add note response missing activity note");
+        }
+    }
+
+    private void handleGatewayError(GatewayService.Response<LegacyAddNoteResponse> response) {
+        log.error(":LegacyAddNote: Legacy Gateway response: HTTP Response Code: {}", response.code);
 
         if (response.isException()) {
             log.error(":LegacyAddNote:", response.exception);
