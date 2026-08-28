@@ -22,7 +22,6 @@ public interface MinorCreditorAccountHeaderEntityMapper {
     @Mapping(target = "creditor.accountType", source = "entity.creditorAccountType")
     @Mapping(target = "creditor.hasAssociatedDefendant", source = "entity.hasAssociatedDefendant")
     @Mapping(target = "version", source = "entity.versionNumber")
-    @Mapping(target = "repayment", source = "entity.repayment")
     @Mapping(target = "financials.awarded", source = "entity.awarded")
     @Mapping(target = "financials.paidOut", source = "entity.paidOut")
     @Mapping(target = "financials.awaitingPayout", source = "entity.awaitingPayment")
