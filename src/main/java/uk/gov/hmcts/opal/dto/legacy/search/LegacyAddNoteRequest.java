@@ -23,7 +23,7 @@ public class LegacyAddNoteRequest {
 
     @NotBlank
     @XmlElement(name = "business_unit_user_id", required = true)
-    private Long businessUnitUserId;
+    private String businessUnitUserId;
 
     @NotNull
     @XmlElement(name = "version", required = true)

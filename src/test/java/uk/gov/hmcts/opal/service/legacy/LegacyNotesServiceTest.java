@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.legacy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -12,6 +13,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.math.BigInteger;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -20,7 +22,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
@@ -64,14 +68,14 @@ class LegacyNotesServiceTest {
         )).thenReturn(resp);
 
         AddNoteRequest req = addReq("77", "hello");
-        when(user.getUserId()).thenReturn(999L);
+        givenBusinessUnitUser((short) 1, "L001JG");
 
         String id = service.addNote(req, "1", user, targetWithBu((short) 1));
         assertEquals("77", id);
 
         LegacyAddNoteRequest sent = reqCap.getValue();
         assertEquals((short) 1, sent.getBusinessUnitId());
-        assertEquals(999, sent.getBusinessUnitUserId());
+        assertEquals("L001JG", sent.getBusinessUnitUserId());
         assertEquals(BigInteger.valueOf(1L), sent.getVersion());
 
         LegacyNote sentNote = sent.getActivityNote();
@@ -110,16 +114,17 @@ class LegacyNotesServiceTest {
         )).thenReturn(resp);
 
         AddNoteRequest req = addReq("770000004141", "hello");
-        when(user.getUserId()).thenReturn(999L);
+        givenBusinessUnitUser((short) 77, "L077JG");
 
         String id = service.addNote(req, '"' + LEGACY_VERSION + '"', user, targetWithBu((short) 77));
 
         assertEquals("770000004141", id);
         assertEquals(new BigInteger(LEGACY_VERSION), reqCap.getValue().getVersion());
+        assertEquals("L077JG", reqCap.getValue().getBusinessUnitUserId());
     }
 
     @Test
-    void addNote_errorWithException_stillReturnsRecordId() {
+    void addNote_errorWithException_throwsLegacyGatewayException() {
 
         LegacyAddNoteResponse entity = legacyRespWithNote("77", "boom");
 
@@ -138,10 +143,13 @@ class LegacyNotesServiceTest {
         )).thenReturn(resp);
 
         AddNoteRequest req = addReq("77", "boom");
-        when(user.getUserId()).thenReturn(1L);
+        givenBusinessUnitUser((short) 5, "L005JG");
 
-        String id = service.addNote(req, "1", user, targetWithBu((short) 5));
-        assertEquals("77", id);
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> service.addNote(req, "1", user, targetWithBu((short) 5))
+        );
+        assertEquals("Legacy gateway exception", exception.getMessage());
 
         verify(gatewayService).postToGateway(
             anyString(),
@@ -153,7 +161,7 @@ class LegacyNotesServiceTest {
     }
 
     @Test
-    void addNote_errorLegacyFailure_stillReturnsRecordId() {
+    void addNote_errorLegacyFailure_throwsLegacyGatewayFailure() {
 
         LegacyAddNoteResponse entity = legacyRespWithNote("77", "world");
 
@@ -173,10 +181,13 @@ class LegacyNotesServiceTest {
         )).thenReturn(resp);
 
         AddNoteRequest req = addReq("77", "world");
-        when(user.getUserId()).thenReturn(42L);
+        givenBusinessUnitUser((short) 9, "L009JG");
 
-        String id = service.addNote(req, "1", user, targetWithBu((short) 9));
-        assertEquals("77", id);
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> service.addNote(req, "1", user, targetWithBu((short) 9))
+        );
+        assertEquals("Legacy gateway returned failure", exception.getMessage());
 
         verify(gatewayService).postToGateway(
             anyString(),
@@ -188,7 +199,7 @@ class LegacyNotesServiceTest {
     }
 
     @Test
-    void addNote_errorGeneric_stillReturnsRecordId() {
+    void addNote_errorGeneric_throwsLegacyGatewayError() {
 
         LegacyAddNoteResponse entity = legacyRespWithNote("77", "meh");
 
@@ -208,10 +219,13 @@ class LegacyNotesServiceTest {
         )).thenReturn(resp);
 
         AddNoteRequest req = addReq("77", "meh");
-        when(user.getUserId()).thenReturn(5L);
+        givenBusinessUnitUser((short) 3, "L003JG");
 
-        String id = service.addNote(req, "7", user, targetWithBu((short) 3));
-        assertEquals("77", id);
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> service.addNote(req, "7", user, targetWithBu((short) 3))
+        );
+        assertEquals("Legacy gateway error: null", exception.getMessage());
 
         verify(gatewayService).postToGateway(
             anyString(),
@@ -220,6 +234,39 @@ class LegacyNotesServiceTest {
             isNull(String.class)
         );
         verifyNoMoreInteractions(gatewayService);
+    }
+
+    @Test
+    void addNote_successWithErrorResponse_throwsLegacyGatewayFailure() {
+
+        LegacyAddNoteResponse entity = LegacyAddNoteResponse.builder()
+            .errorResponse(ErrorResponse.builder()
+                .errorCode("-20001")
+                .errorMessage("User not found")
+                .build())
+            .build();
+
+        @SuppressWarnings("unchecked")
+        GatewayService.Response<LegacyAddNoteResponse> resp = mock(GatewayService.Response.class);
+        ReflectionTestUtils.setField(resp, "responseEntity", entity);
+        when(resp.isSuccessful()).thenReturn(true);
+
+        when(gatewayService.<LegacyAddNoteResponse>postToGateway(
+            anyString(),
+            eq(LegacyAddNoteResponse.class),
+            any(LegacyAddNoteRequest.class),
+            isNull(String.class)
+        )).thenReturn(resp);
+
+        AddNoteRequest req = addReq("770000004141", "test");
+        givenBusinessUnitUser((short) 77, "L077JG");
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> service.addNote(req, '"' + LEGACY_VERSION + '"', user, targetWithBu((short) 77))
+        );
+
+        assertEquals("Legacy gateway returned failure", exception.getMessage());
     }
 
     // ---------- helpers ----------
@@ -231,6 +278,13 @@ class LegacyNotesServiceTest {
             buId,
             AssociatedRecordType.DEFENDANT_ACCOUNTS
         );
+    }
+
+    private void givenBusinessUnitUser(short businessUnitId, String businessUnitUserId) {
+        BusinessUnitUser businessUnitUser = BusinessUnitUser.builder()
+            .businessUnitUserId(businessUnitUserId)
+            .build();
+        when(user.getBusinessUnitUserForBusinessUnit(businessUnitId)).thenReturn(Optional.of(businessUnitUser));
     }
 
     private static AddNoteRequest addReq(String recordId, String text) {
