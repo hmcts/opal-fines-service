@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteRequest;
@@ -38,17 +39,18 @@ public class LegacyNotesService implements NotesServiceInterface {
         );
 
         if (response.isError()) {
-            log.error(":LegacyAddNote: Legacy Gateway response: HTTP Response Code: {}", response.code);
-
-            if (response.isException()) {
-                log.error(":LegacyAddNote:", response.exception);
-            } else if (response.isLegacyFailure()) {
-                log.error(":LegacyAddNote: Legacy Gateway: body: \n{}", response.body);
-                LegacyAddNoteResponse responseEntity = response.responseEntity;
-                log.error(":LegacyAddNote: Legacy Gateway: entity: \n{}", responseEntity.toXml());
-            }
+            handleGatewayError(response);
         } else if (response.isSuccessful()) {
             log.info(":LegacyAddNote: Legacy Gateway response: Success.");
+        }
+
+        if (response.responseEntity != null && response.responseEntity.getErrorResponse() != null) {
+            log.error(":LegacyAddNote: Legacy Gateway error response: {}", response.responseEntity.getErrorResponse());
+            throw new IllegalArgumentException("Legacy gateway returned failure");
+        }
+
+        if (response.responseEntity == null || response.responseEntity.getNote() == null) {
+            throw new IllegalArgumentException("Legacy add note response missing activity note");
         }
 
         return response.responseEntity.getNote().getRecordId();
@@ -62,6 +64,34 @@ public class LegacyNotesService implements NotesServiceInterface {
             .recordId(request.getActivityNote().getRecordId()).build();
 
         return LegacyAddNoteRequest.builder().businessUnitId(businessUnitId)
-            .businessUnitUserId(user.getUserId()).version(extractBigInteger(version)).activityNote(note).build();
+            .businessUnitUserId(getBusinessUnitUserId(user, businessUnitId))
+            .version(extractBigInteger(version)).activityNote(note).build();
+    }
+
+    private String getBusinessUnitUserId(UserState user, Short businessUnitId) {
+        return user.getBusinessUnitUserForBusinessUnit(businessUnitId)
+            .map(BusinessUnitUser::getBusinessUnitUserId)
+            .filter(id -> !id.isBlank())
+            .orElse(user.getUserName());
+    }
+
+    private void handleGatewayError(GatewayService.Response<LegacyAddNoteResponse> response) {
+        log.error(":LegacyAddNote: Legacy Gateway response: HTTP Response Code: {}", response.code);
+
+        if (response.isException()) {
+            log.error(":LegacyAddNote:", response.exception);
+            throw new IllegalArgumentException("Legacy gateway exception", response.exception);
+        }
+
+        if (response.isLegacyFailure()) {
+            log.error(":LegacyAddNote: Legacy Gateway: body: \n{}", response.body);
+            LegacyAddNoteResponse responseEntity = response.responseEntity;
+            if (responseEntity != null) {
+                log.error(":LegacyAddNote: Legacy Gateway: entity: \n{}", responseEntity.toXml());
+            }
+            throw new IllegalArgumentException("Legacy gateway returned failure");
+        }
+
+        throw new IllegalArgumentException("Legacy gateway error: " + response.code);
     }
 }
