@@ -39,6 +39,7 @@ import uk.gov.hmcts.opal.entity.debtordetail.Language;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
@@ -332,6 +333,8 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         Long defendantAccountPartyId, Short businessUnitId, String businessUserId, String postedBy,
         String postedByName, String ifMatch, RemoveDefendantAccountPartyRequestDefendantAccount request) {
 
+        validateRemoveDefendantAccountPartyRequest(request);
+
         DefendantAccountEntity account = defendantAccountRepositoryService.findById(defendantAccountId);
 
         log.debug(":removeDefendantAccountParty: accountId={}, dapId={}, buId={}, postedBy={}",
@@ -372,8 +375,28 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             .build();
     }
 
+    private void validateRemoveDefendantAccountPartyRequest(
+        RemoveDefendantAccountPartyRequestDefendantAccount request) {
+        if (request == null) {
+            throw new JsonSchemaValidationException("Request body is required");
+        }
+
+        if (request.getDefendantAccountPartyId() != null && request.getDefendantAccountPartyId().isBlank()) {
+            throw new JsonSchemaValidationException("defendant_account_party_id must not be blank");
+        }
+
+        if (request.getPartyDetails() != null
+            && (request.getPartyDetails().getPartyId() == null || request.getPartyDetails().getPartyId().isBlank())) {
+            throw new JsonSchemaValidationException("party_details.party_id must not be blank");
+        }
+
+        if (request.getDefendantAccountPartyId() == null && request.getPartyDetails() == null) {
+            throw new JsonSchemaValidationException("defendant_account_party_id or party_details must be provided");
+        }
+    }
+
     private boolean isConvertingFromIndividualToOrganisation(PartyEntity party,
-                                                              PartyDetailsCommonStrict partyDetails) {
+                                                             PartyDetailsCommonStrict partyDetails) {
         return !party.isOrganisation()
             && Boolean.TRUE.equals(Optional.ofNullable(partyDetails)
                 .map(PartyDetailsCommonStrict::getOrganisationFlag)
