@@ -5,10 +5,10 @@
   "originator_name": "Humber Magistrates' Court",
   "originator_id": 1980,
   "prosecutor_case_reference": "33333",
-  "enforcement_court_id": 770000000001,
+  "enforcement_court_id": 730000000043,
   "collection_order_made": false,
-  "collection_order_made_today": true,
-  "collection_order_date": "2025-08-11",
+  "collection_order_made_today": null,
+  "collection_order_date": null,
   "suspended_committal_date": null,
   "payment_card_request": null,
   "account_sentence_date": "2025-08-01",
@@ -90,63 +90,14 @@
   "offences": [
     {
       "date_of_sentence": "2025-08-01",
-      "imposing_court_id": 770000000001,
-      "offence_id": 33369,
+      "imposing_court_id": 730000000043,
+      "offence_id": 43312,
       "impositions": [
-        {
-          "result_id": "FCOMP",
-          "amount_imposed": 100,
-          "amount_paid": 1,
-          "major_creditor_id": 770000000021,
-          "minor_creditor": null
-        },
-        {
-          "result_id": "FVS",
-          "amount_imposed": 200,
-          "amount_paid": 2,
-          "major_creditor_id": null,
-          "minor_creditor": null
-        },
-        {
-          "result_id": "FCOST",
-          "amount_imposed": 300,
-          "amount_paid": 3,
-          "major_creditor_id": 770000000041,
-          "minor_creditor": null
-        },
-        {
-          "result_id": "FCPC",
-          "amount_imposed": 400,
-          "amount_paid": 4,
-          "major_creditor_id": null,
-          "minor_creditor": null
-        },
         {
           "result_id": "FO",
           "amount_imposed": 500,
           "amount_paid": 5,
-          "major_creditor_id": null,
-          "minor_creditor": null
-        },
-        {
-          "result_id": "FVEBD",
-          "amount_imposed": 600,
-          "amount_paid": 6,
-          "major_creditor_id": null,
-          "minor_creditor": null
-        },
-        {
-          "result_id": "FCC",
-          "amount_imposed": 700,
-          "amount_paid": 7,
-          "major_creditor_id": null,
-          "minor_creditor": null
-        },
-        {
-          "result_id": "FFR",
-          "amount_imposed": 800,
-          "amount_paid": 8,
-          "major_creditor_id": null,
+          "major_creditor_id": 650000000021,
           "minor_creditor": null
         }
       ]
@@ -154,42 +105,18 @@
   ],
   "fp_ticket_detail": null,
   "payment_terms": {
-    "payment_terms_type_code": "I",
-    "effective_date": "2025-08-31",
-    "instalment_period": "M",
-    "lump_sum_amount": 1000,
-    "instalment_amount": 100,
+    "payment_terms_type_code": "B",
+    "effective_date": "2027-01-01",
+    "instalment_period": null,
+    "lump_sum_amount": null,
+    "instalment_amount": null,
     "default_days_in_jail": null,
-    "enforcements": [
-      {
-        "result_id": "COLLO",
-        "enforcement_result_responses": null
-      },
-      {
-        "result_id": "NOENF",
-        "enforcement_result_responses": [
-          {
-            "parameter_name": "reason",
-            "response": "reason 1"
-          }
-        ]
-      }
-    ]
+    "enforcements": null
   },
   "account_notes": [
     {
-      "account_note_serial": 3,
-      "account_note_text": "scenario three comment",
-      "note_type": "AC"
-    },
-    {
-      "account_note_serial": 2,
-      "account_note_text": "scenario three note",
-      "note_type": "AA"
-    },
-    {
       "account_note_serial": 1,
-      "account_note_text": "A collection order has been made by opal-test using Authorised Functions",
+      "account_note_text": "Parent or guardian account note",
       "note_type": "AA"
     }
   ]
