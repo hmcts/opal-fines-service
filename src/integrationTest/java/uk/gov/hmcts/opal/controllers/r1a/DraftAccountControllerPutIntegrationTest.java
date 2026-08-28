@@ -517,6 +517,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         assertEquals(before.getValidatedByName(), after.getValidatedByName());
         assertEquals(before.getAccountSnapshot(), after.getAccountSnapshot());
         assertEquals(before.getTimelineData(), after.getTimelineData());
+    }
+
     @Test
     @DisplayName("PO-5746: Replace draft account - Should return 400 for an invalid offence ID")
     @JiraStory("PO-5746")
@@ -607,30 +609,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(expectBadRequestWithoutStatus(
                 expectedPaymentTermsEnforcementValidationErrorMessage("COLLO is not an active result"),
-                "https://hmcts.gov.uk/problems/invalid-reference-validation"
-            ));
-    }
-
-    @Test
-    @DisplayName("Replace draft account - Should return 400 when payment term enforcement result is inactive")
-    @JiraStory("PO-5752")
-    @JiraEpic("PO-8248")
-    @Sql(scripts = "classpath:db/insertData/insert_into_results_collo_inactive.sql",
-        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Transactional
-    void shouldReturn400WhenPutPaymentTermEnforcementResultIsInactive() throws Exception {
-        String ifMatch = getIfMatchForDraftAccount(5L);
-        mockMvc.perform(put(URL_BASE + "/5")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", ifMatch)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(withPaymentTermsEnforcement(validReplaceRequestBody(0L), "COLLO")))
-            .andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(expectBadRequestWithoutStatus(
-                expectedPaymentTermsEnforcementValidationErrorMessage("COLLO is not an active result"),
->>>>>>> 4480d3016 (PO-5752 Add integration coverage for invalid draft enforcement results):src/integrationTest/java/uk/gov/hmcts/opal/controllers/DraftAccountControllerPutIntegrationTest.java
                 "https://hmcts.gov.uk/problems/invalid-reference-validation"
             ));
     }

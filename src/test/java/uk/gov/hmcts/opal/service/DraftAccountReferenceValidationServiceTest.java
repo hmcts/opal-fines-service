@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -43,7 +44,9 @@ class DraftAccountReferenceValidationServiceTest {
     @Test
     void validateReferences_whenAllReferencesExist_shouldPass() {
         when(courtLiteRepository.existsById(anyLong())).thenReturn(true);
-        when(offenceRepository.existsByOffenceIdAvailableToBusinessUnit(anyLong(), BUSINESS_UNIT_ID)).thenReturn(true);
+        when(
+            offenceRepository.existsByOffenceIdAvailableToBusinessUnit(anyLong(), eq(BUSINESS_UNIT_ID))
+        ).thenReturn(true);
         when(resultRepository.findById("FO")).thenReturn(Optional.of(activeImpositionResult("FO")));
         when(resultRepository.findById("FVS")).thenReturn(Optional.of(activeImpositionResult("FVS")));
         when(majorCreditorRepository.existsById(anyLong())).thenReturn(true);
@@ -107,7 +110,9 @@ class DraftAccountReferenceValidationServiceTest {
     @Test
     void validateReferences_whenSomeReferencesAreMissing_shouldReportAllFailures() {
         when(courtLiteRepository.existsById(anyLong())).thenReturn(false);
-        when(offenceRepository.existsByOffenceIdAvailableToBusinessUnit(anyLong(), BUSINESS_UNIT_ID)).thenReturn(false);
+        when(
+            offenceRepository.existsByOffenceIdAvailableToBusinessUnit(anyLong(), eq(BUSINESS_UNIT_ID))
+        ).thenReturn(false);
         when(resultRepository.findById("FO")).thenReturn(Optional.empty());
         when(resultRepository.findById("FVS")).thenReturn(Optional.empty());
         when(resultRepository.findById("COLLO")).thenReturn(Optional.empty());
@@ -140,7 +145,9 @@ class DraftAccountReferenceValidationServiceTest {
     @Test
     void validateReferences_whenImpositionResultIsNotAnImposition_shouldReportFailure() {
         when(courtLiteRepository.existsById(anyLong())).thenReturn(true);
-        when(offenceRepository.existsByOffenceIdAvailableToBusinessUnit(anyLong(), BUSINESS_UNIT_ID)).thenReturn(true);
+        when(
+            offenceRepository.existsByOffenceIdAvailableToBusinessUnit(anyLong(), eq(BUSINESS_UNIT_ID))
+        ).thenReturn(true);
         when(resultRepository.findById("FO")).thenReturn(Optional.of(activeNonImpositionResult("FO")));
         when(resultRepository.findById("FVS")).thenReturn(Optional.of(activeImpositionResult("FVS")));
         when(majorCreditorRepository.existsById(anyLong())).thenReturn(true);
@@ -156,7 +163,9 @@ class DraftAccountReferenceValidationServiceTest {
     @Test
     void validateReferences_whenImpositionResultIsInactive_shouldReportFailure() {
         when(courtLiteRepository.existsById(anyLong())).thenReturn(true);
-        when(offenceRepository.existsByOffenceIdAvailableToBusinessUnit(anyLong(), BUSINESS_UNIT_ID)).thenReturn(true);
+        when(
+            offenceRepository.existsByOffenceIdAvailableToBusinessUnit(anyLong(), eq(BUSINESS_UNIT_ID))
+        ).thenReturn(true);
         when(resultRepository.findById("FO")).thenReturn(Optional.of(inactiveImpositionResult("FO")));
         when(resultRepository.findById("FVS")).thenReturn(Optional.of(activeImpositionResult("FVS")));
         when(majorCreditorRepository.existsById(anyLong())).thenReturn(true);
@@ -172,7 +181,9 @@ class DraftAccountReferenceValidationServiceTest {
     @Test
     void validateReferences_whenPaymentTermsEnforcementResultIsNotAnEnforcement_shouldFail() {
         when(courtLiteRepository.existsById(anyLong())).thenReturn(true);
-        when(offenceRepository.existsByOffenceIdAvailableToBusinessUnit(anyLong(), BUSINESS_UNIT_ID)).thenReturn(true);
+        when(
+            offenceRepository.existsByOffenceIdAvailableToBusinessUnit(anyLong(), eq(BUSINESS_UNIT_ID))
+        ).thenReturn(true);
         when(majorCreditorRepository.existsById(anyLong())).thenReturn(true);
         when(resultRepository.findById("FO")).thenReturn(Optional.of(activeImpositionResult("FO")));
         when(resultRepository.findById("FVS")).thenReturn(Optional.of(activeImpositionResult("FVS")));
@@ -193,7 +204,9 @@ class DraftAccountReferenceValidationServiceTest {
     @Test
     void validateReferences_whenPaymentTermsEnforcementResultIsInactive_shouldFail() {
         when(courtLiteRepository.existsById(anyLong())).thenReturn(true);
-        when(offenceRepository.existsByOffenceIdAvailableToBusinessUnit(anyLong(), BUSINESS_UNIT_ID)).thenReturn(true);
+        when(
+            offenceRepository.existsByOffenceIdAvailableToBusinessUnit(anyLong(), eq(BUSINESS_UNIT_ID))
+        ).thenReturn(true);
         when(majorCreditorRepository.existsById(anyLong())).thenReturn(true);
         when(resultRepository.findById("FO")).thenReturn(Optional.of(activeImpositionResult("FO")));
         when(resultRepository.findById("FVS")).thenReturn(Optional.of(activeImpositionResult("FVS")));
