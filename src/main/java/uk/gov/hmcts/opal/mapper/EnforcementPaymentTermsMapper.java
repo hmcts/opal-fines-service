@@ -62,8 +62,4 @@ public interface EnforcementPaymentTermsMapper {
             default -> throw new IllegalArgumentException("Unknown instalment period: " + code);
         });
     }
-
-    default <T> T toValue(JsonNullable<T> source) {
-        return source == null ? null : source.orElse(null);
-    }
 }

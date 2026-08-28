@@ -11,6 +11,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mapstruct.factory.Mappers;
 import org.openapitools.jackson.nullable.JsonNullable;
 import uk.gov.hmcts.opal.generated.model.EnforcementInstalmentPeriodCommonStrict;
@@ -25,6 +27,11 @@ class EnforcementPaymentTermsMapperTest {
 
     @Nested
     class ToPaymentTerms {
+
+        @Test
+        void whenSourceIsNull_thenReturnsNull() {
+            assertNull(mapper.toPaymentTerms(null));
+        }
 
         @Test
         void whenSourceContainsValues_thenMapsNullableFieldsAndEnums() {
@@ -93,6 +100,38 @@ class EnforcementPaymentTermsMapperTest {
                 () -> assertNull(result.getInstalmentAmount()),
                 () -> assertNull(result.getPostedDetails().orElse(null))
             );
+        }
+
+        @ParameterizedTest
+        @EnumSource(EnforcementPaymentTermsTypeCommonStrict.PaymentTermsTypeCodeEnum.class)
+        void whenPaymentTermsTypeCodeIsSupported_thenMapsDisplayName(
+            EnforcementPaymentTermsTypeCommonStrict.PaymentTermsTypeCodeEnum code) {
+            PaymentTermsDefendantAccount result = mapper.toPaymentTerms(new EnforcementPaymentTermsCommonStrict()
+                .paymentTermsType(new EnforcementPaymentTermsTypeCommonStrict().paymentTermsTypeCode(code)));
+
+            String expectedDisplayName = switch (code) {
+                case B -> "By date";
+                case P -> "Paid";
+                case I -> "Instalments";
+            };
+            assertEquals(expectedDisplayName,
+                result.getPaymentTermsType().getPaymentTermsTypeDisplayName().getValue());
+        }
+
+        @ParameterizedTest
+        @EnumSource(EnforcementInstalmentPeriodCommonStrict.InstalmentPeriodCodeEnum.class)
+        void whenInstalmentPeriodCodeIsSupported_thenMapsDisplayName(
+            EnforcementInstalmentPeriodCommonStrict.InstalmentPeriodCodeEnum code) {
+            PaymentTermsDefendantAccount result = mapper.toPaymentTerms(new EnforcementPaymentTermsCommonStrict()
+                .instalmentPeriod(new EnforcementInstalmentPeriodCommonStrict().instalmentPeriodCode(code)));
+
+            String expectedDisplayName = switch (code) {
+                case W -> "Weekly";
+                case M -> "Monthly";
+                case F -> "Fortnightly";
+            };
+            assertEquals(expectedDisplayName,
+                result.getInstalmentPeriod().orElseThrow().getInstalmentPeriodDisplayName().getValue());
         }
     }
 }
