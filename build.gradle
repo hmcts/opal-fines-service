@@ -16,7 +16,7 @@ buildscript {
   }
 
   dependencies {
-    classpath("org.flywaydb:flyway-database-postgresql:13.3.0")
+    classpath("org.flywaydb:flyway-database-postgresql:13.4.0")
     // Pin transitive Cucumber artifacts used by the Serenity Gradle plugin to avoid
     // Maven metadata range lookups on CI when Maven Central is rate limiting.
     classpath("io.cucumber:query:${cucumberQueryVersion}")
@@ -29,12 +29,12 @@ plugins {
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.1.7'
   id 'org.springframework.boot' version '4.1.1'
-  id 'com.github.ben-manes.versions' version '0.61.0'
+  id 'io.github.ben-manes.versions' version '0.61.0'
   id 'org.sonarqube' version '7.4.0.8496'
   id 'uk.gov.hmcts.java' version '0.12.70'
-  id 'org.flywaydb.flyway' version '13.3.0'
+  id 'org.flywaydb.flyway' version '13.4.0'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '5.3.9'
-  id "org.openapi.generator" version "7.24.0"
+  id "org.openapi.generator" version "7.25.0"
 }
 
 ext {
@@ -369,6 +369,43 @@ tasks.register('integration', Test) {
   }
   finalizedBy 'packageIntegrationOutput'
 }
+
+def registerReleaseIntegrationTask = { String release ->
+  def releaseName = release.toLowerCase()
+  def reportFileName = "Junit5Report-Integration${release}.json"
+  def outputDirectory = "${rootDir}/integration-output-${releaseName}"
+  def copyTaskName = "copy${release}IntegrationJunit5Report"
+  def packageTaskName = "package${release}IntegrationOutput"
+
+  tasks.register(copyTaskName, Copy) {
+    from("target/zephyr-reports/${reportFileName}")
+    into("${outputDirectory}/zephyr")
+    outputs.upToDateWhen { false }
+  }
+
+  tasks.register(packageTaskName, Copy) {
+    dependsOn copyTaskName
+    into(outputDirectory)
+    from(layout.buildDirectory.dir("reports/tests/integration${release}")) {
+      into("report")
+    }
+  }
+
+  tasks.register("integration${release}", Test) {
+    description = "Runs ${release} controller integration tests"
+    group = "Verification"
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    include "uk/gov/hmcts/opal/controllers/${releaseName}/**"
+    systemProperty 'zephyr.report.location', "${rootDir}/target/zephyr-reports/${reportFileName}"
+    doFirst {
+      pullLatestLegacyStubImageIfLocal()
+    }
+    finalizedBy packageTaskName
+  }
+}
+
+['R1A', 'R1B', 'R1C'].each(registerReleaseIntegrationTask)
 
 tasks.register('checkTestJiraAnnotations', JavaExec) {
   description = "Checks runnable integration and functional tests have Jira story and epic annotations"
@@ -971,8 +1008,8 @@ dependencies {
   implementation 'com.jayway.jsonpath:json-path:3.0.0'
 
   implementation 'org.openapitools:jackson-databind-nullable:0.2.11'
-  implementation 'org.flywaydb:flyway-core:13.3.0'
-  runtimeOnly 'org.flywaydb:flyway-database-postgresql:13.3.0', {
+  implementation 'org.flywaydb:flyway-core:13.4.0'
+  runtimeOnly 'org.flywaydb:flyway-database-postgresql:13.4.0', {
     exclude group: 'org.flywaydb', module: 'flyway-core'
   }
   implementation 'org.postgresql:postgresql'
@@ -1103,10 +1140,14 @@ checkstyle {
 }
 tasks.register('migratePostgresDatabase', FlywayMigrateTask) {
   baselineOnMigrate = true
-  if (project.hasProperty("dburl")) {
-    url = "jdbc:postgresql://${dburl}"
+  def taskUrl = providers.gradleProperty("dburl")
+      .map { dbUrl -> "jdbc:postgresql://${dbUrl}" }
+      .orElse(providers.environmentVariable("FLYWAY_URL"))
+      .orNull
+  if (taskUrl) {
+    url = taskUrl
   }
-  println "Flyway jbdc property 'url' (derived from System property 'FLYWAY_URL'?) is: ${url}"
+  println "Flyway jdbc property 'url' is: ${taskUrl}"
 }
 
 tasks.register('runAllStyleChecks') {
