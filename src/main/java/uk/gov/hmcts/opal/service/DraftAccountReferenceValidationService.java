@@ -25,6 +25,9 @@ public class DraftAccountReferenceValidationService {
 
     private static final String ROOT_PATH = "$";
     private static final String DOES_NOT_EXIST = " does not exist";
+    private static final String RESULT_ID_PREFIX = ".result_id: result id ";
+    private static final String IS_NOT_AN_ENFORCEMENT_RESULT = " is not an enforcement result";
+    private static final String IS_NOT_AN_ACTIVE_RESULT = " is not an active result";
 
     private final CourtLiteRepository courtLiteRepository;
     private final OffenceRepository offenceRepository;
@@ -133,8 +136,15 @@ public class DraftAccountReferenceValidationService {
             String enforcementPath = ROOT_PATH + ".payment_terms.enforcements[" + enforcementIndex + "]";
 
             String resultId = safeReadString(docContext, enforcementPath + ".result_id", null);
-            if (resultId != null && !resultRepository.existsById(resultId)) {
-                failures.add(enforcementPath + ".result_id: result id " + resultId + DOES_NOT_EXIST);
+            if (resultId != null) {
+                ResultEntity result = resultRepository.findById(resultId).orElse(null);
+                if (result == null) {
+                    failures.add(enforcementPath + RESULT_ID_PREFIX + resultId + DOES_NOT_EXIST);
+                } else if (!result.isEnforcement()) {
+                    failures.add(enforcementPath + RESULT_ID_PREFIX + resultId + IS_NOT_AN_ENFORCEMENT_RESULT);
+                } else if (!result.isActive()) {
+                    failures.add(enforcementPath + RESULT_ID_PREFIX + resultId + IS_NOT_AN_ACTIVE_RESULT);
+                }
             }
         }
     }
