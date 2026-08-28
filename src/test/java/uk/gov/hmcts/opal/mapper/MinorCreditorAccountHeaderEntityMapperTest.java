@@ -92,7 +92,7 @@ class MinorCreditorAccountHeaderEntityMapperTest extends AbstractMapperTest {
         assertEquals(new BigDecimal("2.00"), mapped.getFinancials().getPaidOut());
         assertEquals(new BigDecimal("1.00"), mapped.getFinancials().getAwaitingPayout());
         assertEquals(BigDecimal.ZERO, mapped.getFinancials().getOutstanding());
-        assertEquals(mapped.getRepayment(), repayment);
+        assertEquals(repayment, mapped.getRepayment());
 
 
         verify(partyMapper).toDto(party);
