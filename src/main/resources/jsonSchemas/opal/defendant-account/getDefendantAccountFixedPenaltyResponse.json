@@ -8,23 +8,23 @@
       "type": "boolean"
     },
     "fixed_penalty_ticket_details": {
-      "type": "object",
+      "type": ["object","null"],
       "additionalProperties": false,
       "properties": {
         "issuing_authority": {
-          "type": "string",
+          "type": ["string","null"],
           "minLength": 1
         },
         "ticket_number": {
-          "type": "string",
+          "type": ["string","null"],
           "minLength": 1
         },
         "time_of_offence": {
-          "type": "string",
+          "type": ["string","null"],
           "minLength": 1
         },
         "place_of_offence": {
-          "type": "string",
+          "type": ["string","null"],
           "minLength": 1
         }
       },
