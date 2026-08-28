@@ -10,6 +10,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.repository.CourtLiteRepository;
@@ -31,7 +32,7 @@ public class DraftAccountReferenceValidationService {
     private final MajorCreditorRepository majorCreditorRepository;
 
     @Transactional(readOnly = true)
-    public void validateReferences(String accountJson) {
+    public void validateReferences(String accountJson, Short businessUnitId) {
         JsonPathUtil.DocContext docContext;
         try {
             docContext = createDocContext(accountJson, "DraftAccountReferenceValidationService");
@@ -42,7 +43,7 @@ public class DraftAccountReferenceValidationService {
         List<String> failures = new ArrayList<>();
 
         validateEnforcementCourt(docContext, failures);
-        validateOffences(docContext, failures);
+        validateOffences(docContext, failures, businessUnitId);
         validatePaymentTermsEnforcements(docContext, failures);
 
         if (!failures.isEmpty()) {
@@ -61,7 +62,7 @@ public class DraftAccountReferenceValidationService {
         }
     }
 
-    private void validateOffences(JsonPathUtil.DocContext docContext, List<String> failures) {
+    private void validateOffences(JsonPathUtil.DocContext docContext, List<String> failures, Short businessUnitId) {
         List<?> offences = safeReadList(docContext, ROOT_PATH + ".offences");
         if (offences == null) {
             return;
@@ -69,10 +70,12 @@ public class DraftAccountReferenceValidationService {
 
         for (int offenceIndex = 0; offenceIndex < offences.size(); offenceIndex++) {
             String offencePath = ROOT_PATH + ".offences[" + offenceIndex + "]";
+            String offenceDisplayPath = "account.offences[" + offenceIndex + "]";
 
             Long offenceId = safeReadLong(docContext, offencePath + ".offence_id");
-            if (offenceId != null && !offenceRepository.existsById(offenceId)) {
-                failures.add(offencePath + ".offence_id: offence id " + offenceId + DOES_NOT_EXIST);
+            if (offenceId != null
+                && !offenceRepository.existsByOffenceIdAvailableToBusinessUnit(offenceId, businessUnitId)) {
+                failures.add(offenceDisplayPath + ".offence_id: offence id " + offenceId + DOES_NOT_EXIST);
             }
 
             Long imposingCourtId = safeReadLong(docContext, offencePath + ".imposing_court_id");
@@ -89,9 +92,7 @@ public class DraftAccountReferenceValidationService {
                 String impositionPath = offencePath + ".impositions[" + impositionIndex + "]";
 
                 String resultId = safeReadString(docContext, impositionPath + ".result_id", null);
-                if (resultId != null && !resultRepository.existsById(resultId)) {
-                    failures.add(impositionPath + ".result_id: result id " + resultId + DOES_NOT_EXIST);
-                }
+                validateImpositionResult(resultId, impositionPath + ".result_id", failures);
 
                 Long majorCreditorId = safeReadLong(docContext, impositionPath + ".major_creditor_id");
                 if (majorCreditorId != null && !majorCreditorRepository.existsById(majorCreditorId)) {
@@ -99,6 +100,26 @@ public class DraftAccountReferenceValidationService {
                         + DOES_NOT_EXIST);
                 }
             }
+        }
+    }
+
+    private void validateImpositionResult(String resultId, String resultPath, List<String> failures) {
+        if (resultId == null) {
+            return;
+        }
+
+        ResultEntity result = resultRepository.findById(resultId).orElse(null);
+        if (result == null) {
+            failures.add(resultPath + ": result id " + resultId + DOES_NOT_EXIST);
+            return;
+        }
+
+        if (!result.isImposition()) {
+            failures.add(resultPath + ": result id " + resultId + " is not an imposition result");
+        }
+
+        if (!result.isActive()) {
+            failures.add(resultPath + ": result id " + resultId + " is not active");
         }
     }
 

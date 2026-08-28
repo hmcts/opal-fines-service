@@ -329,6 +329,72 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 
+  /minor-creditor-accounts/search:
+    post:
+      tags:
+        - Minor Creditor
+      summary: Search minor creditors
+      description: Searches minor creditors based upon criteria in request body.
+      operationId: postMinorCreditorSearch
+      security:
+        - permissions:
+            - Search and View Accounts (in any Business Unit).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MinorCreditorSearchRequest'
+      responses:
+        200:
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MinorCreditorAccountsSearchResponse'
+        400:
+          description: 'Bad request'
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: 'Unauthorized'
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: 'Forbidden'
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: 'Not found'
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        422:
+          description: 'Unprocessable content'
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: 'Internal server error'
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: 'Service unavailable'
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -400,6 +466,7 @@ components:
         - creditor_account_id
         - party_details
         - address
+        - repayment
         - payment
       properties:
         creditor_account_id:
@@ -408,6 +475,9 @@ components:
           $ref: './common.yaml#/components/schemas/partyDetails'
         address:
           $ref: './common.yaml#/components/schemas/addressDetails'
+        repayment:
+          type: boolean
+          description: DB Mapping - creditor_accounts.repayment
         payment:
           allOf:
             - $ref: './common.yaml#/components/schemas/creditorAccountPaymentDetails'
@@ -417,3 +487,160 @@ components:
                   description: DB Mapping - creditor_accounts.hold_payout
               required:
                 - hold_payment
+    MinorCreditorSearchRequest:
+      title: Post Minor Creditor Accounts Search Request
+      type: object
+      additionalProperties: false
+      description: |
+        Search request criteria for minor creditor accounts.
+        If account_number is populated, no other search fields may be populated.
+        If creditor forenames is populated then last name must also be populated.
+      allOf:
+        - required:
+            - active_accounts_only
+        - oneOf:
+            - required:
+                - account_number
+            - required:
+                - creditor
+      properties:
+        active_accounts_only:
+          type: boolean
+        business_unit_ids:
+          type: array
+          nullable: true
+          minItems: 1
+          items:
+            type: integer
+            format: int16
+        account_number:
+          type: string
+          nullable: true
+        creditor:
+          $ref: '#/components/schemas/MinorCreditorAccountSearchCreditor'
+          nullable: true
+    MinorCreditorAccountsSearchResponse:
+      title: Post Minor Creditor Accounts Search Response
+      type: object
+      additionalProperties: false
+      required:
+        - count
+        - creditor_accounts
+      properties:
+        count:
+          type: integer
+          format: The total number of records identified
+        creditor_accounts:
+          type: array
+          nullable: true
+          description: A list of minor creditor accounts. Null if none are found
+          items:
+            $ref: '#/components/schemas/minorCreditorAccountSearchResult'
+    MinorCreditorAccountSearchCreditor:
+      title: Minor Creditor Account Search Creditor
+      type: object
+      nullable: true
+      additionalProperties: false
+      description: |
+        Search criteria used to identify a minor creditor, either an organisation or an individual
+      required:
+        - organisation
+      properties:
+        address_line_1:
+          type: string
+          nullable: true
+        postcode:
+          type: string
+          nullable: true
+        organisation:
+          type: boolean
+        organisation_name:
+          type: string
+          nullable: true
+        exact_match_organisation_name:
+          type: boolean
+          nullable: true
+        surname:
+          type: string
+          nullable: true
+        forenames:
+          type: string
+          nullable: true
+        exact_match_surname:
+          type: boolean
+          nullable: true
+        exact_match_forenames:
+          type: boolean
+          nullable: true
+    minorCreditorAccountSearchResult:
+      title: Minor Creditor Account Search Result
+      type: object
+      additionalProperties: false
+      description: Details of the defendant, which can be either an organisation or an individual
+      required:
+        - creditor_account_id
+        - account_number
+        - organisation
+        - address_line_1
+        - postcode
+        - business_unit_name
+        - business_unit_id
+        - account_balance
+        - organisation_name
+        - surname
+        - firstnames
+        - defendant
+      properties:
+        creditor_account_id:
+          type: string
+        account_number:
+          type: string
+        organisation:
+          type: boolean
+        address_line_1:
+          type: string
+        postcode:
+          type: string
+          nullable: true
+        business_unit_name:
+          type: string
+        business_unit_id:
+          type: string
+        account_balance:
+          $ref: './types.yaml#/components/schemas/monetaryNegativeOrPositive'
+        organisation_name:
+          type: string
+          nullable: true
+        surname:
+          type: string
+          nullable: true
+        firstnames:
+          type: string
+          nullable: true
+        defendant:
+          $ref: '#/components/schemas/MinorCreditorAccountSearchDefendant'
+          nullable: true
+    MinorCreditorAccountSearchDefendant:
+      title: Minor Creditor Account Search Defendant
+      type: object
+      additionalProperties: false
+      required:
+        - defendant_account_id
+        - organisation
+        - organisation_name
+        - surname
+        - firstnames
+      properties:
+        defendant_account_id:
+          type: string
+        organisation:
+          type: boolean
+        organisation_name:
+          type: string
+          nullable: true
+        surname:
+          type: string
+          nullable: true
+        firstnames:
+          type: string
+          nullable: true

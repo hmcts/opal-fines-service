@@ -1,0 +1,1023 @@
+package uk.gov.hmcts.opal.controllers.r1a;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectBadRequestWithoutStatus;
+
+import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.ResultActions;
+import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
+import uk.gov.hmcts.opal.dto.PdplIdentifierType;
+import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
+
+@Slf4j(topic = "opal.DraftAccountControllerPutIntegrationTest")
+@DisplayName("DraftAccountControllerPutIntegrationTest")
+class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControllerIntegrationTest {
+
+    @Test
+    @DisplayName("Replace draft account - Should return updated draft account [@PO-973, @PO-746]")
+    @JiraStory("PO-973")
+    @JiraStory("PO-746")
+    @JiraEpic("PO-2220")
+    @JiraTestKey("PO-5869")
+    void testReplaceDraftAccount_success() throws Exception {
+        String requestBody = validReplaceRequestBody(0L);
+        log.info(":testReplaceDraftAccount_success: Request Body:\n{}", ToJsonString.toPrettyJson(requestBody));
+
+        ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
+            .header("If-Match", "3")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(requestBody));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testReplaceDraftAccount_success: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.draft_account_id").value(5))
+            .andExpect(jsonPath("$.business_unit_id").value(78))
+            .andExpect(jsonPath("$.submitted_by").value("L078JG"))
+            .andExpect(jsonPath("$.submitted_by_name").value("Pablo"))
+            .andExpect(jsonPath("$.account_type").value("Fine"))
+            .andExpect(jsonPath("$.account_status").value("Resubmitted"))
+            .andExpect(jsonPath("$.account.originator_type").value("TFO"))
+            .andExpect(jsonPath("$.timeline_data").isArray())
+            .andExpect(jsonPath("$.timeline_data[1].username").value("L078JG"))
+            .andExpect(jsonPath("$.timeline_data[1].status").value("Submitted"))
+            .andExpect(jsonPath("$.timeline_data[1].status_date").value(TIMELINE_STATUS_DATE.toString()))
+            .andExpect(jsonPath("$.timeline_data[1].reason_text").doesNotExist());
+
+        jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNT_RESPONSE);
+
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"submitted_by", "submitted_by_name"})
+    @DisplayName("Replace draft account - Should return 400 when token-derived fields are supplied")
+    @JiraStory("PO-2461")
+    @JiraEpic("PO-2220")
+    void testReplaceDraftAccount_tokenDerivedFieldIsSupplied(String propertyName) throws Exception {
+        String request = validReplaceRequestBody(0L).replace(
+            "\"business_unit_id\": 78,",
+            "\"business_unit_id\": 78,\n"
+                + "              \"%s\": \"client-user\",".formatted(propertyName)
+        );
+
+        mockMvc.perform(put(URL_BASE + "/" + 5)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", "3")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail", containsString(propertyName)))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
+    }
+
+    @Test
+    @DisplayName("Replace draft account - Should return 400 when originator_type is missing")
+    @JiraStory("PO-747")
+    @JiraEpic("PO-2220")
+    @JiraTestKey("PO-5872")
+    void testReplaceDraftAccount_originatorTypeIsMissing() throws Exception {
+        String request = validCreateRequestBody()
+            .replace("\"originator_type\": \"NEW\",", "");
+
+        ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Replace draft account - Should return 400 when originator_type is blank")
+    @JiraStory("PO-747")
+    @JiraEpic("PO-2220")
+    @JiraTestKey("PO-5874")
+    void testReplaceDraftAccount_originatorTypeIsBlank() throws Exception {
+        String request = validCreateRequestBody()
+            .replace("\"originator_type\": \"NEW\"", "\"originator_type\": \"\"");
+
+        ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Replace draft account - Should return 400 when originator_type has invalid value")
+    @JiraStory("PO-747")
+    @JiraEpic("PO-2220")
+    @JiraTestKey("PO-5873")
+    void testReplaceDraftAccount_originatorTypeIsInvalid() throws Exception {
+        String request = validCreateRequestBody()
+            .replace("\"originator_type\": \"NEW\"", "\"originator_type\": \"ABC\"");
+
+        ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Replace draft account - Should return 400 when timeline_data is supplied")
+    @JiraStory("PO-747")
+    @JiraEpic("PO-2220")
+    @JiraTestKey("PO-7579")
+    void testReplaceDraftAccount_timelineDataIsSupplied() throws Exception {
+        String request = validReplaceRequestBody(0L)
+            .replace(
+                "\"account_status\": \"Submitted\"",
+                "\"account_status\": \"Submitted\",\n              \"timeline_data\": " + validTimelineDataJson().trim()
+            );
+        String ifMatch = getIfMatchForDraftAccount(5L);
+
+        mockMvc.perform(put(URL_BASE + "/" + 5)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", ifMatch)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Replace draft account - Should create and call PDPLLoggingService [@PO-2359]")
+    @JiraStory("PO-2359")
+    @JiraEpic("PO-2355")
+    @JiraTestKey("PO-5868")
+    void testPutDraftAccount_success_and_pdplServiceCalled() throws Exception {
+        String validRequestBody = validReplaceRequestBodyForPdpl(0L);
+
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
+        String ifMatch = getIfMatchForDraftAccount(5L);
+        ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
+            .header("If-Match", ifMatch)
+            .header("X-User-IP", "192.168.1.100")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(validRequestBody));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor = ArgumentCaptor.forClass(
+            PersonalDataProcessingLogDetails.class);
+        verify(loggingService, times(5)).personalDataAccessLogAsync(captor.capture());
+
+        List<PersonalDataProcessingLogDetails> logs = captor.getAllValues();
+
+        assertEquals(5, logs.size());
+
+        PersonalDataProcessingLogDetails l0 = logs.get(0);
+        assertEquals("Get Draft Account - Defendant", l0.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l0.getCategory());
+        assertEquals("500000000", l0.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l0.getCreatedBy().getType());
+        assertEquals("127.0.0.1", l0.getIpAddress());
+        assertNull(l0.getRecipient());
+        assertEquals(1, l0.getIndividuals().size());
+        assertEquals("5", l0.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l0.getIndividuals().get(0).getType());
+        assertNotNull(l0.getCreatedAt());
+
+        PersonalDataProcessingLogDetails l1 = logs.get(1);
+        assertEquals("Get Draft Account - Minor Creditor", l1.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l1.getCategory());
+        assertEquals("500000000", l1.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l1.getCreatedBy().getType());
+        assertEquals("127.0.0.1", l1.getIpAddress());
+        assertNull(l1.getRecipient());
+        assertEquals(1, l1.getIndividuals().size());
+        assertEquals("5", l1.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l1.getIndividuals().get(0).getType());
+        assertNotNull(l1.getCreatedAt());
+
+        PersonalDataProcessingLogDetails l2 = logs.get(2);
+        assertEquals("Update Draft Account - Parent or Guardian", l2.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, l2.getCategory());
+        assertEquals("500000000", l2.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l2.getCreatedBy().getType());
+        assertEquals("192.168.1.100", l2.getIpAddress());
+        assertNull(l2.getRecipient());
+        assertEquals(1, l2.getIndividuals().size());
+        assertEquals("5", l2.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l2.getIndividuals().get(0).getType());
+        assertNotNull(l2.getCreatedAt());
+
+        PersonalDataProcessingLogDetails l3 = logs.get(3);
+        assertEquals("Update Draft Account - Defendant", l3.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, l3.getCategory());
+        assertEquals("500000000", l3.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l3.getCreatedBy().getType());
+        assertEquals("192.168.1.100", l3.getIpAddress());
+        assertNull(l3.getRecipient());
+        assertEquals(1, l3.getIndividuals().size());
+        assertEquals("5", l3.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l3.getIndividuals().get(0).getType());
+        assertNotNull(l3.getCreatedAt());
+
+        PersonalDataProcessingLogDetails l4 = logs.get(4);
+        assertEquals("Update Draft Account - Minor Creditor", l4.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, l4.getCategory());
+        assertEquals("500000000", l4.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l4.getCreatedBy().getType());
+        assertEquals("192.168.1.100", l4.getIpAddress());
+        assertNull(l4.getRecipient());
+        assertEquals(1, l4.getIndividuals().size());
+        assertEquals("5", l4.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l4.getIndividuals().get(0).getType());
+        assertNotNull(l4.getCreatedAt());
+    }
+
+    @Test
+    @DisplayName("Replace draft account - Defendant only PDPL log [@PO-2359]")
+    @JiraStory("PO-2359")
+    @JiraEpic("PO-2355")
+    @JiraTestKey("PO-5866")
+    void testPutDraftAccount_defendantOnly_pdplLogged() throws Exception {
+        String validRequestBody = validReplaceRequestBodyDefendantOnly(0L);
+
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
+        String ifMatch = getIfMatchForDraftAccount(5L);
+        ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
+            .header("If-Match", ifMatch)
+            .header("X-User-IP", "192.168.1.100")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(validRequestBody));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor = ArgumentCaptor.forClass(
+            PersonalDataProcessingLogDetails.class);
+        verify(loggingService, times(1)).personalDataAccessLogAsync(captor.capture());
+
+        PersonalDataProcessingLogDetails pdpl = captor.getValue();
+        assertEquals("Update Draft Account - Defendant", pdpl.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, pdpl.getCategory());
+        assertNull(pdpl.getRecipient());
+        assertEquals(1, pdpl.getIndividuals().size());
+        assertEquals("5", pdpl.getIndividuals().getFirst().getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, pdpl.getIndividuals().getFirst().getType());
+
+        assertNotNull(pdpl.getCreatedBy());
+        assertEquals("500000000", pdpl.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, pdpl.getCreatedBy().getType());
+
+        assertEquals(FIXED_DATE_TIME, pdpl.getCreatedAt());
+    }
+
+    @Test
+    @DisplayName("Replace draft account - Parent/Guardian only PDPL log [@PO-2359]")
+    @JiraStory("PO-2359")
+    @JiraEpic("PO-2355")
+    @JiraTestKey("PO-5871")
+    void testPutDraftAccount_parentGuardianOnly_pdplLogged() throws Exception {
+        String validRequestBody = validReplaceRequestBodyParentGuardianOnly(0L);
+
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
+        String ifMatch = getIfMatchForDraftAccount(5L);
+        ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
+            .header("If-Match", ifMatch)
+            .header("X-User-IP", "192.168.1.100")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(validRequestBody));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor = ArgumentCaptor.forClass(
+            PersonalDataProcessingLogDetails.class);
+        verify(loggingService, times(3)).personalDataAccessLogAsync(captor.capture());
+
+        List<PersonalDataProcessingLogDetails> logs = captor.getAllValues();
+
+        assertEquals(3, logs.size());
+
+        PersonalDataProcessingLogDetails l0 = logs.get(0);
+        assertEquals("Get Draft Account - Defendant", l0.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.CONSULTATION, l0.getCategory());
+        assertEquals("500000000", l0.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l0.getCreatedBy().getType());
+        assertEquals("127.0.0.1", l0.getIpAddress());
+        assertNull(l0.getRecipient());
+        assertEquals(1, l0.getIndividuals().size());
+        assertEquals("5", l0.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l0.getIndividuals().get(0).getType());
+        assertNotNull(l0.getCreatedAt());
+
+        PersonalDataProcessingLogDetails l1 = logs.get(1);
+        assertEquals("Update Draft Account - Parent or Guardian", l1.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, l1.getCategory());
+        assertEquals("500000000", l1.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l1.getCreatedBy().getType());
+        assertEquals("192.168.1.100", l1.getIpAddress());
+        assertNull(l1.getRecipient());
+        assertEquals(1, l1.getIndividuals().size());
+        assertEquals("5", l1.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l1.getIndividuals().get(0).getType());
+        assertNotNull(l1.getCreatedAt());
+
+        PersonalDataProcessingLogDetails l2 = logs.get(2);
+        assertEquals("Update Draft Account - Defendant", l2.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, l2.getCategory());
+        assertEquals("500000000", l2.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, l2.getCreatedBy().getType());
+        assertEquals("192.168.1.100", l2.getIpAddress());
+        assertNull(l2.getRecipient());
+        assertEquals(1, l2.getIndividuals().size());
+        assertEquals("5", l2.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l2.getIndividuals().get(0).getType());
+        assertNotNull(l2.getCreatedAt());
+
+    }
+
+    @Test
+    @DisplayName("Replace draft account - Minor creditor only PDPL log [@PO-2359]")
+    @JiraStory("PO-2359")
+    @JiraEpic("PO-2355")
+    @JiraTestKey("PO-5867")
+    void testPutDraftAccount_minorCreditorOnly_pdplLogged() throws Exception {
+        String validRequestBody = validReplaceRequestBodyMinorCreditorOnly(0L);
+
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
+        String ifMatch = getIfMatchForDraftAccount(5L);
+        ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
+            .header("If-Match", ifMatch)
+            .header("X-User-IP", "192.168.1.100")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(validRequestBody));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor = ArgumentCaptor.forClass(
+            PersonalDataProcessingLogDetails.class);
+        verify(loggingService, times(3)).personalDataAccessLogAsync(captor.capture());
+
+        List<PersonalDataProcessingLogDetails> logs = captor.getAllValues();
+
+        assertEquals(3, logs.size());
+
+        PersonalDataProcessingLogDetails first = logs.get(0);
+        assertEquals("Get Draft Account - Defendant", first.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.CONSULTATION, first.getCategory());
+        assertEquals("500000000", first.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, first.getCreatedBy().getType());
+        assertEquals("127.0.0.1", first.getIpAddress());
+        assertNull(first.getRecipient());
+        assertEquals(1, first.getIndividuals().size());
+        assertEquals("5", first.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, first.getIndividuals().get(0).getType());
+        assertNotNull(first.getCreatedAt());
+
+        PersonalDataProcessingLogDetails second = logs.get(1);
+        assertEquals("Update Draft Account - Defendant", second.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, second.getCategory());
+        assertEquals("500000000", second.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, second.getCreatedBy().getType());
+        assertEquals("192.168.1.100", second.getIpAddress());
+        assertNull(second.getRecipient());
+        assertEquals(1, second.getIndividuals().size());
+        assertEquals("5", second.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, second.getIndividuals().get(0).getType());
+        assertNotNull(second.getCreatedAt());
+
+        PersonalDataProcessingLogDetails third = logs.get(2);
+        assertEquals("Update Draft Account - Minor Creditor", third.getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, third.getCategory());
+        assertEquals("500000000", third.getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, third.getCreatedBy().getType());
+        assertEquals("192.168.1.100", third.getIpAddress());
+        assertNull(third.getRecipient());
+        assertEquals(1, third.getIndividuals().size());
+        assertEquals("5", third.getIndividuals().get(0).getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, third.getIndividuals().get(0).getType());
+        assertNotNull(third.getCreatedAt());
+
+    }
+
+    @Test
+    @DisplayName("Put Draft Account : Deterministic and includes originator type")
+    @JiraStory("PO-746")
+    @JiraEpic("PO-2220")
+    @JiraTestKey("PO-5875")
+    void testPutDraft_deterministic() throws Exception {
+        String requestBody = validReplaceRequestBody(3L);
+
+        String first = mockMvc.perform(put(URL_BASE + "/" + 5)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", getIfMatchForDraftAccount(5L))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse().getContentAsString();
+
+        String second = mockMvc.perform(put(URL_BASE + "/" + 5)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", getIfMatchForDraftAccount(5L))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse().getContentAsString();
+
+        DraftAccountResponseDto r1 = objectMapper.readValue(first, DraftAccountResponseDto.class);
+        DraftAccountResponseDto r2 = objectMapper.readValue(second, DraftAccountResponseDto.class);
+
+        assertThat(r1)
+            .usingRecursiveComparison()
+            .ignoringFields("accountStatusDate", "timelineData")
+            .isEqualTo(r2);
+    }
+
+    @Test
+    @DisplayName("Replace draft account - Should return 400 when imposition result is not an imposition")
+    @JiraStory("PO-5747")
+    @JiraEpic("PO-5741")
+    void shouldReturn400WhenImpositionResultIsNotAnImposition() throws Exception {
+        String ifMatch = getIfMatchForDraftAccount(5L);
+
+        mockMvc.perform(put(URL_BASE + "/5")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", ifMatch)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(nonImpositionResultReplaceRequestBody(0L)))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Bad Request"))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/invalid-reference-validation"))
+            .andExpect(jsonPath("$.detail").value(containsString("$.offences[0].impositions[0].result_id")))
+            .andExpect(jsonPath("$.detail").value(containsString("result id COLLO is not an imposition result")));
+    }
+
+    @Test
+    @DisplayName("Replace draft account - Should return 400 when reference validation fails and leave data unchanged")
+    @JiraStory("PO-973")
+    @JiraEpic("PO-2220")
+    @JiraTestKey("PO-9389")
+    void testReplaceDraftAccount_referenceValidationFailure_returns400AndLeavesDataUnchanged() throws Exception {
+        DraftAccountEntity before = getDraftAccount(5L);
+        long countBefore = draftAccountRepository.count();
+        String ifMatch = getIfMatchForDraftAccount(5L);
+
+        mockMvc.perform(put(URL_BASE + "/5")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", ifMatch)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(invalidReferenceReplaceRequestBody(0L)))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedReferenceValidationErrorMessage(),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+
+        DraftAccountEntity after = getDraftAccount(5L);
+
+        assertEquals(countBefore, draftAccountRepository.count());
+        assertEquals(before.getAccount(), after.getAccount());
+        assertEquals(before.getAccountStatus(), after.getAccountStatus());
+        assertEquals(before.getVersionNumber(), after.getVersionNumber());
+        assertEquals(before.getAccountId(), after.getAccountId());
+        assertEquals(before.getAccountNumber(), after.getAccountNumber());
+        assertEquals(before.getStatusMessage(), after.getStatusMessage());
+        assertEquals(before.getSubmittedBy(), after.getSubmittedBy());
+        assertEquals(before.getSubmittedByName(), after.getSubmittedByName());
+        assertEquals(before.getValidatedBy(), after.getValidatedBy());
+        assertEquals(before.getValidatedByName(), after.getValidatedByName());
+        assertEquals(before.getAccountSnapshot(), after.getAccountSnapshot());
+        assertEquals(before.getTimelineData(), after.getTimelineData());
+    }
+
+    @Test
+    @DisplayName("PO-5746: Replace draft account - Should return 400 for an invalid offence ID")
+    @JiraStory("PO-5746")
+    @JiraEpic("PO-2220")
+    void shouldReturn400WhenOffenceIdIsInvalid() throws Exception {
+        String request = validReplaceRequestBody(0L)
+            .replace("\"offence_id\": 35014", "\"offence_id\": 999998");
+
+        mockMvc.perform(put(URL_BASE + "/5")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", getIfMatchForDraftAccount(5L))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                """
+                Draft account reference validation failed with 1 error(s):
+                 - account.offences[0].offence_id: offence id 999998 does not exist
+                """.stripIndent().stripTrailing(),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("Replace draft account - user with no permission [@PO-973, @PO-830]")
+    @JiraStory("PO-973")
+    @JiraStory("PO-830")
+    @JiraEpic("PO-2220")
+    @JiraTestKey("PO-5870")
+    void testReplaceDraftAccount_trap403Response_noPermission() throws Exception {
+        Long draftAccountId = 241L;
+        userStateStub.setupWithNoPermissions();
+        mockMvc.perform(put(URL_BASE + "/" + draftAccountId)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validCreateRequestBody()))
+            .andExpect(status().isForbidden());
+
+    }
+
+    private static String validCreateRequestBody() {
+        return """
+            {
+              "business_unit_id": 78,
+              "account": {
+                "account_type": "Fine",
+                "defendant_type": "Adult",
+                "originator_name": "Police Force",
+                "originator_id": 12345,
+                "originator_type": "NEW",
+                "enforcement_court_id": 260000000048,
+                "collection_order_made": true,
+                "collection_order_made_today": false,
+                "payment_card_request": true,
+                "account_sentence_date": "2023-12-01",
+                "defendant": {
+                  "company_flag": false,
+                  "title": "Mr",
+                  "surname": "LNAME",
+                  "forenames": "John",
+                  "dob": "1985-04-15",
+                  "address_line_1": "123 Elm Street",
+                  "address_line_2": "Suite 45",
+                  "post_code": "AB1 2CD",
+                  "telephone_number_home": "0123456789",
+                  "telephone_number_mobile": "07712345678",
+                  "email_address_1": "john.doe@example.com",
+                  "national_insurance_number": "AB123456C",
+                  "nationality_1": "British",
+                  "occupation": "Engineer",
+                  "debtor_detail": {
+                    "document_language": "EN",
+                    "hearing_language": "EN",
+                    "vehicle_make": "Toyota",
+                    "vehicle_registration_mark": "ABC123",
+                    "aliases": [
+                      {
+                        "alias_forenames": "Jon",
+                        "alias_surname": "Smith"
+                      }
+                    ]
+                  }
+                },
+                "offences": [
+                  {
+                    "date_of_sentence": "2023-11-15",
+                    "imposing_court_id": 260000000048,
+                    "offence_id": 35014,
+                    "impositions": [
+                      {
+                        "result_id": "FO",
+                        "amount_imposed": 500.00,
+                        "amount_paid": 200.00,
+                        "major_creditor_id": null
+                      }
+                    ]
+                  }
+                ],
+                "payment_terms": {
+                  "payment_terms_type_code": "P",
+                  "effective_date": "2023-11-01",
+                  "instalment_period": "M",
+                  "lump_sum_amount": 1000.00,
+                  "instalment_amount": 200.00,
+                  "default_days_in_jail": 5
+                },
+                "account_notes": [
+                  {
+                    "account_note_serial": 1,
+                    "account_note_text": "Defendant requested an installment plan.",
+                    "note_type": "AC"
+                  }
+                ]
+              },
+              "account_type": "Fine",
+              "account_status": "Submitted"
+            }""";
+    }
+
+    private static String validReplaceRequestBody(Long version) {
+        return """
+            {
+              "business_unit_id": 78,
+              "account": {
+                "account_type": "Fine",
+                "defendant_type": "adultOrYouthOnly",
+                "originator_name": "Police Force",
+                "originator_id": 12345,
+                "originator_type": "TFO",
+                "enforcement_court_id": 260000000048,
+                "collection_order_made": true,
+                "collection_order_made_today": false,
+                "payment_card_request": true,
+                "account_sentence_date": "2023-12-01",
+                "defendant": {
+                  "company_flag": false,
+                  "title": "Mr",
+                  "surname": "LNAME",
+                  "forenames": "John",
+                  "dob": "1985-04-15",
+                  "address_line_1": "123 Elm Street",
+                  "address_line_2": "Suite 45",
+                  "post_code": "AB1 2CD",
+                  "telephone_number_home": "0123456789",
+                  "telephone_number_mobile": "07712345678",
+                  "email_address_1": "john.doe@example.com",
+                  "national_insurance_number": "AB123456C",
+                  "nationality_1": "British",
+                  "occupation": "Engineer",
+                  "debtor_detail": {
+                    "document_language": "EN",
+                    "hearing_language": "EN",
+                    "vehicle_make": "Toyota",
+                    "vehicle_registration_mark": "ABC123",
+                    "aliases": [
+                      {
+                        "alias_forenames": "Jon",
+                        "alias_surname": "Smith"
+                      }
+                    ]
+                  }
+                },
+                "offences": [
+                  {
+                    "date_of_sentence": "2023-11-15",
+                    "imposing_court_id": 260000000048,
+                    "offence_id": 35014,
+                    "impositions": [
+                      {
+                        "result_id": "FO",
+                        "amount_imposed": 500.00,
+                        "amount_paid": 200.00,
+                        "major_creditor_id": null
+                      }
+                    ]
+                  }
+                ],
+                "payment_terms": {
+                  "payment_terms_type_code": "P",
+                  "effective_date": "2023-11-01",
+                  "instalment_period": "M",
+                  "lump_sum_amount": 1000.00,
+                  "instalment_amount": 200.00,
+                  "default_days_in_jail": 5
+                },
+                "account_notes": [
+                  {
+                    "account_note_serial": 1,
+                    "account_note_text": "Defendant requested an installment plan.",
+                    "note_type": "AC"
+                  }
+                ]
+              },
+              "account_type": "Fine",
+              "account_status": "Submitted"
+            }""";
+    }
+
+    private static String nonImpositionResultReplaceRequestBody(Long version) {
+        return validReplaceRequestBody(version)
+            .replace("\"result_id\": \"FO\"", "\"result_id\": \"COLLO\"");
+    }
+
+    private static String invalidReferenceReplaceRequestBody(Long version) {
+        return validReplaceRequestBody(version)
+            .replace("\"enforcement_court_id\": 260000000048", "\"enforcement_court_id\": 999999")
+            .replace("\"offence_id\": 35014", "\"offence_id\": 999998")
+            .replace("\"imposing_court_id\": 260000000048", "\"imposing_court_id\": 999997")
+            .replace("\"result_id\": \"FO\"", "\"result_id\": \"NOT-A-RESULT\"")
+            .replace("\"major_creditor_id\": null", "\"major_creditor_id\": 999996");
+    }
+
+    private static String expectedReferenceValidationErrorMessage() {
+        return """
+            Draft account reference validation failed with 5 error(s):
+             - $.enforcement_court_id: court id 999999 does not exist
+             - account.offences[0].offence_id: offence id 999998 does not exist
+             - $.offences[0].imposing_court_id: court id 999997 does not exist
+             - $.offences[0].impositions[0].result_id: result id NOT-A-RESULT does not exist
+             - $.offences[0].impositions[0].major_creditor_id: major creditor id 999996 does not exist
+            """.stripIndent().stripTrailing();
+    }
+
+    private static String validReplaceRequestBodyForPdpl(Long version) {
+        return """
+            {
+              "business_unit_id": 78,
+              "account": {
+                "account_type": "Fine",
+                "defendant_type": "pgToPay",
+                "originator_name": "Police Force",
+                "originator_id": 12345,
+                "originator_type": "NEW",
+                "enforcement_court_id": 260000000048,
+                "collection_order_made": true,
+                "collection_order_made_today": false,
+                "payment_card_request": true,
+                "account_sentence_date": "2023-12-01",
+                "defendant": {
+                  "company_flag": false,
+                  "surname": "LNAME",
+                  "forenames": "FNAME",
+                  "dob": "1985-04-15",
+                  "address_line_1": "123 Elm Street",
+                  "post_code": "AB1 2CD",
+                  "parent_guardian": {
+                    "company_flag": false,
+                    "surname": "Guardian",
+                    "forenames": "Pat",
+                    "dob": "1970-01-01",
+                    "address_line_1": "456 Justice Road",
+                    "post_code": "AB1 2CD"
+                  }
+                },
+                "offences": [
+                  {
+                    "date_of_sentence": "2023-11-15",
+                    "imposing_court_id": 260000000048,
+                    "offence_id": 35014,
+                    "impositions": [
+                      {
+                        "result_id": "FO",
+                        "amount_imposed": 500.00,
+                        "amount_paid": 200.00,
+                        "major_creditor_id": null,
+                        "minor_creditor": {
+                          "company_flag": false,
+                          "surname": "Minor",
+                          "forenames": "Alice",
+                          "payout_hold": false,
+                          "pay_by_bacs": true
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "payment_terms": {
+                  "payment_terms_type_code": "P"
+                },
+                "account_notes": [
+                  {
+                    "account_note_serial": 1,
+                    "account_note_text": "Defendant requested an installment plan.",
+                    "note_type": "AC"
+                  }
+                ]
+              },
+              "account_type": "Fine",
+              "account_status": "Submitted"
+            }
+            """;
+    }
+
+    private static String validReplaceRequestBodyDefendantOnly(Long version) {
+        return """
+            {
+              "business_unit_id": 78,
+              "account": {
+                "account_type": "Fine",
+                "defendant_type": "adultOrYouthOnly",
+                "originator_name": "Police Force",
+                "originator_id": 12345,
+                "originator_type": "NEW",
+                "enforcement_court_id": 260000000048,
+                "collection_order_made": true,
+                "collection_order_made_today": false,
+                "payment_card_request": true,
+                "account_sentence_date": "2023-12-01",
+                "defendant": {
+                  "company_flag": false,
+                  "surname": "LNAME",
+                  "forenames": "FNAME",
+                  "dob": "1985-04-15",
+                  "address_line_1": "123 Elm Street",
+                  "post_code": "AB1 2CD"
+                },
+                "offences": [
+                  {
+                    "date_of_sentence": "2023-11-15",
+                    "imposing_court_id": 260000000048,
+                    "offence_id": 35014,
+                    "impositions": [
+                      {
+                        "result_id": "FO",
+                        "amount_imposed": 500.00,
+                        "amount_paid": 200.00,
+                        "major_creditor_id": null
+                      }
+                    ]
+                  }
+                ],
+                "payment_terms": {
+                  "payment_terms_type_code": "P"
+                },
+                "account_notes": [
+                  {
+                    "account_note_serial": 1,
+                    "account_note_text": "Defendant requested an installment plan.",
+                    "note_type": "AC"
+                  }
+                ]
+              },
+              "account_type": "Fine",
+              "account_status": "Submitted"
+            }
+            """;
+    }
+
+    private static String validReplaceRequestBodyParentGuardianOnly(Long version) {
+        return """
+            {
+              "business_unit_id": 78,
+              "account": {
+                "account_type": "Fine",
+                "defendant_type": "pgToPay",
+                "originator_name": "Police Force",
+                "originator_id": 12345,
+                "originator_type": "NEW",
+                "enforcement_court_id": 260000000048,
+                "collection_order_made": true,
+                "collection_order_made_today": false,
+                "payment_card_request": true,
+                "account_sentence_date": "2023-12-01",
+                "defendant": {
+                  "company_flag": false,
+                  "surname": "LNAME",
+                  "forenames": "FNAME",
+                  "dob": "1985-04-15",
+                  "address_line_1": "123 Elm Street",
+                  "post_code": "AB1 2CD",
+                  "parent_guardian": {
+                    "company_flag": false,
+                    "surname": "Guardian",
+                    "forenames": "Pat",
+                    "dob": "1970-01-01",
+                    "address_line_1": "456 Justice Road",
+                    "post_code": "AB1 2CD"
+                  }
+                },
+                "offences": [
+                  {
+                    "date_of_sentence": "2023-11-15",
+                    "imposing_court_id": 260000000048,
+                    "offence_id": 35014,
+                    "impositions": [
+                      {
+                        "result_id": "FO",
+                        "amount_imposed": 500.00,
+                        "amount_paid": 200.00,
+                        "major_creditor_id": null
+                      }
+                    ]
+                  }
+                ],
+                "payment_terms": {
+                  "payment_terms_type_code": "P"
+                },
+                "account_notes": [
+                  {
+                    "account_note_serial": 1,
+                    "account_note_text": "Defendant requested an installment plan.",
+                    "note_type": "AC"
+                  }
+                ]
+              },
+              "account_type": "Fine",
+              "account_status": "Submitted"
+            }
+            """;
+    }
+
+    private static String validReplaceRequestBodyMinorCreditorOnly(Long version) {
+        return """
+            {
+              "business_unit_id": 78,
+              "account": {
+                "account_type": "Fine",
+                "defendant_type": "adultOrYouthOnly",
+                "originator_name": "Police Force",
+                "originator_id": 12345,
+                "originator_type": "NEW",
+                "enforcement_court_id": 260000000048,
+                "collection_order_made": true,
+                "collection_order_made_today": false,
+                "payment_card_request": true,
+                "account_sentence_date": "2023-12-01",
+                "defendant": {
+                  "company_flag": false,
+                  "surname": "LNAME",
+                  "forenames": "FNAME",
+                  "dob": "1985-04-15",
+                  "address_line_1": "123 Elm Street",
+                  "post_code": "AB1 2CD"
+                },
+                "offences": [
+                  {
+                    "date_of_sentence": "2023-11-15",
+                    "imposing_court_id": 260000000048,
+                    "offence_id": 35014,
+                    "impositions": [
+                      {
+                        "result_id": "FO",
+                        "amount_imposed": 500.00,
+                        "amount_paid": 200.00,
+                        "major_creditor_id": null,
+                        "minor_creditor": {
+                          "company_flag": false,
+                          "surname": "Minor",
+                          "forenames": "Alice",
+                          "payout_hold": false,
+                          "pay_by_bacs": true
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "payment_terms": {
+                  "payment_terms_type_code": "P"
+                },
+                "account_notes": [
+                  {
+                    "account_note_serial": 1,
+                    "account_note_text": "Defendant requested an installment plan.",
+                    "note_type": "AC"
+                  }
+                ]
+              },
+              "account_type": "Fine",
+              "account_status": "Submitted"
+            }
+            """;
+    }
+
+}

@@ -352,6 +352,9 @@ Local report paths:
 | Flow | Gradle task | Raw JSON source path to populate locally | Rebuilt packaged path used by the Zephyr task |
 | --- | --- | --- | --- |
 | `integration` | `createJiraExecutionFromIntegrationReport` | `target/zephyr-reports/Junit5Report-IntegrationTest.json` | `integration-output/zephyr/Junit5Report-IntegrationTest.json` |
+| `integrationR1A` | `createJiraExecutionFromR1AIntegrationReport` | `target/zephyr-reports/Junit5Report-IntegrationR1A.json` | `integration-output-r1a/zephyr/Junit5Report-IntegrationR1A.json` |
+| `integrationR1B` | `createJiraExecutionFromR1BIntegrationReport` | `target/zephyr-reports/Junit5Report-IntegrationR1B.json` | `integration-output-r1b/zephyr/Junit5Report-IntegrationR1B.json` |
+| `integrationR1C` | `createJiraExecutionFromR1CIntegrationReport` | `target/zephyr-reports/Junit5Report-IntegrationR1C.json` | `integration-output-r1c/zephyr/Junit5Report-IntegrationR1C.json` |
 | `functional` | `-PzephyrFunctionalStage=functional createJiraExecutionFromFunctionalReport` | `target/zephyr-reports/cucumber-opal.json` | `functional-output/zephyr/cucumber-opal.json` |
 | `smoke` | `-PzephyrFunctionalStage=smoke createJiraExecutionFromFunctionalReport` | `target/zephyr-reports/cucumber-smoke.json` | `smoke-output/zephyr/cucumber-smoke.json` |
 | `runR1AOnly` | `./gradlew functionalOpalTagsR1AOnly` then `-PzephyrFunctionalStage=runR1AOnly createJiraExecutionFromFunctionalReport` | `target/zephyr-reports/cucumber-opal-tags.json` | `functional-output-r1a-only-demo/zephyr/cucumber-opal-tags.json` |
@@ -362,9 +365,29 @@ Examples:
 
 ```bash
 ./gradlew integration
+./gradlew integrationR1A
+./gradlew integrationR1B
+./gradlew integrationR1C
+# Or select a release package from the full integration task:
+./gradlew integration --tests 'uk.gov.hmcts.opal.controllers.r1a.*'
+./gradlew integration --tests 'uk.gov.hmcts.opal.controllers.r1b.*'
+./gradlew integration --tests 'uk.gov.hmcts.opal.controllers.r1c.*'
 ./gradlew createJiraTicketsFromIntegrationReport
 ./gradlew updateJiraTicketsFromIntegrationReport
 ./gradlew createJiraExecutionFromIntegrationReport
+
+# Each command runs the named release suite and then sends only that report to Zephyr.
+./gradlew createJiraTicketsFromR1AIntegrationReport
+./gradlew updateJiraTicketsFromR1AIntegrationReport
+./gradlew createJiraExecutionFromR1AIntegrationReport
+
+./gradlew createJiraTicketsFromR1BIntegrationReport
+./gradlew updateJiraTicketsFromR1BIntegrationReport
+./gradlew createJiraExecutionFromR1BIntegrationReport
+
+./gradlew createJiraTicketsFromR1CIntegrationReport
+./gradlew updateJiraTicketsFromR1CIntegrationReport
+./gradlew createJiraExecutionFromR1CIntegrationReport
 
 ./gradlew functional
 ./gradlew -PzephyrFunctionalStage=functional createJiraTicketsFromFunctionalReport
@@ -407,6 +430,9 @@ Use the task that matches the populated raw JSON source above.
 | `createJiraTicketsFromIntegrationReport` | Creates and links Jira test tickets from `integration-output/zephyr/Junit5Report-IntegrationTest.json`. |
 | `updateJiraTicketsFromIntegrationReport` | Updates Jira test tickets from `integration-output/zephyr/Junit5Report-IntegrationTest.json`. |
 | `createJiraExecutionFromIntegrationReport` | Creates a Zephyr execution from `integration-output/zephyr/Junit5Report-IntegrationTest.json`. |
+| `createJiraTicketsFromR1AIntegrationReport` / `updateJiraTicketsFromR1AIntegrationReport` / `createJiraExecutionFromR1AIntegrationReport` | Runs R1A integration tests and uses `integration-output-r1a/zephyr/Junit5Report-IntegrationR1A.json`. |
+| `createJiraTicketsFromR1BIntegrationReport` / `updateJiraTicketsFromR1BIntegrationReport` / `createJiraExecutionFromR1BIntegrationReport` | Runs R1B integration tests and uses `integration-output-r1b/zephyr/Junit5Report-IntegrationR1B.json`. |
+| `createJiraTicketsFromR1CIntegrationReport` / `updateJiraTicketsFromR1CIntegrationReport` / `createJiraExecutionFromR1CIntegrationReport` | Runs R1C integration tests and uses `integration-output-r1c/zephyr/Junit5Report-IntegrationR1C.json`. |
 
 ## Manual api testing (Postman)
 
