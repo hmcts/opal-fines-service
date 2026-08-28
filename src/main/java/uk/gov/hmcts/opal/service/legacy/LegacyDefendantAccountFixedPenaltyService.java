@@ -3,15 +3,17 @@ package uk.gov.hmcts.opal.service.legacy;
 import static uk.gov.hmcts.opal.dto.legacy.utils.ValidationUtils.checkResponseForError;
 
 import jakarta.validation.constraints.NotNull;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
-import uk.gov.hmcts.opal.dto.common.FixedPenaltyTicketDetails;
-import uk.gov.hmcts.opal.dto.common.VehicleFixedPenaltyDetails;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountGetFixedPenaltyRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountGetFixedPenaltyResponse;
+import uk.gov.hmcts.opal.generated.model.FixedPenaltyTicketDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse;
+import uk.gov.hmcts.opal.generated.model.VehicleFixedPenaltyDetailsCommonStrict;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountFixedPenaltyServiceInterface;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 
@@ -57,7 +59,7 @@ public class LegacyDefendantAccountFixedPenaltyService implements DefendantAccou
                 .vehicleFixedPenaltyFlag(responseEntity.isVehicleFixedPenaltyFlag())
                 .fixedPenaltyTicketDetails(responseEntity.isVehicleFixedPenaltyFlag()
                     ? buildEmptyFixedPenalty()
-                    : FixedPenaltyTicketDetails
+                    : FixedPenaltyTicketDetailsCommonStrict
                         .builder()
                         .issuingAuthority(responseEntity.getFixedPenaltyDetails().getIssuingAuthority())
                         .ticketNumber(responseEntity.getFixedPenaltyDetails().getTicketNumber())
@@ -65,12 +67,13 @@ public class LegacyDefendantAccountFixedPenaltyService implements DefendantAccou
                         .placeOfOffence(responseEntity.getFixedPenaltyDetails().getPlaceOfOffence())
                         .build())
                 .vehicleFixedPenaltyDetails(responseEntity.isVehicleFixedPenaltyFlag()
-                    ? VehicleFixedPenaltyDetails
+                    ? VehicleFixedPenaltyDetailsCommonStrict
                     .builder()
                     .vehicleRegistrationNumber(responseEntity.getVehicleFixedPenaltyDetails().getFpRegistrationNumber())
                     .vehicleDriversLicense(responseEntity.getVehicleFixedPenaltyDetails().getFpDrivingLicense())
                     .noticeNumber(responseEntity.getVehicleFixedPenaltyDetails().getNoticeToOwnerOrHirerNumber())
-                    .dateNoticeIssued(responseEntity.getVehicleFixedPenaltyDetails().getDateNoticeIssued())
+                    .dateNoticeIssued(
+                        LocalDate.parse(responseEntity.getVehicleFixedPenaltyDetails().getDateNoticeIssued()))
                     .build() : buildEmptyVehicleFixedPenalty())
                 .build();
         }
@@ -78,12 +81,24 @@ public class LegacyDefendantAccountFixedPenaltyService implements DefendantAccou
         return response;
     }
 
-    private @NotNull VehicleFixedPenaltyDetails buildEmptyVehicleFixedPenalty() {
-        return VehicleFixedPenaltyDetails.builder().build();
+    private @NotNull VehicleFixedPenaltyDetailsCommonStrict buildEmptyVehicleFixedPenalty() {
+        return VehicleFixedPenaltyDetailsCommonStrict
+            .builder()
+            .vehicleRegistrationNumber(JsonNullable.of(null))
+            .vehicleDriversLicense(JsonNullable.of(null))
+            .noticeNumber(JsonNullable.of(null))
+            .dateNoticeIssued(JsonNullable.of(null))
+            .build();
     }
 
-    private @NotNull FixedPenaltyTicketDetails buildEmptyFixedPenalty() {
-        return FixedPenaltyTicketDetails.builder().build();
+    private @NotNull FixedPenaltyTicketDetailsCommonStrict buildEmptyFixedPenalty() {
+        return FixedPenaltyTicketDetailsCommonStrict
+            .builder()
+            .issuingAuthority(JsonNullable.of(null))
+            .ticketNumber(JsonNullable.of(null))
+            .timeOfOffence(JsonNullable.of(null))
+            .placeOfOffence(JsonNullable.of(null))
+            .build();
     }
 
     private Object createLegacyDefendantAccountGetFixedPenaltyRequest(String defendantAccountId) {
