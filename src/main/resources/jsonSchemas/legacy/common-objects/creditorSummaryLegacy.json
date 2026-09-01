@@ -21,11 +21,11 @@
       "description": "DB Mapping - parties.organisation. Set for minor creditors only."
     },
     "individual_name": {
-      "$ref": "./individualDetailsLegacy.json",
+      "$ref": "./individualNameLegacy.json",
       "description": "Individual minor creditor name when the organisation flag is false."
     },
     "company_name": {
-      "$ref": "./organisationDetailsLegacy.json",
+      "$ref": "./companyNameLegacy.json",
       "description": "Company minor creditor name when the organisation flag is true."
     }
   },
