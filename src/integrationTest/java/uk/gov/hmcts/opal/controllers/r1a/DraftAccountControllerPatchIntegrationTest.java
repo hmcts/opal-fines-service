@@ -117,6 +117,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     @Test
     @DisplayName("Patch draft account - user with CHECK_VALIDATE permission should succeed [@PO-1820]")
     @JiraStory("PO-1820")
+    @JiraStory("PO-10196")
     @JiraEpic("PO-2220")
     @JiraTestKey("PO-5849")
     void testPatchDraftAccount_withCheckValidatePermission_shouldSucceed() throws Exception {
@@ -145,6 +146,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .andExpect(header().string("ETag", "\"1\""))
             .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
             .andExpect(jsonPath("$.account_status").value("Rejected"))
+            .andExpect(jsonPath("$.account_status_date").value("2026-04-22T00:00:00Z"))
             .andExpect(jsonPath("$.timeline_data").isArray())
             .andExpect(jsonPath("$.timeline_data.length()").value(2))
             .andExpect(jsonPath("$.timeline_data[0].status").value("Created"))
