@@ -3,129 +3,95 @@
   "$id": "published-reference-data-message.schema.json",
   "title": "Published Reference Data Message",
   "description": "Common schema for published Reference Data messages including Offence and LJA data products.",
-  "oneOf": [
-    {
-      "allOf": [
-        {
-          "$ref": "#/$defs/baseMessage"
-        },
-        {
-          "properties": {
-            "header": {
-              "properties": {
-                "dataProduct": {
-                  "const": "Offence"
-                }
-              }
-            },
-            "payload": {
-              "properties": {
-                "records": {
-                  "items": {
-                    "$ref": "#/$defs/offenceRecord"
-                  }
-                }
-              }
-            }
-          }
-        }
-      ]
+  "type": "object",
+  "properties": {
+    "header": {
+      "$ref": "#/$defs/messageHeader"
     },
-    {
-      "allOf": [
-        {
-          "$ref": "#/$defs/baseMessage"
-        },
-        {
-          "properties": {
-            "header": {
-              "properties": {
-                "dataProduct": {
-                  "const": "LJA"
-                }
-              }
-            },
-            "payload": {
-              "properties": {
-                "records": {
-                  "items": {
-                    "$ref": "#/$defs/ljaRecord"
-                  }
-                }
-              }
-            }
-          }
-        }
-      ]
+    "payload": {
+      "$ref": "#/$defs/messagePayload"
     }
+  },
+  "required": [
+    "header",
+    "payload"
   ],
+  "additionalProperties": false,
   "$defs": {
-    "baseMessage": {
+    "messageHeader": {
       "type": "object",
       "properties": {
-        "header": {
-          "type": "object",
-          "properties": {
-            "messageId": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "messageType": {
-              "type": "string",
-              "const": "ReferenceData"
-            },
-            "dataProduct": {
-              "type": "string"
-            },
-            "operation": {
-              "type": "string",
-              "const": "PUBLISH"
-            },
-            "sourceSystem": {
-              "type": "string",
-              "const": "Semarchy"
-            },
-            "createdDateTime": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "ReleasePackageId": {
-              "type": "integer"
-            },
-            "recordCount": {
-              "type": "integer",
-              "minimum": 1
-            }
-          },
-          "required": [
-            "messageId",
-            "messageType",
-            "dataProduct",
-            "operation",
-            "sourceSystem",
-            "createdDateTime",
-            "ReleasePackageId",
-            "recordCount"
-          ],
-          "additionalProperties": false
+        "messageId": {
+          "type": "string",
+          "format": "uuid"
         },
-        "payload": {
-          "type": "object",
-          "properties": {
-            "records": {
-              "type": "array",
-              "minItems": 1
-            }
-          },
-          "required": [
-            "records"
-          ],
-          "additionalProperties": false
+        "messageType": {
+          "type": "string",
+          "const": "ReferenceData"
+        },
+        "dataProduct": {
+          "type": "string",
+          "enum": [
+            "Offence",
+            "LJA"
+          ]
+        },
+        "operation": {
+          "type": "string",
+          "const": "PUBLISH"
+        },
+        "sourceSystem": {
+          "type": "string",
+          "const": "Semarchy"
+        },
+        "createdDateTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "ReleasePackageId": {
+          "type": "integer"
+        },
+        "recordCount": {
+          "type": "integer",
+          "minimum": 1
         }
       },
       "required": [
-        "header",
-        "payload"
+        "messageId",
+        "messageType",
+        "dataProduct",
+        "operation",
+        "sourceSystem",
+        "createdDateTime",
+        "ReleasePackageId",
+        "recordCount"
+      ],
+      "additionalProperties": false
+    },
+    "messagePayload": {
+      "type": "object",
+      "properties": {
+        "records": {
+          "oneOf": [
+            {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/offenceRecord"
+              }
+            },
+            {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/ljaRecord"
+              }
+            }
+          ]
+        }
+      },
+      "required": [
+        "records"
       ],
       "additionalProperties": false
     },
