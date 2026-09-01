@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.legacy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -15,6 +16,7 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigInteger;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -31,12 +33,14 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RecordType;
+import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyNote;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyNotesServiceTest {
@@ -76,7 +80,7 @@ class LegacyNotesServiceTest {
         assertEquals("77", id);
 
         LegacyAddNoteRequest sent = reqCap.getValue();
-        assertEquals((short) 1, sent.getBusinessUnitId());
+        assertEquals("1", sent.getBusinessUnitId());
         assertEquals("L001JG", sent.getBusinessUnitUserId());
         assertEquals(BigInteger.valueOf(1L), sent.getVersion());
 
@@ -122,7 +126,43 @@ class LegacyNotesServiceTest {
 
         assertEquals("770000004141", id);
         assertEquals(new BigInteger(LEGACY_VERSION), reqCap.getValue().getVersion());
+        assertEquals("77", reqCap.getValue().getBusinessUnitId());
         assertEquals("L077JG", reqCap.getValue().getBusinessUnitUserId());
+    }
+
+    @Test
+    void addNote_success_buildsLegacySchemaCompliantJson() throws Exception {
+
+        LegacyAddNoteResponse entity = legacyRespWithNote("770000004141", "hello");
+
+        @SuppressWarnings("unchecked")
+        GatewayService.Response<LegacyAddNoteResponse> resp = mock(GatewayService.Response.class);
+        ReflectionTestUtils.setField(resp, "responseEntity", entity);
+        when(resp.isSuccessful()).thenReturn(true);
+
+        ArgumentCaptor<LegacyAddNoteRequest> reqCap = ArgumentCaptor.forClass(LegacyAddNoteRequest.class);
+
+        when(gatewayService.<LegacyAddNoteResponse>postToGateway(
+            eq("addNote"),
+            eq(LegacyAddNoteResponse.class),
+            reqCap.capture(),
+            isNull(String.class)
+        )).thenReturn(resp);
+
+        AddNoteRequest req = addReq("770000004141", "hello");
+        givenBusinessUnitUser((short) 77, "L077JG");
+
+        service.addNote(req, '"' + LEGACY_VERSION + '"', user, targetWithBu((short) 77));
+
+        String json = ToJsonString.getObjectMapper().writeValueAsString(reqCap.getValue());
+
+        assertFalse(json.contains("businessUnitId"));
+        assertFalse(json.contains("businessUnitUserId"));
+        assertFalse(json.contains("activityNote"));
+        assertEquals(
+            Set.of(),
+            new JsonSchemaValidationService().validate(json, "legacy/addNoteLegacyRequest.json")
+        );
     }
 
     @Test

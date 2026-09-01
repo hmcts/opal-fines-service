@@ -74,6 +74,26 @@ class NotesProxyTest extends ProxyTestsBase {
         verifyNoInteractions(legacyNotesService);
     }
 
+    @Test
+    void addNote_shouldRouteExistingAccountContextToOpal() {
+        AddNoteRequest request = addNoteRequest();
+        AccountNoteContext target = new AccountNoteContext(
+            DefendantAccountEntity.class,
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            AssociatedRecordType.DEFENDANT_ACCOUNTS
+        );
+        String expectedResponse = "opal-note-id";
+
+        when(notesService.addNote(request, IF_MATCH, userState, target)).thenReturn(expectedResponse);
+
+        String actualResponse = notesProxy.addNote(request, IF_MATCH, userState, target);
+
+        assertEquals(expectedResponse, actualResponse);
+        verify(notesService).addNote(request, IF_MATCH, userState, target);
+        verifyNoInteractions(accountNoteContextFactory, legacyNotesService);
+    }
+
     private static AddNoteRequest addNoteRequest() {
         Note note = Note.builder()
             .recordType(RecordType.DEFENDANT_ACCOUNTS)

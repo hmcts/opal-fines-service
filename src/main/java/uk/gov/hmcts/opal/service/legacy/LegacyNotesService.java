@@ -56,7 +56,7 @@ public class LegacyNotesService implements NotesServiceInterface {
             .noteType(request.getActivityNote().getNoteType()).recordType(request.getActivityNote().getRecordType())
             .recordId(request.getActivityNote().getRecordId()).build();
 
-        return LegacyAddNoteRequest.builder().businessUnitId(businessUnitId)
+        return LegacyAddNoteRequest.builder().businessUnitId(businessUnitId.toString())
             .businessUnitUserId(getBusinessUnitUserId(user, businessUnitId))
             .version(extractBigInteger(version)).activityNote(note).build();
     }
