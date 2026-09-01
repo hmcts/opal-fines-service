@@ -172,6 +172,29 @@ public class DraftAccountPostSteps extends BaseStepDef {
     }
 
     /**
+     * Attempts to create a draft account using a user without permission.
+     *
+     * @param createdBy user identifier to place in the `submitted_by` field.
+     * @throws JSONException if the JSON payload cannot be created from the supplied values.
+     */
+    @When("I attempt to create a draft account with an unauthorised user {string}")
+    public void postDraftAccountWithUnauthorisedUSer(String createdBy) throws JSONException {
+
+        JSONObject postBody;
+        try {
+            postBody = requestFactory.buildDefaultCreateRequestBody("77", createdBy);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load the default draft-account fixture", e);
+        }
+
+        loggedAuthorisedJsonRequest()
+            .body(postBody.toString())
+            .when()
+            .post(getTestUrl() + DRAFT_ACCOUNTS_URI);
+
+    }
+
+    /**
      * Attempts to create a draft account while requesting an unsupported response content type.
      *
      * @throws JSONException if the JSON payload cannot be created from the supplied values.
