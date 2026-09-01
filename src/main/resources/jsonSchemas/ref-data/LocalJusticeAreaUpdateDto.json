@@ -1,6 +1,5 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "javaType": "uk.gov.hmcts.opal.generated.refdata.LocalJusticeAreaUpdateDto",
   "title": "Local Justice Area Update DTO",
   "type": "object",
   "additionalProperties": false,
@@ -56,7 +55,6 @@
     "ljaType": {
       "type": ["string", "null"],
       "enum": ["LJA", "CRWCRT", "SJCRT", "NICRT", "SCSCRT"],
-      "existingJavaType": "uk.gov.hmcts.opal.entity.LocalJusticeAreaType",
       "description": "Type of the local justice area"
     }
   },
