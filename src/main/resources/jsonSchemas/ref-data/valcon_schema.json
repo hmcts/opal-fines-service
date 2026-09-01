@@ -6,19 +6,6 @@
   "type": "object",
   "properties": {
     "header": {
-      "$ref": "#/$defs/messageHeader"
-    },
-    "payload": {
-      "$ref": "#/$defs/messagePayload"
-    }
-  },
-  "required": [
-    "header",
-    "payload"
-  ],
-  "additionalProperties": false,
-  "$defs": {
-    "messageHeader": {
       "type": "object",
       "properties": {
         "messageId": {
@@ -68,7 +55,7 @@
       ],
       "additionalProperties": false
     },
-    "messagePayload": {
+    "payload": {
       "type": "object",
       "properties": {
         "records": {
@@ -94,7 +81,14 @@
         "records"
       ],
       "additionalProperties": false
-    },
+    }
+  },
+  "required": [
+    "header",
+    "payload"
+  ],
+  "additionalProperties": false,
+  "$defs": {
     "offenceRecord": {
       "type": "object",
       "properties": {
