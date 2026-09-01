@@ -28,7 +28,7 @@ public class NotesProxy implements NotesServiceInterface, ProxyInterface {
 
     @Override
     public String addNote(AddNoteRequest request, String ifMatch, UserState user, AccountNoteContext target) {
-        return getCurrentModeService().addNote(request, ifMatch, user, target);
+        return notesService.addNote(request, ifMatch, user, target);
     }
 
     public String addNote(AddNoteRequest request, String ifMatch, UserState user, Short businessUnitId) {

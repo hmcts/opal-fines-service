@@ -1,5 +1,9 @@
 package uk.gov.hmcts.opal.controllers.shared;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -10,6 +14,7 @@ import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.ADD_ACCOUNT_
 import static uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil.allFinesPermissionsToken;
 import static uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil.permissionsToken;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -366,5 +371,14 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
         log.info(":legacyOnlyAccountAddNoteSuccess: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isCreated());
+
+        WireMock.verify(1, postRequestedFor(urlPathEqualTo("/opal"))
+            .withQueryParam("actionType", equalTo("addNote"))
+            .withRequestBody(matchingJsonPath("$.business_unit_id", equalTo("77")))
+            .withRequestBody(matchingJsonPath("$.business_unit_user_id"))
+            .withRequestBody(matchingJsonPath("$.activity_note.record_id", equalTo("770000004141")))
+            .withRequestBody(matchingJsonPath("$.activity_note.record_type", equalTo("defendant_accounts")))
+            .withRequestBody(matchingJsonPath("$.activity_note.note_text", equalTo("legacy-only account note")))
+            .withRequestBody(matchingJsonPath("$.activity_note.note_type", equalTo("AA"))));
     }
 }
