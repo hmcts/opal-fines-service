@@ -32,10 +32,10 @@ public class RefDataMessageProcessor {
         schemaValidationService.validateOrError(messageNode, REF_DATA_UPDATE_MESSAGE_SCHEMA);
 
         Optional<RefDataUpdateHandler<?, ?>> handler = handlerRegistry.find(
-            messageNode.path("refDataType").asText(null));
+            messageNode.path("dataProduct").asText(null));
         if (handler.isEmpty()) {
             log.debug("Ignoring ref-data message with no registered handler for type: {}",
-                messageNode.get("refDataType"));
+                messageNode.get("dataProduct"));
             return;
         }
 

@@ -162,7 +162,7 @@ class JsonSchemaValidationServiceTest {
     void testRefDataUpdateMessageSchema_withLocalJusticeAreaPayload_shouldPass() {
         String validJson = """
             {
-              "refDataType": "LOCAL_JUSTICE_AREA",
+              "dataProduct": "LOCAL_JUSTICE_AREA",
               "payload": {
                 "ljaCode": "Z123",
                 "name": "Test LJA",

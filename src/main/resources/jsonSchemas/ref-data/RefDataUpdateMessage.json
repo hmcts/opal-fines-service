@@ -4,7 +4,7 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "refDataType": {
+    "dataProduct": {
       "type": "string",
       "description": "Identifier for the ref data handler that should process this message"
     },
@@ -13,18 +13,18 @@
       "$ref": "resource:/jsonSchemas/ref-data/LocalJusticeAreaUpdateDto.json"
     }
   },
-  "required": ["refDataType", "payload"],
+  "required": ["dataProduct", "payload"],
   "oneOf": [
     {
       "properties": {
-        "refDataType": {
+        "dataProduct": {
           "const": "LOCAL_JUSTICE_AREA"
         },
         "payload": {
           "$ref": "resource:/jsonSchemas/ref-data/LocalJusticeAreaUpdateDto.json"
         }
       },
-      "required": ["refDataType", "payload"],
+      "required": ["dataProduct", "payload"],
       "additionalProperties": false
     }
   ]

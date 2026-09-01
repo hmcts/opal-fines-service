@@ -45,7 +45,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
 
         consumer.processMessage("""
             {
-              "refDataType": "LOCAL_JUSTICE_AREA",
+              "dataProduct": "LOCAL_JUSTICE_AREA",
               "payload": {
                 "ljaCode": "%s",
                 "name": "Updated LJA",
@@ -89,7 +89,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
 
         consumer.processMessage("""
             {
-              "refDataType": "LOCAL_JUSTICE_AREA",
+              "dataProduct": "LOCAL_JUSTICE_AREA",
               "payload": {
                 "ljaCode": "%s",
                 "name": "Created LJA",
@@ -130,7 +130,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
 
         assertThatThrownBy(() -> consumer.processMessage("""
             {
-              "refDataType": "LOCAL_JUSTICE_AREA",
+              "dataProduct": "LOCAL_JUSTICE_AREA",
               "payload": {
                 "ljaCode": "%s",
                 "addressLine1": "New address line 1",
@@ -171,7 +171,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
 
         assertThatThrownBy(() -> consumer.processMessage("""
             {
-              "refDataType": "LOCAL_JUSTICE_AREA",
+              "dataProduct": "LOCAL_JUSTICE_AREA",
               "payload": {
                 "ljaCode": "%s",
                 "name": "Updated LJA",
@@ -202,7 +202,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
 
         assertThatThrownBy(() -> consumer.processMessage("""
             {
-              "refDataType": "UNKNOWN_REF_DATA_TYPE",
+              "dataProduct": "UNKNOWN_REF_DATA_TYPE",
               "payload": {
                 "anything": "goes"
               }
