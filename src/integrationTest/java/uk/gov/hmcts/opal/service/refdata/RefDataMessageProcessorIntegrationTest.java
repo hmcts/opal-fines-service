@@ -11,6 +11,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaType;
@@ -43,20 +45,9 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
         entityManager.flush();
         entityManager.clear();
 
-        consumer.processMessage("""
-            {
-              "dataProduct": "LOCAL_JUSTICE_AREA",
-              "payload": {
-                "ljaCode": "%s",
-                "name": "Updated LJA",
-                "addressLine1": "New address line 1",
-                "addressLine2": "New address line 2",
-                "postcode": "NE1 2BB",
-                "endDate": "2027-03-04T05:06:07",
-                "ljaType": "CRWCRT"
-              }
-            }
-            """.formatted(ljaCode));
+        consumer.processMessage(buildValconLjaMessage("LJA", 1, true, ljaCode, "Updated LJA", "2027-03-04",
+            "New address line 1", "New address line 2", "New address line 3", "New address line 4",
+            "NE1 2BB"));
 
         entityManager.flush();
         entityManager.clear();
@@ -68,9 +59,11 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
         assertThat(updated.getName()).isEqualTo("Updated LJA");
         assertThat(updated.getAddressLine1()).isEqualTo("New address line 1");
         assertThat(updated.getAddressLine2()).isEqualTo("New address line 2");
+        assertThat(updated.getAddressLine3()).isEqualTo("New address line 3");
+        assertThat(updated.getAddressLine4()).isEqualTo("New address line 4");
         assertThat(updated.getPostcode()).isEqualTo("NE1 2BB");
-        assertThat(updated.getEndDate()).isEqualTo(LocalDateTime.of(2027, 3, 4, 5, 6, 7));
-        assertThat(updated.getLjaType()).isEqualTo(LocalJusticeAreaType.CRWCRT);
+        assertThat(updated.getEndDate()).isEqualTo(LocalDateTime.of(2027, 3, 4, 0, 0));
+        assertThat(updated.getLjaType()).isEqualTo(LocalJusticeAreaType.LJA);
     }
 
     @Test
@@ -87,20 +80,9 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
         String ljaCode = "Z124";
         final long beforeCount = localJusticeAreaRepository.count();
 
-        consumer.processMessage("""
-            {
-              "dataProduct": "LOCAL_JUSTICE_AREA",
-              "payload": {
-                "ljaCode": "%s",
-                "name": "Created LJA",
-                "addressLine1": "New address line 1",
-                "addressLine2": "New address line 2",
-                "postcode": "NE1 2BB",
-                "endDate": "2027-03-04T05:06:07",
-                "ljaType": "CRWCRT"
-              }
-            }
-            """.formatted(ljaCode));
+        consumer.processMessage(buildValconLjaMessage("LJA", 1, true, ljaCode, "Created LJA", "2027-03-04",
+            "New address line 1", "New address line 2", "New address line 3", "New address line 4",
+            "NE1 2BB"));
 
         entityManager.flush();
         entityManager.clear();
@@ -113,9 +95,11 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
         assertThat(created.getName()).isEqualTo("Created LJA");
         assertThat(created.getAddressLine1()).isEqualTo("New address line 1");
         assertThat(created.getAddressLine2()).isEqualTo("New address line 2");
+        assertThat(created.getAddressLine3()).isEqualTo("New address line 3");
+        assertThat(created.getAddressLine4()).isEqualTo("New address line 4");
         assertThat(created.getPostcode()).isEqualTo("NE1 2BB");
-        assertThat(created.getEndDate()).isEqualTo(LocalDateTime.of(2027, 3, 4, 5, 6, 7));
-        assertThat(created.getLjaType()).isEqualTo(LocalJusticeAreaType.CRWCRT);
+        assertThat(created.getEndDate()).isEqualTo(LocalDateTime.of(2027, 3, 4, 0, 0));
+        assertThat(created.getLjaType()).isEqualTo(LocalJusticeAreaType.LJA);
     }
 
     @Test
@@ -128,18 +112,11 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
         final String ljaCode = original.getLjaCode() == null ? "Z125" : original.getLjaCode();
         final long beforeCount = localJusticeAreaRepository.count();
 
-        assertThatThrownBy(() -> consumer.processMessage("""
-            {
-              "dataProduct": "LOCAL_JUSTICE_AREA",
-              "payload": {
-                "ljaCode": "%s",
-                "addressLine1": "New address line 1",
-                "postcode": "NE1 2BB"
-              }
-            }
-            """.formatted(ljaCode)))
+        assertThatThrownBy(() -> consumer.processMessage(buildValconLjaMessage("LJA", 1, false, ljaCode,
+            "Updated LJA", "2027-03-04", "New address line 1", "New address line 2",
+            "New address line 3", "New address line 4", "NE1 2BB")))
             .isInstanceOf(JsonSchemaValidationException.class)
-            .hasMessageContaining("ref-data/RefDataUpdateMessage.json");
+            .hasMessageContaining("ref-data/valcon_allofoneof.json");
 
         entityManager.flush();
         entityManager.clear();
@@ -152,7 +129,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void processMessage_throwsSchemaValidationExceptionWhenInvalidLjaTypeIsSupplied() {
+    void processMessage_throwsSchemaValidationExceptionWhenRecordCountIsInvalid() {
         LocalJusticeAreaEntity original = localJusticeAreaRepository.findAll().stream()
             .findFirst()
             .orElseThrow();
@@ -169,21 +146,11 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
             entityManager.clear();
         }
 
-        assertThatThrownBy(() -> consumer.processMessage("""
-            {
-              "dataProduct": "LOCAL_JUSTICE_AREA",
-              "payload": {
-                "ljaCode": "%s",
-                "name": "Updated LJA",
-                "addressLine1": "New address line 1",
-                "addressLine2": "New address line 2",
-                "postcode": "NE1 2BB",
-                "ljaType": "NOT_A_REAL_TYPE"
-              }
-            }
-            """.formatted(ljaCode)))
+        assertThatThrownBy(() -> consumer.processMessage(buildValconLjaMessage("LJA", 0, true, ljaCode,
+            "Updated LJA", "2027-03-04", "New address line 1", "New address line 2", "New address line 3",
+            "New address line 4", "NE1 2BB")))
             .isInstanceOf(JsonSchemaValidationException.class)
-            .hasMessageContaining("ref-data/RefDataUpdateMessage.json");
+            .hasMessageContaining("ref-data/valcon_allofoneof.json");
 
         entityManager.flush();
         entityManager.clear();
@@ -200,16 +167,11 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
     void processMessage_throwsSchemaValidationExceptionWhenUnknownRefDataTypeIsSupplied() {
         final long beforeCount = localJusticeAreaRepository.count();
 
-        assertThatThrownBy(() -> consumer.processMessage("""
-            {
-              "dataProduct": "UNKNOWN_REF_DATA_TYPE",
-              "payload": {
-                "anything": "goes"
-              }
-            }
-            """))
+        assertThatThrownBy(() -> consumer.processMessage(buildValconLjaMessage("UNKNOWN_REF_DATA_TYPE", 1, true,
+            "Z127", "Unknown", "2027-03-04", "New address line 1", "New address line 2",
+            "New address line 3", "New address line 4", "NE1 2BB")))
             .isInstanceOf(JsonSchemaValidationException.class)
-            .hasMessageContaining("ref-data/RefDataUpdateMessage.json");
+            .hasMessageContaining("ref-data/valcon_allofoneof.json");
 
         entityManager.flush();
         entityManager.clear();
@@ -222,5 +184,61 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
         assertThatThrownBy(() -> consumer.processMessage("not-json"))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Unable to parse ref data message");
+    }
+
+    private String buildValconLjaMessage(String dataProduct, int recordCount, boolean includeLjaCode, String ljaCode,
+        String ljaName, String endDate, String addressLine1, String addressLine2, String addressLine3,
+        String addressLine4, String postcode) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            ObjectNode rootNode = objectMapper.createObjectNode();
+            ObjectNode headerNode = rootNode.putObject("header");
+            headerNode.put("messageId", "437dacf6-511c-4e93-95f3-23e82b12e735");
+            headerNode.put("messageType", "ReferenceData");
+            headerNode.put("dataProduct", dataProduct);
+            headerNode.put("operation", "PUBLISH");
+            headerNode.put("sourceSystem", "Semarchy");
+            headerNode.put("createdDateTime", "2026-09-02T08:28:56.935738+00:00");
+            headerNode.put("ReleasePackageId", 202);
+            headerNode.put("recordCount", recordCount);
+
+            ObjectNode payloadNode = rootNode.putObject("payload");
+            ObjectNode recordNode = payloadNode.putArray("records").addObject();
+            if (includeLjaCode) {
+                recordNode.put("LJACode", ljaCode);
+            }
+            recordNode.put("LJAName", ljaName);
+            recordNode.put("EndDate", endDate);
+            recordNode.putNull("CourtWelshName");
+            recordNode.putNull("CourtLocationCode");
+            recordNode.put("StartDate", "2027-03-01");
+            recordNode.putNull("EnforcementCode");
+            recordNode.putNull("ClusterCode");
+            recordNode.putNull("DivisionCode");
+            recordNode.putNull("DefaultStartTime");
+            recordNode.putNull("DefaultDuration");
+            recordNode.putNull("CommonPlatformUUID");
+            recordNode.putNull("Notes");
+            recordNode.put("CourtHearingOperationAreaIndicator", false);
+            recordNode.put("CrownCourtIndicator", false);
+            recordNode.put("NorthernIrelandCourtIndicator", false);
+            recordNode.put("MagistratesCourtIndicator", true);
+            recordNode.put("ScottishDistrictCourtIndicator", false);
+            recordNode.put("ScottishSheriffCourtIndicator", false);
+            recordNode.put("ScottishJusticeOfPeaceCourtIndicator", false);
+            recordNode.put("YouthCourtIndicator", false);
+
+            ObjectNode addressNode = recordNode.putArray("Addresses").addObject();
+            addressNode.put("AddressType", "Test Address");
+            addressNode.put("AddressLine1", addressLine1);
+            addressNode.put("AddressLine2", addressLine2);
+            addressNode.put("AddressLine3", addressLine3);
+            addressNode.put("AddressLine4", addressLine4);
+            addressNode.put("Postcode", postcode);
+
+            return objectMapper.writeValueAsString(rootNode);
+        } catch (Exception ex) {
+            throw new IllegalStateException("Unable to build ref-data test message", ex);
+        }
     }
 }

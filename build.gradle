@@ -275,9 +275,7 @@ openApiGenerate {
 }
 
 jsonSchema2Pojo {
-  source = files(fileTree("$rootDir/src/main/resources/jsonSchemas/ref-data") {
-    exclude "RefDataUpdateMessage.json"
-  })
+  source = files(file("$rootDir/src/main/resources/jsonSchemas/ref-data/valcon_allofoneof.json"))
   targetDirectory = file("$buildDir/generated/jsonschema2pojo/src/main/java")
   targetPackage = "uk.gov.hmcts.opal.generated.refdata"
   dateTimeType = "java.time.LocalDateTime"
@@ -1137,6 +1135,11 @@ tasks.named("openApiGenerate") {
         'import org.jspecify.annotations.Nullable;'
       )
     }
+  }
+}
+tasks.named("generateJsonSchema2Pojo") {
+  doFirst {
+    delete file("$buildDir/generated/jsonschema2pojo")
   }
 }
 tasks.register('generateFeignClients') {

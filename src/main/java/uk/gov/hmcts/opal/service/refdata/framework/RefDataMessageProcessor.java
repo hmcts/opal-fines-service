@@ -11,7 +11,7 @@ import tools.jackson.databind.ObjectMapper;
 @Service
 public class RefDataMessageProcessor {
 
-    private static final String REF_DATA_UPDATE_MESSAGE_SCHEMA = "ref-data/RefDataUpdateMessage.json";
+    private static final String VALCON_REF_DATA_MESSAGE_SCHEMA = "ref-data/valcon_allofoneof.json";
 
     private final ObjectMapper objectMapper;
     private final SchemaValidationService schemaValidationService;
@@ -29,17 +29,24 @@ public class RefDataMessageProcessor {
     public void processMessage(String messagePayload) {
         JsonNode messageNode = readMessageNode(messagePayload);
 
-        schemaValidationService.validateOrError(messageNode, REF_DATA_UPDATE_MESSAGE_SCHEMA);
+        schemaValidationService.validateOrError(messageNode, VALCON_REF_DATA_MESSAGE_SCHEMA);
 
-        Optional<RefDataUpdateHandler<?, ?>> handler = handlerRegistry.find(
-            messageNode.path("dataProduct").asText(null));
+        String dataProduct = extractDataProduct(messageNode);
+
+        Optional<RefDataUpdateHandler<?, ?>> handler = handlerRegistry.find(dataProduct);
         if (handler.isEmpty()) {
             log.debug("Ignoring ref-data message with no registered handler for type: {}",
-                messageNode.get("dataProduct"));
+                dataProduct);
             return;
         }
 
-        applyUpdate(handler.get(), messageNode.get("payload"));
+        JsonNode payloadNode = messageNode.path("payload");
+        JsonNode recordsNode = payloadNode.path("records");
+        if (!recordsNode.isArray()) {
+            return;
+        }
+
+        recordsNode.forEach(recordNode -> applyUpdate(handler.get(), recordNode));
     }
 
     private JsonNode readMessageNode(String messagePayload) {
@@ -50,11 +57,19 @@ public class RefDataMessageProcessor {
         }
     }
 
+    private String extractDataProduct(JsonNode messageNode) {
+        String dataProduct = messageNode.path("header").path("dataProduct").asText(null);
+        if (dataProduct == null || dataProduct.isBlank()) {
+            dataProduct = messageNode.path("dataProduct").asText(null);
+        }
+        return dataProduct;
+    }
+
     @SuppressWarnings("unchecked")
-    private <T, E> void applyUpdate(RefDataUpdateHandler<T, E> handler, JsonNode payloadNode) {
+    private <T, E> void applyUpdate(RefDataUpdateHandler<T, E> handler, Object payload) {
         T dto;
         try {
-            dto = objectMapper.convertValue(payloadNode, handler.payloadType());
+            dto = objectMapper.convertValue(payload, handler.payloadType());
         } catch (RuntimeException ex) {
             throw new IllegalArgumentException("Unable to convert ref data payload", ex);
         }

@@ -8,6 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ClassPathResource;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
@@ -159,19 +160,11 @@ class JsonSchemaValidationServiceTest {
     }
 
     @Test
-    void testRefDataUpdateMessageSchema_withLocalJusticeAreaPayload_shouldPass() {
-        String validJson = """
-            {
-              "dataProduct": "LOCAL_JUSTICE_AREA",
-              "payload": {
-                "ljaCode": "Z123",
-                "name": "Test LJA",
-                "addressLine1": "1 High Street"
-              }
-            }
-            """;
+    void testValconAllOfOneOfSchema_withLocalJusticeAreaPayload_shouldPass() {
+        String validJson = buildValconLjaMessage("Z123", "Test LJA", "2026-09-02", "1 High Street",
+            "2 High Street", "3 High Street", "NE1 2BB");
 
-        assertTrue(jsonSchemaValidationService.isValid(validJson, "ref-data/RefDataUpdateMessage.json"));
+        assertTrue(jsonSchemaValidationService.isValid(validJson, "ref-data/valcon_allofoneof.json"));
     }
 
     @Test
@@ -349,6 +342,59 @@ class JsonSchemaValidationServiceTest {
             """;
 
         assertDefendantAccountsSearchRequestIsValid(defendantJson);
+    }
+
+    private String buildValconLjaMessage(String ljaCode, String ljaName, String endDate, String addressLine1,
+        String addressLine2, String addressLine3, String postcode) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            ObjectNode rootNode = objectMapper.createObjectNode();
+            ObjectNode headerNode = rootNode.putObject("header");
+            headerNode.put("messageId", "437dacf6-511c-4e93-95f3-23e82b12e735");
+            headerNode.put("messageType", "ReferenceData");
+            headerNode.put("dataProduct", "LJA");
+            headerNode.put("operation", "PUBLISH");
+            headerNode.put("sourceSystem", "Semarchy");
+            headerNode.put("createdDateTime", "2026-09-02T08:28:56.935738+00:00");
+            headerNode.put("ReleasePackageId", 202);
+            headerNode.put("recordCount", 1);
+
+            ObjectNode payloadNode = rootNode.putObject("payload");
+            ObjectNode recordNode = payloadNode.putArray("records").addObject();
+            recordNode.put("LJACode", ljaCode);
+            recordNode.put("LJAName", ljaName);
+            recordNode.put("EndDate", endDate);
+            recordNode.putNull("CourtWelshName");
+            recordNode.putNull("CourtLocationCode");
+            recordNode.put("StartDate", "2026-09-01");
+            recordNode.putNull("EnforcementCode");
+            recordNode.putNull("ClusterCode");
+            recordNode.putNull("DivisionCode");
+            recordNode.putNull("DefaultStartTime");
+            recordNode.putNull("DefaultDuration");
+            recordNode.putNull("CommonPlatformUUID");
+            recordNode.putNull("Notes");
+            recordNode.put("CourtHearingOperationAreaIndicator", false);
+            recordNode.put("CrownCourtIndicator", false);
+            recordNode.put("NorthernIrelandCourtIndicator", false);
+            recordNode.put("MagistratesCourtIndicator", true);
+            recordNode.put("ScottishDistrictCourtIndicator", false);
+            recordNode.put("ScottishSheriffCourtIndicator", false);
+            recordNode.put("ScottishJusticeOfPeaceCourtIndicator", false);
+            recordNode.put("YouthCourtIndicator", false);
+
+            ObjectNode addressNode = recordNode.putArray("Addresses").addObject();
+            addressNode.put("AddressType", "Test Address");
+            addressNode.put("AddressLine1", addressLine1);
+            addressNode.put("AddressLine2", addressLine2);
+            addressNode.put("AddressLine3", addressLine3);
+            addressNode.putNull("AddressLine4");
+            addressNode.put("Postcode", postcode);
+
+            return objectMapper.writeValueAsString(rootNode);
+        } catch (Exception ex) {
+            throw new IllegalStateException("Unable to build ref-data test message", ex);
+        }
     }
 
     @Test

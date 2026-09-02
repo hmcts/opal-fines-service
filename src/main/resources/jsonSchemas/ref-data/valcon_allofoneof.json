@@ -1,0 +1,832 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "published-reference-data-message.schema.json",
+  "title": "Published Reference Data Message",
+  "type": "object",
+  "properties": {
+    "header": {
+      "type": "object",
+      "properties": {
+        "messageId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "messageType": {
+          "const": "ReferenceData"
+        },
+        "dataProduct": {
+          "type": "string",
+          "enum": ["Offence", "LJA"]
+        },
+        "operation": {
+          "const": "PUBLISH"
+        },
+        "sourceSystem": {
+          "const": "Semarchy"
+        },
+        "createdDateTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "ReleasePackageId": {
+          "type": "integer"
+        },
+        "recordCount": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "messageId",
+        "messageType",
+        "dataProduct",
+        "operation",
+        "sourceSystem",
+        "createdDateTime",
+        "ReleasePackageId",
+        "recordCount"
+      ],
+      "additionalProperties": false
+    },
+    "payload": {
+      "type": "object",
+      "properties": {
+        "records": {
+          "type": "array",
+          "minItems": 1
+        }
+      },
+      "required": ["records"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["header", "payload"],
+  "allOf": [
+    {
+      "oneOf": [
+        {
+          "properties": {
+            "header": {
+              "properties": {
+                "dataProduct": {
+                  "const": "Offence"
+                }
+              }
+            },
+            "payload": {
+              "properties": {
+                "records": {
+                  "items": {
+                    "$ref": "#/$defs/offenceRecord"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "properties": {
+            "header": {
+              "properties": {
+                "dataProduct": {
+                  "const": "LJA"
+                }
+              }
+            },
+            "payload": {
+              "properties": {
+                "records": {
+                  "items": {
+                    "$ref": "#/$defs/ljaRecord"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "offenceRecord": {
+      "type": "object",
+      "properties": {
+        "CJSCode": {
+          "type": "string"
+        },
+        "CJSTitle": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "CJSTitleCY": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ActsAndSection": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ActAndSectionWelsh": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "UsedFrom": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "UsedTo": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "Recordable": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "Reportable": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "Custodianlindicator": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "StandardList": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "TrafficControl": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "DVLACode": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "OffenceNotes": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "MaximumPenalty": {
+          "type": [
+            "string",
+            "number",
+            "null"
+          ]
+        },
+        "Description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "HOClass": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "HOSubClass": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ProceedingsCode": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "PNLDStandardOffenceWording": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "PNLDWelshStandardOffenceWording": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "PNLDDateOfLastUpdate": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "PNLDProsecutionTimeLimit": {
+          "type": [
+            "string",
+            "number",
+            "null"
+          ]
+        },
+        "PNLDMaxFineTypeMagistratesCourt": {
+          "type": [
+            "string",
+            "number",
+            "null"
+          ]
+        },
+        "PNLDMaxFineTypeMagistratesCourtDescription": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "PNLDModeOfTrial": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "PNLDEndorsableFlag": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "PNLDLocationFlag": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "PNLDPrincipalOffenceCategory": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "UserOffenceWording": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "UserStatementOfFacts": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "EntryPromptSubstitutionSOW": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "EntryPromptSubstitutionSOF": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "EntryPromptSubstitutionANS": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "CurrentEditor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "Area": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "Blocked": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "SecondLanguageOffenceStatementOfFactsText": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "SecondLanguageOffenceWordingText": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "OffenceCode": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "PNLDOffenceStartDate": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "PNLDOffenceEndDate": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "SOWReference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "PublishingStatus": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "OffenceType": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "OffenceSource": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "MISClassification": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "OffenceClass": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "CanBeBulk": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "InitialFeeApplicable": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "ContestedFee": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "ApplicationSynonym": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "Exparte": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "Jurisdiction": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "AppealFlag": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "SummonsTemplateType": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "LinkType": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "HearingCode": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ApplicantAppellantFlag": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "PleaApplicableFlag": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "ActiveOffenceOrder": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "CommissionerOfOath": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "BreachType": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "CourtOfAppealFlag": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "CourtExtractAvailable": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "ListingNotificationTemplate": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "BoxworkNotificationTemplate": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ProsecutorAsThirdPartyFlag": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "ResentencingActivationCode": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "Prefix": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ObsoleteIndicator": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "CJSCode",
+        "CJSTitle",
+        "CJSTitleCY",
+        "ActsAndSection",
+        "ActAndSectionWelsh",
+        "UsedFrom",
+        "UsedTo",
+        "Recordable",
+        "Reportable",
+        "Custodianlindicator",
+        "StandardList",
+        "TrafficControl",
+        "DVLACode",
+        "OffenceNotes",
+        "MaximumPenalty",
+        "Description",
+        "HOClass",
+        "HOSubClass",
+        "ProceedingsCode",
+        "PNLDStandardOffenceWording",
+        "PNLDWelshStandardOffenceWording",
+        "PNLDDateOfLastUpdate",
+        "PNLDProsecutionTimeLimit",
+        "PNLDMaxFineTypeMagistratesCourt",
+        "PNLDMaxFineTypeMagistratesCourtDescription",
+        "PNLDModeOfTrial",
+        "PNLDEndorsableFlag",
+        "PNLDLocationFlag",
+        "PNLDPrincipalOffenceCategory",
+        "UserOffenceWording",
+        "UserStatementOfFacts",
+        "EntryPromptSubstitutionSOW",
+        "EntryPromptSubstitutionSOF",
+        "EntryPromptSubstitutionANS",
+        "CurrentEditor",
+        "Area",
+        "Blocked",
+        "SecondLanguageOffenceStatementOfFactsText",
+        "SecondLanguageOffenceWordingText",
+        "OffenceCode",
+        "PNLDOffenceStartDate",
+        "PNLDOffenceEndDate",
+        "SOWReference",
+        "PublishingStatus",
+        "OffenceType",
+        "OffenceSource",
+        "MISClassification",
+        "OffenceClass",
+        "CanBeBulk",
+        "InitialFeeApplicable",
+        "ContestedFee",
+        "ApplicationSynonym",
+        "Exparte",
+        "Jurisdiction",
+        "AppealFlag",
+        "SummonsTemplateType",
+        "LinkType",
+        "HearingCode",
+        "ApplicantAppellantFlag",
+        "PleaApplicableFlag",
+        "ActiveOffenceOrder",
+        "CommissionerOfOath",
+        "BreachType",
+        "CourtOfAppealFlag",
+        "CourtExtractAvailable",
+        "ListingNotificationTemplate",
+        "BoxworkNotificationTemplate",
+        "ProsecutorAsThirdPartyFlag",
+        "ResentencingActivationCode",
+        "Prefix",
+        "ObsoleteIndicator"
+      ],
+      "additionalProperties": false
+    },
+    "ljaRecord": {
+      "type": "object",
+      "properties": {
+        "LJACode": {
+          "type": "string"
+        },
+        "LJAName": {
+          "type": "string"
+        },
+        "EndDate": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "CourtWelshName": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "CourtLocationCode": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "StartDate": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "EnforcementCode": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ClusterCode": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "DivisionCode": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "DefaultStartTime": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "DefaultDuration": {
+          "type": [
+            "string",
+            "number",
+            "null"
+          ]
+        },
+        "CommonPlatformUUID": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "Notes": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "CourtHearingOperationAreaIndicator": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "CrownCourtIndicator": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "NorthernIrelandCourtIndicator": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "MagistratesCourtIndicator": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "ScottishDistrictCourtIndicator": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "ScottishSheriffCourtIndicator": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "ScottishJusticeOfPeaceCourtIndicator": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "YouthCourtIndicator": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "Addresses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/address"
+          }
+        }
+      },
+      "required": [
+        "LJACode",
+        "LJAName",
+        "EndDate",
+        "CourtWelshName",
+        "CourtLocationCode",
+        "StartDate",
+        "EnforcementCode",
+        "ClusterCode",
+        "DivisionCode",
+        "DefaultStartTime",
+        "DefaultDuration",
+        "CommonPlatformUUID",
+        "Notes",
+        "CourtHearingOperationAreaIndicator",
+        "CrownCourtIndicator",
+        "NorthernIrelandCourtIndicator",
+        "MagistratesCourtIndicator",
+        "ScottishDistrictCourtIndicator",
+        "ScottishSheriffCourtIndicator",
+        "ScottishJusticeOfPeaceCourtIndicator",
+        "YouthCourtIndicator",
+        "Addresses"
+      ],
+      "additionalProperties": false
+    },
+    "address": {
+      "type": "object",
+      "properties": {
+        "AddressType": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "AddressLine1": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "AddressLine2": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "AddressLine3": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "AddressLine4": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "Postcode": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "AddressType",
+        "AddressLine1",
+        "AddressLine2",
+        "AddressLine3",
+        "AddressLine4",
+        "Postcode"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
