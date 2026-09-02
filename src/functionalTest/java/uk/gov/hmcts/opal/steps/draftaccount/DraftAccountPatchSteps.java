@@ -111,7 +111,6 @@ public class DraftAccountPatchSteps extends BaseStepDef {
     public void patchDraftAccountWithInvalidToken() throws JSONException {
         JSONObject patchBody = new JSONObject();
         patchBody.put("account_status", "Publishing Pending");
-        patchBody.put("validated_by", "invalidToken");
 
         String id = lastCreatedIdOrFail();
         jsonRequestWithToken("invalidToken")

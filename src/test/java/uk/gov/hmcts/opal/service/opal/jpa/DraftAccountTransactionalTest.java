@@ -144,8 +144,6 @@ class DraftAccountTransactionalTest {
 
         AddDraftAccountRequestDto dto = AddDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
-            .submittedBy("TestUser")
-            .submittedByName("Test User")
             .account(minimalAccountJson)
             .accountType(DraftAccountType.FINE)
             .build();
@@ -157,7 +155,7 @@ class DraftAccountTransactionalTest {
         when(businessUnitRepository.getReferenceById(any())).thenReturn(businessUnit);
         when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        DraftAccountEntity result = draftAccountTransactional.submitDraftAccount(dto);
+        DraftAccountEntity result = draftAccountTransactional.submitDraftAccount(dto, "TestUser", "Test User");
 
         assertEquals(minimalAccountJson, result.getAccount());
         assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), result.getCreatedDate());
@@ -206,8 +204,6 @@ class DraftAccountTransactionalTest {
         Long draftAccountId = 1L;
         ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
-            .submittedBy("TestUser")
-            .submittedByName("Test User")
             .account(createAccountString())
             .accountType(DraftAccountType.FINE)
             .version(BigInteger.valueOf(0L))
@@ -231,7 +227,7 @@ class DraftAccountTransactionalTest {
 
         // Act
         DraftAccountEntity result = draftAccountTransactional
-            .replaceDraftAccount(draftAccountId, replaceDto, draftAccountTransactional, "0");
+            .replaceDraftAccount(draftAccountId, replaceDto, draftAccountTransactional, "0", "TestUser", "Test User");
 
         // Assert
         assertNotNull(result);
@@ -260,8 +256,6 @@ class DraftAccountTransactionalTest {
         String existingTimeline = singleTimelineDataString("original-user", "Submitted");
         ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
-            .submittedBy("TestUser")
-            .submittedByName("Test User")
             .account(createAccountString())
             .accountType(DraftAccountType.FINE)
             .version(BigInteger.valueOf(0L))
@@ -286,7 +280,7 @@ class DraftAccountTransactionalTest {
             .getArgument(0));
 
         DraftAccountEntity result = draftAccountTransactional
-            .replaceDraftAccount(draftAccountId, replaceDto, draftAccountTransactional, "0");
+            .replaceDraftAccount(draftAccountId, replaceDto, draftAccountTransactional, "0", "TestUser", "Test User");
 
         assertThat(result.getTimelineData()).contains("original-user", "TestUser");
         assertThat(result.getTimelineData().indexOf("original-user"))
@@ -367,8 +361,6 @@ class DraftAccountTransactionalTest {
             .businessUnitId((short) 1)
             .accountType(DraftAccountType.FINE)
             .account(createAccountString())
-            .submittedBy("TestUser")
-            .submittedByName("Test User")
             .version(BigInteger.valueOf(0L))
             .build();
 
@@ -376,7 +368,8 @@ class DraftAccountTransactionalTest {
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
-            draftAccountTransactional.replaceDraftAccount(draftAccountId, replaceDto, draftAccountTransactional, "")
+            draftAccountTransactional.replaceDraftAccount(
+                draftAccountId, replaceDto, draftAccountTransactional, "", "TestUser", "Test User")
         );
         assertEquals("Draft Account not found with id: 1", exception.getMessage());
     }
@@ -389,8 +382,6 @@ class DraftAccountTransactionalTest {
             .businessUnitId((short) 2)
             .accountType(DraftAccountType.FINE)
             .account(createAccountString())
-            .submittedBy("TestUser")
-            .submittedByName("Test User")
             .version(BigInteger.valueOf(0L))
             .build();
 
@@ -401,7 +392,8 @@ class DraftAccountTransactionalTest {
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
-            draftAccountTransactional.replaceDraftAccount(draftAccountId, replaceDto, draftAccountTransactional, "0")
+            draftAccountTransactional.replaceDraftAccount(
+                draftAccountId, replaceDto, draftAccountTransactional, "0", "TestUser", "Test User")
         );
         assertEquals("Business Unit not found with id: 2", exception.getMessage());
     }
@@ -424,8 +416,6 @@ class DraftAccountTransactionalTest {
             .businessUnitId((short) 2)
             .accountType(DraftAccountType.FINE)
             .account(createAccountString())
-            .submittedBy("TestUser")
-            .submittedByName("Test User")
             .version(BigInteger.valueOf(0L))
             .build();
 
@@ -434,7 +424,8 @@ class DraftAccountTransactionalTest {
 
         // Act & Assert
         assertThrows(ResourceConflictException.class, () ->
-            draftAccountTransactional.replaceDraftAccount(draftAccountId, dto, draftAccountTransactional, "0")
+            draftAccountTransactional.replaceDraftAccount(
+                draftAccountId, dto, draftAccountTransactional, "0", "TestUser", "Test User")
         );
     }
 
@@ -458,7 +449,7 @@ class DraftAccountTransactionalTest {
         // Act & Assert
         assertThrows(ResourceConflictException.class, () ->
             draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional,
-                BigInteger.ZERO, userState)
+                BigInteger.ZERO, userState, "Validator", "Validator Name")
         );
     }
 
@@ -468,7 +459,6 @@ class DraftAccountTransactionalTest {
         Long draftAccountId = 1L;
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .accountStatus(DraftAccountStatus.PUBLISHING_PENDING)
-            .validatedBy("TestValidator")
             .businessUnitId((short) 2)
             .build();
 
@@ -488,7 +478,8 @@ class DraftAccountTransactionalTest {
 
         // Act
         DraftAccountEntity result = draftAccountTransactional
-            .updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional, BigInteger.ZERO, userState);
+            .updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional, BigInteger.ZERO, userState,
+                                "TestValidator", "Test Validator");
 
         // Assert
         assertNotNull(result);
@@ -516,7 +507,6 @@ class DraftAccountTransactionalTest {
         Long draftAccountId = 1L;
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .accountStatus(DraftAccountStatus.PUBLISHING_PENDING)
-            .validatedBy("TestValidator")
             .businessUnitId((short) 2)
             .build();
 
@@ -536,7 +526,7 @@ class DraftAccountTransactionalTest {
 
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
             draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional,
-                BigInteger.ZERO, userState)
+                BigInteger.ZERO, userState, "TestValidator", "Test Validator")
         );
 
         assertEquals("Error processing JSON in addSnapshotApprovedDate", exception.getMessage());
@@ -549,7 +539,6 @@ class DraftAccountTransactionalTest {
         String existingTimeline = singleTimelineDataString("original-user", "Submitted");
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .accountStatus(DraftAccountStatus.REJECTED)
-            .validatedBy("normal@users.com")
             .businessUnitId((short) 2)
             .build();
 
@@ -568,7 +557,8 @@ class DraftAccountTransactionalTest {
         UserState userState = UserState.builder().userName("USER_NAME_1").build();
 
         DraftAccountEntity result = draftAccountTransactional
-            .updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional, BigInteger.ZERO, userState);
+            .updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional, BigInteger.ZERO, userState,
+                                "normal@users.com", "Normal User");
 
         assertThat(result.getTimelineData()).contains("original-user", "normal@users.com");
         assertThat(result.getTimelineData().indexOf("original-user"))
@@ -583,8 +573,6 @@ class DraftAccountTransactionalTest {
         Long draftAccountId = 1L;
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .accountStatus(DraftAccountStatus.PUBLISHING_PENDING)
-            .validatedBy("BUUID1")
-            .validatedByName("User One")
             .businessUnitId((short) 2)
             .build();
 
@@ -604,7 +592,7 @@ class DraftAccountTransactionalTest {
         // Act & Assert
         SubmitterDeniedException ex = assertThrows(SubmitterDeniedException.class, () -> {
             draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional,
-                BigInteger.ZERO, userState);
+                BigInteger.ZERO, userState, "BUUID1", "User One");
         });
         assertThat(ex.getUpdateType()).isEqualTo("validate");
         assertThat(ex.getSubmitterUsername()).isEqualTo("BUUID1");
@@ -630,8 +618,6 @@ class DraftAccountTransactionalTest {
         Long draftAccountId = 1L;
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .accountStatus(DraftAccountStatus.DELETED)
-            .validatedBy("BUUID1")
-            .validatedByName("User One")
             .businessUnitId((short) 2)
             .build();
 
@@ -646,12 +632,12 @@ class DraftAccountTransactionalTest {
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
 
-        UserState userState = UserState.builder().userName("BUUID1").userId(23L).build();
+        UserState userState = UserState.builder().userName("opal-test@dev.platform.hmcts.net").userId(23L).build();
 
         // Act & Assert
         SubmitterDeniedException ex = assertThrows(SubmitterDeniedException.class, () -> {
             draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional,
-                BigInteger.ZERO, userState);
+                BigInteger.ZERO, userState, "BUUID1", "User One");
         });
         assertThat(ex.getUpdateType()).isEqualTo("delete");
         assertThat(ex.getSubmitterUsername()).isEqualTo("BUUID1");
@@ -676,7 +662,6 @@ class DraftAccountTransactionalTest {
         Long draftAccountId = 1L;
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .accountStatus(DraftAccountStatus.DELETED)
-            .validatedBy("Validator")
             .businessUnitId((short) 2)
             .build();
 
@@ -695,7 +680,8 @@ class DraftAccountTransactionalTest {
         UserState userState = UserState.builder().userName("DifferentUser").build();
 
         DraftAccountEntity result = draftAccountTransactional.updateDraftAccount(
-            draftAccountId, updateDto, draftAccountTransactional, BigInteger.ZERO, userState);
+            draftAccountId, updateDto, draftAccountTransactional, BigInteger.ZERO, userState, "Validator",
+            "Validator Name");
 
         assertEquals(DraftAccountStatus.DELETED, result.getAccountStatus());
         assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), result.getAccountStatusDate());
@@ -726,7 +712,7 @@ class DraftAccountTransactionalTest {
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
             draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional,
-                BigInteger.ZERO, userState)
+                BigInteger.ZERO, userState, "Validator", "Validator Name")
         );
         assertEquals("Invalid account status for update: SUBMITTED", exception.getMessage());
 

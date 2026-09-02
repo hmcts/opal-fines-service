@@ -114,21 +114,23 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
     }
 
     @Transactional
-    public DraftAccountEntity submitDraftAccount(AddDraftAccountRequestDto dto) {
+    public DraftAccountEntity submitDraftAccount(AddDraftAccountRequestDto dto, String submittedBy,
+                                                 String submittedByName) {
         LocalDateTime created = LocalDateTime.now(clock);
         BusinessUnitEntity businessUnit = businessUnitRepository.getReferenceById(
             dto.getBusinessUnitId());
-        String snapshot = createInitialSnapshot(dto, created, businessUnit);
+        String snapshot = createInitialSnapshot(dto, created, businessUnit, submittedBy, submittedByName);
         log.debug(":submitDraftAccount: dto: \n{}", dto.toPrettyJson());
 
         return draftAccountRepository.save(
-            toEntity(dto, created, businessUnit, snapshot));
+            toEntity(dto, created, businessUnit, snapshot, submittedBy, submittedByName));
 
     }
 
     @Transactional
     public DraftAccountEntity replaceDraftAccount(Long draftAccountId, ReplaceDraftAccountRequestDto dto,
-                                                  DraftAccountTransactionalProxy proxy, String ifMatch) {
+                                                  DraftAccountTransactionalProxy proxy, String ifMatch,
+                                                  String submittedBy, String submittedByName) {
         DraftAccountEntity existingAccount = proxy.getDraftAccount(draftAccountId);
         verifyIfMatch(existingAccount, ifMatch, draftAccountId, "replaceDraftAccount");
 
@@ -144,9 +146,10 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
             );
         }
 
-        String newSnapshot = createUpdateSnapshot(dto, existingAccount.getCreatedDate(), businessUnit);
-        existingAccount.setSubmittedBy(dto.getSubmittedBy());
-        existingAccount.setSubmittedByName(dto.getSubmittedByName());
+        String newSnapshot = createUpdateSnapshot(dto, existingAccount.getCreatedDate(), businessUnit,
+                                                  submittedBy, submittedByName);
+        existingAccount.setSubmittedBy(submittedBy);
+        existingAccount.setSubmittedByName(submittedByName);
         existingAccount.setAccount(dto.getAccount());
         existingAccount.setAccountSnapshot(newSnapshot);
         existingAccount.setAccountType(dto.getAccountType());
@@ -155,7 +158,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         existingAccount.setTimelineData(
             appendTimelineEntry(
                 existingAccount.getTimelineData(),
-                dto.getSubmittedBy(),
+                submittedBy,
                 DraftAccountStatus.RESUBMITTED,
                 null
             )
@@ -170,7 +173,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
     @Transactional
     public DraftAccountEntity updateDraftAccount(Long draftAccountId, UpdateDraftAccountRequestDto dto,
                                                  DraftAccountTransactionalProxy proxy, BigInteger updateVersion,
-                                                 UserState userState) {
+                                                 UserState userState, String validatedBy, String validatedByName) {
         DraftAccountEntity existingAccount = proxy.getDraftAccount(draftAccountId);
         verifyIfMatch(existingAccount, updateVersion, draftAccountId, "updateDraftAccount");
 
@@ -196,17 +199,17 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
 
         if (newStatus.isPublishingPending()) {
             LocalDateTime validationTimestamp = LocalDateTime.now(clock);
-            checkValidatorIsNotSubmitter(existingAccount.getSubmittedBy(), dto.getValidatedBy(), draftAccountId,
+            checkValidatorIsNotSubmitter(existingAccount.getSubmittedBy(), validatedBy, draftAccountId,
                 userState, dto.getBusinessUnitId());
             existingAccount.setValidatedDate(validationTimestamp);
-            existingAccount.setValidatedBy(dto.getValidatedBy());
-            existingAccount.setValidatedByName(dto.getValidatedByName());
+            existingAccount.setValidatedBy(validatedBy);
+            existingAccount.setValidatedByName(validatedByName);
             existingAccount.setAccountSnapshot(addSnapshotApprovedDate(existingAccount));
             existingAccount.setAccountStatusDate(validationTimestamp);
         }
 
         if (newStatus.isDeleted()) {
-            checkDeleterIsNotSubmitter(existingAccount.getSubmittedBy(), userState.getUserName(), draftAccountId,
+            checkDeleterIsNotSubmitter(existingAccount.getSubmittedBy(), validatedBy, draftAccountId,
                 userState, dto.getBusinessUnitId());
             existingAccount.setAccountStatusDate(LocalDateTime.now(clock));
         }
@@ -216,7 +219,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         }
 
         existingAccount.setTimelineData(
-            appendTimelineEntry(existingAccount.getTimelineData(), dto.getValidatedBy(), newStatus, dto.getReasonText())
+            appendTimelineEntry(existingAccount.getTimelineData(), validatedBy, newStatus, dto.getReasonText())
         );
 
         log.info(":updateDraftAccount: Updating draft account with ID: {} and status: {}",
@@ -303,14 +306,16 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
     }
 
     private String createInitialSnapshot(AddDraftAccountRequestDto dto, LocalDateTime created,
-                                         BusinessUnitEntity businessUnit) {
-        return buildSnapshot(dto.getAccount(), created, businessUnit, dto.getSubmittedBy(), dto.getSubmittedByName(),
+                                         BusinessUnitEntity businessUnit, String submittedBy,
+                                         String submittedByName) {
+        return buildSnapshot(dto.getAccount(), created, businessUnit, submittedBy, submittedByName,
                              "AddDraftAccountRequestDto.account").toPrettyJson();
     }
 
     private String createUpdateSnapshot(ReplaceDraftAccountRequestDto dto, LocalDateTime created,
-                                         BusinessUnitEntity businessUnit) {
-        return buildSnapshot(dto.getAccount(), created, businessUnit, dto.getSubmittedBy(), dto.getSubmittedByName(),
+                                         BusinessUnitEntity businessUnit, String submittedBy,
+                                         String submittedByName) {
+        return buildSnapshot(dto.getAccount(), created, businessUnit, submittedBy, submittedByName,
                              "ReplaceDraftAccountRequestDto.account").toPrettyJson();
     }
 
@@ -346,19 +351,20 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
     }
 
     DraftAccountEntity toEntity(AddDraftAccountRequestDto dto, LocalDateTime created,
-                                BusinessUnitEntity businessUnit, String snapshot) {
+                                BusinessUnitEntity businessUnit, String snapshot, String submittedBy,
+                                String submittedByName) {
         return DraftAccountEntity.builder()
             .businessUnit(businessUnit)
             .createdDate(created)
-            .submittedBy(dto.getSubmittedBy())
-            .submittedByName(dto.getSubmittedByName())
+            .submittedBy(submittedBy)
+            .submittedByName(submittedByName)
             .account(dto.getAccount())
             .accountSnapshot(snapshot)
             .accountType(dto.getAccountType())
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .accountStatusDate(created)
             .statusMessage(dto.getStatusMessage())
-            .timelineData(createTimelineData(dto.getSubmittedBy(), DraftAccountStatus.SUBMITTED, null))
+            .timelineData(createTimelineData(submittedBy, DraftAccountStatus.SUBMITTED, null))
             .draftAccountId(null)
             .build();
     }

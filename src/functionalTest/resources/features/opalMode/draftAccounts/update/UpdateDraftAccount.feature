@@ -28,12 +28,9 @@ Feature: Update Draft Accounts
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
       | account_status    | Submitted                                   |
-      | submitted_by      | PATCH002                                    |
-      | submitted_by_name | Laura Clerk                                 |
     When I patch the draft account with the following details
       | business_unit_id | 73                   |
       | account_status   | Rejected             |
-      | validated_by     | PATCH002_REVIEWER    |
       | reason_text      | Reason for rejection |
       | If-Match         | 0                    |
 
@@ -49,41 +46,31 @@ Feature: Update Draft Accounts
       | timeline_data[0].status             | Created              |
       | timeline_data[0].username           | L073JG               |
       | timeline_data[1].status             | Rejected             |
-      | timeline_data[1].username           | PATCH002_REVIEWER    |
+      | timeline_data[1].username           | L073JG               |
       | timeline_data[1].reason_text        | Reason for rejection |
     And the account status date matches the rejected date
 
   @JIRA-STORY:PO-745 @JIRA-STORY:PO-1858 @cleanUpData @JIRA-EPIC:PO-2220 @JIRA-TEST-KEY:PO-5686
-  Scenario: Mark a submitted draft account as deleted
+  Scenario: The submitter cannot mark their own submitted draft account as deleted
     And a replaceable draft account exists with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
       | account_status    | Submitted                                   |
-      | submitted_by      | BUUID                                       |
-      | submitted_by_name | Laura Clerk                                 |
     When I patch the draft account with the following details
       | business_unit_id | 73                  |
       | account_status   | Deleted             |
-      | validated_by     | BUUID_REVIEWER      |
       | reason_text      | Reason for deletion |
       | If-Match         | 0                   |
-    Then the created draft account is patched successfully and the retrieved draft account contains the following data
-      | business_unit_id                    | 73                  |
-      | account_type                        | Fine                |
-      | account_status                      | Deleted             |
-      | account_snapshot.defendant_name     | LNAME, FNAME        |
-      | account_snapshot.date_of_birth      | 2000-01-01          |
-      | account_snapshot.account_type       | Fine                |
-      | account_snapshot.submitted_by       | L073JG              |
-      | account_snapshot.business_unit_name | West London         |
-      | timeline_data[0].status             | Created             |
-      | timeline_data[0].username           | L073JG              |
-      | timeline_data[1].status             | Deleted             |
-      | timeline_data[1].username           | BUUID_REVIEWER      |
-      | timeline_data[1].reason_text        | Reason for deletion |
-    And I see the account status date is now after the initial account status date
-    And the account status date matches the deleted date
+    Then the request is rejected as forbidden and the created draft account remains with the following data
+      | business_unit_id                    | 73           |
+      | account_type                        | Fine         |
+      | account_status                      | Submitted    |
+      | account_snapshot.defendant_name     | LNAME, FNAME |
+      | account_snapshot.date_of_birth      | 2000-01-01   |
+      | account_snapshot.account_type       | Fine         |
+      | account_snapshot.submitted_by       | L073JG       |
+      | account_snapshot.business_unit_name | West London  |
 
   @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5687
   Scenario: Reject publishing a parent or guardian draft account

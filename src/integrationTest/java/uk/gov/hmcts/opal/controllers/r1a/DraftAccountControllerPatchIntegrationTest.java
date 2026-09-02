@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers.r1a;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -8,6 +9,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -20,8 +22,11 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
@@ -101,8 +106,8 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     void testUpdateDraftAccount_timelineDataIsSupplied() throws Exception {
         String request = validUpdateRequestBody("65", "Publishing Pending", "A")
             .replace(
-                "\"version\": 0",
-                "\"version\": 0,\n              \"timeline_data\": " + validTimelineDataJson().trim()
+                "\"reason_text\": \"Reason A\"",
+                "\"reason_text\": \"Reason A\",\n              \"timeline_data\": " + validTimelineDataJson().trim()
             );
 
         mockMvc.perform(patch(URL_BASE + "/" + 8)
@@ -112,6 +117,31 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isBadRequest());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"validated_by", "validated_by_name"})
+    @DisplayName("Update draft account - Should return 400 when token-derived fields are supplied")
+    @JiraStory("PO-2461")
+    @JiraEpic("PO-2220")
+    void testUpdateDraftAccount_tokenDerivedFieldIsSupplied(String propertyName) throws Exception {
+        String request = validUpdateRequestBody("65", "Publishing Pending", "A")
+            .replace(
+                "\"business_unit_id\": 65,",
+                "\"business_unit_id\": 65,\n"
+                    + "              \"%s\": \"client-user\",".formatted(propertyName)
+            );
+
+        mockMvc.perform(patch(URL_BASE + "/" + 8)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail", containsString(propertyName)))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
     }
 
     @Test
@@ -130,10 +160,8 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .content("""
                 {
                   "account_status": "Rejected",
-                  "validated_by": "BUUID1A",
                   "reason_text": "Reason for rejection",
-                  "business_unit_id": 78,
-                  "version": 0
+                  "business_unit_id": 78
                 }
                 """));
 
@@ -153,7 +181,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
             .andExpect(jsonPath("$.timeline_data[0].username").value("opal-test"))
             .andExpect(jsonPath("$.timeline_data[0].reason_text").doesNotExist())
             .andExpect(jsonPath("$.timeline_data[1].status").value("Rejected"))
-            .andExpect(jsonPath("$.timeline_data[1].username").value("BUUID1A"))
+            .andExpect(jsonPath("$.timeline_data[1].username").value("L078JG"))
             .andExpect(jsonPath("$.timeline_data[1].reason_text").value("Reason for rejection"));
     }
 
@@ -267,6 +295,44 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
         );
     }
 
+    @Test
+    @Sql(
+        scripts = {
+            "classpath:db/deleteData/delete_from_draft_accounts.sql",
+            "classpath:db/insertData/insert_into_draft_accounts.sql"
+        }
+    )
+    @Sql(
+        scripts = {
+            "classpath:db/deleteData/delete_from_draft_accounts.sql",
+            "classpath:db/insertData/insert_into_draft_accounts.sql"
+        },
+        executionPhase = AFTER_TEST_METHOD
+    )
+    @DisplayName("Patch draft account - authorised different user can delete a submitted draft account")
+    @JiraStory("PO-2461")
+    @JiraEpic("PO-2220")
+    void testPatchDraftAccount_differentAuthorisedUserCanDelete_returns200() throws Exception {
+        Long draftAccountId = 7L; // submitted_by = user_003 in seed data
+
+        ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
+            .header("If-Match", "0")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(validUpdateRequestBody("78", "Deleted", "A")));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
+            .andExpect(jsonPath("$.account_status").value("Deleted"))
+            .andExpect(jsonPath("$.validated_by").doesNotExist())
+            .andExpect(jsonPath("$.validated_by_name").doesNotExist())
+            .andExpect(jsonPath("$.timeline_data[1].status").value("Deleted"))
+            .andExpect(jsonPath("$.timeline_data[1].username").value("L078JG"))
+            .andExpect(jsonPath("$.timeline_data[1].reason_text").value("Reason A"));
+    }
+
 
     @Test
     @DisplayName("Patch draft account - user with CREATE_MANAGE permission should be forbidden [@PO-1820]")
@@ -303,10 +369,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
         Long draftAccountId = 241L;
         String requestBody = "            {\n"
             + "                \"account_status\": \"Publishing Pending\",\n"
-            + "                \"validated_by\": \"BUUID1\",\n"
-            + "                \"validated_by_name\": \"No Permission\",\n"
-            + "                \"business_unit_id\": 5,\n"
-            + "                \"version\": 0\n"
+            + "                \"business_unit_id\": 5\n"
             + "            }";
 
         mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
