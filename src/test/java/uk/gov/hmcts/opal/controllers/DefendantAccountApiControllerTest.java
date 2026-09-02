@@ -53,6 +53,7 @@ import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.GetPaymentTermsResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.VehicleFixedPenaltyDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.GetMasterDefendantAccountID;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyDetailsCommonStrict;
@@ -552,4 +553,22 @@ class DefendantAccountApiControllerTest {
         verify(defendantAccountService).getAtAGlance(defendantAccountId);
     }
 
+    @Test
+    void given_validRequest_when_getDefendantAccountMaster_then_returnsOkResponseWithEtag() {
+        Long defendantId = 77L;
+        GetMasterDefendantAccountID serviceResponse = GetMasterDefendantAccountID.builder()
+            .defendantAccountId(42L)
+            .version(BigInteger.valueOf(5))
+            .build();
+
+        when(defendantAccountService.getMasterDefendantAccount(defendantId)).thenReturn(serviceResponse);
+
+        ResponseEntity<GetMasterDefendantAccountID> response =
+            defendantAccountApiController.getDefendantAccountMaster(defendantId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("\"5\"", response.getHeaders().getETag());
+        assertSame(serviceResponse, response.getBody());
+        verify(defendantAccountService).getMasterDefendantAccount(defendantId);
+    }
 }
