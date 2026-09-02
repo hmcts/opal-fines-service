@@ -15,8 +15,10 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,8 +27,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
@@ -34,7 +39,9 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
+import uk.gov.hmcts.opal.generated.model.GetMasterDefendantAccountID;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchReferenceNumberDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
@@ -42,6 +49,7 @@ import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefen
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.mapper.request.DefendantAccountSearchRequestMapper;
 import uk.gov.hmcts.opal.mapper.response.DefendantAccountSearchResponseMapper;
+import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
@@ -56,6 +64,15 @@ class DefendantAccountServiceTest {
 
     @Mock
     private UserState userState;
+
+    @Mock
+    private UserStateV2 userStateV2;
+
+    @Mock
+    private DomainBusinessUnitUsers domainBusinessUnitUsers;
+
+    @Mock
+    private DefendantAccountRepository defendantAccountRepository;
 
     @Mock
     private OpalDefendantAccountService opalDefendantAccountService;
@@ -371,5 +388,83 @@ class DefendantAccountServiceTest {
         // Assert
         assertTrue(ex.getMessage().contains("Exactly one update group must be provided"));
         verifyNoInteractions(opalDefendantAccountService);
+    }
+
+    @Test
+    void getMasterDefendantAccount_whenUserHasPermission_returnsMasterAccountIdAndVersion() {
+        Long defendantAccountId = 77L;
+        Long masterDefendantAccountId = 42L;
+        DefendantAccountEntity masterAccount = DefendantAccountEntity.builder()
+            .defendantAccountId(masterDefendantAccountId)
+            .versionNumber(5L)
+            .build();
+
+        givenMasterAccountUserHasPermission(true);
+        when(defendantAccountRepository.findMasterDefendantAccountId(defendantAccountId))
+            .thenReturn(masterDefendantAccountId);
+        when(defendantAccountRepository.findById(masterDefendantAccountId)).thenReturn(Optional.of(masterAccount));
+
+        GetMasterDefendantAccountID result = defendantAccountService.getMasterDefendantAccount(defendantAccountId);
+
+        assertEquals(masterDefendantAccountId, result.getDefendantAccountId());
+        assertEquals(BigInteger.valueOf(5), result.getVersion());
+        verify(defendantAccountRepository).findMasterDefendantAccountId(defendantAccountId);
+        verify(defendantAccountRepository).findById(masterDefendantAccountId);
+    }
+
+    @Test
+    void getMasterDefendantAccount_whenUserLacksPermission_throwsPermissionNotAllowed() {
+        Long defendantAccountId = 77L;
+        givenMasterAccountUserHasPermission(false);
+
+        PermissionNotAllowedException exception = assertThrows(
+            PermissionNotAllowedException.class,
+            () -> defendantAccountService.getMasterDefendantAccount(defendantAccountId)
+        );
+
+        assertThat(exception.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        verifyNoInteractions(defendantAccountRepository);
+    }
+
+    @Test
+    void getMasterDefendantAccount_whenFunctionReturnsNull_throwsEntityNotFound() {
+        Long defendantAccountId = 77L;
+        givenMasterAccountUserHasPermission(true);
+        when(defendantAccountRepository.findMasterDefendantAccountId(defendantAccountId)).thenReturn(null);
+
+        EntityNotFoundException exception = assertThrows(
+            EntityNotFoundException.class,
+            () -> defendantAccountService.getMasterDefendantAccount(defendantAccountId)
+        );
+
+        assertThat(exception).hasMessage("Defendant Account not found for id: 77");
+        verify(defendantAccountRepository).findMasterDefendantAccountId(defendantAccountId);
+        verifyNoMoreInteractions(defendantAccountRepository);
+    }
+
+    @Test
+    void getMasterDefendantAccount_whenMasterAccountNotFound_throwsEntityNotFound() {
+        Long defendantAccountId = 77L;
+        Long masterDefendantAccountId = 42L;
+        givenMasterAccountUserHasPermission(true);
+        when(defendantAccountRepository.findMasterDefendantAccountId(defendantAccountId))
+            .thenReturn(masterDefendantAccountId);
+        when(defendantAccountRepository.findById(masterDefendantAccountId)).thenReturn(Optional.empty());
+
+        EntityNotFoundException exception = assertThrows(
+            EntityNotFoundException.class,
+            () -> defendantAccountService.getMasterDefendantAccount(defendantAccountId)
+        );
+
+        assertThat(exception).hasMessage("Master Defendant Account not found for id: 42");
+        verify(defendantAccountRepository).findMasterDefendantAccountId(defendantAccountId);
+        verify(defendantAccountRepository).findById(masterDefendantAccountId);
+    }
+
+    private void givenMasterAccountUserHasPermission(boolean hasPermission) {
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userStateV2);
+        when(userStateV2.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(domainBusinessUnitUsers);
+        when(domainBusinessUnitUsers.anyBusinessUnitUserHasPermission(
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(hasPermission);
     }
 }
