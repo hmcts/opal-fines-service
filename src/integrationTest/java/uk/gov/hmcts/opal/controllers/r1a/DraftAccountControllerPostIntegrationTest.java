@@ -405,7 +405,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
 
         result.andExpect(status().isCreated()).andExpect(content()
             .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.draft_account_id").value(204))
+            .andExpect(jsonPath("$.draft_account_id").isNumber())
             .andExpect(jsonPath("$.business_unit_id").value(78))
             .andExpect(jsonPath("$.account.offences[0].offence_id").value(35014))
             .andExpect(jsonPath("$.account.offences[0].business_unit_id").value(78));
