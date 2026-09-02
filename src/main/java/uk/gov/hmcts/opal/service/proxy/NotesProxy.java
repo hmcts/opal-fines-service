@@ -12,7 +12,7 @@ import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.OpalNotesService;
 
 @Service
-@Slf4j(topic = "opal.DefendantAccountServiceProxy")
+@Slf4j(topic = "opal.NotesProxy")
 @RequiredArgsConstructor
 public class NotesProxy implements NotesServiceInterface, ProxyInterface {
 

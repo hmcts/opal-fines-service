@@ -50,7 +50,7 @@ class NotesProxyTest extends ProxyTestsBase {
     }
 
     @Test
-    void addNote_shouldRouteToOpalWithoutResolvingLocalAccountContext_whenInOpalMode() {
+    void addNote_shouldRouteToOpalService_whenInOpalMode() {
         setLegacyMode(false);
         AddNoteRequest request = addNoteRequest();
         String expectedResponse = "opal-note-id";
