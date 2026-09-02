@@ -25,12 +25,12 @@ INSERT INTO public.report_instances (
     generation_status,
     requested_by_name
 ) VALUES (
-    99000000356000,
+    99000000353100,
     'cash_till',
     ARRAY[77]::smallint[],
     1,
     12345678,
-    '{"till_id":99000000356100,"allocated_report":false}'::json,
+    '{"till_id":99000000353100,"allocated_report":false}'::json,
     'stored-cash-till-report-location',
     '2026-05-27 09:00:00',
     CAST('READY' AS ri_generation_status_enum),
@@ -41,7 +41,7 @@ SELECT setval(
     'public.report_instance_id_seq',
     GREATEST(
         (SELECT COALESCE(MAX(report_instance_id), 0) FROM public.report_instances),
-        99000000356000
+        99000000353100
     ),
     true
 );
