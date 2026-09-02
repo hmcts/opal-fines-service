@@ -75,7 +75,7 @@ VALUES
     CURRENT_TIMESTAMP + INTERVAL '14 days',
     'Error report with ordered errors',
     NULL,
-    '[{"name":"Report query failed.","value":"The report could not be generated for QA testing."},{"name":"Account data unavailable.","value":"One or more account records could not be read."}]'
+    '{"operationId":"REPORT-GENERATION-ERROR","error":[{"name":"Report query failed.","value":"The report could not be generated for QA testing."},{"name":"Account data unavailable.","value":"One or more account records could not be read."}]}'
     )
   ,(
     99000000355003,
