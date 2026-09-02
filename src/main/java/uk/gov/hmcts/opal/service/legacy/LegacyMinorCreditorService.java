@@ -114,6 +114,11 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
         GetMinorCreditorAccountHeaderSummaryResponse mapped = headerSummaryResponseMapper
             .toOpal(response.responseEntity);
 
+        Optional<CreditorAccountEntity> creditorAccount = creditorAccountRepository
+            .findById(minorCreditorAccountId);
+        mapped.setRepayment(creditorAccount.map(CreditorAccountEntity::isRepayment)
+            .orElse(false));
+
         CreditorHeaderLegacy creditor = response.responseEntity.getCreditor();
         mapped.setVersion(creditor.getAccountVersion());
         applyResolvedBusinessUnitCode(mapped, response.responseEntity.getBusinessUnit());
