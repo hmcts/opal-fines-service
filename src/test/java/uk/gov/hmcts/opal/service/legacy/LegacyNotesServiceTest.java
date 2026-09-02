@@ -37,9 +37,6 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyNote;
-import uk.gov.hmcts.opal.entity.AssociatedRecordType;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 @ExtendWith(MockitoExtension.class)
@@ -76,7 +73,7 @@ class LegacyNotesServiceTest {
         AddNoteRequest req = addReq("77", "hello");
         givenBusinessUnitUser((short) 1, "L001JG");
 
-        String id = service.addNote(req, "1", user, targetWithBu((short) 1));
+        String id = service.addNote(req, "1", user, (short) 1);
         assertEquals("77", id);
 
         LegacyAddNoteRequest sent = reqCap.getValue();
@@ -122,7 +119,7 @@ class LegacyNotesServiceTest {
         AddNoteRequest req = addReq("770000004141", "hello");
         givenBusinessUnitUser((short) 77, "L077JG");
 
-        String id = service.addNote(req, '"' + LEGACY_VERSION + '"', user, targetWithBu((short) 77));
+        String id = service.addNote(req, '"' + LEGACY_VERSION + '"', user, (short) 77);
 
         assertEquals("770000004141", id);
         assertEquals(new BigInteger(LEGACY_VERSION), reqCap.getValue().getVersion());
@@ -152,7 +149,7 @@ class LegacyNotesServiceTest {
         AddNoteRequest req = addReq("770000004141", "hello");
         givenBusinessUnitUser((short) 77, "L077JG");
 
-        service.addNote(req, '"' + LEGACY_VERSION + '"', user, targetWithBu((short) 77));
+        service.addNote(req, '"' + LEGACY_VERSION + '"', user, (short) 77);
 
         String json = ToJsonString.getObjectMapper().writeValueAsString(reqCap.getValue());
 
@@ -189,7 +186,7 @@ class LegacyNotesServiceTest {
 
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> service.addNote(req, "1", user, targetWithBu((short) 5))
+            () -> service.addNote(req, "1", user, (short) 5)
         );
         assertEquals("Legacy gateway exception", exception.getMessage());
 
@@ -227,7 +224,7 @@ class LegacyNotesServiceTest {
 
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> service.addNote(req, "1", user, targetWithBu((short) 9))
+            () -> service.addNote(req, "1", user, (short) 9)
         );
         assertEquals("Legacy gateway returned failure", exception.getMessage());
 
@@ -265,7 +262,7 @@ class LegacyNotesServiceTest {
 
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> service.addNote(req, "7", user, targetWithBu((short) 3))
+            () -> service.addNote(req, "7", user, (short) 3)
         );
         assertEquals("Legacy gateway error: null", exception.getMessage());
 
@@ -304,7 +301,7 @@ class LegacyNotesServiceTest {
 
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> service.addNote(req, '"' + LEGACY_VERSION + '"', user, targetWithBu((short) 77))
+            () -> service.addNote(req, '"' + LEGACY_VERSION + '"', user, (short) 77)
         );
 
         assertEquals("Legacy gateway returned failure: -20001 User not found", exception.getMessage());
@@ -336,7 +333,7 @@ class LegacyNotesServiceTest {
 
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
-            () -> service.addNote(req, '"' + LEGACY_VERSION + '"', user, targetWithBu((short) 77))
+            () -> service.addNote(req, '"' + LEGACY_VERSION + '"', user, (short) 77)
         );
 
         assertEquals("Legacy gateway returned failure: -20001 User not found", exception.getMessage());
@@ -350,7 +347,7 @@ class LegacyNotesServiceTest {
 
         assertThrows(
             PermissionNotAllowedException.class,
-            () -> service.addNote(req, '"' + LEGACY_VERSION + '"', user, targetWithBu((short) 77))
+            () -> service.addNote(req, '"' + LEGACY_VERSION + '"', user, (short) 77)
         );
 
         verifyNoInteractions(gatewayService);
@@ -364,22 +361,13 @@ class LegacyNotesServiceTest {
 
         assertThrows(
             PermissionNotAllowedException.class,
-            () -> service.addNote(req, '"' + LEGACY_VERSION + '"', user, targetWithBu((short) 77))
+            () -> service.addNote(req, '"' + LEGACY_VERSION + '"', user, (short) 77)
         );
 
         verifyNoInteractions(gatewayService);
     }
 
     // ---------- helpers ----------
-
-    private static AccountNoteContext targetWithBu(short buId) {
-        return new AccountNoteContext(
-            DefendantAccountEntity.class,
-            77L,
-            buId,
-            AssociatedRecordType.DEFENDANT_ACCOUNTS
-        );
-    }
 
     private void givenBusinessUnitUser(short businessUnitId, String businessUnitUserId) {
         BusinessUnitUser businessUnitUser = BusinessUnitUser.builder()

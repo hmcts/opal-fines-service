@@ -17,6 +17,7 @@ import uk.gov.hmcts.opal.entity.NoteType;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
+import uk.gov.hmcts.opal.service.AccountNoteContextFactory;
 import uk.gov.hmcts.opal.service.iface.NotesServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.util.Versioned;
@@ -29,9 +30,16 @@ public class OpalNotesService implements NotesServiceInterface {
     private final NoteRepository repository;
     private final DefendantAccountRepositoryService defendantAccountRepositoryService;
     private final CreditorAccountRepository creditorAccountRepository;
+    private final AccountNoteContextFactory accountNoteContextFactory;
     private final Clock clock;
 
     @Override
+    @Transactional
+    public String addNote(AddNoteRequest req, String ifMatch, UserState user, Short businessUnitId) {
+        AccountNoteContext target = accountNoteContextFactory.from(req.getActivityNote());
+        return addNote(req, ifMatch, user, target);
+    }
+
     @Transactional
     public String addNote(AddNoteRequest req, String ifMatch, UserState user, AccountNoteContext target) {
         log.info(":OpalAddNote");
