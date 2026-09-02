@@ -1,22 +1,27 @@
 package uk.gov.hmcts.opal.service.legacy;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService.PATCH_DEFENDANT_ACCOUNT;
 
 import java.math.BigInteger;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpServerErrorException;
+import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
+import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountRequest;
@@ -59,10 +64,10 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
             new GatewayService.Response<>(HttpStatus.OK, legacyEntity, null, null);
 
         doReturn(resp).when(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.PATCH_DEFENDANT_ACCOUNT),
+            eq(PATCH_DEFENDANT_ACCOUNT),
             eq(LegacyUpdateDefendantAccountResponse.class),
             any(LegacyUpdateDefendantAccountRequest.class),
-            Mockito.nullable(String.class)
+            nullable(String.class)
         );
 
         UpdateDefendantAccountResponse expected = UpdateDefendantAccountResponse.builder()
@@ -78,7 +83,7 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
 
         verify(updateDefendantAccountRequestMapper).toLegacyUpdateDefendantAccountRequest(request);
         verify(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.PATCH_DEFENDANT_ACCOUNT),
+            eq(PATCH_DEFENDANT_ACCOUNT),
             eq(LegacyUpdateDefendantAccountResponse.class),
             eq(legacyReq),
             isNull()
@@ -108,7 +113,7 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
             .thenReturn(LegacyUpdateDefendantAccountRequest.builder().build());
 
         when(gatewayService.postToGateway(
-            eq(LegacyDefendantAccountService.PATCH_DEFENDANT_ACCOUNT),
+            eq(PATCH_DEFENDANT_ACCOUNT),
             eq(LegacyUpdateDefendantAccountResponse.class),
             any(),
             isNull()))
@@ -120,7 +125,7 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
         );
 
         verify(gatewayService).postToGateway(
-            eq(LegacyDefendantAccountService.PATCH_DEFENDANT_ACCOUNT),
+            eq(PATCH_DEFENDANT_ACCOUNT),
             eq(LegacyUpdateDefendantAccountResponse.class),
             any(LegacyUpdateDefendantAccountRequest.class),
             isNull()
@@ -129,7 +134,7 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void testUpdateDefendantAccount_error5xx_noEntity_returnsNull() {
+    void testUpdateDefendantAccount_error5xx_noEntity_throwsHttpServerErrorException() {
         ParameterizedTypeReference<LegacyUpdateDefendantAccountResponse> typeRef =
             new ParameterizedTypeReference<>() {};
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(null);
@@ -148,8 +153,42 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
             .version(BigInteger.ONE)
             .build();
 
-        UpdateDefendantAccountResponse response = legacyDefendantAccountService
-            .updateDefendantAccount(77L, "78", request, "postedBy", "Poster Name");
-        assertNull(response);
+        assertThatThrownBy(() -> legacyDefendantAccountService.updateDefendantAccount(77L, "78", request, "postedBy",
+            "Poster Name")).isInstanceOf(HttpServerErrorException.class).hasMessage("500 Legacy gateway error");
+    }
+
+    @Test
+    void testUpdateDefendantAccount_embeddedLegacyError_throwsUnprocessableException() {
+        final String postedBy = "user-123";
+        final long defendantAccountId = 77L;
+        final String businessUnitId = "78";
+
+        UpdateDefendantAccountRequest request =
+            UpdateDefendantAccountRequest.builder().defendantAccountId(defendantAccountId)
+                .businessUnitId(businessUnitId).businessUnitUserId(postedBy).payload(
+                    UpdateDefendantAccountRequestPayload.builder()
+                        .commentAndNotes(CommentsAndNotesCommon.builder().accountComment("x").build()).build())
+                .version(BigInteger.valueOf(5)).build();
+
+        LegacyUpdateDefendantAccountResponse legacyEntity = LegacyUpdateDefendantAccountResponse.builder()
+            .errorResponse(new ErrorResponse("-20020", "Enforcer 50000000003 not found")).build();
+
+        Response<LegacyUpdateDefendantAccountResponse> response =
+            new Response<>(HttpStatus.OK, legacyEntity, null, null);
+
+        when(updateDefendantAccountRequestMapper.toLegacyUpdateDefendantAccountRequest(request)).thenReturn(
+            LegacyUpdateDefendantAccountRequest.builder().build());
+
+        when(gatewayService.postToGateway(eq(LegacyDefendantAccountService.PATCH_DEFENDANT_ACCOUNT),
+            eq(LegacyUpdateDefendantAccountResponse.class), any(LegacyUpdateDefendantAccountRequest.class),
+            nullable(String.class))).thenReturn(response);
+
+        assertThatThrownBy(
+            () -> legacyDefendantAccountService.updateDefendantAccount(defendantAccountId, businessUnitId, request,
+                postedBy, "Poster Name")).isInstanceOf(HttpServerErrorException.class)
+            .hasMessage("400 Legacy gateway error");
+
+        verify(legacyUpdateDefendantAccountResponseMapper, never()).toUpdateDefendantAccountResponse(
+            any(LegacyUpdateDefendantAccountResponse.class));
     }
 }
