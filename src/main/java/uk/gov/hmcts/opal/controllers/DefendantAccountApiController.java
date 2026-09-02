@@ -2,6 +2,8 @@ package uk.gov.hmcts.opal.controllers;
 
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_ENABLED_PROPERTY;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_PAYMENT;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_PAYMENT_ENABLED_PROPERTY;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 import java.time.LocalDate;
@@ -29,6 +31,7 @@ import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
+import uk.gov.hmcts.opal.generated.model.GetMasterDefendantAccountID;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
@@ -40,8 +43,6 @@ import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
-import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
-import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.ImpositionService;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
@@ -209,4 +210,13 @@ public class DefendantAccountApiController implements DefendantAccountApi {
         ));
     }
 
+    @Override
+    @FeatureToggle(feature =  RELEASE_1C_PAYMENT, defaultValueProperty = RELEASE_1C_PAYMENT_ENABLED_PROPERTY)
+    public ResponseEntity<GetMasterDefendantAccountID> getDefendantAccountMaster(Long defendantAccountId) {
+        log.debug(":GET:getDefendantAccountMaster: for defendant account id: {}", defendantAccountId);
+
+        GetMasterDefendantAccountID response = defendantAccountService.getMasterDefendantAccount(defendantAccountId);
+
+        return buildResponse(response);
+    }
 }
