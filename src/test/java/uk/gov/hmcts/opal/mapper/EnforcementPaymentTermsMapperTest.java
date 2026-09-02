@@ -11,15 +11,15 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mapstruct.factory.Mappers;
 import org.openapitools.jackson.nullable.JsonNullable;
-import uk.gov.hmcts.opal.dto.PaymentTerms;
-import uk.gov.hmcts.opal.dto.common.InstalmentPeriod.InstalmentPeriodCode;
-import uk.gov.hmcts.opal.dto.common.PaymentTermsType.PaymentTermsTypeCode;
 import uk.gov.hmcts.opal.generated.model.EnforcementInstalmentPeriodCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsTypeCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementPostedDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PaymentTermsDefendantAccount;
 
 class EnforcementPaymentTermsMapperTest {
 
@@ -27,6 +27,11 @@ class EnforcementPaymentTermsMapperTest {
 
     @Nested
     class ToPaymentTerms {
+
+        @Test
+        void whenSourceIsNull_thenReturnsNull() {
+            assertNull(mapper.toPaymentTerms(null));
+        }
 
         @Test
         void whenSourceContainsValues_thenMapsNullableFieldsAndEnums() {
@@ -47,21 +52,23 @@ class EnforcementPaymentTermsMapperTest {
                     .postedBy("user-id")
                     .postedByName("User Name"));
 
-            PaymentTerms result = mapper.toPaymentTerms(source);
+            PaymentTermsDefendantAccount result = mapper.toPaymentTerms(source);
 
             assertAll(
                 () -> assertEquals(7, result.getDaysInDefault()),
                 () -> assertEquals(LocalDate.of(2026, 5, 28), result.getDateDaysInDefaultImposed()),
-                () -> assertFalse(result.isExtension()),
+                () -> assertFalse(result.getExtension()),
                 () -> assertEquals("extension reason", result.getReasonForExtension()),
-                () -> assertEquals(PaymentTermsTypeCode.P, result.getPaymentTermsType().getPaymentTermsTypeCode()),
+                () -> assertEquals("P", result.getPaymentTermsType().getPaymentTermsTypeCode().getValue()),
                 () -> assertEquals(LocalDate.of(2026, 10, 30), result.getEffectiveDate()),
-                () -> assertEquals(InstalmentPeriodCode.M, result.getInstalmentPeriod().getInstalmentPeriodCode()),
+                () -> assertEquals("M",
+                    result.getInstalmentPeriod().orElseThrow().getInstalmentPeriodCode().getValue()),
                 () -> assertEquals(new BigDecimal("500.00"), result.getLumpSumAmount()),
                 () -> assertEquals(new BigDecimal("10.50"), result.getInstalmentAmount()),
-                () -> assertEquals(LocalDateTime.of(2026, 5, 28, 12, 30), result.getPostedDetails().getPostedDate()),
-                () -> assertEquals("user-id", result.getPostedDetails().getPostedBy()),
-                () -> assertEquals("User Name", result.getPostedDetails().getPostedByName())
+                () -> assertEquals(LocalDateTime.of(2026, 5, 28, 12, 30),
+                    result.getPostedDetails().orElseThrow().getPostedDate()),
+                () -> assertEquals("user-id", result.getPostedDetails().orElseThrow().getPostedBy().orElse(null)),
+                () -> assertEquals("User Name", result.getPostedDetails().orElseThrow().getPostedByName().orElse(null))
             );
         }
 
@@ -79,20 +86,52 @@ class EnforcementPaymentTermsMapperTest {
             source.setInstalmentAmount(JsonNullable.of(null));
             source.setPostedDetails(JsonNullable.of(null));
 
-            PaymentTerms result = mapper.toPaymentTerms(source);
+            PaymentTermsDefendantAccount result = mapper.toPaymentTerms(source);
 
             assertAll(
                 () -> assertNull(result.getDaysInDefault()),
                 () -> assertNull(result.getDateDaysInDefaultImposed()),
-                () -> assertTrue(result.isExtension()),
+                () -> assertTrue(result.getExtension()),
                 () -> assertNull(result.getReasonForExtension()),
                 () -> assertNull(result.getPaymentTermsType()),
                 () -> assertNull(result.getEffectiveDate()),
-                () -> assertNull(result.getInstalmentPeriod()),
+                () -> assertNull(result.getInstalmentPeriod().orElse(null)),
                 () -> assertNull(result.getLumpSumAmount()),
                 () -> assertNull(result.getInstalmentAmount()),
-                () -> assertNull(result.getPostedDetails())
+                () -> assertNull(result.getPostedDetails().orElse(null))
             );
+        }
+
+        @ParameterizedTest
+        @EnumSource(EnforcementPaymentTermsTypeCommonStrict.PaymentTermsTypeCodeEnum.class)
+        void whenPaymentTermsTypeCodeIsSupported_thenMapsDisplayName(
+            EnforcementPaymentTermsTypeCommonStrict.PaymentTermsTypeCodeEnum code) {
+            PaymentTermsDefendantAccount result = mapper.toPaymentTerms(new EnforcementPaymentTermsCommonStrict()
+                .paymentTermsType(new EnforcementPaymentTermsTypeCommonStrict().paymentTermsTypeCode(code)));
+
+            String expectedDisplayName = switch (code) {
+                case B -> "By date";
+                case P -> "Paid";
+                case I -> "Instalments";
+            };
+            assertEquals(expectedDisplayName,
+                result.getPaymentTermsType().getPaymentTermsTypeDisplayName().getValue());
+        }
+
+        @ParameterizedTest
+        @EnumSource(EnforcementInstalmentPeriodCommonStrict.InstalmentPeriodCodeEnum.class)
+        void whenInstalmentPeriodCodeIsSupported_thenMapsDisplayName(
+            EnforcementInstalmentPeriodCommonStrict.InstalmentPeriodCodeEnum code) {
+            PaymentTermsDefendantAccount result = mapper.toPaymentTerms(new EnforcementPaymentTermsCommonStrict()
+                .instalmentPeriod(new EnforcementInstalmentPeriodCommonStrict().instalmentPeriodCode(code)));
+
+            String expectedDisplayName = switch (code) {
+                case W -> "Weekly";
+                case M -> "Monthly";
+                case F -> "Fortnightly";
+            };
+            assertEquals(expectedDisplayName,
+                result.getInstalmentPeriod().orElseThrow().getInstalmentPeriodDisplayName().getValue());
         }
     }
 }

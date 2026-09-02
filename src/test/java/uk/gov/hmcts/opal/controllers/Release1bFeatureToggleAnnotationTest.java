@@ -48,7 +48,7 @@ class Release1bFeatureToggleAnnotationTest {
             .collect(Collectors.toSet());
 
         Set<String> expectedAnnotatedMethods = Set.of(
-            "DefendantAccountController#addPaymentTerms",
+            "DefendantAccountApiController#addPaymentTerms",
             "MajorCreditorApiController#getMajorCreditorHistory",
             "DefendantAccountApiController#getDefendantAccountHistory",
             "DefendantAccountController#replaceDefendantAccountParty",

@@ -21,14 +21,15 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.dto.PaymentTerms;
-import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
+import uk.gov.hmcts.opal.generated.model.PaymentTermsDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddPaymentTermsRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.GetPaymentTermsResponseDefendantAccount;
 import uk.gov.hmcts.opal.mapper.request.PaymentTermsMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
@@ -88,11 +89,6 @@ class OpalDefendantAccountPaymentTermsServiceTest {
         account.setLastEnforcement(String.valueOf(55L));
         account.setVersionNumber(1L);
 
-        // Request DTO (minimal)
-        PaymentTerms paymentTermsDto = new PaymentTerms();
-        AddDefendantAccountPaymentTermsRequest request = new AddDefendantAccountPaymentTermsRequest();
-        request.setPaymentTerms(paymentTermsDto);
-
         // Mock account lookup
         when(defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(defendantAccountId))
             .thenReturn(account);
@@ -114,7 +110,7 @@ class OpalDefendantAccountPaymentTermsServiceTest {
             .postedByUsername(postedBy)
             .build();
 
-        when(paymentTermsMapper.toEntity(any(PaymentTerms.class))).thenReturn(paymentTerms);
+        when(paymentTermsMapper.toEntity(any(PaymentTermsDefendantAccount.class))).thenReturn(paymentTerms);
 
         EnforcementEntity enforcementLite = new EnforcementEntity();
         enforcementLite.setEnforcementId(300L);
@@ -132,11 +128,16 @@ class OpalDefendantAccountPaymentTermsServiceTest {
 
         when(resultService.getResultById("55")).thenReturn(resultEntityLite);
 
+        // Request DTO (minimal)
+        AddPaymentTermsRequestDefendantAccount request = paymentTermsRequest();
+        stubGeneratedResponse();
+
         // Act
-        defendantAccountPaymentTermsService.addPaymentTerms(defendantAccountId, businessUnitId, "tester", "Tester Name",
-            ifMatch, request);
+        GetPaymentTermsResponseDefendantAccount response = defendantAccountPaymentTermsService.addPaymentTerms(
+            defendantAccountId, businessUnitId, "tester", "Tester Name", ifMatch, request);
 
         // Assert
+        assertEquals(account.getVersion(), response.getVersion());
         // 1) Verify PaymentTermsService.addPaymentTerm was called
         verify(paymentTermsService).addPaymentTerm(any(PaymentTermsEntity.class));
         // 2) Verify that defendantAccountRepository.save was called to update lastEnforcement
@@ -169,16 +170,12 @@ class OpalDefendantAccountPaymentTermsServiceTest {
         when(defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(defendantAccountId))
             .thenReturn(account);
 
-        PaymentTerms paymentTermsDto = new PaymentTerms();
-        AddDefendantAccountPaymentTermsRequest request = new AddDefendantAccountPaymentTermsRequest();
-        request.setPaymentTerms(paymentTermsDto);
-
         PaymentTermsEntity paymentTermsEntity = PaymentTermsEntity.builder()
             .postedBy(null)
             .postedByUsername(null)
             .build();
 
-        when(paymentTermsMapper.toEntity(any(PaymentTerms.class))).thenReturn(paymentTermsEntity);
+        when(paymentTermsMapper.toEntity(any(PaymentTermsDefendantAccount.class))).thenReturn(paymentTermsEntity);
 
         PaymentTermsEntity savedPaymentTermsEntity = PaymentTermsEntity.builder()
             .paymentTermsId(200L)
@@ -190,6 +187,9 @@ class OpalDefendantAccountPaymentTermsServiceTest {
             .build();
 
         when(paymentTermsService.addPaymentTerm(any(PaymentTermsEntity.class))).thenReturn(savedPaymentTermsEntity);
+        stubGeneratedResponse();
+
+        AddPaymentTermsRequestDefendantAccount request = paymentTermsRequest();
 
         // Act
         defendantAccountPaymentTermsService.addPaymentTerms(
@@ -218,9 +218,6 @@ class OpalDefendantAccountPaymentTermsServiceTest {
         account.setBusinessUnit(bu);
         account.setLastEnforcement("55");
         account.setVersionNumber(1L);
-        PaymentTerms paymentTermsDto = new PaymentTerms();
-        AddDefendantAccountPaymentTermsRequest request = new AddDefendantAccountPaymentTermsRequest();
-        request.setPaymentTerms(paymentTermsDto);
 
         when(defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(defendantAccountId))
             .thenReturn(account);
@@ -232,7 +229,7 @@ class OpalDefendantAccountPaymentTermsServiceTest {
             .postedByUsername(businessUnitUserId)
             .build();
 
-        when(paymentTermsMapper.toEntity(any(PaymentTerms.class))).thenReturn(paymentTerms);
+        when(paymentTermsMapper.toEntity(any(PaymentTermsDefendantAccount.class))).thenReturn(paymentTerms);
 
         PaymentTermsEntity savedPaymentTermsEntity = PaymentTermsEntity.builder()
             .paymentTermsId(200L)
@@ -242,6 +239,9 @@ class OpalDefendantAccountPaymentTermsServiceTest {
             .build();
 
         when(paymentTermsService.addPaymentTerm(any(PaymentTermsEntity.class))).thenReturn(savedPaymentTermsEntity);
+
+        AddPaymentTermsRequestDefendantAccount request = paymentTermsRequest();
+        stubGeneratedResponse();
 
         defendantAccountPaymentTermsService.addPaymentTermsPreservingLastEnforcement(
             defendantAccountId,
@@ -278,9 +278,7 @@ class OpalDefendantAccountPaymentTermsServiceTest {
             .thenReturn(account);
         doThrow(exception).when(defendantAccountControlValidator).validateCanAddPaymentTerms(account);
 
-        PaymentTerms paymentTermsDto = new PaymentTerms();
-        AddDefendantAccountPaymentTermsRequest request = new AddDefendantAccountPaymentTermsRequest();
-        request.setPaymentTerms(paymentTermsDto);
+        AddPaymentTermsRequestDefendantAccount request = paymentTermsRequest();
 
         UnprocessableException result = assertThrows(UnprocessableException.class, () ->
             defendantAccountPaymentTermsService.addPaymentTerms(
@@ -290,5 +288,18 @@ class OpalDefendantAccountPaymentTermsServiceTest {
         verify(defendantAccountControlValidator).validateCanAddPaymentTerms(account);
         verify(paymentTermsService, never()).addPaymentTerm(any());
         verify(defendantAccountRepository, never()).save(any());
+    }
+
+    private static AddPaymentTermsRequestDefendantAccount paymentTermsRequest() {
+        return AddPaymentTermsRequestDefendantAccount.builder()
+            .paymentTerms(PaymentTermsDefendantAccount.builder().build())
+            .requestPaymentCard(false)
+            .generatePaymentTermsChangeLetter(false)
+            .build();
+    }
+
+    private void stubGeneratedResponse() {
+        when(paymentTermsMapper.toGeneratedResponse(any(PaymentTermsEntity.class), any(DefendantAccountEntity.class)))
+            .thenReturn(new GetPaymentTermsResponseDefendantAccount());
     }
 }

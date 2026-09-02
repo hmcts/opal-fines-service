@@ -16,6 +16,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseEntity.BodyBuilder;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -254,15 +255,23 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(JsonSchemaValidationException.class)
     public ResponseEntity<ProblemDetail> handleJsonSchemaValidationException(JsonSchemaValidationException ex) {
-        ProblemDetail problemDetail = createProblemDetail(
+        return responseWithProblemDetail(HttpStatus.BAD_REQUEST, createSchemaValidationProblemDetail(ex));
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ProblemDetail> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+        return responseWithProblemDetail(HttpStatus.BAD_REQUEST, createSchemaValidationProblemDetail(ex));
+    }
+
+    private ProblemDetail createSchemaValidationProblemDetail(Throwable exception) {
+        return createProblemDetail(
             HttpStatus.BAD_REQUEST,
             "Bad Request",
             "The request does not conform to the required JSON schema",
             "json-schema-validation",
             false,
-            ex
+            exception
         );
-        return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
     }
 
     @ExceptionHandler(SchemaConfigurationException.class)
