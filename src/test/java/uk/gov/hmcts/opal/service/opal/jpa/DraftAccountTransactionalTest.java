@@ -573,6 +573,7 @@ class DraftAccountTransactionalTest {
         assertThat(result.getTimelineData()).contains("original-user", "normal@users.com");
         assertThat(result.getTimelineData().indexOf("original-user"))
             .isLessThan(result.getTimelineData().indexOf("normal@users.com"));
+        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), result.getAccountStatusDate());
     }
 
     @Test

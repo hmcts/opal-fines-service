@@ -3,9 +3,11 @@ package uk.gov.hmcts.opal.steps.draftaccount;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import net.serenitybdd.rest.SerenityRest;
 import org.json.JSONException;
 import org.json.JSONObject;
 import uk.gov.hmcts.opal.actions.draftaccount.DraftAccountActions;
+import uk.gov.hmcts.opal.assertions.draftaccount.DraftAccountAssertions;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 import uk.gov.hmcts.opal.workflows.draftaccount.DraftAccountPatchWorkflow;
 
@@ -15,6 +17,7 @@ import uk.gov.hmcts.opal.workflows.draftaccount.DraftAccountPatchWorkflow;
 public class DraftAccountPatchSteps extends BaseStepDef {
     private final DraftAccountActions actions = new DraftAccountActions();
     private final DraftAccountPatchWorkflow workflow = new DraftAccountPatchWorkflow();
+    private final DraftAccountAssertions assertions = new DraftAccountAssertions();
 
     /**
      * Returns the most recently created draft-account ID.
@@ -115,5 +118,10 @@ public class DraftAccountPatchSteps extends BaseStepDef {
             .body(patchBody.toString())
             .when()
             .patch(getTestUrl() + "/draft-accounts/" + id);
+    }
+
+    @Then("the account status date matches the rejected date")
+    public void patchDraftAccountStatusDateMatchesTheRejectedDate() {
+        assertions.assertAccountStatusDateMatchesRejectedDate(SerenityRest.lastResponse());
     }
 }
