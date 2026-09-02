@@ -13,11 +13,14 @@
 *
 **/
 
+alter table public.reports
+    alter column permission type varchar(50);
+
 UPDATE public.reports
-   SET permission = 'OPERATIONAL_REPORT_ENFORCEMENT'
+SET permission = 'OPERATIONAL_REPORT_BY_ENFORCEMENT'
  WHERE report_id = 'operational_report_enforcement';
 
 UPDATE public.reports
-   SET permission = 'OPERATIONAL_REPORT_PAYMENT'
+SET permission = 'OPERATIONAL_REPORT_BY_PAYMENTS'
  WHERE report_id = 'operational_report_payment';
 

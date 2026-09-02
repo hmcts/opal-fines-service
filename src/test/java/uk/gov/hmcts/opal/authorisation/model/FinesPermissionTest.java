@@ -39,17 +39,17 @@ class FinesPermissionTest {
     void whenOperationalReportPermissionsRequested_returnsConfiguredMetadata_happyPath() {
         assertAll(
             () -> assertAll(
-                () -> assertEquals(18L, FinesPermission.OPERATIONAL_REPORT_ENFORCEMENT.getId()),
+                () -> assertEquals(18L, FinesPermission.OPERATIONAL_REPORT_BY_ENFORCEMENT.getId()),
                 () -> assertEquals(
                     "Operational report (by enforcement)",
-                    FinesPermission.OPERATIONAL_REPORT_ENFORCEMENT.getDescription()
+                    FinesPermission.OPERATIONAL_REPORT_BY_ENFORCEMENT.getDescription()
                 )
             ),
             () -> assertAll(
-                () -> assertEquals(19L, FinesPermission.OPERATIONAL_REPORT_PAYMENT.getId()),
+                () -> assertEquals(19L, FinesPermission.OPERATIONAL_REPORT_BY_PAYMENTS.getId()),
                 () -> assertEquals(
                     "Operational report (by payment)",
-                    FinesPermission.OPERATIONAL_REPORT_PAYMENT.getDescription()
+                    FinesPermission.OPERATIONAL_REPORT_BY_PAYMENTS.getDescription()
                 )
             )
         );
