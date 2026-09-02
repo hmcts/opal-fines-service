@@ -1298,6 +1298,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.party.organisation_details.organisation_aliases")
                 .value(nullValue()))
 
+            .andExpect(jsonPath("$.repayment").value(false))
             .andExpect(jsonPath("$.financials.awarded").value(0))
             .andExpect(jsonPath("$.financials.paid_out").value(0))
             .andExpect(jsonPath("$.financials.awaiting_payout").value(0))
@@ -1338,6 +1339,23 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         log.info(":testGetMinorCreditorHeaderSummary_NotFound: Response body:\n" + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isNotFound());
+    }
+
+    void getHeaderSummary_repaymentTrue(Logger logger) throws Exception {
+        ResultActions result = mockMvc.perform(get(URL_BASE + "/{id}/header-summary",
+            repaymentMinorCreditorAccountId())
+            .accept(MediaType.APPLICATION_JSON)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken()));
+
+        String body = result.andReturn().getResponse().getContentAsString();
+        logger.info(":getHeaderSummary_repaymentTrue: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        result.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string("ETag", minorCreditorVersionEtag()))
+            .andExpect(jsonPath("$.creditor.account_id").value(repaymentMinorCreditorAccountId()))
+            .andExpect(jsonPath("$.repayment").value(true));
     }
 
     void getHeaderSummary_missingAuthHeader_returns403() throws Exception {

@@ -23,7 +23,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -42,7 +44,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @DisplayName("Replace draft account - Should return updated draft account [@PO-973, @PO-746]")
     @JiraStory("PO-973")
     @JiraStory("PO-746")
-    @JiraEpic("PO-2220")
+    @JiraEpic("PO-8248")
     @JiraTestKey("PO-5869")
     void testReplaceDraftAccount_success() throws Exception {
         String requestBody = validReplaceRequestBody(0L);
@@ -104,7 +106,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @Test
     @DisplayName("Replace draft account - Should return 400 when originator_type is missing")
     @JiraStory("PO-747")
-    @JiraEpic("PO-2220")
+    @JiraEpic("PO-8248")
     @JiraTestKey("PO-5872")
     void testReplaceDraftAccount_originatorTypeIsMissing() throws Exception {
         String request = validCreateRequestBody()
@@ -122,7 +124,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @Test
     @DisplayName("Replace draft account - Should return 400 when originator_type is blank")
     @JiraStory("PO-747")
-    @JiraEpic("PO-2220")
+    @JiraEpic("PO-8248")
     @JiraTestKey("PO-5874")
     void testReplaceDraftAccount_originatorTypeIsBlank() throws Exception {
         String request = validCreateRequestBody()
@@ -569,6 +571,75 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     }
 
     @Test
+    @DisplayName("Replace draft account - Should return 400 when payment term enforcement result is missing")
+    @JiraStory("PO-5752")
+    @JiraEpic("PO-8248")
+    @Sql(scripts = "classpath:db/deleteData/delete_from_results_collo.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Transactional
+    void shouldReturn400WhenPutPaymentTermEnforcementResultIsMissing() throws Exception {
+        String ifMatch = getIfMatchForDraftAccount(5L);
+        mockMvc.perform(put(URL_BASE + "/5")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", ifMatch)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(withPaymentTermsEnforcement(validReplaceRequestBody(0L), "COLLO")))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedPaymentTermsEnforcementValidationErrorMessage("COLLO does not exist"),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("Replace draft account - Should return 400 when payment term enforcement result is not an enforcement")
+    @JiraStory("PO-5752")
+    @JiraEpic("PO-8248")
+    @Sql(scripts = "classpath:db/insertData/insert_into_results_collo_non_enforcement.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Transactional
+    void shouldReturn400WhenPutPaymentTermEnforcementResultIsNotAnEnforcement() throws Exception {
+        String ifMatch = getIfMatchForDraftAccount(5L);
+        mockMvc.perform(put(URL_BASE + "/5")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", ifMatch)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(withPaymentTermsEnforcement(validReplaceRequestBody(0L), "COLLO")))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedPaymentTermsEnforcementValidationErrorMessage("COLLO is not an enforcement result"),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("Replace draft account - Should return 400 when payment term enforcement result is inactive")
+    @JiraStory("PO-5752")
+    @JiraEpic("PO-8248")
+    @Sql(scripts = "classpath:db/insertData/insert_into_results_collo_inactive.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Transactional
+    void shouldReturn400WhenPutPaymentTermEnforcementResultIsInactive() throws Exception {
+        String ifMatch = getIfMatchForDraftAccount(5L);
+        mockMvc.perform(put(URL_BASE + "/5")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", ifMatch)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(withPaymentTermsEnforcement(validReplaceRequestBody(0L), "COLLO")))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedPaymentTermsEnforcementValidationErrorMessage("COLLO is not an active result"),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
     @DisplayName("Replace draft account - user with no permission [@PO-973, @PO-830]")
     @JiraStory("PO-973")
     @JiraStory("PO-830")
@@ -768,6 +839,13 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
              - $.offences[0].impositions[0].result_id: result id NOT-A-RESULT does not exist
              - $.offences[0].impositions[0].major_creditor_id: major creditor id 999996 does not exist
             """.stripIndent().stripTrailing();
+    }
+
+    private static String expectedPaymentTermsEnforcementValidationErrorMessage(String resultError) {
+        return """
+            Draft account reference validation failed with 1 error(s):
+             - $.payment_terms.enforcements[0].result_id: result id %s
+            """.formatted(resultError).stripIndent().stripTrailing();
     }
 
     private static String validReplaceRequestBodyForPdpl(Long version) {

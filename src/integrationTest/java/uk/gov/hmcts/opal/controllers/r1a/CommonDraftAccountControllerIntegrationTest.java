@@ -116,4 +116,17 @@ class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTes
         return draftAccountRepository.findById(draftAccountId).orElseThrow();
     }
 
+    protected static String withPaymentTermsEnforcement(String requestBody, String resultId) {
+        return requestBody.replace(
+            "\"default_days_in_jail\": 5",
+            """
+                "default_days_in_jail": 5,
+                            "enforcements": [
+                              {
+                                "result_id": "%s"
+                              }
+                            ]
+                """.formatted(resultId).stripIndent().trim()
+        );
+    }
 }

@@ -214,6 +214,10 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
             existingAccount.setAccountStatusDate(LocalDateTime.now(clock));
         }
 
+        if (newStatus.isRejected()) {
+            existingAccount.setAccountStatusDate(LocalDateTime.now(clock));
+        }
+
         existingAccount.setTimelineData(
             appendTimelineEntry(existingAccount.getTimelineData(), validatedBy, newStatus, dto.getReasonText())
         );
