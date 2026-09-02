@@ -52,9 +52,6 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
         final String payload = objectMapper.writeValueAsString(request);
         log.info(":testPostNotes payload: {}", payload);
-
-        log.info(":  alt request payload: {}", request.toJsonString());
-
         // Read the current version immediately before use
         final Integer versionBefore = defendantAccountVersionFor(77L);
         assertThat(versionBefore).isNotNull();
