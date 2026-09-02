@@ -17,7 +17,6 @@ import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
-import uk.gov.hmcts.opal.service.AccountNoteContextFactory;
 import uk.gov.hmcts.opal.service.legacy.LegacyNotesService;
 import uk.gov.hmcts.opal.service.opal.OpalNotesService;
 
@@ -30,7 +29,6 @@ class NotesProxyTest extends ProxyTestsBase {
 
     @Mock private OpalNotesService notesService;
     @Mock private LegacyNotesService legacyNotesService;
-    @Mock private AccountNoteContextFactory accountNoteContextFactory;
     @Mock private UserState userState;
 
     @InjectMocks
@@ -48,29 +46,21 @@ class NotesProxyTest extends ProxyTestsBase {
 
         assertEquals(expectedResponse, actualResponse);
         verify(legacyNotesService).addNote(request, IF_MATCH, userState, BUSINESS_UNIT_ID);
-        verifyNoInteractions(accountNoteContextFactory, notesService);
+        verifyNoInteractions(notesService);
     }
 
     @Test
-    void addNote_shouldResolveLocalAccountContextAndRouteToOpal_whenInOpalMode() {
+    void addNote_shouldRouteToOpalWithoutResolvingLocalAccountContext_whenInOpalMode() {
         setLegacyMode(false);
         AddNoteRequest request = addNoteRequest();
-        AccountNoteContext target = new AccountNoteContext(
-            DefendantAccountEntity.class,
-            DEFENDANT_ACCOUNT_ID,
-            BUSINESS_UNIT_ID,
-            AssociatedRecordType.DEFENDANT_ACCOUNTS
-        );
         String expectedResponse = "opal-note-id";
 
-        when(accountNoteContextFactory.from(request.getActivityNote())).thenReturn(target);
-        when(notesService.addNote(request, IF_MATCH, userState, target)).thenReturn(expectedResponse);
+        when(notesService.addNote(request, IF_MATCH, userState, BUSINESS_UNIT_ID)).thenReturn(expectedResponse);
 
         String actualResponse = notesProxy.addNote(request, IF_MATCH, userState, BUSINESS_UNIT_ID);
 
         assertEquals(expectedResponse, actualResponse);
-        verify(accountNoteContextFactory).from(request.getActivityNote());
-        verify(notesService).addNote(request, IF_MATCH, userState, target);
+        verify(notesService).addNote(request, IF_MATCH, userState, BUSINESS_UNIT_ID);
         verifyNoInteractions(legacyNotesService);
     }
 
@@ -91,7 +81,7 @@ class NotesProxyTest extends ProxyTestsBase {
 
         assertEquals(expectedResponse, actualResponse);
         verify(notesService).addNote(request, IF_MATCH, userState, target);
-        verifyNoInteractions(accountNoteContextFactory, legacyNotesService);
+        verifyNoInteractions(legacyNotesService);
     }
 
     private static AddNoteRequest addNoteRequest() {

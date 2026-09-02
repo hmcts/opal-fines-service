@@ -15,7 +15,6 @@ import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyNote;
-import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.iface.NotesServiceInterface;
 
 @Service
@@ -27,10 +26,6 @@ public class LegacyNotesService implements NotesServiceInterface {
     private final GatewayService gatewayService;
 
     @Override
-    public String addNote(AddNoteRequest request, String ifMatch, UserState user, AccountNoteContext target) {
-        return addNote(request, ifMatch, user, target.businessUnitId());
-    }
-
     public String addNote(AddNoteRequest request, String ifMatch, UserState user, Short businessUnitId) {
         log.info(":LegacyAddNote");
         LegacyAddNoteRequest legacyRequest = createRequest(request, ifMatch, user, businessUnitId);
