@@ -5,9 +5,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
+import org.springframework.boot.web.server.servlet.context.ServletWebServerApplicationContext;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import uk.gov.hmcts.opal.common.shutdown.GracefulShutdownHook;
 import uk.gov.hmcts.opal.config.FeignConfiguration;
 
 @SpringBootApplication(
@@ -26,7 +29,14 @@ import uk.gov.hmcts.opal.config.FeignConfiguration;
 public class Application {
 
     public static void main(final String[] args) {
-        SpringApplication.run(Application.class, args);
-    }
+        final var application = new SpringApplication(Application.class);
+        application.setRegisterShutdownHook(false);
 
+        ConfigurableApplicationContext applicationContext = application.run(args);
+
+        Thread shutdownHookThread =
+            new Thread(new GracefulShutdownHook((ServletWebServerApplicationContext) applicationContext));
+        shutdownHookThread.setName("GracefulShutdownHook");
+        Runtime.getRuntime().addShutdownHook(shutdownHookThread);
+    }
 }
