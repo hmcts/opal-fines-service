@@ -1015,8 +1015,8 @@ dependencies {
   implementation 'org.postgresql:postgresql'
 
   implementation 'tools.jackson.core:jackson-databind'
-  compileOnly 'org.projectlombok:lombok:1.18.46'
-  annotationProcessor 'org.projectlombok:lombok:1.18.46'
+  compileOnly 'org.projectlombok:lombok:1.18.48'
+  annotationProcessor 'org.projectlombok:lombok:1.18.48'
   annotationProcessor 'org.hibernate.orm:hibernate-processor:7.4.6.Final'
 
   implementation('uk.gov.hmcts:spring-exception-handler:1.0.3') {
@@ -1027,11 +1027,11 @@ dependencies {
   implementation 'org.mapstruct:mapstruct:1.6.3'
   annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
-  testCompileOnly 'org.projectlombok:lombok:1.18.46'
-  testAnnotationProcessor 'org.projectlombok:lombok:1.18.46'
+  testCompileOnly 'org.projectlombok:lombok:1.18.48'
+  testAnnotationProcessor 'org.projectlombok:lombok:1.18.48'
 
-  integrationTestCompileOnly 'org.projectlombok:lombok:1.18.46'
-  integrationTestAnnotationProcessor 'org.projectlombok:lombok:1.18.46'
+  integrationTestCompileOnly 'org.projectlombok:lombok:1.18.48'
+  integrationTestAnnotationProcessor 'org.projectlombok:lombok:1.18.48'
 
   implementation 'org.mapstruct:mapstruct:1.6.3'
   annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
