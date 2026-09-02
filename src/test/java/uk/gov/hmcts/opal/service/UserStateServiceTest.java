@@ -134,6 +134,31 @@ class UserStateServiceTest {
     }
 
     @Test
+    void returnsBusinessUnitIdsForPermission() {
+        // Arrange
+        OpalJwtAuthenticationToken authToken = mock(OpalJwtAuthenticationToken.class);
+        setAuthentication(authToken);
+        when(authToken.getUserState()).thenReturn(UserStateV2.builder()
+            .userId(1L)
+            .username("opal-user")
+            .domains(Map.of(Domain.FINES, DomainBusinessUnitUsers.builder()
+                .businessUnitUsers(List.of(
+                    businessUnitUser((short) 10, FinesPermission.ACCOUNT_ENQUIRY),
+                    businessUnitUser((short) 20, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS),
+                    businessUnitUser((short) 30, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)))
+                .build()))
+            .build());
+
+        // Act
+        List<Short> businessUnitIds = userStateService.getBusinessUnitIdsFor(
+            FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
+
+        // Assert
+        assertEquals(List.of((short) 20, (short) 30), businessUnitIds);
+        verifyNoInteractions(userStateMapper);
+    }
+
+    @Test
     void testCheckForAuthorisedUser_mapsV2StateToV1FinesDomain() {
         // Arrange
         OpalJwtAuthenticationToken authToken = mock(OpalJwtAuthenticationToken.class);
