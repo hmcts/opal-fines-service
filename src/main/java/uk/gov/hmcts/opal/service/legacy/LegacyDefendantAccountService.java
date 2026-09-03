@@ -999,19 +999,28 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             log.error(":{}: legacy error HTTP {}", method, response.code);
             if (response.isException()) {
                 log.error(":{}: exception:", method, response.exception);
+                throw createGatewayException(response.code, "Legacy gateway exception", response.body,
+                    response.exception);
             } else if (response.isLegacyFailure()) {
                 log.error(":{}: legacy failure body:\n{}", method, response.body);
+                throw createGatewayException(response.code, "Legacy gateway returned failure", response.body, null);
             }
-            throw createGatewayException(response.code, response.body);
+            throw createGatewayException(response.code, "Legacy gateway error", response.body, null);
         } else if (response.isSuccessful()) {
             log.info(":{}: legacy success.", method);
         }
     }
 
-    private static RuntimeException createGatewayException(HttpStatusCode status, String responseBody) {
-        HttpStatusCode statusCode = status == null || status == HttpStatus.OK ? HttpStatus.BAD_REQUEST : status;
+    private static RuntimeException createGatewayException(HttpStatusCode status, String fallbackStatusText,
+        String responseBody, Throwable exception) {
+        HttpStatusCode statusCode =
+            status == null || status == HttpStatus.OK ? HttpStatus.INTERNAL_SERVER_ERROR : status;
+
+        String statusText =
+            exception != null && exception.getMessage() != null ? exception.getMessage() : fallbackStatusText;
+
         byte[] body = responseBody == null ? null : responseBody.getBytes(StandardCharsets.UTF_8);
-        return HttpServerErrorException.create(statusCode, "Legacy gateway error", HttpHeaders.EMPTY, body,
-            StandardCharsets.UTF_8);
+
+        return HttpServerErrorException.create(statusCode, statusText, HttpHeaders.EMPTY, body, StandardCharsets.UTF_8);
     }
 }
