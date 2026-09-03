@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.controllers.r1a;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -28,6 +28,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -120,28 +121,20 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"validated_by", "validated_by_name"})
-    @DisplayName("Update draft account - Should return 400 when token-derived fields are supplied")
+    @ValueSource(strings = {"validated_by", "validated_by_name", "version"})
+    @DisplayName("Update draft account - Should allow additional top-level fields during frontend compatibility period")
     @JiraStory("PO-2461")
     @JiraEpic("PO-2220")
-    void testUpdateDraftAccount_tokenDerivedFieldIsSupplied(String propertyName) throws Exception {
+    void testUpdateDraftAccount_additionalTopLevelFieldIsSupplied(String propertyName) {
         String request = validUpdateRequestBody("65", "Publishing Pending", "A")
             .replace(
                 "\"business_unit_id\": 65,",
                 "\"business_unit_id\": 65,\n"
-                    + "              \"%s\": \"client-user\",".formatted(propertyName)
+                    + "              \"%s\": \"client-value\",".formatted(propertyName)
             );
 
-        mockMvc.perform(patch(URL_BASE + "/" + 8)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", "0")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request))
-            .andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail", containsString(propertyName)))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
+        assertDoesNotThrow(() ->
+            jsonSchemaValidationService.validateOrError(request, SchemaPaths.UPDATE_DRAFT_ACCOUNT_REQUEST));
     }
 
     @Test
