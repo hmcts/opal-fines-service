@@ -424,6 +424,43 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
             .withRequestBody(matchingJsonPath("$.defendant_account_id", equalTo("770000004141"))));
     }
 
+    @DisplayName("post notes then fetch history for a legacy-only defendant account [PO-10341]")
+    @JiraStory("PO-10341")
+    void legacyOnlyAccountAddNoteThenFetchHistory(Logger log) throws Exception {
+
+        userStateStub.addPermissions((short) 77, ADD_ACCOUNT_ACTIVITY_NOTES);
+        userStateStub.addPermissions((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+
+        stubFor(WireMock.post(urlPathEqualTo("/opal"))
+            .withQueryParam("actionType", equalTo("getDefendantAccountHistory"))
+            .withRequestBody(matchingJsonPath("$.defendant_account_id", equalTo("770000004141")))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/xml")
+                .withBody(legacyOnlyHistoryXml())));
+
+        legacyOnlyAccountAddNoteSuccess(log);
+
+        ResultActions resultActions = mockMvc.perform(
+            get("/defendant-accounts/770000004141/history")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken())
+                .accept(MediaType.APPLICATION_JSON)
+        );
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":legacyOnlyAccountAddNoteThenFetchHistory: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.historyItems[0].type").value("Note"))
+            .andExpect(jsonPath("$.historyItems[0].details.noteText").value("legacy-only account note"));
+
+        WireMock.verify(1, postRequestedFor(urlPathEqualTo("/opal"))
+            .withQueryParam("actionType", equalTo("getDefendantAccountHistory"))
+            .withRequestBody(matchingJsonPath("$.defendant_account_id", equalTo("770000004141"))));
+    }
+
     private static String legacyOnlyHeaderSummaryXml() {
         return """
             <?xml version="1.0" encoding="UTF-8"?>
@@ -451,6 +488,28 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                 <account_balance>5000.00</account_balance>
               </payment_state_summary>
               <has_consolidated_accounts>false</has_consolidated_accounts>
+            </response>
+            """;
+    }
+
+    private static String legacyOnlyHistoryXml() {
+        return """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <response>
+              <version>9223372036854775808</version>
+              <history_items>
+                <history_items_element>
+                  <posted_details>
+                    <posted_date>2026-09-03T09:58:34</posted_date>
+                    <posted_by>01000000A</posted_by>
+                    <posted_by_name>Opal Test User</posted_by_name>
+                  </posted_details>
+                  <type>Note</type>
+                  <details>
+                    <note_text>legacy-only account note</note_text>
+                  </details>
+                </history_items_element>
+              </history_items>
             </response>
             """;
     }
