@@ -1400,6 +1400,32 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     }
 
     @Test
+    void replaceDefendantAccountParty_errorResponseException_throwsBadGateway() {
+        GatewayService.Response<LegacyReplaceDefendantAccountPartyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.BAD_GATEWAY, new RuntimeException("legacy boom"), null);
+
+        Class<LegacyReplaceDefendantAccountPartyResponse> respType = LegacyReplaceDefendantAccountPartyResponse.class;
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountPartyService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            any(LegacyReplaceDefendantAccountPartyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        ResponseStatusException ex = assertThrows(
+            ResponseStatusException.class,
+            () -> legacyDefendantAccountPartyService.replaceDefendantAccountParty(
+                77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
+            )
+        );
+
+        assertEquals("Legacy exception during replaceDefendantAccountParty", ex.getReason());
+        assertEquals("legacy boom", ex.getCause().getMessage());
+        assertEquals(HttpStatus.BAD_GATEWAY, ex.getStatusCode());
+    }
+
+    @Test
     void replaceDefendantAccountParty_mapsOrganisationDetails_andIndividualIsNull() {
         // Build a legacy entity with only organisationDetails populated
         LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
@@ -1723,6 +1749,105 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         assertEquals("EN",
             out.getDefendantAccountParty().getLanguagePreferences().getDocumentLanguagePreference().getLanguageCode());
 
+    }
+
+    @Test
+    void getDefendantAccountParty_success_mapsRichPayload_andDropsEmptyNestedObjects() {
+        GetDefendantAccountPartyLegacyResponse legacyBody = GetDefendantAccountPartyLegacyResponse.builder()
+            .version(BigInteger.valueOf(7))
+            .defendantAccountParty(
+                DefendantAccountPartyLegacy.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(true)
+                    .partyDetails(
+                        PartyDetailsLegacy.builder()
+                            .partyId("777")
+                            .organisationFlag(false)
+                            .individualDetails(
+                                IndividualDetailsLegacy.builder()
+                                    .title("Mr")
+                                    .forenames("John")
+                                    .surname("Smith")
+                                    .dateOfBirth("1990-01-01")
+                                    .age("36")
+                                    .nationalInsuranceNumber("QQ123456C")
+                                    .build()
+                            )
+                            .build()
+                    )
+                    .address(
+                        AddressDetailsLegacy.builder()
+                            .addressLine1("1 High Street")
+                            .addressLine2("District")
+                            .addressLine3("Town")
+                            .postcode("AB1 2CD")
+                            .build()
+                    )
+                    .contactDetails(ContactDetailsLegacy.builder().build())
+                    .vehicleDetails(VehicleDetailsLegacy.builder().build())
+                    .employerDetails(
+                        EmployerDetailsLegacy.builder()
+                            .employerName("Acme Ltd")
+                            .employerReference("REF1")
+                            .employerEmailAddress("hr@acme.test")
+                            .employerTelephoneNumber("02070000000")
+                            .employerAddress(
+                                AddressDetailsLegacy.builder()
+                                    .addressLine1("Acme House")
+                                    .postcode("ZZ1 1ZZ")
+                                    .build()
+                            )
+                            .build()
+                    )
+                    .languagePreferences(
+                        LanguagePreferencesLegacy.builder()
+                            .documentLanguagePreference(
+                                LanguagePreferencesLegacy.LanguagePreference.builder()
+                                    .languageCode("EN")
+                                    .build()
+                            )
+                            .hearingLanguagePreference(
+                                LanguagePreferencesLegacy.LanguagePreference.builder()
+                                    .languageCode("CY")
+                                    .build()
+                            )
+                            .build()
+                    )
+                    .build()
+            )
+            .build();
+
+        GatewayService.Response<GetDefendantAccountPartyLegacyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK, legacyBody, null, null);
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountPartyService.GET_DEFENDANT_ACCOUNT_PARTY),
+            eq(GetDefendantAccountPartyLegacyResponse.class),
+            any(GetDefendantAccountPartyLegacyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        GetDefendantAccountPartyResponse out =
+            legacyDefendantAccountPartyService.getDefendantAccountParty(77L, 777L);
+
+        assertNotNull(out);
+        assertEquals(BigInteger.valueOf(7), out.getVersion());
+        assertNotNull(out.getDefendantAccountParty());
+        assertEquals("777", out.getDefendantAccountParty().getPartyDetails().getPartyId());
+        assertEquals("Mr", out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().getTitle());
+        assertEquals("John", out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().getForenames());
+        assertEquals("Smith", out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().getSurname());
+        assertEquals("AB1 2CD", out.getDefendantAccountParty().getAddress().getPostcode());
+        assertNull(out.getDefendantAccountParty().getContactDetails());
+        assertNull(out.getDefendantAccountParty().getVehicleDetails());
+        assertNotNull(out.getDefendantAccountParty().getEmployerDetails());
+        assertEquals("Acme House", out.getDefendantAccountParty().getEmployerDetails().getEmployerAddress()
+            .getAddressLine1());
+        assertNotNull(out.getDefendantAccountParty().getLanguagePreferences());
+        assertEquals("EN",
+            out.getDefendantAccountParty().getLanguagePreferences().getDocumentLanguagePreference().getLanguageCode());
+        assertEquals("CY",
+            out.getDefendantAccountParty().getLanguagePreferences().getHearingLanguagePreference().getLanguageCode());
     }
 
     @Test
