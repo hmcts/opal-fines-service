@@ -43,6 +43,13 @@ public class LegacyNotesIntegrationTest extends NotesIntegrationTest {
         super.legacyOnlyAccountAddNoteSuccess(log);
     }
 
+    @Test
+    @JiraStory("PO-10341")
+    @JiraEpic("PO-812")
+    void testPostAddNoteThenFetchHeaderSummaryForLegacyOnlyAccount() throws Exception {
+        super.legacyOnlyAccountAddNoteThenFetchHeaderSummary(log);
+    }
+
     @ParameterizedTest(name = "{0}")
     @MethodSource("nonNotesPermissions")
     @JiraStory("PO-1566")
