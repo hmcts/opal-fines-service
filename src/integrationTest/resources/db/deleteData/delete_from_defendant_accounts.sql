@@ -5,6 +5,7 @@ WHERE alias_id IN (
                    8801, 9011,               -- existing (88, 901)
                    5551, 5552, 6661, 6662, 7771,
                    10001, 10002, 10003, 10004, 10005, 100011, 100012, 100013,
+                   2351011, 2351021, 2351031, 2351041,
                    200101, 200102,           -- org aliases for party 20010 (NEW)
                    2200401                   -- individual alias for party 22004 (NEW)
     );
@@ -13,6 +14,7 @@ WHERE alias_id IN (
 DELETE FROM aliases
 WHERE party_id IN (
                    77, 88, 901, 333, 555, 666, 777, 444, 999, 77444, 10001, 10002, 10003,
+                   235101, 235102, 235103, 235104,
                    20010, 22004, 920010      -- NEW: party used by individual-aliases IT
     );
 
@@ -20,6 +22,7 @@ WHERE party_id IN (
 DELETE FROM defendant_account_parties
 WHERE defendant_account_party_id IN (
                                      991198, 991199, 77, 78, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077, 77444,
+                                     235101, 235102, 235103, 235104,
                                      2006, -- test for remove DAP
                                      20010, 22004, 920011 -- NEW
     );
@@ -32,6 +35,7 @@ WHERE defendant_account_id IN (262901, 262902);
 DELETE FROM fixed_penalty_offences
 WHERE defendant_account_id IN (
                                77, 88, 901, 333, 555, 666, 777, 444, 999, 9077, 77444,
+                               235101, 235102, 235103, 235104,
                                20010, 22004     -- NEW
     );
 
@@ -39,6 +43,7 @@ WHERE defendant_account_id IN (
 DELETE FROM payment_terms
 WHERE defendant_account_id IN (
                                77, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077, 77444,
+                               235101, 235102, 235103, 235104,
                                20010, 22004,
                                262901, 262902
     );
@@ -47,6 +52,7 @@ WHERE defendant_account_id IN (
 DELETE FROM notes
 WHERE associated_record_id IN (
                                '77', '88', '901', '333', '555', '666', '777', '444', '999', '9077', '77444',
+                               '235101', '235102', '235103', '235104',
                                '20010', '22004'   -- NEW
     );
 
@@ -78,6 +84,7 @@ WHERE defendant_account_id IN (20010, 22004);
 DELETE FROM defendant_accounts
 WHERE defendant_account_id IN (
                                991198, 991199, 77, 78, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077, 77444,
+                               235101, 235102, 235103, 235104,
                                2006, -- test for remove DAP
                                20010, 22004,
                                262901, 262902
@@ -87,6 +94,7 @@ WHERE defendant_account_id IN (
 DELETE FROM debtor_detail
 WHERE party_id IN (
                    77, 78, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 77444,
+                   235101, 235102, 235103, 235104,
                    206, -- test for remove DAP
                    20010, 22004, 920010,
                    262901, 262902
@@ -96,6 +104,7 @@ WHERE party_id IN (
 DELETE FROM parties
 WHERE party_id IN (
                    991198, 991199, 77, 78, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 77444,
+                   235101, 235102, 235103, 235104,
                    206, -- test for remove DAP
                    20010, 22004, 920010,
                    262901, 262902

@@ -35,7 +35,7 @@ public interface LegacyMinorCreditorAccountResponseMapper {
     default BigInteger toVersion(LegacyGetMinorCreditorAccountResponse response) {
         return response == null || response.getAccountVersion() == null
             ? null
-            : BigInteger.valueOf(response.getAccountVersion());
+            : response.getAccountVersion();
     }
 
     @Mapping(target = "organisationFlag", source = "organisationFlag")

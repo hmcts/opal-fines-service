@@ -110,5 +110,5 @@ Feature: Create Draft Accounts
 
   @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5624
   Scenario: Reject draft-account creation with an invalid token
-    When I attempt to create a draft account with an invalid token using created by ID "invalidToken"
+    When I attempt to create a draft account with an invalid token
     #    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Submit Draft Account - Defendant"

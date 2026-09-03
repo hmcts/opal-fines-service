@@ -12,16 +12,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
-import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
-import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldRequest;
-import uk.gov.hmcts.opal.dto.RemoveDefendantAccountEnforcementHoldResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
-import uk.gov.hmcts.opal.dto.PaymentTerms;
-import uk.gov.hmcts.opal.dto.PostedDetails;
-import uk.gov.hmcts.opal.dto.ResultResponse;
-import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
-import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
+import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.EnforcementInstalmentPeriodCommonStrict;
+import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsTypeCommonStrict;
+import uk.gov.hmcts.opal.generated.model.EnforcementPostedDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.EnforcementResultResponseDefendantAccount;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse;
@@ -34,6 +32,8 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.dto.legacy.ResultResponsesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountEnforcementServiceInterface;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyRemoveDefendantEnforcementHoldMapper;
@@ -44,9 +44,9 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 @Slf4j(topic = "opal.LegacyDefendantAccountEnforcementService")
 public class LegacyDefendantAccountEnforcementService implements DefendantAccountEnforcementServiceInterface {
 
-    public static final String ADD_ENFORCEMENT = "LIBRA.addEnforcement";
-    public static final String GET_ENFORCEMENT_STATUS = "LIBRA.of_get_defendant_account_enf_status";
-    public static final String REMOVE_ENFORCEMENT_HOLD = "LIBRA.of_remove_defendant_account_enf_hold";
+    public static final String ADD_ENFORCEMENT = "addDefendantAccountEnforcement";
+    public static final String GET_ENFORCEMENT_STATUS = "getDefendantAccountEnforcementStatus";
+    public static final String REMOVE_ENFORCEMENT_HOLD = "removeDefendantAccountEnforcementHold";
 
     private final GatewayService gatewayService;
     private final CourtService courtService;
@@ -61,11 +61,11 @@ public class LegacyDefendantAccountEnforcementService implements DefendantAccoun
     }
 
     @Override
-    public AddEnforcementResponse addEnforcement(Long defendantAccountId,
+    public AddEnforcementResponseDefendantAccount addEnforcement(Long defendantAccountId,
                                                  Short businessUnitId,
                                                  String businessUnitUserId,
                                                  String ifMatch,
-                                                 AddDefendantAccountEnforcementRequest request) {
+                                                 AddEnforcementRequestDefendantAccount request) {
 
         // build legacy request object
         AddDefendantAccountEnforcementLegacyRequest legacyRequest =
@@ -73,11 +73,11 @@ public class LegacyDefendantAccountEnforcementService implements DefendantAccoun
                 .defendantAccountId(String.valueOf(defendantAccountId))
                 .businessUnitId(String.valueOf(businessUnitId))
                 .businessUnitUserId(businessUnitUserId)
-                .version(VersionUtils.extractBigInteger(ifMatch).intValue())
-                .resultId(request != null && request.getResultId() != null ? request.getResultId().value() : null)
+                .version(VersionUtils.extractBigInteger(ifMatch))
+                .resultId(request != null && request.getResultId() != null ? request.getResultId().getValue() : null)
                 .enforcementResultResponses(
                     mapResultResponses(request != null ? request.getEnforcementResultResponses() : null))
-                .paymentTerms(mapPaymentTerms(request != null ? request.getPaymentTerms() : null))
+                .paymentTerms(mapPaymentTerms(request == null ? null : request.getPaymentTerms().orElse(null)))
                 .build();
 
         Response<AddDefendantAccountEnforcementLegacyResponse> response = gatewayService.postToGateway(
@@ -97,19 +97,20 @@ public class LegacyDefendantAccountEnforcementService implements DefendantAccoun
 
         AddDefendantAccountEnforcementLegacyResponse enforcementResponse = response.responseEntity;
 
-        return AddEnforcementResponse.builder().enforcementId(enforcementResponse.getEnforcementId())
-            .defendantAccountId(enforcementResponse.getDefendantAccountId()).version(enforcementResponse.getVersion())
+        return AddEnforcementResponseDefendantAccount.builder().enforcementId(enforcementResponse.getEnforcementId())
+            .defendantAccountId(enforcementResponse.getDefendantAccountId())
+            .version(enforcementResponse.getVersion())
             .build();
 
     }
 
     @Override
-    public RemoveDefendantAccountEnforcementHoldResponse removeEnforcementHold(
+    public RemoveEnforcementHoldResponseDefendantAccount removeEnforcementHold(
         Long defendantAccountId,
         Short businessUnitId,
         String businessUnitUserId,
         String ifMatch,
-        RemoveDefendantAccountEnforcementHoldRequest request) {
+        RemoveEnforcementHoldRequestDefendantAccount request) {
 
         LegacyRemoveDefendantAccountEnforcementHoldRequest legacyRequest =
             removeEnforcementHoldMapper.toLegacyRequest(
@@ -150,7 +151,7 @@ public class LegacyDefendantAccountEnforcementService implements DefendantAccoun
         throw new IllegalStateException("Unexpected response state during removeEnforcementHold");
     }
 
-    private List<ResultResponsesLegacy> mapResultResponses(List<ResultResponse> responses) {
+    private List<ResultResponsesLegacy> mapResultResponses(List<EnforcementResultResponseDefendantAccount> responses) {
         if (responses == null || responses.isEmpty()) {
             return Collections.emptyList();
         }
@@ -163,51 +164,51 @@ public class LegacyDefendantAccountEnforcementService implements DefendantAccoun
             .collect(Collectors.toList());
     }
 
-    private LegacyPaymentTerms mapPaymentTerms(PaymentTerms pt) {
+    private LegacyPaymentTerms mapPaymentTerms(EnforcementPaymentTermsCommonStrict pt) {
         if (pt == null) {
             return null;
         }
 
         return LegacyPaymentTerms.builder()
-            .daysInDefault(pt.getDaysInDefault())
-            .dateDaysInDefaultImposed(pt.getDateDaysInDefaultImposed())
-            .extension(pt.isExtension())
-            .reasonForExtension(pt.getReasonForExtension())
+            .daysInDefault(pt.getDaysInDefault().orElse(null))
+            .dateDaysInDefaultImposed(pt.getDateDaysInDefaultImposed().orElse(null))
+            .extension(Boolean.TRUE.equals(pt.getExtension()))
+            .reasonForExtension(pt.getReasonForExtension().orElse(null))
             .paymentTermsType(mapLegacyPaymentTermsType(pt.getPaymentTermsType()))
-            .effectiveDate(pt.getEffectiveDate())
-            .instalmentPeriod(mapLegacyInstalmentPeriod(pt.getInstalmentPeriod()))
-            .lumpSumAmount(pt.getLumpSumAmount())
-            .instalmentAmount(pt.getInstalmentAmount())
-            .postedDetails(mapLegacyPostedDetails(pt.getPostedDetails()))
+            .effectiveDate(pt.getEffectiveDate().orElse(null))
+            .instalmentPeriod(mapLegacyInstalmentPeriod(pt.getInstalmentPeriod().orElse(null)))
+            .lumpSumAmount(pt.getLumpSumAmount().orElse(null))
+            .instalmentAmount(pt.getInstalmentAmount().orElse(null))
+            .postedDetails(mapLegacyPostedDetails(pt.getPostedDetails().orElse(null)))
             .build();
     }
 
-    private LegacyPostedDetails mapLegacyPostedDetails(PostedDetails pd) {
+    private LegacyPostedDetails mapLegacyPostedDetails(EnforcementPostedDetailsCommonStrict pd) {
         if (pd == null) {
             return null;
         }
         LegacyPostedDetails lpd = new LegacyPostedDetails();
         lpd.setPostedDate(pd.getPostedDate());
-        lpd.setPostedBy(pd.getPostedBy());
-        lpd.setPostedByName(pd.getPostedByName());
+        lpd.setPostedBy(pd.getPostedBy().orElse(null));
+        lpd.setPostedByName(pd.getPostedByName().orElse(null));
         return lpd;
     }
 
-    private LegacyPaymentTermsType mapLegacyPaymentTermsType(PaymentTermsType modern) {
+    private LegacyPaymentTermsType mapLegacyPaymentTermsType(EnforcementPaymentTermsTypeCommonStrict modern) {
         if (modern == null || modern.getPaymentTermsTypeCode() == null) {
             return null;
         }
-        String code = modern.getPaymentTermsTypeCode().name();
+        String code = modern.getPaymentTermsTypeCode().getValue();
         LegacyPaymentTermsType lpt = new LegacyPaymentTermsType();
         lpt.setPaymentTermsTypeCode(mapPaymentTermsTypeCodeEnum(code));
         return lpt;
     }
 
-    private LegacyInstalmentPeriod mapLegacyInstalmentPeriod(InstalmentPeriod modern) {
+    private LegacyInstalmentPeriod mapLegacyInstalmentPeriod(EnforcementInstalmentPeriodCommonStrict modern) {
         if (modern == null || modern.getInstalmentPeriodCode() == null) {
             return null;
         }
-        String code = modern.getInstalmentPeriodCode().name();
+        String code = modern.getInstalmentPeriodCode().getValue();
         LegacyInstalmentPeriod lip = new LegacyInstalmentPeriod();
         lip.setInstalmentPeriodCode(mapInstalmentPeriodCodeEnum(code));
         return lip;

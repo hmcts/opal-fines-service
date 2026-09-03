@@ -214,7 +214,7 @@ public abstract class SearchDefendantAccountSpecs<E extends SearchDefendantAccou
         String orgName, boolean exactOrgName, boolean includeAliases) {
 
         return includeAliases
-            ? aliasNamePredicates(root, cb, orgName, !exactOrgName, false)
+            ? aliasNamePredicates(root, cb, orgName, !exactOrgName)
             : List.of();
     }
 
@@ -226,7 +226,7 @@ public abstract class SearchDefendantAccountSpecs<E extends SearchDefendantAccou
         String forenames, boolean exactForenames) {
 
         return hasContentToSearchOn(forenames)
-            ? aliasNamePredicates(root, cb, forenames, !exactForenames, false)
+            ? aliasNamePredicates(root, cb, forenames, !exactForenames)
             : List.of();
     }
 
@@ -234,17 +234,30 @@ public abstract class SearchDefendantAccountSpecs<E extends SearchDefendantAccou
         String surname, boolean exactSurname) {
 
         return hasContentToSearchOn(surname)
-            ? aliasNamePredicates(root, cb, surname, !exactSurname, true)
+            ? aliasSurnameNamePredicates(root, cb, surname, exactSurname)
             : List.of();
     }
 
     private List<Predicate> aliasNamePredicates(
-        From<?, E> root, CriteriaBuilder cb, String searchAlias, boolean useWildcard, boolean useEndsWith) {
+        From<?, E> root, CriteriaBuilder cb, String searchAlias, boolean useWildcard) {
 
-        // Match the Forename to the start, and the Surname to the end, of the concatenated data.
         return strippedAliasPaths(root, cb).stream()
-            .map(path -> useEndsWithOrStartsWith(path, cb, searchAlias, useWildcard, useEndsWith))
+            .map(path -> useWildcardOrStartsWith(path, cb, searchAlias, useWildcard))
             .toList();
+    }
+
+    private List<Predicate> aliasSurnameNamePredicates(
+        From<?, E> root, CriteriaBuilder cb, String surname, boolean exactSurname) {
+
+        return listOfAliasPaths(root).stream()
+            .map(path -> aliasSurnamePath(path, cb))
+            .map(path -> useEqualsOrStartsWith(path, cb, surname, exactSurname))
+            .toList();
+    }
+
+    private Expression<String> aliasSurnamePath(Path<String> aliasPath, CriteriaBuilder cb) {
+        return stripChars(cb, cb.function(
+            "regexp_replace", String.class, aliasPath, cb.literal("^.*\\s+"), cb.literal("")));
     }
 
     public Predicate matchPersonNamesPredicate(From<?, E> from, CriteriaBuilder cb,
@@ -277,14 +290,12 @@ public abstract class SearchDefendantAccountSpecs<E extends SearchDefendantAccou
             : likeLowerCaseStartsWithPredicate(dbPath, cb, comparisonText);
     }
 
-    private Predicate useEndsWithOrStartsWith(Expression<String> dbPath, CriteriaBuilder cb,
-        String comparisonText, boolean useWildcard, boolean useEndsWith) {
+    private Predicate useWildcardOrStartsWith(Expression<String> dbPath, CriteriaBuilder cb,
+        String comparisonText, boolean useWildcard) {
 
         return useWildcard
             ? likeLowerCaseWildcardPredicate(dbPath, cb, comparisonText)
-            : useEndsWith
-                ? likeLowerCaseEndsWithPredicate(dbPath, cb, comparisonText)
-                : likeLowerCaseStartsWithPredicate(dbPath, cb, comparisonText);
+            : likeLowerCaseStartsWithPredicate(dbPath, cb, comparisonText);
     }
 
 }

@@ -63,6 +63,9 @@ public class MinorCreditorAccountHeaderEntity {
     @Column(name = "business_unit_name")
     private String businessUnitName;
 
+    @Column(name = "business_unit_code")
+    private String businessUnitCode;
+
     @Column(name = "welsh_language")
     private boolean welshLanguage;
 
@@ -80,4 +83,7 @@ public class MinorCreditorAccountHeaderEntity {
 
     @Column(name = "outstanding")
     private BigDecimal outstanding;
+
+    @Column(name = "repayment")
+    private boolean repayment;
 }

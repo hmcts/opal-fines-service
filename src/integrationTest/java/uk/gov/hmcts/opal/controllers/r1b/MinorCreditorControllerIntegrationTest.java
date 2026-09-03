@@ -1,0 +1,1606 @@
+package uk.gov.hmcts.opal.controllers.r1b;
+
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.matchesPattern;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.controllers.shared.util.OpenApiContractAssertions.assertGet200JsonResponseMatchesBundledSpec;
+
+import java.util.List;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.web.servlet.ResultActions;
+import tools.jackson.databind.JsonNode;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
+import uk.gov.hmcts.opal.repository.AmendmentRepository;
+import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
+import uk.gov.hmcts.opal.repository.PartyRepository;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
+
+/**
+ * Common tests for both Opal and Legacy modes, to ensure 100% compatibility.
+ */
+abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
+
+    protected static final String URL_BASE = "/minor-creditor-accounts";
+    private static final Long GET_MINOR_CREDITOR_ACCOUNT_ID = 607L;
+    private static final Long GET_MINOR_CREDITOR_PARTY_ID = 99008L;
+    private static final short GET_MINOR_CREDITOR_BUSINESS_UNIT_ID = 10;
+    private static final long PATCH_MINOR_CREDITOR_ACCOUNT_ID = 607L;
+    private static final short PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID = 10;
+
+    private static final String MINOR_CREDITOR_HEADER_SUMMARY_RESPONSE =
+        "opal/minor-creditor/getMinorCreditorAccountHeaderSummaryResponse.json";
+
+
+    @MockitoSpyBean
+    private JsonSchemaValidationService jsonSchemaValidationService;
+
+    @Autowired
+    private CreditorAccountRepository creditorAccountRepository;
+
+    @Autowired
+    private PartyRepository partyRepository;
+
+    @Autowired
+    private AmendmentRepository amendmentRepository;
+
+    void postSearchMinorCreditorImpl_Success(Logger log) throws Exception {
+
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .businessUnitIds(List.of((short) 10))
+            .activeAccountsOnly(false)
+            .accountNumber("12345678A")
+            .build();
+
+        ResultActions resultActions = mockMvc.perform(post(URL_BASE + "/search")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .content(objectMapper.writeValueAsString(search))
+            .header("authorization", userStateStub.getBearerToken()));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+
+        log.info(":testPostMinorCreditorSearch: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(2))
+
+            // --- first creditor account ---
+            .andExpect(jsonPath("$.creditor_accounts[0].creditor_account_id").value("104"))
+            .andExpect(jsonPath("$.creditor_accounts[0].account_number").value("12345678A"))
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation").value(false))
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation_name").value("Acme Supplies Ltd"))
+            .andExpect(jsonPath("$.creditor_accounts[0].firstnames").value(nullValue()))
+            .andExpect(jsonPath("$.creditor_accounts[0].surname").value(nullValue()))
+            .andExpect(jsonPath("$.creditor_accounts[0].address_line_1").value("Acme House"))
+            .andExpect(jsonPath("$.creditor_accounts[0].postcode").value("MA4 1AL"))
+            .andExpect(jsonPath("$.creditor_accounts[0].business_unit_name").value("Derbyshire"))
+            .andExpect(jsonPath("$.creditor_accounts[0].business_unit_id").value("10"))
+            .andExpect(jsonPath("$.creditor_accounts[0].account_balance").value(150.0))
+
+            // defendant object (first account)
+            .andExpect(jsonPath("$.creditor_accounts[0].defendant.defendant_account_id").value(nullValue()))
+            .andExpect(jsonPath("$.creditor_accounts[0].defendant.organisation").value(false))
+            .andExpect(jsonPath("$.creditor_accounts[0].defendant.organisation_name").value(nullValue()))
+            .andExpect(jsonPath("$.creditor_accounts[0].defendant.firstnames").value(nullValue()))
+            .andExpect(jsonPath("$.creditor_accounts[0].defendant.surname").value(nullValue()))
+
+            // --- second creditor account ---
+            .andExpect(jsonPath("$.creditor_accounts[1].creditor_account_id").value("105"))
+            .andExpect(jsonPath("$.creditor_accounts[1].account_number").value("12345678"))
+            .andExpect(jsonPath("$.creditor_accounts[1].organisation").value(false))
+            .andExpect(jsonPath("$.creditor_accounts[1].organisation_name").value("Acme Supplies Ltd"))
+            .andExpect(jsonPath("$.creditor_accounts[1].firstnames").value(nullValue()))
+            .andExpect(jsonPath("$.creditor_accounts[1].surname").value(nullValue()))
+            .andExpect(jsonPath("$.creditor_accounts[1].address_line_1").value("Acme House"))
+            .andExpect(jsonPath("$.creditor_accounts[1].postcode").value("MA4 1AL"))
+            .andExpect(jsonPath("$.creditor_accounts[1].business_unit_name").value("Derbyshire"))
+            .andExpect(jsonPath("$.creditor_accounts[1].business_unit_id").value("10"))
+            .andExpect(jsonPath("$.creditor_accounts[1].account_balance").value(0.0))
+
+            // defendant object (second account)
+            .andExpect(jsonPath("$.creditor_accounts[1].defendant.defendant_account_id").value(nullValue()))
+            .andExpect(jsonPath("$.creditor_accounts[1].defendant.organisation").value(false))
+            .andExpect(jsonPath("$.creditor_accounts[1].defendant.organisation_name").value(nullValue()))
+            .andExpect(jsonPath("$.creditor_accounts[1].defendant.firstnames").value(nullValue()))
+            .andExpect(jsonPath("$.creditor_accounts[1].defendant.surname").value(nullValue()));
+
+    }
+
+    void legacyPostSearchMinorCreditorImpl_500Error(Logger log) throws Exception {
+
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .businessUnitIds(List.of((short) 101))
+            .activeAccountsOnly(false)
+            .accountNumber("FAIL")
+            .build();
+
+        ResultActions resultActions = mockMvc.perform(post(URL_BASE + "/search")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .content(
+                objectMapper.writeValueAsString(search))
+            .header("authorization", userStateStub.getBearerToken()));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostMinorCreditorSearch: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(
+            status().is5xxServerError()).andExpect(
+            content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    void search_checkLetter_returnsBoth(Logger log) throws Exception {
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .businessUnitIds(List.of((short) 10))
+            .activeAccountsOnly(false)
+            .accountNumber("12345678A").build(); // 9-char input        .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .content(objectMapper.writeValueAsString(search)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
+            .andExpect(jsonPath("$.creditor_accounts[*].account_number")
+                .value(hasItems("12345678A", "12345678")));
+    }
+
+    void search_noCheckLetter_returnsBoth(Logger log) throws Exception {
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .businessUnitIds(List.of((short) 10))
+            .activeAccountsOnly(false)
+            .accountNumber("12345678").build(); // 8-digit input        .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .content(objectMapper.writeValueAsString(search)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
+            .andExpect(jsonPath("$.creditor_accounts[*].account_number")
+                .value(hasItems("12345678A", "12345678")));
+    }
+
+    void search_noResultsForUnknownBusinessUnit_returnsEmpty(Logger log) throws Exception {
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .businessUnitIds(List.of((short) 999))
+            .accountNumber("12345678A")
+            .activeAccountsOnly(false)
+            .build();
+
+        ResultActions ra = mockMvc.perform(post(URL_BASE + "/search")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(search))
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken()));
+
+        ra.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(0))
+            .andExpect(jsonPath("$.creditor_accounts").doesNotExist());
+    }
+
+    void search_orgNamePrefix_normalizedMatches(Logger log) throws Exception {
+        // "Acme Supplies Ltd" normalized; mixed case + spaces + punctuation
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .activeAccountsOnly(false)
+            .businessUnitIds(List.of((short) 10))
+            .creditor(MinorCreditorAccountSearchCreditor.builder()
+                .organisationName(" ac-me  SUPPLIES, ltd. ")
+                .organisation(true)
+                .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(search))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(org.hamcrest.Matchers.greaterThanOrEqualTo(2)))
+            .andExpect(jsonPath("$.creditor_accounts[*].account_number")
+                .value(org.hamcrest.Matchers.hasItems("12345678A", "12345678")));
+    }
+
+    void search_accountNumber_withWildcardChars_treatedLiterally(Logger log) throws Exception {
+        // Your helper escapes user input then appends %; verify no matches for literal wildcards
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .activeAccountsOnly(true)
+            .businessUnitIds(List.of((short) 10))
+            .accountNumber("1234567_") // underscore should be escaped -> literal underscore
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .content(objectMapper.writeValueAsString(search)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(0));
+    }
+
+    void postSearch_missingAuthHeader_returns403() throws Exception {
+        userStateStub.setupWithNoPermissions();
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .businessUnitIds(java.util.List.of((short) 10))
+            .activeAccountsOnly(false)
+            .accountNumber("12345678")
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_PROBLEM_JSON) // ok even if server doesn't set it
+                .content(objectMapper.writeValueAsString(search)))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"))
+            .andExpect(jsonPath("$.retriable").value(false));
+    }
+
+    void postSearch_invalidToken_returns403ProblemJson() throws Exception {
+        userStateStub.setupWithNoPermissions();
+
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .businessUnitIds(java.util.List.of((short) 10))
+            .activeAccountsOnly(false)
+            .accountNumber("12345678")
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .content(objectMapper.writeValueAsString(search)))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"))
+            .andExpect(jsonPath("$.retriable").value(false));
+    }
+
+    void postSearch_authenticatedWithoutPermission_returns403ProblemJson() throws Exception {
+        userStateStub.setupWithNoPermissions();
+
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .businessUnitIds(java.util.List.of((short) 10))
+            .activeAccountsOnly(false)
+            .accountNumber("12345678")
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .content(objectMapper.writeValueAsString(search)))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"))
+            .andExpect(jsonPath("$.retriable").value(false));
+    }
+
+    void patchMinorCreditor_payoutHold_success(Logger log) throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+            FinesPermission.ACCOUNT_MAINTENANCE,
+            FinesPermission.VIEW_CREDITOR_BACS);
+
+        final boolean initialHoldPayout = getCurrentCreditorAccountHoldPayout();
+        Integer currentVersion = getCurrentCreditorAccountVersion();
+        String currentEtag = "\"" + currentVersion + "\"";
+
+        String requestJson = objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest());
+
+        ResultActions a = mockMvc.perform(
+            patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", currentEtag)
+                .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                .content(requestJson));
+
+        String body = a.andReturn().getResponse().getContentAsString();
+
+        log.info(":patchMinorCreditor_payoutHold_success body:\n{}", ToJsonString.toPrettyJson(body));
+
+        a.andExpect(status().isOk())
+            .andExpect(header().exists("ETag"))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.creditor_account_id").value(PATCH_MINOR_CREDITOR_ACCOUNT_ID))
+            .andExpect(jsonPath("$.party_details.individual_details.surname").value("Updated"))
+            .andExpect(jsonPath("$.party_details.individual_details.forenames").value("Creditor"))
+            .andExpect(jsonPath("$.address.postcode").value("NW1 1AA"))
+            .andExpect(jsonPath("$.payment.account_name").value("Creditor Updated"))
+            .andExpect(jsonPath("$.payment.sort_code").value("112233"))
+            .andExpect(jsonPath("$.payment.account_number").value("12345678"))
+            .andExpect(jsonPath("$.payment.account_reference").value("MC-REF-01"))
+            .andExpect(jsonPath("$.payment.hold_payment").value(true))
+            .andExpect(jsonPath("$.payment.pay_by_bacs").value(true));
+
+        assertTrue(getCurrentCreditorAccountHoldPayout());
+        assertEquals("Creditor Updated", getCurrentCreditorAccountBankAccountName());
+        assertEquals("112233", getCurrentCreditorAccountBankSortCode());
+        assertEquals("12345678", getCurrentCreditorAccountBankAccountNumber());
+        assertEquals("MC-REF-01", getCurrentCreditorAccountBankAccountReference());
+        assertTrue(getCurrentCreditorAccountPayByBacs());
+        Integer updatedVersion = getCurrentCreditorAccountVersion();
+        assertEquals(currentVersion + 2, updatedVersion);
+    }
+
+    void patchMinorCreditor_success_createsAmendments(Logger log) throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+            FinesPermission.ACCOUNT_MAINTENANCE,
+            FinesPermission.VIEW_CREDITOR_BACS);
+
+        Integer currentVersion = getCurrentCreditorAccountVersion();
+        int amendmentsBefore = getCurrentAmendmentCountForCreditorAccount();
+
+        ResultActions a = mockMvc.perform(
+            patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", "\"" + currentVersion + "\"")
+                .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())));
+
+        String body = a.andReturn().getResponse().getContentAsString();
+        log.info(":patchMinorCreditor_success_createsAmendments body:\n{}", ToJsonString.toPrettyJson(body));
+
+        a.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        int amendmentsAfter = getCurrentAmendmentCountForCreditorAccount();
+        assertTrue(amendmentsAfter > amendmentsBefore);
+        assertEquals("ACCOUNT_ENQUIRY", getLatestAmendmentFunctionCodeForCreditorAccount());
+    }
+
+    void getMinorCreditorAccount_success_withBacsPermission_returnsBacsFields(Logger log) throws Exception {
+        // Arrange
+        final Integer currentVersion = getCurrentCreditorAccountVersion(GET_MINOR_CREDITOR_ACCOUNT_ID);
+        final PartyEntity currentPartyDetails = getCurrentMinorCreditorPartyDetails(GET_MINOR_CREDITOR_PARTY_ID);
+        final boolean currentHoldPayment = getCurrentCreditorAccountHoldPayout(GET_MINOR_CREDITOR_ACCOUNT_ID);
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(GET_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
+            FinesPermission.VIEW_CREDITOR_BACS
+        );
+
+        // Act
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/{id}", GET_MINOR_CREDITOR_ACCOUNT_ID)
+                .accept(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+        );
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":getMinorCreditorAccount_success_withBacsPermission_returnsBacsFields body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        // Assert
+        resultActions
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string("ETag", "\"" + currentVersion + "\""))
+            .andExpect(jsonPath("$.creditor_account_id").value(GET_MINOR_CREDITOR_ACCOUNT_ID))
+            .andExpect(jsonPath("$.party_details.party_id").value(String.valueOf(GET_MINOR_CREDITOR_PARTY_ID)))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
+            .andExpect(jsonPath("$.party_details.individual_details.surname").value(currentPartyDetails.getSurname()))
+            .andExpect(jsonPath("$.party_details.individual_details.forenames")
+                .value(currentPartyDetails.getForenames()))
+            .andExpect(jsonPath("$.party_details.individual_details.title").value(currentPartyDetails.getTitle()))
+            .andExpect(jsonPath("$.address.address_line_1").value(currentPartyDetails.getAddressLine1()))
+            .andExpect(jsonPath("$.address.address_line_2").value(currentPartyDetails.getAddressLine2()))
+            .andExpect(jsonPath("$.address.address_line_3").value(currentPartyDetails.getAddressLine3()))
+            .andExpect(jsonPath("$.address.postcode").value(currentPartyDetails.getPostcode()))
+            .andExpect(jsonPath("$.payment.pay_by_bacs").value(true))
+            .andExpect(jsonPath("$.payment.sort_code").value("123456"))
+            .andExpect(jsonPath("$.payment.account_number").value("12345678"))
+            .andExpect(jsonPath("$.payment.account_name").value("Hold Test"))
+            .andExpect(jsonPath("$.payment.account_reference").value("HOLDREF"))
+            .andExpect(jsonPath("$.payment.hold_payment").value(currentHoldPayment));
+    }
+
+    void getMinorCreditorAccount_success_withoutBacsPermission_redactsBacsFields(Logger log) throws Exception {
+        // Arrange
+        final Integer currentVersion = getCurrentCreditorAccountVersion(GET_MINOR_CREDITOR_ACCOUNT_ID);
+        final PartyEntity currentPartyDetails = getCurrentMinorCreditorPartyDetails(GET_MINOR_CREDITOR_PARTY_ID);
+        final boolean currentHoldPayment = getCurrentCreditorAccountHoldPayout(GET_MINOR_CREDITOR_ACCOUNT_ID);
+
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(
+            GET_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS
+        );
+
+        // Act
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/{id}", GET_MINOR_CREDITOR_ACCOUNT_ID)
+                .accept(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+        );
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":getMinorCreditorAccount_success_withoutBacsPermission_redactsBacsFields body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        // Assert
+        resultActions
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string("ETag", "\"" + currentVersion + "\""))
+            .andExpect(jsonPath("$.creditor_account_id").value(GET_MINOR_CREDITOR_ACCOUNT_ID))
+            .andExpect(jsonPath("$.party_details.party_id").value(String.valueOf(GET_MINOR_CREDITOR_PARTY_ID)))
+            .andExpect(jsonPath("$.party_details.individual_details.surname").value(currentPartyDetails.getSurname()))
+            .andExpect(jsonPath("$.party_details.individual_details.forenames")
+                .value(currentPartyDetails.getForenames()))
+            .andExpect(jsonPath("$.party_details.individual_details.title").value(currentPartyDetails.getTitle()))
+            .andExpect(jsonPath("$.address.address_line_1").value(currentPartyDetails.getAddressLine1()))
+            .andExpect(jsonPath("$.address.address_line_2").value(currentPartyDetails.getAddressLine2()))
+            .andExpect(jsonPath("$.address.address_line_3").value(currentPartyDetails.getAddressLine3()))
+            .andExpect(jsonPath("$.address.postcode").value(currentPartyDetails.getPostcode()))
+            .andExpect(jsonPath("$.payment.pay_by_bacs").value(true))
+            .andExpect(jsonPath("$.payment.sort_code").value(nullValue()))
+            .andExpect(jsonPath("$.payment.account_number").value(nullValue()))
+            .andExpect(jsonPath("$.payment.account_name").value(nullValue()))
+            .andExpect(jsonPath("$.payment.account_reference").value(nullValue()))
+            .andExpect(jsonPath("$.payment.hold_payment").value(currentHoldPayment));
+    }
+
+    void getMinorCreditorAccount_withBacsPermissionInDifferentBusinessUnit_redactsBacsFields(Logger log)
+        throws Exception {
+        // Arrange
+        final Integer currentVersion = getCurrentCreditorAccountVersion(GET_MINOR_CREDITOR_ACCOUNT_ID);
+        final PartyEntity currentPartyDetails = getCurrentMinorCreditorPartyDetails(GET_MINOR_CREDITOR_PARTY_ID);
+        final boolean currentHoldPayment = getCurrentCreditorAccountHoldPayout(GET_MINOR_CREDITOR_ACCOUNT_ID);
+
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(
+            (short) 20,
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
+            FinesPermission.VIEW_CREDITOR_BACS
+        );
+
+        // Act
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/{id}", GET_MINOR_CREDITOR_ACCOUNT_ID)
+                .accept(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+        );
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":getMinorCreditorAccount_withBacsPermissionInDifferentBusinessUnit_redactsBacsFields body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        // Assert
+        resultActions
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string("ETag", "\"" + currentVersion + "\""))
+            .andExpect(jsonPath("$.creditor_account_id").value(GET_MINOR_CREDITOR_ACCOUNT_ID))
+            .andExpect(jsonPath("$.party_details.party_id").value(String.valueOf(GET_MINOR_CREDITOR_PARTY_ID)))
+            .andExpect(jsonPath("$.party_details.individual_details.surname").value(currentPartyDetails.getSurname()))
+            .andExpect(jsonPath("$.party_details.individual_details.forenames")
+                .value(currentPartyDetails.getForenames()))
+            .andExpect(jsonPath("$.party_details.individual_details.title").value(currentPartyDetails.getTitle()))
+            .andExpect(jsonPath("$.address.address_line_1").value(currentPartyDetails.getAddressLine1()))
+            .andExpect(jsonPath("$.address.address_line_2").value(currentPartyDetails.getAddressLine2()))
+            .andExpect(jsonPath("$.address.address_line_3").value(currentPartyDetails.getAddressLine3()))
+            .andExpect(jsonPath("$.address.postcode").value(currentPartyDetails.getPostcode()))
+            .andExpect(jsonPath("$.payment.pay_by_bacs").value(true))
+            .andExpect(jsonPath("$.payment.sort_code").value(nullValue()))
+            .andExpect(jsonPath("$.payment.account_number").value(nullValue()))
+            .andExpect(jsonPath("$.payment.account_name").value(nullValue()))
+            .andExpect(jsonPath("$.payment.account_reference").value(nullValue()))
+            .andExpect(jsonPath("$.payment.hold_payment").value(currentHoldPayment));
+    }
+
+    void getMinorCreditorAccount_missingAuthHeader_returns403() throws Exception {
+        // Arrange
+        userStateStub.setupWithNoPermissions();
+
+        // Act & Assert
+        mockMvc.perform(get(URL_BASE + "/{id}", GET_MINOR_CREDITOR_ACCOUNT_ID)
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"))
+            .andExpect(jsonPath("$.retriable").value(false));
+    }
+
+    void getMinorCreditorAccount_authenticatedWithoutPermission_returns403() throws Exception {
+        // Arrange
+        userStateStub.setupWithNoPermissions();
+
+        // Act & Assert
+        mockMvc.perform(get(URL_BASE + "/{id}", GET_MINOR_CREDITOR_ACCOUNT_ID)
+                .accept(MediaType.APPLICATION_JSON)
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    void getMinorCreditorAccount_notFound_returns404(Logger log) throws Exception {
+        // Arrange
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(
+            GET_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
+            FinesPermission.VIEW_CREDITOR_BACS
+        );
+
+        // Act
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/{id}", 999999L)
+                .accept(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+        );
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":getMinorCreditorAccount_notFound_returns404 body:\n{}", ToJsonString.toPrettyJson(body));
+
+        // Assert
+        resultActions.andExpect(status().isNotFound());
+    }
+
+
+    void patchMinorCreditor_withoutPermission_returns403() throws Exception {
+        userStateStub.setupWithNoPermissions();
+
+        Integer currentVersion = getCurrentCreditorAccountVersion();
+
+        mockMvc.perform(patch(URL_BASE + "/606")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", currentVersion)
+                .header("Business-Unit-Id", "10")
+                .content(objectMapper.writeValueAsString(patchMinorCreditorWithoutPermissionRequest())))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    void patchMinorCreditor_withoutHoldPermission_returns403() throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID, FinesPermission.ACCOUNT_MAINTENANCE);
+
+        Integer currentVersion = getCurrentCreditorAccountVersion();
+
+        mockMvc.perform(patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", currentVersion)
+                .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    void patchMinorCreditor_withoutAccountMaintenancePermission_returns403() throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
+
+        Integer currentVersion = getCurrentCreditorAccountVersion();
+
+        mockMvc.perform(patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", currentVersion)
+                .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    void patchMinorCreditor_withoutViewCreditorBacsPermission_returns403() throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+            FinesPermission.ACCOUNT_MAINTENANCE);
+
+        Integer currentVersion = getCurrentCreditorAccountVersion();
+
+        mockMvc.perform(patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", currentVersion)
+                .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    void patchMinorCreditor_notFound_returns404() throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+            FinesPermission.ACCOUNT_MAINTENANCE,
+            FinesPermission.VIEW_CREDITOR_BACS);
+
+        mockMvc.perform(patch(URL_BASE + "/999999")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", "\"1\"")
+                .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())))
+            .andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    void patchMinorCreditor_staleVersion_returns409() throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+            FinesPermission.ACCOUNT_MAINTENANCE,
+            FinesPermission.VIEW_CREDITOR_BACS);
+
+        Integer currentVersion = getCurrentCreditorAccountVersion();
+
+        mockMvc.perform(patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", "\"" + (currentVersion + 1) + "\"")
+                .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())))
+            .andExpect(status().isConflict())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    void patchMinorCreditor_missingAuthHeader_returns403() throws Exception {
+        mockMvc.perform(patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("If-Match", "\"1\"")
+                .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+            .andExpect(jsonPath("$.title").value("Forbidden"))
+            .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"));
+    }
+
+    void patchMinorCreditor_missingPayload_returns400() throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+            FinesPermission.ACCOUNT_MAINTENANCE);
+
+        Integer currentVersion = getCurrentCreditorAccountVersion();
+
+        mockMvc.perform(patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", currentVersion)
+                .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
+                .content("{}"))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().string(org.hamcrest.Matchers.anything()));
+    }
+
+    private String patchMinorCreditorRequestJson(boolean holdPayment) {
+        return """
+            {
+              "party_details": {
+                "party_id": "99008",
+                "organisation_flag": false,
+                "individual_details": {
+                  "surname": "Updated",
+                  "forenames": "Creditor"
+                }
+              },
+              "address": {
+                "address_line_1": "99 Updated Road",
+                "postcode": "NW1 1AA"
+              },
+              "payment": {
+                "pay_by_bacs": true,
+                "hold_payment": %s
+              }
+            }
+            """.formatted(holdPayment);
+    }
+
+    private PatchMinorCreditorAccountRequest patchMinorCreditorPayoutHoldRequest() {
+        return patchMinorCreditorRequest(true);
+    }
+
+    private PatchMinorCreditorAccountRequest patchMinorCreditorRequest(boolean holdPayment) {
+        return new PatchMinorCreditorAccountRequest()
+            .partyDetails(new PartyDetailsCommon()
+                .partyId("99008")
+                .organisationFlag(false)
+                .individualDetails(new IndividualDetailsCommon()
+                    .surname("Updated")
+                    .forenames("Creditor")))
+            .address(new AddressDetailsCommon()
+                .addressLine1("99 Updated Road")
+                .postcode("NW1 1AA"))
+            .payment(new CreditorAccountPaymentDetailsCommon()
+                .accountName("Creditor Updated")
+                .sortCode("112233")
+                .accountNumber("12345678")
+                .accountReference("MC-REF-01")
+                .payByBacs(true)
+                .holdPayment(holdPayment));
+    }
+
+    private PatchMinorCreditorAccountRequest patchMinorCreditorWithoutPermissionRequest() {
+        return new PatchMinorCreditorAccountRequest()
+            .partyDetails(new PartyDetailsCommon()
+                .partyId("99007")
+                .organisationFlag(false)
+                .individualDetails(new IndividualDetailsCommon()
+                    .surname("Deleted")))
+            .address(new AddressDetailsCommon()
+                .addressLine1("33 Delete St.")
+                .postcode("DE1 2DE"))
+            .payment(new CreditorAccountPaymentDetailsCommon()
+                .accountName("Delete Account")
+                .sortCode("445566")
+                .accountNumber("87654321")
+                .accountReference("DEL-REF-01")
+                .payByBacs(true)
+                .holdPayment(false));
+    }
+
+    private Integer getCurrentCreditorAccountVersion() {
+        return getCurrentCreditorAccountVersion(PATCH_MINOR_CREDITOR_ACCOUNT_ID);
+    }
+
+    private Integer getCurrentCreditorAccountVersion(Long creditorAccountId) {
+        return creditorAccountRepository.findById(creditorAccountId)
+            .map(creditorAccount -> creditorAccount.getVersionNumber().intValue())
+            .orElseThrow();
+    }
+
+    private boolean getCurrentCreditorAccountHoldPayout() {
+        return getCurrentCreditorAccountHoldPayout(PATCH_MINOR_CREDITOR_ACCOUNT_ID);
+    }
+
+    private boolean getCurrentCreditorAccountHoldPayout(Long creditorAccountId) {
+        return creditorAccountRepository.findById(creditorAccountId)
+            .map(creditorAccount -> creditorAccount.isHoldPayout())
+            .orElseThrow();
+    }
+
+    private PartyEntity getCurrentMinorCreditorPartyDetails(Long partyId) {
+        return partyRepository.findById(partyId).orElseThrow();
+    }
+
+    private boolean getCurrentCreditorAccountPayByBacs() {
+        return creditorAccountRepository.findById(PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+            .map(creditorAccount -> creditorAccount.isPayByBacs())
+            .orElseThrow();
+    }
+
+    private String getCurrentCreditorAccountBankAccountName() {
+        return creditorAccountRepository.findById(PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+            .orElseThrow()
+            .getBankAccountName();
+    }
+
+    private String getCurrentCreditorAccountBankSortCode() {
+        return creditorAccountRepository.findById(PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+            .orElseThrow()
+            .getBankSortCode();
+    }
+
+    private String getCurrentCreditorAccountBankAccountNumber() {
+        return creditorAccountRepository.findById(PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+            .orElseThrow()
+            .getBankAccountNumber();
+    }
+
+    private String getCurrentCreditorAccountBankAccountReference() {
+        return creditorAccountRepository.findById(PATCH_MINOR_CREDITOR_ACCOUNT_ID)
+            .orElseThrow()
+            .getBankAccountReference();
+    }
+
+    private int getCurrentAmendmentCountForCreditorAccount() {
+        return amendmentRepository.countByAssociatedRecordId(String.valueOf(PATCH_MINOR_CREDITOR_ACCOUNT_ID));
+    }
+
+    private String getLatestAmendmentFunctionCodeForCreditorAccount() {
+        return amendmentRepository.findFirstByAssociatedRecordIdOrderByAmendmentIdDesc(
+            String.valueOf(PATCH_MINOR_CREDITOR_ACCOUNT_ID))
+            .getFunctionCode();
+    }
+
+    // AC1b: Test that both active and inactive accounts are returned regardless of activeAccountsOnly value
+    void testAC1b_ActiveAccountsOnlyTrue(Logger log) throws Exception {
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .businessUnitIds(List.of((short) 10))
+            .activeAccountsOnly(true)
+            .accountNumber("12345678")
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(search))
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
+            .andExpect(jsonPath("$.creditor_accounts[*].account_number")
+                .value(hasItems("12345678A", "12345678")));
+    }
+
+    void testAC1b_ActiveAccountsOnlyFalse(Logger log) throws Exception {
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .businessUnitIds(List.of((short) 10))
+            .activeAccountsOnly(false)
+            .accountNumber("12345678")
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(search))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
+            .andExpect(jsonPath("$.creditor_accounts[*].account_number")
+                .value(hasItems("12345678A", "12345678")));
+    }
+
+    // AC1a: Test multiple search parameters - creditor personal details + business unit
+    void testAC1a_MultiParam_ForenamesAndSurname(Logger log) throws Exception {
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .activeAccountsOnly(true)
+            .businessUnitIds(List.of((short) 10))
+            .creditor(MinorCreditorAccountSearchCreditor.builder()
+                .forenames("John")
+                .surname("Smith")
+                .organisation(false)
+                .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(search))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(1)))
+            .andExpect(jsonPath("$.creditor_accounts[*].account_number")
+                .value(hasItems("JS987654")))
+            .andExpect(jsonPath("$.creditor_accounts[*].firstnames")
+                .value(hasItems("John")))
+            .andExpect(jsonPath("$.creditor_accounts[*].surname")
+                .value(hasItems("Smith")));
+    }
+
+    // AC1a: Test multiple search parameters - postcode + business unit
+    void testAC1a_MultiParam_PostcodeAndBusinessUnit(Logger log) throws Exception {
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .businessUnitIds(List.of((short) 10))
+            .activeAccountsOnly(true)
+            .creditor(MinorCreditorAccountSearchCreditor.builder()
+                .postcode("MA4 1AL")
+                .organisation(true)
+                .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(search))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(1)))
+            .andExpect(jsonPath("$.creditor_accounts[*].account_number")
+                .value(hasItems("12345678A", "12345678")))
+            .andExpect(jsonPath("$.creditor_accounts[*].postcode")
+                .value(hasItems("MA4 1AL")));
+    }
+
+    // AC1a: Test multiple search parameters - organisation details + business unit + address
+    void testAC1a_MultiParam_OrganisationAndAddress(Logger log) throws Exception {
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .activeAccountsOnly(true)
+            .businessUnitIds(List.of((short) 10))
+            .creditor(MinorCreditorAccountSearchCreditor.builder()
+                .organisationName("Acme")
+                .addressLine1("Acme House")
+                .organisation(true)
+                .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(search))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(1)))
+            .andExpect(jsonPath("$.creditor_accounts[*].address_line_1")
+                .value(hasItems("Acme House")));
+    }
+
+    // AC1ai: Test that accounts from different business units are not returned
+    void testAC1ai_BusinessUnitFiltering(Logger log) throws Exception {
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .businessUnitIds(List.of((short) 10, (short) 11)) // Multiple business units
+            .accountNumber("12345678A")
+            .activeAccountsOnly(false)
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(search))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.creditor_accounts[*].business_unit_id")
+                .value(org.hamcrest.Matchers.everyItem(
+                    org.hamcrest.Matchers.anyOf(
+                        org.hamcrest.Matchers.equalTo("10"),
+                        org.hamcrest.Matchers.equalTo("11")
+                    )
+                )));
+    }
+
+    // AC2a: Test exact match surname functionality - exact match enabled
+    void testAC2a_ExactMatchSurnameEnabled(Logger log) throws Exception {
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .activeAccountsOnly(true)
+            .businessUnitIds(List.of((short) 10))
+            .creditor(MinorCreditorAccountSearchCreditor.builder()
+                .surname("Smith")
+                .exactMatchSurname(true) // Exact match enabled
+                .organisation(false)
+                .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(search))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(1)))
+            .andExpect(jsonPath("$.creditor_accounts[*].surname")
+                .value(hasItems("Smith"))) // Should only return exact "Smith"
+            .andExpect(jsonPath("$.creditor_accounts[*].surname")
+                .value(org.hamcrest.Matchers.not(hasItems("Smithson")))); // Should NOT return "Smithson"
+    }
+
+    // AC2ai: Test exact match surname functionality - exact match disabled (starts with)
+    void testAC2ai_ExactMatchSurnameDisabled(Logger log) throws Exception {
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .activeAccountsOnly(true)
+            .businessUnitIds(List.of((short) 10))
+            .creditor(MinorCreditorAccountSearchCreditor.builder()
+                .surname("Smith")
+                .exactMatchSurname(false) // Exact match disabled - should do "starts with"
+                .organisation(false)
+                .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(search))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
+            .andExpect(jsonPath("$.creditor_accounts[*].surname")
+                .value(hasItems("Smith", "Smithson"))); // Should return both "Smith" and "Smithson"
+    }
+
+    // AC2b: Test exact match forenames functionality - exact match enabled
+    void testAC2b_ExactMatchForenamesEnabled(Logger log) throws Exception {
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .activeAccountsOnly(true)
+            .businessUnitIds(List.of((short) 10))
+            .creditor(MinorCreditorAccountSearchCreditor.builder()
+                .forenames("John")
+                .exactMatchForenames(true) // Exact match enabled
+                .surname("Smith")
+                .exactMatchForenames(false)
+                .organisation(false)
+                .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(search))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(1)))
+            .andExpect(jsonPath("$.creditor_accounts[*].firstnames")
+                .value(hasItems("John"))) // Should only return exact "John"
+            .andExpect(jsonPath("$.creditor_accounts[*].firstnames")
+                .value(org.hamcrest.Matchers.not(hasItems("Johnathan", "Jane"))));
+        // Should NOT return "Jonathan" or "Jane"
+    }
+
+    // AC2bi: Test exact match forenames functionality - exact match disabled (starts with)
+    void testAC2bi_ExactMatchForenamesDisabled(Logger log) throws Exception {
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .activeAccountsOnly(false)
+            .businessUnitIds(List.of((short) 10))
+            .creditor(MinorCreditorAccountSearchCreditor.builder()
+                .forenames("J")
+                .exactMatchForenames(false) // Exact match disabled - should do "starts with"
+                .surname("Smith")
+                .exactMatchSurname(false)
+                .organisation(false)
+                .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(search))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
+            .andExpect(jsonPath("$.creditor_accounts[*].firstnames")
+                .value(hasItems("John", "Jane"))); // Should return both "John Smith" and "Jane Smithson"
+    }
+
+    // AC2c: Test "starts with" behavior for Address Line 1
+    void testAC2c_AddressLine1StartsWith(Logger log) throws Exception {
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .activeAccountsOnly(true)
+            .businessUnitIds(List.of((short) 10))
+            .creditor(MinorCreditorAccountSearchCreditor.builder()
+                .addressLine1("123") // Should match addresses starting with "123"
+                .organisation(false)
+                .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(search))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(1)))
+            .andExpect(jsonPath("$.creditor_accounts[*].address_line_1")
+                .value(hasItems("123 Test Street"))); // Should return addresses starting with "123"
+    }
+
+    // AC2c: Test "starts with" behavior for Postcode
+    void testAC2c_PostcodeStartsWith(Logger log) throws Exception {
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .activeAccountsOnly(true)
+            .businessUnitIds(List.of((short) 10))
+            .creditor(MinorCreditorAccountSearchCreditor.builder()
+                .postcode("TS") // Should match postcodes starting with "TS"
+                .organisation(false)
+                .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(search))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
+            .andExpect(jsonPath("$.creditor_accounts[*].postcode")
+                .value(hasItems("TS1 2AB", "TS3 4CD"))); // Should return postcodes starting with "TS"
+    }
+
+    // AC3a: Test exact match for Company name
+    void testAC3a_CompanyNameExactMatch(Logger log) throws Exception {
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .businessUnitIds(List.of((short) 10))
+            .activeAccountsOnly(true)
+            .creditor(MinorCreditorAccountSearchCreditor.builder()
+                .organisationName("Tech Solutions")
+                .exactMatchOrganisationName(true)
+                .organisation(true)
+                .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(search))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation").value(true))
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation_name")
+                .value("Tech Solutions"));
+    }
+
+    // AC3ai: Test "starts with" behavior for Company name when exact match is not selected
+    void testAC3ai_CompanyNameStartsWith(Logger log) throws Exception {
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .activeAccountsOnly(true)
+            .businessUnitIds(List.of((short) 10))
+            .creditor(MinorCreditorAccountSearchCreditor.builder()
+                .organisationName("Tech")
+                .exactMatchOrganisationName(false)
+                .organisation(true)
+                .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(search))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(3)))
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation").value(true))
+            .andExpect(jsonPath("$.creditor_accounts[*].organisation_name")
+                .value(hasItems("Tech Solutions", "Tech Solutions Ltd", "Technology Partner")));
+    }
+
+    // AC3ai: Test "starts with" behavior with partial Company name
+    void testAC3ai_CompanyNameStartsWithPartial(Logger log) throws Exception {
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .activeAccountsOnly(true)
+            .businessUnitIds(List.of((short) 10))
+            .creditor(MinorCreditorAccountSearchCreditor.builder()
+                .organisationName("Technology")
+                .exactMatchOrganisationName(false)
+                .organisation(true)
+                .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(search))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation").value(true))
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation_name")
+                .value("Technology Partner"));
+    }
+
+    // AC3b: Test "starts with" behavior for Company Address Line 1
+    void testAC3b_CompanyAddressLine1StartsWith(Logger log) throws Exception {
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .activeAccountsOnly(true)
+            .businessUnitIds(List.of((short) 10))
+            .creditor(MinorCreditorAccountSearchCreditor.builder()
+                .addressLine1("Tech") // Should match company addresses starting with "Tech"
+                .organisation(true)
+                .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(search))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
+            .andExpect(jsonPath("$.creditor_accounts[*].address_line_1")
+                .value(hasItems("Tech House", "Tech Building")));
+    }
+
+    // AC3b: Test "starts with" behavior for Company Postcode
+    void testAC3b_CompanyPostcodeStartsWith(Logger log) throws Exception {
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .activeAccountsOnly(true)
+            .businessUnitIds(List.of((short) 10))
+            .creditor(MinorCreditorAccountSearchCreditor.builder()
+                .postcode("TP") // Match company postcodes starting with "T"
+                .organisation(true)
+                .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .content(objectMapper.writeValueAsString(search))
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
+            .andExpect(jsonPath("$.creditor_accounts[*].postcode")
+                .value(hasItems("TP3 4DE", "TP5 6FG"))); // Should return company postcodes starting with "T"
+    }
+
+    // AC3b: Test combined Address Line 1 and Postcode search for companies
+    void testAC3b_CompanyAddressAndPostcodeCombined(Logger log) throws Exception {
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .activeAccountsOnly(true)
+            .businessUnitIds(List.of((short) 10))
+            .creditor(MinorCreditorAccountSearchCreditor.builder()
+                .addressLine1("Tech House") // Specific address
+                .postcode("TH1") // Specific postcode prefix
+                .organisation(true)
+                .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(search))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation").value(true))
+            .andExpect(jsonPath("$.creditor_accounts[0].address_line_1").value("Tech House"))
+            .andExpect(jsonPath("$.creditor_accounts[0].postcode").value("TH1 2BC"))
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation_name").value("Tech Solutions"));
+    }
+
+    void getHeaderSummaryImpl_Success(Logger log) throws Exception {
+
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/{id}/header-summary", minorCreditorHeaderSummaryAccountId())
+                .accept(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+        );
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetMinorCreditorHeaderSummary: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+
+            .andExpect(jsonPath("$.creditor.account_id").value(String.valueOf(minorCreditorHeaderSummaryAccountId())))
+            .andExpect(jsonPath("$.creditor.account_number").value(minorCreditorHeaderSummaryAccountNumber()))
+            .andExpect(jsonPath("$.creditor.account_type.type").value("MN"))
+            .andExpect(jsonPath("$.creditor.account_type.display_name").value("Minor Creditor"))
+            .andExpect(jsonPath("$.creditor.has_associated_defendant").value(false))
+
+            .andExpect(header().string("ETag", minorCreditorVersionEtag()))
+
+            .andExpect(jsonPath("$.business_unit.business_unit_id").value("77"))
+            .andExpect(jsonPath("$.business_unit.business_unit_code").value("0046"))
+            .andExpect(jsonPath("$.business_unit.business_unit_name").value("Camberwell Green"))
+            .andExpect(jsonPath("$.business_unit.welsh_speaking").value(matchesPattern("Y|N")))
+
+            .andExpect(jsonPath("$.party.party_id").value("99000000000900"))
+            .andExpect(jsonPath("$.party.organisation_flag").value(true))
+            .andExpect(jsonPath("$.party.organisation_details.organisation_name")
+                .value("Minor Creditor Test Ltd"))
+            .andExpect(jsonPath("$.party.organisation_details.organisation_aliases")
+                .value(nullValue()))
+
+            .andExpect(jsonPath("$.repayment").value(false))
+            .andExpect(jsonPath("$.financials.awarded").value(0))
+            .andExpect(jsonPath("$.financials.paid_out").value(0))
+            .andExpect(jsonPath("$.financials.awaiting_payout").value(0))
+            .andExpect(jsonPath("$.financials.outstanding").value(0));
+
+        jsonSchemaValidationService.validate(body, MINOR_CREDITOR_HEADER_SUMMARY_RESPONSE);
+    }
+
+    void legacyGetMinorCreditorHeaderSummaryImpl_500Error(Logger log) throws Exception {
+
+        Long minorCreditorId = 500L;
+
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/{id}/header-summary", minorCreditorId)
+                .accept(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+        );
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetMinorGcreditorAtAGlance: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(
+            status().is5xxServerError()).andExpect(
+            content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    void getHeaderSummary_notFound_returns404(Logger log) throws Exception {
+
+        Long missingId = 999999L;
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}/header-summary", missingId)
+            .accept(MediaType.APPLICATION_JSON)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken()));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetMinorCreditorHeaderSummary_NotFound: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isNotFound());
+    }
+
+    void getHeaderSummary_repaymentTrue(Logger logger) throws Exception {
+        ResultActions result = mockMvc.perform(get(URL_BASE + "/{id}/header-summary",
+            repaymentMinorCreditorAccountId())
+            .accept(MediaType.APPLICATION_JSON)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken()));
+
+        String body = result.andReturn().getResponse().getContentAsString();
+        logger.info(":getHeaderSummary_repaymentTrue: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        result.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string("ETag", minorCreditorVersionEtag()))
+            .andExpect(jsonPath("$.creditor.account_id").value(repaymentMinorCreditorAccountId()))
+            .andExpect(jsonPath("$.repayment").value(true));
+    }
+
+    void getHeaderSummary_missingAuthHeader_returns403() throws Exception {
+        userStateStub.setupWithNoPermissions();
+
+        mockMvc.perform(get(URL_BASE + "/{id}/header-summary", 104L)
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"))
+            .andExpect(jsonPath("$.retriable").value(false));
+    }
+
+    void getHeaderSummary_authenticatedWithoutPermission_returns403() throws Exception {
+        userStateStub.setupWithNoPermissions();
+
+        mockMvc.perform(get(URL_BASE + "/{id}/header-summary", 104L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"))
+            .andExpect(jsonPath("$.retriable").value(false));
+    }
+
+    void getMinorCreditorAtAGlanceImpl_Success(Logger log) throws Exception {
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/{id}/at-a-glance", minorCreditorAccountId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+        );
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+
+        log.info(":testGetMinorCreditorAtAGlance_Success: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        JsonNode json = objectMapper.readTree(body);
+
+        resultActions
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string("ETag", minorCreditorVersionEtag()))
+
+            // party
+            .andExpect(jsonPath("$.party.party_id").value("99000000000901"))
+            .andExpect(jsonPath("$.party.organisation_flag").value(true))
+
+            // individual_details
+            .andExpect(jsonPath("$.party.organisation_details.organisation_name").value("Speed Camera Services Ltd"))
+
+            // address
+            .andExpect(jsonPath("$.address.address_line_1").value("10 Technology Way"))
+            .andExpect(jsonPath("$.address.address_line_2").value("Reading"))
+            .andExpect(jsonPath("$.address.postcode").value("RG6 1PT"))
+
+            // creditor_account_id
+            .andExpect(jsonPath("$.creditor_account_id").value(minorCreditorAccountId()))
+
+            // defendant
+            .andExpect(jsonPath("$.defendant.account_number").value("12345678"))
+            .andExpect(jsonPath("$.defendant.account_id").value(99000000000001L))
+            .andExpect(jsonPath("$.defendant.title").value("Mr"))
+            .andExpect(jsonPath("$.defendant.forenames").value("Michael James"))
+            .andExpect(jsonPath("$.defendant.surname").value("Johnson"))
+
+            // payment
+            .andExpect(jsonPath("$.payment.is_bacs").value(true))
+            .andExpect(jsonPath("$.payment.hold_payment").value(false));
+
+        assertGet200JsonResponseMatchesBundledSpec(json, "/minor-creditor-accounts/{id}/at-a-glance");
+    }
+
+    void getMinorCreditorAccountImpl_Success(Logger log) throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions((short) 77,
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
+            FinesPermission.VIEW_CREDITOR_BACS);
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}", minorCreditorAccountId())
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken()));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+
+        log.info(":testGetMinorCreditorAccount_Success: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string("ETag", minorCreditorVersionEtag()))
+
+            .andExpect(jsonPath("$.creditor_account_id").value(minorCreditorAccountId()))
+            .andExpect(jsonPath("$.repayment").value(false))
+
+            .andExpect(jsonPath("$.party_details.party_id").value("99000000000901"))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
+            .andExpect(jsonPath("$.party_details.organisation_details.organisation_name")
+                .value("Speed Camera Services Ltd"))
+
+            .andExpect(jsonPath("$.address.address_line_1").value("10 Technology Way"))
+            .andExpect(jsonPath("$.address.address_line_2").value("Reading"))
+            .andExpect(jsonPath("$.address.postcode").value("RG6 1PT"))
+
+            .andExpect(jsonPath("$.payment.account_name").value("Speed Camera Services"))
+            .andExpect(jsonPath("$.payment.sort_code").value("123456"))
+            .andExpect(jsonPath("$.payment.account_number").value("12345678"))
+            .andExpect(jsonPath("$.payment.account_reference").value("SCREF001"))
+            .andExpect(jsonPath("$.payment.pay_by_bacs").value(true))
+            .andExpect(jsonPath("$.payment.hold_payment").value(false));
+
+    }
+
+    void getMinorCreditorAccountImpl_filtersBacsDetailsWithoutPermission(Logger log) throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}", minorCreditorAccountId())
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken()));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+
+        log.info(":testGetMinorCreditorAccount_FiltersBacs: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string("ETag", minorCreditorVersionEtag()))
+            .andExpect(jsonPath("$.repayment").value(false))
+            .andExpect(jsonPath("$.payment.account_name").doesNotExist())
+            .andExpect(jsonPath("$.payment.sort_code").doesNotExist())
+            .andExpect(jsonPath("$.payment.account_number").doesNotExist())
+            .andExpect(jsonPath("$.payment.account_reference").doesNotExist())
+            .andExpect(jsonPath("$.payment.pay_by_bacs").value(true))
+            .andExpect(jsonPath("$.payment.hold_payment").value(false));
+    }
+
+    void getMinorCreditorAccountImpl_repaymentTrue(Logger log) throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions((short) 10,
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
+            FinesPermission.VIEW_CREDITOR_BACS);
+        userStateStub.addPermissions((short) 77,
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
+            FinesPermission.VIEW_CREDITOR_BACS);
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}", repaymentMinorCreditorAccountId())
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken()));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+
+        log.info(":getMinorCreditorAccountImpl_repaymentTrue: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string("ETag", repaymentMinorCreditorVersionEtag()))
+            .andExpect(jsonPath("$.creditor_account_id").value(repaymentMinorCreditorAccountId()))
+            .andExpect(jsonPath("$.repayment").value(true));
+    }
+
+    protected Long minorCreditorHeaderSummaryAccountId() {
+        return 99000000000800L;
+    }
+
+    protected String minorCreditorHeaderSummaryAccountNumber() {
+        return "87654321";
+    }
+
+    protected Long minorCreditorAccountId() {
+        return 99000000000801L;
+    }
+
+    protected String minorCreditorVersionEtag() {
+        return "\"1\"";
+    }
+
+    protected Long repaymentMinorCreditorAccountId() {
+        return 608L;
+    }
+
+    protected String repaymentMinorCreditorVersionEtag() {
+        return "\"1\"";
+    }
+
+    void legacyGetMinorCreditorAccountImpl_500Error(Logger log) throws Exception {
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}", "500")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken()));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetMinorCreditorAccount_500Error: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().is5xxServerError())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    void getMinorCreditorAtAGlanceImpl_failure_creditorNotFound(Logger log) throws Exception {
+        Long missingId = 999999L;
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}/at-a-glance", missingId)
+            .accept(MediaType.APPLICATION_JSON)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken()));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetMinorCreditorAtAGlance_creditorNotFound: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isNotFound());
+    }
+
+    void getMinorCreditorAtAGlanceImpl_withoutViewCreditorBacsPermission_returns403() throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+
+        mockMvc.perform(get(URL_BASE + "/{id}/at-a-glance", "99000000000801")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    void legacyGetMinorCreditorAtAGlanceImpl_500Error(Logger log) throws Exception {
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/{id}/at-a-glance", "500")
+            .contentType(MediaType.APPLICATION_JSON)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken()));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetMinorGcreditorAtAGlance: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(
+            status().is5xxServerError()).andExpect(
+            content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+}

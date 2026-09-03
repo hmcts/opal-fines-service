@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigInteger;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +21,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.projection.DefendantAccountVersionData;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,6 +36,51 @@ class DefendantAccountRepositoryServiceTest {
 
     @InjectMocks
     private DefendantAccountRepositoryService service;
+
+    @Test
+    void incrementVersionNumber_whenUpdateSucceeds_returnsUpdatedVersion() {
+        // arrange
+        long defendantAccountId = 77L;
+        BigInteger expectedVersion = BigInteger.ONE;
+
+        when(defendantAccountRepository.incrementVersionNumber(defendantAccountId, 1L))
+            .thenReturn(1);
+        when(defendantAccountRepository.findVersionDataByDefendantAccountId(defendantAccountId))
+            .thenReturn(Optional.of(new DefendantAccountVersionData(defendantAccountId, 2L)));
+
+        // act
+        BigInteger result = service.incrementVersionNumber(defendantAccountId, expectedVersion);
+
+        // assert
+        assertThat(result).isEqualTo(BigInteger.valueOf(2L));
+        verify(entityManager).flush();
+        verify(defendantAccountRepository).incrementVersionNumber(defendantAccountId, 1L);
+        verify(defendantAccountRepository).findVersionDataByDefendantAccountId(defendantAccountId);
+    }
+
+    @Test
+    void incrementVersionNumber_whenVersionHasChanged_throwsResourceConflictException() {
+        // arrange
+        long defendantAccountId = 77L;
+        BigInteger expectedVersion = BigInteger.ONE;
+
+        when(defendantAccountRepository.incrementVersionNumber(defendantAccountId, 1L))
+            .thenReturn(0);
+
+        // act / assert
+        ResourceConflictException exception = assertThrows(
+            ResourceConflictException.class,
+            () -> service.incrementVersionNumber(defendantAccountId, expectedVersion)
+        );
+
+        assertThat(exception.getResourceType()).isEqualTo("DefendantAccountEntity");
+        assertThat(exception.getResourceId()).isEqualTo(String.valueOf(defendantAccountId));
+        assertThat(exception.getConflictReason()).isEqualTo("Version has changed since it was last read");
+
+        verify(entityManager).flush();
+        verify(defendantAccountRepository).incrementVersionNumber(defendantAccountId, 1L);
+        verifyNoMoreInteractions(defendantAccountRepository);
+    }
 
     @Test
     void findById_whenAccountExists_returnsAccount() {

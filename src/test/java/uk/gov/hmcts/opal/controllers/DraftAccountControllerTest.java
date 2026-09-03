@@ -8,12 +8,10 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.UnexpectedRollbackException;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.DraftAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
-import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
@@ -25,7 +23,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -97,26 +94,6 @@ class DraftAccountControllerTest {
     }
 
     @Test
-    void testSearchDraftAccounts_Success() {
-        // Arrange
-        DraftAccountEntity entity = DraftAccountEntity.builder().businessUnit(
-            BusinessUnitEntity.builder().businessUnitId((short)77).build())
-            .build();
-        DraftAccountResponseDto responseDto = toGetDto(entity);
-
-        when(draftAccountService.searchDraftAccounts(any())).thenReturn(List.of(responseDto));
-
-        // Act
-        DraftAccountSearchDto searchDto = DraftAccountSearchDto.builder().build();
-        ResponseEntity<List<DraftAccountResponseDto>> response = draftAccountController.postDraftAccountsSearch(
-            searchDto);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(draftAccountService, times(1)).searchDraftAccounts(any());
-    }
-
-    @Test
     void testSaveDraftAccounts_Success() {
         // Arrange
         DraftAccountEntity entity = DraftAccountEntity.builder()
@@ -131,8 +108,6 @@ class DraftAccountControllerTest {
             .accountType(DraftAccountType.FINE)
             .account(getAccountJson())
             .businessUnitId((short)1)
-            .submittedBy("USER_ID")
-            .submittedByName("USER_NAME")
             .build();
 
         when(draftAccountService.submitDraftAccount(any())).thenReturn(toGetDto(entity));
@@ -150,45 +125,6 @@ class DraftAccountControllerTest {
         assertEquals("USER_ID", responseEntity.getSubmittedBy());
         assertEquals(getTimelineJson(), responseEntity.getTimelineData());
         verify(draftAccountService, times(1)).submitDraftAccount(any());
-    }
-
-    @Test
-    void testDeleteDraftAccount_Success() {
-        // Arrange
-        when(draftAccountService.deleteDraftAccount(any(Long.class), any(Boolean.class)))
-            .thenReturn("""
-                         { "message": "Draft Account '7' deleted"}""");
-
-
-
-        // Act
-        ResponseEntity<String> response = draftAccountController
-            .deleteDraftAccountById(7L, "", Optional.empty());
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("""
-                         { "message": "Draft Account '7' deleted"}""", response.getBody());
-        verify(draftAccountService, times(1)).deleteDraftAccount(any(Long.class),
-                                                                 any(Boolean.class));
-    }
-
-    @Test
-    void testDeleteDraftAccount_Fail() {
-        // Arrange
-        when(draftAccountService.deleteDraftAccount(any(Long.class), any(Boolean.class))).thenThrow(
-            new UnexpectedRollbackException("Entity 7L not found.")
-        );
-
-        // Act
-        RuntimeException rte = assertThrows(UnexpectedRollbackException.class, () ->
-            draftAccountController.deleteDraftAccountById(7L, "", Optional.empty())
-        );
-
-        // Assert
-        assertEquals("Entity 7L not found.", rte.getMessage());
-        verify(draftAccountService, times(1)).deleteDraftAccount(any(Long.class),
-                                                                 any(Boolean.class));
     }
 
     DraftAccountResponseDto toGetDto(DraftAccountEntity entity) {

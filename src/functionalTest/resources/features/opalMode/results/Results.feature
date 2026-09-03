@@ -67,12 +67,12 @@ Feature: Results Reference Data
       | result_id                | AEO  |
       | requires_employment_data | true |
 
-  @JIRA-STORY:PO-8973 @JIRA-EPIC:PO-304 @R1B
+  @JIRA-STORY:PO-8973 @JIRA-EPIC:PO-304 @R1B @JIRA-TEST-KEY:PO-10065
   Scenario: Result by ID matches OpenAPI schema
     When I request result with identifier "SC"
     Then the result response matches the documented schema
 
-  @JIRA-STORY:PO-8973 @JIRA-EPIC:PO-304 @R1B
+  @JIRA-STORY:PO-8973 @JIRA-EPIC:PO-304 @R1B @JIRA-TEST-KEY:PO-10066
   Scenario: Result by ID maps response fields
     When I request result with identifier "SC"
     Then the result response contains
@@ -103,12 +103,12 @@ Feature: Results Reference Data
       | manual_enforcement            | true                                                          |
       | enf_next_permitted_actions    | CWN                                                           |
 
-  @JIRA-STORY:PO-8973 @JIRA-EPIC:PO-304 @R1B
+  @JIRA-STORY:PO-8973 @JIRA-EPIC:PO-304 @R1B @JIRA-TEST-KEY:PO-10067
   Scenario: Unknown result by ID returns not found
     When I request result with identifier "ZZZZZZ"
     Then the request is rejected as not found
 
-  @JIRA-STORY:PO-8973 @JIRA-EPIC:PO-2630 @R1B
+  @JIRA-STORY:PO-8973 @JIRA-EPIC:PO-2630 @R1B @JIRA-TEST-KEY:PO-10068
   Scenario: Result by ID omits Welsh parameters by default
     When I request result with identifier "SC"
     Then the result parameters do not contain the following entries
@@ -118,17 +118,17 @@ Feature: Results Reference Data
   Scenario: Result by ID can include Welsh text result parameters
     When I request result with identifier "SC" including Welsh parameters
     Then the result parameters contain the following entries in order
-      | name            | type | language_dependent | hint                                          |
-      | paymentterms    | text | true               |                                               |
-      | cy_paymentterms | text | true               | Provide a welsh version for the defendant     |
+      | name            | type      | language_dependent | hint                                      |
+      | paymentterms    | text-1000 | true               |                                           |
+      | cy_paymentterms | text-1000 | true               | Provide a welsh version for the defendant |
 
   @JIRA-STORY:PO-9108 @JIRA-EPIC:PO-2630 @R1B @JIRA-TEST-KEY:PO-9561
   Scenario: Result by ID can include Welsh date result parameters
     When I request result with identifier "CLAMPO" including Welsh parameters
     Then the result parameters contain the following entries in order
-      | name             | type | language_dependent | hint                                          |
-      | effectivedate    | date | true               |                                               |
-      | cy_effectivedate | date | true               | Provide a welsh version for the defendant    |
+      | name             | type | language_dependent | hint                                      |
+      | effectivedate    | date | true               |                                           |
+      | cy_effectivedate | date | true               | Provide a welsh version for the defendant |
 
   @JIRA-STORY:PO-3765 @Ignore @R1B
   Scenario: Result filtering is available when release-1b is enabled

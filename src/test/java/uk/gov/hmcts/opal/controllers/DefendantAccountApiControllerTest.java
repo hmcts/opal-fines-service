@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.verify;
@@ -26,18 +28,27 @@ import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
-import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
+import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchReferenceNumberDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse;
+import uk.gov.hmcts.opal.generated.model.FixedPenaltyTicketDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.VehicleFixedPenaltyDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
+import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
+import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
 import uk.gov.hmcts.opal.service.ImpositionService;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,10 +61,73 @@ class DefendantAccountApiControllerTest {
     private ImpositionService impositionService;
 
     @Mock
+    private DefendantAccountEnforcementService defendantAccountEnforcementService;
+
+    @Mock
     private DefendantAccountHistoryResponseMapper defendantAccountHistoryResponseMapper;
+
+    @Mock
+    private DefendantAccountFixedPenaltyService defendantAccountFixedPenaltyService;
 
     @InjectMocks
     private DefendantAccountApiController defendantAccountApiController;
+
+    @Test
+    void whenAddEnforcement_thenReturnsMappedResponse() {
+        AddEnforcementRequestDefendantAccount request = new AddEnforcementRequestDefendantAccount();
+        AddEnforcementResponseDefendantAccount mappedResponse = AddEnforcementResponseDefendantAccount.builder()
+            .defendantAccountId("1")
+            .enforcementId("2")
+            .version(BigInteger.ONE)
+            .build();
+
+        when(defendantAccountEnforcementService.addEnforcement(1L, (short) 77, "1", request))
+            .thenReturn(mappedResponse);
+
+        ResponseEntity<AddEnforcementResponseDefendantAccount> response =
+            defendantAccountApiController.addEnforcement(1L, (short) 77, request, "1");
+
+        assertAll(
+            () -> assertEquals(HttpStatus.OK, response.getStatusCode()),
+            () -> assertEquals(BigInteger.ONE, response.getBody().getVersion()),
+            () -> assertSame(mappedResponse, response.getBody()),
+            () -> verify(defendantAccountEnforcementService).addEnforcement(1L, (short) 77, "1", request)
+        );
+    }
+
+    @Test
+    void given_validRequest_when_getDefendantAccountFixedPenalty_then_returnsOkResponseWithEtag() {
+        Long defendantAccountId = 77L;
+        GetDefendantAccountFixedPenaltyResponse serviceResponse = GetDefendantAccountFixedPenaltyResponse.builder()
+            .vehicleFixedPenaltyFlag(true)
+            .fixedPenaltyTicketDetails(FixedPenaltyTicketDetailsCommonStrict.builder()
+                .issuingAuthority("Kingston-upon-Thames Mags Court")
+                .ticketNumber("888")
+                .timeOfOffence("12:34")
+                .placeOfOffence("London")
+                .build())
+            .vehicleFixedPenaltyDetails(VehicleFixedPenaltyDetailsCommonStrict.builder()
+                .vehicleRegistrationNumber("AB12CDE")
+                .vehicleDriversLicense("DOE1234567")
+                .noticeNumber("PN98765")
+                .dateNoticeIssued(LocalDate.of(2024, 1, 1))
+                .build())
+            .version(BigInteger.valueOf(12))
+            .build();
+        when(defendantAccountFixedPenaltyService.getDefendantAccountFixedPenalty(defendantAccountId))
+            .thenReturn(serviceResponse);
+
+        ResponseEntity<GetDefendantAccountFixedPenaltyResponse> response =
+            defendantAccountApiController.getDefendantAccountFixedPenalty(defendantAccountId);
+
+        assertAll(
+            () -> assertEquals(HttpStatus.OK, response.getStatusCode()),
+            () -> assertEquals("\"12\"", response.getHeaders().getETag()),
+            () -> assertSame(serviceResponse, response.getBody()),
+            () -> verify(defendantAccountFixedPenaltyService)
+                .getDefendantAccountFixedPenalty(defendantAccountId)
+        );
+    }
 
     @Test
     void given_validRequest_when_getImpositions_then_returnsOkResponseWithEtag() {
@@ -245,6 +319,32 @@ class DefendantAccountApiControllerTest {
         assertEquals("\"1\"", response.getHeaders().getETag());
         assertSame(summaryResponse, response.getBody());
         verify(defendantAccountService).getHeaderSummary(defendantId);
+    }
+
+    @Test
+    void whenRemovingEnforcementHold_thenReturnsGeneratedResponseWithEtag() {
+        Long defendantAccountId = 1L;
+        Short businessUnitId = 10;
+        String ifMatch = "\"7\"";
+        RemoveEnforcementHoldRequestDefendantAccount request =
+            RemoveEnforcementHoldRequestDefendantAccount.builder().reason("remove hold reason").build();
+        RemoveEnforcementHoldResponseDefendantAccount serviceResponse =
+            RemoveEnforcementHoldResponseDefendantAccount.builder()
+                .defendantAccountId("1")
+                .version(BigInteger.valueOf(8))
+                .build();
+        when(defendantAccountEnforcementService.removeEnforcementHold(
+            defendantAccountId, businessUnitId, ifMatch, request)).thenReturn(serviceResponse);
+
+        ResponseEntity<RemoveEnforcementHoldResponseDefendantAccount> response =
+            defendantAccountApiController.removeEnforcementHold(
+                defendantAccountId, businessUnitId, request, ifMatch);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("\"8\"", response.getHeaders().getETag());
+        assertSame(serviceResponse, response.getBody());
+        verify(defendantAccountEnforcementService).removeEnforcementHold(
+            defendantAccountId, businessUnitId, ifMatch, request);
     }
 
 }

@@ -1,0 +1,36 @@
+Timing is on.
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v3.sql:42: NOTICE:  === Start tests for v_audit_defendant_accounts view ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v3.sql:42: NOTICE:  === Cleanup data before tests ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v3.sql:42: NOTICE:  === Data cleanup before tests completed ===
+DO
+Time: 34.147 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v3.sql:425: NOTICE:  === Setting up test data for v_audit_defendant_accounts tests ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v3.sql:425: NOTICE:  Test data setup completed: defendant_account_id = 999801
+DO
+Time: 6.605 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v3.sql:602: NOTICE:  === TEST 1: Comprehensive test for defendant account with all associated data ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v3.sql:602: NOTICE:  DEBUG: Checking view structure and data...
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v3.sql:602: NOTICE:  DEBUG: document_language = EN, hearing_language = EN, vehicle_make = Toyota
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v3.sql:602: NOTICE:  DEBUG: vehicle_registration = AB12 CDE, employee_reference = EMP12345, employer_name = Test Corporation Ltd
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v3.sql:602: NOTICE:  DEBUG: employer_address_line_1 = 100 Business Park, employer_postcode = B1 2AA, employer_telephone = 020 7000 1111
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v3.sql:602: NOTICE:  TEST 1 PASSED: All information retrieved and validated successfully for defendant account
+DO
+Time: 38.008 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v3.sql:670: NOTICE:  === TEST 2: Test organisation defendant party ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v3.sql:670: NOTICE:  TEST 2 PASSED: Organisation defendant party handled correctly
+DO
+Time: 6.064 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v3.sql:751: NOTICE:  === TEST 3: Test organisation aliases ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v3.sql:751: NOTICE:  TEST 3 PASSED: Organisation aliases handled correctly
+DO
+Time: 6.021 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v3.sql:866: NOTICE:  === TEST 4: Defendant account remains visible without Defendant party association ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v3.sql:866: NOTICE:  TEST 4 PASSED: Defendant account remains visible with NULL party-derived fields
+DO
+Time: 11.366 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v3.sql:888: NOTICE:  === All tests completed for v_audit_defendant_accounts view ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v3.sql:888: NOTICE:  === Cleaning up test data ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/viewAuditDefCredAccountTest/create_view_v_audit_defendant_accounts_unit_tests_v3.sql:888: NOTICE:  === Test data cleanup completed ===
+DO
+Time: 58.933 ms
+Timing is off.

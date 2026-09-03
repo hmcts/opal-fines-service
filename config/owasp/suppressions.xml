@@ -2,9 +2,9 @@
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
   <!--Please add all the false positives under the below section-->
 
-  <suppress until="2026-08-31Z">
+  <suppress until="2026-09-15Z">
     <notes><![CDATA[
-    Reviewed 2026-05-27.
+    Reviewed 2026-09-01.
     CVE-2025-21199 applies to Microsoft Azure Agent Installer products under the CPE family
     cpe:2.3:a:microsoft:azure_agent:* and the NVD affected-software entries are for the "backup"
     and "site_recovery" products. This repo contains the Java libraries
@@ -59,9 +59,9 @@
     <cve>CVE-2026-23907</cve>
     <cve>CVE-2026-33929</cve>
   </suppress>
-  <suppress until="2026-08-31Z">
+  <suppress until="2026-09-15Z">
     <notes><![CDATA[
-    Reviewed 2026-06-17.
+    Reviewed 2026-09-01.
     CVE-2026-33117 applies to com.azure:azure-keyvault-keys local cryptographic verification
     and is fixed in azure-keyvault-keys 4.10.6. This repo does not depend on
     azure-keyvault-keys; it uses Azure Blob Storage via BlobServiceClientBuilder,

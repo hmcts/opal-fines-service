@@ -36,7 +36,7 @@ public interface LegacyConsolidatedAccountMapper {
             .toList();
     }
 
-    default BigInteger toVersion(Long version) {
-        return version == null ? null : BigInteger.valueOf(version);
+    default BigInteger toVersion(BigInteger version) {
+        return version;
     }
 }

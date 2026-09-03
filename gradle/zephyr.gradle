@@ -10,7 +10,9 @@ List<String> zephyrBaseArgs = [
         "jira-default-components=opal-fines-service",
         "execution-environment=${System.getenv('EXECUTION_ENVIRONMENT') ?: ''}",
         "execution-build=${System.getenv('EXECUTION_BUILD') ?: ''}",
-        "execution-test-cycle-description=${System.getenv('EXECUTION_CYCLE_DESCRIPTION') ?: ''}"
+        "execution-test-cycle-description=${System.getenv('EXECUTION_CYCLE_DESCRIPTION') ?: ''}",
+        "success-status-id=${System.getenv('SUCCESS_STATUS_ID') ?: ''}",
+        "failed-status-id=${System.getenv('FAILED_STATUS_ID') ?: ''}"
 ]
 
 List<String> zephyrArgs(String processType, String actionType, String testFolder, String reportPath) {
@@ -129,6 +131,34 @@ void configureIntegrationZephyrTask(JavaExec task, String actionType, String des
     }
 }
 
+void configureReleaseIntegrationZephyrTask(JavaExec task, String release, String actionType, String description) {
+    String releaseName = release.toLowerCase()
+    String reportPath = "integration-output-${releaseName}/zephyr/Junit5Report-Integration${release}.json"
+
+    task.group = "Zephyr Reporting - JUnit5"
+    task.description = description
+    task.classpath = configurations.zephyrCucumberReportProcessor
+    task.mainClass = "uk.hmcts.zephyr.automation.ZephyrAutomation"
+    task.dependsOn("integration${release}")
+
+    File integrationReport = file(reportPath)
+
+    task.doFirst {
+        if (!integrationReport.exists()) {
+            throw new GradleException(
+                    "${release} integration Zephyr report was not found at ${integrationReport}"
+            )
+        }
+
+        task.setArgs(zephyrArgs(
+                "JUNIT5_JSON_REPORT",
+                actionType,
+                "integrationTest/java",
+                integrationReport.absolutePath
+        ) as List<String>)
+    }
+}
+
 tasks.register('createJiraTicketsFromFunctionalReport', JavaExec) { JavaExec task ->
     configureFunctionalZephyrTask(task, "CREATE_TICKETS",
             "Creates and links Jira tickets from the selected functional-family Zephyr report. Requires -PzephyrFunctionalStage=functional|smoke|runR1AOnly|runR1AAndR1BOnly|runAllFlagsOff")
@@ -157,4 +187,21 @@ tasks.register('updateJiraTicketsFromIntegrationReport', JavaExec) { JavaExec ta
 tasks.register('createJiraExecutionFromIntegrationReport', JavaExec) { JavaExec task ->
     configureIntegrationZephyrTask(task, "CREATE_EXECUTION",
             "Creates a Zephyr execution from the integration JUnit5 Zephyr report")
+}
+
+['R1A', 'R1B', 'R1C'].each { String release ->
+    tasks.register("createJiraTicketsFrom${release}IntegrationReport", JavaExec) { JavaExec task ->
+        configureReleaseIntegrationZephyrTask(task, release, "CREATE_TICKETS",
+                "Runs ${release} integration tests and creates and links Jira tickets from their Zephyr report")
+    }
+
+    tasks.register("updateJiraTicketsFrom${release}IntegrationReport", JavaExec) { JavaExec task ->
+        configureReleaseIntegrationZephyrTask(task, release, "UPDATE_TICKETS",
+                "Runs ${release} integration tests and updates Jira tickets from their Zephyr report")
+    }
+
+    tasks.register("createJiraExecutionFrom${release}IntegrationReport", JavaExec) { JavaExec task ->
+        configureReleaseIntegrationZephyrTask(task, release, "CREATE_EXECUTION",
+                "Runs ${release} integration tests and creates a Zephyr execution from their report")
+    }
 }

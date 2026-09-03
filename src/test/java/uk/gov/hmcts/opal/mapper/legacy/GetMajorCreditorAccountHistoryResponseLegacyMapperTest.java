@@ -32,7 +32,7 @@ class GetMajorCreditorAccountHistoryResponseLegacyMapperTest extends AbstractMap
     void toOpal_mapsLegacyHistoryResponse() {
         GetMajorCreditorAccountHistoryLegacyResponse legacy =
             GetMajorCreditorAccountHistoryLegacyResponse.builder()
-                .version(7L)
+                .version(BigInteger.valueOf(7L))
                 .historyItems(List.of(LegacyMajorCreditorHistoryItem.builder()
                     .postedDetails(new LegacyPostedDetails(
                         LocalDateTime.of(2026, 1, 31, 10, 30),
@@ -98,7 +98,7 @@ class GetMajorCreditorAccountHistoryResponseLegacyMapperTest extends AbstractMap
     void toOpal_mapsLegacyNoteHistoryResponse() {
         GetMajorCreditorAccountHistoryLegacyResponse legacy =
             GetMajorCreditorAccountHistoryLegacyResponse.builder()
-                .version(7L)
+                .version(BigInteger.valueOf(7L))
                 .historyItems(List.of(LegacyMajorCreditorHistoryItem.builder()
                     .postedDetails(new LegacyPostedDetails(
                         LocalDateTime.of(2026, 1, 31, 10, 30),
@@ -133,7 +133,7 @@ class GetMajorCreditorAccountHistoryResponseLegacyMapperTest extends AbstractMap
     void toOpal_ordersHistoryItemsNewestFirstWithDeterministicTieHandling() {
         GetMajorCreditorAccountHistoryLegacyResponse legacy =
             GetMajorCreditorAccountHistoryLegacyResponse.builder()
-                .version(7L)
+                .version(BigInteger.valueOf(7L))
                 .historyItems(List.of(
                     historyItem("MJF002", LocalDateTime.of(2026, 1, 25, 9, 15)),
                     historyItem("MJF004", LocalDateTime.of(2026, 1, 31, 10, 30)),
