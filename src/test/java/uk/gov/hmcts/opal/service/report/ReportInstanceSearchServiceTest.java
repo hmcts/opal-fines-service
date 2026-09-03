@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -20,7 +19,9 @@ import jakarta.persistence.EntityNotFoundException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -40,7 +41,6 @@ import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.repository.ReportRepository;
@@ -82,12 +82,15 @@ class ReportInstanceSearchServiceTest {
     }
 
     private void setAuthenticatedUserWithPermissions(FinesPermission... permissions) {
-        Set<Permission> permittedPermissions = Arrays.stream(permissions)
-            .map(FinesPermission::toCommonPermission)
-            .collect(java.util.stream.Collectors.toSet());
+        Set<String> permittedPermissions = Arrays.stream(permissions)
+            .map(FinesPermission::name)
+            .collect(Collectors.toSet());
 
-        when(authToken.hasPermission(any(Permission.class))).thenAnswer(invocation ->
-            permittedPermissions.contains(invocation.getArgument(0)));
+        when(authToken.hasPermission(anyString())).thenAnswer(invocation -> {
+            String permissionName = invocation.getArgument(0);
+            return permittedPermissions.stream()
+                .anyMatch(permission -> permission.contains(permissionName));
+        });
     }
 
     private void setBusinessUnitUsers(BusinessUnitUser... businessUnitUsers) {
@@ -128,7 +131,7 @@ class ReportInstanceSearchServiceTest {
         @Test
         void whenReportIsPermitted_returnsReport_happyPath() {
             ReportEntity permittedReport = report(REPORT_ID, SEARCH_AND_VIEW_ACCOUNTS);
-            when(reportRepository.findById(REPORT_ID)).thenReturn(java.util.Optional.of(permittedReport));
+            when(reportRepository.findById(REPORT_ID)).thenReturn(Optional.of(permittedReport));
             setAuthenticatedUserWithPermissions(SEARCH_AND_VIEW_ACCOUNTS);
 
             ReportEntity result = reportInstanceSearchService.findRequestedReportElseThrowError(REPORT_ID);
