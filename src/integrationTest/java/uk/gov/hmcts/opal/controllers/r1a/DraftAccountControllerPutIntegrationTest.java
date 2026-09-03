@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.controllers.r1a;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -26,6 +27,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -80,27 +82,19 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"submitted_by", "submitted_by_name"})
-    @DisplayName("Replace draft account - Should return 400 when token-derived fields are supplied")
+    @ValueSource(strings = {"submitted_by", "submitted_by_name", "version"})
+    @DisplayName("Replace draft account - Should allow top-level fields during frontend compatibility period")
     @JiraStory("PO-2461")
     @JiraEpic("PO-2220")
-    void testReplaceDraftAccount_tokenDerivedFieldIsSupplied(String propertyName) throws Exception {
+    void testReplaceDraftAccount_additionalTopLevelFieldIsSupplied(String propertyName) {
         String request = validReplaceRequestBody(0L).replace(
             "\"business_unit_id\": 78,",
             "\"business_unit_id\": 78,\n"
-                + "              \"%s\": \"client-user\",".formatted(propertyName)
+                + "              \"%s\": \"client-value\",".formatted(propertyName)
         );
 
-        mockMvc.perform(put(URL_BASE + "/" + 5)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", "3")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request))
-            .andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail", containsString(propertyName)))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
+        assertDoesNotThrow(() ->
+            jsonSchemaValidationService.validateOrError(request, SchemaPaths.REPLACE_DRAFT_ACCOUNT_REQUEST));
     }
 
     @Test
