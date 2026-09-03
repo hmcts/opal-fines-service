@@ -61,8 +61,21 @@
     }
   },
   "required": ["header", "payload"],
-  "oneOf": [
+  "allOf": [
     {
+      "oneOf": [
+        {
+         "$ref": "#/$defs/offenceMessage"
+        },
+        {
+          "$ref": "#/$defs/ljaMessage"
+        }
+      ]
+    }
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "offenceMessage":  {
       "properties": {
         "header": {
           "properties": {
@@ -82,29 +95,26 @@
         }
       }
     },
-    {
+    "ljaMessage": {
       "properties": {
-        "header": {
-          "properties": {
-            "dataProduct": {
-              "const": "LJA"
-            }
+      "header": {
+        "properties": {
+          "dataProduct": {
+            "const": "LJA"
           }
-        },
-        "payload": {
-          "properties": {
-            "records": {
-              "items": {
-                "$ref": "#/$defs/ljaRecord"
-              }
+        }
+      },
+      "payload": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/$defs/ljaRecord"
             }
           }
         }
       }
     }
-  ],
-  "unevaluatedProperties": false,
-  "$defs": {
+    },
     "offenceRecord": {
       "type": "object",
       "properties": {
