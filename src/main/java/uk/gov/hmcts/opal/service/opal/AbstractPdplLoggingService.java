@@ -25,10 +25,19 @@ public abstract class AbstractPdplLoggingService {
         ParticipantIdentifier recipient,
         UserState userState) {
 
+        logPdpl(businessIdentifier, category, individuals, recipient, userState.getUserId());
+    }
+
+    protected boolean logPdpl(String businessIdentifier,
+        PersonalDataProcessingCategory category,
+        List<ParticipantIdentifier> individuals,
+        ParticipantIdentifier recipient,
+        Long userId) {
+
 
         // attempt to resolve createdBy from Spring Security
         ParticipantIdentifier createdBy = ParticipantIdentifier.builder()
-            .identifier(userState.getUserId().toString())
+            .identifier(userId.toString())
             .type(PdplIdentifierType.OPAL_USER_ID)
             .build();
 
@@ -42,6 +51,6 @@ public abstract class AbstractPdplLoggingService {
             .individuals(individuals)
             .build();
 
-        loggingService.personalDataAccessLogAsync(logDetails);
+        return loggingService.personalDataAccessLogAsync(logDetails);
     }
 }
