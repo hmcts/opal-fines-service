@@ -308,9 +308,13 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
             log.error(":replaceDefendantAccountParty: Legacy error HTTP {}", response.code);
             if (response.isException()) {
                 log.error(":replaceDefendantAccountParty: exception:", response.exception);
+                throw new RuntimeException("Legacy exception during replaceDefendantAccountParty", response.exception);
             } else if (response.isLegacyFailure()) {
                 log.error(":replaceDefendantAccountParty: legacy failure body:\n{}", response.body);
+                throw new RuntimeException("Legacy failure during replaceDefendantAccountParty");
             }
+
+            throw new RuntimeException("Unknown error during replaceDefendantAccountParty");
         } else if (response.isSuccessful()) {
             log.info(":replaceDefendantAccountParty: Legacy success.");
         }
