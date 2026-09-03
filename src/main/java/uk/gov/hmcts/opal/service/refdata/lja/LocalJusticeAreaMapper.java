@@ -6,8 +6,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.generated.refdata.Address;
-import uk.gov.hmcts.opal.generated.refdata.LjaRecord;
+import uk.gov.hmcts.opal.service.refdata.lja.LjaRecord.Address;
 import uk.gov.hmcts.opal.service.refdata.framework.RefDataUpdateMapper;
 
 @Mapper(componentModel = "spring")
@@ -17,6 +16,7 @@ public interface LocalJusticeAreaMapper
     @Override
     @Mapping(target = "localJusticeAreaId", ignore = true)
     @Mapping(target = "ljaType", constant = "LJA")
+    @Mapping(target = "name", source = "ljaName")
     @Mapping(target = "addressLine1", expression = "java(firstAddressLine1(dto))")
     @Mapping(target = "addressLine2", expression = "java(firstAddressLine2(dto))")
     @Mapping(target = "addressLine3", expression = "java(firstAddressLine3(dto))")

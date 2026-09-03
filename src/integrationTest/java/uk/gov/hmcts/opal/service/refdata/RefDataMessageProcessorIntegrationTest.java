@@ -26,6 +26,8 @@ import uk.gov.hmcts.opal.service.refdata.framework.RefDataMessageProcessor;
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
 
+    private static final String VALCON_REF_DATA_MESSAGE_SCHEMA = "ref-data/valcon_oneofpayload.json";
+
     private final RefDataMessageProcessor consumer;
     private final LocalJusticeAreaRepository localJusticeAreaRepository;
 
@@ -116,7 +118,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
             "Updated LJA", "2027-03-04", "New address line 1", "New address line 2",
             "New address line 3", "New address line 4", "NE1 2BB")))
             .isInstanceOf(JsonSchemaValidationException.class)
-            .hasMessageContaining("ref-data/valcon_allofoneof.json");
+            .hasMessageContaining(VALCON_REF_DATA_MESSAGE_SCHEMA);
 
         entityManager.flush();
         entityManager.clear();
@@ -150,7 +152,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
             "Updated LJA", "2027-03-04", "New address line 1", "New address line 2", "New address line 3",
             "New address line 4", "NE1 2BB")))
             .isInstanceOf(JsonSchemaValidationException.class)
-            .hasMessageContaining("ref-data/valcon_allofoneof.json");
+            .hasMessageContaining(VALCON_REF_DATA_MESSAGE_SCHEMA);
 
         entityManager.flush();
         entityManager.clear();
@@ -171,7 +173,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
             "Z127", "Unknown", "2027-03-04", "New address line 1", "New address line 2",
             "New address line 3", "New address line 4", "NE1 2BB")))
             .isInstanceOf(JsonSchemaValidationException.class)
-            .hasMessageContaining("ref-data/valcon_allofoneof.json");
+            .hasMessageContaining(VALCON_REF_DATA_MESSAGE_SCHEMA);
 
         entityManager.flush();
         entityManager.clear();

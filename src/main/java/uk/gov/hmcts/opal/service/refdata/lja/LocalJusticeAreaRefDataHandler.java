@@ -4,7 +4,6 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.generated.refdata.LjaRecord;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.service.refdata.framework.RefDataUpdateHandler;
 

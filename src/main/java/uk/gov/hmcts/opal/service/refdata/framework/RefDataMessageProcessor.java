@@ -11,7 +11,7 @@ import tools.jackson.databind.ObjectMapper;
 @Service
 public class RefDataMessageProcessor {
 
-    private static final String VALCON_REF_DATA_MESSAGE_SCHEMA = "ref-data/valcon_allofoneof.json";
+    private static final String VALCON_REF_DATA_MESSAGE_SCHEMA = "ref-data/valcon_oneofpayload.json";
 
     private final ObjectMapper objectMapper;
     private final SchemaValidationService schemaValidationService;
