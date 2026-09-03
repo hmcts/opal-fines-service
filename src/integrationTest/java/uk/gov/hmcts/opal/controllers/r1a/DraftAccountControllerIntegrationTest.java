@@ -176,8 +176,6 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "Adult",
@@ -249,8 +247,7 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
                 ]
               },
               "account_type": "Fine",
-              "account_status": "Submitted",
-              "version": 0
+              "account_status": "Submitted"
             }""";
     }
 

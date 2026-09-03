@@ -124,13 +124,10 @@ class DraftAccountPublishTransactionTest extends AbstractIntegrationTest {
         return """
             {
               "account_status": "Publishing Pending",
-              "validated_by": "ignored-by-service",
-              "validated_by_name": "ignored-by-service",
               "business_unit_id": 77,
-              "reason_text": "Approve for publish",
-              "version": %d
+              "reason_text": "Approve for publish"
             }
-            """.formatted(version);
+            """;
     }
 
     private void assertDefendantAccountSearchCount(int expectedCount) throws Exception {

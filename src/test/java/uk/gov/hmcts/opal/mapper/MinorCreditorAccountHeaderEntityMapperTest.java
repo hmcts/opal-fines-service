@@ -8,8 +8,9 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
@@ -47,8 +48,9 @@ class MinorCreditorAccountHeaderEntityMapperTest extends AbstractMapperTest {
     private DebtorDetailRepositoryService debtorService;
 
 
-    @Test
-    void givenFullEntity_whenToResponse_thenMapsExpectedFieldsAndCallsSubmappers() {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void givenFullEntity_whenToResponse_thenMapsExpectedFieldsAndCallsSubmappers(boolean repayment) {
         // Arrange
         MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
             .creditorAccountId(101L)
@@ -65,6 +67,7 @@ class MinorCreditorAccountHeaderEntityMapperTest extends AbstractMapperTest {
             .awaitingPayment(new BigDecimal("1.00"))
             .outstanding(BigDecimal.ZERO)
             .hasAssociatedDefendant(true)
+            .repayment(repayment)
             .build();
 
         PartyEntity party = PartyEntity.builder()
@@ -89,6 +92,7 @@ class MinorCreditorAccountHeaderEntityMapperTest extends AbstractMapperTest {
         assertEquals(new BigDecimal("2.00"), mapped.getFinancials().getPaidOut());
         assertEquals(new BigDecimal("1.00"), mapped.getFinancials().getAwaitingPayout());
         assertEquals(BigDecimal.ZERO, mapped.getFinancials().getOutstanding());
+        assertEquals(repayment, mapped.getRepayment());
 
 
         verify(partyMapper).toDto(party);
