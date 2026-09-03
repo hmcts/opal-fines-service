@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.controllers.r1a;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -19,11 +20,14 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -75,6 +79,22 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
         jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNT_RESPONSE);
 
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"submitted_by", "submitted_by_name", "version"})
+    @DisplayName("Replace draft account - Should allow top-level fields during frontend compatibility period")
+    @JiraStory("PO-2461")
+    @JiraEpic("PO-2220")
+    void testReplaceDraftAccount_additionalTopLevelFieldIsSupplied(String propertyName) {
+        String request = validReplaceRequestBody(0L).replace(
+            "\"business_unit_id\": 78,",
+            "\"business_unit_id\": 78,\n"
+                + "              \"%s\": \"client-value\",".formatted(propertyName)
+        );
+
+        assertDoesNotThrow(() ->
+            jsonSchemaValidationService.validateOrError(request, SchemaPaths.REPLACE_DRAFT_ACCOUNT_REQUEST));
     }
 
     @Test
@@ -139,8 +159,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     void testReplaceDraftAccount_timelineDataIsSupplied() throws Exception {
         String request = validReplaceRequestBody(0L)
             .replace(
-                "\"version\":0",
-                "\"version\": 0,\n              \"timeline_data\": " + validTimelineDataJson().trim()
+                "\"account_status\": \"Submitted\"",
+                "\"account_status\": \"Submitted\",\n              \"timeline_data\": " + validTimelineDataJson().trim()
             );
         String ifMatch = getIfMatchForDraftAccount(5L);
 
@@ -636,8 +656,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "Adult",
@@ -709,8 +727,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 ]
               },
               "account_type": "Fine",
-              "account_status": "Submitted",
-              "version": 0
+              "account_status": "Submitted"
             }""";
     }
 
@@ -718,8 +735,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "adultOrYouthOnly",
@@ -791,12 +806,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 ]
               },
               "account_type": "Fine",
-              "account_status": "Submitted",
-              "version": """ + version
-            +
-            """
-
-                }""";
+              "account_status": "Submitted"
+            }""";
     }
 
     private static String nonImpositionResultReplaceRequestBody(Long version) {
@@ -835,8 +846,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "pgToPay",
@@ -898,8 +907,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 ]
               },
               "account_type": "Fine",
-              "account_status": "Submitted",
-              "version": """ + version + """
+              "account_status": "Submitted"
             }
             """;
     }
@@ -908,8 +916,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "adultOrYouthOnly",
@@ -956,8 +962,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 ]
               },
               "account_type": "Fine",
-              "account_status": "Submitted",
-              "version": """ + version + """
+              "account_status": "Submitted"
             }
             """;
     }
@@ -966,8 +971,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "pgToPay",
@@ -1022,8 +1025,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 ]
               },
               "account_type": "Fine",
-              "account_status": "Submitted",
-              "version": """ + version + """
+              "account_status": "Submitted"
             }
             """;
     }
@@ -1032,8 +1034,6 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         return """
             {
               "business_unit_id": 78,
-              "submitted_by": "BUUID1",
-              "submitted_by_name": "John",
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "adultOrYouthOnly",
@@ -1087,8 +1087,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 ]
               },
               "account_type": "Fine",
-              "account_status": "Submitted",
-              "version": """ + version + """
+              "account_status": "Submitted"
             }
             """;
     }

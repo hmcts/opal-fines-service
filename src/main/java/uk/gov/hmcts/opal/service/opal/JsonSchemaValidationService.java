@@ -12,6 +12,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.dto.ToJsonString;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
+import uk.gov.hmcts.opal.exception.JsonSchemaValidationException.JsonSchemaValidationError;
 import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 
 import java.io.IOException;
@@ -62,31 +63,64 @@ public class JsonSchemaValidationService {
     }
 
     public void  validateOrError(String body, String jsonSchemaFileName) {
-        Set<String> errors = validate(body, jsonSchemaFileName);
-        if (!errors.isEmpty()) {
-            StringBuilder sb = new StringBuilder(errors.size() >> 7);
-            sb.append("Validating against JSON schema '")
-                .append(jsonSchemaFileName)
-                .append("', found ")
-                .append(errors.size())
-                .append(" validation errors:");
-            for (String msg : errors) {
-                sb.append("\n\t").append(msg);
-            }
-            appendContent(sb, body);
-            throw new JsonSchemaValidationException(sb.toString());
+        Set<ValidationMessage> validationMessages;
+        try {
+            validationMessages = validateMessages(body, jsonSchemaFileName);
+        } catch (JsonSchemaValidationException jsve) {
+            throw new JsonSchemaValidationException(
+                formatValidationErrorMessage(jsonSchemaFileName, Set.of(jsve.getMessage()), body),
+                jsve
+            );
+        }
+        if (!validationMessages.isEmpty()) {
+            Set<String> messages = validationMessages.stream()
+                .map(ValidationMessage::getMessage)
+                .collect(Collectors.toSet());
+            throw new JsonSchemaValidationException(
+                formatValidationErrorMessage(jsonSchemaFileName, messages, body),
+                toValidationErrors(validationMessages)
+            );
         }
     }
 
     public Set<String> validate(String body, String jsonSchemaFileName) {
-        JsonSchema jsonSchema = getJsonSchema(jsonSchemaFileName);
         try {
-            getJsonNodeFromStringContent(body);
-            Set<ValidationMessage> msgs = jsonSchema.validate(body, InputFormat.JSON);
-            return msgs.stream().map(ValidationMessage::getMessage).collect(Collectors.toSet());
+            return validateMessages(body, jsonSchemaFileName).stream()
+                .map(ValidationMessage::getMessage)
+                .collect(Collectors.toSet());
         } catch (JsonSchemaValidationException jsve) {
             return Set.of(jsve.getMessage());
         }
+    }
+
+    private Set<ValidationMessage> validateMessages(String body, String jsonSchemaFileName) {
+        JsonSchema jsonSchema = getJsonSchema(jsonSchemaFileName);
+        getJsonNodeFromStringContent(body);
+        return jsonSchema.validate(body, InputFormat.JSON);
+    }
+
+    private Set<JsonSchemaValidationError> toValidationErrors(Set<ValidationMessage> validationMessages) {
+        return validationMessages.stream()
+            .map(validationMessage -> new JsonSchemaValidationError(
+                validationMessage.getType(),
+                validationMessage.getProperty(),
+                validationMessage.getMessage()
+            ))
+            .collect(Collectors.toSet());
+    }
+
+    private String formatValidationErrorMessage(String jsonSchemaFileName, Set<String> messages, String body) {
+        StringBuilder sb = new StringBuilder(messages.size() >> 7);
+        sb.append("Validating against JSON schema '")
+            .append(jsonSchemaFileName)
+            .append("', found ")
+            .append(messages.size())
+            .append(" validation errors:");
+        for (String msg : messages) {
+            sb.append("\n\t").append(msg);
+        }
+        appendContent(sb, body);
+        return sb.toString();
     }
 
     private JsonNode getJsonNodeFromStringContent(String content) {

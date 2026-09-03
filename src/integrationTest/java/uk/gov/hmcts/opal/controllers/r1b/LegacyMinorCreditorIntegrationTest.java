@@ -65,6 +65,22 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
     }
 
     @Test
+    @Sql(
+        statements = "UPDATE public.creditor_accounts SET repayment = true WHERE creditor_account_id = 99000000000802",
+        executionPhase = BEFORE_TEST_METHOD
+    )
+    @Sql(
+        statements = "UPDATE public.creditor_accounts SET repayment = false WHERE creditor_account_id = 99000000000802",
+        executionPhase = AFTER_TEST_METHOD
+    )
+    @JiraStory("PO-9786")
+    @JiraEpic("PO-2630")
+    @JiraTestKey("PO-9786")
+    void getHeaderSummary_repayment_returnsRepaymentTrue() throws Exception {
+        super.getHeaderSummary_repaymentTrue(log);
+    }
+
+    @Test
     @JiraStory("PO-1912")
     @JiraEpic("PO-2234")
     @JiraTestKey("PO-5946")
