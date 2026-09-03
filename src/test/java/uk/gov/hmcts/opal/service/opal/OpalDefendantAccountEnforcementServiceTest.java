@@ -52,7 +52,7 @@ import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
-import uk.gov.hmcts.opal.generated.model.ActivityNoteNotes;
+import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
@@ -749,12 +749,12 @@ class OpalDefendantAccountEnforcementServiceTest {
             );
 
             assertNotNull(addNoteRequestCaptor.getValue());
-            ActivityNoteNotes capturedNote = addNoteRequestCaptor.getValue().getActivityNote();
+            NoteCommon capturedNote = addNoteRequestCaptor.getValue().getActivityNote();
             assertNotNull(capturedNote);
-            assertEquals(ActivityNoteNotes.RecordTypeEnum.DEFENDANT_ACCOUNTS, capturedNote.getRecordType());
+            assertEquals(NoteCommon.RecordTypeEnum.DEFENDANT_ACCOUNTS, capturedNote.getRecordType());
             assertEquals(String.valueOf(defendantAccountId), capturedNote.getRecordId());
             assertEquals("remove hold reason", capturedNote.getNoteText());
-            assertEquals(ActivityNoteNotes.NoteTypeEnum.AA, capturedNote.getNoteType());
+            assertEquals(NoteCommon.NoteTypeEnum.AA, capturedNote.getNoteType());
 
             AccountNoteContext capturedTarget = accountNoteContextCaptor.getValue();
             assertEquals(DefendantAccountEntity.class, capturedTarget.accountClass());

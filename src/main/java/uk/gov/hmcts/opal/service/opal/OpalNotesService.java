@@ -15,8 +15,8 @@ import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.NoteType;
-import uk.gov.hmcts.opal.generated.model.ActivityNoteNotes;
 import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
+import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
@@ -49,7 +49,7 @@ public class OpalNotesService implements NotesServiceInterface {
 
         final Versioned account = getAccountAndVerifyVersion(target, ifMatch);
 
-        ActivityNoteNotes requestNote = req.getActivityNote();
+        NoteCommon requestNote = req.getActivityNote();
 
         NoteEntity note = new NoteEntity();
         note.setNoteText(requestNote.getNoteText());

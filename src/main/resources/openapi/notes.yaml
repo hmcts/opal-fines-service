@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: APIs for managing notes.
 paths:
-  /notes/add:
+  /notes:
     post:
       tags:
         - notes
@@ -85,28 +85,4 @@ components:
         - activity_note
       properties:
         activity_note:
-          $ref: '#/components/schemas/ActivityNote'
-    ActivityNote:
-      title: Note to add
-      type: object
-      additionalProperties: false
-      properties:
-        record_type:
-          type: string
-          enum:
-            - defendant_accounts
-            - creditor_accounts
-            - suspense_accounts
-            - report_instances
-        record_id:
-          type: string
-        note_text:
-          type: string
-        note_type:
-          type: string
-          const: AA
-      required:
-        - record_type
-        - record_id
-        - note_text
-        - note_type
+          $ref: './common.yaml#/components/schemas/note'
