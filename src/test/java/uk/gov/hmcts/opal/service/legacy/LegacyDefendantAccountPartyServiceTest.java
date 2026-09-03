@@ -26,6 +26,7 @@ import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
@@ -1364,13 +1365,14 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             Mockito.nullable(String.class)
         );
 
-        RuntimeException ex = assertThrows(
-            RuntimeException.class,
+        ResponseStatusException ex = assertThrows(
+            ResponseStatusException.class,
             () -> legacyDefendantAccountPartyService.replaceDefendantAccountParty(
                 77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
             )
         );
-        assertEquals("Legacy failure during replaceDefendantAccountParty", ex.getMessage());
+        assertEquals("Legacy failure during replaceDefendantAccountParty", ex.getReason());
+        assertEquals(HttpStatus.BAD_GATEWAY, ex.getStatusCode());
     }
 
     @Test
@@ -1387,11 +1389,14 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             Mockito.nullable(String.class)
         );
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+        ResponseStatusException ex =
+            assertThrows(ResponseStatusException.class, () ->
             legacyDefendantAccountPartyService.replaceDefendantAccountParty(
                 77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user")
         );
-        assertEquals("boom", ex.getMessage());
+        assertEquals("Legacy exception during replaceDefendantAccountParty", ex.getReason());
+        assertEquals("boom", ex.getCause().getMessage());
+        assertEquals(HttpStatus.BAD_GATEWAY, ex.getStatusCode());
     }
 
     @Test
