@@ -128,6 +128,55 @@ class LegacyNotesServiceTest {
     }
 
     @Test
+    void addNote_successWithoutFetchedNote_returnsRequestRecordId() {
+
+        LegacyAddNoteResponse entity = LegacyAddNoteResponse.builder()
+            .version(BigInteger.valueOf(1L))
+            .build();
+
+        @SuppressWarnings("unchecked")
+        GatewayService.Response<LegacyAddNoteResponse> resp = mock(GatewayService.Response.class);
+        ReflectionTestUtils.setField(resp, "responseEntity", entity);
+        when(resp.isSuccessful()).thenReturn(true);
+
+        when(gatewayService.<LegacyAddNoteResponse>postToGateway(
+            anyString(),
+            eq(LegacyAddNoteResponse.class),
+            any(LegacyAddNoteRequest.class),
+            isNull(String.class)
+        )).thenReturn(resp);
+
+        AddNoteRequest req = addReq("770000004141", "hello");
+        givenBusinessUnitUser((short) 77, "L077JG");
+
+        String id = service.addNote(req, '"' + LEGACY_VERSION + '"', user, (short) 77);
+
+        assertEquals("770000004141", id);
+    }
+
+    @Test
+    void addNote_successWithoutResponseEntity_returnsRequestRecordId() {
+
+        @SuppressWarnings("unchecked")
+        GatewayService.Response<LegacyAddNoteResponse> resp = mock(GatewayService.Response.class);
+        when(resp.isSuccessful()).thenReturn(true);
+
+        when(gatewayService.<LegacyAddNoteResponse>postToGateway(
+            anyString(),
+            eq(LegacyAddNoteResponse.class),
+            any(LegacyAddNoteRequest.class),
+            isNull(String.class)
+        )).thenReturn(resp);
+
+        AddNoteRequest req = addReq("770000004141", "hello");
+        givenBusinessUnitUser((short) 77, "L077JG");
+
+        String id = service.addNote(req, '"' + LEGACY_VERSION + '"', user, (short) 77);
+
+        assertEquals("770000004141", id);
+    }
+
+    @Test
     void addNote_success_buildsLegacySchemaCompliantJson() throws Exception {
 
         LegacyAddNoteResponse entity = legacyRespWithNote("770000004141", "hello");

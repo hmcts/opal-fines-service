@@ -41,7 +41,7 @@ public class LegacyNotesService implements NotesServiceInterface {
 
         validateGatewayResponse(response);
 
-        return response.responseEntity.getNote().getRecordId();
+        return request.getActivityNote().getRecordId();
     }
 
     private LegacyAddNoteRequest createRequest(AddNoteRequest request, String version, UserState user,
@@ -74,10 +74,8 @@ public class LegacyNotesService implements NotesServiceInterface {
             handleGatewayError(response);
         } else if (response.isSuccessful()) {
             log.info(":LegacyAddNote: Legacy Gateway response: Success.");
-        }
-
-        if (response.responseEntity == null || response.responseEntity.getNote() == null) {
-            throw new IllegalArgumentException("Legacy add note response missing activity note");
+        } else {
+            throw new IllegalArgumentException("Legacy gateway response missing status");
         }
     }
 
