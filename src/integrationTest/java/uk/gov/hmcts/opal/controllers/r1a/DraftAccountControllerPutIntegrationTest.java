@@ -83,7 +83,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
     @ParameterizedTest
     @ValueSource(strings = {"submitted_by", "submitted_by_name", "version"})
-    @DisplayName("Replace draft account - Should allow additional top-level fields during frontend compatibility period")
+    @DisplayName("Replace draft account - Should allow top-level fields during frontend compatibility period")
     @JiraStory("PO-2461")
     @JiraEpic("PO-2220")
     void testReplaceDraftAccount_additionalTopLevelFieldIsSupplied(String propertyName) {

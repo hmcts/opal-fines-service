@@ -571,7 +571,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     }
 
     @Test
-    @DisplayName("Create draft account - Should allow undocumented top-level field during frontend compatibility period")
+    @DisplayName("Create draft account - Should allow top-level field during frontend compatibility period")
     @JiraStory("PO-2461")
     @JiraEpic("PO-2219")
     void testPostDraftAccount_undocumentedTopLevelFieldIsSupplied() {
