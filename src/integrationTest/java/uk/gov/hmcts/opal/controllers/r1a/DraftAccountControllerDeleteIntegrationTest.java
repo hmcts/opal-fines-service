@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.controllers;
+package uk.gov.hmcts.opal.controllers.r1a;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;

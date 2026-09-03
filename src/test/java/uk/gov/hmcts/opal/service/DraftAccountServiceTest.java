@@ -557,8 +557,6 @@ class DraftAccountServiceTest {
         Long draftAccountId = 1L;
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .accountStatus(DraftAccountStatus.DELETED)
-            .validatedBy("PATCH002_REVIEWER")
-            .validatedByName("Laura Reviewer")
             .businessUnitId((short) 2)
             .build();
         DraftAccountEntity updatedAccount = DraftAccountEntity.builder()
@@ -578,7 +576,7 @@ class DraftAccountServiceTest {
                 .accountStatus(DraftAccountStatus.SUBMITTED)
                 .build()
         );
-        when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any(), any()))
+        when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any(), any(), any(), any()))
             .thenReturn(updatedAccount);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(draftAccountMapper.toResponseDto(updatedAccount)).thenReturn(
@@ -618,8 +616,6 @@ class DraftAccountServiceTest {
         Long draftAccountId = 1L;
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .accountStatus(DraftAccountStatus.DELETED)
-            .validatedBy("PATCH002_REVIEWER")
-            .validatedByName("Laura Reviewer")
             .businessUnitId((short) 2)
             .build();
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
@@ -640,7 +636,7 @@ class DraftAccountServiceTest {
         var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
 
         when(draftAccountTransactional.getDraftAccount(draftAccountId)).thenReturn(existingAccount);
-        when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any(), any()))
+        when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any(), any(), any(), any()))
             .thenReturn(updatedAccount);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(draftAccountMapper.toResponseDto(updatedAccount)).thenReturn(
