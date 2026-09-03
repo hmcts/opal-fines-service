@@ -12,7 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
-import uk.gov.hmcts.opal.generated.model.ActivityNoteNotes;
+import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 
@@ -29,11 +29,11 @@ class NotesServiceAccountContextTest {
             creditorAccountRepository
         );
 
-        final ActivityNoteNotes note = ActivityNoteNotes.builder()
-            .recordType(ActivityNoteNotes.RecordTypeEnum.CREDITOR_ACCOUNTS)
+        final NoteCommon note = NoteCommon.builder()
+            .recordType(NoteCommon.RecordTypeEnum.CREDITOR_ACCOUNTS)
             .recordId("104")
             .noteText("creditor note")
-            .noteType(ActivityNoteNotes.NoteTypeEnum.AA)
+            .noteType(NoteCommon.NoteTypeEnum.AA)
             .build();
 
         CreditorAccountEntity creditorAccount = new CreditorAccountEntity();

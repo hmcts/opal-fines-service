@@ -16,12 +16,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
-import uk.gov.hmcts.opal.generated.model.ActivityNoteNotes;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementResultResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
+import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
@@ -259,11 +259,11 @@ public class OpalDefendantAccountEnforcementService
         Long defendantAccountId,
         RemoveEnforcementHoldRequestDefendantAccount request) {
 
-        ActivityNoteNotes note = ActivityNoteNotes.builder()
-            .recordType(ActivityNoteNotes.RecordTypeEnum.DEFENDANT_ACCOUNTS)
+        NoteCommon note = NoteCommon.builder()
+            .recordType(NoteCommon.RecordTypeEnum.DEFENDANT_ACCOUNTS)
             .recordId(String.valueOf(defendantAccountId))
             .noteText(request.getReason())
-            .noteType(ActivityNoteNotes.NoteTypeEnum.AA)
+            .noteType(NoteCommon.NoteTypeEnum.AA)
             .build();
 
         return AddNoteRequestNotes.builder().activityNote(note).build();

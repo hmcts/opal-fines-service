@@ -78,7 +78,7 @@ public final class Release1bFeatureToggleRequestUtil {
             ),
             Arguments.of(
                 "Add Note",
-                post("/notes/add")
+                post("/notes")
                     .contentType(MediaType.APPLICATION_JSON)
                     .header("Authorization", AUTHORIZATION)
                     .header("If-Match", IF_MATCH)

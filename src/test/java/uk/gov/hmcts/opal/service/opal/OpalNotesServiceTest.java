@@ -24,7 +24,7 @@ import uk.gov.hmcts.opal.entity.NoteType;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.generated.model.ActivityNoteNotes;
+import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
@@ -59,7 +59,7 @@ class OpalNotesServiceTest {
             .thenReturn(managed);
         when(user.getDisplayName()).thenReturn("Test User");
         when(repository.save(any(NoteEntity.class))).thenReturn(saved);
-        AddNoteRequestNotes req = buildRequest("77", ActivityNoteNotes.RecordTypeEnum.DEFENDANT_ACCOUNTS);
+        AddNoteRequestNotes req = buildRequest("77", NoteCommon.RecordTypeEnum.DEFENDANT_ACCOUNTS);
 
         String result = service.addNote(req, "\"12\"", user, defendantTarget());
 
@@ -90,7 +90,7 @@ class OpalNotesServiceTest {
         when(creditorAccountRepository.findByCreditorAccountIdForUpdate(104L)).thenReturn(Optional.of(managed));
         when(user.getDisplayName()).thenReturn("Creditor User");
         when(repository.save(any(NoteEntity.class))).thenReturn(saved);
-        AddNoteRequestNotes req = buildRequest("104", ActivityNoteNotes.RecordTypeEnum.CREDITOR_ACCOUNTS);
+        AddNoteRequestNotes req = buildRequest("104", NoteCommon.RecordTypeEnum.CREDITOR_ACCOUNTS);
 
         String result = service.addNote(req, "\"3\"", user, creditorTarget());
 
@@ -105,12 +105,12 @@ class OpalNotesServiceTest {
         verify(creditorAccountRepository).findByCreditorAccountIdForUpdate(104L);
     }
 
-    private static AddNoteRequestNotes buildRequest(String recordId, ActivityNoteNotes.RecordTypeEnum recordType) {
-        ActivityNoteNotes note = new ActivityNoteNotes();
+    private static AddNoteRequestNotes buildRequest(String recordId, NoteCommon.RecordTypeEnum recordType) {
+        NoteCommon note = new NoteCommon();
         note.setRecordId(recordId);
         note.setRecordType(recordType);
         note.setNoteText("test");
-        note.setNoteType(ActivityNoteNotes.NoteTypeEnum.AA);
+        note.setNoteType(NoteCommon.NoteTypeEnum.AA);
         return AddNoteRequestNotes.builder().activityNote(note).build();
     }
 

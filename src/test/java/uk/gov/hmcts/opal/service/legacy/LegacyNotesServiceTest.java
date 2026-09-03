@@ -28,7 +28,7 @@ import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyNote;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.generated.model.ActivityNoteNotes;
+import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
 
@@ -204,11 +204,11 @@ class LegacyNotesServiceTest {
     }
 
     private static AddNoteRequestNotes addReq(String recordId, String text) {
-        ActivityNoteNotes note = ActivityNoteNotes.builder()
+        NoteCommon note = NoteCommon.builder()
             .recordId(recordId)
-            .recordType(ActivityNoteNotes.RecordTypeEnum.DEFENDANT_ACCOUNTS)
+            .recordType(NoteCommon.RecordTypeEnum.DEFENDANT_ACCOUNTS)
             .noteText(text)
-            .noteType(ActivityNoteNotes.NoteTypeEnum.AA)
+            .noteType(NoteCommon.NoteTypeEnum.AA)
             .build();
         return AddNoteRequestNotes.builder().activityNote(note).build();
     }

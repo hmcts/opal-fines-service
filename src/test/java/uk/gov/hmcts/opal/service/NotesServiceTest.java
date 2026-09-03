@@ -16,7 +16,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.generated.model.ActivityNoteNotes;
+import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
 import uk.gov.hmcts.opal.service.proxy.NotesProxy;
 
@@ -79,11 +79,11 @@ class NotesServiceTest {
     }
 
     private static AddNoteRequestNotes addNoteRequest() {
-        ActivityNoteNotes note = ActivityNoteNotes.builder()
-            .recordType(ActivityNoteNotes.RecordTypeEnum.DEFENDANT_ACCOUNTS)
+        NoteCommon note = NoteCommon.builder()
+            .recordType(NoteCommon.RecordTypeEnum.DEFENDANT_ACCOUNTS)
             .recordId(DEFENDANT_ACCOUNT_ID.toString())
             .noteText("test")
-            .noteType(ActivityNoteNotes.NoteTypeEnum.AA)
+            .noteType(NoteCommon.NoteTypeEnum.AA)
             .build();
         return AddNoteRequestNotes.builder().activityNote(note).build();
     }

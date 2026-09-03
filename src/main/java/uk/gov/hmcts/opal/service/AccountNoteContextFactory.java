@@ -8,7 +8,7 @@ import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.generated.model.ActivityNoteNotes;
+import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 
@@ -19,9 +19,9 @@ public class AccountNoteContextFactory {
     private final DefendantAccountRepository defendantAccountRepository;
     private final CreditorAccountRepository creditorAccountRepository;
 
-    public AccountNoteContext from(ActivityNoteNotes note) {
+    public AccountNoteContext from(NoteCommon note) {
         Long accountId = Long.valueOf(note.getRecordId());
-        ActivityNoteNotes.RecordTypeEnum recordType = note.getRecordType();
+        NoteCommon.RecordTypeEnum recordType = note.getRecordType();
 
         return switch (recordType) {
             case DEFENDANT_ACCOUNTS -> defendantAccountRepository
