@@ -28,6 +28,7 @@ public interface MinorCreditorAccountHeaderEntityMapper {
     @Mapping(target = "financials.outstanding", source = "entity.outstanding")
     @Mapping(target = "businessUnit", source = "entity")
     @Mapping(target = "party", source = "party")
+    @Mapping(target = "repayment", source = "entity.repayment")
     MinorCreditorAccountHeaderSummaryResponse toResponse(MinorCreditorAccountHeaderEntity entity, PartyEntity party);
 
 }

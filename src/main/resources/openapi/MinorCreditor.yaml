@@ -729,6 +729,7 @@ components:
         - business_unit
         - creditor
         - financials
+        - repayment
       properties:
         party:
           $ref: './common.yaml#/components/schemas/partyDetails'
@@ -795,3 +796,5 @@ components:
               $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
             outstanding:
               $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
+        repayment:
+          type: boolean
