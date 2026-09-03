@@ -9,7 +9,8 @@ public enum PdplIdentifierType implements IdentifierType {
     DEBTOR_ACCOUNT,
     PARENT_GUARDIAN,
     DRAFT_ACCOUNT,
-    OPAL_USER_ID;
+    OPAL_USER_ID,
+    EXTERNAL_SYSTEM;
 
     @Override
     public String getType() {
