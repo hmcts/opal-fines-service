@@ -10,7 +10,10 @@ import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestConstructor;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ObjectNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
@@ -30,6 +33,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
 
     private final RefDataMessageProcessor consumer;
     private final LocalJusticeAreaRepository localJusticeAreaRepository;
+    private final PlatformTransactionManager transactionManager;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -102,6 +106,70 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
         assertThat(created.getPostcode()).isEqualTo("NE1 2BB");
         assertThat(created.getEndDate()).isEqualTo(LocalDateTime.of(2027, 3, 4, 0, 0));
         assertThat(created.getLjaType()).isEqualTo(LocalJusticeAreaType.LJA);
+    }
+
+    @Test
+    void processMessage_rollsBackAllRecordsWhenAnyRecordFails() {
+        TransactionTemplate requiresNewTransaction = new TransactionTemplate(transactionManager);
+        requiresNewTransaction.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+
+        Short localJusticeAreaId = requiresNewTransaction.execute(status -> {
+            LocalJusticeAreaEntity localJusticeArea = localJusticeAreaRepository.findAll().stream()
+                .filter(entity -> entity.getLjaCode() == null)
+                .findFirst()
+                .orElseThrow();
+
+            localJusticeArea.setLjaCode("T001");
+            localJusticeAreaRepository.saveAndFlush(localJusticeArea);
+            return localJusticeArea.getLocalJusticeAreaId();
+        });
+
+        assertThat(localJusticeAreaId).isNotNull();
+
+        entityManager.clear();
+
+        LocalJusticeAreaEntity original = localJusticeAreaRepository.findById(localJusticeAreaId).orElseThrow();
+        String originalName = original.getName();
+        String originalLjaCode = original.getLjaCode();
+        long beforeCount = localJusticeAreaRepository.count();
+
+        entityManager.clear();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String message = buildValconLjaMessage(
+            objectMapper,
+            "LJA",
+            2,
+            buildLjaRecordNode(objectMapper, true, "T001", "Rollback LJA", "2027-03-04", "New address line 1",
+                "New address line 2", "New address line 3", "New address line 4", "NE1 2BB"),
+            buildLjaRecordNode(objectMapper, true, "TOO-LONG", "Broken LJA", "2027-03-04", "New address line 1",
+                "New address line 2", "New address line 3", "New address line 4", "NE1 2BB")
+        );
+
+        try {
+            assertThatThrownBy(() -> requiresNewTransaction.execute(status -> {
+                consumer.processMessage(message);
+                return null;
+            }))
+                .isInstanceOf(RuntimeException.class);
+
+            entityManager.clear();
+
+            LocalJusticeAreaEntity reloaded = localJusticeAreaRepository.findById(localJusticeAreaId).orElseThrow();
+
+            assertThat(localJusticeAreaRepository.count()).isEqualTo(beforeCount);
+            assertThat(reloaded.getName()).isEqualTo(originalName);
+            assertThat(reloaded.getLjaCode()).isEqualTo(originalLjaCode);
+        } finally {
+            requiresNewTransaction.execute(status -> {
+                LocalJusticeAreaEntity localJusticeArea = localJusticeAreaRepository.findById(localJusticeAreaId)
+                    .orElseThrow();
+                localJusticeArea.setLjaCode(null);
+                localJusticeAreaRepository.saveAndFlush(localJusticeArea);
+                return null;
+            });
+            entityManager.clear();
+        }
     }
 
     @Test
@@ -191,8 +259,23 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
     private String buildValconLjaMessage(String dataProduct, int recordCount, boolean includeLjaCode, String ljaCode,
         String ljaName, String endDate, String addressLine1, String addressLine2, String addressLine3,
         String addressLine4, String postcode) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        return buildValconLjaMessage(
+            objectMapper,
+            dataProduct,
+            recordCount,
+            buildLjaRecordNode(objectMapper, includeLjaCode, ljaCode, ljaName, endDate, addressLine1, addressLine2,
+                addressLine3, addressLine4, postcode)
+        );
+    }
+
+    private String buildValconLjaMessage(String dataProduct, int recordCount, ObjectNode... recordNodes) {
+        return buildValconLjaMessage(new ObjectMapper(), dataProduct, recordCount, recordNodes);
+    }
+
+    private String buildValconLjaMessage(ObjectMapper objectMapper, String dataProduct, int recordCount,
+        ObjectNode... recordNodes) {
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
             ObjectNode rootNode = objectMapper.createObjectNode();
             ObjectNode headerNode = rootNode.putObject("header");
             headerNode.put("messageId", "437dacf6-511c-4e93-95f3-23e82b12e735");
@@ -205,42 +288,53 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
             headerNode.put("recordCount", recordCount);
 
             ObjectNode payloadNode = rootNode.putObject("payload");
-            ObjectNode recordNode = payloadNode.putArray("records").addObject();
-            if (includeLjaCode) {
-                recordNode.put("LJACode", ljaCode);
+            ObjectNode recordsNode = payloadNode.putArray("records");
+            for (ObjectNode recordNode : recordNodes) {
+                recordsNode.add(recordNode);
             }
-            recordNode.put("LJAName", ljaName);
-            recordNode.put("EndDate", endDate);
-            recordNode.putNull("CourtWelshName");
-            recordNode.putNull("CourtLocationCode");
-            recordNode.put("StartDate", "2027-03-01");
-            recordNode.putNull("EnforcementCode");
-            recordNode.putNull("ClusterCode");
-            recordNode.putNull("DivisionCode");
-            recordNode.putNull("DefaultStartTime");
-            recordNode.putNull("DefaultDuration");
-            recordNode.putNull("CommonPlatformUUID");
-            recordNode.putNull("Notes");
-            recordNode.put("CourtHearingOperationAreaIndicator", false);
-            recordNode.put("CrownCourtIndicator", false);
-            recordNode.put("NorthernIrelandCourtIndicator", false);
-            recordNode.put("MagistratesCourtIndicator", true);
-            recordNode.put("ScottishDistrictCourtIndicator", false);
-            recordNode.put("ScottishSheriffCourtIndicator", false);
-            recordNode.put("ScottishJusticeOfPeaceCourtIndicator", false);
-            recordNode.put("YouthCourtIndicator", false);
-
-            ObjectNode addressNode = recordNode.putArray("Addresses").addObject();
-            addressNode.put("AddressType", "Test Address");
-            addressNode.put("AddressLine1", addressLine1);
-            addressNode.put("AddressLine2", addressLine2);
-            addressNode.put("AddressLine3", addressLine3);
-            addressNode.put("AddressLine4", addressLine4);
-            addressNode.put("Postcode", postcode);
 
             return objectMapper.writeValueAsString(rootNode);
         } catch (Exception ex) {
             throw new IllegalStateException("Unable to build ref-data test message", ex);
         }
+    }
+
+    private ObjectNode buildLjaRecordNode(ObjectMapper objectMapper, boolean includeLjaCode, String ljaCode,
+        String ljaName, String endDate, String addressLine1, String addressLine2, String addressLine3,
+        String addressLine4, String postcode) {
+        ObjectNode recordNode = objectMapper.createObjectNode();
+        if (includeLjaCode) {
+            recordNode.put("LJACode", ljaCode);
+        }
+        recordNode.put("LJAName", ljaName);
+        recordNode.put("EndDate", endDate);
+        recordNode.putNull("CourtWelshName");
+        recordNode.putNull("CourtLocationCode");
+        recordNode.put("StartDate", "2027-03-01");
+        recordNode.putNull("EnforcementCode");
+        recordNode.putNull("ClusterCode");
+        recordNode.putNull("DivisionCode");
+        recordNode.putNull("DefaultStartTime");
+        recordNode.putNull("DefaultDuration");
+        recordNode.putNull("CommonPlatformUUID");
+        recordNode.putNull("Notes");
+        recordNode.put("CourtHearingOperationAreaIndicator", false);
+        recordNode.put("CrownCourtIndicator", false);
+        recordNode.put("NorthernIrelandCourtIndicator", false);
+        recordNode.put("MagistratesCourtIndicator", true);
+        recordNode.put("ScottishDistrictCourtIndicator", false);
+        recordNode.put("ScottishSheriffCourtIndicator", false);
+        recordNode.put("ScottishJusticeOfPeaceCourtIndicator", false);
+        recordNode.put("YouthCourtIndicator", false);
+
+        ObjectNode addressNode = recordNode.putArray("Addresses").addObject();
+        addressNode.put("AddressType", "Test Address");
+        addressNode.put("AddressLine1", addressLine1);
+        addressNode.put("AddressLine2", addressLine2);
+        addressNode.put("AddressLine3", addressLine3);
+        addressNode.put("AddressLine4", addressLine4);
+        addressNode.put("Postcode", postcode);
+
+        return recordNode;
     }
 }
