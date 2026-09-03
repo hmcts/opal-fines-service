@@ -1333,8 +1333,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    void replaceDefendantAccountParty_legacyFailure5xx_logsAndMaps() {
-        // Build a minimal legacy response body (service should still map fields even on 5xx)
+    void replaceDefendantAccountParty_legacyFailure5xx_throws() {
         LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
             .version(BigInteger.valueOf(2))
             .defendantAccountParty(
@@ -1354,7 +1353,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
 
         GatewayService.Response<LegacyReplaceDefendantAccountPartyResponse> resp =
-            new GatewayService.Response<>(HttpStatus.OK, legacyBody, null, null);
+            new GatewayService.Response<>(HttpStatus.SERVICE_UNAVAILABLE, legacyBody, "<legacy-error/>", null);
 
         Class<LegacyReplaceDefendantAccountPartyResponse> respType = LegacyReplaceDefendantAccountPartyResponse.class;
 
@@ -1365,18 +1364,13 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             Mockito.nullable(String.class)
         );
 
-        // Call the service. The production code logs legacy failure but still returns a mapped response
-        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.replaceDefendantAccountParty(
-            77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
+        RuntimeException ex = assertThrows(
+            RuntimeException.class,
+            () -> legacyDefendantAccountPartyService.replaceDefendantAccountParty(
+                77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
+            )
         );
-
-        assertNotNull(out);
-        assertEquals(BigInteger.valueOf(2), out.getVersion());
-        assertNotNull(out.getDefendantAccountParty());
-        assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType());
-        assertTrue(out.getDefendantAccountParty().getIsDebtor());
-        assertNotNull(out.getDefendantAccountParty().getPartyDetails());
-        assertEquals("300", out.getDefendantAccountParty().getPartyDetails().getPartyId());
+        assertEquals("Legacy failure during replaceDefendantAccountParty", ex.getMessage());
     }
 
     @Test
@@ -1393,11 +1387,11 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             Mockito.nullable(String.class)
         );
 
-        // Assert the exception is propagated by the service (production code logs and should rethrow)
-        assertThrows(RuntimeException.class, () ->
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
             legacyDefendantAccountPartyService.replaceDefendantAccountParty(
                 77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user")
         );
+        assertEquals("boom", ex.getMessage());
     }
 
     @Test
