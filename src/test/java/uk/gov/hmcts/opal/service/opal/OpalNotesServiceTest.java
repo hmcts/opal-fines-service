@@ -79,6 +79,7 @@ class OpalNotesServiceTest {
             LocalDateTime.ofInstant(Instant.parse("2026-07-03T10:15:30Z"), ZoneOffset.UTC));
         assertThat(entity.getPostedByUsername()).isEqualTo("Test User");
         verify(defendantAccountRepositoryService).getDefendantAccountByIdForUpdate(77L);
+        verify(defendantAccountRepositoryService).incrementVersionNumber(77L, managed.getVersion());
     }
 
     @Test
