@@ -49,7 +49,6 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
-import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptorV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2.UserStateV2Builder;
@@ -108,8 +107,7 @@ public class UserStateStub {
 
     public String getUserStateAsJson() {
         try {
-            UserStateV2 userState = getUserState();                 //  Temp
-            String userStateAsJson = USER_STATE_MAPPER.writeValueAsString(userState);   //  Temp
+            String userStateAsJson = USER_STATE_MAPPER.writeValueAsString(getUserState());   //  Temp
             UserStateV2 decoded = USER_STATE_MAPPER.readValue(userStateAsJson, UserStateV2.class);  //  Temp
             return USER_STATE_MAPPER.writeValueAsString(getUserState());
         } catch (JsonProcessingException e) {
@@ -304,8 +302,8 @@ public class UserStateStub {
             .collect(Collectors.toSet());
     }
 
-    private PermissionV2 createPermission(PermissionDescriptorV2 permissionDescriptor) {
-        return PermissionV2.fromPermissionName(permissionDescriptor.getPermissionName());
+    private PermissionV2 createPermission(FinesPermission permissionDescriptor) {
+        return permissionDescriptor.toCommonPermission();
     }
 
     private BusinessUnitUserV2 createBusinessUnitUser(String businessUnitUserId, short businessUnitId,

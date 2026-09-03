@@ -28,8 +28,7 @@ public enum FinesPermission implements PermissionDescriptorV2 {
     // TODO verify this ID mirrors opal-user-service Permissions.ADD_AND_REMOVE_PAYMENT_HOLD ?
     ADD_AND_REMOVE_PAYMENT_HOLD("ADD_AND_REMOVE_PAYMENT_HOLD", "Add and Remove payment hold"),
     PROCESS_AND_ALLOCATE_PAYMENTS("PROCESS_AND_ALLOCATE_PAYMENTS", "Process and Allocate Payments"),
-    AUTO_ENFORCEMENT("AUTO_ENFORCEMENT", "Auto Enforcement"),
-    DRAFT_ACCOUNT_PERMISSIONS("DRAFT_ACCOUNT_PERMISSIONS", "Draft Account Permissions");
+    AUTO_ENFORCEMENT("AUTO_ENFORCEMENT", "Auto Enforcement");
 
     private final String permissionCode;
     private final String permissionName;
