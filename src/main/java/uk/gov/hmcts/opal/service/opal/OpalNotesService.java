@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.NoteType;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
@@ -44,7 +45,7 @@ public class OpalNotesService implements NotesServiceInterface {
     public String addNote(AddNoteRequest req, String ifMatch, UserState user, AccountNoteContext target) {
         log.info(":OpalAddNote");
 
-        getAccountAndVerifyVersion(target, ifMatch);
+        final Versioned account = getAccountAndVerifyVersion(target, ifMatch);
 
         Note requestNote = req.getActivityNote();
 
@@ -58,8 +59,15 @@ public class OpalNotesService implements NotesServiceInterface {
         note.setPostedByUsername(user.getDisplayName());
 
         NoteEntity entity = repository.save(note);
+        incrementAccountVersion(target, account);
 
         return entity.getNoteId().toString();
+    }
+
+    private void incrementAccountVersion(AccountNoteContext target, Versioned account) {
+        if (target.associatedRecordType() == AssociatedRecordType.DEFENDANT_ACCOUNTS) {
+            defendantAccountRepositoryService.incrementVersionNumber(target.accountId(), account.getVersion());
+        }
     }
 
     private Versioned getAccountAndVerifyVersion(AccountNoteContext target, String ifMatch) {
