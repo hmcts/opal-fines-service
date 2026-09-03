@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptor;
 @Getter
 @RequiredArgsConstructor
 public enum FinesPermission implements PermissionDescriptor {
-    CREATE_MANAGE_DRAFT_ACCOUNTS(1L, "Create and Manage Draft Accounts"),
+    CREATE_MANAGE_DRAFT_ACCOUNTS(1L, "Create Manage Draft Accounts"),
     ACCOUNT_ENQUIRY_NOTES(2L, "Account Enquiry - Account Notes"),
     ACCOUNT_ENQUIRY(3L, "Account Enquiry"),
     COLLECTION_ORDER(4L, "Collection Order"),
