@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -11,7 +12,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import jakarta.persistence.EntityNotFoundException;
+
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,6 +21,7 @@ import org.mockito.Mockito;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse.EnforcementAction;
@@ -175,23 +177,21 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
 
     @SuppressWarnings("unchecked")
     @Test
-    void testGetEnforcementStatus_returnsNull() {
+    void testGetEnforcementStatus_returns500UnexpectedElementException() {
         // Arrange
         when(restClient.responseSpec.body(
             Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse>>any())).thenReturn(null);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>("<error/>", HttpStatus.INTERNAL_SERVER_ERROR));
 
-        // Act
-        EnforcementStatus response = legacyDefendantAccountService.getEnforcementStatus(42L);
 
-        // Assert
-        assertNull(response);
+        assertThatThrownBy(() -> legacyDefendantAccountService.getHeaderSummary(42L))
+            .isInstanceOf(HttpServerErrorException.class).hasMessageContaining("500 unexpected element");
     }
 
     @SuppressWarnings("unchecked")
     @Test
-    void testGetEnforcementStatus_returnsFailure() {
+    void testGetEnforcementStatus_returns503LegacyGatewayFailureException() {
 
         // Arrange
         LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
@@ -201,20 +201,14 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
         )).thenReturn(responseBody);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
-        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short)123).build());
 
-        EnforcementStatus response = legacyDefendantAccountService.getEnforcementStatus(66L);
-
-        assertNotNull(response);
-        assertTrue(response.getEmployerFlag());
-        assertEquals(new BigInteger("1234567890123456789012345678901234567890"), response.getVersion());
-        assertFalse(response.getIsHmrcCheckEligible());
-        assertNull(response.getNextEnforcementActionData());
+        assertThatThrownBy(() -> legacyDefendantAccountService.getHeaderSummary(66L))
+            .isInstanceOf(HttpServerErrorException.class).hasMessage("503 Legacy gateway returned failure");
     }
 
     @SuppressWarnings("unchecked")
     @Test
-    void testGetEnforcementStatus_courtNotFoundInOpalDB() {
+    void testGetEnforcementStatus_throwsHttpServerErrorException() {
 
         // Arrange
         LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
@@ -224,18 +218,14 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
         )).thenReturn(responseBody);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
-        when(courtService.getCourtById(anyLong())).thenThrow(new EntityNotFoundException("Court not found"));
 
-        EntityNotFoundException error = assertThrows(EntityNotFoundException.class,
-            () -> legacyDefendantAccountService.getEnforcementStatus(66L));
-
-        assertNotNull(error);
-        assertEquals("Court not found", error.getMessage());
+        assertThatThrownBy(() -> legacyDefendantAccountService.getHeaderSummary(66L))
+            .isInstanceOf(HttpServerErrorException.class).hasMessage("503 Legacy gateway returned failure");
     }
 
     @SuppressWarnings("unchecked")
     @Test
-    void testGetEnforcementStatus_ljaNotFoundInOpalDB() {
+    void testGetEnforcementStatus_ljaNotFoundInOpalDB_throwsHttpServerErrorException() {
 
         // Arrange
         LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
@@ -245,14 +235,9 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
         )).thenReturn(responseBody);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
-        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short)123).build());
-        when(ljaService.getLocalJusticeAreaById(anyShort())).thenThrow(new EntityNotFoundException("Lja not found"));
 
-        EntityNotFoundException error = assertThrows(EntityNotFoundException.class,
-            () -> legacyDefendantAccountService.getEnforcementStatus(66L));
-
-        assertNotNull(error);
-        assertEquals("Lja not found", error.getMessage());
+        assertThatThrownBy(() -> legacyDefendantAccountService.getHeaderSummary(1L))
+            .isInstanceOf(HttpServerErrorException.class).hasMessage("503 Legacy gateway returned failure");
     }
 
     private LegacyGetDefendantAccountEnforcementStatusResponse createLegacyEnforcementStatusResponse(boolean full) {

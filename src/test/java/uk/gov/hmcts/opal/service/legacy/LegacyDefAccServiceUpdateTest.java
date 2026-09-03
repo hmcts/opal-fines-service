@@ -154,7 +154,8 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
             .build();
 
         assertThatThrownBy(() -> legacyDefendantAccountService.updateDefendantAccount(77L, "78", request, "postedBy",
-            "Poster Name")).isInstanceOf(HttpServerErrorException.class).hasMessage("500 Legacy gateway error");
+            "Poster Name")).isInstanceOf(HttpServerErrorException.class)
+            .hasMessage("500 Legacy gateway returned failure");
     }
 
     @Test
@@ -186,7 +187,7 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
         assertThatThrownBy(
             () -> legacyDefendantAccountService.updateDefendantAccount(defendantAccountId, businessUnitId, request,
                 postedBy, "Poster Name")).isInstanceOf(HttpServerErrorException.class)
-            .hasMessage("400 Legacy gateway error");
+            .hasMessage("500 Legacy gateway error");
 
         verify(legacyUpdateDefendantAccountResponseMapper, never()).toUpdateDefendantAccountResponse(
             any(LegacyUpdateDefendantAccountResponse.class));
