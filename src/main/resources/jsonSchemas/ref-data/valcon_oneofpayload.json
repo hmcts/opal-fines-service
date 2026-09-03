@@ -15,8 +15,7 @@
           "const": "ReferenceData"
         },
         "dataProduct": {
-          "type": "string",
-          "enum": ["Offence", "LJA"]
+          "type": "string"
         },
         "operation": {
           "const": "PUBLISH"
