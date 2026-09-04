@@ -32,7 +32,7 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
     protected static final Long BUSINESS_UNIT_ID = 77L;
     protected static final Long DEFENDANT_ACCOUNT_ID = 99000000000006L;
     protected static final Long COLLO_BUSINESS_UNIT_ID = 77L;
-    protected static final Long COLLO_DEFENDANT_ACCOUNT_ID = 99000000000007L;
+    protected static final Long COLLO_DEFENDANT_ACCOUNT_ID = 90007L;
     protected static final Long INVALID_DEFENDANT_ACCOUNT_ID = 404L;
     protected static final Long SCRIPTED_BUSINESS_UNIT_ID = 78L;
     protected static final Long SCRIPTED_DEFENDANT_ACCOUNT_ID = 77L;
@@ -166,7 +166,7 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
             .andExpect(jsonPath("title").value("Unprocessable Content"))
             .andExpect(jsonPath("status").value(422))
             .andExpect(jsonPath("detail").value(
-                "Defendant account update blocked: Zero balance check failed because account_balance is -500.58."
+                "Defendant account update blocked: Zero balance check failed because account_balance is 99.42."
             ))
             .andExpect(jsonPath("retriable").value(false));
 
@@ -201,7 +201,7 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
             .andExpect(jsonPath("title").value("Unprocessable Content"))
             .andExpect(jsonPath("status").value(422))
             .andExpect(jsonPath("detail").value(
-                "Defendant account update blocked: Zero balance check failed because account_balance is -500.58."
+                "Defendant account update blocked: Zero balance check failed because account_balance is 99.42."
             ))
             .andExpect(jsonPath("retriable").value(false));
 

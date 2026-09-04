@@ -44,9 +44,9 @@ INSERT INTO defendant_accounts (
     99000000353200,
     1778,
     'ACC456',
-    250.00,
+    -250.00,
     125.50,
-    124.50,
+    -124.50,
     CAST('L' AS t_da_account_status_enum),
     CAST('Fine' AS t_da_account_type_enum),
     1
