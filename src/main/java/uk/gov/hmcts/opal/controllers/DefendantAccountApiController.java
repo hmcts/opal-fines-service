@@ -37,7 +37,7 @@ import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.GetPaymentTermsResponseDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.GetMasterDefendantAccountID;
+import uk.gov.hmcts.opal.generated.model.MasterAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
@@ -294,10 +294,10 @@ public class DefendantAccountApiController implements DefendantAccountApi {
 
     @Override
     @FeatureToggle(feature =  RELEASE_1C_PAYMENT, defaultValueProperty = RELEASE_1C_PAYMENT_ENABLED_PROPERTY)
-    public ResponseEntity<GetMasterDefendantAccountID> getDefendantAccountMaster(Long defendantAccountId) {
+    public ResponseEntity<MasterAccountDefendantAccount> getDefendantAccountMaster(Long defendantAccountId) {
         log.debug(":GET:getDefendantAccountMaster: for defendant account id: {}", defendantAccountId);
 
-        GetMasterDefendantAccountID response = defendantAccountService.getMasterDefendantAccount(defendantAccountId);
+        MasterAccountDefendantAccount response = defendantAccountService.getMasterDefendantAccount(defendantAccountId);
 
         return buildResponse(response);
     }
