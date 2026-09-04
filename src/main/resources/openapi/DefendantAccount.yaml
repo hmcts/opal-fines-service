@@ -655,6 +655,68 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 
+  /defendant-accounts/{id}/master:
+    get:
+      tags:
+        - Defendant Account
+      summary: Get Defendant Account Master
+      description: Returns the master defendant account ID for a consolidated defendant account.
+      operationId: getDefendantAccountMaster
+      security:
+        - permissions:
+            - Search and View Accounts (in at least one business unit)
+      parameters:
+        - in: path
+          name: id
+          description: DB Mapping - f_get_master_account_id.pi_defendant_account_id
+          schema:
+            type: integer
+            format: int64
+          required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/masterAccount'
+        400:
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
   /defendant-accounts/search:
     post:
       tags:
@@ -1306,6 +1368,17 @@ components:
       required:
         - account_id
         - account_number
+    masterAccount:
+      title: Master Account
+      type: object
+      additionalProperties: false
+      properties:
+        defendant_account_id:
+          type:
+            - integer
+            - 'null'
+          format: int64
+          description: DB Mapping - f_get_master_account_id.v_master_account_id
     addPaymentCardRequest:
       title: Add Payment Card Request
       type: object
