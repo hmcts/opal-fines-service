@@ -89,8 +89,8 @@ components:
         tills:
           type: array
           items:
-            $ref: '#/components/schemas/Till'
-    Till:
+            $ref: '#/components/schemas/TillsItem'
+    TillsItem:
       type: object
       required:
         - till_number
@@ -104,6 +104,7 @@ components:
           format: int16
         errors:
           type: integer
+          format: int64
         file_name:
           type: string
         source:
