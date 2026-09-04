@@ -2,18 +2,18 @@ package uk.gov.hmcts.opal.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.mapper.common.BusinessUnitSummaryMapper;
 import uk.gov.hmcts.opal.mapper.common.CreditorAccountTypeMapper;
 import uk.gov.hmcts.opal.mapper.common.PartyMapper;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
 
 @Mapper(componentModel = "spring",
     uses = {
         BusinessUnitSummaryMapper.class,
-        PartyMapper.class,
-        CreditorAccountTypeMapper.class
+        CreditorAccountTypeMapper.class,
+        PartyMapper.class
     })
 public interface MinorCreditorAccountHeaderEntityMapper {
 
@@ -27,6 +27,8 @@ public interface MinorCreditorAccountHeaderEntityMapper {
     @Mapping(target = "financials.awaitingPayout", source = "entity.awaitingPayment")
     @Mapping(target = "financials.outstanding", source = "entity.outstanding")
     @Mapping(target = "businessUnit", source = "entity")
-    GetMinorCreditorAccountHeaderSummaryResponse toResponse(MinorCreditorAccountHeaderEntity entity, PartyEntity party);
+    @Mapping(target = "party", source = "party")
+    @Mapping(target = "repayment", source = "entity.repayment")
+    MinorCreditorAccountHeaderSummaryResponse toResponse(MinorCreditorAccountHeaderEntity entity, PartyEntity party);
 
 }
