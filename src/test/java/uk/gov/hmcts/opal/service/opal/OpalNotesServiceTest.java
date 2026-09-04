@@ -30,6 +30,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
+import uk.gov.hmcts.opal.service.AccountNoteContextFactory;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,6 +39,7 @@ class OpalNotesServiceTest {
     @Mock private NoteRepository repository;
     @Mock private DefendantAccountRepositoryService defendantAccountRepositoryService;
     @Mock private CreditorAccountRepository creditorAccountRepository;
+    @Mock private AccountNoteContextFactory accountNoteContextFactory;
     @Mock private Clock clock;
     @Mock private UserState user;
 
@@ -77,6 +79,7 @@ class OpalNotesServiceTest {
             LocalDateTime.ofInstant(Instant.parse("2026-07-03T10:15:30Z"), ZoneOffset.UTC));
         assertThat(entity.getPostedByUsername()).isEqualTo("Test User");
         verify(defendantAccountRepositoryService).getDefendantAccountByIdForUpdate(77L);
+        verify(defendantAccountRepositoryService).incrementVersionNumber(77L, managed.getVersion());
     }
 
     @Test
@@ -104,6 +107,32 @@ class OpalNotesServiceTest {
         assertThat(entity.getBusinessUnitUserId()).isEqualTo("78");
         assertThat(entity.getPostedByUsername()).isEqualTo("Creditor User");
         verify(creditorAccountRepository).findByCreditorAccountIdForUpdate(104L);
+    }
+
+    @Test
+    void addNote_shouldResolveAccountContextForOpalRoute() {
+        when(clock.instant()).thenReturn(Instant.parse("2026-07-03T10:15:30Z"));
+        when(clock.getZone()).thenReturn(ZoneOffset.UTC);
+        DefendantAccountEntity managed = new DefendantAccountEntity();
+        managed.setVersionNumber(12L);
+        BusinessUnitEntity businessUnit = new BusinessUnitEntity();
+        businessUnit.setBusinessUnitId((short) 78);
+        managed.setBusinessUnit(businessUnit);
+        NoteEntity saved = new NoteEntity();
+        saved.setNoteId(999L);
+        AddNoteRequest req = buildRequest("77", RecordType.DEFENDANT_ACCOUNTS);
+        AccountNoteContext target = defendantTarget();
+        when(accountNoteContextFactory.from(req.getActivityNote())).thenReturn(target);
+        when(defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(77L))
+            .thenReturn(managed);
+        when(user.getDisplayName()).thenReturn("Test User");
+        when(repository.save(any(NoteEntity.class))).thenReturn(saved);
+
+        String result = service.addNote(req, "\"12\"", user, (short) 78);
+
+        assertThat(result).isEqualTo("999");
+        verify(accountNoteContextFactory).from(req.getActivityNote());
+        verify(defendantAccountRepositoryService).getDefendantAccountByIdForUpdate(77L);
     }
 
     private static AddNoteRequest buildRequest(String recordId, RecordType recordType) {

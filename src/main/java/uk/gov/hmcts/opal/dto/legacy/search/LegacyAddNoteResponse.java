@@ -12,6 +12,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
+import uk.gov.hmcts.opal.common.legacy.model.HasErrorResponse;
 import uk.gov.hmcts.opal.dto.ToXmlString;
 
 @NoArgsConstructor
@@ -22,7 +24,7 @@ import uk.gov.hmcts.opal.dto.ToXmlString;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "response")
 @Builder
-public class LegacyAddNoteResponse implements ToXmlString {
+public class LegacyAddNoteResponse implements ToXmlString, HasErrorResponse {
 
     @NotNull
     @XmlElement(name = "version", required = true)
@@ -30,5 +32,8 @@ public class LegacyAddNoteResponse implements ToXmlString {
 
     @XmlElement(name = "activity_note", required = true)
     private LegacyNote note;
+
+    @XmlElement(name = "error_response")
+    private ErrorResponse errorResponse;
 
 }

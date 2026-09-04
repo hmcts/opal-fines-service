@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -17,8 +18,6 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RecordType;
-import uk.gov.hmcts.opal.entity.AssociatedRecordType;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.proxy.NotesProxy;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,30 +29,21 @@ class NotesServiceTest {
 
     @Mock private NotesProxy notesProxy;
     @Mock private UserStateService userStateService;
-    @Mock private AccountNoteContextFactory accountNoteContextFactory;
     @Mock private UserState userState;
 
     @InjectMocks
     private NotesService notesService;
 
     private AddNoteRequest request;
-    private AccountNoteContext target;
 
     @BeforeEach
     void setUp() {
         request = addNoteRequest();
-        target = new AccountNoteContext(
-            DefendantAccountEntity.class,
-            DEFENDANT_ACCOUNT_ID,
-            BUSINESS_UNIT_ID,
-            AssociatedRecordType.DEFENDANT_ACCOUNTS
-        );
     }
 
     @Test
     void addNote_shouldThrowPermissionNotAllowedException_whenUserLacksPermission() {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(accountNoteContextFactory.from(request.getActivityNote())).thenReturn(target);
         when(userState.hasBusinessUnitUserWithPermission(
             BUSINESS_UNIT_ID, FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES)).thenReturn(false);
 
@@ -61,6 +51,7 @@ class NotesServiceTest {
             PermissionNotAllowedException.class,
             () -> notesService.addNote(request, IF_MATCH, BUSINESS_UNIT_ID)
         );
+        verifyNoInteractions(notesProxy);
     }
 
     @Test
@@ -68,15 +59,14 @@ class NotesServiceTest {
         String expectedResponse = "note-id-456";
 
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(accountNoteContextFactory.from(request.getActivityNote())).thenReturn(target);
         when(userState.hasBusinessUnitUserWithPermission(
             BUSINESS_UNIT_ID, FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES)).thenReturn(true);
-        when(notesProxy.addNote(request, IF_MATCH, userState, target)).thenReturn(expectedResponse);
+        when(notesProxy.addNote(request, IF_MATCH, userState, BUSINESS_UNIT_ID)).thenReturn(expectedResponse);
 
         String actualResponse = notesService.addNote(request, IF_MATCH, BUSINESS_UNIT_ID);
 
         assertEquals(expectedResponse, actualResponse);
-        verify(notesProxy).addNote(request, IF_MATCH, userState, target);
+        verify(notesProxy).addNote(request, IF_MATCH, userState, BUSINESS_UNIT_ID);
     }
 
     private static AddNoteRequest addNoteRequest() {
