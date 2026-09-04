@@ -35,7 +35,7 @@ public class LegacyDefendantAccountFixedPenaltyService implements DefendantAccou
         try {
             Response<LegacyDefendantAccountGetFixedPenaltyResponse> response = gatewayService.postToGateway(
                 GET_FIXED_PENALTY, LegacyDefendantAccountGetFixedPenaltyResponse.class,
-                createLegacyDefendantAccountGetFixedPenaltyRequest(defendantAccountId.toString()),
+                createLegacyDefendantAccountGetFixedPenaltyRequest(defendantAccountId),
                 null);
 
             checkResponseForError(response, "getDefendantAccountFixedPenalty");
@@ -101,7 +101,7 @@ public class LegacyDefendantAccountFixedPenaltyService implements DefendantAccou
             .build();
     }
 
-    private Object createLegacyDefendantAccountGetFixedPenaltyRequest(String defendantAccountId) {
+    private Object createLegacyDefendantAccountGetFixedPenaltyRequest(Long defendantAccountId) {
         return LegacyDefendantAccountGetFixedPenaltyRequest.builder()
             .defendantAccountId(defendantAccountId)
             .build();

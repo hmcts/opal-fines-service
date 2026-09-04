@@ -21,7 +21,7 @@ public class ValidationUtils {
         return count == 1;
     }
 
-    /* This looks like a candidate for communalization for several legacy services...*/
+    /* This looks like a candidate for communalization for several legacy services...
     public static <T> void checkResponseForError(Response<T> response, String method) {
         if (response.isError()) {
             log.error(":{}: legacy error HTTP {}", method, response.code);
@@ -35,5 +35,5 @@ public class ValidationUtils {
         } else if (response.isSuccessful()) {
             log.info(":{}: legacy success.", method);
         }
-    }
+    }*/
 }
