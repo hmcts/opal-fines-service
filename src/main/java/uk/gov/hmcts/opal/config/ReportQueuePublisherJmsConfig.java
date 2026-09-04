@@ -7,11 +7,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
 
-@EnableJms
 @Configuration
 @ConditionalOnProperty(prefix = "opal.report.service-bus", name = "publisher-enabled", havingValue = "true",
     matchIfMissing = true)

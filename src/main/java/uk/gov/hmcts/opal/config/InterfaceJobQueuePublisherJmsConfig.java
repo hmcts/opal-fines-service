@@ -6,11 +6,9 @@ import org.apache.qpid.jms.JmsConnectionFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
 
-@EnableJms
 @Configuration
 @RequiredArgsConstructor
 public class InterfaceJobQueuePublisherJmsConfig {

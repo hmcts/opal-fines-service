@@ -68,6 +68,8 @@ java:
     SERVICEBUS_INTERFACE_JOBS_QUEUE_NAME: "{{ .Release.Name}}-servicebus-auto-payments-process-interface-files"
     SERVICEBUS_LOGGING_PDPL_PROTOCOL: amqps
     SERVICEBUS_PROTOCOL: amqps
+    REPORT_CONSUMER_ENABLED: false
+    INTERFACE_JOBS_CONSUMER_ENABLED: false
   postgresql:
     enabled: true
     primary:
