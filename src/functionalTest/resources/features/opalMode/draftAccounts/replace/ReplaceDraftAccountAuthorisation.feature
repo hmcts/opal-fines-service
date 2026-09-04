@@ -152,18 +152,14 @@ Feature: Replace Draft Account Authorisation
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
       | account_status    | Submitted                               |
-      | submitted_by      | BUUID                                   |
-      | submitted_by_name | Laura Clerk                             |
     When I update the draft account that was just created with the following details
       | business_unit_id  | 77                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
       | account_status    | Submitted                                   |
-      | submitted_by      |                                             |
-      | submitted_by_name | Laura Clerk                                 |
       | If-Match          | 0                                           |
 
-    Then the request is rejected as bad request and the created draft account remains with the following data
+    Then the request is rejected as conflict and the created draft account remains with the following data
       | business_unit_id                    | 73          |
       | account_type                        | Fine        |
       | account_status                      | Submitted   |

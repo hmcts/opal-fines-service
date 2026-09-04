@@ -22,7 +22,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BusinessUnitOutstandingAutoPaymentCountResponse'
+                $ref: '#/components/schemas/BusinessUnitsOutstandingAutoPaymentResponse'
         "400":
           description: Bad request
           content:
@@ -56,30 +56,34 @@ paths:
 
 components:
   schemas:
-    BusinessUnitOutstandingAutoPaymentCountResponse:
-      type: object
-      additionalProperties: false
-      properties:
-        businessUnits:
-          type: array
-          items:
-            $ref: '#/components/schemas/BusinessUnitOutstandingAutoPaymentCount'
-
-    BusinessUnitOutstandingAutoPaymentCount:
+    BusinessUnitsOutstandingAutoPaymentResponse:
       type: object
       additionalProperties: false
       required:
-        - businessUnitId
-        - businessUnitName
-        - fileCount
-        - tillsCount
+        - business_units
       properties:
-        businessUnitId:
+        business_units:
+          type: array
+          items:
+            $ref: '#/components/schemas/BusinessUnitsOutstandingAutoPaymentItem'
+
+    BusinessUnitsOutstandingAutoPaymentItem:
+      type: object
+      additionalProperties: false
+      required:
+        - business_unit_id
+        - business_unit_name
+        - file_count
+        - till_count
+      properties:
+        business_unit_id:
           type: integer
           format: int16
-        businessUnitName:
+        business_unit_name:
           type: string
-        fileCount:
+        file_count:
           type: integer
-        tillsCount:
+          format: int64
+        till_count:
           type: integer
+          format: int64

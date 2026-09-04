@@ -88,6 +88,16 @@ public class InterfaceJobsProcessStepDef extends BaseStepDef {
         }
     }
 
+    /**
+     * Confirms the jobs created by the scenario are persisted and visible to the current user.
+     */
+    @Then("the seeded interface jobs are visible in the summary API")
+    public void seededInterfaceJobsAreVisibleInSummaryApi() {
+        for (ProcessJob job : eligibleJobs) {
+            assertJobStatus(job, "CREATED");
+        }
+    }
+
     @Then("the unprocessed mixed-status job remains created")
     public void unprocessedMixedStatusJobRemainsCreated() {
         assertJobStatus(unprocessedJob, "CREATED");

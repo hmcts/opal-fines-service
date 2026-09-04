@@ -289,6 +289,13 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     }
 
     @Test
+    @JiraEpic("PO-2630")
+    @JiraStory("PO-10472")
+    void getHeaderSummary_repayment_returnsRepaymentTrue() throws Exception {
+        super.getHeaderSummary_repaymentTrue(log);
+    }
+
+    @Test
     @JiraStory("PO-1915")
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6200")

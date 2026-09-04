@@ -49,7 +49,6 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     private static final String HISTORY_ACCOUNT_FIXTURE = "draftAccounts/accountJson/historyAccount.json";
     private static final String HISTORY_ACCOUNT_TYPE = "Fine";
     private static final String HISTORY_ACCOUNT_STATUS = "Submitted";
-    private static final String HISTORY_SUBMITTED_BY_NAME = "Laura Clerk";
     private static final Set<String> HISTORY_TYPES = Set.of(
         "Amendment",
         "Enforcement",
@@ -524,8 +523,6 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
         accountData.put("account", HISTORY_ACCOUNT_FIXTURE);
         accountData.put("account_type", HISTORY_ACCOUNT_TYPE);
         accountData.put("account_status", HISTORY_ACCOUNT_STATUS);
-        accountData.put("submitted_by", submittedBy);
-        accountData.put("submitted_by_name", HISTORY_SUBMITTED_BY_NAME);
         return accountData;
     }
 

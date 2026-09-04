@@ -83,4 +83,7 @@ public class MinorCreditorAccountHeaderEntity {
 
     @Column(name = "outstanding")
     private BigDecimal outstanding;
+
+    @Column(name = "repayment")
+    private boolean repayment;
 }

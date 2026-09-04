@@ -89,7 +89,6 @@ public class DefendantAccountEnforcementWorkflow extends BaseStepDef {
         Map<String, String> patchData = new LinkedHashMap<>();
         patchData.put("business_unit_id", draftAccountData.get("business_unit_id"));
         patchData.put("account_status", "Publishing Pending");
-        patchData.put("validated_by", draftAccountData.get("submitted_by") + "_REVIEWER");
         patchData.put("If-Match", "0");
         return patchData;
     }
