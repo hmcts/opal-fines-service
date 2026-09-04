@@ -52,6 +52,9 @@ public class SchemaPaths {
     public static final String POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_LEGACY_REQUEST = LEGACY
         + "/postMinorCreditorAccountsSearchLegacyRequest.json";
 
+    public static final String GET_DEFENDANT_ACCOUNT_FIXED_PENALTY_RESPONSE = DEFENDANT_ACCOUNT
+        + "/getDefendantAccountFixedPenaltyResponse.json";
+
     private SchemaPaths() {
         // Utility class — prevent instantiation
     }
