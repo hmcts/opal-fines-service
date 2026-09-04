@@ -1182,6 +1182,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
+
 components:
   securitySchemes:
     bearerAuth:
