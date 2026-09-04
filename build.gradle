@@ -1,6 +1,7 @@
-import org.flywaydb.gradle.task.FlywayMigrateTask
-import java.util.concurrent.TimeUnit
 import groovy.io.FileType
+import org.flywaydb.gradle.task.FlywayMigrateTask
+
+import java.util.concurrent.TimeUnit
 
 buildscript {
   ext {
@@ -958,7 +959,7 @@ ext['postgresql.version'] = '42.7.13'
 
 dependencies {
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.3.26'
+  implementation 'uk.gov.hmcts:opal-common-lib:0.3.30'
 
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.2.2'
   testImplementation 'uk.gov.hmcts:zephyr-automation:1.2.2'
