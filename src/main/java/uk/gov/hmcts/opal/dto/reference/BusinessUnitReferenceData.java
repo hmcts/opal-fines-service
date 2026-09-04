@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.dto.reference;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
-import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -48,6 +47,6 @@ public class BusinessUnitReferenceData {
         @JsonProperty("item_value")
         String itemValue;
         @JsonProperty("item_values")
-        Map<String, Object> itemValues;
+        Object itemValues;
     }
 }

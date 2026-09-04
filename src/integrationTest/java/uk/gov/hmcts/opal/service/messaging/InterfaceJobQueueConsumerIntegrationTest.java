@@ -98,6 +98,21 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("PO-10531 - Suspense payment without associated record completes job")
+    @JiraStory("PO-10531")
+    @JiraEpic("PO-2468")
+    void unmatchedOriginatorSuspensePaymentCompletesJob() throws JMSException {
+        helper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_UNMATCHED_ORIGINATOR);
+
+        listener.onMessage(validTextMessage);
+
+        assertThat(interfaceJobRepository.findById(INTERFACE_JOB_ID))
+            .map(InterfaceJobEntity::getStatus)
+            .contains(InterfaceJobStatus.COMPLETED);
+        helper.assertSuspenseSideEffects();
+    }
+
+    @Test
     @DisplayName("PO-2592 INT.02 - Non-processing job rejects message without side effects")
     @JiraStory("PO-2592") // INT.02
     @JiraEpic("PO-2468")
@@ -322,6 +337,21 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
                     "amount_pence":0,
                     "originator_name":"Test Payer",
                     "originator_reference":"99000001A",
+                    "originator_beneficiary_name":"Test Court"
+                }]
+                """;
+
+    private static final String RECORD_TO_TRIGGER_UNMATCHED_ORIGINATOR = """
+                [{
+                    "receiving_sort_code":"123456",
+                    "receiving_bank_account_number":"01234567",
+                    "receiving_account_type":"5",
+                    "transaction_code":"68",
+                    "originator_sort_code":"654321",
+                    "originator_bank_account_number":"98765432",
+                    "amount_pence":12345,
+                    "originator_name":"Test Payer",
+                    "originator_reference":"UNKNOWN-ORIGINATOR",
                     "originator_beneficiary_name":"Test Court"
                 }]
                 """;
