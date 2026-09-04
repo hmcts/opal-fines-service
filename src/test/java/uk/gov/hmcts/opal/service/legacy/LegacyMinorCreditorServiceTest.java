@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -471,13 +472,14 @@ class LegacyMinorCreditorServiceTest {
         when(minorCreditorAccountResponseMapper.toMinorCreditorAccountResponse(legacyResponse))
             .thenReturn(mappedResponse);
         when(creditorAccountRepository.findById(101L)).thenReturn(
-            Optional.of(CreditorAccountEntity.builder().businessUnitId((short) 77).build())
+            Optional.of(CreditorAccountEntity.builder().businessUnitId((short) 77).repayment(true).build())
         );
 
         MinorCreditorAccountResponse result = legacyMinorCreditorService.getMinorCreditorAccount(101L);
 
         assertEquals(101L, result.getCreditorAccountId());
         assertEquals((short) 77, result.getBusinessUnitId());
+        assertEquals(true, result.getRepayment());
     }
 
     @Test
@@ -505,11 +507,17 @@ class LegacyMinorCreditorServiceTest {
                 .build();
 
         when(headerSummaryResponseMapper.toOpal(legacyResponse)).thenReturn(mapperResponse);
+        when(creditorAccountRepository.findById(101L)).thenReturn(
+            Optional.of(CreditorAccountEntity.builder()
+                .businessUnitId((short) 80)
+                .repayment(true)
+                .build()));
 
         GetMinorCreditorAccountHeaderSummaryResponse result = legacyMinorCreditorService.getHeaderSummary(101L);
 
         assertEquals("101", result.getCreditor().getAccountId());
         assertEquals(BigInteger.ONE, result.getVersion());
+        assertTrue(result.getRepayment());
     }
 
     @Test
@@ -642,6 +650,7 @@ class LegacyMinorCreditorServiceTest {
 
         assertEquals(1L, result.getCreditorAccountId());
         assertNull(result.getBusinessUnitId());
+        assertEquals(false, result.getRepayment());
     }
 
     @Test

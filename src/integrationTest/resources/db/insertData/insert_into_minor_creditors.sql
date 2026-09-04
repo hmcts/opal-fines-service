@@ -171,6 +171,34 @@ VALUES
    '123456', '12345678', 'Hold Test',
    'HOLDREF', '1', 1, '2025-08-19 09:00:00');
 
+INSERT INTO public.parties (
+  party_id, organisation, organisation_name,
+  surname, forenames, title,
+  address_line_1, address_line_2, address_line_3,
+  address_line_4, address_line_5, postcode,
+  account_type, birth_date, age, national_insurance_number, last_changed_date
+)
+VALUES
+  (99009, 'Y', 'Repayment Creditor Ltd',
+   NULL, NULL, NULL,
+   '55 Repayment Road', 'Repayton', 'Leeds',
+   NULL, NULL, 'RP1 2AY',
+   'Creditor', NULL, NULL, NULL, NULL);
+
+INSERT INTO public.creditor_accounts (
+  creditor_account_id, business_unit_id, account_number,
+  creditor_account_type, prosecution_service, major_creditor_id,
+  minor_creditor_party_id, repayment, hold_payout, pay_by_bacs,
+  bank_sort_code, bank_account_number, bank_account_name,
+  bank_account_reference, bank_account_type, version_number, last_changed_date
+)
+VALUES
+  (608, 10, 'REPAY001',
+   'MN', TRUE, NULL,
+   99009, TRUE, FALSE, TRUE,
+   '654321', '87654321', 'Repayment Creditor',
+   'REPAYREF', '1', 1, '2025-08-19 09:00:00');
+
 INSERT INTO public.creditor_transactions (
   creditor_transaction_id, creditor_account_id, posted_date, posted_by, posted_by_name,
   transaction_type, transaction_amount, imposition_result_id, payment_processed,

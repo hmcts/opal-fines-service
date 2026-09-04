@@ -35,7 +35,6 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
     private static final String BUSINESS_UNIT_ID = "77";
     private static final String EXPECTED_BUSINESS_USER_ID = "L077JG";
     private static final String ACCOUNT_FIXTURE = "draftAccounts/accountJson/adultAccount.json";
-    private static final String SUBMITTED_BY_NAME = "Laura Clerk";
     private static final String ENFORCEMENT_OVERRIDE_RESULT_ID = "FWEC";
     private static final String REPLACED_FORENAMES = "Audit Party Replace";
 
@@ -296,8 +295,6 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
         accountData.put("account", ACCOUNT_FIXTURE);
         accountData.put("account_type", "Fine");
         accountData.put("account_status", "Submitted");
-        accountData.put("submitted_by", submittedBy);
-        accountData.put("submitted_by_name", SUBMITTED_BY_NAME);
         return accountData;
     }
 

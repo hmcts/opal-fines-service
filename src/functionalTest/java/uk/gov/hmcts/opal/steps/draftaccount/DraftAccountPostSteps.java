@@ -152,14 +152,13 @@ public class DraftAccountPostSteps extends BaseStepDef {
     /**
      * Attempts to create a draft account using an invalid bearer token.
      *
-     * @param createdBy user identifier to place in the `submitted_by` field.
      * @throws JSONException if the JSON payload cannot be created from the supplied values.
      */
-    @When("I attempt to create a draft account with an invalid token using created by ID {string}")
-    public void postDraftAccountWithInvalidToken(String createdBy) throws JSONException {
+    @When("I attempt to create a draft account with an invalid token")
+    public void postDraftAccountWithInvalidToken() throws JSONException {
         JSONObject postBody;
         try {
-            postBody = requestFactory.buildDefaultCreateRequestBody("77", createdBy);
+            postBody = requestFactory.buildDefaultCreateRequestBody("77");
         } catch (IOException e) {
             throw new RuntimeException("Failed to load the default draft-account fixture", e);
         }
@@ -179,7 +178,7 @@ public class DraftAccountPostSteps extends BaseStepDef {
      */
     @When("I attempt to create a draft account with an unsupported content type")
     public void postDraftAccountWithUnsupportedContentType() throws JSONException, IOException {
-        JSONObject postBody = requestFactory.buildDefaultCreateRequestBody("77", "BUUID");
+        JSONObject postBody = requestFactory.buildDefaultCreateRequestBody("77");
 
         authorisedJsonRequest()
             .accept("text/plain")
@@ -197,7 +196,7 @@ public class DraftAccountPostSteps extends BaseStepDef {
      */
     @When("I attempt to create a draft account with an unsupported media type")
     public void postDraftAccountWithUnsupportedMediaType() throws JSONException, IOException {
-        JSONObject postBody = requestFactory.buildDefaultCreateRequestBody("77", "BUUID");
+        JSONObject postBody = requestFactory.buildDefaultCreateRequestBody("77");
 
         authorisedJsonRequest()
             .contentType("application/xml")
