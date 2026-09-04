@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://opal-fines-service/replaceDraftAccountRequest.json",
   "type": ["object", "null"],
-  "additionalProperties": false,
+  "additionalProperties": true,
   "properties": {
     "business_unit_id": {
       "type": "integer",
