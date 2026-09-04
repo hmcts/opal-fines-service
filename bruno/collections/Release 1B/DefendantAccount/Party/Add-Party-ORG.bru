@@ -1,18 +1,17 @@
 meta {
-  name: Add-Party-ORG
+  name: Add-Party-Org
   type: http
   seq: 1
 }
 
 post {
-  url: {{baseURL}}/defendant-accounts/{{defendantAccountId}}/defendant-account-parties
+  url: {{baseURL}}/defendant-accounts/{{defendantAccount_idOrg}}/defendant-account-parties
   body: json
   auth: inherit
 }
 
 headers {
   Business-Unit-Id: 77
-  If-Match: 2
 }
 
 body:json {
@@ -41,8 +40,6 @@ body:json {
       "language_preferences": null
     }
   }
-  
-  
 }
 
 settings {

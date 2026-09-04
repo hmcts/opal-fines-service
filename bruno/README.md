@@ -22,10 +22,8 @@ bruno/
 │   └── ...
 │
 ├── environments/
-│   ├── env.template        # Example env file (committed)
-│   ├── local.env           # Developer-specific (ignored)
-│   ├── dev.env             # Dev environment (ignored)
-│   └── staging.env         # Staging environment (ignored)
+│   ├── env.template        # Example process environment file
+│   └── local.bru           # Bruno environment with non-secret defaults
 │
 └── config.json
 
@@ -39,22 +37,16 @@ bruno/
    brew install --cask bruno
 ```
 
-2. Create your environment file
+2. Select `environments/local.bru` in Bruno. Bearer tokens are normally obtained automatically and retained only in
+   Bruno's in-memory environment.
 
-Copy the template:
+| Variable | Description |
+| --- | --- |
+| `BEARER_TOKEN` | Keep empty in committed code. The authentication script normally creates an in-memory runtime variable with this name. If automatic token retrieval does not work, paste a token here locally and clear it before committing. |
 
-```bash
-cp environments/env.template environments/local.env
-```
-
-Edit local.env and fill in values such as:
-
-```bash
-BASE_URL=https://localhost:3000
-AUTH_TOKEN=<your-token-here>
-```
-
-⚠️ Never commit .env files, especially with API keys or tokens.
+The authentication script creates `BEARER_TOKEN` and `tokenExpiresAt` as Bruno runtime variables using `bru.setVar`.
+They exist only in memory and are not written to `local.bru`. The empty `BEARER_TOKEN` field in `local.bru` is only
+available as a manual fallback.
 
 ## Running Requests
 
@@ -79,11 +71,11 @@ Authorization: Bearer {{AUTH_TOKEN}}
 
 - collections/
 - config.json
-- env.template
+- `local.bru` with an empty `BEARER_TOKEN`
 
 ❌ Do not commit:
 
-- Any *.env file with real values
+- A populated `BEARER_TOKEN`
 - Sensitive tokens in request headers
 
 ## Tips for Contributors

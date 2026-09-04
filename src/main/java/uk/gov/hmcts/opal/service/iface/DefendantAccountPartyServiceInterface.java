@@ -1,34 +1,34 @@
 package uk.gov.hmcts.opal.service.iface;
 
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
-import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
+import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 
 public interface DefendantAccountPartyServiceInterface {
 
-    GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId, Long defendantAccountPartyId);
+    PartyResponseDefendantAccount getDefendantAccountParty(Long defendantAccountId, Long defendantAccountPartyId);
 
-    GetDefendantAccountPartyResponse addDefendantAccountParty(Long defendantAccountId,
+    PartyResponseDefendantAccount addDefendantAccountParty(Long defendantAccountId,
                                                                 String businessUnitId,
                                                                 String businessUserId,
                                                                 String postedBy,
                                                                 String postedByName,
                                                                 String ifMatch,
-                                                                AddDefendantAccountPartyRequest request);
+                                                                AddPartyRequestDefendantAccount request);
 
-    default GetDefendantAccountPartyResponse addDefendantAccountParty(Long defendantAccountId,
+    default PartyResponseDefendantAccount addDefendantAccountParty(Long defendantAccountId,
                                                                 String businessUnitId,
                                                                 String businessUserId,
                                                                 String postedBy,
                                                                 String ifMatch,
-                                                                AddDefendantAccountPartyRequest request) {
+                                                                AddPartyRequestDefendantAccount request) {
         return addDefendantAccountParty(defendantAccountId, businessUnitId, businessUserId, postedBy, postedBy,
                                         ifMatch, request);
     }
 
-    GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
+    PartyResponseDefendantAccount replaceDefendantAccountParty(Long defendantAccountId,
                                            Long defendantAccountPartyId,
                                            DefendantAccountParty defendantAccountParty,
                                            String ifMatch,
@@ -37,7 +37,7 @@ public interface DefendantAccountPartyServiceInterface {
                                            String postedByName,
                                            String businessUserId);
 
-    default GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
+    default PartyResponseDefendantAccount replaceDefendantAccountParty(Long defendantAccountId,
                                            Long defendantAccountPartyId,
                                            DefendantAccountParty defendantAccountParty,
                                            String ifMatch,

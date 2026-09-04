@@ -535,7 +535,6 @@ components:
         individual_details:
           $ref: '#/components/schemas/individualDetails'
       required:
-        - party_id
         - organisation_flag
     businessUnitSummary:
       title: Business Unit Summary

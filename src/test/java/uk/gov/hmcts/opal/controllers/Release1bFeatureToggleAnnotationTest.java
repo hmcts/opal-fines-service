@@ -6,6 +6,7 @@ import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_ENABLED_PROPERTY;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -48,39 +49,53 @@ class Release1bFeatureToggleAnnotationTest {
             .collect(Collectors.toSet());
 
         Set<String> expectedAnnotatedMethods = Set.of(
-            "DefendantAccountController#addPaymentTerms",
-            "MajorCreditorApiController#getMajorCreditorHistory",
-            "DefendantAccountApiController#getDefendantAccountHistory",
-            "DefendantAccountController#replaceDefendantAccountParty",
+            // Defendant Account API controller
+            "DefendantAccountApiController#addDefendantAccountParty",
             "DefendantAccountApiController#addEnforcement",
             "DefendantAccountApiController#addPaymentCardRequest",
-            "DefendantAccountApiController#updateDefendantAccount",
             "DefendantAccountApiController#getConsolidatedAccounts",
-            "MinorCreditorController#getMinorCreditorAccountHeaderSummary",
-            "DefendantAccountApiController#postDefendantAccountSearch",
-            "DefendantAccountController#removeDefendantAccountParty",
-            "MinorCreditorApiController#getMinorCreditorAccountAtAGlance",
-            "MajorCreditorApiController#getCentralFundByBusinessUnit",
-            "DefendantAccountApiController#getEnforcementStatus",
             "DefendantAccountApiController#getDefendantAccountAtAGlance",
-            "DefendantAccountController#getDefendantAccountParty",
-            "DefendantAccountController#addDefendantAccountParty",
             "DefendantAccountApiController#getDefendantAccountFixedPenalty",
-            "DefendantAccountApiController#removeEnforcementHold",
-            "ResultsApiController#getResultById",
-            "NotesController#addNote",
-            "MinorCreditorApiController#getMinorCreditorAccount",
-            "MajorCreditorApiController#getMajorCreditorAccountHeaderSummary",
-            "MinorCreditorApiController#getMinorCreditorHistory",
-            "DefendantAccountApiController#getImpositions",
-            "MinorCreditorApiController#patchMinorCreditorAccount",
             "DefendantAccountApiController#getDefendantAccountHeaderSummary",
-            "MinorCreditorApiController#postMinorCreditorSearch",
+            "DefendantAccountApiController#getDefendantAccountHistory",
+            "DefendantAccountApiController#getDefendantAccountParty",
+            "DefendantAccountApiController#getEnforcementStatus",
+            "DefendantAccountApiController#getImpositions",
+            "DefendantAccountApiController#postDefendantAccountSearch",
+            "DefendantAccountApiController#removeEnforcementHold",
+            "DefendantAccountApiController#replaceDefendantAccountParty",
+            "DefendantAccountApiController#updateDefendantAccount",
+
+            // Defendant Account controller
+            "DefendantAccountController#addPaymentTerms",
+            "DefendantAccountController#defendantAccountPaymentTerms",
+            "DefendantAccountController#removeDefendantAccountParty",
+
+            // Major Creditor API controller
+            "MajorCreditorApiController#getCentralFundByBusinessUnit",
             "MajorCreditorApiController#getMajorCreditorAccountAtAGlance",
-            "DefendantAccountController#defendantAccountPaymentTerms"
+            "MajorCreditorApiController#getMajorCreditorAccountHeaderSummary",
+            "MajorCreditorApiController#getMajorCreditorHistory",
+
+            // Minor Creditor API controller
+            "MinorCreditorApiController#getMinorCreditorAccount",
+            "MinorCreditorApiController#getMinorCreditorAccountAtAGlance",
+            "MinorCreditorApiController#getMinorCreditorHistory",
+            "MinorCreditorApiController#patchMinorCreditorAccount",
+            "MinorCreditorApiController#postMinorCreditorSearch",
+
+            // Minor Creditor controller
+            "MinorCreditorController#getMinorCreditorAccountHeaderSummary",
+
+            // Notes controller
+            "NotesController#addNote",
+
+            // Results API controller
+            "ResultsApiController#getResultById"
         );
 
-        assertEquals(expectedAnnotatedMethods, actualAnnotatedMethods);
+        assertEquals(expectedAnnotatedMethods, actualAnnotatedMethods,
+            buildFeatureToggleMismatchMessage(expectedAnnotatedMethods, actualAnnotatedMethods));
 
         controllerClasses.stream()
             .flatMap(controllerClass -> Arrays.stream(controllerClass.getDeclaredMethods()))
@@ -91,6 +106,18 @@ class Release1bFeatureToggleAnnotationTest {
     private boolean isRelease1bFeatureToggle(Method method) {
         return method.isAnnotationPresent(FeatureToggle.class)
             && RELEASE_1B.equals(method.getAnnotation(FeatureToggle.class).feature());
+    }
+
+    private String buildFeatureToggleMismatchMessage(Set<String> expectedAnnotatedMethods,
+                                                     Set<String> actualAnnotatedMethods) {
+        Set<String> missingFeatureToggles = new HashSet<>(expectedAnnotatedMethods);
+        missingFeatureToggles.removeAll(actualAnnotatedMethods);
+
+        Set<String> unexpectedFeatureToggles = new HashSet<>(actualAnnotatedMethods);
+        unexpectedFeatureToggles.removeAll(expectedAnnotatedMethods);
+
+        return "Missing Release 1b feature toggles: %s%nUnexpected Release 1b feature toggles: %s"
+            .formatted(missingFeatureToggles, unexpectedFeatureToggles);
     }
 
     private void assertRelease1bToggleConfiguration(Method method) {
