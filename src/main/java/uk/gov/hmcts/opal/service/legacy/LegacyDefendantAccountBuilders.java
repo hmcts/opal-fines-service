@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +29,7 @@ import uk.gov.hmcts.opal.generated.model.EnforcerReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.LjaReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.ResultReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.ResultResponsesCommon;
+import uk.gov.hmcts.opal.util.DateTimeUtils;
 
 public class LegacyDefendantAccountBuilders {
 
@@ -124,11 +126,23 @@ public class LegacyDefendantAccountBuilders {
             EnforcementActionDefendantAccount.builder()
                 .warrantNumber(action.getWarrantNumber())
                 .reason(action.getReason())
-                .dateAdded(LocalDateTime.parse(action.getDateAdded()))
+                .dateAdded(parseLegacyDateAdded(action.getDateAdded()))
                 .enforcer(buildEnforcerReference(action.getEnforcer()))
                 .enforcementAction(buildResultReferenceCommon(action.getResultReference()))
                 .resultResponses(buildResultResponses(action.getResultResponses()))
                 .build()).orElse(null);
+    }
+
+    private static LocalDateTime parseLegacyDateAdded(String dateAdded) {
+        if (dateAdded == null || dateAdded.isBlank()) {
+            return null;
+        }
+
+        try {
+            return LocalDateTime.parse(dateAdded);
+        } catch (RuntimeException ignored) {
+            return DateTimeUtils.startOf(LocalDate.parse(dateAdded));
+        }
     }
 
     static List<ResultResponsesCommon> buildResultResponses(ResultResponses responses) {
