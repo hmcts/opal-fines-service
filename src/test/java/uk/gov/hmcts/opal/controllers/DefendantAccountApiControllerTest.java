@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.verify;
@@ -39,9 +38,9 @@ import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Resp
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.generated.model.FixedPenaltyTicketDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.MasterAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.VehicleFixedPenaltyDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
-import uk.gov.hmcts.opal.generated.model.GetMasterDefendantAccountID;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
@@ -351,18 +350,16 @@ class DefendantAccountApiControllerTest {
     @Test
     void given_validRequest_when_getDefendantAccountMaster_then_returnsOkResponseWithEtag() {
         Long defendantId = 77L;
-        GetMasterDefendantAccountID serviceResponse = GetMasterDefendantAccountID.builder()
+        MasterAccountDefendantAccount serviceResponse = MasterAccountDefendantAccount.builder()
             .defendantAccountId(42L)
-            .version(BigInteger.valueOf(5))
             .build();
 
         when(defendantAccountService.getMasterDefendantAccount(defendantId)).thenReturn(serviceResponse);
 
-        ResponseEntity<GetMasterDefendantAccountID> response =
+        ResponseEntity<MasterAccountDefendantAccount> response =
             defendantAccountApiController.getDefendantAccountMaster(defendantId);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("\"5\"", response.getHeaders().getETag());
         assertSame(serviceResponse, response.getBody());
         verify(defendantAccountService).getMasterDefendantAccount(defendantId);
     }

@@ -24,6 +24,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.openapitools.jackson.nullable.JsonNullable;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
@@ -41,9 +42,9 @@ import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
-import uk.gov.hmcts.opal.generated.model.GetMasterDefendantAccountID;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchReferenceNumberDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
+import uk.gov.hmcts.opal.generated.model.MasterAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
@@ -391,12 +392,11 @@ class DefendantAccountServiceTest {
     }
 
     @Test
-    void getMasterDefendantAccount_whenUserHasPermission_returnsMasterAccountIdAndVersion() {
+    void getMasterDefendantAccount_whenUserHasPermission_returnsMasterAccountId() {
         Long defendantAccountId = 77L;
         Long masterDefendantAccountId = 42L;
         DefendantAccountEntity masterAccount = DefendantAccountEntity.builder()
             .defendantAccountId(masterDefendantAccountId)
-            .versionNumber(5L)
             .build();
 
         givenMasterAccountUserHasPermission(true);
@@ -404,12 +404,10 @@ class DefendantAccountServiceTest {
             .thenReturn(masterDefendantAccountId);
         when(defendantAccountRepository.findById(masterDefendantAccountId)).thenReturn(Optional.of(masterAccount));
 
-        GetMasterDefendantAccountID result = defendantAccountService.getMasterDefendantAccount(defendantAccountId);
+        MasterAccountDefendantAccount result = defendantAccountService.getMasterDefendantAccount(defendantAccountId);
 
-        assertEquals(masterDefendantAccountId, result.getDefendantAccountId());
-        assertEquals(BigInteger.valueOf(5), result.getVersion());
+        assertEquals(JsonNullable.of(masterDefendantAccountId), result.getDefendantAccountId());
         verify(defendantAccountRepository).findMasterDefendantAccountId(defendantAccountId);
-        verify(defendantAccountRepository).findById(masterDefendantAccountId);
     }
 
     @Test
@@ -440,25 +438,6 @@ class DefendantAccountServiceTest {
         assertThat(exception).hasMessage("Defendant Account not found for id: 77");
         verify(defendantAccountRepository).findMasterDefendantAccountId(defendantAccountId);
         verifyNoMoreInteractions(defendantAccountRepository);
-    }
-
-    @Test
-    void getMasterDefendantAccount_whenMasterAccountNotFound_throwsEntityNotFound() {
-        Long defendantAccountId = 77L;
-        Long masterDefendantAccountId = 42L;
-        givenMasterAccountUserHasPermission(true);
-        when(defendantAccountRepository.findMasterDefendantAccountId(defendantAccountId))
-            .thenReturn(masterDefendantAccountId);
-        when(defendantAccountRepository.findById(masterDefendantAccountId)).thenReturn(Optional.empty());
-
-        EntityNotFoundException exception = assertThrows(
-            EntityNotFoundException.class,
-            () -> defendantAccountService.getMasterDefendantAccount(defendantAccountId)
-        );
-
-        assertThat(exception).hasMessage("Master Defendant Account not found for id: 42");
-        verify(defendantAccountRepository).findMasterDefendantAccountId(defendantAccountId);
-        verify(defendantAccountRepository).findById(masterDefendantAccountId);
     }
 
     private void givenMasterAccountUserHasPermission(boolean hasPermission) {

@@ -4,17 +4,14 @@ import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_V
 import static uk.gov.hmcts.opal.common.user.authorisation.model.Domain.FINES;
 
 import jakarta.persistence.EntityNotFoundException;
-import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
@@ -28,10 +25,9 @@ import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
-import uk.gov.hmcts.opal.generated.model.GetMasterDefendantAccountID;
+import uk.gov.hmcts.opal.generated.model.MasterAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
@@ -216,8 +212,7 @@ public class DefendantAccountService {
         }
     }
 
-    @Transactional(readOnly = true)
-    public GetMasterDefendantAccountID getMasterDefendantAccount(Long defendantAccountId) {
+    public MasterAccountDefendantAccount getMasterDefendantAccount(Long defendantAccountId) {
         log.debug(":getMasterDefendantAccount:");
 
         UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
@@ -231,14 +226,8 @@ public class DefendantAccountService {
                 "Defendant Account not found for id: " + defendantAccountId);
         }
 
-        BigInteger version = defendantAccountRepository.findById(masterDefendantAccountId)
-            .map(DefendantAccountEntity::getVersion)
-            .orElseThrow(() ->
-                new EntityNotFoundException("Master Defendant Account not found for id: " + masterDefendantAccountId));
-
-        return GetMasterDefendantAccountID.builder()
+        return MasterAccountDefendantAccount.builder()
             .defendantAccountId(masterDefendantAccountId)
-            .version(version)
             .build();
     }
 }
