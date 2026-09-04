@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -424,112 +423,24 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     }
 
     @Test
-    @DisplayName("Create draft account - Should return 400 when payment term enforcement result is not an enforcement")
-    @JiraStory("PO-5752")
+    @DisplayName("Create draft account - Should return 400 when enforcement court does not exist")
+    @JiraStory("PO-5745")
     @JiraEpic("PO-8248")
-    @Sql(scripts = "classpath:db/insertData/insert_into_results_collo_non_enforcement.sql",
-        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Transactional
-    void shouldReturn400WhenPaymentTermEnforcementResultIsNotAnEnforcement() throws Exception {
+    void shouldReturn400WhenEnforcementCourtDoesNotExist() throws Exception {
+        long countBefore = draftAccountRepository.count();
         mockMvc.perform(post(URL_BASE)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(withPaymentTermsEnforcement(validCreateRequestBody(), "COLLO")))
+                .content(invalidEnforcementCourtCreateRequestBody()))
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(expectBadRequestWithoutStatus(
-                expectedPaymentTermsEnforcementValidationErrorMessage("COLLO is not an enforcement result"),
+                expectedEnforcementCourtValidationErrorMessage(),
                 "https://hmcts.gov.uk/problems/invalid-reference-validation"
             ));
-    }
 
-    @Test
-    @DisplayName("Create draft account - Should return 400 when payment term enforcement result is inactive")
-    @JiraStory("PO-5752")
-    @JiraEpic("PO-8248")
-    @Sql(scripts = "classpath:db/insertData/insert_into_results_collo_inactive.sql",
-        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Transactional
-    void shouldReturn400WhenPaymentTermEnforcementResultIsInactive() throws Exception {
-        mockMvc.perform(post(URL_BASE)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(withPaymentTermsEnforcement(validCreateRequestBody(), "COLLO")))
-            .andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(expectBadRequestWithoutStatus(
-                expectedPaymentTermsEnforcementValidationErrorMessage("COLLO is not an active result"),
-                "https://hmcts.gov.uk/problems/invalid-reference-validation"
-            ));
-    }
-
-    @Test
-    @DisplayName("PO-5746: Create draft account - Should return 400 for an invalid offence ID")
-    @JiraStory("PO-5746")
-    @JiraEpic("PO-2219")
-    void shouldReturn400WhenOffenceIdIsInvalid() throws Exception {
-        String request = validCreateRequestBody()
-            .replace("\"offence_id\": 35014", "\"offence_id\": 999998");
-
-        mockMvc.perform(post(URL_BASE)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request))
-            .andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(expectBadRequestWithoutStatus(
-                """
-                Draft account reference validation failed with 1 error(s):
-                 - account.offences[0].offence_id: offence id 999998 does not exist
-                """.stripIndent().stripTrailing(),
-                "https://hmcts.gov.uk/problems/invalid-reference-validation"
-            ));
-    }
-
-    @Test
-    @DisplayName("Post draft account - Should Return 201 For Offences Belonging To The Same Business Unit")
-    @JiraStory("PO-5746")
-    @JiraEpic("PO-8248")
-    void testPostDraftAccount_accepted_offence_for_business_unit() throws Exception {
-        String request = validCreateRequestBody();
-
-        ResultActions result = mockMvc.perform(post(URL_BASE)
-                .header("authorization", userStateStub.getBearerToken())
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request)).andDo(print());
-
-        result.andExpect(status().isCreated()).andExpect(content()
-            .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.draft_account_id").isNumber())
-            .andExpect(jsonPath("$.business_unit_id").value(78))
-            .andExpect(jsonPath("$.account.offences[0].offence_id").value(35014))
-            .andExpect(jsonPath("$.account.offences[0].business_unit_id").value(78));
-    }
-
-    @Test
-    @DisplayName("Post draft account - Should Return 400 For Offences Belonging To Another Business Unit")
-    @JiraStory("PO-5746")
-    @JiraEpic("PO-8248")
-    void testPostDraftAccount_reject_offence_for_another_business_unit() throws Exception {
-        String request = validCreateRequestBody()
-            .replace("\"business_unit_id\": 78", "\"business_unit_id\": 65")
-            .replace("\"offence_id\": 35014", "\"offence_id\": 999999");
-
-        ResultActions result = mockMvc.perform(post(URL_BASE)
-            .header("authorization", userStateStub.getBearerToken())
-            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(request));
-
-        result.andExpect(status().isBadRequest()).andExpect(expectBadRequestWithoutStatus("""
-                Draft account reference validation failed with 1 error(s):
-                 - account.offences[0].offence_id: offence id 999999 does not exist
-                """.stripIndent().stripTrailing(),
-                "https://hmcts.gov.uk/problems/invalid-reference-validation"));
+        assertEquals(countBefore, draftAccountRepository.count());
     }
 
     @Test
@@ -879,10 +790,15 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .replace("\"major_creditor_id\": null", "\"major_creditor_id\": 999996");
     }
 
+    private static String invalidEnforcementCourtCreateRequestBody() {
+        return validCreateRequestBody()
+            .replace("\"enforcement_court_id\": 260000000048", "\"enforcement_court_id\": 999999");
+    }
+
     private static String expectedReferenceValidationErrorMessage() {
         return """
             Draft account reference validation failed with 5 error(s):
-             - $.enforcement_court_id: court id 999999 does not exist
+             - account.enforcement_court_id: court id 999999 does not exist
              - account.offences[0].offence_id: offence id 999998 does not exist
              - $.offences[0].imposing_court_id: court id 999997 does not exist
              - $.offences[0].impositions[0].result_id: result id NOT-A-RESULT does not exist
@@ -895,6 +811,13 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             Draft account reference validation failed with 1 error(s):
              - $.payment_terms.enforcements[0].result_id: result id %s
             """.formatted(resultError).stripIndent().stripTrailing();
+    }
+
+    private static String expectedEnforcementCourtValidationErrorMessage() {
+        return """
+            Draft account reference validation failed with 1 error(s):
+             - account.enforcement_court_id: court id 999999 does not exist
+            """.stripIndent().stripTrailing();
     }
 
     private static String invalidCreateRequestBody() {
