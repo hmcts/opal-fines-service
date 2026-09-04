@@ -14,11 +14,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.dto.AddNoteRequest;
-import uk.gov.hmcts.opal.dto.Note;
-import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.generated.model.NoteCommon;
+import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
 import uk.gov.hmcts.opal.service.proxy.NotesProxy;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,7 +35,7 @@ class NotesServiceTest {
     @InjectMocks
     private NotesService notesService;
 
-    private AddNoteRequest request;
+    private AddNoteRequestNotes request;
     private AccountNoteContext target;
 
     @BeforeEach
@@ -79,13 +78,13 @@ class NotesServiceTest {
         verify(notesProxy).addNote(request, IF_MATCH, userState, target);
     }
 
-    private static AddNoteRequest addNoteRequest() {
-        Note note = Note.builder()
-            .recordType(RecordType.DEFENDANT_ACCOUNTS)
+    private static AddNoteRequestNotes addNoteRequest() {
+        NoteCommon note = NoteCommon.builder()
+            .recordType(NoteCommon.RecordTypeEnum.DEFENDANT_ACCOUNTS)
             .recordId(DEFENDANT_ACCOUNT_ID.toString())
             .noteText("test")
-            .noteType("AA")
+            .noteType(NoteCommon.NoteTypeEnum.AA)
             .build();
-        return new AddNoteRequest(note);
+        return AddNoteRequestNotes.builder().activityNote(note).build();
     }
 }

@@ -20,10 +20,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.dto.AddNoteRequest;
-import uk.gov.hmcts.opal.dto.Note;
-import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.generated.model.NoteCommon;
+import uk.gov.hmcts.opal.generated.model.NoteCommon.RecordTypeEnum;
+import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 abstract class NotesIntegrationTest extends AbstractIntegrationTest {
@@ -40,25 +40,25 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-1566")
     void postNotesImpl(Logger log) throws Exception {
         // Arrange
-        Note note = new Note();
-        note.setNoteText("test");
-        note.setRecordId("77");
-        note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
-        note.setNoteType("AA");
+        AddNoteRequestNotes request = AddNoteRequestNotes.builder()
+            .activityNote(NoteCommon.builder()
+                .noteText("test")
+                .recordId("77")
+                .recordType(RecordTypeEnum.DEFENDANT_ACCOUNTS)
+                .noteType(NoteCommon.NoteTypeEnum.AA)
+                .build())
+            .build();
 
-        AddNoteRequest request = new AddNoteRequest();
-        request.setActivityNote(note);
 
         final String payload = objectMapper.writeValueAsString(request);
         log.info(":testPostNotes payload: {}", payload);
-
         // Read the current version immediately before use
         final Integer versionBefore = defendantAccountVersionFor(77L);
         assertThat(versionBefore).isNotNull();
         // Act
         ResultActions result =
             mockMvc.perform(
-                post(URL_BASE + "/add")
+                post(URL_BASE)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(payload)
                     .header("authorization", userStateStub.getBearerToken())
@@ -81,15 +81,14 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-1566")
     void postNotes_IDNotFoundError(Logger log) throws Exception {
 
-        Note note = new Note();
-        note.setNoteText("test");
-        note.setRecordId("7");
-        note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
-        note.setNoteType("AA");
-
-        AddNoteRequest request = new AddNoteRequest();
-
-        request.setActivityNote(note);
+        AddNoteRequestNotes request = AddNoteRequestNotes.builder()
+            .activityNote(NoteCommon.builder()
+                .noteText("test")
+                .recordId("7")
+                .recordType(RecordTypeEnum.DEFENDANT_ACCOUNTS)
+                .noteType(NoteCommon.NoteTypeEnum.AA)
+                .build())
+            .build();
 
         ResultActions resultActions =
             mockMvc.perform(
@@ -113,17 +112,16 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-1566")
     void postNotes_badRequest(Logger log) throws Exception {
 
-        Note note = new Note();
-        note.setRecordId("ABC1");
-        note.setRecordType(RecordType.CREDITOR_ACCOUNTS);
-
-        AddNoteRequest request = new AddNoteRequest();
-
-        request.setActivityNote(note);
+        AddNoteRequestNotes request = AddNoteRequestNotes.builder()
+            .activityNote(NoteCommon.builder()
+                .recordId("ABC1")
+                .recordType(RecordTypeEnum.CREDITOR_ACCOUNTS)
+                .build())
+            .build();
 
         ResultActions resultActions =
             mockMvc.perform(
-                post(URL_BASE + "/add")
+                post(URL_BASE)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
                     .header("authorization", userStateStub.getBearerToken())
@@ -141,17 +139,17 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-1566")
     void postNotes_UserWithoutPermission(FinesPermission permission) throws Exception {
 
-        Note note = new Note();
-        note.setNoteText("test note");
-        note.setRecordId("77");
-        note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
-        note.setNoteType("AA");
-
-        AddNoteRequest request = new AddNoteRequest();
-        request.setActivityNote(note);
+        AddNoteRequestNotes request = AddNoteRequestNotes.builder()
+            .activityNote(NoteCommon.builder()
+                .noteText("test note")
+                .recordId("77")
+                .recordType(RecordTypeEnum.DEFENDANT_ACCOUNTS)
+                .noteType(NoteCommon.NoteTypeEnum.AA)
+                .build())
+            .build();
 
         ResultActions resultActions = mockMvc.perform(
-            post(URL_BASE + "/add")
+            post(URL_BASE)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -178,17 +176,17 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
             userStateStub.addPermissions(scenario.authenticationBusinessUnitId(), scenario.permission());
         }
 
-        Note note = new Note();
-        note.setNoteText("test note");
-        note.setRecordId("77");
-        note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
-        note.setNoteType("AA");
-
-        AddNoteRequest request = new AddNoteRequest();
-        request.setActivityNote(note);
+        AddNoteRequestNotes request = AddNoteRequestNotes.builder()
+            .activityNote(NoteCommon.builder()
+                .noteText("test note")
+                .recordId("77")
+                .recordType(RecordTypeEnum.DEFENDANT_ACCOUNTS)
+                .noteType(NoteCommon.NoteTypeEnum.AA)
+                .build())
+            .build();
 
         var requestBuilder =
-            post(URL_BASE + "/add")
+            post(URL_BASE)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -274,19 +272,18 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
         userStateStub.addPermissions((short) 78, ADD_ACCOUNT_ACTIVITY_NOTES);
 
-        Note note = new Note();
-        note.setNoteText("test");
-        note.setRecordId("77");
-        note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
-        note.setNoteType("AA");
-
-        AddNoteRequest request = new AddNoteRequest();
-
-        request.setActivityNote(note);
+        AddNoteRequestNotes request = AddNoteRequestNotes.builder()
+            .activityNote(NoteCommon.builder()
+                .noteText("test")
+                .recordId("77")
+                .recordType(RecordTypeEnum.DEFENDANT_ACCOUNTS)
+                .noteType(NoteCommon.NoteTypeEnum.AA)
+                .build())
+            .build();
 
         ResultActions resultActions =
             mockMvc.perform(
-                post(URL_BASE + "/add")
+                post(URL_BASE)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
                     .header("authorization", userStateStub.getBearerToken())
@@ -308,19 +305,18 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
         userStateStub.addPermissions((short) 78, ADD_ACCOUNT_ACTIVITY_NOTES);
 
-        Note note = new Note();
-        note.setNoteText("FAIL");
-        note.setRecordId("77");
-        note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
-        note.setNoteType("AA");
-
-        AddNoteRequest request = new AddNoteRequest();
-
-        request.setActivityNote(note);
+        AddNoteRequestNotes request = AddNoteRequestNotes.builder()
+            .activityNote(NoteCommon.builder()
+                .noteText("FAIL")
+                .recordId("77")
+                .recordType(RecordTypeEnum.DEFENDANT_ACCOUNTS)
+                .noteType(NoteCommon.NoteTypeEnum.AA)
+                .build())
+            .build();
 
         ResultActions resultActions =
             mockMvc.perform(
-                post(URL_BASE + "/add")
+                post(URL_BASE)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
                     .header("authorization", userStateStub.getBearerToken())

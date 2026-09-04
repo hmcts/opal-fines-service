@@ -6,10 +6,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.dto.AddNoteRequest;
+import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyNote;
+import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.iface.NotesServiceInterface;
 
@@ -22,7 +23,7 @@ public class LegacyNotesService implements NotesServiceInterface {
     private final GatewayService gatewayService;
 
     @Override
-    public String addNote(AddNoteRequest request, String ifMatch, UserState user, AccountNoteContext target) {
+    public String addNote(AddNoteRequestNotes request, String ifMatch, UserState user, AccountNoteContext target) {
         log.info(":LegacyAddNote");
 
         GatewayService.Response<LegacyAddNoteResponse> response = gatewayService.postToGateway(
@@ -49,11 +50,12 @@ public class LegacyNotesService implements NotesServiceInterface {
         return response.responseEntity.getNote().getRecordId();
     }
 
-    private LegacyAddNoteRequest createRequest(AddNoteRequest request, String version, UserState user,
+    private LegacyAddNoteRequest createRequest(AddNoteRequestNotes request, String version, UserState user,
                                                Short businessUnitId) {
 
         LegacyNote note = LegacyNote.builder().noteText(request.getActivityNote().getNoteText())
-            .noteType(request.getActivityNote().getNoteType()).recordType(request.getActivityNote().getRecordType())
+            .noteType(request.getActivityNote().getNoteType().getValue())
+            .recordType(RecordType.valueOf(request.getActivityNote().getRecordType().name()))
             .recordId(request.getActivityNote().getRecordId()).build();
 
         return LegacyAddNoteRequest.builder().businessUnitId(businessUnitId)

@@ -18,19 +18,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.dto.AddNoteRequest;
-import uk.gov.hmcts.opal.dto.Note;
-import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.NoteType;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
+import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
 
 @ExtendWith(MockitoExtension.class)
 class OpalNotesServiceTest {
@@ -60,7 +59,7 @@ class OpalNotesServiceTest {
             .thenReturn(managed);
         when(user.getDisplayName()).thenReturn("Test User");
         when(repository.save(any(NoteEntity.class))).thenReturn(saved);
-        AddNoteRequest req = buildRequest("77", RecordType.DEFENDANT_ACCOUNTS);
+        AddNoteRequestNotes req = buildRequest("77", NoteCommon.RecordTypeEnum.DEFENDANT_ACCOUNTS);
 
         String result = service.addNote(req, "\"12\"", user, defendantTarget());
 
@@ -91,7 +90,7 @@ class OpalNotesServiceTest {
         when(creditorAccountRepository.findByCreditorAccountIdForUpdate(104L)).thenReturn(Optional.of(managed));
         when(user.getDisplayName()).thenReturn("Creditor User");
         when(repository.save(any(NoteEntity.class))).thenReturn(saved);
-        AddNoteRequest req = buildRequest("104", RecordType.CREDITOR_ACCOUNTS);
+        AddNoteRequestNotes req = buildRequest("104", NoteCommon.RecordTypeEnum.CREDITOR_ACCOUNTS);
 
         String result = service.addNote(req, "\"3\"", user, creditorTarget());
 
@@ -106,15 +105,13 @@ class OpalNotesServiceTest {
         verify(creditorAccountRepository).findByCreditorAccountIdForUpdate(104L);
     }
 
-    private static AddNoteRequest buildRequest(String recordId, RecordType recordType) {
-        Note note = new Note();
+    private static AddNoteRequestNotes buildRequest(String recordId, NoteCommon.RecordTypeEnum recordType) {
+        NoteCommon note = new NoteCommon();
         note.setRecordId(recordId);
         note.setRecordType(recordType);
         note.setNoteText("test");
-        note.setNoteType("AA");
-        AddNoteRequest req = new AddNoteRequest();
-        req.setActivityNote(note);
-        return req;
+        note.setNoteType(NoteCommon.NoteTypeEnum.AA);
+        return AddNoteRequestNotes.builder().activityNote(note).build();
     }
 
     private static AccountNoteContext defendantTarget() {

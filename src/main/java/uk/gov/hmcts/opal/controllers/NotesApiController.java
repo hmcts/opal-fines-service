@@ -4,37 +4,25 @@ import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_ENABLED_PROPERTY;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
-import uk.gov.hmcts.opal.dto.AddNoteRequest;
+import uk.gov.hmcts.opal.generated.http.api.NotesApi;
+import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
 import uk.gov.hmcts.opal.service.NotesService;
 
 @RestController
-@RequestMapping("/notes")
-@Slf4j(topic = "opal.NotesController")
-@Tag(name = "Notes Controller")
+@Slf4j(topic = "opal.NotesApiController")
 @AllArgsConstructor
-public class NotesController {
+public class NotesApiController implements NotesApi {
 
     private final NotesService notesService;
 
-    @PostMapping(value = "/add", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "adds a note to an entity")
+    @Override
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<String> addNote(
-        @RequestBody AddNoteRequest request,
-        @RequestHeader("If-Match") String ifMatch,
-        @RequestHeader("Business-Unit-Id") Short businessUnitId) {
+    public ResponseEntity<String> addNote(Short businessUnitId, String ifMatch, AddNoteRequestNotes request) {
 
         log.debug(":POST:postDefendantAccountSearch: query: \n{}", request.toPrettyJson());
         String response = notesService.addNote(request, ifMatch, businessUnitId);

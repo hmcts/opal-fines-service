@@ -22,15 +22,15 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.dto.AddNoteRequest;
-import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyNote;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
+import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyNotesServiceTest {
@@ -61,7 +61,7 @@ class LegacyNotesServiceTest {
             isNull(String.class)
         )).thenReturn(resp);
 
-        AddNoteRequest req = addReq("77", "hello");
+        AddNoteRequestNotes req = addReq("77", "hello");
         when(user.getUserId()).thenReturn(999L);
 
         String id = service.addNote(req, "1", user, targetWithBu((short) 1));
@@ -107,7 +107,7 @@ class LegacyNotesServiceTest {
             isNull(String.class)
         )).thenReturn(resp);
 
-        AddNoteRequest req = addReq("77", "boom");
+        AddNoteRequestNotes req = addReq("77", "boom");
         when(user.getUserId()).thenReturn(1L);
 
         String id = service.addNote(req, "1", user, targetWithBu((short) 5));
@@ -142,7 +142,7 @@ class LegacyNotesServiceTest {
             isNull(String.class)
         )).thenReturn(resp);
 
-        AddNoteRequest req = addReq("77", "world");
+        AddNoteRequestNotes req = addReq("77", "world");
         when(user.getUserId()).thenReturn(42L);
 
         String id = service.addNote(req, "1", user, targetWithBu((short) 9));
@@ -177,7 +177,7 @@ class LegacyNotesServiceTest {
             isNull(String.class)
         )).thenReturn(resp);
 
-        AddNoteRequest req = addReq("77", "meh");
+        AddNoteRequestNotes req = addReq("77", "meh");
         when(user.getUserId()).thenReturn(5L);
 
         String id = service.addNote(req, "7", user, targetWithBu((short) 3));
@@ -203,15 +203,14 @@ class LegacyNotesServiceTest {
         );
     }
 
-    private static AddNoteRequest addReq(String recordId, String text) {
-        Note n = new Note();
-        n.setRecordId(recordId);
-        n.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
-        n.setNoteText(text);
-        n.setNoteType("AA");
-        AddNoteRequest r = new AddNoteRequest();
-        r.setActivityNote(n);
-        return r;
+    private static AddNoteRequestNotes addReq(String recordId, String text) {
+        NoteCommon note = NoteCommon.builder()
+            .recordId(recordId)
+            .recordType(NoteCommon.RecordTypeEnum.DEFENDANT_ACCOUNTS)
+            .noteText(text)
+            .noteType(NoteCommon.NoteTypeEnum.AA)
+            .build();
+        return AddNoteRequestNotes.builder().activityNote(note).build();
     }
 
     private static LegacyAddNoteResponse legacyRespWithNote(String recordId, String text) {
