@@ -385,6 +385,137 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     }
 
     @Test
+    @DisplayName("PO-5742: Create draft account - Should reject TFO fine originator from prosecutors")
+    @JiraStory("PO-5742")
+    @JiraEpic("PO-8248")
+    void shouldRejectTfoFineOriginatorWhenItUsesProsecutorReferenceData() throws Exception {
+        String request = createRequestBody("Fine", "TFO", VALID_PROSECUTOR_ORIGINATOR_ID,
+            VALID_PROSECUTOR_ORIGINATOR_NAME);
+
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedSingleReferenceValidationError("$.originator_id: local justice area id 32010 does not exist"),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("PO-5742: Create draft account - Should reject NEW confiscation originator from prosecutors")
+    @JiraStory("PO-5742")
+    @JiraEpic("PO-8248")
+    void shouldRejectNewConfiscationOriginatorWhenItUsesProsecutorReferenceData() throws Exception {
+        String request = createRequestBody("Confiscation", "NEW", VALID_PROSECUTOR_ORIGINATOR_ID,
+            VALID_PROSECUTOR_ORIGINATOR_NAME);
+
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedSingleReferenceValidationError("$.originator_id: local justice area id 32010 does not exist"),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("PO-5742: Create draft account - Should reject NEW conditional caution originator from LJA data")
+    @JiraStory("PO-5742")
+    @JiraEpic("PO-8248")
+    void shouldRejectNewConditionalCautionOriginatorWhenItUsesLocalJusticeAreaReferenceData() throws Exception {
+        String request = createRequestBody("Conditional Caution", "NEW", VALID_FINE_ORIGINATOR_ID,
+            VALID_FINE_ORIGINATOR_NAME);
+
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedSingleReferenceValidationError("$.originator_id: prosecutor id 32001 does not exist"),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("PO-5742: Create draft account - Should reject conditional caution prosecutor name mismatch")
+    @JiraStory("PO-5742")
+    @JiraEpic("PO-8248")
+    void shouldRejectConditionalCautionOriginatorWhenProsecutorNameDoesNotMatch() throws Exception {
+        String request = createRequestBody("Conditional Caution", "NEW", VALID_PROSECUTOR_ORIGINATOR_ID,
+            "Wrong Prosecutor Name");
+
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedSingleReferenceValidationError(
+                    "$.originator_name: originator name 'Wrong Prosecutor Name' does not match prosecutor name "
+                        + "'Draft Account Validation Prosecutor' for id 32010"
+                ),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("PO-5742: Create draft fixed penalty account - Should reject TFO originator from LJA data")
+    @JiraStory("PO-5742")
+    @JiraEpic("PO-8248")
+    void shouldRejectTfoFixedPenaltyOriginatorWhenItUsesLocalJusticeAreaReferenceData() throws Exception {
+        String request = fixedPenaltyCreateRequestBody("TFO", VALID_FINE_ORIGINATOR_ID, VALID_FINE_ORIGINATOR_NAME);
+
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedSingleReferenceValidationError("$.originator_id: prosecutor id 32001 does not exist"),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("PO-5742: Create draft account - Should reject unsupported NEW fixed penalty combination")
+    @JiraStory("PO-5742")
+    @JiraEpic("PO-8248")
+    void shouldRejectUnsupportedNewFixedPenaltyOriginatorCombination() throws Exception {
+        String request = createRequestBody("Fixed Penalty", "NEW", VALID_PROSECUTOR_ORIGINATOR_ID,
+            VALID_PROSECUTOR_ORIGINATOR_NAME);
+
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedSingleReferenceValidationError(
+                    "$.originator_type: unsupported originator/account type combination: originator_type NEW, "
+                        + "account_type Fixed Penalty"
+                ),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
     @DisplayName("Create draft account - Should return 400 when imposition result is not an imposition")
     @JiraStory("PO-5747")
     @JiraEpic("PO-5741")
@@ -900,6 +1031,13 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             """.formatted(resultError).stripIndent().stripTrailing();
     }
 
+    private static String expectedSingleReferenceValidationError(String detail) {
+        return """
+            Draft account reference validation failed with 1 error(s):
+             - %s
+            """.formatted(detail).stripIndent().stripTrailing();
+    }
+
     private static String invalidCreateRequestBody() {
         return """
             {
@@ -1027,6 +1165,24 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             }
 
             """.formatted(VALID_FINE_ORIGINATOR_NAME, VALID_FINE_ORIGINATOR_ID);
+    }
+
+    private String createRequestBody(String accountType, String originatorType, long originatorId,
+                                     String originatorName) {
+        return validCreateRequestBody()
+            .replace("\"account_type\": \"Fine\"", "\"account_type\": \"" + accountType + "\"")
+            .replace("\"originator_type\": \"NEW\"", "\"originator_type\": \"" + originatorType + "\"")
+            .replace("\"originator_name\": \"" + VALID_FINE_ORIGINATOR_NAME + "\"",
+                "\"originator_name\": \"" + originatorName + "\"")
+            .replace("\"originator_id\": " + VALID_FINE_ORIGINATOR_ID, "\"originator_id\": " + originatorId);
+    }
+
+    private String fixedPenaltyCreateRequestBody(String originatorType, long originatorId, String originatorName) {
+        return validFPPostRequestBody()
+            .replace("\"originator_type\":\"FP\"", "\"originator_type\":\"" + originatorType + "\"")
+            .replace("\"originator_name\":\"" + VALID_PROSECUTOR_ORIGINATOR_NAME + "\"",
+                "\"originator_name\":\"" + originatorName + "\"")
+            .replace("\"originator_id\":" + VALID_PROSECUTOR_ORIGINATOR_ID, "\"originator_id\":" + originatorId);
     }
 
     private String validFPPostRequestBody() {

@@ -257,13 +257,18 @@ public class DraftAccountReferenceValidationService {
 
     private OriginatorReferenceSource resolveOriginatorReferenceSource(OriginatorType originatorType,
                                                                        DraftAccountType accountType) {
-        if (originatorType == OriginatorType.MAC_NEW_ACCOUNT && accountType == DraftAccountType.FINE) {
-            return OriginatorReferenceSource.LOCAL_JUSTICE_AREA;
+        if (originatorType == OriginatorType.MAC_NEW_ACCOUNT) {
+            if (accountType == DraftAccountType.FINE || accountType == DraftAccountType.CONFISCATION) {
+                return OriginatorReferenceSource.LOCAL_JUSTICE_AREA;
+            }
+            return accountType == DraftAccountType.CONDITIONAL_CAUTION ? OriginatorReferenceSource.PROSECUTOR : null;
         }
 
-        if (originatorType == OriginatorType.MAC_NEW_ACCOUNT
-            && accountType == DraftAccountType.CONDITIONAL_CAUTION) {
-            return OriginatorReferenceSource.PROSECUTOR;
+        if (originatorType == OriginatorType.TRANSFER_IN_ACCOUNT) {
+            if (accountType == DraftAccountType.FINE || accountType == DraftAccountType.CONFISCATION) {
+                return OriginatorReferenceSource.LOCAL_JUSTICE_AREA;
+            }
+            return accountType == DraftAccountType.FIXED_PENALTY ? OriginatorReferenceSource.PROSECUTOR : null;
         }
 
         if (originatorType == OriginatorType.FIXED_PENALTY && accountType == DraftAccountType.FIXED_PENALTY) {

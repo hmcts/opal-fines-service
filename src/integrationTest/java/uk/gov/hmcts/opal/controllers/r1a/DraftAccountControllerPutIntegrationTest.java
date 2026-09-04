@@ -540,6 +540,103 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     }
 
     @Test
+    @DisplayName("PO-5742: Replace draft account - Should reject TFO fine originator from prosecutors")
+    @JiraStory("PO-5742")
+    @JiraEpic("PO-8248")
+    void shouldRejectTfoFineOriginatorWhenItUsesProsecutorReferenceData() throws Exception {
+        String ifMatch = getIfMatchForDraftAccount(5L);
+        String request = replaceRequestBody(0L, "Fine", "TFO", VALID_PROSECUTOR_ORIGINATOR_ID,
+            VALID_PROSECUTOR_ORIGINATOR_NAME);
+
+        mockMvc.perform(put(URL_BASE + "/5")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", ifMatch)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedSingleReferenceValidationError("$.originator_id: local justice area id 32010 does not exist"),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("PO-5742: Replace draft account - Should reject TFO confiscation originator from prosecutors")
+    @JiraStory("PO-5742")
+    @JiraEpic("PO-8248")
+    void shouldRejectTfoConfiscationOriginatorWhenItUsesProsecutorReferenceData() throws Exception {
+        String ifMatch = getIfMatchForDraftAccount(5L);
+        String request = replaceRequestBody(0L, "Confiscation", "TFO", VALID_PROSECUTOR_ORIGINATOR_ID,
+            VALID_PROSECUTOR_ORIGINATOR_NAME);
+
+        mockMvc.perform(put(URL_BASE + "/5")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", ifMatch)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedSingleReferenceValidationError("$.originator_id: local justice area id 32010 does not exist"),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("PO-5742: Replace draft account - Should reject confiscation LJA name mismatch")
+    @JiraStory("PO-5742")
+    @JiraEpic("PO-8248")
+    void shouldRejectTfoConfiscationOriginatorWhenLjaNameDoesNotMatch() throws Exception {
+        String ifMatch = getIfMatchForDraftAccount(5L);
+        String request = replaceRequestBody(0L, "Confiscation", "TFO", 32002L, "Wrong LJA Name");
+
+        mockMvc.perform(put(URL_BASE + "/5")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", ifMatch)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedSingleReferenceValidationError(
+                    "$.originator_name: originator name 'Wrong LJA Name' does not match local justice area name "
+                        + "'Draft Account Validation Crown Court' for id 32002"
+                ),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("PO-5742: Replace draft account - Should reject unsupported TFO conditional caution combination")
+    @JiraStory("PO-5742")
+    @JiraEpic("PO-8248")
+    void shouldRejectUnsupportedTfoConditionalCautionOriginatorCombination() throws Exception {
+        String ifMatch = getIfMatchForDraftAccount(5L);
+        String request = replaceRequestBody(0L, "Conditional Caution", "TFO", VALID_PROSECUTOR_ORIGINATOR_ID,
+            VALID_PROSECUTOR_ORIGINATOR_NAME);
+
+        mockMvc.perform(put(URL_BASE + "/5")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", ifMatch)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedSingleReferenceValidationError(
+                    "$.originator_type: unsupported originator/account type combination: originator_type TFO, "
+                        + "account_type Conditional Caution"
+                ),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
     @DisplayName("PO-5746: Replace draft account - Should return 400 for an invalid offence ID")
     @JiraStory("PO-5746")
     @JiraEpic("PO-2220")
@@ -845,6 +942,13 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             """.formatted(resultError).stripIndent().stripTrailing();
     }
 
+    private static String expectedSingleReferenceValidationError(String detail) {
+        return """
+            Draft account reference validation failed with 1 error(s):
+             - %s
+            """.formatted(detail).stripIndent().stripTrailing();
+    }
+
     private static String validReplaceRequestBodyForPdpl(Long version) {
         return """
             {
@@ -1097,6 +1201,16 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
               "version": %d
             }
             """.formatted(VALID_FINE_ORIGINATOR_NAME, VALID_FINE_ORIGINATOR_ID, version);
+    }
+
+    private static String replaceRequestBody(Long version, String accountType, String originatorType, long originatorId,
+                                             String originatorName) {
+        return validReplaceRequestBody(version)
+            .replace("\"account_type\": \"Fine\"", "\"account_type\": \"" + accountType + "\"")
+            .replace("\"originator_type\": \"NEW\"", "\"originator_type\": \"" + originatorType + "\"")
+            .replace("\"originator_name\": \"" + VALID_FINE_ORIGINATOR_NAME + "\"",
+                "\"originator_name\": \"" + originatorName + "\"")
+            .replace("\"originator_id\": " + VALID_FINE_ORIGINATOR_ID, "\"originator_id\": " + originatorId);
     }
 
 }
