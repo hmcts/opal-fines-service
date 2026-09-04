@@ -44,7 +44,7 @@ class InterfaceJobQueueJmsConfigTest {
                 assertThat(context.getBean(InterfaceJobQueueJmsConfig.class)).isNotNull();
                 assertThat(context).hasSingleBean(ConnectionFactory.class);
                 assertThat(context).hasSingleBean(DefaultJmsListenerContainerFactory.class);
-        });
+            });
     }
 
     @Test
