@@ -74,6 +74,10 @@ public class OpalDefendantEnforcementIntegrationTest extends DefendantEnforcemen
     @JiraStory("PO-7193")
     @JiraEpic("PO-1675")
     @JiraTestKey("PO-8269")
+    @Sql(scripts = "classpath:db/insertData/insert_into_collo_with_payment_terms.sql",
+        executionPhase = BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:db/deleteData/delete_from_collo_with_payment_terms.sql",
+        executionPhase = AFTER_TEST_METHOD)
     public void testAddEnforcement_whenGivenColloWithPaymentTerms_preservesLastEnforcementAndReturnsResponses()
         throws Exception {
         super.postEnforcementImpl_colloWithPaymentTerms_preservesLastEnforcementAndReturnsResponses(log);
