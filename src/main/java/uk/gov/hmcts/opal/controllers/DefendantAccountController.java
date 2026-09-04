@@ -7,9 +7,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,9 +24,6 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
-import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
@@ -41,16 +36,13 @@ public class DefendantAccountController {
 
     private final DefendantAccountService defendantAccountService;
     private final DefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
-    private final DefendantAccountEnforcementService defendantAccountEnforcementService;
     private final DefendantAccountPartyService defendantAccountPartyService;
 
     public DefendantAccountController(DefendantAccountService defendantAccountService,
         DefendantAccountPaymentTermsService defendantAccountPaymentTermsService,
-        DefendantAccountEnforcementService defendantAccountEnforcementService,
         DefendantAccountPartyService defendantAccountPartyService) {
         this.defendantAccountService = defendantAccountService;
         this.defendantAccountPaymentTermsService = defendantAccountPaymentTermsService;
-        this.defendantAccountEnforcementService = defendantAccountEnforcementService;
         this.defendantAccountPartyService = defendantAccountPartyService;
     }
 
@@ -140,26 +132,6 @@ public class DefendantAccountController {
         return buildResponse(
             defendantAccountPartyService.replaceDefendantAccountParty(defendantAccountId,
                 defendantAccountPartyId, ifMatch, businessUnitId, request));
-    }
-
-    @DeleteMapping(value = "/{defendantAccountId}/defendant-account-parties/{defendantAccountPartyId}",
-        consumes = MediaType.APPLICATION_JSON_VALUE,
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Delete a Defendant Account Party for the provided Defendant Account ID and Party ID")
-    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<RemoveDefendantAccountPartyResponse> removeDefendantAccountParty(
-        @PathVariable Long defendantAccountId,
-        @PathVariable Long defendantAccountPartyId,
-        @RequestHeader("Business-Unit-Id") Short businessUnitId,
-        @RequestHeader(value = "If-Match", required = false) String ifMatch,
-        @RequestBody RemoveDefendantAccountPartyRequest request
-    ) {
-        log.debug(":DELETE:removeDefendantAccountParty: for defendant id: {} and defendantAccountPartyId: {}",
-            defendantAccountId, defendantAccountPartyId);
-
-        return buildResponse(
-            defendantAccountPartyService.removeDefendantAccountParty(defendantAccountId,
-                defendantAccountPartyId, businessUnitId, ifMatch, request));
     }
 
 }

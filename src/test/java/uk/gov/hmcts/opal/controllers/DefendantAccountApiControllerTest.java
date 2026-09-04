@@ -2,9 +2,10 @@ package uk.gov.hmcts.opal.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
@@ -17,6 +18,7 @@ import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -43,10 +45,15 @@ import uk.gov.hmcts.opal.generated.model.VehicleFixedPenaltyDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
+import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
+import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
 import uk.gov.hmcts.opal.service.ImpositionService;
@@ -65,6 +72,12 @@ class DefendantAccountApiControllerTest {
 
     @Mock
     private DefendantAccountHistoryResponseMapper defendantAccountHistoryResponseMapper;
+
+    @Mock
+    private DefendantAccountPartyService defendantAccountPartyService;
+
+    @Mock
+    private DefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
 
     @Mock
     private DefendantAccountFixedPenaltyService defendantAccountFixedPenaltyService;
@@ -260,6 +273,62 @@ class DefendantAccountApiControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertSame(serviceResponse, response.getBody());
         verify(defendantAccountService).searchDefendantAccounts(request);
+    }
+
+    @Test
+    void given_validRequest_when_removeDefendantAccountParty_then_returnsOkResponseWithEtag() {
+        Long defendantAccountId = 1L;
+        Long defendantAccountPartyId = 10L;
+        Short businessUnitId = 10;
+        String ifMatch = "\"1\"";
+        RemoveDefendantAccountPartyRequestDefendantAccount request =
+            RemoveDefendantAccountPartyRequestDefendantAccount.builder()
+                .defendantAccountPartyId("10")
+                .partyDetails(RemoveDefendantAccountPartyDetailsCommonStrict.builder()
+                    .partyId("10")
+                    .build())
+                .build();
+        RemoveDefendantAccountPartyResponseDefendantAccount serviceResponse =
+            RemoveDefendantAccountPartyResponseDefendantAccount.builder()
+                .defendantAccountPartyId("10")
+                .version(BigInteger.valueOf(2))
+                .build();
+        DefendantAccountApiController controller = new DefendantAccountApiController(
+            defendantAccountService,
+            defendantAccountEnforcementService,
+            defendantAccountHistoryResponseMapper,
+            impositionService,
+            defendantAccountPartyService,
+            defendantAccountFixedPenaltyService,
+            defendantAccountPaymentTermsService
+        );
+
+        when(defendantAccountPartyService.removeDefendantAccountParty(
+            eq(defendantAccountId),
+            eq(defendantAccountPartyId),
+            eq(businessUnitId),
+            eq(ifMatch),
+            any(RemoveDefendantAccountPartyRequestDefendantAccount.class)))
+            .thenReturn(serviceResponse);
+
+        ResponseEntity<RemoveDefendantAccountPartyResponseDefendantAccount> response =
+            controller.removeDefendantAccountParty(
+                defendantAccountId, defendantAccountPartyId, businessUnitId, request, ifMatch);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("\"2\"", response.getHeaders().getETag());
+        assertNotNull(response.getBody());
+        assertEquals("10", response.getBody().getDefendantAccountPartyId());
+
+        ArgumentCaptor<RemoveDefendantAccountPartyRequestDefendantAccount> requestCaptor =
+            ArgumentCaptor.forClass(RemoveDefendantAccountPartyRequestDefendantAccount.class);
+        verify(defendantAccountPartyService).removeDefendantAccountParty(
+            eq(defendantAccountId),
+            eq(defendantAccountPartyId),
+            eq(businessUnitId),
+            eq(ifMatch),
+            requestCaptor.capture());
+        assertEquals("10", requestCaptor.getValue().getDefendantAccountPartyId());
     }
 
     @Test

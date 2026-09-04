@@ -997,6 +997,108 @@ paths:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
+  /defendant-accounts/{defendantAccountId}/defendant-account-parties/{defendantAccountPartyId}:
+    delete:
+      tags:
+        - Defendant Account
+      summary: Remove Defendant Account Party
+      description: Removes a non-paying parent or guardian from a youth defendant account.
+      operationId: removeDefendantAccountParty
+      security:
+        - permissions:
+            - Account Maintenance (in the business unit that the account resides in)
+      parameters:
+        - in: path
+          name: defendantAccountId
+          description: DB Mapping - defendant_accounts.defendant_account_id
+          schema:
+            type: integer
+            format: int64
+          required: true
+        - in: path
+          name: defendantAccountPartyId
+          description: DB Mapping - defendant_account_parties.defendant_account_party_id
+          schema:
+            type: integer
+            format: int64
+          required: true
+        - in: header
+          name: Business-Unit-Id
+          description: DB Mapping - business_units.business_unit_id
+          schema:
+            type: integer
+            format: int16
+          required: true
+        - in: header
+          name: If-Match
+          description: Version of the defendant account. DB Mapping - defendant_accounts.version
+          schema:
+            type: string
+      requestBody:
+        description: Payload confirming the defendant account party to remove.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/removeDefendantAccountPartyRequest'
+      responses:
+        '200':
+          description: Defendant account party removed
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/removeDefendantAccountPartyResponse'
+        400:
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        409:
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        422:
+          description: Unprocessable content
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
   /defendant-accounts/{id}/history:
     get:
       tags:
@@ -1259,6 +1361,39 @@ components:
         - defendant_account_id
       properties:
         defendant_account_id:
+          type: string
+    removeDefendantAccountPartyRequest:
+      title: Remove Defendant Account Party Request
+      type: object
+      additionalProperties: false
+      x-implements:
+        - uk.gov.hmcts.opal.dto.ToJsonString
+      anyOf:
+        - required:
+            - defendant_account_party_id
+        - required:
+            - party_details
+      properties:
+        defendant_account_party_id:
+          type: string
+          minLength: 1
+        version:
+          $ref: './types.yaml#/components/schemas/BigInt'
+        party_details:
+          $ref: './CommonStrict.yaml#/components/schemas/removeDefendantAccountPartyDetails'
+    removeDefendantAccountPartyResponse:
+      title: Remove Defendant Account Party Response
+      type: object
+      x-json-include: NON_NULL
+      x-versioned: true
+      x-implements:
+        - uk.gov.hmcts.opal.dto.ToJsonString
+        - uk.gov.hmcts.opal.util.Versioned
+      additionalProperties: false
+      required:
+        - defendant_account_party_id
+      properties:
+        defendant_account_party_id:
           type: string
     atAGlanceResponse:
       title: Defendant Account At A Glance Response
