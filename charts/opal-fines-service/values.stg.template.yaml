@@ -12,3 +12,5 @@ java:
     OPAL_SFTP_OUTBOUND_CREATE_SUB_LOCATIONS: true
     FLYWAY_LOCATIONS: classpath:db/migration/ddl, classpath:db/migration/data/allEnvs, classpath:db/migration/data/nle, classpath:db/migration/data/stg
     RELEASE_1B_ENABLED: true
+    REPORT_CONSUMER_ENABLED: false
+    INTERFACE_JOBS_CONSUMER_ENABLED: false
