@@ -443,6 +443,23 @@ class DraftAccountReferenceValidationServiceTest {
     }
 
     @Test
+    void validateReferences_whenNewConfiscationOriginatorMatchesLja_shouldPass() {
+        when(localJusticeAreaRepository.findById((short)32001))
+            .thenReturn(Optional.of(localJusticeArea((short)32001, "Draft Account Validation LJA",
+                LocalJusticeAreaType.LJA)));
+
+        assertDoesNotThrow(() -> service.validateReferences(BUSINESS_UNIT_ID, originatorAccountJson(
+            DraftAccountType.CONFISCATION,
+            "NEW",
+            32001L,
+            "Draft Account Validation LJA"
+        )));
+
+        verify(localJusticeAreaRepository).findById((short)32001);
+        verifyNoInteractions(prosecutorRepository);
+    }
+
+    @Test
     void validateReferences_whenNewConditionalCautionOriginatorMatchesProsecutor_shouldPass() {
         when(prosecutorRepository.findById(32010L))
             .thenReturn(Optional.of(prosecutor(32010L, "Draft Account Validation Prosecutor")));
@@ -459,6 +476,40 @@ class DraftAccountReferenceValidationServiceTest {
     }
 
     @Test
+    void validateReferences_whenTfoFineOriginatorMatchesLja_shouldPass() {
+        when(localJusticeAreaRepository.findById((short)32001))
+            .thenReturn(Optional.of(localJusticeArea((short)32001, "Draft Account Validation LJA",
+                LocalJusticeAreaType.LJA)));
+
+        assertDoesNotThrow(() -> service.validateReferences(BUSINESS_UNIT_ID, originatorAccountJson(
+            DraftAccountType.FINE,
+            "TFO",
+            32001L,
+            "Draft Account Validation LJA"
+        )));
+
+        verify(localJusticeAreaRepository).findById((short)32001);
+        verifyNoInteractions(prosecutorRepository);
+    }
+
+    @Test
+    void validateReferences_whenTfoConfiscationOriginatorMatchesCrwcrt_shouldPass() {
+        when(localJusticeAreaRepository.findById((short)32002))
+            .thenReturn(Optional.of(localJusticeArea((short)32002, "Draft Account Validation Crown Court",
+                LocalJusticeAreaType.CRWCRT)));
+
+        assertDoesNotThrow(() -> service.validateReferences(BUSINESS_UNIT_ID, originatorAccountJson(
+            DraftAccountType.CONFISCATION,
+            "TFO",
+            32002L,
+            "Draft Account Validation Crown Court"
+        )));
+
+        verify(localJusticeAreaRepository).findById((short)32002);
+        verifyNoInteractions(prosecutorRepository);
+    }
+
+    @Test
     void validateReferences_whenFixedPenaltyOriginatorMatchesProsecutor_shouldPass() {
         when(prosecutorRepository.findById(32010L))
             .thenReturn(Optional.of(prosecutor(32010L, "Draft Account Validation Prosecutor")));
@@ -466,6 +517,22 @@ class DraftAccountReferenceValidationServiceTest {
         assertDoesNotThrow(() -> service.validateReferences(BUSINESS_UNIT_ID, originatorAccountJson(
             DraftAccountType.FIXED_PENALTY,
             "FP",
+            32010L,
+            "Draft Account Validation Prosecutor"
+        )));
+
+        verify(prosecutorRepository).findById(32010L);
+        verifyNoInteractions(localJusticeAreaRepository);
+    }
+
+    @Test
+    void validateReferences_whenTfoFixedPenaltyOriginatorMatchesProsecutor_shouldPass() {
+        when(prosecutorRepository.findById(32010L))
+            .thenReturn(Optional.of(prosecutor(32010L, "Draft Account Validation Prosecutor")));
+
+        assertDoesNotThrow(() -> service.validateReferences(BUSINESS_UNIT_ID, originatorAccountJson(
+            DraftAccountType.FIXED_PENALTY,
+            "TFO",
             32010L,
             "Draft Account Validation Prosecutor"
         )));
@@ -545,6 +612,24 @@ class DraftAccountReferenceValidationServiceTest {
     }
 
     @Test
+    void validateReferences_whenProsecutorOriginatorNameDoesNotMatch_shouldFail() {
+        when(prosecutorRepository.findById(32010L))
+            .thenReturn(Optional.of(prosecutor(32010L, "Draft Account Validation Prosecutor")));
+
+        InvalidReferenceValidationException exception = assertThrows(InvalidReferenceValidationException.class,
+            () -> service.validateReferences(BUSINESS_UNIT_ID, originatorAccountJson(
+                DraftAccountType.FIXED_PENALTY,
+                "TFO",
+                32010L,
+                "Wrong Prosecutor Name"
+            )));
+
+        assertContains(exception.getMessage(),
+            "$.originator_name: originator name 'Wrong Prosecutor Name' does not match prosecutor name "
+                + "'Draft Account Validation Prosecutor' for id 32010");
+    }
+
+    @Test
     void validateReferences_whenOriginatorCombinationIsUnsupported_shouldFail() {
         InvalidReferenceValidationException exception = assertThrows(InvalidReferenceValidationException.class,
             () -> service.validateReferences(BUSINESS_UNIT_ID, originatorAccountJson(
@@ -563,12 +648,12 @@ class DraftAccountReferenceValidationServiceTest {
     @Test
     void validateReferences_whenAccountTypeIsInvalid_shouldFail() {
         InvalidReferenceValidationException exception = assertThrows(InvalidReferenceValidationException.class,
-            () -> service.validateReferences(originatorAccountJson(
+            () -> service.validateReferences(BUSINESS_UNIT_ID, originatorAccountJson(
                 "Unknown",
                 "NEW",
                 32010L,
                 "Draft Account Validation Prosecutor"
-            ), BUSINESS_UNIT_ID));
+            )));
 
         assertContains(exception.getMessage(), "$.account_type: unsupported account type 'Unknown'");
         verifyNoInteractions(localJusticeAreaRepository, prosecutorRepository);
@@ -577,12 +662,12 @@ class DraftAccountReferenceValidationServiceTest {
     @Test
     void validateReferences_whenOriginatorTypeIsInvalid_shouldFail() {
         InvalidReferenceValidationException exception = assertThrows(InvalidReferenceValidationException.class,
-            () -> service.validateReferences(originatorAccountJson(
+            () -> service.validateReferences(BUSINESS_UNIT_ID, originatorAccountJson(
                 DraftAccountType.FINE.getLabel(),
                 "CASE",
                 32010L,
                 "Draft Account Validation Prosecutor"
-            ), BUSINESS_UNIT_ID));
+            )));
 
         assertContains(exception.getMessage(), "$.originator_type: unsupported originator type 'CASE'");
         verifyNoInteractions(localJusticeAreaRepository, prosecutorRepository);
