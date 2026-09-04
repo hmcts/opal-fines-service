@@ -16,7 +16,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -28,8 +27,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrationTest {
 
     static final String URL_BASE = "/defendant-accounts";
-    static final String DEFENDANT_PAYMENT_TERMS_RESPONSE_SCHEMA = SchemaPaths.DEFENDANT_ACCOUNT
-        + "/getDefendantAccountPaymentTermsResponse.json";
 
 
     @MockitoSpyBean
@@ -170,8 +167,6 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
             .andExpect(jsonPath("$.payment_card_last_requested").value("2024-01-01"))
             .andExpect(jsonPath("$.payment_terms.extension").value(false))
             .andExpect(jsonPath("$.last_enforcement").value("10"));
-
-        jsonSchemaValidationService.validateOrError(body, DEFENDANT_PAYMENT_TERMS_RESPONSE_SCHEMA);
     }
 
     void testGetPaymentTermsLatest_NoPaymentTermFoundForId(Logger log) throws Exception {

@@ -1182,6 +1182,67 @@ paths:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
+  /defendant-accounts/{id}/payment-terms/latest:
+    get:
+      tags:
+        - Defendant Account
+      summary: Get the latest defendant account payment terms
+      description: The Get Defendant Account Latest Payment Terms API will be used to return payment related information for a given defendant account.
+      operationId: defendantAccountPaymentTerms
+      security:
+        - permissions:
+          - Search and View Accounts (in at least one business unit)
+      parameters:
+        - in: path
+          name: id
+          description: DB Mapping - defendant_accounts.defendant_account_id
+          schema:
+            type: integer
+            format: int64
+          required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DefendantAccountPaymentTermsResponse'
+        400:
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
 components:
   securitySchemes:
     bearerAuth:
@@ -1720,3 +1781,24 @@ components:
       required:
         - enforcement_action
         - date_added
+    DefendantAccountPaymentTermsResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        payment_terms:
+          $ref: './CommonStrict.yaml#/components/schemas/defendantAccountPaymentTerms'
+        payment_card_last_requested:
+          type: string
+          nullable: true
+          format: date
+        last_enforcement:
+          type: string
+          minLength: 1
+          nullable: true
+        version:
+          $ref: "./types.yaml#/components/schemas/BigInt"
+      required:
+        - payment_terms
+        - payment_card_last_requested
+        - last_enforcement
+        - version

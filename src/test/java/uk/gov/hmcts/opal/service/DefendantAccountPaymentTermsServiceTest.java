@@ -35,6 +35,7 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountPaymentTermsServiceProxy;
 
@@ -60,13 +61,13 @@ class DefendantAccountPaymentTermsServiceTest {
     void getPaymentTerms_whenUserHasPermission_returnsProxyResult() {
         // Arrange
         Long defendantAccountId = 77L;
-        GetDefendantAccountPaymentTermsResponse proxyResponse = new GetDefendantAccountPaymentTermsResponse();
+        DefendantAccountPaymentTermsResponse proxyResponse = new DefendantAccountPaymentTermsResponse();
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(defendantAccountPaymentTermsServiceProxy.getPaymentTerms(defendantAccountId)).thenReturn(proxyResponse);
 
         // Act
-        GetDefendantAccountPaymentTermsResponse result =
+        DefendantAccountPaymentTermsResponse result =
             defendantAccountPaymentTermsService.getPaymentTerms(defendantAccountId);
 
         // Assert

@@ -26,6 +26,8 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.mapper.DefendantAccountPaymentTermsMapper;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPaymentTermsServiceInterface;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
@@ -40,8 +42,10 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
 
     private final GatewayService gatewayService;
 
+    private final DefendantAccountPaymentTermsMapper defendantAccountPaymentTermsMapper;
+
     @Override
-    public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
+    public DefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
 
         Response<LegacyGetDefendantAccountPaymentTermsResponse> response = gatewayService.postToGateway(
             GET_PAYMENT_TERMS, LegacyGetDefendantAccountPaymentTermsResponse.class,
@@ -60,7 +64,7 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
             log.info(":getPaymentTerms: Legacy Gateway response: Success.");
         }
 
-        return toPaymentTermsResponse(response.responseEntity);
+        return defendantAccountPaymentTermsMapper.legacyToResponse(response.responseEntity);
     }
 
     @Override
@@ -209,22 +213,6 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
     public static LegacyGetDefendantAccountRequest createGetDefendantAccountRequest(String defendantAccountId) {
         return LegacyGetDefendantAccountRequest.builder()
             .defendantAccountId(defendantAccountId)
-            .build();
-    }
-
-    private GetDefendantAccountPaymentTermsResponse toPaymentTermsResponse(
-        LegacyGetDefendantAccountPaymentTermsResponse legacy) {
-
-        if (legacy == null) {
-            return null;
-        }
-
-        return GetDefendantAccountPaymentTermsResponse.builder()
-            .version(Optional.ofNullable(legacy.getVersion())
-                .orElse(BigInteger.ONE))
-            .paymentTerms(toPaymentTerms(legacy.getPaymentTerms()))
-            .paymentCardLastRequested(legacy.getPaymentCardLastRequested())
-            .lastEnforcement(legacy.getLastEnforcement())
             .build();
     }
 
