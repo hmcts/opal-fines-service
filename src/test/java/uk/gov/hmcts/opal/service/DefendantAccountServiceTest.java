@@ -395,15 +395,10 @@ class DefendantAccountServiceTest {
     void getMasterDefendantAccount_whenUserHasPermission_returnsMasterAccountId() {
         Long defendantAccountId = 77L;
         Long masterDefendantAccountId = 42L;
-        DefendantAccountEntity masterAccount = DefendantAccountEntity.builder()
-            .defendantAccountId(masterDefendantAccountId)
-            .build();
 
         givenMasterAccountUserHasPermission(true);
         when(defendantAccountRepository.findMasterDefendantAccountId(defendantAccountId))
             .thenReturn(masterDefendantAccountId);
-        when(defendantAccountRepository.findById(masterDefendantAccountId)).thenReturn(Optional.of(masterAccount));
-
         MasterAccountDefendantAccount result = defendantAccountService.getMasterDefendantAccount(defendantAccountId);
 
         assertEquals(JsonNullable.of(masterDefendantAccountId), result.getDefendantAccountId());
