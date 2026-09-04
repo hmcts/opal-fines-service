@@ -163,6 +163,29 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    void testGetEnforcementStatus_ignoresEmptyLastEnforcementAction() {
+        LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
+            createLegacyEnforcementStatusResponse(false);
+        responseBody.setLastEnforcementAction(EnforcementAction.builder()
+            .resultReference(ResultReference.builder().resultId(" ").build())
+            .build());
+
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()
+        )).thenReturn(responseBody);
+
+        ResponseEntity<String> serverSuccessResponse = new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
+        when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
+        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short)123).build());
+
+        EnforcementStatus response = legacyDefendantAccountService.getEnforcementStatus(72L);
+
+        assertNotNull(response);
+        assertNull(response.getLastEnforcementAction());
+    }
+
+    @Test
     void testGetEnforcementStatus_throwsRuntimeException() {
         // Arrange
         doThrow(new RuntimeException("boom"))

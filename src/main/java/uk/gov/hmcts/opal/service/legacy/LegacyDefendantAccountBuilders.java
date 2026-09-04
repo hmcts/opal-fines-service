@@ -71,13 +71,6 @@ public class LegacyDefendantAccountBuilders {
             .build();
     }
 
-    static EnforcerReferenceCommon buildEnforcerReference(EnforcerReference enforcerRef) {
-        return EnforcerReferenceCommon.builder()
-            .enforcerId(enforcerRef.getEnforcerId())
-            .enforcerName(enforcerRef.getEnforcerName())
-            .build();
-    }
-
     static EnforcementOverrideResultReferenceCommon buildEnforcementOverrideResultRef(
         EnforcementOverrideResultReference resultRef) {
 
@@ -120,36 +113,87 @@ public class LegacyDefendantAccountBuilders {
     static EnforcementActionDefendantAccount buildEnforcementActionDefendantAccount(
         EnforcementAction enforcementAction) {
 
-        return Optional.ofNullable(enforcementAction).map(action ->
-            EnforcementActionDefendantAccount.builder()
-                .warrantNumber(action.getWarrantNumber())
-                .reason(action.getReason())
-                .dateAdded(LocalDateTime.parse(action.getDateAdded()))
+        return Optional.ofNullable(enforcementAction)
+            .filter(LegacyDefendantAccountBuilders::hasEnforcementActionData)
+            .map(action -> EnforcementActionDefendantAccount.builder()
+                .warrantNumber(nullifyBlank(action.getWarrantNumber()))
+                .reason(nullifyBlank(action.getReason()))
+                .dateAdded(parseLegacyDateAdded(action.getDateAdded()))
                 .enforcer(buildEnforcerReference(action.getEnforcer()))
                 .enforcementAction(buildResultReferenceCommon(action.getResultReference()))
                 .resultResponses(buildResultResponses(action.getResultResponses()))
-                .build()).orElse(null);
-    }
-
-    static List<ResultResponsesCommon> buildResultResponses(ResultResponses responses) {
-        return Optional.ofNullable(responses)
-            .map(LegacyDefendantAccountBuilders::buildResultResponse)
-            .map(List::of)
+                .build())
             .orElse(null);
     }
 
+    static List<ResultResponsesCommon> buildResultResponses(ResultResponses responses) {
+        ResultResponsesCommon response = buildResultResponse(responses);
+        return response == null ? null : List.of(response);
+    }
+
     static ResultResponsesCommon buildResultResponse(ResultResponses responses) {
-        return ResultResponsesCommon.builder()
-            .parameterName(responses.getParameterName())
-            .response(responses.getResponse())
-            .build();
+        return Optional.ofNullable(responses)
+            .filter(LegacyDefendantAccountBuilders::hasResultResponseData)
+            .map(response -> ResultResponsesCommon.builder()
+                .parameterName(nullifyBlank(response.getParameterName()))
+                .response(nullifyBlank(response.getResponse()))
+                .build())
+            .orElse(null);
     }
 
     static ResultReferenceCommon buildResultReferenceCommon(ResultReference resultRef) {
-        return ResultReferenceCommon.builder()
-            .resultId(String.valueOf(resultRef.getResultId()))
-            .resultTitle(resultRef.getResultTitle())
-            .build();
+        return Optional.ofNullable(resultRef)
+            .filter(LegacyDefendantAccountBuilders::hasResultReferenceData)
+            .map(reference -> ResultReferenceCommon.builder()
+                .resultId(nullifyBlank(reference.getResultId()))
+                .resultTitle(nullifyBlank(reference.getResultTitle()))
+                .build())
+            .orElse(null);
     }
 
+    static EnforcerReferenceCommon buildEnforcerReference(EnforcerReference enforcerRef) {
+        return Optional.ofNullable(enforcerRef)
+            .filter(LegacyDefendantAccountBuilders::hasEnforcerReferenceData)
+            .map(enforcer -> EnforcerReferenceCommon.builder()
+                .enforcerId(enforcer.getEnforcerId())
+                .enforcerName(nullifyBlank(enforcer.getEnforcerName()))
+                .build())
+            .orElse(null);
+    }
+
+    private static LocalDateTime parseLegacyDateAdded(String dateAdded) {
+        return isBlank(dateAdded) ? null : LocalDateTime.parse(dateAdded);
+    }
+
+    private static boolean hasEnforcementActionData(EnforcementAction action) {
+        return !isBlank(action.getWarrantNumber())
+            || !isBlank(action.getReason())
+            || !isBlank(action.getDateAdded())
+            || hasEnforcerReferenceData(action.getEnforcer())
+            || hasResultReferenceData(action.getResultReference())
+            || hasResultResponseData(action.getResultResponses());
+    }
+
+    private static boolean hasEnforcerReferenceData(EnforcerReference enforcerRef) {
+        return enforcerRef != null
+            && (enforcerRef.getEnforcerId() != null || !isBlank(enforcerRef.getEnforcerName()));
+    }
+
+    private static boolean hasResultReferenceData(ResultReference resultRef) {
+        return resultRef != null
+            && (!isBlank(resultRef.getResultId()) || !isBlank(resultRef.getResultTitle()));
+    }
+
+    private static boolean hasResultResponseData(ResultResponses responses) {
+        return responses != null
+            && (!isBlank(responses.getParameterName()) || !isBlank(responses.getResponse()));
+    }
+
+    private static String nullifyBlank(String value) {
+        return isBlank(value) ? null : value;
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
 }
