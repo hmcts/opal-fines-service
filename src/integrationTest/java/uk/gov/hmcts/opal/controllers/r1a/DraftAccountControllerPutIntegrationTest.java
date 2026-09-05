@@ -565,14 +565,101 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     }
 
     @Test
+    @DisplayName("Replace draft account - Should accept a valid major creditor id for an Any result rule")
+    @JiraStory("PO-5750")
+    @JiraEpic("PO-8248")
+    void shouldReplaceDraftAccountWhenMajorCreditorResolvesForAnyRule() throws Exception {
+        String ifMatch = getIfMatchForDraftAccount(5L);
+        mockMvc.perform(put(URL_BASE + "/5")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", ifMatch)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(replaceRequestForResultAndMajor(0L, "FCOMP", 780000000041L)))
+            .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Replace draft account - Should return 400 when major creditor id is for another business unit")
+    @JiraStory("PO-5750")
+    @JiraEpic("PO-8248")
+    void shouldReturn400WhenMajorCreditorDoesNotResolveForBusinessUnitOnPut() throws Exception {
+        String ifMatch = getIfMatchForDraftAccount(5L);
+        mockMvc.perform(put(URL_BASE + "/5")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", ifMatch)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(replaceRequestForResultAndMajor(0L, "FCOMP", 770000000105L)))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedMajorCreditorRuleErrorMessage(770000000105L, (short) 78, "Any"),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("Replace draft account - Should return 400 when an Any result has neither major nor minor creditor")
+    @JiraStory("PO-5750")
+    @JiraEpic("PO-8248")
+    void shouldReturn400WhenMinorCreditorIsMissingForAnyRuleOnPut() throws Exception {
+        String ifMatch = getIfMatchForDraftAccount(5L);
+        mockMvc.perform(put(URL_BASE + "/5")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", ifMatch)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(replaceRequestForResult(0L, "FCOMP")))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedMissingMinorCreditorErrorMessage("Any"),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("Replace draft account - Should return 400 when no central fund creditor account exists")
+    @JiraStory("PO-5750")
+    @JiraEpic("PO-8248")
+    @Sql(
+        scripts = "classpath:db/deleteData/delete_from_central_fund_creditor_account.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    @Sql(
+        scripts = "classpath:db/insertData/insert_into_central_fund_creditor_account.sql",
+        executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD
+    )
+    void shouldReturn400WhenCentralFundAccountIsMissingOnPut() throws Exception {
+        String ifMatch = getIfMatchForDraftAccount(5L);
+
+        mockMvc.perform(put(URL_BASE + "/5")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", ifMatch)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(replaceRequestForResult(0L, "FO")))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedMissingCentralFundErrorMessage((short) 78),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
     @DisplayName("Replace draft account - Should return 400 when payment term enforcement result is missing")
     @JiraStory("PO-5752")
     @JiraEpic("PO-8248")
-    @Sql(scripts = "classpath:db/deleteData/delete_from_results_collo.sql",
-        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(
+        scripts = "classpath:db/deleteData/delete_from_results_collo.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
     @Transactional
     void shouldReturn400WhenPutPaymentTermEnforcementResultIsMissing() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
+
         mockMvc.perform(put(URL_BASE + "/5")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("authorization", userStateStub.getBearerToken())
@@ -591,11 +678,14 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @DisplayName("Replace draft account - Should return 400 when payment term enforcement result is not an enforcement")
     @JiraStory("PO-5752")
     @JiraEpic("PO-8248")
-    @Sql(scripts = "classpath:db/insertData/insert_into_results_collo_non_enforcement.sql",
-        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(
+        scripts = "classpath:db/insertData/insert_into_results_collo_non_enforcement.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
     @Transactional
     void shouldReturn400WhenPutPaymentTermEnforcementResultIsNotAnEnforcement() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
+
         mockMvc.perform(put(URL_BASE + "/5")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("authorization", userStateStub.getBearerToken())
@@ -614,11 +704,14 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @DisplayName("Replace draft account - Should return 400 when payment term enforcement result is inactive")
     @JiraStory("PO-5752")
     @JiraEpic("PO-8248")
-    @Sql(scripts = "classpath:db/insertData/insert_into_results_collo_inactive.sql",
-        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(
+        scripts = "classpath:db/insertData/insert_into_results_collo_inactive.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
     @Transactional
     void shouldReturn400WhenPutPaymentTermEnforcementResultIsInactive() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
+
         mockMvc.perform(put(URL_BASE + "/5")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("authorization", userStateStub.getBearerToken())
@@ -826,12 +919,11 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
     private static String expectedReferenceValidationErrorMessage() {
         return """
-            Draft account reference validation failed with 5 error(s):
+            Draft account reference validation failed with 4 error(s):
              - $.enforcement_court_id: court id 999999 does not exist
              - account.offences[0].offence_id: offence id 999998 does not exist
              - $.offences[0].imposing_court_id: court id 999997 does not exist
              - $.offences[0].impositions[0].result_id: result id NOT-A-RESULT does not exist
-             - $.offences[0].impositions[0].major_creditor_id: major creditor id 999996 does not exist
             """.stripIndent().stripTrailing();
     }
 
@@ -840,6 +932,40 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             Draft account reference validation failed with 1 error(s):
              - $.payment_terms.enforcements[0].result_id: result id %s
             """.formatted(resultError).stripIndent().stripTrailing();
+    }
+
+    private static String replaceRequestForResult(Long version, String resultId) {
+        return validReplaceRequestBody(version).replace("\"result_id\": \"FO\"", "\"result_id\": \"" + resultId + "\"");
+    }
+
+    private static String replaceRequestForResultAndMajor(Long version, String resultId, long majorCreditorId) {
+        return replaceRequestForResult(version, resultId)
+            .replace("\"major_creditor_id\": null", "\"major_creditor_id\": " + majorCreditorId);
+    }
+
+    private static String expectedMajorCreditorRuleErrorMessage(long majorCreditorId, short businessUnitId,
+                                                                String ruleLabel) {
+        return (
+            "Draft account reference validation failed with 1 error(s):\n"
+                + " - $.offences[0].impositions[0].major_creditor_id: major creditor id %s is not valid for "
+                + "business unit %s and result creditor rule %s"
+        ).formatted(majorCreditorId, businessUnitId, ruleLabel);
+    }
+
+    private static String expectedMissingMinorCreditorErrorMessage(String ruleLabel) {
+        return (
+            "Draft account reference validation failed with 1 error(s):\n"
+                + " - $.offences[0].impositions[0].minor_creditor: a minor creditor or valid major creditor id "
+                + "is required for result creditor rule %s"
+        ).formatted(ruleLabel);
+    }
+
+    private static String expectedMissingCentralFundErrorMessage(short businessUnitId) {
+        return (
+            "Draft account reference validation failed with 1 error(s):\n"
+                + " - $.offences[0].impositions[0].major_creditor_id: no central fund creditor account exists "
+                + "for business unit %s"
+        ).formatted(businessUnitId);
     }
 
     private static String validReplaceRequestBodyForPdpl(Long version) {
