@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse.DefendantAccountTypeEnum;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -335,6 +336,19 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
             .andExpect(jsonPath("$.account_status_reference.account_status_code").value("L"))
             .andExpect(jsonPath("$.account_status_reference.account_status_display_name").value("Live"))
             .andExpect(ignoreForLegacy(jsonPath("$.next_enforcement_action_data").value("All"), isLegacy));
+    }
+
+    @DisplayName("Get enforcement status for individual defendant account where their date of birth is null")
+    void testGetEnforcementStatus_defendantAccountPartyDoBIsNull(Logger log, boolean isLegacy) throws Exception {
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/88/enforcement-status")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken()));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":getEnforcementStatus: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(jsonPath("$.defendant_account_type").value(DefendantAccountTypeEnum.ADULT.getValue()));
     }
 
     @DisplayName("Get enforcement status - forbidden without permission")
