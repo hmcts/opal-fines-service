@@ -12,8 +12,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noPermissionsUser;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
+import static uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil.noPermissionsUser;
+import static uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil.permissionUser;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
