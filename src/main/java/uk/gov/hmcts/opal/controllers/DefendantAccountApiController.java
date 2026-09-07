@@ -147,7 +147,9 @@ public class DefendantAccountApiController implements DefendantAccountApi {
         GetDefendantAccountFixedPenaltyResponse response =
             defendantAccountFixedPenaltyService.getDefendantAccountFixedPenalty(defendantAccountId);
 
-        return ResponseEntity.ok().eTag(VersionUtils.createETag(response)).body(response);
+        return response != null
+            ? ResponseEntity.ok().eTag(VersionUtils.createETag(response)).body(response)
+            : ResponseEntity.notFound().build();
     }
 
     @Override
