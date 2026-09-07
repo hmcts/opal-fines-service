@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers.r1a;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.times;
@@ -28,6 +29,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
@@ -43,6 +45,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @DisplayName("DraftAccountControllerPostIntegrationTest")
 class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountControllerIntegrationTest {
 
+    // adding a cmment
     private String validRawJsonCreateRequestBody() {
         AddDraftAccountRequestDto dto = AddDraftAccountRequestDto.builder()
             .businessUnitId((short) 78)
@@ -547,39 +550,32 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         resultActions.andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(expectBadRequest(
-                "Request contains unexpected additional properties: account_create_request, invalid_field",
+                "Request contains unexpected additional properties: account_create_request",
                 "https://hmcts.gov.uk/problems/json-schema-validation"
             ));
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"submitted_by", "submitted_by_name"})
-    @DisplayName("Create draft account - Should return 400 when token-derived fields are supplied")
+    @DisplayName("Create draft account - Should allow token-derived fields during frontend compatibility period")
     @JiraStory("PO-2461")
     @JiraEpic("PO-2219")
-    void testPostDraftAccount_tokenDerivedFieldIsSupplied(String propertyName) throws Exception {
+    void testPostDraftAccount_tokenDerivedFieldIsSupplied(String propertyName) {
         String request = validCreateRequestBody().replace(
             "\"business_unit_id\": 78,",
             "\"business_unit_id\": 78,\n"
                 + "              \"%s\": \"client-user\",".formatted(propertyName)
         );
 
-        mockMvc.perform(post(URL_BASE)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request))
-            .andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail", containsString(propertyName)))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
+        assertDoesNotThrow(() ->
+            jsonSchemaValidationService.validateOrError(request, SchemaPaths.ADD_DRAFT_ACCOUNT_REQUEST));
     }
 
     @Test
-    @DisplayName("Create draft account - Should return 400 when undocumented top-level field is supplied")
+    @DisplayName("Create draft account - Should allow top-level field during frontend compatibility period")
     @JiraStory("PO-2461")
     @JiraEpic("PO-2219")
-    void testPostDraftAccount_undocumentedTopLevelFieldIsSupplied() throws Exception {
+    void testPostDraftAccount_undocumentedTopLevelFieldIsSupplied() {
         String propertyName = "undocumented_client_field";
         String request = validCreateRequestBody().replace(
             "\"business_unit_id\": 78,",
@@ -587,15 +583,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 + "              \"%s\": \"client-value\",".formatted(propertyName)
         );
 
-        mockMvc.perform(post(URL_BASE)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request))
-            .andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail", containsString(propertyName)))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
+        assertDoesNotThrow(() ->
+            jsonSchemaValidationService.validateOrError(request, SchemaPaths.ADD_DRAFT_ACCOUNT_REQUEST));
     }
 
     @Test
