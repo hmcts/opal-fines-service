@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -111,7 +110,7 @@ public class GenericReportService implements GenericReportServiceInterface {
 
         List<Short> businessUnitIdsForReportInstance = reportInstanceEntity.getBusinessUnit();
         if (!userState.getBusinessUnitUser().stream().map(BusinessUnitUser::getBusinessUnitId)
-            .collect(Collectors.toSet()).containsAll(businessUnitIdsForReportInstance)) {
+            .anyMatch(businessUnitIdsForReportInstance::contains)) {
             throw new AccessDeniedException("You cannot request report instances associated with other business units");
         }
         List<BusinessUnitEntity> businessUnitEntities = businessUnitRepository
