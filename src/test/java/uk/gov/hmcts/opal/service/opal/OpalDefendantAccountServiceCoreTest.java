@@ -11,7 +11,6 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -121,7 +120,6 @@ class OpalDefendantAccountServiceCoreTest {
                 DefendantAccountPartiesEntity.builder()
                     .associationType(AssociationType.DEFENDANT)
                     .party(PartyEntity.builder()
-                        .birthDate(LocalDate.of(1990, 1, 1))
                         .build())
                     .build()))
             .defendantAccountId(1L)
