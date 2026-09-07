@@ -25,7 +25,7 @@ Feature: Reference Data Smoke Checks
     When I make a request to the LJA ref data api with
     Then the LJA ref data matching to result
 
-  @JIRA-STORY:PO-316 @JIRA-EPIC:PO-304 @JIRA-TEST-KEY:PO-5737
+  @ExtendedTest @JIRA-STORY:PO-316 @JIRA-EPIC:PO-304 @JIRA-TEST-KEY:PO-5737
   Scenario: Enforcer reference data is available
     When I make a request to enforcer ref data api filtering by name "Alder"
     Then the enforcer ref data matching to result
