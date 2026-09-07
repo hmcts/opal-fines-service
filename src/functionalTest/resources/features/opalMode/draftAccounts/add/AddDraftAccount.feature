@@ -108,6 +108,126 @@ Feature: Create Draft Accounts
       | PGemail1@email.com |
       | PGemail2@test.com  |
 
+  @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
+  Scenario: Create draft account - NEW fine originator resolves against a valid CRWCRT
+    When I create a draft account with the following details
+      | business_unit_id         | 73                                  |
+      | account                  | draftAccounts/accountJson/account.json |
+      | account_type             | Fine                                 |
+      | account_status           | Submitted                            |
+      | submitted_by             | BUUID                                |
+      | submitted_by_name        | Laura Clerk                          |
+      | account_originator_type   | NEW                                  |
+      | account_originator_id     | 401                                  |
+      | account_originator_name   | Aylesbury Crown Court                |
+    Then the draft account is created successfully with the following data
+      | business_unit_id                   | 73                    |
+      | account_type                        | Fine                  |
+      | account_status                      | Submitted             |
+      | account.originator_type             | NEW                   |
+      | account.originator_id               | 401                   |
+      | account.originator_name             | Aylesbury Crown Court |
+
+  @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
+  Scenario: Create draft account - NEW confiscation originator resolves against a valid CRWCRT
+    When I create a draft account with the following details
+      | business_unit_id         | 73                                  |
+      | account                  | draftAccounts/accountJson/account.json |
+      | account_type             | Confiscation                         |
+      | account_status           | Submitted                            |
+      | submitted_by             | BUUID                                |
+      | submitted_by_name        | Laura Clerk                          |
+      | account_originator_type   | NEW                                  |
+      | account_originator_id     | 401                                  |
+      | account_originator_name   | Aylesbury Crown Court                |
+    Then the draft account is created successfully with the following data
+      | business_unit_id                   | 73                    |
+      | account_type                        | Confiscation          |
+      | account_status                      | Submitted             |
+      | account.originator_type             | NEW                   |
+      | account.originator_id               | 401                   |
+      | account.originator_name             | Aylesbury Crown Court |
+
+  @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
+  Scenario: Create draft account - NEW conditional caution originator resolves against a prosecutor
+    When I create a draft account with the following details
+      | business_unit_id         | 73                                                    |
+      | account                  | draftAccounts/accountJson/account.json                 |
+      | account_type             | Conditional Caution                                   |
+      | account_status           | Submitted                                             |
+      | submitted_by             | BUUID                                                 |
+      | submitted_by_name        | Laura Clerk                                           |
+      | account_originator_type   | NEW                                                   |
+      | account_originator_id     | 1                                                     |
+      | account_originator_name   | Met Camera Processing Services / Traffic Offence Reports |
+    Then the draft account is created successfully with the following data
+      | business_unit_id                   | 73                                                      |
+      | account_type                        | Conditional Caution                                     |
+      | account_status                      | Submitted                                               |
+      | account.originator_type             | NEW                                                     |
+      | account.originator_id               | 1                                                       |
+      | account.originator_name             | Met Camera Processing Services / Traffic Offence Reports |
+
+  @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
+  Scenario: Create draft account - TFO fine originator resolves against a valid LJA
+    When I create a draft account with the following details
+      | business_unit_id         | 73                                  |
+      | account                  | draftAccounts/accountJson/account.json |
+      | account_type             | Fine                                 |
+      | account_status           | Submitted                            |
+      | submitted_by             | BUUID                                |
+      | submitted_by_name        | Laura Clerk                          |
+      | account_originator_type   | TFO                                  |
+      | account_originator_id     | 3190                                 |
+      | account_originator_name   | Cardiff Magistrates' Court           |
+    Then the draft account is created successfully with the following data
+      | business_unit_id                   | 73                    |
+      | account_type                        | Fine                  |
+      | account_status                      | Submitted             |
+      | account.originator_type             | TFO                   |
+      | account.originator_id               | 3190                  |
+      | account.originator_name             | Cardiff Magistrates' Court |
+
+  @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
+  Scenario: Create draft account - TFO fixed penalty originator resolves against a prosecutor
+    When I create a draft account with the following details
+      | business_unit_id         | 73                                                    |
+      | account                  | draftAccounts/accountJson/account.json                 |
+      | account_type             | Fixed Penalty                                         |
+      | account_status           | Submitted                                             |
+      | submitted_by             | BUUID                                                 |
+      | submitted_by_name        | Laura Clerk                                           |
+      | account_originator_type   | TFO                                                   |
+      | account_originator_id     | 1                                                     |
+      | account_originator_name   | Met Camera Processing Services / Traffic Offence Reports |
+    Then the draft account is created successfully with the following data
+      | business_unit_id                   | 73                                                      |
+      | account_type                        | Fixed Penalty                                           |
+      | account_status                      | Submitted                                               |
+      | account.originator_type             | TFO                                                     |
+      | account.originator_id               | 1                                                       |
+      | account.originator_name             | Met Camera Processing Services / Traffic Offence Reports |
+
+  @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
+  Scenario: Create draft account - FP fixed penalty originator resolves against a prosecutor
+    When I create a draft account with the following details
+      | business_unit_id         | 73                                                    |
+      | account                  | draftAccounts/accountJson/account.json                 |
+      | account_type             | Fixed Penalty                                         |
+      | account_status           | Submitted                                             |
+      | submitted_by             | BUUID                                                 |
+      | submitted_by_name        | Laura Clerk                                           |
+      | account_originator_type   | FP                                                    |
+      | account_originator_id     | 1                                                     |
+      | account_originator_name   | Met Camera Processing Services / Traffic Offence Reports |
+    Then the draft account is created successfully with the following data
+      | business_unit_id                   | 73                                                      |
+      | account_type                        | Fixed Penalty                                           |
+      | account_status                      | Submitted                                               |
+      | account.originator_type             | FP                                                      |
+      | account.originator_id               | 1                                                       |
+      | account.originator_name             | Met Camera Processing Services / Traffic Offence Reports |
+
   @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5624
   Scenario: Reject draft-account creation with an invalid token
     When I attempt to create a draft account with an invalid token
