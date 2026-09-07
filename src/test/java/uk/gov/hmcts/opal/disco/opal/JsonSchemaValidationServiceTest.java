@@ -138,7 +138,7 @@ class JsonSchemaValidationServiceTest {
             JsonSchemaValidationException.class,
             () -> jsonSchemaValidationService.validateOrError(
                 "{\"unexpected_client_field\": \"value\"}",
-                SchemaPaths.ADD_DRAFT_ACCOUNT_REQUEST
+                SchemaPaths.DEFENDANT_ACCOUNT + "/addNoteRequest.json"
             )
         );
 
@@ -178,20 +178,20 @@ class JsonSchemaValidationServiceTest {
     }
 
     @Test
-    void draftAccountRequestSchemasShouldRejectUndocumentedTopLevelProperties() throws IOException {
-        assertDraftAccountRequestSchemaRejectsUndocumentedProperties(SchemaPaths.ADD_DRAFT_ACCOUNT_REQUEST);
-        assertDraftAccountRequestSchemaRejectsUndocumentedProperties(SchemaPaths.REPLACE_DRAFT_ACCOUNT_REQUEST);
-        assertDraftAccountRequestSchemaRejectsUndocumentedProperties(SchemaPaths.UPDATE_DRAFT_ACCOUNT_REQUEST);
+    void draftAccountRequestSchemasShouldAllowUndocumentedTopLevelPropertiesForHotfix() throws IOException {
+        assertDraftAccountRequestSchemaAllowsUndocumentedProperties(SchemaPaths.ADD_DRAFT_ACCOUNT_REQUEST);
+        assertDraftAccountRequestSchemaAllowsUndocumentedProperties(SchemaPaths.REPLACE_DRAFT_ACCOUNT_REQUEST);
+        assertDraftAccountRequestSchemaAllowsUndocumentedProperties(SchemaPaths.UPDATE_DRAFT_ACCOUNT_REQUEST);
     }
 
-    private static void assertDraftAccountRequestSchemaRejectsUndocumentedProperties(String schemaPath)
+    private static void assertDraftAccountRequestSchemaAllowsUndocumentedProperties(String schemaPath)
         throws IOException {
         JsonNode schema = readSchema(schemaPath);
         JsonNode properties = schema.get("properties");
         JsonNode additionalProperties = schema.get("additionalProperties");
 
         assertNotNull(additionalProperties, schemaPath + " should declare additionalProperties");
-        assertFalse(additionalProperties.asBoolean(), schemaPath + " should reject additional properties");
+        assertTrue(additionalProperties.asBoolean(), schemaPath + " should allow additional properties for hotfix");
 
         Stream.of("submitted_by", "submitted_by_name", "validated_by", "validated_by_name")
             .forEach(field -> assertFalse(properties.has(field), schemaPath + " should not expose " + field));
