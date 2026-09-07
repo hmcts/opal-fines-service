@@ -1,7 +1,5 @@
 package uk.gov.hmcts.opal.service.legacy;
 
-import static uk.gov.hmcts.opal.dto.legacy.utils.ValidationUtils.checkResponseForError;
-
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +23,6 @@ public class LegacyDefendantAccountFixedPenaltyService implements DefendantAccou
 
     public static final String GET_FIXED_PENALTY = "getDefendantAccountFixedPenalty";
 
-    /* ---- Services ---- */
     private final GatewayService gatewayService;
 
     @Override
@@ -37,8 +34,6 @@ public class LegacyDefendantAccountFixedPenaltyService implements DefendantAccou
                 GET_FIXED_PENALTY, LegacyDefendantAccountGetFixedPenaltyResponse.class,
                 createLegacyDefendantAccountGetFixedPenaltyRequest(defendantAccountId),
                 null);
-
-            checkResponseForError(response, "getDefendantAccountFixedPenalty");
 
             return toAccountFixedPenaltyResponse(response.responseEntity);
         } catch (RuntimeException e) {

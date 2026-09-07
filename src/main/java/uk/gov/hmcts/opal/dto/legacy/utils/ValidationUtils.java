@@ -3,9 +3,6 @@ package uk.gov.hmcts.opal.dto.legacy.utils;
 import java.util.Objects;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 @Slf4j(topic = "opal.LegacyValidationUtils")
