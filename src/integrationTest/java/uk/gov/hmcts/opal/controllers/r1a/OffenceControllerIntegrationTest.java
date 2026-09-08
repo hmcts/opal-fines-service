@@ -18,6 +18,7 @@ import static uk.gov.hmcts.opal.support.SpyInvocationSupport.countInvocationsByM
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.http.MediaType;
@@ -39,6 +40,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Sql(scripts = "classpath:db/insertData/insert_into_offences.sql", executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("OffenceController Integration Test")
 @Isolated
+@Tag("ExtendedTest")
 class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String GET_OFFENCES_REF_DATA_RESPONSE =
