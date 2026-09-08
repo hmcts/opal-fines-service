@@ -4,6 +4,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.MediaType;
@@ -20,6 +21,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
     "launchdarkly.enabled=false",
     "launchdarkly.default-flag-values.release-1b=false"
 })
+@Tag("ExtendedTest")
 class R1bFlagDisabledTest extends AbstractIntegrationTest {
 
     @ParameterizedTest(name = "{0}")

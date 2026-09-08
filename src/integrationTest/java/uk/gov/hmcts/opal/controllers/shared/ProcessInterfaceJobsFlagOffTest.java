@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -25,6 +26,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
     "launchdarkly.default-flag-values.release-1c-payment=false"
 })
 @DisplayName("Interface Jobs Process Feature Toggle Disabled Integration Tests")
+@Tag("ExtendedTest")
 class ProcessInterfaceJobsFlagOffTest extends AbstractIntegrationTest {
 
     private static final String URL = "/interface-jobs/process";
