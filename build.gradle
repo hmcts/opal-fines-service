@@ -46,7 +46,39 @@ ext {
 def defaultLegacyStubImage = 'hmctsprod.azurecr.io/opal/legacy-db-stub:latest'
 def legacyStubImage = System.getenv('OPAL_LEGACY_STUB_IMAGE') ?: defaultLegacyStubImage
 def legacyStubPort = 4553
+def extendedTestTag = 'ExtendedTest'
+def extendedCucumberTag = "@${extendedTestTag}"
+def extendedTests = providers.gradleProperty('extendedTests')
+  .orElse(providers.environmentVariable('EXTENDED_TESTS'))
+  .map { it.toBoolean() }
+  .orElse(true)
 def ciEnvironmentVariables = ['CI', 'GITHUB_ACTIONS', 'JENKINS_HOME', 'BUILD_ID']
+
+def requestedGradleTasks = gradle.startParameter.taskNames ?: ['build']
+def coreTestsCommand = "./gradlew -PextendedTests=false ${requestedGradleTasks.join(' ')}"
+
+def printTestLaneBanner = { boolean includeExtendedTests ->
+  def lines = includeExtendedTests ? [
+    'Running core and extended tests.',
+    "Tests tagged '${extendedTestTag}' are included.",
+    "Run core tests only with: ${coreTestsCommand}"
+  ] : [
+    "Running core tests only for quicker build times.",
+    "Tests tagged '${extendedTestTag}' are excluded unless specific tests are selected.",
+    "This run has opted out of the default extended-test lane."
+  ]
+
+  def width = lines.collect { it.length() }.max() + 4
+  logger.lifecycle('')
+  logger.lifecycle('#' * width)
+  lines.each { logger.lifecycle("# ${it.padRight(width - 4)} #") }
+  logger.lifecycle('#' * width)
+  logger.lifecycle('')
+}
+
+def cucumberTagsForTestSelection = { String tags ->
+  extendedTests.get() || tags.contains(extendedCucumberTag) ? tags : "(${tags}) and not ${extendedCucumberTag}"
+}
 
 def isLocalIntegrationEnvironment = {
   ciEnvironmentVariables.every { !System.getenv(it) }
@@ -346,8 +378,22 @@ tasks.named('sonarResolver') {
   dependsOn(processResources)
 }
 
+gradle.taskGraph.whenReady { graph ->
+  if (graph.allTasks.any { it instanceof Test }) {
+    printTestLaneBanner(extendedTests.get())
+  }
+}
+
 tasks.withType(Test).configureEach {
   useJUnitPlatform()
+
+  doFirst {
+    if (!extendedTests.get() && filter.commandLineIncludePatterns.empty) {
+      useJUnitPlatform {
+        excludeTags extendedTestTag
+      }
+    }
+  }
 
   systemProperty 'spring.test.context.cache.maxSize', 4
 
@@ -430,6 +476,19 @@ tasks.register('functionalOpal', Test) {
     "net.serenitybdd.cucumber.core.plugin.SerenityReporterParallel,pretty,json:${rootDir}/target/zephyr-reports/cucumber-opal.json,timeline:${rootDir}/target/test-results/timeline"
   include '**/OpalTestRunner.class'
 
+  doFirst {
+    systemProperty 'cucumber.filter.tags', cucumberTagsForTestSelection(
+      '@Opal and not @Smoke and not @Ignore and not '
+        + '(@R1AOff or @R1BOff or @R1COff or @R1CWriteOffOff or '
+        + '@R1CEnforcementOperationalReportingOff or @R1CAdministrationOff or @R1CFinancialMovementsOff or '
+        + '@R1CAutoEnforcementOff or @R1CDataRetentionOff or @R1CAutoEnforcementConfigOff or '
+        + '@R1CRmFinancialMovementsOff or @R1CRmFinancialChecksOff or '
+        + '@R1CRmSuspenseOff or @R1CRmPaymentOff or @R1CRmAdminReportsOff or @R1CRmAccountActionsOff or '
+        + '@R1CChecksOff or @R1CSuspenseOff or @R1CPaymentOff or @R1CR1ATidyUpOff or @R1CReferenceDataOff or '
+        + '@R1CBankingInterfacesOff or @R1CCppEnforcementOff or @R1CCppOff or @R1CPrintingOff)'
+    )
+  }
+
   finalizedBy 'copyOpalCucumberJson', 'mergeFunctionalResults', 'aggregate', 'copyFunctionalReport'
 }
 
@@ -464,7 +523,7 @@ tasks.register('functionalOpalTags', Test) {
       )
     }
 
-    systemProperty 'cucumber.filter.tags', cucumberTags.toString()
+    systemProperty 'cucumber.filter.tags', cucumberTagsForTestSelection(cucumberTags.toString())
   }
 
   finalizedBy 'copyOpalTagsCucumberJson', 'mergeFunctionalOpalTagsResults', 'aggregate', 'copyDemoFunctionalReport',
@@ -970,7 +1029,7 @@ dependencies {
   openapiImplementation "tools.jackson.dataformat:jackson-dataformat-yaml"
 
   implementation 'com.microsoft.azure:applicationinsights-web:3.7.9'
-  implementation 'com.azure:azure-storage-blob:12.35.0'
+  implementation 'com.azure:azure-storage-blob:12.35.1'
   implementation 'org.springframework.boot:spring-boot-flyway'
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
@@ -1079,7 +1138,7 @@ dependencies {
 
   testImplementation "net.serenity-bdd:serenity-cucumber:${serenityVersion}"
   testImplementation "net.serenity-bdd:serenity-ensure:${serenityVersion}"
-  testImplementation 'com.azure:azure-messaging-servicebus:7.17.19'
+  testImplementation 'com.azure:azure-messaging-servicebus:7.17.20'
 
   implementation('uk.gov.hmcts:opal-logging-service-integration-lib:0.0.10') {
     exclude group: 'com.microsoft.azure', module: 'applicationinsights-spring-boot-starter'

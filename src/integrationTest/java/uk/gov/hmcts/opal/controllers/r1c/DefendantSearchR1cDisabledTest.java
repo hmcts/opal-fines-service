@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -32,6 +33,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
     "launchdarkly.default-flag-values.release-1c-write-off=false"
 })
 @DisplayName("Defendant account search release-1c-write-off disabled Integration Test")
+@Tag("ExtendedTest")
 class DefendantSearchR1cDisabledTest extends AbstractIntegrationTest {
 
     private static final String DEFENDANTS_SEARCH_URL = "/defendant-accounts/search";
