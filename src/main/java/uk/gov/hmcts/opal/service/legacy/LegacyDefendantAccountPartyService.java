@@ -53,6 +53,7 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
     public static final String REPLACE_DEFENDANT_ACCOUNT_PARTY = "replaceDefendantAccountParty";
     public static final String ADD_DEFENDANT_ACCOUNT_PARTY = "addDefendantAccountParty";
     public static final String REMOVE_DEFENDANT_ACCOUNT_PARTY = "removeDefendantAccountParty";
+    private static final String LEGACY_REPLACE_FAILURE = "Legacy failure during replaceDefendantAccountParty";
 
     /* ---- Services ---- */
     private final GatewayService gatewayService;
@@ -285,6 +286,11 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
         return obj == null ? null : f.apply(obj);
     }
 
+    private static String legacyErrorMessage(LegacyReplaceDefendantAccountPartyResponse response) {
+        String errorMessage = response.getErrorResponse().getErrorMessage();
+        return errorMessage == null || errorMessage.isBlank() ? LEGACY_REPLACE_FAILURE : errorMessage;
+    }
+
     @Override
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId,
@@ -324,11 +330,17 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
                     "Legacy exception during replaceDefendantAccountParty",
                     response.exception
                 );
+            } else if (response.hasErrorResponse()) {
+                log.error(":replaceDefendantAccountParty: legacy error response:\n{}", response.body);
+                throw new ResponseStatusException(
+                    HttpStatus.BAD_GATEWAY,
+                    legacyErrorMessage(response.responseEntity)
+                );
             } else if (response.isLegacyFailure()) {
                 log.error(":replaceDefendantAccountParty: legacy failure body:\n{}", response.body);
                 throw new ResponseStatusException(
                     HttpStatus.BAD_GATEWAY,
-                    "Legacy failure during replaceDefendantAccountParty"
+                    LEGACY_REPLACE_FAILURE
                 );
             }
 

@@ -28,6 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
 import uk.gov.hmcts.opal.disco.legacy.LegacyTestsBase;
@@ -1372,6 +1373,38 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             )
         );
         assertEquals("Legacy failure during replaceDefendantAccountParty", ex.getReason());
+        assertEquals(HttpStatus.BAD_GATEWAY, ex.getStatusCode());
+    }
+
+    @Test
+    void replaceDefendantAccountParty_legacyErrorResponse_throwsBadGateway() {
+        LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
+            .errorResponse(ErrorResponse.builder()
+                .errorCode("-20018")
+                .errorMessage("Invalid party ID")
+                .build())
+            .build();
+
+        GatewayService.Response<LegacyReplaceDefendantAccountPartyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK, legacyBody, null, null);
+
+        Class<LegacyReplaceDefendantAccountPartyResponse> respType = LegacyReplaceDefendantAccountPartyResponse.class;
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountPartyService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            any(LegacyReplaceDefendantAccountPartyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        ResponseStatusException ex = assertThrows(
+            ResponseStatusException.class,
+            () -> legacyDefendantAccountPartyService.replaceDefendantAccountParty(
+                77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
+            )
+        );
+
+        assertEquals("Invalid party ID", ex.getReason());
         assertEquals(HttpStatus.BAD_GATEWAY, ex.getStatusCode());
     }
 
