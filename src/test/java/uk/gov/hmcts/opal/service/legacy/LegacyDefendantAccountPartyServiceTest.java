@@ -1272,6 +1272,55 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     }
 
     @Test
+    void replaceDefendantAccountParty_buildsLegacyRequestWithNestedPartyId() {
+        DefendantAccountParty request = DefendantAccountParty.builder()
+            .defendantAccountPartyType("Defendant")
+            .isDebtor(true)
+            .build();
+
+        LegacyReplaceDefendantAccountPartyResponse legacyResponse = LegacyReplaceDefendantAccountPartyResponse.builder()
+            .version(BigInteger.valueOf(10))
+            .defendantAccountParty(DefendantAccountPartyLegacy.builder().build())
+            .build();
+
+        GatewayService.Response<LegacyReplaceDefendantAccountPartyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
+
+        Class<LegacyReplaceDefendantAccountPartyResponse> respType = LegacyReplaceDefendantAccountPartyResponse.class;
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountPartyService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            any(LegacyReplaceDefendantAccountPartyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        GetDefendantAccountPartyResponse result = legacyDefendantAccountPartyService.replaceDefendantAccountParty(
+            77L, 20010L, request, "\"10\"", "78", "poster", "Poster Name", "dev_user"
+        );
+
+        ArgumentCaptor<LegacyReplaceDefendantAccountPartyRequest> requestCaptor =
+            ArgumentCaptor.forClass(LegacyReplaceDefendantAccountPartyRequest.class);
+
+        verify(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountPartyService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            requestCaptor.capture(),
+            Mockito.nullable(String.class)
+        );
+
+        LegacyReplaceDefendantAccountPartyRequest sentRequest = requestCaptor.getValue();
+        assertThat(result.getVersion()).isEqualTo(extractBigInteger("10"));
+        assertEquals(77L, sentRequest.getDefendantAccountId());
+        assertEquals("78", sentRequest.getBusinessUnitId());
+        assertEquals("dev_user", sentRequest.getBusinessUnitUserId());
+        assertEquals("20010", sentRequest.getDefendantAccountParty().getDefendantAccountPartyId());
+        assertEquals(request.getDefendantAccountPartyType(),
+            sentRequest.getDefendantAccountParty().getDefendantAccountPartyType());
+        assertEquals(request.getIsDebtor(), sentRequest.getDefendantAccountParty().getIsDebtor());
+    }
+
+    @Test
     void replaceDefendantAccountParty_mapsNullNestedObjects_toNulls() {
         // Build a legacy response body where nested objects are null
         LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
