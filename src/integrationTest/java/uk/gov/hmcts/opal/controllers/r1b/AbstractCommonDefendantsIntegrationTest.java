@@ -338,8 +338,30 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
             .andExpect(ignoreForLegacy(jsonPath("$.next_enforcement_action_data").value("All"), isLegacy));
     }
 
+    @DisplayName("Get enforcement status for child defendant account")
+    void testGetEnforcementStatus_child(Logger log, boolean isLegacy) throws Exception {
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/2007/enforcement-status")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken()));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":getEnforcementStatus_child: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(header().string("ETag", isLegacy ? OVER_LONG_VERSION_ETAG : "\"0\""))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(ignoreForLegacy(jsonPath("$.defendant_account_type")
+                .value(DefendantAccountTypeEnum.YOUTH.getValue()), isLegacy))
+            .andExpect(jsonPath("$.is_hmrc_check_eligible").value(false))
+            .andExpect(jsonPath("$.enforcement_overview.days_in_default").value(30))
+            .andExpect(jsonPath("$.enforcement_overview.collection_order.collection_order_flag").value(false))
+            .andExpect(jsonPath("$.enforcement_overview.enforcement_court.court_id").value(780000000185L))
+            .andExpect(jsonPath("$.account_status_reference.account_status_code").value("L"))
+            .andExpect(jsonPath("$.account_status_reference.account_status_display_name").value("Live"));
+    }
+
     @DisplayName("Get enforcement status for individual defendant account where their date of birth is null")
-    void testGetEnforcementStatus_defendantAccountPartyDoBIsNull(Logger log, boolean isLegacy) throws Exception {
+    void testGetEnforcementStatus_defendantAccountPartyDoBIsNull(Logger log) throws Exception {
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/88/enforcement-status")
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())
             .header("authorization", userStateStub.getBearerToken()));
