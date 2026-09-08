@@ -51,6 +51,10 @@ class Release1bFeatureToggleAnnotationTest {
         Set<String> expectedAnnotatedMethods = Set.of(
             // Defendant Account API controller
             "DefendantAccountApiController#addDefendantAccountParty",
+            "DefendantAccountApiController#addPaymentTerms",
+            "MajorCreditorApiController#getMajorCreditorHistory",
+            "DefendantAccountApiController#getDefendantAccountHistory",
+            "DefendantAccountController#replaceDefendantAccountParty",
             "DefendantAccountApiController#addEnforcement",
             "DefendantAccountApiController#addPaymentCardRequest",
             "DefendantAccountApiController#getConsolidatedAccounts",
