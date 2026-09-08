@@ -33,6 +33,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mapstruct.factory.Mappers;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpServerErrorException;
 import tools.jackson.databind.JsonNode;
@@ -56,6 +57,8 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsRespons
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
+import uk.gov.hmcts.opal.generated.model.GetPaymentTermsResponseDefendantAccount;
+import uk.gov.hmcts.opal.mapper.legacy.LegacyPaymentTermsMapper;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 
 @ExtendWith(MockitoExtension.class)
@@ -72,14 +75,16 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
 
     private GatewayService gatewayService;
 
+    @Spy
+    private LegacyPaymentTermsMapper legacyPaymentTermsMapper = Mappers.getMapper(LegacyPaymentTermsMapper.class);
+
     @InjectMocks
-    private  LegacyDefendantAccountPaymentTermsService legacyDefendantAccountPaymentTermsService;
+    private LegacyDefendantAccountPaymentTermsService legacyDefendantAccountPaymentTermsService;
 
     @BeforeEach
     void openMocks() throws Exception {
         gatewayService = spy(new LegacyGatewayService(gatewayProperties, restClient));
         injectGatewayService(legacyDefendantAccountPaymentTermsService, gatewayService);
-
     }
 
     private void injectGatewayService(
@@ -89,9 +94,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         Field field = LegacyDefendantAccountPaymentTermsService.class.getDeclaredField("gatewayService");
         field.setAccessible(true);
         field.set(legacyDefendantAccountService, gatewayService);
-
     }
-
 
     @Test
     void addPaymentCardRequest_legacy_happyPath() {
@@ -501,14 +504,15 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
     }
 
     private static void assertGetDefendantAccountPaymentTermsResponse(
-        GetDefendantAccountPaymentTermsResponse actualResponse, AddPaymentTermsLegacyResponse legacyResponse) {
+        GetPaymentTermsResponseDefendantAccount actualResponse, AddPaymentTermsLegacyResponse legacyResponse) {
 
         assertNotNull(actualResponse);
         assertThat(actualResponse.getVersion()).isEqualTo(legacyResponse.getVersion());
         assertNotNull(actualResponse.getPaymentTerms());
         assertThat(actualResponse.getPaymentCardLastRequested())
             .isEqualTo(legacyResponse.getPaymentCardLastRequested());
-        assertThat(actualResponse.getLastEnforcement()).isEqualTo(legacyResponse.getLastEnforcement());
+        assertThat(actualResponse.getLastEnforcement())
+            .isEqualTo(legacyResponse.getLastEnforcement());
     }
 
     @Test

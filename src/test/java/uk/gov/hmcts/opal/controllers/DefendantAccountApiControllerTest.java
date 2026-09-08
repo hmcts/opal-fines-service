@@ -34,6 +34,7 @@ import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddPaymentTermsRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
@@ -41,10 +42,14 @@ import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchReferenceNumberDe
 import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.FixedPenaltyTicketDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse;
+import uk.gov.hmcts.opal.generated.model.FixedPenaltyTicketDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.GetPaymentTermsResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.VehicleFixedPenaltyDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyDetailsCommonStrict;
@@ -57,6 +62,9 @@ import uk.gov.hmcts.opal.generated.model.VehicleFixedPenaltyDetailsCommonStrict;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.ReplacePartyRequestMapper;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
+import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
+import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
+import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
@@ -89,6 +97,9 @@ class DefendantAccountApiControllerTest {
 
     @Mock
     private DefendantAccountFixedPenaltyService defendantAccountFixedPenaltyService;
+
+    @Mock
+    private DefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
 
     @InjectMocks
     private DefendantAccountApiController defendantAccountApiController;
@@ -446,6 +457,26 @@ class DefendantAccountApiControllerTest {
 
         verify(defendantAccountService).getHistory(defendantId, dateFrom, dateTo, itemTypes);
         verify(defendantAccountHistoryResponseMapper).toGeneratedResponse(historyResponse);
+    }
+
+    @Test
+    void validRequest_addPaymentTerms_returnsOkResponse() {
+        Long defendantAccountId = 123L;
+        String businessUnitId = "BU_id";
+        String ifMatch = "match";
+        AddPaymentTermsRequestDefendantAccount request = new AddPaymentTermsRequestDefendantAccount();
+        GetPaymentTermsResponseDefendantAccount response = GetPaymentTermsResponseDefendantAccount.builder()
+            .version(BigInteger.ONE).build();
+
+        when(defendantAccountPaymentTermsService.addPaymentTerms(defendantAccountId, businessUnitId, ifMatch, request))
+            .thenReturn(response);
+
+        ResponseEntity<GetPaymentTermsResponseDefendantAccount> responseEntity = defendantAccountApiController
+            .addPaymentTerms(defendantAccountId, businessUnitId, request, ifMatch);
+
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertSame(response, responseEntity.getBody());
+        assertEquals("\"" + BigInteger.ONE + "\"", responseEntity.getHeaders().getETag());
     }
 
     @Test
