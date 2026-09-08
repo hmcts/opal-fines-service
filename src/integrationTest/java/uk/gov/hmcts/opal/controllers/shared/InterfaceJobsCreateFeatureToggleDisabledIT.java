@@ -15,6 +15,7 @@ import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_PAYMENT;
 import com.launchdarkly.sdk.LDContext;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -33,6 +34,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
     "launchdarkly.default-flag-values.release-1c-payment=false"
 })
 @DisplayName("Interface Jobs Create Feature Toggle Integration Tests")
+@Tag("ExtendedTest")
 class InterfaceJobsCreateFeatureToggleDisabledIT extends AbstractIntegrationTest {
 
     private static final String URL = "/interface-jobs";
