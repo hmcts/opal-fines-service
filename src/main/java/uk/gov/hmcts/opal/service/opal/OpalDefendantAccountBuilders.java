@@ -197,13 +197,13 @@ public class OpalDefendantAccountBuilders {
             // Only one of organisationDetails or individualDetails will be populated
             // if organisationFlag is true, then organisationDetails is populated
             .organisationDetails(
-                entity.getOrganisation()
+                Boolean.TRUE.equals(entity.getOrganisation())
                     ? buildOrganisationDetails(entity)
                     : null
             )
             // if organisationFlag is false, then individualDetails is populated
             .individualDetails(
-                !entity.getOrganisation()
+                Boolean.FALSE.equals(entity.getOrganisation())
                     ? buildIndividualDetails(entity)
                     : null
             )
