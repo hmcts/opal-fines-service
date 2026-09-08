@@ -1,14 +1,15 @@
 package uk.gov.hmcts.opal.controllers.shared;
 
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
-
-import lombok.extern.slf4j.Slf4j;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -55,6 +56,7 @@ public class OpalNotesIntegrationTest extends NotesIntegrationTest {
     @JiraTestKey(value = "PO-9481", name = "ADD_AND_REMOVE_PAYMENT_HOLD")
     @JiraTestKey(value = "PO-9482", name = "PROCESS_AND_ALLOCATE_PAYMENTS")
     @JiraTestKey(value = "PO-9483", name = "AUTO_ENFORCEMENT")
+    @Tag("ExtendedTest")
     void testOpalNotes_Forbidden(FinesPermission permission) throws Exception {
         super.postNotes_UserWithoutPermission(permission);
     }

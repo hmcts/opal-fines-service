@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.controllers.r1a;
 import jakarta.persistence.QueryTimeoutException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.OngoingStubbing;
 import org.postgresql.util.PSQLException;
@@ -36,6 +37,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.DraftAccountTransientErrorsTest")
 @DisplayName("DraftAccountController Transient Errors Integration Tests")
+@Tag("ExtendedTest")
 class DraftAccountTransientErrorsTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/draft-accounts";
