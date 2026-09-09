@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -44,6 +45,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Sql(scripts = "classpath:db/insertData/insert_into_local_justice_area.sql", executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("LocalJusticeAreaController Integration Test")
 @Isolated
+@Tag("ExtendedTest")
 class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/local-justice-areas";

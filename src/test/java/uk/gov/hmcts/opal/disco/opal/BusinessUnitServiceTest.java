@@ -8,6 +8,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +33,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
+import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData.ConfigItemRefData;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitType;
@@ -205,12 +208,11 @@ class BusinessUnitServiceTest {
                 ConfigurationItemEntity.builder()
                     .itemName("A Config Item")
                     .itemValue("A value")
-                    .itemValues(Map.of("Key1", "Item Values One", "Key2", "Item Values Two"))
+                    .itemValues(configItemValues())
                     .build()))
             .build();
 
-        Page<BusinessUnitEntity> mockPage = new PageImpl<>(List.of(businessUnitEntityLite),
-                                                               Pageable.unpaged(), 999L);
+        Page<BusinessUnitEntity> mockPage = new PageImpl<>(List.of(businessUnitEntityLite), Pageable.unpaged(), 999L);
 
         // Mock the lite repository instead of the full repository
         when(businessUnitLiteRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
@@ -222,12 +224,18 @@ class BusinessUnitServiceTest {
         List<BusinessUnitReferenceData> result = businessUnitService.getReferenceData(Optional.empty());
 
         // Assert
+        Map<String, String> expectedItemValues = Map.of("Key1", "Item Values One", "Key2", "Item Values Two");
+        ConfigItemRefData expectedConfigItem = new ConfigItemRefData("A Config Item", "A value", expectedItemValues);
         assertEquals(List.of(new BusinessUnitReferenceData(
             (short)3, "Big Business Unit", null,
             BusinessUnitType.AREA.getLabel(), null,
-            null, Boolean.TRUE, List.of(new BusinessUnitReferenceData.ConfigItemRefData(
-            "A Config Item", "A value", Map.of("Key1", "Item Values One",
-            "Key2", "Item Values Two"))))), result);
+            null, Boolean.TRUE, List.of(expectedConfigItem))), result);
+    }
+
+    private static JsonNode configItemValues() {
+        return JsonNodeFactory.instance.objectNode()
+            .put("Key1", "Item Values One")
+            .put("Key2", "Item Values Two");
     }
 
     private static DomainBusinessUnitUsers businessUnitUsers(BusinessUnitUser... businessUnitUsers) {

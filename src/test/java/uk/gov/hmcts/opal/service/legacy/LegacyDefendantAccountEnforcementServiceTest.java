@@ -411,6 +411,80 @@ class LegacyDefendantAccountEnforcementServiceTest {
 
     @Test
     @SuppressWarnings("unchecked")
+    void testGetEnforcementStatus_successNullEnforcerReference() {
+        // Arrange
+        LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
+            createLegacyEnforcementStatusResponse(true);
+        responseBody.getEnforcementOverride().setEnforcer(null);
+        responseBody.getLastEnforcementAction().setEnforcer(null);
+
+        when(restClient.responseSpec
+            .body(Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()))
+            .thenReturn(responseBody);
+
+        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short) 123).build());
+
+        ResponseEntity<String> serverSuccessResponse =
+            new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
+        when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
+
+        // Act
+        EnforcementStatus response = legacyDefendantAccountEnforcementService
+            .getEnforcementStatus(33L);
+
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.getEmployerFlag());
+        assertEquals(new BigInteger("1234567890123456789012345678901234567890"), response.getVersion());
+        assertFalse(response.getIsHmrcCheckEligible());
+        assertNull(response.getNextEnforcementActionData());
+        assertNotNull(response.getEnforcementOverride());
+        assertNotNull(response.getLastEnforcementAction());
+        assertNotNull(response.getEnforcementOverview());
+        assertNotNull(response.getAccountStatusReference());
+
+        EnforcementOverrideCommon override = response.getEnforcementOverride();
+        assertNotNull(override.getEnforcementOverrideResult());
+        assertEquals("AAB", override.getEnforcementOverrideResult().getEnforcementOverrideResultId());
+        assertEquals("AaAaBb", override.getEnforcementOverrideResult().getEnforcementOverrideResultName());
+        assertNull(override.getEnforcer());
+        assertNotNull(override.getLja());
+        assertEquals((short) 1, override.getLja().getLjaId());
+        assertEquals("England", override.getLja().getLjaName());
+
+        EnforcementActionDefendantAccount action = response.getLastEnforcementAction();
+        assertEquals("late", action.getReason());
+        assertEquals("123", action.getWarrantNumber());
+        assertEquals(LocalDateTime.of(2024, 1, 1, 10, 0), action.getDateAdded());
+        assertNull(action.getEnforcer());
+        assertNotNull(action.getEnforcementAction());
+        assertEquals("FEE", action.getEnforcementAction().getResultId());
+        assertEquals("Result Ref", action.getEnforcementAction().getResultTitle());
+        assertNotNull(action.getResultResponses());
+        assertNotNull(action.getResultResponses().getFirst());
+        assertEquals("Param Name", action.getResultResponses().getFirst().getParameterName());
+        assertEquals("A response", action.getResultResponses().getFirst().getResponse());
+
+        EnforcementOverviewDefendantAccount overview = response.getEnforcementOverview();
+        assertEquals(6, overview.getDaysInDefault());
+        assertNotNull(overview.getCollectionOrder());
+        assertEquals(true, overview.getCollectionOrder().getCollectionOrderFlag());
+        assertEquals(
+            LocalDate.of(2024, 3, 4),
+            overview.getCollectionOrder().getCollectionOrderDate()
+        );
+        assertNotNull(overview.getEnforcementCourt());
+        assertEquals(3, overview.getEnforcementCourt().getCourtId());
+        assertEquals((short) 123, overview.getEnforcementCourt().getCourtCode());
+        assertEquals("Bath", overview.getEnforcementCourt().getCourtName());
+
+        AccountStatusReferenceCommon statusRef = response.getAccountStatusReference();
+        assertEquals(AccountStatusCodeEnum.L, statusRef.getAccountStatusCode());
+        assertEquals("Alive", statusRef.getAccountStatusDisplayName());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
     void testGetEnforcementStatus_successMinimal() {
         // Arrange
         LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
