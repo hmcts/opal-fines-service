@@ -40,11 +40,11 @@ SELECT
     'BANK_ACCOUNTS',
     ba.business_unit_id,
     NULL,
-    json_build_object(
+    json_build_array(json_build_object(
         'sort_code', ba.sort_code,
         'account_number', ba.account_number,
         'name', ba.account_name
-    )
+    ))
 FROM bank_accounts ba
 WHERE NOT EXISTS (
     SELECT 1
