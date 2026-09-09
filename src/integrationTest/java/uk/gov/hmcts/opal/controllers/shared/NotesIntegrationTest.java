@@ -30,6 +30,7 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.generated.model.NoteCommon;
+import uk.gov.hmcts.opal.generated.model.NoteCommon.NoteTypeEnum;
 import uk.gov.hmcts.opal.generated.model.NoteCommon.RecordTypeEnum;
 import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -347,17 +348,17 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
         userStateStub.addPermissions((short) 77, ADD_ACCOUNT_ACTIVITY_NOTES);
 
-        Note note = new Note();
+        NoteCommon note = new NoteCommon();
         note.setNoteText("legacy-only account note");
         note.setRecordId("770000004141");
-        note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
-        note.setNoteType("AA");
+        note.setRecordType(RecordTypeEnum.DEFENDANT_ACCOUNTS);
+        note.setNoteType(NoteTypeEnum.AA);
 
-        AddNoteRequest request = new AddNoteRequest();
+        AddNoteRequestNotes request = new AddNoteRequestNotes();
         request.setActivityNote(note);
 
         ResultActions resultActions = mockMvc.perform(
-            post(URL_BASE + "/add")
+            post(URL_BASE)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
                 .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken())

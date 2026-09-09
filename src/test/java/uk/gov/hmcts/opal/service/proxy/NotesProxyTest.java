@@ -11,11 +11,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.dto.AddNoteRequest;
-import uk.gov.hmcts.opal.dto.Note;
-import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
+import uk.gov.hmcts.opal.generated.model.NoteCommon;
+import uk.gov.hmcts.opal.generated.model.NoteCommon.NoteTypeEnum;
+import uk.gov.hmcts.opal.generated.model.NoteCommon.RecordTypeEnum;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.legacy.LegacyNotesService;
 import uk.gov.hmcts.opal.service.opal.OpalNotesService;
@@ -37,7 +38,7 @@ class NotesProxyTest extends ProxyTestsBase {
     @Test
     void addNote_shouldRouteToLegacyWithoutResolvingLocalAccountContext_whenInLegacyMode() {
         setLegacyMode(true);
-        AddNoteRequest request = addNoteRequest();
+        AddNoteRequestNotes request = addNoteRequestNotes();
         String expectedResponse = "legacy-note-id";
 
         when(legacyNotesService.addNote(request, IF_MATCH, userState, BUSINESS_UNIT_ID)).thenReturn(expectedResponse);
@@ -52,7 +53,7 @@ class NotesProxyTest extends ProxyTestsBase {
     @Test
     void addNote_shouldRouteToOpalService_whenInOpalMode() {
         setLegacyMode(false);
-        AddNoteRequest request = addNoteRequest();
+        AddNoteRequestNotes request = addNoteRequestNotes();
         String expectedResponse = "opal-note-id";
 
         when(notesService.addNote(request, IF_MATCH, userState, BUSINESS_UNIT_ID)).thenReturn(expectedResponse);
@@ -66,7 +67,7 @@ class NotesProxyTest extends ProxyTestsBase {
 
     @Test
     void addNote_shouldRouteExistingAccountContextToOpal() {
-        AddNoteRequest request = addNoteRequest();
+        AddNoteRequestNotes request = addNoteRequestNotes();
         AccountNoteContext target = new AccountNoteContext(
             DefendantAccountEntity.class,
             DEFENDANT_ACCOUNT_ID,
@@ -84,13 +85,13 @@ class NotesProxyTest extends ProxyTestsBase {
         verifyNoInteractions(legacyNotesService);
     }
 
-    private static AddNoteRequest addNoteRequest() {
-        Note note = Note.builder()
-            .recordType(RecordType.DEFENDANT_ACCOUNTS)
+    private static AddNoteRequestNotes addNoteRequestNotes() {
+        NoteCommon note = NoteCommon.builder()
+            .recordType(RecordTypeEnum.DEFENDANT_ACCOUNTS)
             .recordId(DEFENDANT_ACCOUNT_ID.toString())
             .noteText("test")
-            .noteType("AA")
+            .noteType(NoteTypeEnum.AA)
             .build();
-        return new AddNoteRequest(note);
+        return AddNoteRequestNotes.builder().activityNote(note).build();
     }
 }
