@@ -29,6 +29,7 @@ import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy;
+import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
@@ -302,7 +303,8 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
             .defendantAccountId(defendantAccountId)
             .businessUnitId(businessUnitId)
             .businessUnitUserId(businessUnitUserId)
-            .defendantAccountParty(defendantAccountParty)
+            .defendantAccountParty(LegacyDefendantAccountPartyRequest.from(
+                defendantAccountPartyId, defendantAccountParty))
             .build();
 
         Response<LegacyReplaceDefendantAccountPartyResponse> response;
