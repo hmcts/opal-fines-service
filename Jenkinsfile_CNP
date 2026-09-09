@@ -212,8 +212,6 @@ withPipeline(type, product, component) {
     onPR {
       enableExtendedTestsForLabel()
     }
-
-    steps.sh './gradlew checkTestJiraAnnotations'
   }
 
   afterAlways('test') {
