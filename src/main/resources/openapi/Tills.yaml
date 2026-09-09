@@ -79,6 +79,67 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 
+  /tills/{id}:
+    get:
+      tags:
+        - tills
+      summary: Get till
+      operationId: get_till
+      description: Get a till and its payments in by till ID
+      security:
+        - permissions:
+            - Process and Allocate Payments within the Business Unit context
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Till ID
+          schema:
+            $ref: './types.yaml#/components/schemas/BigInt'
+      responses:
+        "200":
+          description: Till response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TillsGetResponse'
+        "400":
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "401":
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "403":
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "404":
+          description: Till not found
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "500":
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "503":
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
 components:
   schemas:
     TillsResponse:
@@ -118,3 +179,220 @@ components:
         date_processed:
           type: string
           format: date
+
+    TillsGetResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - till_number
+        - business_unit_id
+        - created_by
+        - created_date
+        - payments_in
+      properties:
+        till_number:
+          type: integer
+          format: int16
+          description: DB Mapping - tills.till_number
+        business_unit_id:
+          type: integer
+          format: int16
+          description: DB Mapping - tills.business_unit_id
+        created_by:
+          type: string
+          description: DB Mapping - tills.owned_by_name
+        created_date:
+          type: string
+          format: date-time
+          description: DB Mapping - tills.created_date
+        payments_in:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/TillsPaymentInItem'
+
+    TillsPaymentInItem:
+      type: object
+      additionalProperties: false
+      required:
+        - payment_in
+      properties:
+        payment_in:
+          $ref: '#/components/schemas/TillsPaymentIn'
+
+    TillsPaymentIn:
+      type: object
+      additionalProperties: false
+      required:
+        - payment_in_id
+        - amount
+        - date
+        - method
+        - destination_type
+        - payment_received_from
+        - receipt
+      properties:
+        payment_in_id:
+          type: integer
+          format: int64
+          description: DB Mapping - payments_in.payment_in_id
+        associated_record_id:
+          type:
+            - string
+            - 'null'
+          maxLength: 30
+          description: DB Mapping - payments_in.associated_record_id
+        associated_record_type:
+          type:
+            - string
+            - 'null'
+          description: DB Mapping - payments_in.associated_record_type
+          enum:
+            - defendant_accounts
+            - creditor_transactions
+            - miscellaneous_accounts
+            - creditor_accounts
+            - suspense_transactions
+            - suspense_items
+            - enforcements
+            - cheques
+            - impositions
+            - defendant_transactions
+            - report_instances
+        amount:
+          type: number
+          multipleOf: 0.01
+          description: DB Mapping - payments_in.payment_amount
+        date:
+          type: string
+          format: date-time
+          description: DB Mapping - payments_in.payment_date
+        method:
+          type: string
+          description: DB Mapping - payments_in.payment_method
+          enum:
+            - NC
+            - CQ
+            - CT
+            - PO
+        destination_type:
+          type: string
+          description: DB Mapping - payments_in.destination_type
+          enum:
+            - F
+            - S
+            - C
+        allocation_type:
+          type:
+            - string
+            - 'null'
+          maxLength: 20
+          description: DB Mapping - payments_in.allocation_type
+        payment_received_from:
+          type: string
+          description: DB Mapping - payments_in.additional_information
+          enum:
+            - D
+            - A
+            - T
+        third_party_payer_name:
+          type:
+            - string
+            - 'null'
+          maxLength: 50
+          description: DB Mapping - payments_in.third_party_payer_name
+        receipt:
+          type: boolean
+          description: DB Mapping - payments_in.receipt
+        defendant_detail:
+          description: Provided only when destination_type is F (Fines)
+          anyOf:
+            - $ref: '#/components/schemas/TillsDefendantDetail'
+            - type: 'null'
+        payer_name:
+          description: Provided only when destination_type is S (Suspense) or C (Court Fee)
+          anyOf:
+            - $ref: '#/components/schemas/TillsPayerName'
+            - type: 'null'
+
+    TillsDefendantDetail:
+      type: object
+      additionalProperties: false
+      required:
+        - defendant_account_number
+        - party_details
+      properties:
+        defendant_account_number:
+          type: string
+          maxLength: 20
+          description: DB Mapping - defendant_accounts.account_number
+        party_details:
+          $ref: '#/components/schemas/TillsPartyDetails'
+
+    TillsPartyDetails:
+      type: object
+      additionalProperties: false
+      description: >
+        Party details containing exactly one of individual_names or organisation_names. Individual names are
+        provided when organisation_flag is false; organisation names are provided when organisation_flag is true.
+      required:
+        - organisation_flag
+      properties:
+        organisation_flag:
+          type: boolean
+          description: DB Mapping - parties.organisation
+        individual_names:
+          anyOf:
+            - $ref: '#/components/schemas/TillsIndividualNames'
+            - type: 'null'
+        organisation_names:
+          anyOf:
+            - $ref: '#/components/schemas/TillsOrganisationNames'
+            - type: 'null'
+
+    TillsIndividualNames:
+      type: object
+      additionalProperties: false
+      required:
+        - forenames
+        - surname
+      properties:
+        forenames:
+          type: string
+          maxLength: 50
+          description: DB Mapping - parties.forenames
+        surname:
+          type: string
+          maxLength: 50
+          description: DB Mapping - parties.surname
+
+    TillsOrganisationNames:
+      type: object
+      additionalProperties: false
+      required:
+        - organisation_name
+      properties:
+        organisation_name:
+          type: string
+          maxLength: 80
+          description: DB Mapping - parties.organisation_name
+
+    TillsPayerName:
+      type: object
+      additionalProperties: false
+      properties:
+        forenames:
+          type:
+            - string
+            - 'null'
+          description: DB Mapping - payments_in.additional_information
+        surname:
+          type:
+            - string
+            - 'null'
+          description: DB Mapping - payments_in.additional_information
+        organisation_name:
+          type:
+            - string
+            - 'null'
+          description: DB Mapping - payments_in.additional_information

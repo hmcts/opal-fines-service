@@ -1,0 +1,25 @@
+meta {
+  name: Get Till
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/tills/{{tillId}}
+  body: none
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+}
+
+vars:pre-request {
+  baseURL: http://localhost:4550
+  tillId: 99000000836200
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
