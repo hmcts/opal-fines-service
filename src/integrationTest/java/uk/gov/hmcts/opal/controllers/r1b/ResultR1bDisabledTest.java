@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -24,6 +25,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
     "launchdarkly.enabled=false"
 })
 @DisplayName("ResultController release-1b disabled Integration Test")
+@Tag("ExtendedTest")
 class ResultR1bDisabledTest extends AbstractIntegrationTest {
 
     @Test

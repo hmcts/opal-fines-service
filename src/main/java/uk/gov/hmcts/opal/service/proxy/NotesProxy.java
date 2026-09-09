@@ -12,7 +12,7 @@ import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.OpalNotesService;
 
 @Service
-@Slf4j(topic = "opal.DefendantAccountServiceProxy")
+@Slf4j(topic = "opal.NotesProxy")
 @RequiredArgsConstructor
 public class NotesProxy implements NotesServiceInterface, ProxyInterface {
 
@@ -24,9 +24,13 @@ public class NotesProxy implements NotesServiceInterface, ProxyInterface {
         return isLegacyMode(dynamicConfigService) ? legacyNotesService : notesService;
     }
 
-    @Override
     public String addNote(AddNoteRequest request, String ifMatch, UserState user, AccountNoteContext target) {
-        return getCurrentModeService().addNote(request, ifMatch, user, target);
+        return notesService.addNote(request, ifMatch, user, target);
+    }
+
+    @Override
+    public String addNote(AddNoteRequest request, String ifMatch, UserState user, Short businessUnitId) {
+        return getCurrentModeService().addNote(request, ifMatch, user, businessUnitId);
     }
 
 }
