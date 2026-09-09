@@ -35,12 +35,8 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyNote;
-import uk.gov.hmcts.opal.entity.AssociatedRecordType;
-import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.generated.model.NoteCommon;
-import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
-import uk.gov.hmcts.opal.generated.model.NoteNotes;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 @ExtendWith(MockitoExtension.class)
@@ -120,7 +116,7 @@ class LegacyNotesServiceTest {
             isNull(String.class)
         )).thenReturn(resp);
 
-        AddNoteRequest req = addReq("770000004141", "hello");
+        AddNoteRequestNotes req = addReq("770000004141", "hello");
         givenBusinessUnitUser((short) 77, "L077JG");
 
         String id = service.addNote(req, '"' + LEGACY_VERSION + '"', user, (short) 77);
@@ -150,7 +146,7 @@ class LegacyNotesServiceTest {
             isNull(String.class)
         )).thenReturn(resp);
 
-        AddNoteRequest req = addReq("770000004141", "hello");
+        AddNoteRequestNotes req = addReq("770000004141", "hello");
         givenBusinessUnitUser((short) 77, "L077JG");
 
         String id = service.addNote(req, '"' + LEGACY_VERSION + '"', user, (short) 77);
@@ -172,7 +168,7 @@ class LegacyNotesServiceTest {
             isNull(String.class)
         )).thenReturn(resp);
 
-        AddNoteRequest req = addReq("770000004141", "hello");
+        AddNoteRequestNotes req = addReq("770000004141", "hello");
         givenBusinessUnitUser((short) 77, "L077JG");
 
         String id = service.addNote(req, '"' + LEGACY_VERSION + '"', user, (short) 77);
@@ -199,7 +195,7 @@ class LegacyNotesServiceTest {
             isNull(String.class)
         )).thenReturn(resp);
 
-        AddNoteRequest req = addReq("770000004141", "hello");
+        AddNoteRequestNotes req = addReq("770000004141", "hello");
         givenBusinessUnitUser((short) 77, "L077JG");
 
         service.addNote(req, '"' + LEGACY_VERSION + '"', user, (short) 77);
@@ -349,7 +345,7 @@ class LegacyNotesServiceTest {
             isNull(String.class)
         )).thenReturn(resp);
 
-        AddNoteRequest req = addReq("770000004141", "test");
+        AddNoteRequestNotes req = addReq("770000004141", "test");
         givenBusinessUnitUser((short) 77, "L077JG");
 
         IllegalArgumentException exception = assertThrows(
@@ -381,7 +377,7 @@ class LegacyNotesServiceTest {
             isNull(String.class)
         )).thenReturn(resp);
 
-        AddNoteRequest req = addReq("770000004141", "test");
+        AddNoteRequestNotes req = addReq("770000004141", "test");
         givenBusinessUnitUser((short) 77, "L077JG");
 
         IllegalArgumentException exception = assertThrows(
@@ -395,7 +391,7 @@ class LegacyNotesServiceTest {
     @Test
     void addNote_missingBusinessUnitUserId_throwsForbiddenBeforeGateway() {
 
-        AddNoteRequest req = addReq("770000004141", "test");
+        AddNoteRequestNotes req = addReq("770000004141", "test");
         when(user.getBusinessUnitUserForBusinessUnit((short) 77)).thenReturn(Optional.empty());
 
         assertThrows(
@@ -409,7 +405,7 @@ class LegacyNotesServiceTest {
     @Test
     void addNote_blankBusinessUnitUserId_throwsForbiddenBeforeGateway() {
 
-        AddNoteRequest req = addReq("770000004141", "test");
+        AddNoteRequestNotes req = addReq("770000004141", "test");
         givenBusinessUnitUser((short) 77, " ");
 
         assertThrows(

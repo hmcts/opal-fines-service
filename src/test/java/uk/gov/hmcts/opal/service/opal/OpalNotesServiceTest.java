@@ -25,6 +25,7 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.generated.model.NoteCommon;
+import uk.gov.hmcts.opal.generated.model.NoteCommon.RecordTypeEnum;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
@@ -119,7 +120,7 @@ class OpalNotesServiceTest {
         managed.setBusinessUnit(businessUnit);
         NoteEntity saved = new NoteEntity();
         saved.setNoteId(999L);
-        AddNoteRequest req = buildRequest("77", RecordType.DEFENDANT_ACCOUNTS);
+        AddNoteRequestNotes req = buildRequest("77", RecordTypeEnum.DEFENDANT_ACCOUNTS);
         AccountNoteContext target = defendantTarget();
         when(accountNoteContextFactory.from(req.getActivityNote())).thenReturn(target);
         when(defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(77L))

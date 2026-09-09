@@ -29,7 +29,7 @@ public class NotesProxy implements NotesServiceInterface, ProxyInterface {
     }
 
     @Override
-    public String addNote(AddNoteRequest request, String ifMatch, UserState user, Short businessUnitId) {
+    public String addNote(AddNoteRequestNotes request, String ifMatch, UserState user, Short businessUnitId) {
         return getCurrentModeService().addNote(request, ifMatch, user, businessUnitId);
     }
 
