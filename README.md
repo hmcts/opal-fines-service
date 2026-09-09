@@ -224,7 +224,7 @@ feature-flag or business-area configuration:
 You can also pass the tags as a Gradle property instead of an environment variable:
 
 ```bash / zsh
-  ./gradlew functionalOpalTags -Ptags='@R1B and @R1C and not @Ignore'
+  ./gradlew functionalOpalTags -Ptags='@R1BDrop1 and @R1C and not @Ignore'
 ```
 
 Use the combined tagged wrapper when you want the default Opal suite and the tagged Opal
@@ -246,10 +246,13 @@ Common examples:
 
 ```bash / zsh
   ./gradlew functionalOpalTagsR1AOnly
+  ./gradlew functionalOpalTagsR1AAndR1BDrop1Only
+  ./gradlew functionalOpalTagsR1AAndR1BOnly
+  ./gradlew functionalOpalTagsR1BOffOnly
   ./gradlew functionalOpalTagsAllFlagsOff
   TAGS='(@R1AOff or @R1BOff or @R1CWriteOffOff or @R1CEnforcementOperationalReportingOff or @R1CAdministrationOff or @R1CFinancialMovementsOff) and not @Ignore' ./gradlew functionalOpalTags
   TAGS='@R1BOff and not @Ignore' ./gradlew functionalOpalTags
-  TAGS='@R1B and @R1C and not @Ignore' ./gradlew functionalWithTags
+  TAGS='@R1BDrop1 and @R1C and not @Ignore' ./gradlew functionalWithTags
   TAGS='@JIRA-LABEL:manual-account-creation and not @Ignore' ./gradlew functionalOpalTags
 ```
 
@@ -266,7 +269,7 @@ Nightly parameters:
 | `Integration` | `true` | Runs the staging integration-test stage. |
 | `Functional` | `true` | Runs the staging functional-test stage. |
 | `Smoke` | `true` | Runs the staging smoke-test stage. |
-| `DemoTaggedFunctionalMode` | `RunR1AOnly` | Selects exactly one demo tagged functional stage: `RunR1AOnly`, `RunR1AAndR1BOnly`, or `RunAllFlagsOff`. |
+| `DemoTaggedFunctionalMode` | `RunR1AOnly` | Selects exactly one demo tagged functional stage: `RunR1AOnly`, `RunR1AAndR1BDrop1Only`, `RunR1AAndR1BDropsOnly`, `RunR1BOffOnly`, or `RunAllFlagsOff`. |
 | `ZephyrExecution` | `false` | Creates Zephyr executions; this also runs automatically on Fridays. |
 
 Nightly environments:
@@ -284,11 +287,15 @@ Nightly stages:
 | `Functional Tests` | `staging` | `Functional` | `clearReports functionalOpal`, then `createJiraExecutionFromFunctionalReport -PzephyrFunctionalStage=functional` if Zephyr is enabled |
 | `Smoke Tests` | `staging` | `Smoke` | `clearReports smokeOpal`, then `createJiraExecutionFromFunctionalReport -PzephyrFunctionalStage=smoke` if Zephyr is enabled |
 | `Demo R1A Functional Tests` | `demo` | `DemoTaggedFunctionalMode=RunR1AOnly` | `clearReports functionalOpalTagsR1AOnly`, then `createJiraExecutionFromFunctionalReport -PzephyrFunctionalStage=runR1AOnly` if Zephyr is enabled |
-| `Demo R1A and R1B Functional Tests` | `demo` | `DemoTaggedFunctionalMode=RunR1AAndR1BOnly` | `clearReports functionalOpalTagsR1AAndR1BOnly`, then `createJiraExecutionFromFunctionalReport -PzephyrFunctionalStage=runR1AAndR1BOnly` if Zephyr is enabled |
+| `Demo R1A and R1B Drop 1 Functional Tests` | `demo` | `DemoTaggedFunctionalMode=RunR1AAndR1BDrop1Only` | `clearReports functionalOpalTagsR1AAndR1BDrop1Only`, then `createJiraExecutionFromFunctionalReport -PzephyrFunctionalStage=runR1AAndR1BDrop1Only` if Zephyr is enabled |
+| `Demo R1A and R1B Drop Functional Tests` | `demo` | `DemoTaggedFunctionalMode=RunR1AAndR1BDropsOnly` | `clearReports functionalOpalTagsR1AAndR1BOnly`, then `createJiraExecutionFromFunctionalReport -PzephyrFunctionalStage=runR1AAndR1BOnly` if Zephyr is enabled |
+| `Demo R1B Off Functional Tests` | `demo` | `DemoTaggedFunctionalMode=RunR1BOffOnly` | `clearReports functionalOpalTagsR1BOffOnly`, then `createJiraExecutionFromFunctionalReport -PzephyrFunctionalStage=runR1BOffOnly` if Zephyr is enabled |
 | `All Flags Off Demo Functional Tests` | `demo` | `DemoTaggedFunctionalMode=RunAllFlagsOff` | `clearReports functionalOpalTagsAllFlagsOff`, then `createJiraExecutionFromFunctionalReport -PzephyrFunctionalStage=runAllFlagsOff` if Zephyr is enabled |
 
-The demo R1A stage is intentionally limited to `@R1A` scenarios. It does not run the
-full backend functional suite.
+The demo tagged stages are intentionally limited to their selected tags. They do not run the
+full backend functional suite. `RunR1AAndR1BDrop1Only` runs `@R1A` and `@R1BDrop1`;
+`RunR1AAndR1BDropsOnly` runs `@R1A`, `@R1BDrop1`, and `@R1BDrop2`; `RunR1BOffOnly`
+runs only `@R1BOff`.
 
 Nightly reports and artifacts:
 
@@ -296,14 +303,20 @@ Nightly reports and artifacts:
 - Staging functional publishes `Serenity Functional Test Report`.
 - Staging smoke publishes `Serenity Smoke Test Report`.
 - Demo R1A publishes `Serenity Functional Test Report (Demo R1AOn Only)`.
-- Demo R1A and R1B publishes `Serenity Functional Test Report (Demo R1A and R1B)`.
+- Demo R1A and R1B Drop 1 publishes `Serenity Functional Test Report (Demo R1A and R1B Drop 1)`.
+- Demo R1A and R1B Drops publishes `Serenity Functional Test Report (Demo R1A and R1B Drops)`.
+- Demo R1B Off publishes `Serenity Functional Test Report (Demo R1B Off)`.
 - Demo all-flags-off publishes `Serenity Functional Test Report (Demo All Flags Off)`.
 - Generic local tagged demo Gradle runs package to `functional-output-demo`; the generic local demo Serenity HTML report is under `functional-output-demo/report`.
 - Local `functionalOpalTagsR1AOnly` packages to `functional-output-r1a-only-demo`; the local demo Serenity HTML report is under `functional-output-r1a-only-demo/report`.
+- Local `functionalOpalTagsR1AAndR1BDrop1Only` packages to `functional-output-r1a-r1b-drop1-only-demo`; the local demo Serenity HTML report is under `functional-output-r1a-r1b-drop1-only-demo/report`.
 - Local `functionalOpalTagsR1AAndR1BOnly` packages to `functional-output-r1a-r1b-only-demo`; the local demo Serenity HTML report is under `functional-output-r1a-r1b-only-demo/report`.
+- Local `functionalOpalTagsR1BOffOnly` packages to `functional-output-r1b-off-only-demo`; the local demo Serenity HTML report is under `functional-output-r1b-off-only-demo/report`.
 - Local `functionalOpalTagsAllFlagsOff` packages to `functional-output-all-flags-off-demo`; the local demo Serenity HTML report is under `functional-output-all-flags-off-demo/report`.
 - Nightly `DemoTaggedFunctionalMode=RunR1AOnly` archives to `functional-output-r1a-only-demo`; the nightly demo Serenity HTML report is under `functional-output-r1a-only-demo/report`.
-- Nightly `DemoTaggedFunctionalMode=RunR1AAndR1BOnly` archives to `functional-output-r1a-r1b-only-demo`; the nightly demo Serenity HTML report is under `functional-output-r1a-r1b-only-demo/report`.
+- Nightly `DemoTaggedFunctionalMode=RunR1AAndR1BDrop1Only` archives to `functional-output-r1a-r1b-drop1-only-demo`; the nightly demo Serenity HTML report is under `functional-output-r1a-r1b-drop1-only-demo/report`.
+- Nightly `DemoTaggedFunctionalMode=RunR1AAndR1BDropsOnly` archives to `functional-output-r1a-r1b-only-demo`; the nightly demo Serenity HTML report is under `functional-output-r1a-r1b-only-demo/report`.
+- Nightly `DemoTaggedFunctionalMode=RunR1BOffOnly` archives to `functional-output-r1b-off-only-demo`; the nightly demo Serenity HTML report is under `functional-output-r1b-off-only-demo/report`.
 - Nightly `DemoTaggedFunctionalMode=RunAllFlagsOff` archives to `functional-output-all-flags-off-demo`; the nightly demo Serenity HTML report is under `functional-output-all-flags-off-demo/report`.
 - Staging functional archives to `functional-output`, integration to `integration-output`, and smoke to `smoke-output`.
 - Functional and smoke outputs are published from `*/report` with Zephyr payloads under `*/zephyr`. Integration publishes `integration-output/report` and archives `integration-output/zephyr` when the integration Zephyr JSON is generated.
@@ -312,8 +325,8 @@ Nightly reports and artifacts:
 Failure handling:
 
 - A Gradle stage failure marks the nightly build `FAILURE`.
-- JUnit-reported test failures for integration, functional, smoke, demo R1A, demo R1A-and-R1B, and demo all-flags-off are promoted from `UNSTABLE` to `FAILURE`.
-- The demo R1A, demo R1A-and-R1B, and all-flags-off stages publish to separate artifact directories so later demo-tagged runs cannot overwrite earlier ones.
+- JUnit-reported test failures for integration, functional, smoke, demo R1A, demo R1A-and-R1B-drop-1, demo R1A-and-R1B-drops, demo R1B-off, and demo all-flags-off are promoted from `UNSTABLE` to `FAILURE`.
+- The demo R1A, demo R1A-and-R1B-drop-1, demo R1A-and-R1B-drops, R1B-off, and all-flags-off stages publish to separate artifact directories so later demo-tagged runs cannot overwrite earlier ones.
 
 ### CNP Jenkins pipeline
 
@@ -358,7 +371,9 @@ Local report paths:
 | `functional` | `-PzephyrFunctionalStage=functional createJiraExecutionFromFunctionalReport` | `target/zephyr-reports/cucumber-opal.json` | `functional-output/zephyr/cucumber-opal.json` |
 | `smoke` | `-PzephyrFunctionalStage=smoke createJiraExecutionFromFunctionalReport` | `target/zephyr-reports/cucumber-smoke.json` | `smoke-output/zephyr/cucumber-smoke.json` |
 | `runR1AOnly` | `./gradlew functionalOpalTagsR1AOnly` then `-PzephyrFunctionalStage=runR1AOnly createJiraExecutionFromFunctionalReport` | `target/zephyr-reports/cucumber-opal-tags.json` | `functional-output-r1a-only-demo/zephyr/cucumber-opal-tags.json` |
+| `runR1AAndR1BDrop1Only` | `./gradlew functionalOpalTagsR1AAndR1BDrop1Only` then `-PzephyrFunctionalStage=runR1AAndR1BDrop1Only createJiraExecutionFromFunctionalReport` | `target/zephyr-reports/cucumber-opal-tags.json` | `functional-output-r1a-r1b-drop1-only-demo/zephyr/cucumber-opal-tags.json` |
 | `runR1AAndR1BOnly` | `./gradlew functionalOpalTagsR1AAndR1BOnly` then `-PzephyrFunctionalStage=runR1AAndR1BOnly createJiraExecutionFromFunctionalReport` | `target/zephyr-reports/cucumber-opal-tags.json` | `functional-output-r1a-r1b-only-demo/zephyr/cucumber-opal-tags.json` |
+| `runR1BOffOnly` | `./gradlew functionalOpalTagsR1BOffOnly` then `-PzephyrFunctionalStage=runR1BOffOnly createJiraExecutionFromFunctionalReport` | `target/zephyr-reports/cucumber-opal-tags.json` | `functional-output-r1b-off-only-demo/zephyr/cucumber-opal-tags.json` |
 | `runAllFlagsOff` | `./gradlew functionalOpalTagsAllFlagsOff` then `-PzephyrFunctionalStage=runAllFlagsOff createJiraExecutionFromFunctionalReport` | `target/zephyr-reports/cucumber-opal-tags.json` | `functional-output-all-flags-off-demo/zephyr/cucumber-opal-tags.json` |
 
 Examples:
@@ -407,10 +422,20 @@ export OPAL_LOGGING_SERVICE_API_URL=https://opal-logging-service.demo.platform.h
 ./gradlew functionalOpalTagsR1AOnly
 ./gradlew -PzephyrFunctionalStage=runR1AOnly createJiraExecutionFromFunctionalReport
 
+./gradlew functionalOpalTagsR1AAndR1BDrop1Only
+./gradlew -PzephyrFunctionalStage=runR1AAndR1BDrop1Only createJiraTicketsFromFunctionalReport
+./gradlew -PzephyrFunctionalStage=runR1AAndR1BDrop1Only updateJiraTicketsFromFunctionalReport
+./gradlew -PzephyrFunctionalStage=runR1AAndR1BDrop1Only createJiraExecutionFromFunctionalReport
+
 ./gradlew functionalOpalTagsR1AAndR1BOnly
 ./gradlew -PzephyrFunctionalStage=runR1AAndR1BOnly createJiraTicketsFromFunctionalReport
 ./gradlew -PzephyrFunctionalStage=runR1AAndR1BOnly updateJiraTicketsFromFunctionalReport
 ./gradlew -PzephyrFunctionalStage=runR1AAndR1BOnly createJiraExecutionFromFunctionalReport
+
+./gradlew functionalOpalTagsR1BOffOnly
+./gradlew -PzephyrFunctionalStage=runR1BOffOnly createJiraTicketsFromFunctionalReport
+./gradlew -PzephyrFunctionalStage=runR1BOffOnly updateJiraTicketsFromFunctionalReport
+./gradlew -PzephyrFunctionalStage=runR1BOffOnly createJiraExecutionFromFunctionalReport
 
 ./gradlew functionalOpalTagsAllFlagsOff
 ./gradlew -PzephyrFunctionalStage=runAllFlagsOff createJiraTicketsFromFunctionalReport
@@ -424,9 +449,9 @@ Use the task that matches the populated raw JSON source above.
 
 | Task | Purpose |
 | --- | --- |
-| `createJiraTicketsFromFunctionalReport` | Creates and links Jira test tickets from the selected functional-family Zephyr report. Requires `-PzephyrFunctionalStage=functional|smoke|runR1AOnly|runR1AAndR1BOnly|runAllFlagsOff`. |
-| `updateJiraTicketsFromFunctionalReport` | Updates Jira test tickets from the selected functional-family Zephyr report. Requires `-PzephyrFunctionalStage=functional|smoke|runR1AOnly|runR1AAndR1BOnly|runAllFlagsOff`. |
-| `createJiraExecutionFromFunctionalReport` | Creates a Zephyr execution from the selected functional-family Zephyr report. Requires `-PzephyrFunctionalStage=functional|smoke|runR1AOnly|runR1AAndR1BOnly|runAllFlagsOff`. |
+| `createJiraTicketsFromFunctionalReport` | Creates and links Jira test tickets from the selected functional-family Zephyr report. Requires `-PzephyrFunctionalStage=functional|smoke|runR1AOnly|runR1AAndR1BDrop1Only|runR1AAndR1BOnly|runR1BOffOnly|runAllFlagsOff`. |
+| `updateJiraTicketsFromFunctionalReport` | Updates Jira test tickets from the selected functional-family Zephyr report. Requires `-PzephyrFunctionalStage=functional|smoke|runR1AOnly|runR1AAndR1BDrop1Only|runR1AAndR1BOnly|runR1BOffOnly|runAllFlagsOff`. |
+| `createJiraExecutionFromFunctionalReport` | Creates a Zephyr execution from the selected functional-family Zephyr report. Requires `-PzephyrFunctionalStage=functional|smoke|runR1AOnly|runR1AAndR1BDrop1Only|runR1AAndR1BOnly|runR1BOffOnly|runAllFlagsOff`. |
 | `createJiraTicketsFromIntegrationReport` | Creates and links Jira test tickets from `integration-output/zephyr/Junit5Report-IntegrationTest.json`. |
 | `updateJiraTicketsFromIntegrationReport` | Updates Jira test tickets from `integration-output/zephyr/Junit5Report-IntegrationTest.json`. |
 | `createJiraExecutionFromIntegrationReport` | Creates a Zephyr execution from `integration-output/zephyr/Junit5Report-IntegrationTest.json`. |
