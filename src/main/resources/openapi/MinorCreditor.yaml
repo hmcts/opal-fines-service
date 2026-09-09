@@ -395,6 +395,77 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 
+  /minor-creditor-accounts/{id}/header-summary:
+    get:
+      tags:
+        - Minor Creditor
+      summary: Get Minor Creditor accounter heder summary
+      description: Gets Minor Creditor account header summary for the given Minor Creditor ID
+      operationId: getMinorCreditorAccountHeaderSummary
+      security:
+        - permissions:
+            - Search and View Accounts (in at least one business unit)
+            - View Creditor BACS (in at least one business unit)
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+            format: int64
+          required: true
+      responses:
+        200:
+          description: OK
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MinorCreditorAccountHeaderSummaryResponse'
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: Not Found
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        408:
+          description: Request timeout
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -644,3 +715,86 @@ components:
         firstnames:
           type: string
           nullable: true
+
+    MinorCreditorAccountHeaderSummaryResponse:
+      additionalProperties: false
+      type: object
+      x-json-include: NON_NULL
+      x-versioned: true
+      x-implements:
+        - uk.gov.hmcts.opal.dto.ToJsonString
+        - uk.gov.hmcts.opal.util.Versioned
+      required:
+        - party
+        - business_unit
+        - creditor
+        - financials
+        - repayment
+      properties:
+        party:
+          $ref: './common.yaml#/components/schemas/partyDetails'
+        business_unit:
+          $ref: './common.yaml#/components/schemas/businessUnitSummary'
+        creditor:
+          additionalProperties: false
+          type: object
+          x-json-include: NON_NULL
+          required:
+            - account_id
+            - account_number
+            - account_type
+            - has_associated_defendant
+          properties:
+            account_id:
+              type: string
+            account_number:
+              type: string
+              maxLength: 20
+            account_type:
+              title: Creditor Account Type Reference
+              type: object
+              additionalProperties: false
+              required:
+                - type
+              properties:
+                type:
+                  type: string
+                  description: DB Mapping - creditor_accounts.creditor_account_type
+                  enum:
+                    - MN
+                    - MJ
+                    - CF
+                display_name:
+                  type: string
+                  description: |
+                    Converts the short hand code of creditor_accounts.creditor_account_type into a display name.
+                    Mapping:
+                      'MN' becomes 'Minor Creditor'
+                      'MJ' becomes 'Major Creditor'
+                      'CF' becomes 'Central Fund'
+                  enum:
+                    - Minor Creditor
+                    - Major Creditor
+                    - Central Fund
+            has_associated_defendant:
+              type: boolean
+        financials:
+          additionalProperties: false
+          type: object
+          x-json-include: NON_NULL
+          required:
+            - awarded
+            - paid_out
+            - awaiting_payout
+            - outstanding
+          properties:
+            awarded:
+              $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
+            paid_out:
+              $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
+            awaiting_payout:
+              $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
+            outstanding:
+              $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
+        repayment:
+          type: boolean
