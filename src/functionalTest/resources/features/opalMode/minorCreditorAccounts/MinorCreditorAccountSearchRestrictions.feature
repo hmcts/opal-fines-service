@@ -1,4 +1,4 @@
-@Opal @R1B @JIRA-LABEL:account-enquiry @JIRA-EPIC:PO-2630 @JIRA-STORY:PO-2971 @MinorCreditorSearch
+@Opal @R1BDrop2 @JIRA-LABEL:account-enquiry @JIRA-EPIC:PO-2630 @JIRA-STORY:PO-2971 @MinorCreditorSearch
 Feature: Minor Creditor Account Search API restrictions
 
   Background:
