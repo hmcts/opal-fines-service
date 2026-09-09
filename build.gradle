@@ -213,6 +213,13 @@ sourceSets {
     }
     resources.srcDirs = [file('src/openApi/resources')]
   }
+
+  jiraAnnotationCheck {
+    java {
+      srcDir file('src/jiraAnnotationCheck/java')
+    }
+  }
+
   main {
     java {
       srcDir "$buildDir/generated/openapi/src/main/java"
@@ -457,8 +464,8 @@ def registerReleaseIntegrationTask = { String release ->
 tasks.register('checkTestJiraAnnotations', JavaExec) {
   description = "Checks runnable integration and functional tests have Jira story and epic annotations"
   group = "Verification"
-  dependsOn 'testClasses'
-  classpath = sourceSets.test.runtimeClasspath
+  dependsOn 'jiraAnnotationCheckClasses'
+  classpath = sourceSets.jiraAnnotationCheck.runtimeClasspath
   mainClass = 'uk.gov.hmcts.opal.scripts.TestJiraAnnotationChecker'
   args = ['src/integrationTest/java', 'src/functionalTest/resources/features']
 }
