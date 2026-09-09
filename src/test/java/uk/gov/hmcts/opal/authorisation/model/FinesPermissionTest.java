@@ -30,8 +30,7 @@ class FinesPermissionTest {
 
         assertAll(
             () -> assertEquals(20L, permission.getPermissionId()),
-            () -> assertEquals("Account Maintenance - Minor Creditor", permission.getPermissionName())
-        );
+            () -> assertEquals("Account Maintenance - Minor Creditor", permission.getPermissionName()));
     }
 
     @Test
