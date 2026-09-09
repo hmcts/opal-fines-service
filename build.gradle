@@ -1,4 +1,5 @@
 import org.flywaydb.gradle.task.FlywayMigrateTask
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 import java.util.concurrent.TimeUnit
 import groovy.io.FileType
 
@@ -46,7 +47,39 @@ ext {
 def defaultLegacyStubImage = 'hmctsprod.azurecr.io/opal/legacy-db-stub:latest'
 def legacyStubImage = System.getenv('OPAL_LEGACY_STUB_IMAGE') ?: defaultLegacyStubImage
 def legacyStubPort = 4553
+def extendedTestTag = 'ExtendedTest'
+def extendedCucumberTag = "@${extendedTestTag}"
+def extendedTests = providers.gradleProperty('extendedTests')
+  .orElse(providers.environmentVariable('EXTENDED_TESTS'))
+  .map { it.toBoolean() }
+  .orElse(true)
 def ciEnvironmentVariables = ['CI', 'GITHUB_ACTIONS', 'JENKINS_HOME', 'BUILD_ID']
+
+def requestedGradleTasks = gradle.startParameter.taskNames ?: ['build']
+def coreTestsCommand = "./gradlew -PextendedTests=false ${requestedGradleTasks.join(' ')}"
+
+def printTestLaneBanner = { boolean includeExtendedTests ->
+  def lines = includeExtendedTests ? [
+    'Running core and extended tests.',
+    "Tests tagged '${extendedTestTag}' are included.",
+    "Run core tests only with: ${coreTestsCommand}"
+  ] : [
+    "Running core tests only for quicker build times.",
+    "Tests tagged '${extendedTestTag}' are excluded unless specific tests are selected.",
+    "This run has opted out of the default extended-test lane."
+  ]
+
+  def width = lines.collect { it.length() }.max() + 4
+  logger.lifecycle('')
+  logger.lifecycle('#' * width)
+  lines.each { logger.lifecycle("# ${it.padRight(width - 4)} #") }
+  logger.lifecycle('#' * width)
+  logger.lifecycle('')
+}
+
+def cucumberTagsForTestSelection = { String tags ->
+  extendedTests.get() || tags.contains(extendedCucumberTag) ? tags : "(${tags}) and not ${extendedCucumberTag}"
+}
 
 def isLocalIntegrationEnvironment = {
   ciEnvironmentVariables.every { !System.getenv(it) }
@@ -180,6 +213,13 @@ sourceSets {
     }
     resources.srcDirs = [file('src/openApi/resources')]
   }
+
+  jiraAnnotationCheck {
+    java {
+      srcDir file('src/jiraAnnotationCheck/java')
+    }
+  }
+
   main {
     java {
       srcDir "$buildDir/generated/openapi/src/main/java"
@@ -282,7 +322,7 @@ dir.eachFileRecurse(FileType.FILES) { file ->
 }
 feignClientList.each {
   def apiName = it.getName().replace(".yaml", "")
-  tasks.register('openApiGenerateFeignClients'+apiName, org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+  tasks.register("openApiGenerateFeignClients${apiName}".toString(), GenerateTask) {
     generatorName = 'spring'
     library = 'spring-cloud'
     inputSpec = "$rootDir/src/main/resources/openapi/hmrc/".toString() + "${apiName}.yaml"
@@ -346,8 +386,22 @@ tasks.named('sonarResolver') {
   dependsOn(processResources)
 }
 
+gradle.taskGraph.whenReady { graph ->
+  if (graph.allTasks.any { it instanceof Test }) {
+    printTestLaneBanner(extendedTests.get())
+  }
+}
+
 tasks.withType(Test).configureEach {
   useJUnitPlatform()
+
+  doFirst {
+    if (!extendedTests.get() && filter.commandLineIncludePatterns.empty) {
+      useJUnitPlatform {
+        excludeTags extendedTestTag
+      }
+    }
+  }
 
   systemProperty 'spring.test.context.cache.maxSize', 4
 
@@ -410,8 +464,8 @@ def registerReleaseIntegrationTask = { String release ->
 tasks.register('checkTestJiraAnnotations', JavaExec) {
   description = "Checks runnable integration and functional tests have Jira story and epic annotations"
   group = "Verification"
-  dependsOn 'testClasses'
-  classpath = sourceSets.test.runtimeClasspath
+  dependsOn 'jiraAnnotationCheckClasses'
+  classpath = sourceSets.jiraAnnotationCheck.runtimeClasspath
   mainClass = 'uk.gov.hmcts.opal.scripts.TestJiraAnnotationChecker'
   args = ['src/integrationTest/java', 'src/functionalTest/resources/features']
 }
@@ -429,6 +483,19 @@ tasks.register('functionalOpal', Test) {
   systemProperty 'cucumber.plugin',
     "net.serenitybdd.cucumber.core.plugin.SerenityReporterParallel,pretty,json:${rootDir}/target/zephyr-reports/cucumber-opal.json,timeline:${rootDir}/target/test-results/timeline"
   include '**/OpalTestRunner.class'
+
+  doFirst {
+    systemProperty 'cucumber.filter.tags', cucumberTagsForTestSelection(
+      '@Opal and not @Smoke and not @Ignore and not '
+        + '(@R1AOff or @R1BOff or @R1COff or @R1CWriteOffOff or '
+        + '@R1CEnforcementOperationalReportingOff or @R1CAdministrationOff or @R1CFinancialMovementsOff or '
+        + '@R1CAutoEnforcementOff or @R1CDataRetentionOff or @R1CAutoEnforcementConfigOff or '
+        + '@R1CRmFinancialMovementsOff or @R1CRmFinancialChecksOff or '
+        + '@R1CRmSuspenseOff or @R1CRmPaymentOff or @R1CRmAdminReportsOff or @R1CRmAccountActionsOff or '
+        + '@R1CChecksOff or @R1CSuspenseOff or @R1CPaymentOff or @R1CR1ATidyUpOff or @R1CReferenceDataOff or '
+        + '@R1CBankingInterfacesOff or @R1CCppEnforcementOff or @R1CCppOff or @R1CPrintingOff)'
+    )
+  }
 
   finalizedBy 'copyOpalCucumberJson', 'mergeFunctionalResults', 'aggregate', 'copyFunctionalReport'
 }
@@ -464,7 +531,7 @@ tasks.register('functionalOpalTags', Test) {
       )
     }
 
-    systemProperty 'cucumber.filter.tags', cucumberTags.toString()
+    systemProperty 'cucumber.filter.tags', cucumberTagsForTestSelection(cucumberTags.toString())
   }
 
   finalizedBy 'copyOpalTagsCucumberJson', 'mergeFunctionalOpalTagsResults', 'aggregate', 'copyDemoFunctionalReport',
@@ -492,8 +559,30 @@ tasks.register('functionalOpalTagsR1AOnly', Test) {
   finalizedBy 'copyR1AOnlyDemoCucumberJson', 'mergeFunctionalOpalTagsR1AOnlyResults', 'aggregate', 'copyR1AOnlyDemoFunctionalReport'
 }
 
+tasks.register('functionalOpalTagsR1AAndR1BDrop1Only', Test) {
+  description = "Runs the demo R1A-and-R1B-drop-1-only tagged Opal functional tests"
+  group = "Verification"
+  testClassesDirs = sourceSets.functionalTest.output.classesDirs
+  classpath = sourceSets.functionalTest.runtimeClasspath
+  outputs.upToDateWhen { false }
+  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal-tags-r1a-r1b-drop1-only"))
+  testLogging.showStandardStreams = true
+  environment("IS_LEGACY_MODE", "false")
+  systemProperty 'cucumber.plugin',
+    "net.serenitybdd.cucumber.core.plugin.SerenityReporterParallel,pretty,json:${rootDir}/target/zephyr-reports/cucumber-opal-tags.json,timeline:${rootDir}/target/test-results/timeline"
+
+  include '**/OpalTaggedTestRunner.class'
+
+  doFirst {
+    systemProperty 'cucumber.filter.tags', '(@R1A or @R1BDrop1) and not @Ignore'
+  }
+
+  finalizedBy 'copyR1AAndR1BDrop1DemoCucumberJson', 'mergeFunctionalOpalTagsR1AAndR1BDrop1OnlyResults',
+    'aggregate', 'copyR1AAndR1BDrop1DemoFunctionalReport'
+}
+
 tasks.register('functionalOpalTagsR1AAndR1BOnly', Test) {
-  description = "Runs the demo R1A-and-R1B-only tagged Opal functional tests"
+  description = "Runs the demo R1A-and-R1B-drop-only tagged Opal functional tests"
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
@@ -507,10 +596,32 @@ tasks.register('functionalOpalTagsR1AAndR1BOnly', Test) {
   include '**/OpalTaggedTestRunner.class'
 
   doFirst {
-    systemProperty 'cucumber.filter.tags', '(@R1A or @R1B) and not @Ignore'
+    systemProperty 'cucumber.filter.tags', '(@R1A or @R1BDrop1 or @R1BDrop2) and not @Ignore'
   }
 
   finalizedBy 'copyR1AAndR1BDemoCucumberJson', 'mergeFunctionalOpalTagsR1AAndR1BOnlyResults', 'aggregate', 'copyR1AAndR1BDemoFunctionalReport'
+}
+
+tasks.register('functionalOpalTagsR1BOffOnly', Test) {
+  description = "Runs the demo R1B-off-only tagged Opal functional tests"
+  group = "Verification"
+  testClassesDirs = sourceSets.functionalTest.output.classesDirs
+  classpath = sourceSets.functionalTest.runtimeClasspath
+  outputs.upToDateWhen { false }
+  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal-tags-r1b-off-only"))
+  testLogging.showStandardStreams = true
+  environment("IS_LEGACY_MODE", "false")
+  systemProperty 'cucumber.plugin',
+    "net.serenitybdd.cucumber.core.plugin.SerenityReporterParallel,pretty,json:${rootDir}/target/zephyr-reports/cucumber-opal-tags.json,timeline:${rootDir}/target/test-results/timeline"
+
+  include '**/OpalTaggedTestRunner.class'
+
+  doFirst {
+    systemProperty 'cucumber.filter.tags', '@R1BOff and not @Ignore'
+  }
+
+  finalizedBy 'copyR1BOffDemoCucumberJson', 'mergeFunctionalOpalTagsR1BOffOnlyResults',
+    'aggregate', 'copyR1BOffDemoFunctionalReport'
 }
 
 tasks.register('functionalOpalTagsAllFlagsOff', Test) {
@@ -547,9 +658,21 @@ tasks.register('copyR1AOnlyDemoCucumberJson', Copy) {
   outputs.upToDateWhen { false }
 }
 
+tasks.register('copyR1AAndR1BDrop1DemoCucumberJson', Copy) {
+  from("${rootDir}/target/zephyr-reports/cucumber-opal-tags.json")
+  into("${rootDir}/functional-output-r1a-r1b-drop1-only-demo/zephyr")
+  outputs.upToDateWhen { false }
+}
+
 tasks.register('copyR1AAndR1BDemoCucumberJson', Copy) {
   from("${rootDir}/target/zephyr-reports/cucumber-opal-tags.json")
   into("${rootDir}/functional-output-r1a-r1b-only-demo/zephyr")
+  outputs.upToDateWhen { false }
+}
+
+tasks.register('copyR1BOffDemoCucumberJson', Copy) {
+  from("${rootDir}/target/zephyr-reports/cucumber-opal-tags.json")
+  into("${rootDir}/functional-output-r1b-off-only-demo/zephyr")
   outputs.upToDateWhen { false }
 }
 
@@ -607,12 +730,33 @@ tasks.register('copyR1AOnlyDemoFunctionalReport', Copy) {
   }
 }
 
+tasks.register('copyR1AAndR1BDrop1DemoFunctionalReport', Copy) {
+  dependsOn 'aggregate'
+  from("${rootDir}/target/site/serenity")
+  into("${rootDir}/functional-output-r1a-r1b-drop1-only-demo/report")
+  doLast {
+    logPublishedHtmlReport(
+      "Demo R1A and R1B Drop 1 Functional Test Report",
+      "${rootDir}/functional-output-r1a-r1b-drop1-only-demo/report"
+    )
+  }
+}
+
 tasks.register('copyR1AAndR1BDemoFunctionalReport', Copy) {
   dependsOn 'aggregate'
   from("${rootDir}/target/site/serenity")
   into("${rootDir}/functional-output-r1a-r1b-only-demo/report")
   doLast {
-    logPublishedHtmlReport("Demo R1A and R1B Functional Test Report", "${rootDir}/functional-output-r1a-r1b-only-demo/report")
+    logPublishedHtmlReport("Demo R1A and R1B Drops Functional Test Report", "${rootDir}/functional-output-r1a-r1b-only-demo/report")
+  }
+}
+
+tasks.register('copyR1BOffDemoFunctionalReport', Copy) {
+  dependsOn 'aggregate'
+  from("${rootDir}/target/site/serenity")
+  into("${rootDir}/functional-output-r1b-off-only-demo/report")
+  doLast {
+    logPublishedHtmlReport("Demo R1B Off Functional Test Report", "${rootDir}/functional-output-r1b-off-only-demo/report")
   }
 }
 
@@ -657,12 +801,32 @@ tasks.register('syncR1AOnlyTaggedFunctionalArtifactsFromExistingResults') {
     )
   }
 }
+tasks.register('syncR1AAndR1BDrop1TaggedFunctionalArtifactsFromExistingResults') {
+  doLast {
+    syncFunctionalArtifacts(
+      'Demo R1A and R1B Drop 1 Functional Test Report',
+      "${rootDir}/functional-output-r1a-r1b-drop1-only-demo/report",
+      "${rootDir}/functional-output-r1a-r1b-drop1-only-demo",
+      'cucumber-opal-tags.json'
+    )
+  }
+}
 tasks.register('syncR1AAndR1BTaggedFunctionalArtifactsFromExistingResults') {
   doLast {
     syncFunctionalArtifacts(
-      'Demo R1A and R1B Functional Test Report',
+      'Demo R1A and R1B Drops Functional Test Report',
       "${rootDir}/functional-output-r1a-r1b-only-demo/report",
       "${rootDir}/functional-output-r1a-r1b-only-demo",
+      'cucumber-opal-tags.json'
+    )
+  }
+}
+tasks.register('syncR1BOffTaggedFunctionalArtifactsFromExistingResults') {
+  doLast {
+    syncFunctionalArtifacts(
+      'Demo R1B Off Functional Test Report',
+      "${rootDir}/functional-output-r1b-off-only-demo/report",
+      "${rootDir}/functional-output-r1b-off-only-demo",
       'cucumber-opal-tags.json'
     )
   }
@@ -720,8 +884,18 @@ tasks.register('mergeFunctionalOpalTagsR1AOnlyResults', Copy) {
   into layout.buildDirectory.dir("test-results/functional")
   include '*.xml'
 }
+tasks.register('mergeFunctionalOpalTagsR1AAndR1BDrop1OnlyResults', Copy) {
+  from layout.buildDirectory.dir("test-results/functional/opal-tags-r1a-r1b-drop1-only")
+  into layout.buildDirectory.dir("test-results/functional")
+  include '*.xml'
+}
 tasks.register('mergeFunctionalOpalTagsR1AAndR1BOnlyResults', Copy) {
   from layout.buildDirectory.dir("test-results/functional/opal-tags-r1a-r1b-only")
+  into layout.buildDirectory.dir("test-results/functional")
+  include '*.xml'
+}
+tasks.register('mergeFunctionalOpalTagsR1BOffOnlyResults', Copy) {
+  from layout.buildDirectory.dir("test-results/functional/opal-tags-r1b-off-only")
   into layout.buildDirectory.dir("test-results/functional")
   include '*.xml'
 }
@@ -817,21 +991,27 @@ tasks.named('aggregate') {
     tasks.named('functionalLegacy'),
     tasks.named('functionalOpalTags'),
     tasks.named('functionalOpalTagsR1AOnly'),
+    tasks.named('functionalOpalTagsR1AAndR1BDrop1Only'),
     tasks.named('functionalOpalTagsR1AAndR1BOnly'),
+    tasks.named('functionalOpalTagsR1BOffOnly'),
     tasks.named('functionalOpalTagsAllFlagsOff'),
     tasks.named('smokeOpal'),
     tasks.named('mergeFunctionalResults'),
     tasks.named('mergeFunctionalWithTagsResults'),
     tasks.named('mergeFunctionalOpalTagsResults'),
     tasks.named('mergeFunctionalOpalTagsR1AOnlyResults'),
+    tasks.named('mergeFunctionalOpalTagsR1AAndR1BDrop1OnlyResults'),
     tasks.named('mergeFunctionalOpalTagsR1AAndR1BOnlyResults'),
+    tasks.named('mergeFunctionalOpalTagsR1BOffOnlyResults'),
     tasks.named('mergeFunctionalOpalTagsAllFlagsOffResults')
   )
 }
 
 tasks.configureEach {
   if (name in ['copyFunctionalReport', 'copyDemoFunctionalReport', 'copyR1AOnlyDemoFunctionalReport',
+               'copyR1AAndR1BDrop1DemoFunctionalReport',
                'copyR1AAndR1BDemoFunctionalReport',
+               'copyR1BOffDemoFunctionalReport',
                'copyAllFlagsOffDemoFunctionalReport', 'copySmokeReport']) {
     mustRunAfter tasks.named('aggregate')
   } else if (name == 'copyOpalCucumberJson') {
@@ -840,8 +1020,12 @@ tasks.configureEach {
     mustRunAfter tasks.named('functionalOpalTags')
   } else if (name == 'copyR1AOnlyDemoCucumberJson') {
     mustRunAfter tasks.named('functionalOpalTagsR1AOnly')
+  } else if (name == 'copyR1AAndR1BDrop1DemoCucumberJson') {
+    mustRunAfter tasks.named('functionalOpalTagsR1AAndR1BDrop1Only')
   } else if (name == 'copyR1AAndR1BDemoCucumberJson') {
     mustRunAfter tasks.named('functionalOpalTagsR1AAndR1BOnly')
+  } else if (name == 'copyR1BOffDemoCucumberJson') {
+    mustRunAfter tasks.named('functionalOpalTagsR1BOffOnly')
   } else if (name == 'copyAllFlagsOffDemoCucumberJson') {
     mustRunAfter tasks.named('functionalOpalTagsAllFlagsOff')
   } else if (name == 'copyLegacyCucumberJson') {
@@ -970,7 +1154,7 @@ dependencies {
   openapiImplementation "tools.jackson.dataformat:jackson-dataformat-yaml"
 
   implementation 'com.microsoft.azure:applicationinsights-web:3.7.9'
-  implementation 'com.azure:azure-storage-blob:12.35.0'
+  implementation 'com.azure:azure-storage-blob:12.35.1'
   implementation 'org.springframework.boot:spring-boot-flyway'
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
@@ -1050,7 +1234,7 @@ dependencies {
     }
   }
 
-  testImplementation 'org.wiremock.integrations:wiremock-spring-boot:4.2.2'
+  testImplementation 'org.wiremock.integrations:wiremock-spring-boot:4.2.3'
 
   testImplementation 'org.springframework.boot:spring-boot-devtools'
   testImplementation 'org.springframework.boot:spring-boot-test'
@@ -1079,7 +1263,7 @@ dependencies {
 
   testImplementation "net.serenity-bdd:serenity-cucumber:${serenityVersion}"
   testImplementation "net.serenity-bdd:serenity-ensure:${serenityVersion}"
-  testImplementation 'com.azure:azure-messaging-servicebus:7.17.19'
+  testImplementation 'com.azure:azure-messaging-servicebus:7.17.20'
 
   implementation('uk.gov.hmcts:opal-logging-service-integration-lib:0.0.10') {
     exclude group: 'com.microsoft.azure', module: 'applicationinsights-spring-boot-starter'
@@ -1141,7 +1325,7 @@ checkstyle {
 tasks.register('migratePostgresDatabase', FlywayMigrateTask) {
   baselineOnMigrate = true
   def taskUrl = providers.gradleProperty("dburl")
-      .map { dbUrl -> "jdbc:postgresql://${dbUrl}" }
+      .map { dbUrl -> "jdbc:postgresql://${dbUrl}".toString() }
       .orElse(providers.environmentVariable("FLYWAY_URL"))
       .orNull
   if (taskUrl) {

@@ -26,7 +26,9 @@ import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
 import uk.gov.hmcts.opal.disco.legacy.LegacyTestsBase;
@@ -1270,6 +1272,55 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     }
 
     @Test
+    void replaceDefendantAccountParty_buildsLegacyRequestWithNestedPartyId() {
+        DefendantAccountParty request = DefendantAccountParty.builder()
+            .defendantAccountPartyType("Defendant")
+            .isDebtor(true)
+            .build();
+
+        LegacyReplaceDefendantAccountPartyResponse legacyResponse = LegacyReplaceDefendantAccountPartyResponse.builder()
+            .version(BigInteger.valueOf(10))
+            .defendantAccountParty(DefendantAccountPartyLegacy.builder().build())
+            .build();
+
+        GatewayService.Response<LegacyReplaceDefendantAccountPartyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
+
+        Class<LegacyReplaceDefendantAccountPartyResponse> respType = LegacyReplaceDefendantAccountPartyResponse.class;
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountPartyService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            any(LegacyReplaceDefendantAccountPartyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        GetDefendantAccountPartyResponse result = legacyDefendantAccountPartyService.replaceDefendantAccountParty(
+            77L, 20010L, request, "\"10\"", "78", "poster", "Poster Name", "dev_user"
+        );
+
+        ArgumentCaptor<LegacyReplaceDefendantAccountPartyRequest> requestCaptor =
+            ArgumentCaptor.forClass(LegacyReplaceDefendantAccountPartyRequest.class);
+
+        verify(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountPartyService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            requestCaptor.capture(),
+            Mockito.nullable(String.class)
+        );
+
+        LegacyReplaceDefendantAccountPartyRequest sentRequest = requestCaptor.getValue();
+        assertThat(result.getVersion()).isEqualTo(extractBigInteger("10"));
+        assertEquals(77L, sentRequest.getDefendantAccountId());
+        assertEquals("78", sentRequest.getBusinessUnitId());
+        assertEquals("dev_user", sentRequest.getBusinessUnitUserId());
+        assertEquals("20010", sentRequest.getDefendantAccountParty().getDefendantAccountPartyId());
+        assertEquals(request.getDefendantAccountPartyType(),
+            sentRequest.getDefendantAccountParty().getDefendantAccountPartyType());
+        assertEquals(request.getIsDebtor(), sentRequest.getDefendantAccountParty().getIsDebtor());
+    }
+
+    @Test
     void replaceDefendantAccountParty_mapsNullNestedObjects_toNulls() {
         // Build a legacy response body where nested objects are null
         LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
@@ -1333,8 +1384,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    void replaceDefendantAccountParty_legacyFailure5xx_logsAndMaps() {
-        // Build a minimal legacy response body (service should still map fields even on 5xx)
+    void replaceDefendantAccountParty_legacyFailure5xx_throws() {
         LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
             .version(BigInteger.valueOf(2))
             .defendantAccountParty(
@@ -1354,6 +1404,37 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
 
         GatewayService.Response<LegacyReplaceDefendantAccountPartyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.SERVICE_UNAVAILABLE, legacyBody, "<legacy-error/>", null);
+
+        Class<LegacyReplaceDefendantAccountPartyResponse> respType = LegacyReplaceDefendantAccountPartyResponse.class;
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountPartyService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            any(LegacyReplaceDefendantAccountPartyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        ResponseStatusException ex = assertThrows(
+            ResponseStatusException.class,
+            () -> legacyDefendantAccountPartyService.replaceDefendantAccountParty(
+                77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
+            )
+        );
+        assertEquals("Legacy failure during replaceDefendantAccountParty", ex.getReason());
+        assertEquals(HttpStatus.BAD_GATEWAY, ex.getStatusCode());
+    }
+
+    @Test
+    void replaceDefendantAccountParty_legacyErrorResponse_throwsBadGateway() {
+        LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
+            .errorResponse(ErrorResponse.builder()
+                .errorCode("-20018")
+                .errorMessage("Invalid party ID")
+                .build())
+            .build();
+
+        GatewayService.Response<LegacyReplaceDefendantAccountPartyResponse> resp =
             new GatewayService.Response<>(HttpStatus.OK, legacyBody, null, null);
 
         Class<LegacyReplaceDefendantAccountPartyResponse> respType = LegacyReplaceDefendantAccountPartyResponse.class;
@@ -1365,18 +1446,15 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             Mockito.nullable(String.class)
         );
 
-        // Call the service. The production code logs legacy failure but still returns a mapped response
-        GetDefendantAccountPartyResponse out = legacyDefendantAccountPartyService.replaceDefendantAccountParty(
-            77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
+        ResponseStatusException ex = assertThrows(
+            ResponseStatusException.class,
+            () -> legacyDefendantAccountPartyService.replaceDefendantAccountParty(
+                77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
+            )
         );
 
-        assertNotNull(out);
-        assertEquals(BigInteger.valueOf(2), out.getVersion());
-        assertNotNull(out.getDefendantAccountParty());
-        assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType());
-        assertTrue(out.getDefendantAccountParty().getIsDebtor());
-        assertNotNull(out.getDefendantAccountParty().getPartyDetails());
-        assertEquals("300", out.getDefendantAccountParty().getPartyDetails().getPartyId());
+        assertEquals("Invalid party ID", ex.getReason());
+        assertEquals(HttpStatus.BAD_GATEWAY, ex.getStatusCode());
     }
 
     @Test
@@ -1393,11 +1471,40 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             Mockito.nullable(String.class)
         );
 
-        // Assert the exception is propagated by the service (production code logs and should rethrow)
-        assertThrows(RuntimeException.class, () ->
+        ResponseStatusException ex =
+            assertThrows(ResponseStatusException.class, () ->
             legacyDefendantAccountPartyService.replaceDefendantAccountParty(
                 77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user")
         );
+        assertEquals("Legacy exception during replaceDefendantAccountParty", ex.getReason());
+        assertEquals("boom", ex.getCause().getMessage());
+        assertEquals(HttpStatus.BAD_GATEWAY, ex.getStatusCode());
+    }
+
+    @Test
+    void replaceDefendantAccountParty_errorResponseException_throwsBadGateway() {
+        GatewayService.Response<LegacyReplaceDefendantAccountPartyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.BAD_GATEWAY, new RuntimeException("legacy boom"), null);
+
+        Class<LegacyReplaceDefendantAccountPartyResponse> respType = LegacyReplaceDefendantAccountPartyResponse.class;
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountPartyService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            any(LegacyReplaceDefendantAccountPartyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        ResponseStatusException ex = assertThrows(
+            ResponseStatusException.class,
+            () -> legacyDefendantAccountPartyService.replaceDefendantAccountParty(
+                77L, 20010L, null, "1", "78", "poster", "Poster Name", "dev_user"
+            )
+        );
+
+        assertEquals("Legacy exception during replaceDefendantAccountParty", ex.getReason());
+        assertEquals("legacy boom", ex.getCause().getMessage());
+        assertEquals(HttpStatus.BAD_GATEWAY, ex.getStatusCode());
     }
 
     @Test
@@ -1724,6 +1831,105 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         assertEquals("EN",
             out.getDefendantAccountParty().getLanguagePreferences().getDocumentLanguagePreference().getLanguageCode());
 
+    }
+
+    @Test
+    void getDefendantAccountParty_success_mapsRichPayload_andDropsEmptyNestedObjects() {
+        GetDefendantAccountPartyLegacyResponse legacyBody = GetDefendantAccountPartyLegacyResponse.builder()
+            .version(BigInteger.valueOf(7))
+            .defendantAccountParty(
+                DefendantAccountPartyLegacy.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(true)
+                    .partyDetails(
+                        PartyDetailsLegacy.builder()
+                            .partyId("777")
+                            .organisationFlag(false)
+                            .individualDetails(
+                                IndividualDetailsLegacy.builder()
+                                    .title("Mr")
+                                    .forenames("John")
+                                    .surname("Smith")
+                                    .dateOfBirth("1990-01-01")
+                                    .age("36")
+                                    .nationalInsuranceNumber("QQ123456C")
+                                    .build()
+                            )
+                            .build()
+                    )
+                    .address(
+                        AddressDetailsLegacy.builder()
+                            .addressLine1("1 High Street")
+                            .addressLine2("District")
+                            .addressLine3("Town")
+                            .postcode("AB1 2CD")
+                            .build()
+                    )
+                    .contactDetails(ContactDetailsLegacy.builder().build())
+                    .vehicleDetails(VehicleDetailsLegacy.builder().build())
+                    .employerDetails(
+                        EmployerDetailsLegacy.builder()
+                            .employerName("Acme Ltd")
+                            .employerReference("REF1")
+                            .employerEmailAddress("hr@acme.test")
+                            .employerTelephoneNumber("02070000000")
+                            .employerAddress(
+                                AddressDetailsLegacy.builder()
+                                    .addressLine1("Acme House")
+                                    .postcode("ZZ1 1ZZ")
+                                    .build()
+                            )
+                            .build()
+                    )
+                    .languagePreferences(
+                        LanguagePreferencesLegacy.builder()
+                            .documentLanguagePreference(
+                                LanguagePreferencesLegacy.LanguagePreference.builder()
+                                    .languageCode("EN")
+                                    .build()
+                            )
+                            .hearingLanguagePreference(
+                                LanguagePreferencesLegacy.LanguagePreference.builder()
+                                    .languageCode("CY")
+                                    .build()
+                            )
+                            .build()
+                    )
+                    .build()
+            )
+            .build();
+
+        GatewayService.Response<GetDefendantAccountPartyLegacyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK, legacyBody, null, null);
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountPartyService.GET_DEFENDANT_ACCOUNT_PARTY),
+            eq(GetDefendantAccountPartyLegacyResponse.class),
+            any(GetDefendantAccountPartyLegacyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        GetDefendantAccountPartyResponse out =
+            legacyDefendantAccountPartyService.getDefendantAccountParty(77L, 777L);
+
+        assertNotNull(out);
+        assertEquals(BigInteger.valueOf(7), out.getVersion());
+        assertNotNull(out.getDefendantAccountParty());
+        assertEquals("777", out.getDefendantAccountParty().getPartyDetails().getPartyId());
+        assertEquals("Mr", out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().getTitle());
+        assertEquals("John", out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().getForenames());
+        assertEquals("Smith", out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().getSurname());
+        assertEquals("AB1 2CD", out.getDefendantAccountParty().getAddress().getPostcode());
+        assertNull(out.getDefendantAccountParty().getContactDetails());
+        assertNull(out.getDefendantAccountParty().getVehicleDetails());
+        assertNotNull(out.getDefendantAccountParty().getEmployerDetails());
+        assertEquals("Acme House", out.getDefendantAccountParty().getEmployerDetails().getEmployerAddress()
+            .getAddressLine1());
+        assertNotNull(out.getDefendantAccountParty().getLanguagePreferences());
+        assertEquals("EN",
+            out.getDefendantAccountParty().getLanguagePreferences().getDocumentLanguagePreference().getLanguageCode());
+        assertEquals("CY",
+            out.getDefendantAccountParty().getLanguagePreferences().getHearingLanguagePreference().getLanguageCode());
     }
 
     @Test
