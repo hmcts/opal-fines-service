@@ -101,7 +101,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
         ResultActions resultActions =
             mockMvc.perform(
-                post(URL_BASE + "/add")
+                post(URL_BASE)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
                     .header("authorization", userStateStub.getBearerToken())
