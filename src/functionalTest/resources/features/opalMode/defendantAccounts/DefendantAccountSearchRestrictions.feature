@@ -1,4 +1,4 @@
-@Opal @R1BDrop1 @JIRA-LABEL:account-enquiry @JIRA-EPIC:PO-2630 @JIRA-STORY:PO-2970
+@Opal @ExtendedTest @R1BDrop1 @JIRA-LABEL:account-enquiry @JIRA-EPIC:PO-2630 @JIRA-STORY:PO-2970
 Feature: Defendant Account Search API restrictions
 
   Background:
