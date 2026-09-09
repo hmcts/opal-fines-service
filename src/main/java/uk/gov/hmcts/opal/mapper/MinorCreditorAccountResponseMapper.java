@@ -19,6 +19,7 @@ public interface MinorCreditorAccountResponseMapper {
     @Mapping(target = "creditorAccountId", source = "account.creditorAccountId")
     @Mapping(target = "partyDetails", source = "party")
     @Mapping(target = "address", source = "party")
+    @Mapping(target = "repayment", source = "account.repayment")
     @Mapping(target = "payment", source = "account")
     MinorCreditorAccountResponse toMinorCreditorAccountResponse(CreditorAccountEntity account, PartyEntity party);
 }

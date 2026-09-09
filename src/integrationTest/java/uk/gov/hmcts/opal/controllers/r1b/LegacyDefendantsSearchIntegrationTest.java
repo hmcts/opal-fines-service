@@ -1,0 +1,124 @@
+package uk.gov.hmcts.opal.controllers.r1b;
+
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.ResultActions;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
+
+@ActiveProfiles({"integration", "legacy"})
+@TestPropertySource(properties = "launchdarkly.default-flag-values.release-1b=true")
+@Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
+@Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
+@Slf4j(topic = "opal.LegacyDefendantsIntegrationTest01")
+class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
+
+    private static final String DEFENDANTS_SEARCH_URL = "/defendant-accounts/search";
+
+
+    @MockitoBean
+    private AccessTokenService accessTokenService;
+
+
+    @Test
+    @DisplayName("Search defendant accounts - POST with valid criteria [@PO-33, @PO-119]")
+    @JiraStory("PO-33")
+    @JiraStory("PO-119")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-5943")
+    void testPostDefendantAccountsSearch() throws Exception {
+        ResultActions actions = mockMvc.perform(post(DEFENDANTS_SEARCH_URL)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                {
+                   "active_accounts_only": true,
+                   "business_unit_ids": [101, 102, 78],
+                   "reference_number": null,
+                   "defendant": {
+                       "include_aliases": true,
+                       "organisation": false,
+                       "address_line_1": null,
+                       "postcode": "AB1 2CD",
+                       "organisation_name": null,
+                       "exact_match_organisation_name": null,
+                       "surname": "Smith",
+                       "exact_match_surname": true,
+                       "forenames": "John",
+                       "exact_match_forenames": false,
+                       "birth_date": "1985-06-15",
+                       "national_insurance_number": null
+                       },
+                   "consolidation_search": false
+                }"""));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostDefendantAccountsSearch: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("defendant_accounts[0].defendant_account_id").value("1"))
+            .andExpect(jsonPath("defendant_accounts[0].account_number").value("100A"))
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
+    }
+
+    @Test
+    @DisplayName("Search defendant accounts - No Accounts found [@PO-33, @PO-119]")
+    @JiraStory("PO-33")
+    @JiraStory("PO-119")
+    @JiraEpic("PO-704")
+    @JiraTestKey("PO-5944")
+    void testPostDefendantAccountsSearch_WhenNoDefendantAccountsFound() throws Exception {
+        ResultActions actions = mockMvc.perform(post(DEFENDANTS_SEARCH_URL)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
+            .contentType(MediaType.APPLICATION_JSON).content("""
+                {
+                   "active_accounts_only": true,
+                   "business_unit_ids": [101],
+                   "reference_number": null,
+                   "defendant": {
+                       "include_aliases": true,
+                       "organisation": false,
+                       "address_line_1": null,
+                       "postcode": "AB1 2CD",
+                       "organisation_name": null,
+                       "exact_match_organisation_name": null,
+                       "surname": "ShouldNotMatchAnythingXYZ",
+                       "exact_match_surname": true,
+                       "forenames": "John",
+                       "exact_match_forenames": false,
+                       "birth_date": "1985-06-15",
+                       "national_insurance_number": null
+                       },
+                   "consolidation_search": false
+                }"""));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostDefendantAccountsSearch_WhenNoDefendantAccountsFound: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(0));
+    }
+
+
+}

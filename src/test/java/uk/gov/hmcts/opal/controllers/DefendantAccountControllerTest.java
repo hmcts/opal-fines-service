@@ -17,7 +17,6 @@ import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
-import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
@@ -34,9 +33,6 @@ class DefendantAccountControllerTest {
 
     @Mock
     private DefendantAccountPartyService defendantAccountPartyService;
-
-    @Mock
-    private DefendantAccountFixedPenaltyService defendantAccountFixedPenaltyService;
 
     @Mock
     private DefendantAccountPaymentTermsService defendantAccountPaymentTermsService;

@@ -13,6 +13,7 @@ import java.time.Month;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @Slf4j(topic = "opal.LegacyDefendantAccountSearchResultTest")
 class LegacyDefendantAccountSearchResultTest {
@@ -77,6 +78,27 @@ class LegacyDefendantAccountSearchResultTest {
         assertEquals("Scotland", dto.getAddressLine1());
         assertEquals("1977-06-26", dto.getBirthDate());
 
+    }
+
+    @Test
+    void testControllerModelToDefendantAccountSummaryDtoForOrganisation() {
+        // Arrange
+        LegacyDefendantAccountSearchResult model = LegacyDefendantAccountSearchResult.builder()
+            .organisation(true)
+            .organisationName("Company A Chocolate Limited")
+            .title("Mr")
+            .forenames("John")
+            .surname("Smith")
+            .build();
+
+        // Act
+        DefendantAccountSummaryDto dto = model.toDefendantAccountSummaryDto();
+
+        // Assert
+        assertEquals("Company A Chocolate Limited", dto.getOrganisationName());
+        assertNull(dto.getDefendantTitle());
+        assertNull(dto.getDefendantFirstnames());
+        assertNull(dto.getDefendantSurname());
     }
 
     static LegacyDefendantAccountSearchResult constructTestDefendantAccountSearchResult() {

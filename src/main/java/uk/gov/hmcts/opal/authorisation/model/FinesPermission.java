@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptor;
 @Getter
 @RequiredArgsConstructor
 public enum FinesPermission implements PermissionDescriptor {
-    CREATE_MANAGE_DRAFT_ACCOUNTS(1L, "Create and Manage Draft Accounts"),
+    CREATE_MANAGE_DRAFT_ACCOUNTS(1L, "Create Manage Draft Accounts"),
     ACCOUNT_ENQUIRY_NOTES(2L, "Account Enquiry - Account Notes"),
     ACCOUNT_ENQUIRY(3L, "Account Enquiry"),
     COLLECTION_ORDER(4L, "Collection Order"),
@@ -29,6 +29,8 @@ public enum FinesPermission implements PermissionDescriptor {
     ADD_AND_REMOVE_PAYMENT_HOLD(14L, "Add and Remove payment hold"), // TODO - should this be 12L?
     PROCESS_AND_ALLOCATE_PAYMENTS(16L, "Process and Allocate Payments"),
     AUTO_ENFORCEMENT(17L, "Auto Enforcement"),
+    OPERATIONAL_REPORT_BY_ENFORCEMENT(18L, "Operational report (by enforcement)"),
+    OPERATIONAL_REPORT_BY_PAYMENTS(19L, "Operational report (by payment)"),
     ACCOUNT_MAINTENANCE_MINOR_CREDITOR(20L, "Account Maintenance - Minor Creditor");
 
     /**

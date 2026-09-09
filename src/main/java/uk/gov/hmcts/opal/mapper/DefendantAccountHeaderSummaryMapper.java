@@ -14,11 +14,13 @@ import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountType;
+import uk.gov.hmcts.opal.entity.defendantaccount.OriginatorType;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.AccountTypeEnum;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.DebtorTypeEnum;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.OriginatorTypeEnum;
 import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
@@ -40,6 +42,9 @@ public interface DefendantAccountHeaderSummaryMapper {
         @Mapping(target = "response.accountType", source = "entity.accountType"),
         @Mapping(target = "response.defendantAccountPartyId", source = "entity.defendantAccountPartyId"),
         @Mapping(target = "response.fixedPenaltyTicketNumber", source = "entity.fixedPenaltyTicketNumber"),
+        @Mapping(target = "response.originatorType", source = "entity.originatorType"),
+        @Mapping(target = "response.originatorName", source = "entity.originatorName"),
+        @Mapping(target = "response.collectionOrder", source = "entity.collectionOrder"),
         @Mapping(target = "response.prosecutorCaseReference", source = "entity.prosecutorCaseReference"),
         @Mapping(target = "response.hasConsolidatedAccounts"),
     })
@@ -115,6 +120,10 @@ public interface DefendantAccountHeaderSummaryMapper {
 
     default AccountTypeEnum toAccountTypeLabel(DefendantAccountType accountType) {
         return accountType == null ? null : AccountTypeEnum.fromValue(accountType.getLabel());
+    }
+
+    default OriginatorTypeEnum toOriginatorTypeLabel(OriginatorType originatorType) {
+        return originatorType == null ? null : OriginatorTypeEnum.fromValue(originatorType.getLabel());
     }
 
     default BigDecimal toZeroIfNull(BigDecimal value) {

@@ -15,12 +15,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
@@ -29,6 +31,7 @@ import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
 import uk.gov.hmcts.opal.mapper.MajorCreditorMapper;
 import uk.gov.hmcts.opal.repository.MajorCreditorRepository;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @ExtendWith(MockitoExtension.class)
 class MajorCreditorServiceTest {
@@ -38,6 +41,9 @@ class MajorCreditorServiceTest {
 
     @Mock
     private MajorCreditorMapper majorCreditorMapper;
+
+    @Mock
+    private FeatureToggleApi featureToggleApi;
 
     @InjectMocks
     private MajorCreditorService majorCreditorService;
@@ -82,7 +88,7 @@ class MajorCreditorServiceTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    void testMajorCreditorsReferenceData() {
+    void testMajorCreditorsReferenceDataRelease1bEnabled() {
         // Arrange
         SpecificationFluentQuery sfq = mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
@@ -125,6 +131,63 @@ class MajorCreditorServiceTest {
         });
 
         when(majorCreditorMapper.toRefData(majorCreditorEntity)).thenReturn(referenceData);
+        when(featureToggleApi.isFeatureEnabled(FeatureFlags.RELEASE_1B)).thenReturn(true);
+
+        // Act
+        List<MajorCreditorReferenceData> result = majorCreditorService.getReferenceData(
+            Optional.empty(), Optional.empty());
+
+        // Assert
+        assertEquals(List.of(referenceData), result);
+        Mockito.verify(majorCreditorMapper).toRefData(majorCreditorEntity);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testMajorCreditorsReferenceDataRelease1bDisabled() {
+        // Arrange
+        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        when(sfq.sortBy(any())).thenReturn(sfq);
+
+        MajorCreditorEntity majorCreditorEntity = MajorCreditorEntity.builder()
+            .businessUnitId((short) 7)
+            .creditorAccountEntity(
+                CreditorAccountEntity.builder()
+                    .creditorAccountId(8L)
+                    .accountNumber("AC55K")
+                    .creditorAccountType(CreditorAccountType.CF)
+                    .prosecutionService(true)
+                    .minorCreditorPartyId(555L)
+                    .repayment(true)
+                    .holdPayout(true)
+                    .lastChangedDate(LocalDateTime.now())
+                    .build())
+            .build();
+
+        MajorCreditorReferenceData referenceData = MajorCreditorReferenceData.builder()
+            .majorCreditorId(majorCreditorEntity.getMajorCreditorId())
+            .businessUnitId(majorCreditorEntity.getBusinessUnitId())
+            .majorCreditorCode(majorCreditorEntity.getMajorCreditorCode())
+            .name(majorCreditorEntity.getName())
+            .postcode(majorCreditorEntity.getPostcode())
+            .creditorAccountId(majorCreditorEntity.getCreditorAccountEntity().getCreditorAccountId())
+            .accountNumber(majorCreditorEntity.getCreditorAccountEntity().getAccountNumber())
+            .creditorAccountType(majorCreditorEntity.getCreditorAccountEntity().getCreditorAccountType().toString())
+            .prosecutionService(majorCreditorEntity.getCreditorAccountEntity().isProsecutionService())
+            .minorCreditorPartyId(majorCreditorEntity.getCreditorAccountEntity().getMinorCreditorPartyId())
+            .repayment(majorCreditorEntity.getCreditorAccountEntity().isRepayment())
+            .holdPayout(majorCreditorEntity.getCreditorAccountEntity().isHoldPayout())
+            .lastChangedDate(majorCreditorEntity.getCreditorAccountEntity().getLastChangedDate())
+            .build();
+
+        Page<MajorCreditorEntity> mockPage = new PageImpl<>(List.of(majorCreditorEntity), Pageable.unpaged(), 999L);
+        when(majorCreditorRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+            iom.getArgument(1, Function.class).apply(sfq);
+            return mockPage;
+        });
+
+        when(majorCreditorMapper.toRefData(majorCreditorEntity)).thenReturn(referenceData);
+        when(featureToggleApi.isFeatureEnabled(FeatureFlags.RELEASE_1B)).thenReturn(false);
 
         // Act
         List<MajorCreditorReferenceData> result = majorCreditorService.getReferenceData(

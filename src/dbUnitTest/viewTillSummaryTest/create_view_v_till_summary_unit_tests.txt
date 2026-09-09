@@ -1,0 +1,21 @@
+NOTICE:  === Cleanup data before tests ===
+NOTICE:  Cleanup completed
+NOTICE:  === Setting up test data for v_till_summary tests ===
+NOTICE:  Test data setup completed
+NOTICE:  === TEST 1: Till linked to file returns expected values and counts only warning and exception messages ===
+NOTICE:  TEST 1 PASSED
+NOTICE:  === TEST 2: Till without interface file is returned with null file name and zero errors ===
+NOTICE:  TEST 2 PASSED
+NOTICE:  === TEST 3: Nullable till values are preserved when a file exists ===
+NOTICE:  TEST 3 PASSED
+NOTICE:  === TEST 4: Failed till is included and Error or Info messages are not counted ===
+NOTICE:  TEST 4 PASSED
+NOTICE:  === TEST 5: Negative test - interface file without a till is excluded ===
+NOTICE:  TEST 5 PASSED
+NOTICE:  === TEST 6: Negative test - unrelated job-level messages do not affect till rows ===
+NOTICE:  TEST 6 PASSED
+NOTICE:  === Cleanup data after tests ===
+NOTICE:  Cleanup completed
+DO
+
+Query returned successfully in 82 msec.

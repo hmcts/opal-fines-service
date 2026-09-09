@@ -33,6 +33,9 @@ public class GetMinorCreditorAccountHeaderSummaryResponse implements ToJsonStrin
     @JsonProperty("creditor")
     private CreditorHeader creditor;
 
+    @JsonProperty("repayment")
+    private Boolean repayment;
+
     @JsonProperty("financials")
     private Financials financials;
 

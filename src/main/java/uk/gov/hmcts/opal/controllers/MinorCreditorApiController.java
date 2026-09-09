@@ -18,6 +18,8 @@ import uk.gov.hmcts.opal.generated.http.api.MinorCreditorApi;
 import uk.gov.hmcts.opal.generated.model.GetMinorCreditorHistory200Response;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.service.MinorCreditorService;
 import uk.gov.hmcts.opal.util.VersionUtils;
@@ -82,5 +84,17 @@ public class MinorCreditorApiController implements MinorCreditorApi {
                 businessUnitId);
 
         return buildResponse(result);
+    }
+
+    @Override
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
+    public ResponseEntity<MinorCreditorAccountsSearchResponse> postMinorCreditorSearch(
+        MinorCreditorSearchRequest minorCreditorSearchRequest) {
+        log.debug(":POST:postMinorCreditorSearch: query: \n{}", minorCreditorSearchRequest);
+
+        MinorCreditorAccountsSearchResponse response = minorCreditorService
+            .searchMinorCreditors(minorCreditorSearchRequest);
+
+        return buildResponse(response);
     }
 }

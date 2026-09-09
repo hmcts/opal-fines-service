@@ -17,7 +17,7 @@ Feature: Add Draft Account Error Handling
 
   @JIRA-STORY:PO-691 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5629
   Scenario: Creating a draft account without a valid access token is rejected
-    When I attempt to create a draft account with an invalid token using created by ID "BUUID"
+    When I attempt to create a draft account with an invalid token
     Then the request is rejected as unauthorized
 
   @JIRA-STORY:PO-691 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5630

@@ -6,9 +6,5 @@ public interface DraftAccountRequestDto {
 
     String getAccount();
 
-    String getSubmittedBy();
-
-    String getSubmittedByName();
-
     DraftAccountType getAccountType();
 }

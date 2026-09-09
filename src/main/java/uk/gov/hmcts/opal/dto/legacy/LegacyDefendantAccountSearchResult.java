@@ -123,7 +123,7 @@ public class LegacyDefendantAccountSearchResult implements ToJsonString, FullNam
             .businessUnitId(businessUnitId)
             .prosecutorCaseReference(prosecutorCaseReference)
             .lastEnforcementAction(lastEnforcementAction)
-            .organisationName(organisation ? title : null)
+            .organisationName(organisation ? organisationName : null)
             .defendantTitle(organisation ? null : title)
             .defendantFirstnames(organisation ? null : forenames)
             .defendantSurname(organisation ? null : surname)

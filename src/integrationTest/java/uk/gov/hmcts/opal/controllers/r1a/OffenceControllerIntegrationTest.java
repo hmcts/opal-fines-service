@@ -1,0 +1,394 @@
+package uk.gov.hmcts.opal.controllers.r1a;
+
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.startsWith;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.clearInvocations;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.support.SpyInvocationSupport.countInvocationsByMethodName;
+
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.ResultActions;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.SchemaPaths;
+import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.repository.OffenceRepository;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
+
+@ActiveProfiles({"integration"})
+@Slf4j(topic = "opal.OffenceControllerIntegrationTest")
+@Sql(scripts = "classpath:db/insertData/insert_into_offences.sql", executionPhase = BEFORE_TEST_CLASS)
+@DisplayName("OffenceController Integration Test")
+@Isolated
+class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
+
+    private static final String GET_OFFENCES_REF_DATA_RESPONSE =
+        SchemaPaths.REFERENCE_DATA + "/getOffencesRefDataResponse.json";
+    private static final String POST_OFFENCES_SEARCH_RESPONSE =
+        SchemaPaths.REFERENCE_DATA + "/postOffencesSearchResponse.json";
+    private static final String URL_BASE = "/offences";
+
+    @MockitoSpyBean
+    private JsonSchemaValidationService jsonSchemaValidationService;
+
+    @MockitoSpyBean
+    private OffenceRepository offenceRepository;
+
+    @Test
+    @DisplayName("Get offence by ID [@PO-420, PO-272]")
+    @JiraStory("PO-420")
+    @JiraStory("PO-272")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5985")
+    void testGetOffenceById() throws Exception {
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "/30000"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetOffenceById: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.offenceId").value(30000))
+            .andExpect(jsonPath("$.cjsCode").value("AA60005"))
+            .andExpect(jsonPath("$.offenceTitle")
+                .value("Person having charge abandoning animal"))
+            .andExpect(jsonPath("$.offenceTitleCy").doesNotExist());
+    }
+
+
+    @Test
+    @DisplayName("Get offence reference data")
+    @JiraStory("PO-304")
+    @JiraStory("PO-311")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5979")
+    void testGetOffenceReferenceData() throws Exception {
+        ResultActions actions = mockMvc.perform(get(URL_BASE).param("cjs_code","CW96023"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetOffenceReferenceData: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.refData[0].offence_id").value(53115))
+            .andExpect(jsonPath("$.refData[0].cjs_code").value("CW96023"))
+            .andExpect(jsonPath("$.refData[0].offence_title")
+                .value("Use a chemical weapon"));
+
+        jsonSchemaValidationService.validateOrError(body, GET_OFFENCES_REF_DATA_RESPONSE);
+    }
+
+
+    @Test
+    @DisplayName("Get no offences returned when offence does not exist [@PO-420, PO-272]")
+    @JiraStory("PO-420")
+    @JiraStory("PO-272")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5987")
+    void testGetOffenceById_WhenOffenceDoesNotExist() throws Exception {
+        mockMvc.perform(get(URL_BASE + "/999999"))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("Post search result for offence created by POST request [@PO-926, PO-304]")
+    @JiraStory("PO-926")
+    @JiraStory("PO-304")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5983")
+    void testPostOffencesSearch() throws Exception {
+        ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
+                                              .contentType(MediaType.APPLICATION_JSON)
+                                              .content("{\"cjs_code\":\"IC01001\"}"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostOffencesSearch: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(4))
+            .andExpect(jsonPath("$.searchData[0].offence_id").value(33430))
+            .andExpect(jsonPath("$.searchData[0].cjs_code").value("IC01001"))
+            .andExpect(jsonPath("$.searchData[0].offence_title").value("Genocide"))
+            .andExpect(jsonPath("$.searchData[0].date_used_from").value("2001-09-01T00:00:00Z"))
+            .andExpect(jsonPath("$.searchData[0].offence_oas")
+                .value("Contrary to sections 51 and 53 of the International Criminal Court Act 2001."))
+            .andReturn();
+
+        jsonSchemaValidationService.validateOrError(body, POST_OFFENCES_SEARCH_RESPONSE);
+
+    }
+
+    @Test
+    @DisplayName("Post no search result when offence does not exist [@PO-926, PO-304]")
+    @JiraStory("PO-926")
+    @JiraStory("PO-304")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5989")
+    void testPostOffencesSearch_WhenOffenceDoesNotExist() throws Exception {
+        ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"cjs_code\":\"NOTREALCODE\"}"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostOffencesSearch_WhenOffenceDoesNotExist: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(0));
+    }
+
+    @DisplayName("Get offence reference data by single cjs_code value [@PO-304, PO-1445]")
+    @JiraStory("PO-304")
+    @JiraStory("PO-1445")
+    @Test
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5988")
+    void testGetOffencesWithCjsCode() throws Exception {
+
+        ResultActions actions = mockMvc.perform(get(URL_BASE)
+                                                    .param("cjs_code", "CW96023"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetOffencesWithCjsCode: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.refData[0].cjs_code").value("CW96023"))
+            .andExpect(jsonPath("$.refData[0].offence_title")
+                .value("Use a chemical weapon"))
+            .andExpect(jsonPath("$.refData[0].offence_oas")
+                .value("Contrary to section 2(1)(a) and (8) of the Chemical Weapons Act 1996."));
+    }
+
+    @Test
+    @DisplayName("Get offences using comma-separated cjs_code values [@PO-304, PO-1445]")
+    @JiraStory("PO-304")
+    @JiraStory("PO-1445")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5990")
+    void testGetOffencesWithMultipleCjsCodes() throws Exception {
+
+        ResultActions actions = mockMvc.perform(get(URL_BASE)
+                .param("cjs_code","WT67003","ZP97010"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetOffencesWithMultipleCjsCodes: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.refData", hasSize(2)))
+            .andExpect(jsonPath("$.count").value(2))
+            .andExpect(jsonPath("$.refData[*].cjs_code", containsInAnyOrder("WT67003","ZP97010")));
+    }
+
+    @Test
+    @DisplayName("Post offence search with valid active_date in Zulu format [PO-1904]")
+    @JiraStory("PO-1904")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5986")
+    void testPostOffencesSearchWithActiveDate() throws Exception {
+        ResultActions actions = mockMvc.perform(post("/offences/search")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+            {
+                "cjs_code": "IC01001",
+                "active_date": "2001-09-01T00:00:00Z"
+            }
+            """));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostOffencesSearchWithActiveDate: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.searchData[0].offence_id").value(33430))
+            .andExpect(jsonPath("$.searchData[0].cjs_code").value("IC01001"))
+            .andExpect(jsonPath("$.searchData[0].offence_title").value("Genocide"));
+    }
+
+    @Test
+    @DisplayName("Post offence search handles cjs code prefix queries. [@PO-1070]")
+    @JiraStory("PO-1070")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5991")
+    void testPostOffencesPartialCodeSearch() throws Exception {
+        ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
+                                                     .contentType(MediaType.APPLICATION_JSON)
+                                                     .content("{\"cjs_code\":\"FB\"}"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostOffencesPartialCodeSearch: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(24))
+            .andExpect(jsonPath("$.searchData[*].cjs_code", everyItem(startsWith("FB"))))
+            .andReturn();
+
+        jsonSchemaValidationService.validateOrError(body, POST_OFFENCES_SEARCH_RESPONSE);
+
+    }
+
+    @Test
+    @DisplayName("Post offence search handles partial title queries. [@PO-1070]")
+    @JiraStory("PO-1070")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5980")
+    void testPostOffencesPartialTitleSearch() throws Exception {
+        ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
+                                                     .contentType(MediaType.APPLICATION_JSON)
+                                                     .content("{\"title\":\"enoc\"}"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostOffencesPartialTitleSearch: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(7))
+            .andExpect(jsonPath("$.searchData[*].offence_title", hasItem(containsString("enoc"))))
+            .andReturn();
+
+        jsonSchemaValidationService.validateOrError(body, POST_OFFENCES_SEARCH_RESPONSE);
+
+    }
+
+    @Test
+    @DisplayName("Post offence search handles partial act & section queries. [@PO-1070]")
+    @JiraStory("PO-1070")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5982")
+    void testPostOffencesPartialActSearch() throws Exception {
+        ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
+                                                     .contentType(MediaType.APPLICATION_JSON)
+                                                     .content("{\"act_and_section\":\"ootball Spectators Act 1989\"}"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostOffencesPartialActSearch: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(20))
+            .andExpect(jsonPath("$.searchData[*].offence_oas", hasItem(containsString("Football Spectators Act 1989"))))
+            .andReturn();
+
+        jsonSchemaValidationService.validateOrError(body, POST_OFFENCES_SEARCH_RESPONSE);
+
+    }
+
+    @Test
+    @DisplayName("Post offence search handles large result sets. [@PO-1070]")
+    @JiraStory("PO-1070")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5984")
+    void testPostOffencesLargeCodeCount() throws Exception {
+        ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
+                                                     .contentType(MediaType.APPLICATION_JSON)
+                                                     .content("{\"cjs_code\":\"A\"}"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostOffencesLargeCodeCount: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1790))
+            .andExpect(jsonPath("$.searchData[*].cjs_code", everyItem(startsWith("A"))))
+            .andReturn();
+
+        jsonSchemaValidationService.validateOrError(body, POST_OFFENCES_SEARCH_RESPONSE);
+
+    }
+
+    @Test
+    @DisplayName("Post offence search applies max result limit. [@PO-1070]")
+    @JiraStory("PO-1070")
+    @JiraEpic("PO-304")
+    @JiraTestKey("PO-5981")
+    void testPostOffencesMaxLimitCodeCount() throws Exception {
+        ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
+                                                     .contentType(MediaType.APPLICATION_JSON)
+                                                     .content("{\"cjs_code\":\"A\",\"max_results\":100}"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostOffencesMaxLimitCodeCount: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(100))
+            .andExpect(jsonPath("$.searchData", hasSize(100)))
+            .andExpect(jsonPath("$.searchData[*].cjs_code", everyItem(startsWith("A"))))
+            .andReturn();
+
+        jsonSchemaValidationService.validateOrError(body, POST_OFFENCES_SEARCH_RESPONSE);
+
+    }
+
+    @Test
+    @DisplayName("Get offence reference data uses cache on repeated identical request")
+    @JiraStory("PO-7248")
+    @JiraEpic("PO-8248")
+    @JiraTestKey("PO-9441")
+    void testGetOffenceReferenceData_usesCacheOnRepeatedRequest() throws Exception {
+        clearInvocations(offenceRepository);
+
+        String firstBody = performOffenceRefDataRequest();
+        String secondBody = performOffenceRefDataRequest();
+
+        assertEquals(firstBody, secondBody);
+        assertEquals(1, countInvocationsByMethodName(offenceRepository, "findBy"));
+    }
+
+    @Test
+    @DisplayName("Post offence search uses cache on repeated identical request")
+    @JiraStory("PO-7248")
+    @JiraEpic("PO-8248")
+    @JiraTestKey("PO-9442")
+    void testPostOffencesSearch_usesCacheOnRepeatedRequest() throws Exception {
+        clearInvocations(offenceRepository);
+
+        String firstBody = performOffenceSearchRequest();
+        String secondBody = performOffenceSearchRequest();
+
+        assertEquals(firstBody, secondBody);
+        assertEquals(1, countInvocationsByMethodName(offenceRepository, "findBy"));
+    }
+
+    private String performOffenceRefDataRequest() throws Exception {
+        return mockMvc.perform(get(URL_BASE).param("cjs_code", "CW96023"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    }
+
+    private String performOffenceSearchRequest() throws Exception {
+        return mockMvc.perform(post(URL_BASE + "/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"cjs_code\":\"IC01001\"}"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    }
+
+}

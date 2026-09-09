@@ -1,0 +1,226 @@
+package uk.gov.hmcts.opal.controllers.r1c;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestConstructor;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
+import uk.gov.hmcts.opal.service.opal.AmendmentService;
+import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
+
+@ActiveProfiles({"integration"})
+@Slf4j(topic = "opal.AmendmentControllerIntegrationTest")
+@Sql(scripts = "classpath:db/insertData/insert_into_amendments.sql", executionPhase = BEFORE_TEST_CLASS)
+@DisplayName("AmendmentController Integration Test")
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+@RequiredArgsConstructor
+class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
+
+    private static final String URL_BASE = "/amendments";
+
+    private final TransactionalContext transactionalContext;
+
+    @MockitoSpyBean
+    OpalDefendantAccountService opalDefendantAccountService;
+
+    @MockitoSpyBean
+    AmendmentService amendmentService;
+
+    @Test
+    @JiraStory("PO-1590")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-5785")
+    void testGetAmendmentById() throws Exception {
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "/7"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetAmendmentById: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.amendment_id").value(7))
+            .andExpect(jsonPath("$.business_unit_id").value(77))
+            .andExpect(jsonPath("$.associated_record_type").value("defendant_accounts"))
+            .andExpect(jsonPath("$.associated_record_id").value("1"))
+            .andExpect(jsonPath("$.amended_by").value("User_A"))
+            .andExpect(jsonPath("$.field_code").value(1))
+            .andExpect(jsonPath("$.old_value").value("Initial Data"))
+            .andExpect(jsonPath("$.new_value").value("Updated Data"))
+            .andExpect(jsonPath("$.case_reference").value("Case_ref"))
+            .andExpect(jsonPath("$.function_code").value("Func_code"));
+    }
+
+    @Test
+    @JiraStory("PO-1590")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-5789")
+    void testGetAmendmentById_fail() throws Exception {
+        mockMvc.perform(get(URL_BASE + "/999999")).andExpect(status().isNotFound());
+    }
+
+    @Test
+    @JiraStory("PO-1590")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-5787")
+    void testPostAmendmentsSearch() throws Exception {
+        ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{}"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostAmendmentsSearch: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.searchData[0].amendment_id").value(7))
+            .andExpect(jsonPath("$.searchData[0].amended_by").value("User_A"))
+            .andExpect(jsonPath("$.searchData[0].field_code").value(1))
+            .andExpect(jsonPath("$.searchData[0].case_reference").value("Case_ref"))
+            .andExpect(jsonPath("$.searchData[0].function_code").value("Func_code"))
+            .andReturn();
+
+    }
+
+    @Test
+    @JiraStory("PO-3851")
+    @JiraEpic("PO-3372")
+    @JiraTestKey("PO-8617")
+    void testPostAmendmentsSearch_byAssociatedRecordType() throws Exception {
+        ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"associated_record_type\":\"defendant_accounts\"}"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostAmendmentsSearch_byAssociatedRecordType: Response body:\n"
+                 + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.searchData[0].associated_record_type").value("defendant_accounts"));
+    }
+
+    @Test
+    @JiraStory("PO-1590")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-5788")
+    void testPostAmendmentSearch_noMatch() throws Exception {
+        ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"function_code\":\"NOTREALCODE\"}"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostAmendmentSearch_noMatch: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(0));
+    }
+
+
+    @Test
+    @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_METHOD)
+    @Sql(scripts = "classpath:db/deleteData/delete_from_amendments.sql", executionPhase = AFTER_TEST_METHOD)
+    @JiraStory("PO-1590")
+    @JiraEpic("PO-812")
+    @JiraTestKey("PO-5786")
+    void testAuditStoredProcedures() throws Exception {
+        Long defAccId = 77L;
+        Short busUnitId = (short) 78;
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(busUnitId, FinesPermission.values());
+        transactionalContext.callTheStoredProcedures(defAccId, busUnitId);
+        log.info(":testAuditStoredProcedures: found defendant:{} in business unit: {}", defAccId, busUnitId);
+
+        transactionalContext.callTheStoredProcedures(defAccId, busUnitId);
+
+        ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                {
+                  "associated_record_id": "%s",
+                  "amended_by": "Tester_A",
+                  "function_code": "Func_Code"
+                }
+                """.formatted(defAccId)));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testAuditStoredProcedures: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(2))
+            .andExpect(jsonPath("$.searchData[0].amendment_id").value(70000000000001L))
+            .andExpect(jsonPath("$.searchData[0].amended_by").value("Tester_A"))
+            .andExpect(jsonPath("$.searchData[0].amended_by_name").value("Tester Name"))
+            .andExpect(jsonPath("$.searchData[0].field_code").value(9))
+            .andExpect(jsonPath("$.searchData[0].old_value").value(14))
+            .andExpect(jsonPath("$.searchData[0].new_value").value(400))
+            .andExpect(jsonPath("$.searchData[1].amendment_id").value(70000000000002L))
+            .andExpect(jsonPath("$.searchData[1].amended_by").value("Tester_A"))
+            .andExpect(jsonPath("$.searchData[1].amended_by_name").value("Tester Name"))
+            .andExpect(jsonPath("$.searchData[1].field_code").value(11))
+            .andExpect(jsonPath("$.searchData[1].old_value").value(21))
+            .andExpect(jsonPath("$.searchData[1].new_value").value(500))
+            .andReturn();
+    }
+
+    @Component
+    @Transactional
+    @RequiredArgsConstructor
+    @Slf4j
+    public static class TransactionalContext {
+
+        private final JdbcTemplate jdbcTemplate;
+        private final AmendmentService amendmentService;
+
+        /* In order for the stored procedures to work, the initialise, update and finalise calls all need
+        to be executed within the same transaction context. */
+        public void callTheStoredProcedures(Long defAccId, Short busUnitId) {
+
+            // Initialize before making a change to defendant_accounts table
+            amendmentService.auditInitialiseStoredProc(defAccId, AssociatedRecordType.DEFENDANT_ACCOUNTS);
+
+            // Directly update a defendant_accounts table row - this should cause insertions in the amendments table
+            String sql = "UPDATE defendant_accounts SET cheque_clearance_period = ?, "
+                + " credit_trans_clearance_period = ? WHERE defendant_account_id = ?";
+            int rowsAffected = jdbcTemplate.update(sql, 400, 500, defAccId);
+            log.info(":callTheStoredProcedures: directly updated: {} rows", rowsAffected);
+            assertEquals(1, rowsAffected);
+
+            // Finalize after making a change to defendant_accounts table
+            amendmentService.auditFinaliseStoredProc(
+                defAccId, AssociatedRecordType.DEFENDANT_ACCOUNTS, busUnitId,
+                "Tester_A", "Tester Name", "Case_Ref", "Func_Code");
+        }
+    }
+
+
+}

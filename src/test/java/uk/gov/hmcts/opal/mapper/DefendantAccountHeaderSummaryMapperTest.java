@@ -16,9 +16,11 @@ import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountType;
+import uk.gov.hmcts.opal.entity.defendantaccount.OriginatorType;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.AccountTypeEnum;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.DebtorTypeEnum;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.OriginatorTypeEnum;
 
 class DefendantAccountHeaderSummaryMapperTest {
 
@@ -88,6 +90,9 @@ class DefendantAccountHeaderSummaryMapperTest {
             .parentGuardianAccountPartyId(456L)
             .accountNumber("ACCT100")
             .accountType(DefendantAccountType.FINES)
+            .originatorType(OriginatorType.TRANSFER_IN_ACCOUNT)
+            .originatorName("Originator Name")
+            .collectionOrder(Boolean.TRUE)
             .prosecutorCaseReference("PCR1")
             .fixedPenaltyTicketNumber("FPT1")
             .accountStatus(DefendantAccountStatus.LIVE)
@@ -110,7 +115,46 @@ class DefendantAccountHeaderSummaryMapperTest {
         DefendantAccountHeaderSummary dto = mapper.toDto(entity);
         assertEquals("ACCT100", dto.getResponse().getAccountNumber());
         assertEquals("0046", dto.getResponse().getBusinessUnitSummary().getBusinessUnitCode());
+        assertEquals(OriginatorTypeEnum.TFO, dto.getResponse().getOriginatorType());
+        assertEquals("Originator Name", dto.getResponse().getOriginatorName());
+        assertTrue(dto.getResponse().getCollectionOrder());
         assertNotNull(dto.getResponse().getPartyDetails());
+    }
+
+    @Test
+    void mapToDto_mapsOriginatorTypes() {
+        DefendantAccountHeaderViewEntity newEntity = DefendantAccountHeaderViewEntity.builder()
+            .originatorType(OriginatorType.MAC_NEW_ACCOUNT)
+            .version(1L)
+            .build();
+        DefendantAccountHeaderViewEntity tfoEntity = DefendantAccountHeaderViewEntity.builder()
+            .originatorType(OriginatorType.TRANSFER_IN_ACCOUNT)
+            .version(1L)
+            .build();
+        DefendantAccountHeaderViewEntity fpEntity = DefendantAccountHeaderViewEntity.builder()
+            .originatorType(OriginatorType.FIXED_PENALTY)
+            .version(1L)
+            .build();
+
+        assertEquals(OriginatorTypeEnum.NEW, mapper.toDto(newEntity).getResponse().getOriginatorType());
+        assertEquals(OriginatorTypeEnum.TFO, mapper.toDto(tfoEntity).getResponse().getOriginatorType());
+        assertEquals(OriginatorTypeEnum.FP, mapper.toDto(fpEntity).getResponse().getOriginatorType());
+    }
+
+    @Test
+    void mapToDto_preservesNullOriginatorFieldsAndCollectionOrder() {
+        DefendantAccountHeaderViewEntity entity = DefendantAccountHeaderViewEntity.builder()
+            .originatorType(null)
+            .originatorName(null)
+            .collectionOrder(null)
+            .version(1L)
+            .build();
+
+        DefendantAccountHeaderSummary dto = mapper.toDto(entity);
+
+        assertNull(dto.getResponse().getOriginatorType());
+        assertNull(dto.getResponse().getOriginatorName());
+        assertNull(dto.getResponse().getCollectionOrder());
     }
 
     @Test

@@ -152,8 +152,8 @@ public class MinorCreditorAccountSearchRestrictionsStepDef extends BaseStepDef {
             .statusCode(400)
             .body("title", equalTo("Bad Request"))
             .body("status", equalTo(400))
-            .body("detail", equalTo("The request does not conform to the required JSON schema"))
-            .body("type", equalTo("https://hmcts.gov.uk/problems/json-schema-validation"))
+            .body("detail", equalTo("Invalid arguments were provided in the request"))
+            .body("type", equalTo("https://hmcts.gov.uk/problems/illegal-argument"))
             .body("retriable", equalTo(false));
     }
 

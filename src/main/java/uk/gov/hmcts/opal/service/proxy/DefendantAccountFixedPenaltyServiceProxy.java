@@ -3,7 +3,7 @@ package uk.gov.hmcts.opal.service.proxy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountFixedPenaltyServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountFixedPenaltyService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;

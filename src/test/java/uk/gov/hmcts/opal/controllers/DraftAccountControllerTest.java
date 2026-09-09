@@ -108,8 +108,6 @@ class DraftAccountControllerTest {
             .accountType(DraftAccountType.FINE)
             .account(getAccountJson())
             .businessUnitId((short)1)
-            .submittedBy("USER_ID")
-            .submittedByName("USER_NAME")
             .build();
 
         when(draftAccountService.submitDraftAccount(any())).thenReturn(toGetDto(entity));
