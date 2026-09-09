@@ -7,7 +7,7 @@ properties([
     booleanParam(name: 'Integration', defaultValue: true, description: 'Run integration tests'),
     booleanParam(name: 'Functional', defaultValue: true, description: 'Run functional tests'),
     booleanParam(name: 'Smoke', defaultValue: true, description: 'Run smoke tests'),
-    choice(name: 'DemoTaggedFunctionalMode', choices: ['RunR1AOnly', 'RunR1AAndR1BOnly', 'RunAllFlagsOff'], description: 'Select which demo tagged functional stage to run'),
+    choice(name: 'DemoTaggedFunctionalMode', choices: ['RunR1AOnly', 'RunR1AAndR1BDrop1Only', 'RunR1AAndR1BDropsOnly', 'RunR1BOffOnly', 'RunAllFlagsOff'], description: 'Select which demo tagged functional stage to run'),
     booleanParam(name: 'ZephyrExecution', defaultValue: false, description: 'Create Zephyr Execution'),
   ])
 ])
@@ -423,18 +423,46 @@ withNightlyPipeline(type, product, component) {
           'runR1AOnly'
         )
         break
-      case 'RunR1AAndR1BOnly':
+      case 'RunR1AAndR1BDrop1Only':
         runNamedTaggedFunctionalStage(
           true,
-          'Demo R1A and R1B Functional Tests',
+          'Demo R1A and R1B Drop 1 Functional Tests',
+          shouldRunWithZephyr,
+          'functionalOpalTagsR1AAndR1BDrop1Only',
+          'functional-output-r1a-r1b-drop1-only-demo',
+          ' (Demo R1A and R1B Drop 1)',
+          ['functional-output-r1a-r1b-drop1-only-demo/report', 'build/reports/tests/functionalOpalTagsR1AAndR1BDrop1Only'],
+          'build/test-results/functional/opal-tags-r1a-r1b-drop1-only/*.xml',
+          'build/reports/tests/functionalOpalTagsR1AAndR1BDrop1Only',
+          'runR1AAndR1BDrop1Only'
+        )
+        break
+      case 'RunR1AAndR1BDropsOnly':
+        runNamedTaggedFunctionalStage(
+          true,
+          'Demo R1A and R1B Drop Functional Tests',
           shouldRunWithZephyr,
           'functionalOpalTagsR1AAndR1BOnly',
           'functional-output-r1a-r1b-only-demo',
-          ' (Demo R1A and R1B)',
+          ' (Demo R1A and R1B Drops)',
           ['functional-output-r1a-r1b-only-demo/report', 'build/reports/tests/functionalOpalTagsR1AAndR1BOnly'],
           'build/test-results/functional/opal-tags-r1a-r1b-only/*.xml',
           'build/reports/tests/functionalOpalTagsR1AAndR1BOnly',
           'runR1AAndR1BOnly'
+        )
+        break
+      case 'RunR1BOffOnly':
+        runNamedTaggedFunctionalStage(
+          true,
+          'Demo R1B Off Functional Tests',
+          shouldRunWithZephyr,
+          'functionalOpalTagsR1BOffOnly',
+          'functional-output-r1b-off-only-demo',
+          ' (Demo R1B Off)',
+          ['functional-output-r1b-off-only-demo/report', 'build/reports/tests/functionalOpalTagsR1BOffOnly'],
+          'build/test-results/functional/opal-tags-r1b-off-only/*.xml',
+          'build/reports/tests/functionalOpalTagsR1BOffOnly',
+          'runR1BOffOnly'
         )
         break
       case 'RunAllFlagsOff':
