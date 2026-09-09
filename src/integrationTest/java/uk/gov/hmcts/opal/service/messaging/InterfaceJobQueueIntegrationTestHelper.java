@@ -127,6 +127,16 @@ class InterfaceJobQueueIntegrationTestHelper {
     public void assertSideEffects() {
         assertThat(countTillsCreatedForInterfaceFile()).isEqualTo(1);
         assertThat(countPaymentsCreatedForDefendantAccount()).isEqualTo(1);
+        assertReportSideEffects();
+    }
+
+    public void assertSuspenseSideEffects() {
+        assertThat(countTillsCreatedForInterfaceFile()).isEqualTo(1);
+        assertThat(paymentsCreatedForInterfaceFile()).hasSize(1);
+        assertReportSideEffects();
+    }
+
+    private void assertReportSideEffects() {
         assertThat(countPreAllocatedCashTillReports()).isEqualTo(1);
         assertThat(findPreAllocatedCashTillReports())
             .singleElement()
@@ -183,6 +193,12 @@ class InterfaceJobQueueIntegrationTestHelper {
     }
 
     private Set<PaymentInEntity> paymentsCreatedForDefendantAccount() {
+        return paymentsCreatedForInterfaceFile().stream()
+            .filter(payment -> DEFENDANT_ACCOUNT_ID.toString().equals(payment.getAssociatedRecordId()))
+            .collect(Collectors.toSet());
+    }
+
+    private Set<PaymentInEntity> paymentsCreatedForInterfaceFile() {
         Set<Long> tillIds = tillsCreatedForInterfaceFile().stream()
             .map(TillEntity::getTillId)
             .collect(Collectors.toSet());
@@ -190,7 +206,6 @@ class InterfaceJobQueueIntegrationTestHelper {
         return paymentInRepository.findAll().stream()
             .filter(payment -> payment.getTillEntity() != null)
             .filter(payment -> tillIds.contains(payment.getTillEntity().getTillId()))
-            .filter(payment -> DEFENDANT_ACCOUNT_ID.toString().equals(payment.getAssociatedRecordId()))
             .collect(Collectors.toSet());
     }
 

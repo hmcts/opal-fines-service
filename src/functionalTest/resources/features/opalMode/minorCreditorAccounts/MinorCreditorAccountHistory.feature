@@ -1,4 +1,4 @@
-@Opal @R1B @JIRA-LABEL:account-enquiry @MinorCreditorHistory
+@Opal @R1BDrop2 @JIRA-LABEL:account-enquiry @MinorCreditorHistory
 Feature: Minor Creditor Account History
 
   @cleanUpData @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653 @JIRA-TEST-KEY:PO-9546

@@ -4,6 +4,8 @@ import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
@@ -27,6 +29,7 @@ import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy;
+import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
@@ -51,6 +54,7 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
     public static final String REPLACE_DEFENDANT_ACCOUNT_PARTY = "replaceDefendantAccountParty";
     public static final String ADD_DEFENDANT_ACCOUNT_PARTY = "addDefendantAccountParty";
     public static final String REMOVE_DEFENDANT_ACCOUNT_PARTY = "removeDefendantAccountParty";
+    private static final String LEGACY_REPLACE_FAILURE = "Legacy failure during replaceDefendantAccountParty";
 
     /* ---- Services ---- */
     private final GatewayService gatewayService;
@@ -283,6 +287,11 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
         return obj == null ? null : f.apply(obj);
     }
 
+    private static String legacyErrorMessage(LegacyReplaceDefendantAccountPartyResponse response) {
+        String errorMessage = response.getErrorResponse().getErrorMessage();
+        return errorMessage == null || errorMessage.isBlank() ? LEGACY_REPLACE_FAILURE : errorMessage;
+    }
+
     @Override
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId,
@@ -294,23 +303,53 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
             .defendantAccountId(defendantAccountId)
             .businessUnitId(businessUnitId)
             .businessUnitUserId(businessUnitUserId)
-            .defendantAccountParty(defendantAccountParty)
+            .defendantAccountParty(LegacyDefendantAccountPartyRequest.from(
+                defendantAccountPartyId, defendantAccountParty))
             .build();
 
-        Response<LegacyReplaceDefendantAccountPartyResponse> response = gatewayService.postToGateway(
-            REPLACE_DEFENDANT_ACCOUNT_PARTY,
-            LegacyReplaceDefendantAccountPartyResponse.class,
-            req,
-            null
-        );
+        Response<LegacyReplaceDefendantAccountPartyResponse> response;
+        try {
+            response = gatewayService.postToGateway(
+                REPLACE_DEFENDANT_ACCOUNT_PARTY,
+                LegacyReplaceDefendantAccountPartyResponse.class,
+                req,
+                null
+            );
+        } catch (RuntimeException exception) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_GATEWAY,
+                "Legacy exception during replaceDefendantAccountParty",
+                exception
+            );
+        }
 
         if (response.isError()) {
             log.error(":replaceDefendantAccountParty: Legacy error HTTP {}", response.code);
             if (response.isException()) {
                 log.error(":replaceDefendantAccountParty: exception:", response.exception);
+                throw new ResponseStatusException(
+                    HttpStatus.BAD_GATEWAY,
+                    "Legacy exception during replaceDefendantAccountParty",
+                    response.exception
+                );
+            } else if (response.hasErrorResponse()) {
+                log.error(":replaceDefendantAccountParty: legacy error response:\n{}", response.body);
+                throw new ResponseStatusException(
+                    HttpStatus.BAD_GATEWAY,
+                    legacyErrorMessage(response.responseEntity)
+                );
             } else if (response.isLegacyFailure()) {
                 log.error(":replaceDefendantAccountParty: legacy failure body:\n{}", response.body);
+                throw new ResponseStatusException(
+                    HttpStatus.BAD_GATEWAY,
+                    LEGACY_REPLACE_FAILURE
+                );
             }
+
+            throw new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Unknown error during replaceDefendantAccountParty"
+            );
         } else if (response.isSuccessful()) {
             log.info(":replaceDefendantAccountParty: Legacy success.");
         }

@@ -72,6 +72,9 @@ public class LegacyDefendantAccountBuilders {
     }
 
     static EnforcerReferenceCommon buildEnforcerReference(EnforcerReference enforcerRef) {
+        if (enforcerRef == null) {
+            return null;
+        }
         return EnforcerReferenceCommon.builder()
             .enforcerId(enforcerRef.getEnforcerId())
             .enforcerName(enforcerRef.getEnforcerName())
