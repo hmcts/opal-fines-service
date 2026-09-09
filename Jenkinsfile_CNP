@@ -1,7 +1,7 @@
 #!groovy
 import uk.gov.hmcts.contino.GithubAPI
 
-@Library("Infrastructure@2.7.1")
+@Library("Infrastructure@2.7.2")
 
 def type = "java"
 def product = "opal"
