@@ -18,6 +18,7 @@ import static uk.gov.hmcts.opal.util.VersionUtils.extractBigInteger;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -34,6 +35,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpServerErrorException;
+import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
@@ -43,6 +45,9 @@ import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
+import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
+import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddPaymentTermsLegacyRequest;
@@ -50,6 +55,7 @@ import uk.gov.hmcts.opal.dto.legacy.AddPaymentTermsLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
+import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 
 @ExtendWith(MockitoExtension.class)
@@ -406,6 +412,71 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
             businessUnitUserId, ifMatch
         );
         assertGetDefendantAccountPaymentTermsResponse(actualResponse, legacyResponse);
+    }
+
+    @Test
+    void addPaymentTerms_serializesNestedLegacyPayloadInSnakeCase() throws Exception {
+        // Given
+        long defendantAccountId = 770000004141L;
+        String businessUnitId = "77";
+        String businessUnitUserId = "L077JG";
+        String ifMatch = "\"835509468493002959816526022013198014020000027212\"";
+        var legacyResponse = createAddPaymentTermsLegacyResponse(defendantAccountId, ifMatch);
+        var gateWayResponse = new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
+        var addPaymentTermsRequest = AddDefendantAccountPaymentTermsRequest.builder()
+            .paymentTerms(PaymentTerms.builder()
+                .extension(true)
+                .reasonForExtension("dmweoapde")
+                .paymentTermsType(new PaymentTermsType(PaymentTermsType.PaymentTermsTypeCode.B))
+                .effectiveDate(LocalDate.parse("2026-08-09"))
+                .instalmentPeriod(new InstalmentPeriod(InstalmentPeriod.InstalmentPeriodCode.W))
+                .lumpSumAmount(new BigDecimal("100.00"))
+                .postedDetails(new PostedDetails(null, businessUnitUserId, "opal-test"))
+                .build())
+            .build();
+
+        doReturn(gateWayResponse).when(gatewayService).postToGateway(any(), any(), any(), any());
+
+        // When
+        legacyDefendantAccountPaymentTermsService.addPaymentTerms(
+            defendantAccountId, businessUnitId, businessUnitUserId, "opal-test", ifMatch, addPaymentTermsRequest
+        );
+
+        // Then
+        var requestCaptor = ArgumentCaptor.forClass(AddPaymentTermsLegacyRequest.class);
+
+        verify(gatewayService, times(1))
+            .postToGateway(
+                eq(LegacyDefendantAccountPaymentTermsService.ADD_PAYMENT_TERMS),
+                eq(AddPaymentTermsLegacyResponse.class),
+                requestCaptor.capture(),
+                isNull()
+            );
+
+        JsonNode json = ToJsonString.getObjectMapper().readTree(
+            ToJsonString.getObjectMapper().writeValueAsString(requestCaptor.getValue())
+        );
+        JsonNode paymentTerms = json.get("payment_terms");
+
+        assertThat(json.has("defendant_account_id")).isTrue();
+        assertThat(json.has("business_unit_id")).isTrue();
+        assertThat(json.has("business_unit_user_id")).isTrue();
+        assertThat(paymentTerms.get("effective_date").asText()).isEqualTo("2026-08-09");
+        assertThat(paymentTerms.get("reason_for_extension").asText()).isEqualTo("dmweoapde");
+        assertThat(paymentTerms.get("payment_terms_type").get("payment_terms_type_code").asText()).isEqualTo("B");
+        assertThat(paymentTerms.get("instalment_period").get("instalment_period_code").asText()).isEqualTo("W");
+        assertThat(paymentTerms.get("posted_details").get("posted_by").asText()).isEqualTo(businessUnitUserId);
+        assertThat(paymentTerms.get("posted_details").get("posted_by_name").asText()).isEqualTo("opal-test");
+
+        assertThat(paymentTerms.has("effectiveDate")).isFalse();
+        assertThat(paymentTerms.has("reasonForExtension")).isFalse();
+        assertThat(paymentTerms.has("paymentTermsType")).isFalse();
+        assertThat(paymentTerms.has("instalmentPeriod")).isFalse();
+        assertThat(paymentTerms.has("postedDetails")).isFalse();
+        assertThat(paymentTerms.get("payment_terms_type").has("paymentTermsTypeCode")).isFalse();
+        assertThat(paymentTerms.get("instalment_period").has("instalmentPeriodCode")).isFalse();
+        assertThat(paymentTerms.get("posted_details").has("postedBy")).isFalse();
+        assertThat(paymentTerms.get("posted_details").has("postedByName")).isFalse();
     }
 
     private static AddPaymentTermsLegacyResponse createAddPaymentTermsLegacyResponse(long defendantAccountId,
