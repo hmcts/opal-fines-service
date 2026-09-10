@@ -60,19 +60,19 @@ Feature: Results Reference Data
       | imposition_creditor         |                                         |
       | imposition_allocation_order |                                         |
 
-  @JIRA-STORY:PO-6425 @JIRA-EPIC:PO-1674 @JIRA-TEST-KEY:PO-7869 @R1B
+  @JIRA-STORY:PO-6425 @JIRA-EPIC:PO-1674 @JIRA-TEST-KEY:PO-7869 @R1BDrop1
   Scenario: Result by ID includes employment data requirement flag
     When I request result with identifier "AEO"
     Then the result response contains
       | result_id                | AEO  |
       | requires_employment_data | true |
 
-  @JIRA-STORY:PO-8973 @JIRA-EPIC:PO-304 @R1B @JIRA-TEST-KEY:PO-10065
+  @JIRA-STORY:PO-8973 @JIRA-EPIC:PO-304 @R1BDrop1 @JIRA-TEST-KEY:PO-10065
   Scenario: Result by ID matches OpenAPI schema
     When I request result with identifier "SC"
     Then the result response matches the documented schema
 
-  @JIRA-STORY:PO-8973 @JIRA-EPIC:PO-304 @R1B @JIRA-TEST-KEY:PO-10066
+  @JIRA-STORY:PO-8973 @JIRA-EPIC:PO-304 @R1BDrop1 @JIRA-TEST-KEY:PO-10066
   Scenario: Result by ID maps response fields
     When I request result with identifier "SC"
     Then the result response contains
@@ -103,18 +103,18 @@ Feature: Results Reference Data
       | manual_enforcement            | true                                                          |
       | enf_next_permitted_actions    | CWN                                                           |
 
-  @JIRA-STORY:PO-8973 @JIRA-EPIC:PO-304 @R1B @JIRA-TEST-KEY:PO-10067
+  @JIRA-STORY:PO-8973 @JIRA-EPIC:PO-304 @R1BDrop1 @JIRA-TEST-KEY:PO-10067
   Scenario: Unknown result by ID returns not found
     When I request result with identifier "ZZZZZZ"
     Then the request is rejected as not found
 
-  @JIRA-STORY:PO-8973 @JIRA-EPIC:PO-2630 @R1B @JIRA-TEST-KEY:PO-10068
+  @JIRA-STORY:PO-8973 @JIRA-EPIC:PO-2630 @R1BDrop1 @JIRA-TEST-KEY:PO-10068
   Scenario: Result by ID omits Welsh parameters by default
     When I request result with identifier "SC"
     Then the result parameters do not contain the following entries
       | cy_paymentterms |
 
-  @JIRA-STORY:PO-2985 @JIRA-EPIC:PO-2630 @R1B @JIRA-TEST-KEY:PO-9560
+  @JIRA-STORY:PO-2985 @JIRA-EPIC:PO-2630 @R1BDrop1 @JIRA-TEST-KEY:PO-9560
   Scenario: Result by ID can include Welsh text result parameters
     When I request result with identifier "SC" including Welsh parameters
     Then the result parameters contain the following entries in order
@@ -122,7 +122,7 @@ Feature: Results Reference Data
       | paymentterms    | text-1000 | true               |                                           |
       | cy_paymentterms | text-1000 | true               | Provide a welsh version for the defendant |
 
-  @JIRA-STORY:PO-9108 @JIRA-EPIC:PO-2630 @R1B @JIRA-TEST-KEY:PO-9561
+  @JIRA-STORY:PO-9108 @JIRA-EPIC:PO-2630 @R1BDrop1 @JIRA-TEST-KEY:PO-9561
   Scenario: Result by ID can include Welsh date result parameters
     When I request result with identifier "CLAMPO" including Welsh parameters
     Then the result parameters contain the following entries in order
@@ -130,12 +130,12 @@ Feature: Results Reference Data
       | effectivedate    | date | true               |                                           |
       | cy_effectivedate | date | true               | Provide a welsh version for the defendant |
 
-  @JIRA-STORY:PO-3765 @Ignore @R1B
+  @JIRA-STORY:PO-3765 @Ignore @R1BDrop1
   Scenario: Result filtering is available when release-1b is enabled
     When I request results for identifiers "NBWT,NAP" using filter "enforcement_override" with value "true"
     Then 1 results are returned
 
-  @JIRA-STORY:PO-3765 @Ignore @R1B
+  @JIRA-STORY:PO-3765 @Ignore @R1BDrop1
   Scenario: Result filtering is rejected when release-1b is disabled
     When I request results using filter "active" with value "true"
     Then the response status code is 404

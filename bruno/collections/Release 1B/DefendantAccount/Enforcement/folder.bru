@@ -4,9 +4,9 @@ meta {
 }
 
 script:pre-request {
-  const id = bru.getEnvVar("enfDefendantAccountId");
+  const id = bru.getEnvVar("defendantAccount_idEnf");
   const baseUrl = bru.getEnvVar("baseURL");
-  const token = bru.getEnvVar("BEARER_TOKEN");
+  const token = bru.getVar("BEARER_TOKEN") || bru.getEnvVar("BEARER_TOKEN");
   const url = `${baseUrl}/defendant-accounts/${id}/header-summary`
   
   const response = await bru.sendRequest({
