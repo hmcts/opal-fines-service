@@ -11,10 +11,11 @@ import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.dto.AddNoteRequest;
+import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyNote;
+import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
 import uk.gov.hmcts.opal.service.iface.NotesServiceInterface;
 
 @Service
@@ -26,7 +27,7 @@ public class LegacyNotesService implements NotesServiceInterface {
     private final GatewayService gatewayService;
 
     @Override
-    public String addNote(AddNoteRequest request, String ifMatch, UserState user, Short businessUnitId) {
+    public String addNote(AddNoteRequestNotes request, String ifMatch, UserState user, Short businessUnitId) {
         log.info(":LegacyAddNote");
         LegacyAddNoteRequest legacyRequest = createRequest(request, ifMatch, user, businessUnitId);
         log.debug(":LegacyAddNote: request metadata: businessUnitId={}, businessUnitUserId={}",
@@ -42,18 +43,6 @@ public class LegacyNotesService implements NotesServiceInterface {
         validateGatewayResponse(response);
 
         return request.getActivityNote().getRecordId();
-    }
-
-    private LegacyAddNoteRequest createRequest(AddNoteRequest request, String version, UserState user,
-                                               Short businessUnitId) {
-
-        LegacyNote note = LegacyNote.builder().noteText(request.getActivityNote().getNoteText())
-            .noteType(request.getActivityNote().getNoteType()).recordType(request.getActivityNote().getRecordType())
-            .recordId(request.getActivityNote().getRecordId()).build();
-
-        return LegacyAddNoteRequest.builder().businessUnitId(businessUnitId.toString())
-            .businessUnitUserId(getBusinessUnitUserId(user, businessUnitId))
-            .version(extractBigInteger(version)).activityNote(note).build();
     }
 
     private String getBusinessUnitUserId(UserState user, Short businessUnitId) {
@@ -97,6 +86,19 @@ public class LegacyNotesService implements NotesServiceInterface {
         }
 
         throw new IllegalArgumentException("Legacy gateway error: " + response.code);
+    }
+
+    private LegacyAddNoteRequest createRequest(AddNoteRequestNotes request, String version, UserState user,
+                                               Short businessUnitId) {
+
+        LegacyNote note = LegacyNote.builder().noteText(request.getActivityNote().getNoteText())
+            .noteType(request.getActivityNote().getNoteType().getValue())
+            .recordType(RecordType.valueOf(request.getActivityNote().getRecordType().name()))
+            .recordId(request.getActivityNote().getRecordId()).build();
+
+        return LegacyAddNoteRequest.builder().businessUnitId(businessUnitId.toString())
+            .businessUnitUserId(getBusinessUnitUserId(user, businessUnitId))
+            .version(extractBigInteger(version)).activityNote(note).build();
     }
 
     private String legacyFailureMessage(ErrorResponse errorResponse) {

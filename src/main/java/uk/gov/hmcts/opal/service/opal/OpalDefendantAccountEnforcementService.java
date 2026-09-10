@@ -15,14 +15,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.dto.AddNoteRequest;
-import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementResultResponseDefendantAccount;
-import uk.gov.hmcts.opal.dto.RecordType;
+import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
+import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
@@ -256,18 +255,18 @@ public class OpalDefendantAccountEnforcementService
             .build();
     }
 
-    private AddNoteRequest buildRemoveEnforcementHoldNoteRequest(
+    private AddNoteRequestNotes buildRemoveEnforcementHoldNoteRequest(
         Long defendantAccountId,
         RemoveEnforcementHoldRequestDefendantAccount request) {
 
-        Note note = Note.builder()
-            .recordType(RecordType.DEFENDANT_ACCOUNTS)
+        NoteCommon note = NoteCommon.builder()
+            .recordType(NoteCommon.RecordTypeEnum.DEFENDANT_ACCOUNTS)
             .recordId(String.valueOf(defendantAccountId))
             .noteText(request.getReason())
-            .noteType("AA")
+            .noteType(NoteCommon.NoteTypeEnum.AA)
             .build();
 
-        return new AddNoteRequest(note);
+        return AddNoteRequestNotes.builder().activityNote(note).build();
     }
 
     EnforcementOverride buildEnforcementOverride(DefendantAccountEntity entity) {
