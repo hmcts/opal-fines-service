@@ -1,0 +1,48 @@
+{
+  "headeer": {
+    "messageId": "2e6f1c35-5f7f-4e08-8a8a-4a0de3d4d2b1",
+    "messageType": "ReferenceData",
+    "dataProduct": "LJA",
+    "operation": "PUBLISH",
+    "sourceSystem": "Semarchy",
+    "createdDateTime": "2026-09-04T12:00:00Z",
+    "ReleasePackageId": 202,
+    "recordCount": 1
+  },
+  "payload": {
+    "records": [
+      {
+        "LJACode": "L001",
+        "LJAName": "Example Local Justice Area",
+        "EndDate": null,
+        "CourtWelshName": null,
+        "CourtLocationCode": null,
+        "StartDate": "2026-09-04",
+        "EnforcementCode": null,
+        "ClusterCode": null,
+        "DivisionCode": null,
+        "DefaultStartTime": null,
+        "DefaultDuration": null,
+        "CommonPlatformUUID": null,
+        "Notes": null,
+        "CourtHearingOperationAreaIndicator": false,
+        "CrownCourtIndicator": false,
+        "NorthernIrelandCourtIndicator": false,
+        "MagistratesCourtIndicator": true,
+        "ScottishDistrictCourtIndicator": false,
+        "ScottishSheriffCourtIndicator": false,
+        "ScottishJusticeOfPeaceCourtIndicator": false,
+        "YouthCourtIndicator": false, "Addresses": [
+        {
+          "AddressType": "Main",
+          "AddressLine1": "123 Example Street",
+          "AddressLine2": "Example Town",
+          "AddressLine3": null,
+          "AddressLine4": null,
+          "Postcode": "EX1 2AB"
+        }
+      ]
+      }
+    ]
+  }
+}
