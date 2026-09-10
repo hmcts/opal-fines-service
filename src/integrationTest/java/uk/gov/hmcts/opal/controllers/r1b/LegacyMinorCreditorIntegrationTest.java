@@ -4,6 +4,7 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TES
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -20,6 +21,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Slf4j(topic = "opal.LegacyDefendantsIntegrationTest01")
 @Sql(scripts = "classpath:db/insertData/insert_into_minor_creditors.sql", executionPhase = BEFORE_TEST_METHOD)
 @Sql(scripts = "classpath:db/deleteData/delete_from_minor_creditors.sql", executionPhase = AFTER_TEST_METHOD)
+@Tag("ExtendedTest")
 public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerIntegrationTest {
 
     private static final Long LEGACY_MINOR_CREDITOR_ACCOUNT_ID = 99000000000802L;
