@@ -615,6 +615,18 @@ public class OpalDefendantAccountBuilders {
         }
     }
 
+    static AtAGlanceResponseDefendantAccount.AccountStatusCodeEnum safeAccountStatusCode(
+        DefendantAccountStatus status) {
+        if (status == null) {
+            return null;
+        }
+        try {
+            return AtAGlanceResponseDefendantAccount.AccountStatusCodeEnum.fromValue(status.getCode());
+        } catch (RuntimeException ex) {
+            return null;
+        }
+    }
+
     /**
      * Split a full name into forenames + surname (surname = last token).
      */
@@ -934,7 +946,9 @@ public class OpalDefendantAccountBuilders {
 
     static AtAGlanceResponseDefendantAccount buildAtAGlancePayload(
         DefendantAccountSummaryViewEntity entity) {
-
+        if (null == entity) {
+            return null;
+        }
         return AtAGlanceResponseDefendantAccount.builder()
             .defendantAccountId(entity.getDefendantAccountId().toString())
             .accountNumber(entity.getAccountNumber())
@@ -947,7 +961,9 @@ public class OpalDefendantAccountBuilders {
             .paymentTerms(toStrictPaymentTerms(buildPaymentTerms(entity)))
             .enforcementStatus(toStrictEnforcementStatus(buildEnforcementStatusSummary(entity)))
             .commentsAndNotes(toStrictCommentsAndNotes(buildCommentsAndNotes(entity)))
-            .build();
+            .accountBalance(entity.getAccountBalance())
+            //.accountStatusCode(safeAccountStatusCode(entity.getAccountStatus()))
+            .build()
     }
 
     static PartyDetailsCommonStrict toStrictPartyDetails(PartyDetails source) {
