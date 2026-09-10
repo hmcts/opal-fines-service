@@ -27,7 +27,7 @@ public class LegacyDefendantAccountFixedPenaltyService implements DefendantAccou
 
     @Override
     public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(Long defendantAccountId) {
-        log.debug(":getFixedPenalty: id: {}", defendantAccountId);
+        log.debug(":getDefendantAccountFixedPenalty: id: {}", defendantAccountId);
 
         try {
             Response<LegacyDefendantAccountGetFixedPenaltyResponse> response = gatewayService.postToGateway(

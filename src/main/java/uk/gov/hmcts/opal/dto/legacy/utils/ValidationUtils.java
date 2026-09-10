@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
-@Slf4j(topic = "opal.LegacyValidationUtils")
+@Slf4j(topic = "opal.ValidationUtils")
 public class ValidationUtils {
 
     public static boolean hasExactlyOneNonNull(Object... fields) {
