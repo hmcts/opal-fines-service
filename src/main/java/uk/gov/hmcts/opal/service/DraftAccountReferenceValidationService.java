@@ -24,6 +24,8 @@ import uk.gov.hmcts.opal.util.JsonPathUtil;
 public class DraftAccountReferenceValidationService {
 
     private static final String ROOT_PATH = "$";
+    private static final String ENFORCEMENT_COURT_ID_PATH = ROOT_PATH + ".enforcement_court_id";
+    private static final String ENFORCEMENT_COURT_ID_ERROR_PATH = "account.enforcement_court_id";
     private static final String DOES_NOT_EXIST = " does not exist";
     private static final String RESULT_ID_PREFIX = ".result_id: result id ";
     private static final String IS_NOT_AN_ENFORCEMENT_RESULT = " is not an enforcement result";
@@ -55,13 +57,13 @@ public class DraftAccountReferenceValidationService {
     }
 
     private void validateEnforcementCourt(JsonPathUtil.DocContext docContext, List<String> failures) {
-        Long enforcementCourtId = safeReadLong(docContext, ROOT_PATH + ".enforcement_court_id");
+        Long enforcementCourtId = safeReadLong(docContext, ENFORCEMENT_COURT_ID_PATH);
         if (enforcementCourtId == null) {
             return;
         }
 
         if (!courtLiteRepository.existsById(enforcementCourtId)) {
-            failures.add(ROOT_PATH + ".enforcement_court_id: court id " + enforcementCourtId + DOES_NOT_EXIST);
+            failures.add(ENFORCEMENT_COURT_ID_ERROR_PATH + ": court id " + enforcementCourtId + DOES_NOT_EXIST);
         }
     }
 
