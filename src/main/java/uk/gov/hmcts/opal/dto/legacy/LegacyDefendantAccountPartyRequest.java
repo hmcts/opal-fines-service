@@ -5,13 +5,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.dto.common.AddressDetails;
-import uk.gov.hmcts.opal.dto.common.ContactDetails;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
-import uk.gov.hmcts.opal.dto.common.EmployerDetails;
-import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
-import uk.gov.hmcts.opal.dto.common.PartyDetails;
-import uk.gov.hmcts.opal.dto.common.VehicleDetails;
+import org.openapitools.jackson.nullable.JsonNullable;
+import uk.gov.hmcts.opal.generated.model.AddressDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
+import uk.gov.hmcts.opal.generated.model.LanguagePreferencesCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PartyContactDetailsDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PartyEmployerDetailsDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PartyVehicleDetailsDefendantAccount;
 
 @Data
 @Builder
@@ -23,28 +24,28 @@ public class LegacyDefendantAccountPartyRequest {
     private String defendantAccountPartyId;
 
     @JsonProperty("defendant_account_party_type")
-    private String defendantAccountPartyType;
+    private DefendantAccountParty.DefendantAccountPartyTypeEnum defendantAccountPartyType;
 
     @JsonProperty("is_debtor")
     private Boolean isDebtor;
 
     @JsonProperty("party_details")
-    private PartyDetails partyDetails;
+    private PartyDetailsCommonStrict partyDetails;
 
     @JsonProperty("address")
-    private AddressDetails address;
+    private AddressDetailsCommonStrict address;
 
     @JsonProperty("contact_details")
-    private ContactDetails contactDetails;
+    private JsonNullable<PartyContactDetailsDefendantAccount> contactDetails;
 
     @JsonProperty("vehicle_details")
-    private VehicleDetails vehicleDetails;
+    private JsonNullable<PartyVehicleDetailsDefendantAccount> vehicleDetails;
 
     @JsonProperty("employer_details")
-    private EmployerDetails employerDetails;
+    private JsonNullable<PartyEmployerDetailsDefendantAccount> employerDetails;
 
     @JsonProperty("language_preferences")
-    private LanguagePreferences languagePreferences;
+    private JsonNullable<LanguagePreferencesCommonStrict> languagePreferences;
 
     public static LegacyDefendantAccountPartyRequest from(
         Long defendantAccountPartyId, DefendantAccountParty defendantAccountParty) {

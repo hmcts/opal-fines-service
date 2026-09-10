@@ -40,9 +40,6 @@ public class SchemaPaths {
     public static final String GET_DEFENDANT_ACCOUNT_IMPOSITIONS_RESPONSE =
         DEFENDANT_ACCOUNT + "/getDefendantAccountImpositionsResponse.json";
 
-    public static final String POST_DEFENDANT_ACCOUNT_ADD_PARTY = DEFENDANT_ACCOUNT
-        + "/addDefendantAccountPartyRequest.json";
-
     public static final String POST_DEFENDANT_ACCOUNT_REMOVE_PARTY = DEFENDANT_ACCOUNT
         + "/removeDefendantAccountPartyRequest.json";
 
