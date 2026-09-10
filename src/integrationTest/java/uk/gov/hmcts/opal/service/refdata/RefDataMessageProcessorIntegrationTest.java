@@ -2,26 +2,32 @@ package uk.gov.hmcts.opal.service.refdata;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestConstructor;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaType;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.service.refdata.framework.RefDataMessageProcessor;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @Transactional
 @DisplayName("Ref Data Queue Consumer Integration Tests")
@@ -37,6 +43,18 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
 
     @PersistenceContext
     private EntityManager entityManager;
+
+    @MockitoBean
+    private FeatureToggleApi featureToggleApi;
+
+    @BeforeEach
+    void enableRefDataMessageProcessing() {
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
+            FeatureFlags.REF_DATA_MESSAGE_PROCESSING,
+            FeatureFlags.REF_DATA_MESSAGE_PROCESSING_ENABLED_PROPERTY,
+            false
+        )).thenReturn(true);
+    }
 
     @Test
     void processMessage_updatesExistingLocalJusticeAreaFromPayload() {
@@ -106,6 +124,39 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
         assertThat(created.getPostcode()).isEqualTo("NE1 2BB");
         assertThat(created.getEndDate()).isEqualTo(LocalDateTime.of(2027, 3, 4, 0, 0));
         assertThat(created.getLjaType()).isEqualTo(LocalJusticeAreaType.LJA);
+    }
+
+    @Test
+    void processMessage_ignoresPayloadWhenRefDataMessageProcessingFeatureIsDisabled() {
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
+            FeatureFlags.REF_DATA_MESSAGE_PROCESSING,
+            FeatureFlags.REF_DATA_MESSAGE_PROCESSING_ENABLED_PROPERTY,
+            false
+        )).thenReturn(false);
+
+        LocalJusticeAreaEntity original = localJusticeAreaRepository.findAll().stream()
+            .findFirst()
+            .orElseThrow();
+        String ljaCode = "Z129";
+        final Short localJusticeAreaId = original.getLocalJusticeAreaId();
+        final String originalName = original.getName();
+
+        original.setLjaCode(ljaCode);
+        localJusticeAreaRepository.saveAndFlush(original);
+        entityManager.flush();
+        entityManager.clear();
+
+        consumer.processMessage(buildValconLjaMessage("LJA", 1, true, ljaCode, "Ignored LJA", "2027-03-04",
+            "New address line 1", "New address line 2", "New address line 3", "New address line 4",
+            "NE1 2BB"));
+
+        entityManager.flush();
+        entityManager.clear();
+
+        LocalJusticeAreaEntity unchanged = localJusticeAreaRepository.findById(localJusticeAreaId).orElseThrow();
+
+        assertThat(unchanged.getLjaCode()).isEqualTo(ljaCode);
+        assertThat(unchanged.getName()).isEqualTo(originalName);
     }
 
     @Test
@@ -288,7 +339,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
             headerNode.put("recordCount", recordCount);
 
             ObjectNode payloadNode = rootNode.putObject("payload");
-            ObjectNode recordsNode = payloadNode.putArray("records");
+            ArrayNode recordsNode = payloadNode.putArray("records");
             for (ObjectNode recordNode : recordNodes) {
                 recordsNode.add(recordNode);
             }

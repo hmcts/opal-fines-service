@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @Slf4j(topic = "opal.RefDataMessageProcessor")
 @Service
@@ -16,17 +18,30 @@ public class RefDataMessageProcessor {
     private final ObjectMapper objectMapper;
     private final SchemaValidationService schemaValidationService;
     private final RefDataHandlerRegistry handlerRegistry;
+    private final FeatureToggleApi featureToggleApi;
 
     public RefDataMessageProcessor(ObjectMapper objectMapper,
         SchemaValidationService schemaValidationService,
-        RefDataHandlerRegistry handlerRegistry) {
+        RefDataHandlerRegistry handlerRegistry,
+        FeatureToggleApi featureToggleApi) {
         this.objectMapper = objectMapper;
         this.schemaValidationService = schemaValidationService;
         this.handlerRegistry = handlerRegistry;
+        this.featureToggleApi = featureToggleApi;
     }
 
     @Transactional
     public void processMessage(String messagePayload) {
+        if (!featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
+            FeatureFlags.REF_DATA_MESSAGE_PROCESSING,
+            FeatureFlags.REF_DATA_MESSAGE_PROCESSING_ENABLED_PROPERTY,
+            false
+        )) {
+            log.debug("Ignoring ref-data message because feature {} is disabled",
+                FeatureFlags.REF_DATA_MESSAGE_PROCESSING);
+            return;
+        }
+
         JsonNode messageNode = readMessageNode(messagePayload);
 
         schemaValidationService.validateOrError(messageNode, VALCON_REF_DATA_MESSAGE_SCHEMA);
