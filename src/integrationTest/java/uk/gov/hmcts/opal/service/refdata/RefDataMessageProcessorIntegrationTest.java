@@ -35,7 +35,7 @@ import uk.gov.hmcts.opal.util.FeatureFlags;
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
 
-    private static final String VALCON_REF_DATA_MESSAGE_SCHEMA = "ref-data/valcon_oneofpayload.json";
+    private static final String VALCON_REF_DATA_MESSAGE_SCHEMA = "ref-data/ref_data_schema.json";
 
     private final RefDataMessageProcessor consumer;
     private final LocalJusticeAreaRepository localJusticeAreaRepository;

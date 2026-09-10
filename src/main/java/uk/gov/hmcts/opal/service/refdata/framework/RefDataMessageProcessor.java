@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.util.FeatureFlags;
 @Service
 public class RefDataMessageProcessor {
 
-    private static final String VALCON_REF_DATA_MESSAGE_SCHEMA = "ref-data/valcon_oneofpayload.json";
+    private static final String VALCON_REF_DATA_MESSAGE_SCHEMA = "ref-data/ref_data_schema.json";
 
     private final ObjectMapper objectMapper;
     private final SchemaValidationService schemaValidationService;
