@@ -89,19 +89,6 @@ public class DefendantAccountController {
                 addPaymentTermsRequest));
     }
 
-    @GetMapping(value = "/{defendantAccountId}/payment-terms/latest")
-    @Operation(summary = "Get defendant account details by providing the defendant account summary")
-    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
-    public ResponseEntity<GetDefendantAccountPaymentTermsResponse> defendantAccountPaymentTerms(
-        @PathVariable Long defendantAccountId) {
-
-        log.debug(":GET:DefendantAccountPaymentTerms: for defendant id: {}", defendantAccountId);
-
-        return buildResponse(
-            defendantAccountPaymentTermsService.getPaymentTerms(defendantAccountId));
-    }
-
-
     @PostMapping(value = "/{defendantAccountId}/defendant-account-parties")
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<GetDefendantAccountPartyResponse> addDefendantAccountParty(

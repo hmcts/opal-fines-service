@@ -70,14 +70,14 @@ class Release1bFeatureToggleAnnotationTest {
             "ResultsApiController#getResultById",
             "NotesController#addNote",
             "MinorCreditorApiController#getMinorCreditorAccount",
+            "DefendantAccountApiController#defendantAccountPaymentTerms",
             "MajorCreditorApiController#getMajorCreditorAccountHeaderSummary",
             "MinorCreditorApiController#getMinorCreditorHistory",
             "DefendantAccountApiController#getImpositions",
             "MinorCreditorApiController#patchMinorCreditorAccount",
             "DefendantAccountApiController#getDefendantAccountHeaderSummary",
             "MinorCreditorApiController#postMinorCreditorSearch",
-            "MajorCreditorApiController#getMajorCreditorAccountAtAGlance",
-            "DefendantAccountController#defendantAccountPaymentTerms"
+            "MajorCreditorApiController#getMajorCreditorAccountAtAGlance"
         );
 
         assertEquals(expectedAnnotatedMethods, actualAnnotatedMethods);

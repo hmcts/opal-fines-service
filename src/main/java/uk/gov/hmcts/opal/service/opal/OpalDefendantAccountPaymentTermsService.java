@@ -18,6 +18,8 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.mapper.DefendantAccountPaymentTermsMapper;
 import uk.gov.hmcts.opal.mapper.request.PaymentTermsMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
@@ -59,16 +61,18 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
 
     private final EnforcementRepository enforcementRepository;
 
+    private final DefendantAccountPaymentTermsMapper defendantAccountPaymentTermsMapper;
+
     @Override
     @Transactional(readOnly = true)
-    public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
+    public DefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
         log.debug(":getPaymentTerms (Opal): criteria: {}", defendantAccountId);
 
         PaymentTermsEntity entity = paymentTermsRepositoryService
             .findLatestByDefendantAccountId(
                 defendantAccountId);
 
-        return OpalDefendantAccountBuilders.buildPaymentTermsResponse(entity);
+        return defendantAccountPaymentTermsMapper.toResponse(entity);
     }
 
     @Override

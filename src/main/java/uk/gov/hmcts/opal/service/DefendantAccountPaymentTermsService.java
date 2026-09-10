@@ -13,6 +13,7 @@ import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountPaymentTermsServiceProxy;
 
@@ -27,7 +28,7 @@ public class DefendantAccountPaymentTermsService {
 
     private final BusinessUnitService businessUnitService;
 
-    public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
+    public DefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
 
         log.debug(":getPaymentTerms:");
 

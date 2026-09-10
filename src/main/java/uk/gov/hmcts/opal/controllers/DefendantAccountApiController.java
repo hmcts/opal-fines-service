@@ -26,6 +26,7 @@ import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
@@ -209,4 +210,10 @@ public class DefendantAccountApiController implements DefendantAccountApi {
         ));
     }
 
+    @Override
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
+    public ResponseEntity<DefendantAccountPaymentTermsResponse> defendantAccountPaymentTerms(Long id) {
+        log.debug(":GET:defendantAccountPaymentTerms: for defendant id: {}", id);
+        return buildResponse(defendantAccountPaymentTermsService.getPaymentTerms(id));
+    }
 }
