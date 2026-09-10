@@ -54,6 +54,7 @@ class Release1bFeatureToggleAnnotationTest {
             "DefendantAccountApiController#addEnforcement",
             "DefendantAccountApiController#addPaymentCardRequest",
             "DefendantAccountApiController#getConsolidatedAccounts",
+            "DefendantAccountApiController#removeDefendantAccountParty",
             "DefendantAccountApiController#getDefendantAccountAtAGlance",
             "DefendantAccountApiController#getDefendantAccountFixedPenalty",
             "DefendantAccountApiController#getDefendantAccountHeaderSummary",
@@ -69,7 +70,6 @@ class Release1bFeatureToggleAnnotationTest {
             // Defendant Account controller
             "DefendantAccountController#addPaymentTerms",
             "DefendantAccountController#defendantAccountPaymentTerms",
-            "DefendantAccountController#removeDefendantAccountParty",
 
             // Major Creditor API controller
             "MajorCreditorApiController#getCentralFundByBusinessUnit",

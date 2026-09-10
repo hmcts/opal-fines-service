@@ -16,11 +16,11 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyResponse;
-import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountPartyLegacyResponseMapper;
 import uk.gov.hmcts.opal.mapper.legacy.RemoveDefendantAccountPartyLegacyResponseMapper;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPartyServiceInterface;
@@ -190,9 +190,9 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
     }
 
     @Override
-    public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
+    public RemoveDefendantAccountPartyResponseDefendantAccount removeDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId, Short businessUnitId, String businessUnitUserId, String postedBy,
-        String postedByName, String ifMatch, RemoveDefendantAccountPartyRequest request) {
+        String postedByName, String ifMatch, RemoveDefendantAccountPartyRequestDefendantAccount request) {
         RemoveDefendantAccountPartyLegacyRequest req = RemoveDefendantAccountPartyLegacyRequest.builder()
             .version(VersionUtils.extractBigInteger(ifMatch))
             .defendantAccountId(defendantAccountId)
