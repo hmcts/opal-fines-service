@@ -96,7 +96,8 @@ public class LegacyDefendantAccountFixedPenaltyService implements DefendantAccou
             .build();
     }
 
-    private Object createLegacyDefendantAccountGetFixedPenaltyRequest(Long defendantAccountId) {
+    private LegacyDefendantAccountGetFixedPenaltyRequest
+        createLegacyDefendantAccountGetFixedPenaltyRequest(Long defendantAccountId) {
         return LegacyDefendantAccountGetFixedPenaltyRequest.builder()
             .defendantAccountId(defendantAccountId)
             .build();
