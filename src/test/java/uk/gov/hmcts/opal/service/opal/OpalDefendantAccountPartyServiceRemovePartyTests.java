@@ -213,6 +213,41 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
         verify(defendantAccountRepositoryService, never()).findById(1L);
     }
 
+    @Test
+    void removeDefendantAccountParty_whenDefendantAccountPartyIdDoesNotMatchPath_throwsJsonSchemaValidationException() {
+        RemoveDefendantAccountPartyRequestDefendantAccount request =
+            RemoveDefendantAccountPartyRequestDefendantAccount.builder()
+                .defendantAccountPartyId("6")
+                .build();
+
+        JsonSchemaValidationException exception = assertThrows(JsonSchemaValidationException.class, () ->
+            service.removeDefendantAccountParty(
+                1L, 5L, (short) 10, "businessUser", "posted", "Posted User", "1", request));
+
+        assertEquals("defendant_account_party_id must match path parameter", exception.getMessage());
+        verify(defendantAccountRepositoryService, never()).findById(1L);
+    }
+
+    @Test
+    void removeDefendantAccountParty_whenPartyIdDoesNotMatchAssociation_throwsJsonSchemaValidationException() {
+        when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
+
+        RemoveDefendantAccountPartyRequestDefendantAccount request =
+            RemoveDefendantAccountPartyRequestDefendantAccount.builder()
+                .partyDetails(RemoveDefendantAccountPartyDetailsCommonStrict.builder()
+                    .partyId("6")
+                    .build())
+                .build();
+
+        JsonSchemaValidationException exception = assertThrows(JsonSchemaValidationException.class, () ->
+            service.removeDefendantAccountParty(
+                1L, 5L, (short) 10, "businessUser", "posted", "Posted User", "1", request));
+
+        assertEquals("party_details.party_id must match defendant account party", exception.getMessage());
+        verify(defendantAccountRepositoryService).findById(1L);
+        verify(defendantAccountRepositoryService, never()).saveAndFlush(account);
+    }
+
     private RemoveDefendantAccountPartyRequestDefendantAccount validRequest() {
         return RemoveDefendantAccountPartyRequestDefendantAccount.builder()
             .partyDetails(RemoveDefendantAccountPartyDetailsCommonStrict.builder()

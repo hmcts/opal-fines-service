@@ -333,7 +333,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         Long defendantAccountPartyId, Short businessUnitId, String businessUserId, String postedBy,
         String postedByName, String ifMatch, RemoveDefendantAccountPartyRequestDefendantAccount request) {
 
-        validateRemoveDefendantAccountPartyRequest(request);
+        validateRemoveDefendantAccountPartyRequestShape(defendantAccountPartyId, request);
 
         DefendantAccountEntity account = defendantAccountRepositoryService.findById(defendantAccountId);
 
@@ -348,11 +348,12 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             .auditInitialiseStoredProc(defendantAccountId, AssociatedRecordType.DEFENDANT_ACCOUNTS);
 
         // Verify the DAP association is valid for this Defendant Account
-        account.getParties().stream()
+        DefendantAccountPartiesEntity partyAssociation = account.getParties().stream()
             .filter(p -> p.getDefendantAccountPartyId().equals(defendantAccountPartyId))
             .findFirst()
             .orElseThrow(() -> new EntityNotFoundException(
                 DEFENDANT_ACCOUNT_PARTY_NOT_FOUND + defendantAccountId + PARTY_ID + defendantAccountPartyId));
+        validateRemoveDefendantAccountPartyRequestMatchesAssociation(partyAssociation, request);
 
         account.getParties().removeIf(p -> p.getDefendantAccountPartyId().equals(defendantAccountPartyId));
 
@@ -375,7 +376,8 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             .build();
     }
 
-    private void validateRemoveDefendantAccountPartyRequest(
+    private void validateRemoveDefendantAccountPartyRequestShape(
+        Long defendantAccountPartyId,
         RemoveDefendantAccountPartyRequestDefendantAccount request) {
         if (request == null) {
             throw new JsonSchemaValidationException("Request body is required");
@@ -392,6 +394,21 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
 
         if (request.getDefendantAccountPartyId() == null && request.getPartyDetails() == null) {
             throw new JsonSchemaValidationException("defendant_account_party_id or party_details must be provided");
+        }
+
+        if (request.getDefendantAccountPartyId() != null
+            && !String.valueOf(defendantAccountPartyId).equals(request.getDefendantAccountPartyId())) {
+            throw new JsonSchemaValidationException("defendant_account_party_id must match path parameter");
+        }
+    }
+
+    private void validateRemoveDefendantAccountPartyRequestMatchesAssociation(
+        DefendantAccountPartiesEntity partyAssociation,
+        RemoveDefendantAccountPartyRequestDefendantAccount request) {
+        if (request.getPartyDetails() != null
+            && !String.valueOf(partyAssociation.getParty().getPartyId())
+                .equals(request.getPartyDetails().getPartyId())) {
+            throw new JsonSchemaValidationException("party_details.party_id must match defendant account party");
         }
     }
 
