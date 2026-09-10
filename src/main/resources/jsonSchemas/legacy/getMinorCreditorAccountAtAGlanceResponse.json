@@ -33,9 +33,14 @@
         "account_id": {
           "$ref": "../types/bigint_value.json"
         },
+        "organisation_flag": {
+          "type": "boolean"
+        },
+        "organisation_name": {
+          "type": "string"
+        },
         "title": {
           "type": "string"
-
         },
         "forenames": {
           "type": "string"
@@ -45,7 +50,29 @@
         }
       },
       "required": [
-        "surname"
+        "organisation_flag"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": { "organisation_flag": { "const": true } },
+            "required": ["organisation_flag"]
+          },
+          "then": {
+            "required": ["organisation_name"],
+            "not": {
+              "anyOf": [
+                { "required": ["title"] },
+                { "required": ["forenames"] },
+                { "required": ["surname"] }
+              ]
+            }
+          },
+          "else": {
+            "required": ["surname"],
+            "not": { "required": ["organisation_name"] }
+          }
+        }
       ]
     },
     "payment": {
