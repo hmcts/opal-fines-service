@@ -68,7 +68,7 @@ public class Release1bFeatureToggleStepDef extends BaseStepDef {
                     DEFENDANT_ACCOUNTS_URI + "/" + PLACEHOLDER_DEFENDANT_ACCOUNT_ID
                         + "/defendant-account-parties",
                     defaultBusinessUnitHeaders(),
-                    buildAddDefendantAccountPartyRequest()
+                    buildAddPartyRequestDefendantAccount()
                 );
             case "Remove Defendant Account Party" ->
                 callRemoveDefendantAccountParty(
@@ -339,7 +339,7 @@ public class Release1bFeatureToggleStepDef extends BaseStepDef {
      *
      * @return request body for POST /defendant-accounts/{id}/defendant-account-parties.
      */
-    private JSONObject buildAddDefendantAccountPartyRequest() {
+    private JSONObject buildAddPartyRequestDefendantAccount() {
         return jsonObject("""
             {
               "defendant_account_party": {
