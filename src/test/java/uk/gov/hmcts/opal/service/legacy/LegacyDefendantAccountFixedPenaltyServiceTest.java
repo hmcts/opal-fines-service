@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
@@ -19,7 +20,9 @@ import uk.gov.hmcts.opal.dto.legacy.FixedPenaltyTicketDetails;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountGetFixedPenaltyRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountGetFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.legacy.VehicleFixedPenaltyDetails;
+import uk.gov.hmcts.opal.generated.model.FixedPenaltyTicketDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse;
+import uk.gov.hmcts.opal.generated.model.VehicleFixedPenaltyDetailsCommonStrict;
 
 @ExtendWith(MockitoExtension.class)
 public class LegacyDefendantAccountFixedPenaltyServiceTest {
@@ -60,6 +63,16 @@ public class LegacyDefendantAccountFixedPenaltyServiceTest {
         GetDefendantAccountFixedPenaltyResponse response =
             legacyDefendantAccountFixedPenaltyService.getDefendantAccountFixedPenalty(1234L);
 
+        assertThat(response).isNotNull();
+        assertThat(response.getVehicleFixedPenaltyFlag()).isTrue();
+        assertThat(response.getFixedPenaltyTicketDetails()).isNull();
+        assertThat(response.getVehicleFixedPenaltyDetails()).isNotNull();
+
+        VehicleFixedPenaltyDetailsCommonStrict vehiclePenaltyDetails = response.getVehicleFixedPenaltyDetails().get();
+        assertThat(vehiclePenaltyDetails.getVehicleRegistrationNumber().get()).isEqualTo("ABC123");
+        assertThat(vehiclePenaltyDetails.getVehicleDriversLicense().get()).isEqualTo("123456");
+        assertThat(vehiclePenaltyDetails.getDateNoticeIssued().get()).isEqualTo("2023-09-09");
+
         verify(gatewayService).postToGateway(
             eq(LegacyDefendantAccountFixedPenaltyService.GET_FIXED_PENALTY),
             eq(LegacyDefendantAccountGetFixedPenaltyResponse.class),
@@ -96,6 +109,17 @@ public class LegacyDefendantAccountFixedPenaltyServiceTest {
 
         GetDefendantAccountFixedPenaltyResponse response =
             legacyDefendantAccountFixedPenaltyService.getDefendantAccountFixedPenalty(1234L);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getVehicleFixedPenaltyFlag()).isFalse();
+        assertThat(response.getVehicleFixedPenaltyDetails().get()).isNull();
+        assertThat(response.getFixedPenaltyTicketDetails()).isNotNull();
+
+        FixedPenaltyTicketDetailsCommonStrict penaltyTicketDetails = response.getFixedPenaltyTicketDetails();
+        assertThat(penaltyTicketDetails.getIssuingAuthority().get()).isEqualTo("HMCTS");
+        assertThat(penaltyTicketDetails.getTicketNumber().get()).isEqualTo("123456");
+        assertThat(penaltyTicketDetails.getTimeOfOffence().get()).isEqualTo("2023-09-09");
+        assertThat(penaltyTicketDetails.getPlaceOfOffence().get()).isEqualTo("London");
 
         verify(gatewayService).postToGateway(
             eq(LegacyDefendantAccountFixedPenaltyService.GET_FIXED_PENALTY),
