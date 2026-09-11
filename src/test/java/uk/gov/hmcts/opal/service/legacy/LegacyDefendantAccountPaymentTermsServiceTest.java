@@ -47,8 +47,6 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
-import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddPaymentTermsLegacyRequest;
@@ -56,8 +54,14 @@ import uk.gov.hmcts.opal.dto.legacy.AddPaymentTermsLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
-import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
+import uk.gov.hmcts.opal.generated.model.AddPaymentTermsRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.EnforcementPostedDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.GetPaymentTermsResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.InstalmentPeriodCommonStrict;
+import uk.gov.hmcts.opal.generated.model.InstalmentPeriodCommonStrict.InstalmentPeriodCodeEnum;
+import uk.gov.hmcts.opal.generated.model.PaymentTermsDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PaymentTermsTypeCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PaymentTermsTypeCommonStrict.PaymentTermsTypeCodeEnum;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyPaymentTermsMapper;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 
@@ -426,16 +430,22 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         String ifMatch = "\"835509468493002959816526022013198014020000027212\"";
         var legacyResponse = createAddPaymentTermsLegacyResponse(defendantAccountId, ifMatch);
         var gateWayResponse = new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
-        var addPaymentTermsRequest = AddDefendantAccountPaymentTermsRequest.builder()
-            .paymentTerms(PaymentTerms.builder()
-                .extension(true)
-                .reasonForExtension("dmweoapde")
-                .paymentTermsType(new PaymentTermsType(PaymentTermsType.PaymentTermsTypeCode.B))
-                .effectiveDate(LocalDate.parse("2026-08-09"))
-                .instalmentPeriod(new InstalmentPeriod(InstalmentPeriod.InstalmentPeriodCode.W))
-                .lumpSumAmount(new BigDecimal("100.00"))
-                .postedDetails(new PostedDetails(null, businessUnitUserId, "opal-test"))
+        PaymentTermsDefendantAccount paymentTermsDefendantAccount = PaymentTermsDefendantAccount.builder()
+            .extension(true)
+            .reasonForExtension("dmweoapde")
+            .paymentTermsType(PaymentTermsTypeCommonStrict.builder().paymentTermsTypeCode(PaymentTermsTypeCodeEnum.B)
                 .build())
+            .effectiveDate(LocalDate.parse("2026-08-09"))
+            .instalmentPeriod(InstalmentPeriodCommonStrict.builder().instalmentPeriodCode(InstalmentPeriodCodeEnum.W)
+                .build())
+            .lumpSumAmount(new BigDecimal("100.00"))
+            .postedDetails(EnforcementPostedDetailsCommonStrict.builder()
+                .postedBy(businessUnitUserId)
+                .postedByName("opal-test")
+                .build())
+            .build();
+        AddPaymentTermsRequestDefendantAccount addPaymentTermsRequest = AddPaymentTermsRequestDefendantAccount.builder()
+            .paymentTerms(paymentTermsDefendantAccount)
             .build();
 
         doReturn(gateWayResponse).when(gatewayService).postToGateway(any(), any(), any(), any());
