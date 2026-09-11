@@ -98,9 +98,6 @@ class DefendantAccountApiControllerTest {
     @Mock
     private DefendantAccountFixedPenaltyService defendantAccountFixedPenaltyService;
 
-    @Mock
-    private DefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
-
     @InjectMocks
     private DefendantAccountApiController defendantAccountApiController;
 
