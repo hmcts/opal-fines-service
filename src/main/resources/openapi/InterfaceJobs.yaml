@@ -231,6 +231,7 @@ paths:
         Get processed file summary information for the supplied interface job ID.
         Results require the Process and Allocate Payments permission in the business unit
         associated with the supplied interface job ID.
+      operationId: get_interface_job_processed_file_summary
       parameters:
         - name: id
           in: path
@@ -265,6 +266,12 @@ paths:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         "404":
           description: Not found
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "408":
+          description: Request timeout
           content:
             application/json+problem:
               schema:
@@ -414,9 +421,25 @@ components:
           description: DB Mapping - v_interface_jobs_processed_file_summary.total_records
         total_errors:
           type: integer
+          format: int64
           minimum: 0
           description: DB Mapping - v_interface_jobs_processed_file_summary.total_errors
         interface_messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/InterfaceJobsMessageGroup'
+
+    InterfaceJobsMessageGroup:
+      type: object
+      additionalProperties: false
+      required:
+        - message_text
+        - messages
+      properties:
+        message_text:
+          type: string
+          description: Grouping key from interface_messages.message_text
+        messages:
           type: array
           items:
             $ref: '#/components/schemas/InterfaceJobsMessage'
@@ -428,7 +451,6 @@ components:
         - interface_messages_id
         - message_data
         - message_type
-        - message_text
       properties:
         interface_messages_id:
           $ref: './types.yaml#/components/schemas/BigInt'
@@ -440,9 +462,6 @@ components:
         message_type:
           $ref: '#/components/schemas/InterfaceJobsMessageType'
           description: DB Mapping - interface_messages.message_type
-        message_text:
-          type: string
-          description: DB Mapping - interface_messages.message_text
 
     InterfaceJobsSummaryResponse:
       type: object
