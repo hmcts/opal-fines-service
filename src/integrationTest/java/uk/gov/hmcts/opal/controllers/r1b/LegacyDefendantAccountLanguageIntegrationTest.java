@@ -2,10 +2,12 @@ package uk.gov.hmcts.opal.controllers.r1b;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -75,10 +77,10 @@ class LegacyDefendantAccountLanguageIntegrationTest extends AbstractIntegrationT
             .andExpect(jsonPath("$.language_preferences.hearing_language_preference.language_display_name")
                 .value("Welsh and English"));
 
-        com.github.tomakehurst.wiremock.client.WireMock.verify(1,
+        verify(1,
             postRequestedFor(urlPathEqualTo("/opal"))
                 .withQueryParam("actionType", equalTo(LegacyDefendantAccountService.GET_DEFENDANT_AT_A_GLANCE))
-                .withRequestBody(com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath(
+                .withRequestBody(matchingJsonPath(
                     "$.defendant_account_id", equalTo(String.valueOf(DEFENDANT_ACCOUNT_ID)))));
     }
 
