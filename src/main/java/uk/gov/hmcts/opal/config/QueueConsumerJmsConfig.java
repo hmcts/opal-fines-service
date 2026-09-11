@@ -3,7 +3,7 @@ package uk.gov.hmcts.opal.config;
 import jakarta.jms.ConnectionFactory;
 import lombok.RequiredArgsConstructor;
 import org.apache.qpid.jms.JmsConnectionFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,7 +13,8 @@ import org.springframework.jms.connection.CachingConnectionFactory;
 
 @EnableJms
 @Configuration
-@ConditionalOnProperty(prefix = "opal.report.service-bus", name = "consumer-enabled", havingValue = "true")
+@ConditionalOnExpression("${opal.report.service-bus.consumer-enabled} == true "
+    + "and ${opal.automated-task:null} == null")
 @EnableConfigurationProperties(ServiceBusProperties.class)
 @RequiredArgsConstructor
 public class QueueConsumerJmsConfig {

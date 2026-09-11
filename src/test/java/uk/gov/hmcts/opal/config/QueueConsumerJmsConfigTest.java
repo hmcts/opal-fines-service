@@ -11,6 +11,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
+import uk.gov.hmcts.opal.service.messaging.ReportQueueConsumerService;
+import uk.gov.hmcts.opal.service.messaging.ReportQueueListener;
 
 @ExtendWith(MockitoExtension.class)
 class QueueConsumerJmsConfigTest {
@@ -20,7 +22,8 @@ class QueueConsumerJmsConfigTest {
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
         .withBean(ServiceBusConnectionStringParser.class, () -> serviceBusConnectionStringParser)
-        .withUserConfiguration(QueueConsumerJmsConfig.class);
+        .withBean(ReportQueueConsumerService.class, () -> mock(ReportQueueConsumerService.class))
+        .withUserConfiguration(QueueConsumerJmsConfig.class, ReportQueueListener.class);
 
     @Test
     void loadsJmsBeansWhenEnabled() {
@@ -42,6 +45,7 @@ class QueueConsumerJmsConfigTest {
                 assertThat(context).hasSingleBean(QueueConsumerJmsConfig.class);
                 assertThat(context).hasSingleBean(ConnectionFactory.class);
                 assertThat(context).hasSingleBean(DefaultJmsListenerContainerFactory.class);
+                assertThat(context).hasSingleBean(ReportQueueListener.class);
             });
     }
 
@@ -49,7 +53,12 @@ class QueueConsumerJmsConfigTest {
     void skipsJmsBeansWhenDisabled() {
         contextRunner
             .withPropertyValues("opal.report.service-bus.consumer-enabled=false")
-            .run(context -> assertThat(context).doesNotHaveBean(ConnectionFactory.class));
+            .run(context -> {
+                assertThat(context).doesNotHaveBean(QueueConsumerJmsConfig.class);
+                assertThat(context).doesNotHaveBean(ConnectionFactory.class);
+                assertThat(context).doesNotHaveBean(ReportQueueListener.class);
+            });
     }
 
 }
+
