@@ -1,0 +1,15 @@
+NOTICE:  === Setting up test data for v_defendant_accounts_summary tests ===
+NOTICE:  Test data setup completed: defendant_account_id = 999901 & 999902
+NOTICE:  === Comprehensive set of tests for Defendant Accounts ===
+NOTICE:  TEST 1 PASSED: All information retrieved and validated successfully for account 999901
+NOTICE:  TEST 2 PASSED: All information retrieved and validated successfully for account 999902
+NOTICE:  === All tests completed and passed for v_defendant_accounts_summary view ===
+NOTICE:  === Test 3: For multiple payment terms only return active one (PO-2304) ===
+NOTICE:  Testing that view returns only active payment terms when multiple terms exist
+NOTICE:  Row count verification PASSED: Only 1 row returned for account with 3 payment terms
+NOTICE:  TEST 3 PASSED: View correctly returns only active payment terms
+NOTICE:  === Cleaning up test data ===
+NOTICE:  Test data cleanup completed
+DO
+
+Query returned successfully in 48 msec.
