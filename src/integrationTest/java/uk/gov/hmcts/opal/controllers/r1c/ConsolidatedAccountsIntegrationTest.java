@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -53,6 +54,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
     scripts = "classpath:db/deleteData/delete_from_consolidated_accounts.sql",
     executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 @DisplayName("Defendant Account Consolidated Accounts Controller Integration Tests")
+@Tag("ExtendedTest")
 class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
 
     private static final long MASTER_ACCOUNT_ID = 233300L;

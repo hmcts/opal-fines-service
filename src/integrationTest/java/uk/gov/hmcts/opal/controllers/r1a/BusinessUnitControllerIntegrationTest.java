@@ -17,6 +17,7 @@ import static uk.gov.hmcts.opal.support.SpyInvocationSupport.countInvocationsByM
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.http.MediaType;
@@ -40,6 +41,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Sql(scripts = "classpath:db/deleteData/delete_from_business_units.sql", executionPhase = AFTER_TEST_CLASS)
 @DisplayName("Business Unit Controller Integration Tests")
 @Isolated
+@Tag("ExtendedTest")
 class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/business-units";

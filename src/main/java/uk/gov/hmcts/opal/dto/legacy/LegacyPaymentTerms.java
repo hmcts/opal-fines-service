@@ -12,6 +12,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.annotation.JsonNaming;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 
 @Data
@@ -19,6 +21,7 @@ import uk.gov.hmcts.opal.util.LocalDateAdapter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Jacksonized
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @XmlRootElement(name = "payment_terms")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class LegacyPaymentTerms {
