@@ -5,15 +5,15 @@ INSERT INTO defendant_accounts (
     prosecutor_case_reference
 ) VALUES
     (233300, 12, 78, '233300M', TIMESTAMP '2026-01-21 10:15:00',
-     0.00, 100.00, 100.00, 'L', 'N', 'N', 'Fine', 'N', 'N', 'PO-2333 Court', 'Master Court', 'MASTER-REF'),
+     0.00, -100.00, -100.00, 'L', 'N', 'N', 'Fine', 'N', 'N', 'PO-2333 Court', 'Master Court', 'MASTER-REF'),
     (233301, 3, 78, '233301C', TIMESTAMP '2026-01-21 10:15:00',
-     0.00, 100.00, 100.00, 'L', 'N', 'N', 'Fine', 'N', 'N', 'PO-2333 Court', 'Child Court', 'CHILD-REF'),
+     0.00, -100.00, -100.00, 'L', 'N', 'N', 'Fine', 'N', 'N', 'PO-2333 Court', 'Child Court', 'CHILD-REF'),
     (233302, 4, 78, '233302M', TIMESTAMP '2026-01-21 10:15:00',
-     0.00, 100.00, 100.00, 'L', 'N', 'N', 'Fine', 'N', 'N', 'PO-2333 Court', 'Other Master Court', 'OTHER-MASTER'),
+     0.00, -100.00, -100.00, 'L', 'N', 'N', 'Fine', 'N', 'N', 'PO-2333 Court', 'Other Master Court', 'OTHER-MASTER'),
     (233303, 5, 78, '233303C', TIMESTAMP '2026-01-21 10:15:00',
-     0.00, 100.00, 100.00, 'L', 'N', 'N', 'Fine', 'N', 'N', 'PO-2333 Court', 'Other Child Court', 'OTHER-REF'),
+     0.00, -100.00, -100.00, 'L', 'N', 'N', 'Fine', 'N', 'N', 'PO-2333 Court', 'Other Child Court', 'OTHER-REF'),
     (233304, 6, 78, '233304M', TIMESTAMP '2026-01-21 10:15:00',
-     0.00, 100.00, 100.00, 'L', 'N', 'N', 'Fine', 'N', 'N', 'PO-2333 Court', 'Empty Master Court', 'EMPTY-REF');
+     0.00, -100.00, -100.00, 'L', 'N', 'N', 'Fine', 'N', 'N', 'PO-2333 Court', 'Empty Master Court', 'EMPTY-REF');
 
 INSERT INTO parties (party_id, organisation, forenames, surname)
 VALUES
