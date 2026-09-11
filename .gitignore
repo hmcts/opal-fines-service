@@ -1,4 +1,5 @@
 .gradle
+.local/
 bruno/environments/local.env
 /build/
 !gradle/wrapper/gradle-wrapper.jar

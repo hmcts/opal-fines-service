@@ -275,7 +275,7 @@ openApiGenerate {
 }
 
 jsonSchema2Pojo {
-  source = files(file("$rootDir/src/main/resources/jsonSchemas/ref-data/valcon_oneofpayload.json"))
+  source = files(file("$rootDir/src/main/resources/jsonSchemas/ref-data/ref_data_schema.json"))
   targetDirectory = file("$buildDir/generated/jsonschema2pojo/src/main/java")
   targetPackage = "uk.gov.hmcts.opal.generated.refdata"
   dateTimeType = "java.time.LocalDateTime"
