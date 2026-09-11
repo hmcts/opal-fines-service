@@ -61,25 +61,24 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
         LocalJusticeAreaEntity original = localJusticeAreaRepository.findAll().stream()
             .findFirst()
             .orElseThrow();
-        String ljaCode = "Z123";
+
         final Short localJusticeAreaId = original.getLocalJusticeAreaId();
 
-        original.setLjaCode(ljaCode);
         localJusticeAreaRepository.saveAndFlush(original);
         entityManager.flush();
         entityManager.clear();
 
-        consumer.processMessage(buildValconLjaMessage("LJA", 1, true, ljaCode, "Updated LJA", "2027-03-04",
+        consumer.processMessage(buildValconLjaMessage("LJA", 1, true, String.valueOf(localJusticeAreaId), "Updated LJA", "2027-03-04",
             "New address line 1", "New address line 2", "New address line 3", "New address line 4",
             "NE1 2BB"));
 
         entityManager.flush();
         entityManager.clear();
 
-        LocalJusticeAreaEntity updated = localJusticeAreaRepository.findByLjaCode(ljaCode).orElseThrow();
+        LocalJusticeAreaEntity updated = localJusticeAreaRepository.findById(localJusticeAreaId).orElseThrow();
 
         assertThat(updated.getLocalJusticeAreaId()).isEqualTo(localJusticeAreaId);
-        assertThat(updated.getLjaCode()).isEqualTo(ljaCode);
+        assertThat(updated.getLjaCode()).isEqualTo(null);
         assertThat(updated.getName()).isEqualTo("Updated LJA");
         assertThat(updated.getAddressLine1()).isEqualTo("New address line 1");
         assertThat(updated.getAddressLine2()).isEqualTo("New address line 2");
@@ -92,16 +91,8 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void processMessage_createsNewLocalJusticeAreaFromPayload() {
-        Short nextLocalJusticeAreaId = jdbcTemplate.queryForObject("""
-                select coalesce(max(local_justice_area_id), 0) + 1
-                from local_justice_areas
-                """, Short.class);
-        jdbcTemplate.execute("""
-                create sequence if not exists local_justice_area_id_seq
-                start with %d increment by 1
-                """.formatted(nextLocalJusticeAreaId));
 
-        String ljaCode = "Z124";
+        String ljaCode = "124";
         final long beforeCount = localJusticeAreaRepository.count();
 
         consumer.processMessage(buildValconLjaMessage("LJA", 1, true, ljaCode, "Created LJA", "2027-03-04",
@@ -111,11 +102,11 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
         entityManager.flush();
         entityManager.clear();
 
-        LocalJusticeAreaEntity created = localJusticeAreaRepository.findByLjaCode(ljaCode).orElseThrow();
+        LocalJusticeAreaEntity created = localJusticeAreaRepository.findById(Short.valueOf(ljaCode)).orElseThrow();
 
         assertThat(localJusticeAreaRepository.count()).isEqualTo(beforeCount + 1);
         assertThat(created.getLocalJusticeAreaId()).isNotNull();
-        assertThat(created.getLjaCode()).isEqualTo(ljaCode);
+        assertThat(created.getLjaCode()).isEqualTo(null);
         assertThat(created.getName()).isEqualTo("Created LJA");
         assertThat(created.getAddressLine1()).isEqualTo("New address line 1");
         assertThat(created.getAddressLine2()).isEqualTo("New address line 2");

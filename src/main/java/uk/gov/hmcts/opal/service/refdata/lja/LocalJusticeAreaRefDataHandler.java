@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.refdata.lja;
 
+import jakarta.persistence.criteria.CriteriaBuilder.In;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -32,7 +33,9 @@ public class LocalJusticeAreaRefDataHandler
 
     @Override
     public Optional<LocalJusticeAreaEntity> findEntity(LjaRecord dto) {
-        return repository.findByLjaCode(dto.getLjaCode());
+        String ljaCode = dto.getLjaCode();
+        Short ljaID = Short.parseShort(ljaCode);
+        return repository.findById(ljaID);
     }
 
     @Override

@@ -30,7 +30,6 @@ class JsonFileTopicMessagePublisherIntegrationTest extends AbstractIntegrationTe
     private static final String EXPECTED_ADDRESS_LINE_2 = "Example Town";
     private static final String EXPECTED_POSTCODE = "EX1 2AB";
     private static final short EXISTING_LOCAL_JUSTICE_AREA_ID = 9999;
-    private static final String LJA_CODE = "9999";
 
     private final LocalJusticeAreaRepository localJusticeAreaRepository;
 
@@ -86,21 +85,21 @@ class JsonFileTopicMessagePublisherIntegrationTest extends AbstractIntegrationTe
     private void prepareExistingLocalJusticeAreaForUpdate() {
         jdbcTemplate.update("""
                 update local_justice_areas
-                set lja_code = ?, name = ?
+                set name = ?
                 where local_justice_area_id = ?
-                """, LJA_CODE, "Pending JMS update", EXISTING_LOCAL_JUSTICE_AREA_ID);
+                """, "Pending JMS update", EXISTING_LOCAL_JUSTICE_AREA_ID);
     }
 
     private LocalJusticeAreaEntity awaitProcessedLocalJusticeArea() {
         Instant deadline = Instant.now().plus(PROCESSING_TIMEOUT);
         while (Instant.now().isBefore(deadline)) {
-            var localJusticeArea = localJusticeAreaRepository.findByLjaCode(LJA_CODE);
+            var localJusticeArea = localJusticeAreaRepository.findById(EXISTING_LOCAL_JUSTICE_AREA_ID);
             if (localJusticeArea.filter(this::hasExpectedMessageValues).isPresent()) {
                 return localJusticeArea.get();
             }
             sleepBeforeRetry();
         }
-        fail("Timed out waiting for ref-data JMS listener to process LJA message with code %s", LJA_CODE);
+        fail("Timed out waiting for ref-data JMS listener to process LJA message with id %s", EXISTING_LOCAL_JUSTICE_AREA_ID);
         return null;
     }
 

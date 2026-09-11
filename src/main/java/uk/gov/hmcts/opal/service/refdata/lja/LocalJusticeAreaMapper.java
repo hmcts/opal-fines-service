@@ -14,7 +14,8 @@ public interface LocalJusticeAreaMapper
     extends RefDataUpdateMapper<LjaRecord, LocalJusticeAreaEntity> {
 
     @Override
-    @Mapping(target = "localJusticeAreaId", ignore = true)
+    @Mapping(target = "localJusticeAreaId", source = "ljaCode")
+    @Mapping(target = "ljaCode", ignore = true)
     @Mapping(target = "ljaType", constant = "LJA")
     @Mapping(target = "name", source = "ljaName")
     @Mapping(target = "addressLine1", expression = "java(firstAddressLine1(dto))")
