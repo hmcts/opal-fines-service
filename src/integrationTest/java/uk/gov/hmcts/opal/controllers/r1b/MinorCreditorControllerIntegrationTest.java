@@ -303,9 +303,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     void patchMinorCreditor_payoutHold_success(Logger log) throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
-            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
-            FinesPermission.ACCOUNT_MAINTENANCE,
-            FinesPermission.VIEW_CREDITOR_BACS);
+            FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR);
 
         final boolean initialHoldPayout = getCurrentCreditorAccountHoldPayout();
         Integer currentVersion = getCurrentCreditorAccountVersion();
@@ -353,9 +351,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     void patchMinorCreditor_success_createsAmendments(Logger log) throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
-            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
-            FinesPermission.ACCOUNT_MAINTENANCE,
-            FinesPermission.VIEW_CREDITOR_BACS);
+            FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR);
 
         Integer currentVersion = getCurrentCreditorAccountVersion();
         int amendmentsBefore = getCurrentAmendmentCountForCreditorAccount();
@@ -589,9 +585,10 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 
-    void patchMinorCreditor_withoutHoldPermission_returns403() throws Exception {
+    void patchMinorCreditor_withMinorCreditorMaintenancePermission_returns200() throws Exception {
         userStateStub.setupWithNoPermissions();
-        userStateStub.addPermissions(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID, FinesPermission.ACCOUNT_MAINTENANCE);
+        userStateStub.addPermissions(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+            FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR);
 
         Integer currentVersion = getCurrentCreditorAccountVersion();
 
@@ -602,33 +599,15 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                 .header("If-Match", currentVersion)
                 .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
                 .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())))
-            .andExpect(status().isForbidden())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
-    void patchMinorCreditor_withoutAccountMaintenancePermission_returns403() throws Exception {
+    void patchMinorCreditor_withoutMinorCreditorMaintenancePermission_returns403() throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
+            FinesPermission.ACCOUNT_MAINTENANCE,
             FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
-
-        Integer currentVersion = getCurrentCreditorAccountVersion();
-
-        mockMvc.perform(patch(URL_BASE + "/" + PATCH_MINOR_CREDITOR_ACCOUNT_ID)
-                .contentType(MediaType.APPLICATION_JSON)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", currentVersion)
-                .header("Business-Unit-Id", String.valueOf(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID))
-                .content(objectMapper.writeValueAsString(patchMinorCreditorPayoutHoldRequest())))
-            .andExpect(status().isForbidden())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
-    }
-
-    void patchMinorCreditor_withoutViewCreditorBacsPermission_returns403() throws Exception {
-        userStateStub.setupWithNoPermissions();
-        userStateStub.addPermissions(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
-            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
-            FinesPermission.ACCOUNT_MAINTENANCE);
 
         Integer currentVersion = getCurrentCreditorAccountVersion();
 
@@ -646,9 +625,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     void patchMinorCreditor_notFound_returns404() throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
-            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
-            FinesPermission.ACCOUNT_MAINTENANCE,
-            FinesPermission.VIEW_CREDITOR_BACS);
+            FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR);
 
         mockMvc.perform(patch(URL_BASE + "/999999")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -664,9 +641,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     void patchMinorCreditor_staleVersion_returns409() throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
-            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
-            FinesPermission.ACCOUNT_MAINTENANCE,
-            FinesPermission.VIEW_CREDITOR_BACS);
+            FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR);
 
         Integer currentVersion = getCurrentCreditorAccountVersion();
 
@@ -696,8 +671,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     void patchMinorCreditor_missingPayload_returns400() throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions(PATCH_MINOR_CREDITOR_BUSINESS_UNIT_ID,
-            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
-            FinesPermission.ACCOUNT_MAINTENANCE);
+            FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR);
 
         Integer currentVersion = getCurrentCreditorAccountVersion();
 

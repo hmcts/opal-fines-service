@@ -30,7 +30,8 @@ public enum FinesPermission implements PermissionDescriptor {
     PROCESS_AND_ALLOCATE_PAYMENTS(16L, "Process and Allocate Payments"),
     AUTO_ENFORCEMENT(17L, "Auto Enforcement"),
     OPERATIONAL_REPORT_BY_ENFORCEMENT(18L, "Operational report (by enforcement)"),
-    OPERATIONAL_REPORT_BY_PAYMENTS(19L, "Operational report (by payment)");
+    OPERATIONAL_REPORT_BY_PAYMENTS(19L, "Operational report (by payment)"),
+    ACCOUNT_MAINTENANCE_MINOR_CREDITOR(20L, "Account Maintenance - Minor Creditor");
 
     /**
      * Convenience aggregate used by parts of the service that require both draft account permissions.
