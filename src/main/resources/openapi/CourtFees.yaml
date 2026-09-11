@@ -1,0 +1,71 @@
+openapi: 3.1.1
+info:
+  title: Opal Fines Service - Court Fees
+  version: 1.0.0
+  description: APIs for Business unit information
+paths:
+  /business-units/{businessUnitId}/court-fees:
+    get:
+      tags:
+        - courtFees
+      summary: Get a business unit's court fees
+      description: Get court fee records and supplementary data for a given business unit.
+      operationId: getCourtFees
+      parameters:
+        - in: path
+          name: businessUnitId
+          description: DB Mapping - business_units.business_unit_id
+          schema:
+            type: integer
+            format: int16
+          required: true
+      responses:
+        "200":
+          description: Business unit outstanding auto payment count response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourtFeesResponse'
+        "400":
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "401":
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "403":
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "500":
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "503":
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+components:
+  schemas:
+    CourtFeesResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - court_fees
+      properties:
+        court_fees:
+          type: array
+          items:
+            $ref: './common.yaml#/components/schemas/courtFee'
