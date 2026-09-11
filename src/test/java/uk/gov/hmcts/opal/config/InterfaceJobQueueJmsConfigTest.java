@@ -41,7 +41,6 @@ class InterfaceJobQueueJmsConfigTest {
             "opal.interface-jobs.service-bus.queue-name=auto-payments-process-interface-files")
             .run(context -> {
                 assertThat(context).hasSingleBean(InterfaceJobQueueJmsConfig.class);
-                assertThat(context.getBean(InterfaceJobQueueJmsConfig.class)).isNotNull();
                 assertThat(context).hasSingleBean(ConnectionFactory.class);
                 assertThat(context).hasSingleBean(DefaultJmsListenerContainerFactory.class);
             });
@@ -50,6 +49,10 @@ class InterfaceJobQueueJmsConfigTest {
     @Test
     void skipsJmsBeansWhenDisabled() {
         contextRunner.withPropertyValues("opal.interface-jobs.service-bus.consumer-enabled=false")
-            .run(context -> assertThat(context).doesNotHaveBean(ConnectionFactory.class));
+            .run(context -> {
+                assertThat(context).doesNotHaveBean(QueueConsumerJmsConfig.class);
+                assertThat(context).doesNotHaveBean(ConnectionFactory.class);
+                assertThat(context).doesNotHaveBean(InterfaceJobQueueJmsConfig.class);
+            });
     }
 }
