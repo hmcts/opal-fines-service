@@ -13,6 +13,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
+import uk.gov.hmcts.opal.common.legacy.model.HasErrorResponse;
 import uk.gov.hmcts.opal.dto.ToXmlString;
 import uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder;
 import uk.gov.hmcts.opal.dto.legacy.common.CommentsAndNotes;
@@ -26,7 +28,7 @@ import uk.gov.hmcts.opal.dto.legacy.utils.ValidationUtils;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "response")
-public class LegacyUpdateDefendantAccountResponse implements ToXmlString {
+public class LegacyUpdateDefendantAccountResponse implements ToXmlString, HasErrorResponse {
 
     @XmlElement(name = "defendant_account_id")
     @NotNull
@@ -49,6 +51,9 @@ public class LegacyUpdateDefendantAccountResponse implements ToXmlString {
     @XmlElement(name = "enforcement_override")
     private EnforcementOverride enforcementOverride;
 
+    @XmlElement(name = "error_response")
+    private ErrorResponse errorResponse;
+
     @AssertTrue(message = "Exactly one of comment_and_notes, enforcement_court_id, collection_order "
         + "or enforcement_override must be present")
     private boolean isExactlyOneUpdateFieldPresent() {
@@ -56,5 +61,10 @@ public class LegacyUpdateDefendantAccountResponse implements ToXmlString {
             enforcementCourtId,
             collectionOrder,
             enforcementOverride);
+    }
+
+    @Override
+    public ErrorResponse getErrorResponse() {
+        return errorResponse;
     }
 }
