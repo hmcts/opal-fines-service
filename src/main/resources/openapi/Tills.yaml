@@ -10,6 +10,72 @@ info:
 
 paths:
   /tills:
+    post:
+      tags:
+        - tills
+      summary: Add till
+      description: Create a till containing one or more payments.
+      operationId: post_tills
+      security:
+        - permissions:
+            - Process and Allocate Payments in (in the submitted business unit)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TillsCreateRequest'
+      responses:
+        "201":
+          description: Till created
+        "400":
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "401":
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "403":
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "406":
+          description: Not Acceptable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "408":
+          description: Request timeout
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "415":
+          description: Unsupported media type
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "500":
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "503":
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
     get:
       tags:
         - tills
@@ -81,6 +147,140 @@ paths:
 
 components:
   schemas:
+    TillsCreateRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - business_unit_id
+        - payments_in
+      properties:
+        business_unit_id:
+          $ref: './types.yaml#/components/schemas/BusinessUnitId'
+        payments_in:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/TillsCreatePaymentIn'
+    TillsCreatePaymentIn:
+      type: object
+      additionalProperties: false
+      required:
+        - payment_details
+      properties:
+        defendant_account_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+        payment_details:
+          $ref: '#/components/schemas/TillsCreatePaymentDetails'
+        additional_information:
+          $ref: '#/components/schemas/TillsCreateAdditionalInformation'
+    TillsCreatePaymentDetails:
+      type: object
+      additionalProperties: false
+      required:
+        - amount
+        - method
+        - destination_type
+        - allocation_type
+        - payment_received_from
+      properties:
+        amount:
+          type: number
+          multipleOf: 0.01
+          description: DB Mapping - payments_in.payment_amount
+        method:
+          type: string
+          enum:
+            - NC
+            - CQ
+            - CT
+            - PO
+          description: DB Mapping - payments_in.payment_method
+        destination_type:
+          type: string
+          enum:
+            - F
+            - S
+            - C
+          description: DB Mapping - payments_in.destination_type
+        allocation_type:
+          type: string
+          description: Describes the allocation category when an initial payment amount is split.
+        payment_received_from:
+          type: string
+          enum:
+            - D
+            - A
+            - T
+          description: DB Mapping - payments_in.additional_information
+        third_party_payer_name:
+          type: string
+          description: DB Mapping - payments_in.third_party_payer_name
+    TillsCreateAdditionalInformation:
+      type: object
+      additionalProperties: false
+      required:
+        - payer_type
+      properties:
+        court_fee_code:
+          type: string
+        number_of_items:
+          type: integer
+        payment_reference:
+          type: string
+        transfer_source:
+          type: string
+        suspense_reason_code:
+          type: string
+        suspense_reason_detail:
+          type: string
+        suspense_note:
+          type: string
+        payer_type:
+          $ref: '#/components/schemas/TillsCreatePayerType'
+        payer_details:
+          $ref: '#/components/schemas/TillsCreatePayerDetails'
+    TillsCreatePayerDetails:
+      type: object
+      additionalProperties: false
+      properties:
+        address_line_1:
+          type: string
+        address_line_2:
+          type: string
+        address_line_3:
+          type: string
+        postcode:
+          type: string
+        individual:
+          $ref: '#/components/schemas/TillsCreateIndividualPayer'
+        organisation:
+          $ref: '#/components/schemas/TillsCreateOrganisationPayer'
+      oneOf:
+        - required:
+            - individual
+        - required:
+            - organisation
+    TillsCreateIndividualPayer:
+      type: object
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+        forenames:
+          type: string
+        surname:
+          type: string
+    TillsCreateOrganisationPayer:
+      type: object
+      additionalProperties: false
+      properties:
+        organisation_name:
+          type: string
+    TillsCreatePayerType:
+      type: string
+      enum:
+        - Individual
+        - Organisation
     TillsResponse:
       type: object
       required:
