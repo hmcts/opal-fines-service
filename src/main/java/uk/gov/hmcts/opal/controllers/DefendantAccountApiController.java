@@ -48,7 +48,6 @@ import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.ImpositionService;
-import uk.gov.hmcts.opal.util.VersionUtils;
 
 @RestController
 @Slf4j(topic = "opal.DefendantAccountApiController")
@@ -86,6 +85,7 @@ public class DefendantAccountApiController implements DefendantAccountApi {
 
         AddPaymentCardRequestResponse response =
             defendantAccountPaymentTermsService.addPaymentCardRequest(id, businessUnitId, ifMatch);
+
         AddPaymentCardRequestDefendantAccount generatedResponse = AddPaymentCardRequestDefendantAccount.builder()
             .defendantAccountId(response.getDefendantAccountId())
             .build();
@@ -100,7 +100,7 @@ public class DefendantAccountApiController implements DefendantAccountApi {
 
         DefendantAccountHeaderSummary summary = defendantAccountService.getHeaderSummary(id);
 
-        return ResponseEntity.ok().eTag(VersionUtils.createETag(summary)).body(summary.getResponse());
+        return buildResponse(summary, summary.getResponse());
     }
 
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
@@ -110,7 +110,7 @@ public class DefendantAccountApiController implements DefendantAccountApi {
 
         GetDefendantAccountImpositionsResponse response = impositionService.getImpositions(id);
 
-        return ResponseEntity.ok().eTag(VersionUtils.createETag(response)).body(response.getPayload());
+        return buildResponse(response, response.getPayload());
     }
 
     @Override
@@ -122,19 +122,16 @@ public class DefendantAccountApiController implements DefendantAccountApi {
         GetDefendantAccountConsolidatedAccountsResult response =
             defendantAccountService.getConsolidatedAccounts(defendantAccountId);
 
-        return ResponseEntity.ok().eTag(VersionUtils.createETag(response)).body(response.getPayload());
+        return buildResponse(response, response.getPayload());
     }
 
     @Override
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<AtAGlanceResponseDefendantAccount> getDefendantAccountAtAGlance(Long id) {
         log.debug(":GET:getDefendantAccountAtAGlance: for defendant account id: {}", id);
-
         GetDefendantAccountAtAGlanceResponse response = defendantAccountService.getAtAGlance(id);
 
-        return ResponseEntity.ok()
-            .eTag(VersionUtils.createETag(response))
-            .body(response.getPayload());
+        return buildResponse(response, response.getPayload());
     }
 
     @Override
@@ -151,10 +148,8 @@ public class DefendantAccountApiController implements DefendantAccountApi {
         Long defendantAccountId) {
         log.debug(":GET:getDefendantAccountFixedPenalty: for defendantAccountId={}", defendantAccountId);
 
-        GetDefendantAccountFixedPenaltyResponse response =
-            defendantAccountFixedPenaltyService.getDefendantAccountFixedPenalty(defendantAccountId);
-
-        return ResponseEntity.ok().eTag(VersionUtils.createETag(response)).body(response);
+        return buildResponse(
+            defendantAccountFixedPenaltyService.getDefendantAccountFixedPenalty(defendantAccountId));
     }
 
     @Override
@@ -232,7 +227,7 @@ public class DefendantAccountApiController implements DefendantAccountApi {
         UpdateDefendantAccountResponse response =
             defendantAccountService.updateDefendantAccount(defendantAccountId, businessUnitId, request, ifMatch);
 
-        return ResponseEntity.ok().eTag(VersionUtils.createETag(response)).body(response.getPayload());
+        return buildResponse(response, response.getPayload());
     }
 
     @Override
@@ -251,9 +246,7 @@ public class DefendantAccountApiController implements DefendantAccountApi {
         GetDefendantAccountHistoryResponse generatedResponse =
             defendantAccountHistoryResponseMapper.toGeneratedResponse(response);
 
-        return ResponseEntity.ok()
-            .eTag(VersionUtils.createETag(response))
-            .body(generatedResponse);
+        return buildResponse(response, generatedResponse);
     }
 
     @Override
