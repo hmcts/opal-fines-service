@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.dto.common.LastEnforcementAction;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
@@ -73,7 +75,7 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void getAtAGlance_legacyFailure5xx_withEntity_mapsAnyway() {
+    void getAtAGlance_legacyFailure5xx_withEntity_throwsHttpServerErrorException() {
         LegacyGetDefendantAccountAtAGlanceResponse body =
             LegacyGetDefendantAccountAtAGlanceResponse.builder()
                 .version(BigInteger.valueOf(0L))
@@ -86,22 +88,21 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
 
-        GetDefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(456L);
-        assertNotNull(out);
-        assertEquals("456", out.getPayload().getDefendantAccountId());
+        assertThatThrownBy(() -> legacyDefendantAccountService.getHeaderSummary(999L))
+            .isInstanceOf(HttpServerErrorException.class).hasMessageContaining("503 Legacy gateway returned failure");
     }
 
     @Test
     @SuppressWarnings("unchecked")
-    void getAtAGlance_error5xx_noEntity_returnsNull() {
+    void getAtAGlance_error5xx_noEntity_throwsHttpServerErrorException() {
         ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
             new ParameterizedTypeReference<>() {};
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(null);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>("<error/>", HttpStatus.INTERNAL_SERVER_ERROR));
 
-        GetDefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(999L);
-        assertNull(out);
+        assertThatThrownBy(() -> legacyDefendantAccountService.getHeaderSummary(999L))
+            .isInstanceOf(HttpServerErrorException.class).hasMessageContaining("500 unexpected element");
     }
 
     @Test
