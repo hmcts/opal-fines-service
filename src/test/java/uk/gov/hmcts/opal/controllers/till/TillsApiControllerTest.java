@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.controllers;
+package uk.gov.hmcts.opal.controllers.till;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -13,7 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.generated.model.TillsGetResponse;
-import uk.gov.hmcts.opal.service.opal.GetTillService;
+import uk.gov.hmcts.opal.service.opal.till.TillsService;
 
 @ExtendWith(MockitoExtension.class)
 class TillsApiControllerTest {
@@ -21,7 +21,7 @@ class TillsApiControllerTest {
     private static final Long TILL_ID = 123L;
 
     @Mock
-    private GetTillService getTillService;
+    private TillsService tillsService;
 
     @InjectMocks
     private TillsApiController controller;
@@ -29,14 +29,14 @@ class TillsApiControllerTest {
     @Test
     void whenCalled_returnsTill_happyPath() {
         TillsGetResponse expected = new TillsGetResponse();
-        when(getTillService.getTill(TILL_ID)).thenReturn(expected);
+        when(tillsService.getTill(TILL_ID)).thenReturn(expected);
 
         ResponseEntity<TillsGetResponse> response = controller.getTill(TILL_ID);
 
         assertAll(
             () -> assertEquals(200, response.getStatusCode().value()),
             () -> assertSame(expected, response.getBody()),
-            () -> verify(getTillService).getTill(TILL_ID)
+            () -> verify(tillsService).getTill(TILL_ID)
         );
     }
 }

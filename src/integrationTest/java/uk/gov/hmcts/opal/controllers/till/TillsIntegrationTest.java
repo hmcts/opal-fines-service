@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.controllers;
+package uk.gov.hmcts.opal.controllers.till;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.when;
@@ -25,10 +25,10 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles("integration")
 @TestPropertySource(properties = "launchdarkly.default-flag-values.release-1c-payment=true")
-@DisplayName("Get Till Integration Tests")
+@DisplayName("Tills Integration Tests")
 @Sql(scripts = "classpath:db/insertData/insert_into_get_till.sql", executionPhase = BEFORE_TEST_METHOD)
 @Sql(scripts = "classpath:db/deleteData/delete_from_get_till.sql", executionPhase = AFTER_TEST_METHOD)
-class GetTillIntegrationTest extends AbstractIntegrationTest {
+class TillsIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL = "/tills/99000000836200";
     private static final Short BUSINESS_UNIT_ID = (short) 8362;
