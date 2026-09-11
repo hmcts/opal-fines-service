@@ -1,0 +1,20 @@
+meta {
+  name: Get Till
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/tills/{{till_id}}
+  body: none
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
