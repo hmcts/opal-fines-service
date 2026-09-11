@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.controllers;
+package uk.gov.hmcts.opal.controllers.till;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -16,8 +16,8 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles("integration")
 @TestPropertySource(properties = "launchdarkly.default-flag-values.release-1c-payment=false")
-@DisplayName("Get Till Feature Toggle Integration Tests")
-class GetTillFeatureToggleDisabledIntegrationTest extends AbstractIntegrationTest {
+@DisplayName("Tills Feature Toggle Integration Tests")
+class TillsFeatureToggleDisabledIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("PO-8362 INT.04 - Returns not found when Release 1C Payment is disabled")

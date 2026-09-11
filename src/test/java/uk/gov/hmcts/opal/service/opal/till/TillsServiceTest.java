@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.opal;
+package uk.gov.hmcts.opal.service.opal.till;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -31,14 +31,14 @@ import uk.gov.hmcts.opal.entity.TillEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.generated.model.TillsGetResponse;
-import uk.gov.hmcts.opal.mapper.GetTillMapper;
+import uk.gov.hmcts.opal.mapper.till.GetTillMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.PaymentInRepository;
 import uk.gov.hmcts.opal.repository.TillRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 
 @ExtendWith(MockitoExtension.class)
-class GetTillServiceTest {
+class TillsServiceTest {
 
     private static final Long TILL_ID = 123L;
     private static final Short BUSINESS_UNIT_ID = (short) 77;
@@ -60,7 +60,7 @@ class GetTillServiceTest {
     private GetTillMapper getTillMapper;
 
     @InjectMocks
-    private GetTillService service;
+    private TillsService service;
 
     private TillEntity till;
 
@@ -166,7 +166,7 @@ class GetTillServiceTest {
     }
 
     private PaymentInEntity payment(Long id, DestinationType destinationType,
-                                    AssociatedRecordType recordType, String recordId) {
+        AssociatedRecordType recordType, String recordId) {
 
         return PaymentInEntity.builder()
             .paymentInId(id)
