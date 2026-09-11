@@ -5,18 +5,13 @@ meta {
 }
 
 get {
-  url: {{baseURL}}/tills/{{tillId}}
+  url: {{baseURL}}/tills/{{till_id}}
   body: none
   auth: inherit
 }
 
 headers {
   Accept: application/json
-}
-
-vars:pre-request {
-  baseURL: http://localhost:4550
-  tillId: 99000000836200
 }
 
 settings {

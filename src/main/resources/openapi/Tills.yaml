@@ -290,7 +290,7 @@ components:
           description: DB Mapping - payments_in.allocation_type
         payment_received_from:
           type: string
-          description: DB Mapping - payments_in.additional_information
+          description: Derived from payments_in.additional_information.payment_received_from
           enum:
             - D
             - A
@@ -385,14 +385,14 @@ components:
           type:
             - string
             - 'null'
-          description: DB Mapping - payments_in.additional_information
+          description: Derived from payments_in.additional_information.payer_details.individual.forenames
         surname:
           type:
             - string
             - 'null'
-          description: DB Mapping - payments_in.additional_information
+          description: Derived from payments_in.additional_information.payer_details.individual.surname
         organisation_name:
           type:
             - string
             - 'null'
-          description: DB Mapping - payments_in.additional_information
+          description: Derived from payments_in.additional_information.payer_details.organisation.organisation_name
