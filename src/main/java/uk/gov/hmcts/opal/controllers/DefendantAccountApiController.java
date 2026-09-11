@@ -18,9 +18,10 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
+import uk.gov.hmcts.opal.generated.http.api.DefendantAccountApi;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
-import uk.gov.hmcts.opal.generated.http.api.DefendantAccountApi;
+import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddPaymentCardRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
@@ -29,19 +30,23 @@ import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
+import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.ReplacePartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
+import uk.gov.hmcts.opal.mapper.request.ReplacePartyRequestMapper;
+import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
+import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
-import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
-import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
-import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.ImpositionService;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
@@ -54,8 +59,10 @@ public class DefendantAccountApiController implements DefendantAccountApi {
     private final DefendantAccountEnforcementService defendantAccountEnforcementService;
     private final DefendantAccountHistoryResponseMapper defendantAccountHistoryResponseMapper;
     private final ImpositionService impositionService;
+    private final DefendantAccountPartyService defendantAccountPartyService;
     private final DefendantAccountFixedPenaltyService defendantAccountFixedPenaltyService;
     private final DefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
+    private final ReplacePartyRequestMapper replacePartyRequestMapper;
 
     @Override
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
@@ -152,11 +159,68 @@ public class DefendantAccountApiController implements DefendantAccountApi {
 
     @Override
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
+    public ResponseEntity<PartyResponseDefendantAccount> getDefendantAccountParty(
+        Long defendantAccountId, Long defendantAccountPartyId) {
+        log.debug(":GET:getDefendantAccountParty: for accountId={}, partyId={}", defendantAccountId,
+            defendantAccountPartyId);
+
+        return buildResponse(defendantAccountPartyService.getDefendantAccountParty(
+            defendantAccountId, defendantAccountPartyId));
+    }
+
+    @Override
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
+    public ResponseEntity<PartyResponseDefendantAccount> addDefendantAccountParty(
+        Long defendantAccountId,
+        Short businessUnitId,
+        AddPartyRequestDefendantAccount request,
+        String ifMatch) {
+        return buildResponse(defendantAccountPartyService.addDefendantAccountParty(
+            defendantAccountId,
+            ifMatch,
+            businessUnitId.toString(),
+            request));
+    }
+
+    @Override
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
+    public ResponseEntity<PartyResponseDefendantAccount> replaceDefendantAccountParty(
+        Long defendantAccountId,
+        Long defendantAccountPartyId,
+        Short businessUnitId,
+        ReplacePartyRequestDefendantAccount request,
+        String ifMatch) {
+        return buildResponse(defendantAccountPartyService.replaceDefendantAccountParty(
+            defendantAccountId,
+            defendantAccountPartyId,
+            ifMatch,
+            businessUnitId.toString(),
+            replacePartyRequestMapper.toDefendantAccountParty(request)));
+    }
+
+    @Override
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<PostDefendantAccountSearchResponseDefendantAccount> postDefendantAccountSearch(
         PostDefendantAccountSearchRequestDefendantAccount request) {
         log.debug(":POST:postDefendantAccountSearch");
 
         return buildResponse(defendantAccountService.searchDefendantAccounts(request));
+    }
+
+    @Override
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
+    public ResponseEntity<RemoveDefendantAccountPartyResponseDefendantAccount> removeDefendantAccountParty(
+        Long defendantAccountId,
+        Long defendantAccountPartyId,
+        Short businessUnitId,
+        RemoveDefendantAccountPartyRequestDefendantAccount request,
+        String ifMatch) {
+
+        log.debug(":DELETE:removeDefendantAccountParty: for defendant id: {} and defendantAccountPartyId: {}",
+            defendantAccountId, defendantAccountPartyId);
+
+        return buildResponse(defendantAccountPartyService.removeDefendantAccountParty(
+            defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, request));
     }
 
     @Override

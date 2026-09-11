@@ -43,9 +43,6 @@ public class SchemaPaths {
     public static final String POST_DEFENDANT_ACCOUNT_ADD_PARTY = DEFENDANT_ACCOUNT
         + "/addDefendantAccountPartyRequest.json";
 
-    public static final String POST_DEFENDANT_ACCOUNT_REMOVE_PARTY = DEFENDANT_ACCOUNT
-        + "/removeDefendantAccountPartyRequest.json";
-
     public static final String POST_MINOR_CREDITOR_ACCOUNTS_SEARCH_LEGACY_RESPONSE = LEGACY
         + "/postMinorCreditorsAccountsSearchLegacyResponse.json";
   

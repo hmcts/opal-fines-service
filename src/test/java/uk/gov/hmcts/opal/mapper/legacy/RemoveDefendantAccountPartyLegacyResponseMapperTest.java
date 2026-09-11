@@ -8,7 +8,7 @@ import java.math.BigInteger;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyResponse;
-import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 
 class RemoveDefendantAccountPartyLegacyResponseMapperTest {
 
@@ -23,7 +23,7 @@ class RemoveDefendantAccountPartyLegacyResponseMapperTest {
                 .defendantAccountPartyId("20010")
                 .build();
 
-        RemoveDefendantAccountPartyResponse response =
+        RemoveDefendantAccountPartyResponseDefendantAccount response =
             mapper.toRemoveDefendantAccountPartyResponse(legacyResponse);
 
         assertNotNull(response);
@@ -33,7 +33,7 @@ class RemoveDefendantAccountPartyLegacyResponseMapperTest {
 
     @Test
     void toRemoveDefendantAccountPartyResponse_whenLegacyResponseIsNull_returnsEmptyResponse() {
-        RemoveDefendantAccountPartyResponse response =
+        RemoveDefendantAccountPartyResponseDefendantAccount response =
             mapper.toRemoveDefendantAccountPartyResponse(null);
 
         assertNotNull(response);
