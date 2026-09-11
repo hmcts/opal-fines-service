@@ -1,10 +1,10 @@
 package uk.gov.hmcts.opal.service.iface;
 
-import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
-import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
+import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 
 public interface DefendantAccountPartyServiceInterface {
 
@@ -48,13 +48,13 @@ public interface DefendantAccountPartyServiceInterface {
                                             ifMatch, businessUnitId, postedBy, postedBy, businessUserId);
     }
 
-    RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
+    RemoveDefendantAccountPartyResponseDefendantAccount removeDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId, Short businessUnitId, String businessUserId, String postedBy,
-        String postedByName, String ifMatch, RemoveDefendantAccountPartyRequest request);
+        String postedByName, String ifMatch, RemoveDefendantAccountPartyRequestDefendantAccount request);
 
-    default RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
+    default RemoveDefendantAccountPartyResponseDefendantAccount removeDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId, Short businessUnitId, String businessUserId, String postedBy,
-        String ifMatch, RemoveDefendantAccountPartyRequest request) {
+        String ifMatch, RemoveDefendantAccountPartyRequestDefendantAccount request) {
         return removeDefendantAccountParty(defendantAccountId, defendantAccountPartyId, businessUnitId,
                                            businessUserId, postedBy, postedBy, ifMatch, request);
     }
