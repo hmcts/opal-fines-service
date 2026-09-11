@@ -297,6 +297,10 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
         assertEquals("AB1 2CD", out.getPayload().getAddress().getPostcode().get());
 
         assertTrue(out.getPayload().getLanguagePreferences().isPresent());
+        assertEquals("EN", out.getPayload().getLanguagePreferences().get()
+            .getDocumentLanguagePreference().get().getLanguageCode().getValue());
+        assertEquals("CY", out.getPayload().getLanguagePreferences().get()
+            .getHearingLanguagePreference().get().getLanguageCode().getValue());
 
         var pts = out.getPayload().getPaymentTerms();
         assertEquals(LocalDate.of(2024, 1, 2), pts.getEffectiveDate().get());

@@ -512,6 +512,22 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
     }
 
     @Test
+    void getHeaderSummary_mapsLegacyWelshSpeakingTrueToY() {
+        LegacyGetDefendantAccountHeaderSummaryResponse resp = createHeaderSummaryResponse();
+        resp.getBusinessUnitSummary().setWelshSpeaking("true");
+
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(resp);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
+
+        DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(1L);
+
+        assertEquals("Y", out.getResponse().getBusinessUnitSummary().getWelshSpeaking());
+    }
+
+    @Test
     void getHeaderSummary_returns_false_for_hasConsolidatedAccounts() {
         LegacyGetDefendantAccountHeaderSummaryResponse resp = createHeaderSummaryResponse();
         resp.setHasConsolidatedAccounts(Boolean.FALSE);

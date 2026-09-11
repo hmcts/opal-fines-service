@@ -317,7 +317,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                   response.getBusinessUnitSummary().getBusinessUnitId(),
                   response.getBusinessUnitSummary().getBusinessUnitCode()
               ))
-              .welshSpeaking("N")
+              .welshSpeaking(toWelshSpeaking(response.getBusinessUnitSummary().getWelshSpeaking()))
               .build();
 
         AccountStatusReferenceCommon status = response.getAccountStatusReference() == null ? null
@@ -991,6 +991,10 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
     private void populateLjaCode(LjaReference ljaRef) {
         ljaRef.setLjaCode(ljaService.getLocalJusticeAreaById(ljaRef.getLjaId()).getLjaCode());
+    }
+
+    private String toWelshSpeaking(String welshSpeaking) {
+        return "true".equalsIgnoreCase(welshSpeaking) || "Y".equalsIgnoreCase(welshSpeaking) ? "Y" : "N";
     }
 
     private static <T> void checkResponseForError(Response<T> response, String method) {
