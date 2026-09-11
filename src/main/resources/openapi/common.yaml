@@ -990,6 +990,26 @@ components:
       required:
         - transactionType
         - transactionTypeDisplayName
+    courtFee:
+      type: object
+      required:
+        - courtFeeId
+        - courtFeeCode
+        - description
+        - amount
+      properties:
+        courtFeeId:
+          type: integer
+          format: int64
+        courtFeeCode:
+          type: string
+          maxLength: 10
+        description:
+          type: String
+          maxLength: 50
+        amount:
+          type: number
+          multipleOf: 0.01
 
     creditorTransactionStatusReference:
       type: object
