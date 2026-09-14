@@ -12,6 +12,7 @@ import java.util.Map;
 import static uk.gov.hmcts.opal.steps.BaseStepDef.addAllToJsonObject;
 import static uk.gov.hmcts.opal.steps.BaseStepDef.addIntToJsonObject;
 import static uk.gov.hmcts.opal.steps.BaseStepDef.addLongToJsonObject;
+import static uk.gov.hmcts.opal.steps.BaseStepDef.dataExists;
 import static uk.gov.hmcts.opal.steps.BaseStepDef.addToJsonObject;
 import static uk.gov.hmcts.opal.steps.BaseStepDef.addToJsonObjectOrNull;
 
@@ -48,7 +49,9 @@ public class DraftAccountRequestFactory {
         addLongToJsonObject(postBody, dataToPost, "business_unit_id");
         addAllToJsonObject(postBody, dataToPost, "account_type");
         addToJsonObjectOrNull(postBody, dataToPost, "account_status");
-        postBody.put("account", loadAccountFixture(dataToPost.get("account")));
+        JSONObject accountObject = loadAccountFixture(dataToPost.get("account"));
+        applyAccountOverrides(accountObject, dataToPost);
+        postBody.put("account", accountObject);
         return postBody;
     }
 
@@ -93,7 +96,9 @@ public class DraftAccountRequestFactory {
 
         addToJsonObject(postBody, dataToPost, "account_type");
         addToJsonObjectOrNull(postBody, dataToPost, "account_status");
-        postBody.put("account", loadAccountFixture(dataToPost.get("account")));
+        JSONObject accountObject = loadAccountFixture(dataToPost.get("account"));
+        applyAccountOverrides(accountObject, dataToPost);
+        postBody.put("account", accountObject);
         return postBody;
     }
 
@@ -138,6 +143,36 @@ public class DraftAccountRequestFactory {
      */
     public JSONArray loadDefaultTimelineFixture() throws IOException, JSONException {
         return new JSONArray(readResource(MANUAL_ACCOUNT_CREATION_RESOURCE_ROOT + DEFAULT_TIMELINE_PATH));
+    }
+
+    /**
+     * Applies optional account-level overrides from the scenario data to the loaded fixture.
+     *
+     * @param accountObject account JSON fixture to mutate.
+     * @param dataToPost scenario data containing optional override fields.
+     * @throws JSONException if the JSON payload cannot be updated.
+     */
+    private void applyAccountOverrides(JSONObject accountObject, Map<String, String> dataToPost)
+        throws JSONException {
+        String accountType = dataToPost.get("account_type");
+        if (dataExists(accountType)) {
+            accountObject.put("account_type", accountType);
+        }
+
+        String originatorType = dataToPost.get("account_originator_type");
+        if (dataExists(originatorType)) {
+            accountObject.put("originator_type", originatorType);
+        }
+
+        String originatorName = dataToPost.get("account_originator_name");
+        if (dataExists(originatorName)) {
+            accountObject.put("originator_name", originatorName);
+        }
+
+        String originatorId = dataToPost.get("account_originator_id");
+        if (dataExists(originatorId)) {
+            accountObject.put("originator_id", Long.parseLong(originatorId));
+        }
     }
 
     /**
