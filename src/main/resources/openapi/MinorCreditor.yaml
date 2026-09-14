@@ -78,9 +78,7 @@ paths:
       operationId: patchMinorCreditorAccount
       security:
         - permissions:
-            - Add and Remove payment hold (in the business unit supplied in Business-Unit-Id)
-            - Account Maintenance (in the business unit supplied in Business-Unit-Id)
-            - View Creditor BACS (in the business unit supplied in Business-Unit-Id)
+            - Account Maintenance - Minor Creditor (in the business unit supplied in Business-Unit-Id)
       parameters:
         - in: path
           name: id
