@@ -73,6 +73,8 @@ public class LegacyDefendantAccountFixedPenaltyServiceTest {
         assertThat(vehiclePenaltyDetails.getVehicleDriversLicense().get()).isEqualTo("123456");
         assertThat(vehiclePenaltyDetails.getDateNoticeIssued().get()).isEqualTo("2023-09-09");
 
+        assertThat(requestCaptor.getValue().getDefendantAccountId()).isEqualTo(1234L);
+
         verify(gatewayService).postToGateway(
             eq(LegacyDefendantAccountFixedPenaltyService.GET_FIXED_PENALTY),
             eq(LegacyDefendantAccountGetFixedPenaltyResponse.class),
@@ -120,6 +122,8 @@ public class LegacyDefendantAccountFixedPenaltyServiceTest {
         assertThat(penaltyTicketDetails.getTicketNumber().get()).isEqualTo("123456");
         assertThat(penaltyTicketDetails.getTimeOfOffence().get()).isEqualTo("2023-09-09");
         assertThat(penaltyTicketDetails.getPlaceOfOffence().get()).isEqualTo("London");
+
+        assertThat(requestCaptor.getValue().getDefendantAccountId()).isEqualTo(1234L);
 
         verify(gatewayService).postToGateway(
             eq(LegacyDefendantAccountFixedPenaltyService.GET_FIXED_PENALTY),
