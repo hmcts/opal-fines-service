@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles({"integration", "legacy"})
 @TestPropertySource(properties = {
@@ -36,6 +37,7 @@ class LegacyDefendantAccountLanguageIntegrationTest extends AbstractIntegrationT
 
     @Test
     @JiraEpic("PO-812")
+    @JiraStory("PO-10573")
     @DisplayName("Legacy header summary maps Welsh business unit flag from gateway")
     void getHeaderSummary_mapsWelshSpeakingTrueToY() throws Exception {
         stubFor(post(urlPathEqualTo("/opal"))
@@ -55,6 +57,7 @@ class LegacyDefendantAccountLanguageIntegrationTest extends AbstractIntegrationT
 
     @Test
     @JiraEpic("PO-812")
+    @JiraStory("PO-10574")
     @DisplayName("Legacy at-a-glance maps document and hearing language codes from gateway")
     void getAtAGlance_mapsLanguagePreferences() throws Exception {
         stubFor(post(urlPathEqualTo("/opal"))
