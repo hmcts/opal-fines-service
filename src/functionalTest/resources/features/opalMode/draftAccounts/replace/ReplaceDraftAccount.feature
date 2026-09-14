@@ -134,3 +134,59 @@ Feature: Replace Draft Account
     #      | created_by_id | created_by_type | business_identifier                          | individual_id                | expected_count |
     #      | 500000000     | OPAL_USER_ID    | Update Draft Account - Defendant             | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
     #      | 500000000     | OPAL_USER_ID    | Update Draft Account - Minor Creditor        | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
+
+  @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
+  Scenario: Replace draft account - TFO confiscation originator resolves against a valid CRWCRT
+    And a replaceable draft account exists with the following details
+      | business_unit_id         | 73                                  |
+      | account                  | draftAccounts/accountJson/account.json |
+      | account_type             | Fine                                 |
+      | account_status           | Submitted                            |
+      | submitted_by             | BUUID                                |
+      | submitted_by_name        | Laura Clerk                          |
+    When I update the draft account that was just created with the following details
+      | business_unit_id         | 73                                  |
+      | account                  | draftAccounts/accountJson/account.json |
+      | account_type             | Confiscation                         |
+      | account_status           | Submitted                            |
+      | submitted_by             | BUUID                                |
+      | submitted_by_name        | Laura Clerk                          |
+      | If-Match                 | 0                                    |
+      | account_originator_type   | TFO                                  |
+      | account_originator_id     | 401                                  |
+      | account_originator_name   | Aylesbury Crown Court                |
+    Then the created draft account is replaced successfully and the retrieved draft account contains the following data
+      | business_unit_id                   | 73                    |
+      | account_type                        | Confiscation          |
+      | account_status                      | Resubmitted           |
+      | account.originator_type             | TFO                   |
+      | account.originator_id               | 401                   |
+      | account.originator_name             | Aylesbury Crown Court |
+
+  @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
+  Scenario: Replace draft account - FP fixed penalty originator resolves against a prosecutor
+    And a replaceable draft account exists with the following details
+      | business_unit_id         | 73                                  |
+      | account                  | draftAccounts/accountJson/account.json |
+      | account_type             | Fine                                 |
+      | account_status           | Submitted                            |
+      | submitted_by             | BUUID                                |
+      | submitted_by_name        | Laura Clerk                          |
+    When I update the draft account that was just created with the following details
+      | business_unit_id         | 73                                  |
+      | account                  | draftAccounts/accountJson/account.json |
+      | account_type             | Fixed Penalty                        |
+      | account_status           | Submitted                            |
+      | submitted_by             | BUUID                                |
+      | submitted_by_name        | Laura Clerk                          |
+      | If-Match                 | 0                                    |
+      | account_originator_type   | FP                                   |
+      | account_originator_id     | 1                                    |
+      | account_originator_name   | Met Camera Processing Services / Traffic Offence Reports |
+    Then the created draft account is replaced successfully and the retrieved draft account contains the following data
+      | business_unit_id                   | 73                                                      |
+      | account_type                        | Fixed Penalty                                           |
+      | account_status                      | Resubmitted                                             |
+      | account.originator_type             | FP                                                      |
+      | account.originator_id               | 1                                                       |
+      | account.originator_name             | Met Camera Processing Services / Traffic Offence Reports |
