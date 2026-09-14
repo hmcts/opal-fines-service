@@ -2,7 +2,7 @@ openapi: 3.1.1
 info:
   title: Opal Fines Service - Court Fees
   version: 1.0.0
-  description: APIs for Business unit information
+  description: APIs for Court fees information.
 paths:
   /business-units/{businessUnitId}/court-fees:
     get:
