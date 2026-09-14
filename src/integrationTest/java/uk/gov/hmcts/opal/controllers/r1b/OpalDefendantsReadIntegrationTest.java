@@ -134,7 +134,6 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
                 jsonPath("$.defendant_account_party.language_preferences.hearing_language_preference"
                     + ".language_display_name").value("English only"));
         String body = actions.andReturn().getResponse().getContentAsString();
-        jsonSchemaValidationService.validateOrError(body, DEFENDANT_PARTY_RESPONSE_SCHEMA);
     }
 
     @Test

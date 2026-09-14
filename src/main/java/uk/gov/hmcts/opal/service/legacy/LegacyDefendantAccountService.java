@@ -4,6 +4,7 @@ import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountBuilders.to
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -15,9 +16,12 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.openapitools.jackson.nullable.JsonNullable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
@@ -317,7 +321,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                   response.getBusinessUnitSummary().getBusinessUnitId(),
                   response.getBusinessUnitSummary().getBusinessUnitCode()
               ))
-              .welshSpeaking("N")
+              .welshSpeaking(toWelshSpeaking(response.getBusinessUnitSummary().getWelshSpeaking()))
               .build();
 
         AccountStatusReferenceCommon status = response.getAccountStatusReference() == null ? null
@@ -836,11 +840,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     }
 
     @Override
-    public UpdateDefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
-        String businessUnitId,
-        @NonNull UpdateDefendantAccountRequest request,
-        String postedBy,
-        String postedByName) {
+    public UpdateDefendantAccountResponse updateDefendantAccount(Long defendantAccountId, String businessUnitId,
+        @NonNull UpdateDefendantAccountRequest request, String postedBy, String postedByName) {
 
         log.info("Legacy :updateDefendantAccount: id: {}", defendantAccountId);
 
@@ -993,16 +994,37 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         ljaRef.setLjaCode(ljaService.getLocalJusticeAreaById(ljaRef.getLjaId()).getLjaCode());
     }
 
+    private String toWelshSpeaking(String welshSpeaking) {
+        return "true".equalsIgnoreCase(welshSpeaking) || "Y".equalsIgnoreCase(welshSpeaking) ? "Y" : "N";
+    }
+
     private static <T> void checkResponseForError(Response<T> response, String method) {
         if (response.isError()) {
             log.error(":{}: legacy error HTTP {}", method, response.code);
             if (response.isException()) {
                 log.error(":{}: exception:", method, response.exception);
+                throw createGatewayException(response.code, "Legacy gateway exception", response.body,
+                    response.exception);
             } else if (response.isLegacyFailure()) {
                 log.error(":{}: legacy failure body:\n{}", method, response.body);
+                throw createGatewayException(response.code, "Legacy gateway returned failure", response.body, null);
             }
+            throw createGatewayException(response.code, "Legacy gateway error", response.body, null);
         } else if (response.isSuccessful()) {
             log.info(":{}: legacy success.", method);
         }
+    }
+
+    private static RuntimeException createGatewayException(HttpStatusCode status, String fallbackStatusText,
+        String responseBody, Throwable exception) {
+        HttpStatusCode statusCode =
+            status == null || status == HttpStatus.OK ? HttpStatus.INTERNAL_SERVER_ERROR : status;
+
+        String statusText =
+            exception != null && exception.getMessage() != null ? exception.getMessage() : fallbackStatusText;
+
+        byte[] body = responseBody == null ? null : responseBody.getBytes(StandardCharsets.UTF_8);
+
+        return HttpServerErrorException.create(statusCode, statusText, HttpHeaders.EMPTY, body, StandardCharsets.UTF_8);
     }
 }

@@ -28,7 +28,7 @@ public class ReportInstanceSearchService {
     public List<ReportEntity> findPermittedReports() {
         OpalJwtAuthenticationToken authToken = getOpalJwtAuthenticationTokenForCurrentUser();
         return reportRepository.findAllByPermissionIsNotNull().stream()
-            .filter(report -> authToken.hasPermission(report.getPermission().toCommonPermission()))
+            .filter(report -> authToken.hasPermission(report.getPermission().name()))
             .toList();
     }
 
@@ -36,7 +36,7 @@ public class ReportInstanceSearchService {
         if (reportId != null && !reportId.isBlank()) {
             ReportEntity report = reportRepository.findById(reportId).orElseThrow(EntityNotFoundException::new);
             OpalJwtAuthenticationToken authToken = getOpalJwtAuthenticationTokenForCurrentUser();
-            if (!authToken.hasPermission(report.getPermission().toCommonPermission())) {
+            if (!authToken.hasPermission(report.getPermission().name())) {
                 throw new AccessDeniedException("User does not have permission for reportId: " + reportId);
             }
             return report;

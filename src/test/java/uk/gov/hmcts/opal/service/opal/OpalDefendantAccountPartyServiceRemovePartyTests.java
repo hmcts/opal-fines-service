@@ -18,14 +18,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyDetailsCommonStrict;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 
@@ -82,11 +84,7 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
                 "posted", "Posted User", "CASE-REF",
                 "ACCOUNT_ENQUIRY");
 
-        RemoveDefendantAccountPartyRequest request = RemoveDefendantAccountPartyRequest.builder()
-            .defendantAccountPartyId(99L)
-            .build();
-
-        RemoveDefendantAccountPartyResponse response = service.removeDefendantAccountParty(
+        RemoveDefendantAccountPartyResponseDefendantAccount response = service.removeDefendantAccountParty(
             1L,
             5L,
             (short) 10,
@@ -94,7 +92,7 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
             "posted",
             "Posted User",
             "1",
-            request);
+            validRequest());
 
         assertEquals("5", response.getDefendantAccountPartyId());
         assertEquals(BigInteger.valueOf(2L), response.getVersion());
@@ -117,13 +115,9 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
 
         when(defendantAccountRepositoryService.findById(1L)).thenReturn(account);
 
-        RemoveDefendantAccountPartyRequest request = RemoveDefendantAccountPartyRequest.builder()
-            .defendantAccountPartyId(123L)
-            .build();
-
         assertThrows(EntityNotFoundException.class, () ->
             service.removeDefendantAccountParty(1L, 5L, (short) 10,
-                                                "businessUser", "posted", "Posted User", "1", request));
+                                                "businessUser", "posted", "Posted User", "1", validRequest()));
     }
 
     @Test
@@ -132,7 +126,7 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
             service.removeDefendantAccountParty(
-                1L, 5L, (short) 11, "businessUser", "posted", "Posted User", "1", null));
+                1L, 5L, (short) 11, "businessUser", "posted", "Posted User", "1", validRequest()));
 
         assertEquals("Defendant Account not found in business unit 11",
             exception.getMessage());
@@ -150,7 +144,8 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
         doThrow(exception).when(defendantAccountControlValidator).validateCanMutateParty(account);
 
         UnprocessableException result = assertThrows(UnprocessableException.class, () ->
-            service.removeDefendantAccountParty(1L, 5L, (short) 10, "businessUser", "posted", "1", null));
+            service.removeDefendantAccountParty(1L, 5L, (short) 10, "businessUser", "posted", "1",
+                                                validRequest()));
 
         assertEquals(exception, result);
         verify(defendantAccountControlValidator).validateCanMutateParty(account);
@@ -166,7 +161,7 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () ->
             service.removeDefendantAccountParty(
-                1L, 999L, (short) 10, "businessUser", "posted", "Posted User", "1", null));
+                1L, 999L, (short) 10, "businessUser", "posted", "Posted User", "1", validRequest()));
 
         assertEquals("Defendant Account Party not found for accountId=1, partyId=999", exception.getMessage());
         verify(defendantAccountRepositoryService).findById(1L);
@@ -176,5 +171,53 @@ class OpalDefendantAccountPartyServiceRemovePartyTests {
                 "posted", "Posted User", "CASE-REF",
                 "ACCOUNT_ENQUIRY");
         verify(defendantAccountRepositoryService, never()).saveAndFlush(account);
+    }
+
+    @Test
+    void removeDefendantAccountParty_whenRequestBodyMissing_throwsJsonSchemaValidationException() {
+        JsonSchemaValidationException exception = assertThrows(JsonSchemaValidationException.class, () ->
+            service.removeDefendantAccountParty(
+                1L, 5L, (short) 10, "businessUser", "posted", "Posted User", "1", null));
+
+        assertEquals("Request body is required", exception.getMessage());
+        verify(defendantAccountRepositoryService, never()).findById(1L);
+    }
+
+    @Test
+    void removeDefendantAccountParty_whenRequestBodyDoesNotContainPartyReference_throwsJsonSchemaValidationException() {
+        RemoveDefendantAccountPartyRequestDefendantAccount request =
+            RemoveDefendantAccountPartyRequestDefendantAccount.builder()
+                .version(1L)
+                .build();
+
+        JsonSchemaValidationException exception = assertThrows(JsonSchemaValidationException.class, () ->
+            service.removeDefendantAccountParty(
+                1L, 5L, (short) 10, "businessUser", "posted", "Posted User", "1", request));
+
+        assertEquals("defendant_account_party_id or party_details must be provided", exception.getMessage());
+        verify(defendantAccountRepositoryService, never()).findById(1L);
+    }
+
+    @Test
+    void removeDefendantAccountParty_whenPartyReferenceIsBlank_throwsJsonSchemaValidationException() {
+        RemoveDefendantAccountPartyRequestDefendantAccount request =
+            RemoveDefendantAccountPartyRequestDefendantAccount.builder()
+                .defendantAccountPartyId("")
+                .build();
+
+        JsonSchemaValidationException exception = assertThrows(JsonSchemaValidationException.class, () ->
+            service.removeDefendantAccountParty(
+                1L, 5L, (short) 10, "businessUser", "posted", "Posted User", "1", request));
+
+        assertEquals("defendant_account_party_id must not be blank", exception.getMessage());
+        verify(defendantAccountRepositoryService, never()).findById(1L);
+    }
+
+    private RemoveDefendantAccountPartyRequestDefendantAccount validRequest() {
+        return RemoveDefendantAccountPartyRequestDefendantAccount.builder()
+            .partyDetails(RemoveDefendantAccountPartyDetailsCommonStrict.builder()
+                .partyId("99")
+                .build())
+            .build();
     }
 }

@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.MediaType;
@@ -41,6 +42,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 })
 @Sql(scripts = "classpath:db/insertData/insert_into_minor_creditors.sql", executionPhase = BEFORE_TEST_METHOD)
 @Sql(scripts = "classpath:db/deleteData/delete_from_minor_creditors.sql", executionPhase = AFTER_TEST_METHOD)
+@Tag("ExtendedTest")
 @Slf4j(topic = "opal.OpalMinorCreditorIntegrationTest")
 public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerIntegrationTest {
 

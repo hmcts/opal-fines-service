@@ -403,11 +403,88 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     }
 
     @Test
+    @DisplayName("Create draft account - Should accept a valid major creditor id for an Any result rule")
+    @JiraStory("PO-5750")
+    @JiraEpic("PO-8248")
+    void shouldCreateDraftAccountWhenMajorCreditorResolvesForAnyRule() throws Exception {
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(createRequestForResultAndMajor("FCOMP", 780000000041L)))
+            .andExpect(status().isCreated());
+    }
+
+    @Test
+    @DisplayName("Create draft account - Should return 400 when major creditor id is for another business unit")
+    @JiraStory("PO-5750")
+    @JiraEpic("PO-8248")
+    void shouldReturn400WhenMajorCreditorDoesNotResolveForBusinessUnitOnPost() throws Exception {
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(createRequestForResultAndMajor("FCOMP", 770000000105L)))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedMajorCreditorRuleErrorMessage(770000000105L, (short) 78, "Any"),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("Create draft account - Should return 400 when an Any result has neither major nor minor creditor")
+    @JiraStory("PO-5750")
+    @JiraEpic("PO-8248")
+    void shouldReturn400WhenMinorCreditorIsMissingForAnyRuleOnPost() throws Exception {
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(createRequestForResult("FCOMP")))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedMissingMinorCreditorErrorMessage("Any"),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("Create draft account - Should return 400 when no central fund creditor account exists")
+    @JiraStory("PO-5750")
+    @JiraEpic("PO-8248")
+    @Sql(
+        scripts = "classpath:db/deleteData/delete_from_central_fund_creditor_account.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    @Sql(
+        scripts = "classpath:db/insertData/insert_into_central_fund_creditor_account.sql",
+        executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD
+    )
+    void shouldReturn400WhenCentralFundAccountIsMissingOnPost() throws Exception {
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(createRequestForResult("FO")))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedMissingCentralFundErrorMessage((short) 78),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
     @DisplayName("Create draft account - Should return 400 when payment term enforcement result is missing")
     @JiraStory("PO-5752")
     @JiraEpic("PO-8248")
-    @Sql(scripts = "classpath:db/deleteData/delete_from_results_collo.sql",
-        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(
+        scripts = "classpath:db/deleteData/delete_from_results_collo.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
     @Transactional
     void shouldReturn400WhenPaymentTermEnforcementResultIsMissing() throws Exception {
         mockMvc.perform(post(URL_BASE)
@@ -427,8 +504,10 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("Create draft account - Should return 400 when payment term enforcement result is not an enforcement")
     @JiraStory("PO-5752")
     @JiraEpic("PO-8248")
-    @Sql(scripts = "classpath:db/insertData/insert_into_results_collo_non_enforcement.sql",
-        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(
+        scripts = "classpath:db/insertData/insert_into_results_collo_non_enforcement.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
     @Transactional
     void shouldReturn400WhenPaymentTermEnforcementResultIsNotAnEnforcement() throws Exception {
         mockMvc.perform(post(URL_BASE)
@@ -448,8 +527,10 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("Create draft account - Should return 400 when payment term enforcement result is inactive")
     @JiraStory("PO-5752")
     @JiraEpic("PO-8248")
-    @Sql(scripts = "classpath:db/insertData/insert_into_results_collo_inactive.sql",
-        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(
+        scripts = "classpath:db/insertData/insert_into_results_collo_inactive.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
     @Transactional
     void shouldReturn400WhenPaymentTermEnforcementResultIsInactive() throws Exception {
         mockMvc.perform(post(URL_BASE)
@@ -494,6 +575,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @JiraStory("PO-5746")
     @JiraEpic("PO-8248")
     void testPostDraftAccount_accepted_offence_for_business_unit() throws Exception {
+        long countBefore = draftAccountRepository.count();
         String request = validCreateRequestBody();
 
         ResultActions result = mockMvc.perform(post(URL_BASE)
@@ -502,12 +584,19 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request)).andDo(print());
 
+        String responseBody = result.andReturn().getResponse().getContentAsString();
+        JSONObject responseJson = new JSONObject(responseBody);
+        long draftAccountId = responseJson.getLong("draft_account_id");
+
         result.andExpect(status().isCreated()).andExpect(content()
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.draft_account_id").isNumber())
             .andExpect(jsonPath("$.business_unit_id").value(78))
             .andExpect(jsonPath("$.account.offences[0].offence_id").value(35014))
             .andExpect(jsonPath("$.account.offences[0].business_unit_id").value(78));
+
+        assertEquals(countBefore + 1, draftAccountRepository.count());
+        assertEquals(Short.valueOf((short) 78), getDraftAccount(draftAccountId).getBusinessUnit().getBusinessUnitId());
     }
 
     @Test
@@ -881,12 +970,11 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
 
     private static String expectedReferenceValidationErrorMessage() {
         return """
-            Draft account reference validation failed with 5 error(s):
+            Draft account reference validation failed with 4 error(s):
              - $.enforcement_court_id: court id 999999 does not exist
              - account.offences[0].offence_id: offence id 999998 does not exist
              - $.offences[0].imposing_court_id: court id 999997 does not exist
              - $.offences[0].impositions[0].result_id: result id NOT-A-RESULT does not exist
-             - $.offences[0].impositions[0].major_creditor_id: major creditor id 999996 does not exist
             """.stripIndent().stripTrailing();
     }
 
@@ -895,6 +983,40 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             Draft account reference validation failed with 1 error(s):
              - $.payment_terms.enforcements[0].result_id: result id %s
             """.formatted(resultError).stripIndent().stripTrailing();
+    }
+
+    private static String createRequestForResult(String resultId) {
+        return validCreateRequestBody().replace("\"result_id\": \"FO\"", "\"result_id\": \"" + resultId + "\"");
+    }
+
+    private static String createRequestForResultAndMajor(String resultId, long majorCreditorId) {
+        return createRequestForResult(resultId)
+            .replace("\"major_creditor_id\": null", "\"major_creditor_id\": " + majorCreditorId);
+    }
+
+    private static String expectedMajorCreditorRuleErrorMessage(long majorCreditorId, short businessUnitId,
+                                                                String ruleLabel) {
+        return (
+            "Draft account reference validation failed with 1 error(s):\n"
+                + " - $.offences[0].impositions[0].major_creditor_id: major creditor id %s is not valid for "
+                + "business unit %s and result creditor rule %s"
+        ).formatted(majorCreditorId, businessUnitId, ruleLabel);
+    }
+
+    private static String expectedMissingMinorCreditorErrorMessage(String ruleLabel) {
+        return (
+            "Draft account reference validation failed with 1 error(s):\n"
+                + " - $.offences[0].impositions[0].minor_creditor: a minor creditor or valid major creditor id "
+                + "is required for result creditor rule %s"
+        ).formatted(ruleLabel);
+    }
+
+    private static String expectedMissingCentralFundErrorMessage(short businessUnitId) {
+        return (
+            "Draft account reference validation failed with 1 error(s):\n"
+                + " - $.offences[0].impositions[0].major_creditor_id: no central fund creditor account exists "
+                + "for business unit %s"
+        ).formatted(businessUnitId);
     }
 
     private static String invalidCreateRequestBody() {

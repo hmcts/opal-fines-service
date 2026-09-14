@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:reference-data @R1CReferenceData
+@Opal @ExtendedTest @JIRA-LABEL:reference-data @R1CReferenceData
 Feature: Local Justice Areas Reference Data
 
   Background:

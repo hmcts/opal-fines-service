@@ -177,7 +177,7 @@ public class DraftAccountService {
             BusinessUnitUser unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());
 
             jsonSchemaValidationService.validateOrError(dto.toJson(), ADD_DRAFT_ACCOUNT_REQUEST_JSON);
-            referenceValidationService.validateReferences(dto.getAccount(), dto.getBusinessUnitId());
+            referenceValidationService.validateReferences(dto.getBusinessUnitId(), dto.getAccount());
             DraftAccountEntity entity = draftAccountTransactional.submitDraftAccount(
                 dto, unitUser.getBusinessUnitUserId(), userState.getDisplayName());
             log.debug(":submitDraftAccount: created in DB: {}", entity);
@@ -204,7 +204,7 @@ public class DraftAccountService {
                                                         FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
             BusinessUnitUser unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());
             jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
-            referenceValidationService.validateReferences(dto.getAccount(), dto.getBusinessUnitId());
+            referenceValidationService.validateReferences(dto.getBusinessUnitId(), dto.getAccount());
             DraftAccountEntity replacedEntity = draftAccountTransactional
                 .replaceDraftAccount(draftAccountId, dto, draftAccountTransactional, ifMatch,
                                      unitUser.getBusinessUnitUserId(), userState.getDisplayName());

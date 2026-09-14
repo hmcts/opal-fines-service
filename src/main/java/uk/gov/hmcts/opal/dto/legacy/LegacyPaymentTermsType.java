@@ -7,10 +7,13 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.annotation.JsonNaming;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @XmlRootElement(name = "payment_terms_type")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class LegacyPaymentTermsType {

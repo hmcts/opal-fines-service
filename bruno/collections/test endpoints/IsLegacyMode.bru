@@ -1,0 +1,17 @@
+meta {
+  name: IsLegacyMode
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/testing-support/is-legacy-mode
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}

@@ -59,7 +59,7 @@
     <cve>CVE-2026-23907</cve>
     <cve>CVE-2026-33929</cve>
   </suppress>
-  <suppress until="2026-09-15Z">
+  <suppress until="2026-12-15Z">
     <notes><![CDATA[
     Reviewed 2026-09-01.
     CVE-2026-33117 applies to com.azure:azure-keyvault-keys local cryptographic verification
@@ -68,7 +68,7 @@
     BlobContainerClient, and BlobClient. Keep this suppression only for false-positive
     generic Azure SDK mappings against the Blob Storage dependency chain used by this service.
     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/com\.azure/(azure\-core@1\.58\.(0|1)|azure\-core\-http\-netty@1\.16\.(4|5)|azure\-json@1\.5\.1|azure\-storage\-blob@12\.(34|35)\.0|azure\-storage\-common@12\.(33|34)\.0|azure\-storage\-internal\-avro@12\.(19|20)\.0|azure\-xml@1\.2\.1)$</packageUrl>
+    <packageUrl regex="true">^pkg:maven/com\.azure/(azure\-core@1\.(58\.(0|1)|59\.0)|azure\-core\-http\-netty@1\.16\.(4|5|6)|azure\-json@1\.5\.1|azure\-storage\-blob@12\.3(4\.0|5\.(0|1))|azure\-storage\-common@12\.(33|34)\.0|azure\-storage\-internal\-avro@12\.(19|20)\.0|azure\-xml@1\.2\.1)$</packageUrl>
     <cve>CVE-2026-33117</cve>
   </suppress>
   <suppress until="2026-07-31Z">

@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.entity.configurationitem;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -18,7 +19,6 @@ import jakarta.persistence.Table;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
-import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -73,5 +73,6 @@ public class ConfigurationItemEntity {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "item_values")
-    private Map<String, Object> itemValues;
+    // Hibernate JSON mapping currently hydrates via Jackson 2, so keep this type at the persistence boundary.
+    private JsonNode itemValues;
 }

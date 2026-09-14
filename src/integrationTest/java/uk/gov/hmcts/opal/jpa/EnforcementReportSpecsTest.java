@@ -8,6 +8,7 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -29,6 +30,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @ActiveProfiles({"integration"})
 @Sql(scripts = "classpath:db/insertData/insert_into_enforcements.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_enforcements.sql", executionPhase = AFTER_TEST_CLASS)
+@Tag("ExtendedTest")
 class EnforcementReportSpecsTest extends AbstractIntegrationTest {
 
     @Autowired

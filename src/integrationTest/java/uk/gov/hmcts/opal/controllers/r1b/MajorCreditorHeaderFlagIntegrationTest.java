@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -25,6 +26,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
     "launchdarkly.default-flag-values.release-1b=false"
 })
 @DisplayName("Major Creditor Account Header Summary Feature Flag Integration Tests")
+@Tag("ExtendedTest")
 class MajorCreditorHeaderFlagIntegrationTest extends AbstractIntegrationTest {
 
     @MockitoBean

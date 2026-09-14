@@ -1,11 +1,19 @@
 #!groovy
 import uk.gov.hmcts.contino.GithubAPI
 
-@Library("Infrastructure@2.5.4")
+@Library("Infrastructure@2.7.2")
 
 def type = "java"
 def product = "opal"
 def component = "fines-service"
+
+def enableExtendedTestsForLabel() {
+  def githubApi = new GithubAPI(this)
+  if (githubApi.getLabels(env.BRANCH_NAME).any { it.equalsIgnoreCase("ExtendedTests") }) {
+    env.EXTENDED_TESTS = "true"
+    echo "PR label 'ExtendedTests' found; extended test lane enabled for Gradle test tasks"
+  }
+}
 
 def determineDevEnvironmentDeployment() {
   env.TEST_URL = "https://opal-fines-service-pr-${env.CHANGE_ID}.dev.platform.hmcts.net"
@@ -31,6 +39,7 @@ def determineDevEnvironmentDeployment() {
   if (githubApi.checkForLabel(env.BRANCH_NAME, "legacy_mode")) {
     env.IS_LEGACY_MODE = "true"
   }
+
   //Enable logging service and service bus by default to allow for functional tests to run with azure service bus connectivity
   env.DEV_ENABLE_OPAL_LOGGING_SERVICE = true
   env.DEV_ENABLE_OPAL_SERVICE_BUS = true
@@ -178,6 +187,7 @@ def publishSmokeResults(String reportNameSuffix = '') {
 
 withPipeline(type, product, component) {
   env.FAIL_FAST = false
+  env.EXTENDED_TESTS = "false"
   env.STAGING_DB_SCHEMA = 'public'
   env.OPAL_LEGACY_GATEWAY_URL = 'https://opal-legacy-db-stub-staging.platform.hmcts.net/opal'
   env.OPAL_LEGACY_STUB_IMAGE = 'hmctsprod.azurecr.io/opal/legacy-db-stub:latest'
@@ -199,7 +209,9 @@ withPipeline(type, product, component) {
   }
 
   before('test') {
-    steps.sh './gradlew checkTestJiraAnnotations'
+    onPR {
+      enableExtendedTestsForLabel()
+    }
   }
 
   afterAlways('test') {

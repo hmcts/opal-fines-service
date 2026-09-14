@@ -14,6 +14,7 @@ import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService.GET
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpHeaders;
@@ -37,6 +38,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
     "launchdarkly.default-flag-values.release-1b=true"
 })
 @DisplayName("Legacy Defendant Account History Integration Tests")
+@Tag("ExtendedTest")
 @Slf4j(topic = "opal.LegacyDefAccHistoryTest")
 class LegacyDefAccHistoryTest extends AbstractLegacyDefendantsIntegrationTest {
 
