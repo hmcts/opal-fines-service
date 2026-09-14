@@ -85,7 +85,6 @@ public class DefendantAccountApiController implements DefendantAccountApi {
 
         AddPaymentCardRequestResponse response =
             defendantAccountPaymentTermsService.addPaymentCardRequest(id, businessUnitId, ifMatch);
-
         AddPaymentCardRequestDefendantAccount generatedResponse = AddPaymentCardRequestDefendantAccount.builder()
             .defendantAccountId(response.getDefendantAccountId())
             .build();
