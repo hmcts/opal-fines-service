@@ -77,6 +77,9 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-304")
+    @JiraStory("PO-313")
+    @JiraEpic("PO-304")
     @DisplayName("Get Business Unit by ID - configuration items exclude recursive business unit reference")
     @Sql(
         scripts = "classpath:db/insertData/insert_into_business_units_configuration_items.sql",
