@@ -104,7 +104,7 @@ class LegacyMinorCreditorPatchStubIntegrationTest extends AbstractIntegrationTes
     }
 
     private ResultActions performLegacyPatch(long creditorAccountId, String ifMatch) throws Exception {
-        userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.values());
+        userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR);
         return mockMvc.perform(
             patch(URL_BASE + "/" + creditorAccountId)
                 .contentType(MediaType.APPLICATION_JSON)
