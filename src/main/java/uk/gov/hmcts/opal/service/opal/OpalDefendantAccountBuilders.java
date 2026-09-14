@@ -962,7 +962,7 @@ public class OpalDefendantAccountBuilders {
             .enforcementStatus(toStrictEnforcementStatus(buildEnforcementStatusSummary(entity)))
             .commentsAndNotes(toStrictCommentsAndNotes(buildCommentsAndNotes(entity)))
             .accountBalance(entity.getAccountBalance())
-            //.accountStatusCode(safeAccountStatusCode(entity.getAccountStatus()))
+            .accountStatusCode(safeAccountStatusCode(entity.getAccountStatus()))
             .build()
     }
 
