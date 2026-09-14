@@ -1001,15 +1001,19 @@ components:
         courtFeeId:
           type: integer
           format: int64
+          description: DB Mapping - court_fees.court_fee_id
         courtFeeCode:
           type: string
           maxLength: 10
+          description: DB Mapping - court_fees.court_fee_code
         description:
           type: String
           maxLength: 50
+          description: DB Mapping - court_fees.description
         amount:
           type: number
           multipleOf: 0.01
+          description: DB Mapping - court_fees.amount
 
     creditorTransactionStatusReference:
       type: object
