@@ -14,7 +14,7 @@ import org.springframework.jms.connection.CachingConnectionFactory;
 @EnableJms
 @Configuration
 @ConditionalOnExpression("${opal.report.service-bus.consumer-enabled} == true "
-    + "and ${opal.automated-task:null} == null")
+    + "and '${opal.automated-task:}' == ''")
 @EnableConfigurationProperties(ServiceBusProperties.class)
 @RequiredArgsConstructor
 public class QueueConsumerJmsConfig {

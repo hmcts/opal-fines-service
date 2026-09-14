@@ -60,5 +60,15 @@ class QueueConsumerJmsConfigTest {
             });
     }
 
+    @Test
+    void skipsJmsBeanWhenConsumerIsEnabledAndAutomatedJob() {
+        contextRunner
+            .withPropertyValues("opal.report.service-bus.consumer-enabled=true", "opal.automated-task=true")
+            .run(context -> {
+                assertThat(context).doesNotHaveBean(QueueConsumerJmsConfig.class);
+                assertThat(context).doesNotHaveBean(ConnectionFactory.class);
+                assertThat(context).hasSingleBean(ReportQueueListener.class);
+            });
+    }
 }
 
