@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -18,6 +19,7 @@ import org.mockito.Mockito;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
@@ -375,7 +377,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
 
     @Test
     @SuppressWarnings("unchecked")
-    void testGetHeaderSummary_legacyFailure5xx_logsAndMaps() {
+    void testGetHeaderSummary_legacyFailure5xx_logsAndThrowsHttpServerErrorException() {
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
 
         when(restClient.responseSpec.body(
@@ -384,9 +386,8 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
 
-        DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(1L);
-        assertNotNull(out);
-        assertEquals("SAMPLE", out.getResponse().getAccountNumber());
+        assertThatThrownBy(() -> legacyDefendantAccountService.getHeaderSummary(1L))
+            .isInstanceOf(HttpServerErrorException.class).hasMessage("503 Legacy gateway returned failure");
     }
 
     @Test
