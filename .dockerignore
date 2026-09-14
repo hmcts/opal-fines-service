@@ -2,10 +2,15 @@
 
 !Dockerfile
 !build/
+build/**
 !build/libs/
+build/libs/**
 !build/libs/opal-fines-service.jar
 !bin/
+bin/**
 !bin/utils/
+bin/utils/**
 !bin/utils/launchdarkly-flags.json
 !lib/
+lib/**
 !lib/applicationinsights.json
