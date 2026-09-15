@@ -24,15 +24,16 @@ public enum FinesPermission implements PermissionDescriptor {
     AMEND_PAYMENT_TERMS(9L, "Amend Payment Terms"),
     ENTER_ENFORCEMENT(10L, "Enter Enforcement"),
     VIEW_CREDITOR_BACS(11L, "View Creditor BACS"),
+    ADD_AND_REMOVE_PAYMENT_HOLD(12L, "Add and Remove payment hold"),
     CONSOLIDATE(13L, "Consolidate"),
-    // TODO verify this ID mirrors opal-user-service Permissions.ADD_AND_REMOVE_PAYMENT_HOLD ?
-    ADD_AND_REMOVE_PAYMENT_HOLD(14L, "Add and Remove payment hold"), // TODO - should this be 12L?
+    OPERATIONAL_REPORT_BY_ENFORCEMENT(14L, "Operational report by enforcement"),
+    OPERATIONAL_REPORT_BY_PAYMENTS(15L, "Operational report by payments"),
     PROCESS_AND_ALLOCATE_PAYMENTS(16L, "Process and Allocate Payments"),
     AUTO_ENFORCEMENT(17L, "Auto Enforcement"),
-    OPERATIONAL_REPORT_BY_ENFORCEMENT(18L, "Operational report by enforcement"),
-    OPERATIONAL_REPORT_BY_PAYMENTS(19L, "Operational report by payments"),
     ACCOUNT_MAINTENANCE_MINOR_CREDITOR(20L, "Account Maintenance - Minor Creditor"),
-    MANAGE_ALTERNATE_PAYMENT_REFERENCES(21L, "Manage Alternate Payment References");
+    MANAGE_ALTERNATE_PAYMENT_REFERENCES(21L, "Manage Alternate Payment References"),
+    VIEW_SUSPENSE_ITEMS(24L, "View Suspense Items"),
+    MANAGE_SUSPENSE_ITEMS(25L, "Manage Suspense Items");
 
     /**
      * Convenience aggregate used by parts of the service that require both draft account permissions.
