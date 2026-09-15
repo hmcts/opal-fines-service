@@ -2,6 +2,8 @@ package uk.gov.hmcts.opal.service.refdata.framework;
 
 import java.util.Optional;
 
+//also need cache refresh. Define cache names to be refreshed in the handler?
+
 public interface RefDataUpdateHandler<T, E> {
     String refDataType();
 
