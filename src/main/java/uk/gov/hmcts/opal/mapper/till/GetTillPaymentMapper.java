@@ -21,7 +21,6 @@ import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.generated.model.TillsPayerName;
 import uk.gov.hmcts.opal.generated.model.TillsPaymentIn;
-import uk.gov.hmcts.opal.generated.model.TillsPaymentInItem;
 
 @Mapper(
     componentModel = "spring",
@@ -31,10 +30,6 @@ import uk.gov.hmcts.opal.generated.model.TillsPaymentInItem;
 public abstract class GetTillPaymentMapper {
 
     private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
-
-    @Mapping(target = "paymentIn", source = "payment")
-    public abstract TillsPaymentInItem toPaymentItem(
-        PaymentInEntity payment, @Context Map<Long, DefendantAccountEntity> defendantAccounts);
 
     @Mapping(target = "associatedRecordId", qualifiedByName = "toNullableString")
     @Mapping(target = "associatedRecordType", qualifiedByName = "toAssociatedRecordType")
@@ -46,7 +41,7 @@ public abstract class GetTillPaymentMapper {
     @Mapping(target = "thirdPartyPayerName", qualifiedByName = "toNullableString")
     @Mapping(target = "defendantDetail", source = "payment", qualifiedByName = "resolveDefendantDetail")
     @Mapping(target = "payerName", ignore = true)
-    protected abstract TillsPaymentIn toPayment(
+    public abstract TillsPaymentIn toPayment(
         PaymentInEntity payment, @Context Map<Long, DefendantAccountEntity> defendantAccounts);
 
     @AfterMapping

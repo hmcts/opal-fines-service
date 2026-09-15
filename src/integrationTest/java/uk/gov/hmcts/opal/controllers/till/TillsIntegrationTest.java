@@ -53,27 +53,27 @@ class TillsIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.created_by").value("Alex Cashier"))
             .andExpect(jsonPath("$.created_date").value("2026-09-09T10:30:00"))
             .andExpect(jsonPath("$.payments_in", hasSize(2)))
-            .andExpect(jsonPath("$.payments_in[0].payment_in.payment_in_id").value(99000000836240L))
-            .andExpect(jsonPath("$.payments_in[0].payment_in.associated_record_type")
+            .andExpect(jsonPath("$.payments_in[0].payment_in_id").value(99000000836240L))
+            .andExpect(jsonPath("$.payments_in[0].associated_record_type")
                 .value("defendant_accounts"))
-            .andExpect(jsonPath("$.payments_in[0].payment_in.amount").value(25.50))
-            .andExpect(jsonPath("$.payments_in[0].payment_in.method").value("NC"))
-            .andExpect(jsonPath("$.payments_in[0].payment_in.destination_type").value("F"))
-            .andExpect(jsonPath("$.payments_in[0].payment_in.payment_received_from").value("D"))
-            .andExpect(jsonPath("$.payments_in[0].payment_in.defendant_detail.defendant_account_number")
+            .andExpect(jsonPath("$.payments_in[0].amount").value(25.50))
+            .andExpect(jsonPath("$.payments_in[0].method").value("NC"))
+            .andExpect(jsonPath("$.payments_in[0].destination_type").value("F"))
+            .andExpect(jsonPath("$.payments_in[0].payment_received_from").value("D"))
+            .andExpect(jsonPath("$.payments_in[0].defendant_detail.defendant_account_number")
                 .value("GTIL123"))
-            .andExpect(jsonPath("$.payments_in[0].payment_in.defendant_detail.party_details.organisation_flag")
+            .andExpect(jsonPath("$.payments_in[0].defendant_detail.party_details.organisation_flag")
                 .value(false))
-            .andExpect(jsonPath("$.payments_in[0].payment_in.defendant_detail.party_details"
+            .andExpect(jsonPath("$.payments_in[0].defendant_detail.party_details"
                 + ".individual_names.forenames").value("Jane"))
-            .andExpect(jsonPath("$.payments_in[0].payment_in.defendant_detail.party_details"
+            .andExpect(jsonPath("$.payments_in[0].defendant_detail.party_details"
                 + ".individual_names.surname").value("Doe"))
-            .andExpect(jsonPath("$.payments_in[1].payment_in.payment_in_id").value(99000000836250L))
-            .andExpect(jsonPath("$.payments_in[1].payment_in.payment_received_from").value("T"))
-            .andExpect(jsonPath("$.payments_in[1].payment_in.third_party_payer_name")
+            .andExpect(jsonPath("$.payments_in[1].payment_in_id").value(99000000836250L))
+            .andExpect(jsonPath("$.payments_in[1].payment_received_from").value("T"))
+            .andExpect(jsonPath("$.payments_in[1].third_party_payer_name")
                 .value("Third Party Payer"))
-            .andExpect(jsonPath("$.payments_in[1].payment_in.payer_name.forenames").value("Sam"))
-            .andExpect(jsonPath("$.payments_in[1].payment_in.payer_name.surname").value("Smith"));
+            .andExpect(jsonPath("$.payments_in[1].payer_name.forenames").value("Sam"))
+            .andExpect(jsonPath("$.payments_in[1].payer_name.surname").value("Smith"));
     }
 
     @Test

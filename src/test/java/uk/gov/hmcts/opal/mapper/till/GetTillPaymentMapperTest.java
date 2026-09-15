@@ -25,7 +25,7 @@ class GetTillPaymentMapperTest {
     private GetTillPaymentMapper mapper;
 
     @Nested
-    class ToPaymentItem {
+    class ToPayment {
 
         @Test
         void whenIndividualPayerIsProvided_mapsPaymentAndPayer_happyPath() {
@@ -39,7 +39,7 @@ class GetTillPaymentMapperTest {
             payment.setThirdPartyPayerName("Third Party");
             payment.setReceipt(true);
 
-            TillsPaymentIn mapped = mapper.toPaymentItem(payment, Map.of()).getPaymentIn();
+            TillsPaymentIn mapped = mapper.toPayment(payment, Map.of());
 
             assertAll(
                 () -> assertEquals(2L, mapped.getPaymentInId()),
@@ -63,7 +63,7 @@ class GetTillPaymentMapperTest {
                   "organisation_name":"Payer Limited"}}}
                 """);
 
-            TillsPaymentIn mapped = mapper.toPaymentItem(payment, Map.of()).getPaymentIn();
+            TillsPaymentIn mapped = mapper.toPayment(payment, Map.of());
 
             assertEquals("Payer Limited", mapped.getPayerName().get().getOrganisationName().get());
         }
@@ -72,7 +72,7 @@ class GetTillPaymentMapperTest {
         void whenAdditionalInformationIsInvalid_rejectsPersistedData_sadPath() {
             PaymentInEntity payment = payment(1L, S, "not-json");
 
-            assertThatThrownBy(() -> mapper.toPaymentItem(payment, Map.of()))
+            assertThatThrownBy(() -> mapper.toPayment(payment, Map.of()))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Payment 1 has invalid additional_information");
         }

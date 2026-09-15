@@ -209,16 +209,7 @@ components:
           type: array
           minItems: 1
           items:
-            $ref: '#/components/schemas/TillsPaymentInItem'
-
-    TillsPaymentInItem:
-      type: object
-      additionalProperties: false
-      required:
-        - payment_in
-      properties:
-        payment_in:
-          $ref: '#/components/schemas/TillsPaymentIn'
+            $ref: '#/components/schemas/TillsPaymentIn'
 
     TillsPaymentIn:
       type: object
