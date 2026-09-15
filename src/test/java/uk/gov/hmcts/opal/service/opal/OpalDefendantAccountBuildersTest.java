@@ -439,6 +439,22 @@ class OpalDefendantAccountBuildersTest {
     }
 
     @Test
+    void buildAtAGlanceResponse_mapToNull() {
+        assertNull(OpalDefendantAccountBuilders.buildAtAGlancePayload(null));
+    }
+
+    @Test
+    void safeAccountStatusCode_mapNullToNull() {
+        assertNull(OpalDefendantAccountBuilders.safeAccountStatusCode(null));
+    }
+
+    @Test
+    void safeAccountStatusCode_mapValueToNull() {
+        assertEquals(AccountStatusCodeEnum.CS, OpalDefendantAccountBuilders
+            .safeAccountStatusCode(DefendantAccountStatus.ACCOUNT_CONSOLIDATED));
+    }
+
+    @Test
     void toStrictPartyDetails_mapsOrganisationBranch() {
         PartyDetails source = PartyDetails.builder()
             .partyId("123")
