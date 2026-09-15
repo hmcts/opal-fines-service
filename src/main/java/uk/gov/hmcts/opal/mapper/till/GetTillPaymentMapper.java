@@ -21,24 +21,25 @@ import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.generated.model.TillsPayerName;
 import uk.gov.hmcts.opal.generated.model.TillsPaymentIn;
+import uk.gov.hmcts.opal.mapper.common.JsonNullableMapper;
 
 @Mapper(
     componentModel = "spring",
     uses = GetTillDefendantMapper.class,
     builder = @Builder(disableBuilder = true)
 )
-public abstract class GetTillPaymentMapper {
+public abstract class GetTillPaymentMapper implements JsonNullableMapper {
 
     private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
-    @Mapping(target = "associatedRecordId", qualifiedByName = "toNullableString")
+    @Mapping(target = "associatedRecordId", qualifiedByName = "toJsonNullable")
     @Mapping(target = "associatedRecordType", qualifiedByName = "toAssociatedRecordType")
     @Mapping(target = "amount", source = "paymentAmount")
     @Mapping(target = "date", source = "paymentDate")
     @Mapping(target = "method", source = "paymentMethod")
-    @Mapping(target = "allocationType", qualifiedByName = "toNullableString")
+    @Mapping(target = "allocationType", qualifiedByName = "toJsonNullable")
     @Mapping(target = "paymentReceivedFrom", ignore = true)
-    @Mapping(target = "thirdPartyPayerName", qualifiedByName = "toNullableString")
+    @Mapping(target = "thirdPartyPayerName", qualifiedByName = "toJsonNullable")
     @Mapping(target = "defendantDetail", source = "payment", qualifiedByName = "resolveDefendantDetail")
     @Mapping(target = "payerName", ignore = true)
     public abstract TillsPaymentIn toPayment(
@@ -50,11 +51,6 @@ public abstract class GetTillPaymentMapper {
         target.setPaymentReceivedFrom(TillsPaymentIn.PaymentReceivedFromEnum.fromValue(
             additionalInformation.paymentReceivedFrom()));
         target.setPayerName(resolvePayerName(payment, additionalInformation.payerDetails()));
-    }
-
-    @Named("toNullableString")
-    protected JsonNullable<String> toNullableString(String value) {
-        return JsonNullable.of(value);
     }
 
     @Named("toAssociatedRecordType")
@@ -85,9 +81,9 @@ public abstract class GetTillPaymentMapper {
         return JsonNullable.of(toPayerName(forenames, surname, organisationName));
     }
 
-    @Mapping(target = "forenames", source = "forenames", qualifiedByName = "toNullableString")
-    @Mapping(target = "surname", source = "surname", qualifiedByName = "toNullableString")
-    @Mapping(target = "organisationName", source = "organisationName", qualifiedByName = "toNullableString")
+    @Mapping(target = "forenames", source = "forenames", qualifiedByName = "toJsonNullable")
+    @Mapping(target = "surname", source = "surname", qualifiedByName = "toJsonNullable")
+    @Mapping(target = "organisationName", source = "organisationName", qualifiedByName = "toJsonNullable")
     protected abstract TillsPayerName toPayerName(String forenames, String surname, String organisationName);
 
     private AdditionalInformation parseAdditionalInformation(PaymentInEntity payment) {
