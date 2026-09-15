@@ -300,6 +300,33 @@ components:
           $ref: '#/components/schemas/TillsCreatePayerType'
         payer_details:
           $ref: '#/components/schemas/TillsCreatePayerDetails'
+      allOf:
+        - if:
+            properties:
+              payer_type:
+                enum:
+                  - Individual
+            required:
+              - payer_type
+              - payer_details
+          then:
+            properties:
+              payer_details:
+                required:
+                  - individual
+        - if:
+            properties:
+              payer_type:
+                enum:
+                  - Organisation
+            required:
+              - payer_type
+              - payer_details
+          then:
+            properties:
+              payer_details:
+                required:
+                  - organisation
     TillsCreatePayerDetails:
       type: object
       additionalProperties: false
