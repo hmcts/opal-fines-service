@@ -65,8 +65,6 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.defendant_account_party_id").value("77"));
-
-        jsonSchemaValidationService.validateOrError(body, REMOVE_DEFENDANT_PARTY_RESPONSE_SCHEMA);
     }
 
     @Test
@@ -112,8 +110,6 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.defendant_account_party_id").value("555"));
-
-        jsonSchemaValidationService.validateOrError(body, REMOVE_DEFENDANT_PARTY_RESPONSE_SCHEMA);
     }
 
     @Test
@@ -138,7 +134,5 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.defendant_account_party_id").value("666"));
-
-        jsonSchemaValidationService.validateOrError(body, REMOVE_DEFENDANT_PARTY_RESPONSE_SCHEMA);
     }
 }

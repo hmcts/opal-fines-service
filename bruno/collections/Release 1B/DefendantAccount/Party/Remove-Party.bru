@@ -5,18 +5,21 @@ meta {
 }
 
 delete {
-  url: {{baseURL}}/defendant-accounts/{{defendantAccount_idOrg}}/defendant-account-parties/{{defendantAccount_party_idOrg}}
+  url: {{baseURL}}/defendant-accounts/{{defendantAccountId}}/defendant-account-parties/{{defendantAccountPartyId}}
   body: json
   auth: inherit
 }
 
 headers {
   Business-Unit-Id: 77
+  If-Match: "{{accountVersion}}"
 }
 
 body:json {
   {
-    "defendant_account_party_id": "{{defendantAccount_party_idOrg}}"
+    "party_details": {
+      "party_id": "{{partyId}}"
+    }
   }
 }
 
