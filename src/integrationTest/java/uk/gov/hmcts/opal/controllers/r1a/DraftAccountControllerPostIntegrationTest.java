@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -44,7 +45,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @DisplayName("DraftAccountControllerPostIntegrationTest")
 class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountControllerIntegrationTest {
 
-    // adding a cmment
     private String validRawJsonCreateRequestBody() {
         AddDraftAccountRequestDto dto = AddDraftAccountRequestDto.builder()
             .businessUnitId((short) 78)

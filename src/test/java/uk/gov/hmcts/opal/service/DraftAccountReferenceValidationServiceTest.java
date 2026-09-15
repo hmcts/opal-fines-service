@@ -143,7 +143,7 @@ class DraftAccountReferenceValidationServiceTest {
         assertDoesNotThrow(() -> service.validateReferences(BUSINESS_UNIT_ID, enforcementCourtOnlyAccountJson(11)));
 
         verify(courtLiteRepository).existsById(11L);
-        verifyNoInteractions(offenceRepository, resultRepository, majorCreditorRepository);
+        verifyNoInteractions(offenceRepository, resultRepository, creditorAccountRepository);
     }
 
     @Test
@@ -155,7 +155,7 @@ class DraftAccountReferenceValidationServiceTest {
 
         assertContains(exception.getMessage(), "account.enforcement_court_id: court id 999999 does not exist");
         verify(courtLiteRepository).existsById(999999L);
-        verifyNoInteractions(offenceRepository, resultRepository, majorCreditorRepository);
+        verifyNoInteractions(offenceRepository, resultRepository, creditorAccountRepository);
     }
 
     @Test
