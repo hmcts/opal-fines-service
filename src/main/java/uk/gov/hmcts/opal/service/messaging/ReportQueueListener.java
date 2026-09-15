@@ -5,6 +5,7 @@ import jakarta.jms.Message;
 import jakarta.jms.TextMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
@@ -12,7 +13,8 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j(topic = "opal.ReportQueueListener")
-@ConditionalOnProperty(prefix = "opal.report.service-bus", name = "consumer-enabled", havingValue = "true")
+@ConditionalOnExpression("${opal.report.service-bus.consumer-enabled} == true "
+    + "and '${opal.automated-task:}' == ''")
 public class ReportQueueListener {
 
     private final ReportQueueConsumerService consumer;

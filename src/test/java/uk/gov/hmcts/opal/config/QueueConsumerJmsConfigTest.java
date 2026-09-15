@@ -67,7 +67,7 @@ class QueueConsumerJmsConfigTest {
             .run(context -> {
                 assertThat(context).doesNotHaveBean(QueueConsumerJmsConfig.class);
                 assertThat(context).doesNotHaveBean(ConnectionFactory.class);
-                assertThat(context).hasSingleBean(ReportQueueListener.class);
+                assertThat(context).doesNotHaveBean(ReportQueueListener.class);
             });
     }
 }

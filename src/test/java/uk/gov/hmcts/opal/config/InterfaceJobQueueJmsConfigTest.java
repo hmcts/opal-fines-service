@@ -62,7 +62,7 @@ class InterfaceJobQueueJmsConfigTest {
             .run(context -> {
                 assertThat(context).doesNotHaveBean(InterfaceJobQueueJmsConfig.class);
                 assertThat(context).doesNotHaveBean(ConnectionFactory.class);
-                assertThat(context).hasSingleBean(InterfaceJobQueueListener.class);
+                assertThat(context).doesNotHaveBean(InterfaceJobQueueListener.class);
             });
     }
 }
