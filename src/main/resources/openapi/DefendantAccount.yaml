@@ -1575,10 +1575,14 @@ components:
         payment_terms:
           $ref: '#/components/schemas/paymentTerms'
         payment_card_last_requested:
-          type: string
+          type:
+            - string
+            - 'null'
           format: date
         last_enforcement:
-          type: string
+          type:
+            - string
+            - 'null'
           minLength: 1
     paymentTerms:
       title: Payment Terms

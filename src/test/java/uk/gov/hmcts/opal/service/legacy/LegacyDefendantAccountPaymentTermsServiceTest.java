@@ -34,6 +34,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mapstruct.factory.Mappers;
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpServerErrorException;
 import tools.jackson.databind.JsonNode;
@@ -520,9 +521,9 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         assertThat(actualResponse.getVersion()).isEqualTo(legacyResponse.getVersion());
         assertNotNull(actualResponse.getPaymentTerms());
         assertThat(actualResponse.getPaymentCardLastRequested())
-            .isEqualTo(legacyResponse.getPaymentCardLastRequested());
+            .isEqualTo(JsonNullable.of(legacyResponse.getPaymentCardLastRequested()));
         assertThat(actualResponse.getLastEnforcement())
-            .isEqualTo(legacyResponse.getLastEnforcement());
+            .isEqualTo(JsonNullable.of(legacyResponse.getLastEnforcement()));
     }
 
     @Test
