@@ -275,6 +275,10 @@ tasks.register("bundleOpenApi", JavaExec) {
   group = "openapi"
   description = "Bundle multiple OpenAPI YAML files into one"
   mainClass = 'uk.gov.hmcts.opal.openapi.OpenApiBundler'
+  // Track schema content so separate assemble/check/Sonar invocations can reuse the bundle.
+  inputs.files(fileTree('src/main/resources/openapi') { include '**/*.yaml' })
+    .withPropertyName('schemas').withPathSensitivity(PathSensitivity.RELATIVE)
+  outputs.file(layout.buildDirectory.file('openapi-bundled.yaml')).withPropertyName('bundledSpec')
   args = ["$rootDir/src/main/resources/openapi", layout.buildDirectory.file("openapi-bundled.yaml").get().asFile.absolutePath]
 }
 
