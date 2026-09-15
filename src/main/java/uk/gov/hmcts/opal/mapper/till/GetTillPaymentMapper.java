@@ -21,14 +21,14 @@ import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.generated.model.TillsPayerName;
 import uk.gov.hmcts.opal.generated.model.TillsPaymentIn;
-import uk.gov.hmcts.opal.mapper.common.JsonNullableMapper;
+import uk.gov.hmcts.opal.mapper.helper.JsonNullableMapperHelper;
 
 @Mapper(
     componentModel = "spring",
-    uses = GetTillDefendantMapper.class,
+    uses = {GetTillDefendantMapper.class, JsonNullableMapperHelper.class},
     builder = @Builder(disableBuilder = true)
 )
-public abstract class GetTillPaymentMapper implements JsonNullableMapper {
+public abstract class GetTillPaymentMapper {
 
     private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
