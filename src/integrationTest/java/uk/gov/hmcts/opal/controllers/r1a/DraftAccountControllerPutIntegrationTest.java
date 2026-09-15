@@ -772,6 +772,45 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     }
 
     @Test
+    @DisplayName("Replace draft account - Should return 400 when enforcement court does not exist")
+    @JiraStory("PO-5745")
+    @JiraEpic("PO-8248")
+    void testReplaceDraftAccount_whenEnforcementCourtDoesNotExist_returns400AndLeavesDataUnchanged() throws Exception {
+        DraftAccountEntity before = getDraftAccount(5L);
+        long countBefore = draftAccountRepository.count();
+        String ifMatch = getIfMatchForDraftAccount(5L);
+
+        mockMvc.perform(put(URL_BASE + "/5")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", ifMatch)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(invalidEnforcementCourtReplaceRequestBody(0L)))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedEnforcementCourtValidationErrorMessage(),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+
+        DraftAccountEntity after = getDraftAccount(5L);
+
+        assertEquals(countBefore, draftAccountRepository.count());
+        assertEquals(before.getAccount(), after.getAccount());
+        assertEquals(before.getAccountStatus(), after.getAccountStatus());
+        assertEquals(before.getVersionNumber(), after.getVersionNumber());
+        assertEquals(before.getAccountId(), after.getAccountId());
+        assertEquals(before.getAccountNumber(), after.getAccountNumber());
+        assertEquals(before.getStatusMessage(), after.getStatusMessage());
+        assertEquals(before.getSubmittedBy(), after.getSubmittedBy());
+        assertEquals(before.getSubmittedByName(), after.getSubmittedByName());
+        assertEquals(before.getValidatedBy(), after.getValidatedBy());
+        assertEquals(before.getValidatedByName(), after.getValidatedByName());
+        assertEquals(before.getAccountSnapshot(), after.getAccountSnapshot());
+        assertEquals(before.getTimelineData(), after.getTimelineData());
+    }
+
+    @Test
     @DisplayName("Replace draft account - Should return 400 when payment term enforcement result is not an enforcement")
     @JiraStory("PO-5752")
     @JiraEpic("PO-8248")
@@ -1016,10 +1055,15 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             .replace("\"major_creditor_id\": null", "\"major_creditor_id\": 999996");
     }
 
+    private static String invalidEnforcementCourtReplaceRequestBody(Long version) {
+        return validReplaceRequestBody(version)
+            .replace("\"enforcement_court_id\": 260000000048", "\"enforcement_court_id\": 999999");
+    }
+
     private static String expectedReferenceValidationErrorMessage() {
         return """
             Draft account reference validation failed with 5 error(s):
-             - $.enforcement_court_id: court id 999999 does not exist
+             - account.enforcement_court_id: court id 999999 does not exist
              - account.offences[0].offence_id: offence id 999998 does not exist
              - $.offences[0].imposing_court_id: court id 999997 does not exist
              - $.offences[0].impositions[0].result_id: result id NOT-A-RESULT does not exist
@@ -1073,6 +1117,13 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             Draft account reference validation failed with 1 error(s):
              - %s
             """.formatted(detail).stripIndent().stripTrailing();
+    }
+
+    private static String expectedEnforcementCourtValidationErrorMessage() {
+        return """
+            Draft account reference validation failed with 1 error(s):
+             - account.enforcement_court_id: court id 999999 does not exist
+            """.stripIndent().stripTrailing();
     }
 
     private static String validReplaceRequestBodyForPdpl(Long version) {
