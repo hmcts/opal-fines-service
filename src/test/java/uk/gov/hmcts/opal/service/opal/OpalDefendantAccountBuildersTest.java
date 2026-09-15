@@ -326,7 +326,6 @@ class OpalDefendantAccountBuildersTest {
         assertTrue(details.getOrganisationFlag());
         assertNull(details.getIndividualDetails());
 
-        // Organisation details may be null or just an empty object
         OrganisationDetails organisation = details.getOrganisationDetails();
         assertNotNull(organisation);
         assertEquals("The Organisation", organisation.getOrganisationName());
