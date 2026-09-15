@@ -28,7 +28,6 @@ import uk.gov.hmcts.opal.dto.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.common.AddressDetails.AddressDetailsBuilder;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
-import uk.gov.hmcts.opal.dto.common.ContactDetails;
 import uk.gov.hmcts.opal.dto.common.EmployerDetails;
 import uk.gov.hmcts.opal.dto.common.EmployerDetails.EmployerDetailsBuilder;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
@@ -48,8 +47,6 @@ import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsSummary;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
-import uk.gov.hmcts.opal.dto.common.VehicleDetails;
-import uk.gov.hmcts.opal.dto.common.VehicleDetails.VehicleDetailsBuilder;
 import uk.gov.hmcts.opal.dto.search.AliasDto;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.AliasEntity;
@@ -473,25 +470,6 @@ public class OpalDefendantAccountBuilders {
         Function<DebtorDetailEntity, Language> getter) {
 
         return LanguagePreference.fromCode(debtorDetail.map(getter).map(Language::getCode).orElse(null));
-    }
-
-    static VehicleDetails buildVehicleDetails(DebtorDetailEntity debtorDetail) {
-        VehicleDetailsBuilder builder = VehicleDetails.builder();
-        if (debtorDetail != null) {
-            builder.vehicleMakeAndModel(debtorDetail.getVehicleMake())
-                .vehicleRegistration(debtorDetail.getVehicleRegistration());
-        }
-        return builder.build();
-    }
-
-    static ContactDetails buildContactDetails(PartyEntity party) {
-        return ContactDetails.builder()
-            .primaryEmailAddress(party.getPrimaryEmailAddress())
-            .secondaryEmailAddress(party.getSecondaryEmailAddress())
-            .mobileTelephoneNumber(party.getMobileTelephoneNumber())
-            .homeTelephoneNumber(party.getHomeTelephoneNumber())
-            .workTelephoneNumber(party.getWorkTelephoneNumber())
-            .build();
     }
 
     static EmployerDetails buildEmployerDetails(DebtorDetailEntity debtorDetail) {
