@@ -86,6 +86,7 @@ public class BusinessUnitEntity {
     @JoinColumn(name = "parent_business_unit_id")
     private BusinessUnitEntity parentBusinessUnit;
 
+    @JsonIgnoreProperties("businessUnit")
     @OneToMany(mappedBy = "businessUnit", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ConfigurationItemEntity> configurationItems;
 }
