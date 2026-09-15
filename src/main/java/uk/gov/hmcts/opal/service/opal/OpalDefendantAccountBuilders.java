@@ -964,7 +964,7 @@ public class OpalDefendantAccountBuilders {
             .commentsAndNotes(toStrictCommentsAndNotes(buildCommentsAndNotes(entity)))
             .accountBalance(entity.getAccountBalance())
             .accountStatusCode(safeAccountStatusCode(entity.getAccountStatus()))
-            .build()
+            .build();
     }
 
     static PartyDetailsCommonStrict toStrictPartyDetails(PartyDetails source) {

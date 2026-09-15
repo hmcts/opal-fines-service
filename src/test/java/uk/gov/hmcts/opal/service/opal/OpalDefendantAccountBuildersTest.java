@@ -51,6 +51,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEnti
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount.AccountStatusCodeEnum;
 import uk.gov.hmcts.opal.generated.model.EnforcementActionDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultDefendantAccount;
@@ -345,6 +346,8 @@ class OpalDefendantAccountBuildersTest {
             .accountNote1("Note1")
             .accountNote2("Note2")
             .accountNote3("Note3")
+            .accountStatus(DefendantAccountStatus.LIVE)
+            .accountBalance(new BigDecimal("100.00"))
             .build();
 
         GetDefendantAccountAtAGlanceResponse response = OpalDefendantAccountBuilders.buildAtAGlanceResponse(entity);
@@ -356,6 +359,8 @@ class OpalDefendantAccountBuildersTest {
         assertEquals("Defendant", response.getPayload().getDebtorType().getValue());
         assertTrue(response.getPayload().getIsYouth());
         assertNotNull(response.getPayload().getPartyDetails());
+        assertEquals(AccountStatusCodeEnum.L, response.getPayload().getAccountStatusCode().get());
+        assertEquals(new BigDecimal("100.00"), response.getPayload().getAccountBalance().get());
     }
 
     @Test
@@ -381,6 +386,8 @@ class OpalDefendantAccountBuildersTest {
             .accountNote1("Note1")
             .accountNote2("Note2")
             .accountNote3("Note3")
+            .accountStatus(DefendantAccountStatus.TRANSFER_OUT_ACKNOWLEDGED)
+            .accountBalance(new BigDecimal("1500.00"))
             .build();
 
         GetDefendantAccountAtAGlanceResponse response = OpalDefendantAccountBuilders.buildAtAGlanceResponse(entity);
@@ -392,6 +399,8 @@ class OpalDefendantAccountBuildersTest {
         assertEquals("Defendant", response.getPayload().getDebtorType().getValue());
         assertTrue(response.getPayload().getIsYouth());
         assertNotNull(response.getPayload().getPartyDetails());
+        assertEquals(AccountStatusCodeEnum.TA, response.getPayload().getAccountStatusCode().get());
+        assertEquals(new BigDecimal("1500.00"), response.getPayload().getAccountBalance().get());
     }
 
     @Test
