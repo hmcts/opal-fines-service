@@ -25,11 +25,8 @@ import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.AddressDetails;
-import uk.gov.hmcts.opal.dto.common.AddressDetails.AddressDetailsBuilder;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
-import uk.gov.hmcts.opal.dto.common.EmployerDetails;
-import uk.gov.hmcts.opal.dto.common.EmployerDetails.EmployerDetailsBuilder;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverrideResult;
 import uk.gov.hmcts.opal.dto.common.EnforcementStatusSummary;
@@ -470,48 +467,6 @@ public class OpalDefendantAccountBuilders {
         Function<DebtorDetailEntity, Language> getter) {
 
         return LanguagePreference.fromCode(debtorDetail.map(getter).map(Language::getCode).orElse(null));
-    }
-
-    static EmployerDetails buildEmployerDetails(DebtorDetailEntity debtorDetail) {
-        AddressDetails employerAddress = OpalDefendantAccountBuilders.buildEmployerAddressDetails(debtorDetail);
-        EmployerDetailsBuilder builder = EmployerDetails.builder();
-
-        if (debtorDetail != null) {
-            builder.employerName(debtorDetail.getEmployerName())
-                .employerReference(debtorDetail.getEmployeeReference())
-                .employerEmailAddress(debtorDetail.getEmployerEmail())
-                .employerTelephoneNumber(debtorDetail.getEmployerTelephone());
-        }
-
-        return builder.employerAddress(employerAddress).build();
-    }
-
-    static AddressDetails buildEmployerAddressDetails(DebtorDetailEntity debtorDetail) {
-        AddressDetailsBuilder builder = AddressDetails.builder();
-
-        if (debtorDetail != null) {
-            builder.addressLine1(debtorDetail.getEmployerAddressLine1())
-                .addressLine2(debtorDetail.getEmployerAddressLine2())
-                .addressLine3(debtorDetail.getEmployerAddressLine3())
-                .addressLine4(debtorDetail.getEmployerAddressLine4())
-                .addressLine5(debtorDetail.getEmployerAddressLine5())
-                .postcode(debtorDetail.getEmployerPostcode());
-        } else {
-            builder.addressLine1("");
-        }
-
-        return builder.build();
-    }
-
-    static AddressDetails buildPartyAddressDetails(PartyEntity party) {
-        return AddressDetails.builder()
-            .addressLine1(party.getAddressLine1())
-            .addressLine2(party.getAddressLine2())
-            .addressLine3(party.getAddressLine3())
-            .addressLine4(party.getAddressLine4())
-            .addressLine5(party.getAddressLine5())
-            .postcode(party.getPostcode())
-            .build();
     }
 
     static AddressDetails buildAddress(DefendantAccountSummaryViewEntity entity) {

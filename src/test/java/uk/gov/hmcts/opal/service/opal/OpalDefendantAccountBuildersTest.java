@@ -40,6 +40,7 @@ import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsSummary;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+import uk.gov.hmcts.opal.entity.AliasEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
@@ -246,6 +247,11 @@ class OpalDefendantAccountBuildersTest {
     }
 
     @Test
+    void buildAccountStatusReferenceCommon_returnsNull() {
+        assertNull(OpalDefendantAccountBuilders.buildAccountStatusReferenceCommon(null));
+    }
+
+    @Test
     void testBuildBusinessUnitSummary() {
         DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
             .businessUnitId((short) 55)
@@ -297,6 +303,35 @@ class OpalDefendantAccountBuildersTest {
             assertNull(org.getOrganisationName());
             assertTrue(org.getOrganisationAliases() == null || org.getOrganisationAliases().isEmpty());
         }
+    }
+
+    @Test
+    void testBuildPartyDetails_Organisation() {
+        PartyEntity party = PartyEntity.builder()
+            .partyId(42077L)
+            .organisation(true)
+            .organisationName("The Organisation")
+            .build();
+
+        List<AliasEntity> aliases = List.of(AliasEntity.builder()
+            .aliasId(10L)
+            .party(party)
+            .surname(null)
+            .forenames(null)
+            .sequenceNumber(1234).organisationName("The Organisation").build());
+
+        PartyDetails details = OpalDefendantAccountBuilders.buildPartyDetails(party, aliases);
+
+        assertEquals("42077", details.getPartyId());
+        assertTrue(details.getOrganisationFlag());
+        assertNull(details.getIndividualDetails());
+
+        // Organisation details may be null or just an empty object
+        OrganisationDetails organisation = details.getOrganisationDetails();
+        assertNotNull(organisation);
+        assertEquals("The Organisation", organisation.getOrganisationName());
+        assertEquals(List.of(new OrganisationAlias("10", 1234, "The Organisation")),
+            organisation.getOrganisationAliases());
     }
 
 
