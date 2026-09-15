@@ -50,6 +50,7 @@ import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.search.SearchConsolidatedEntity;
@@ -267,9 +268,9 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     @Transactional(readOnly = true)
     public GetDefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId) {
         log.debug(":getAtAGlance (Opal): id: {}.", defendantAccountId);
-        return OpalDefendantAccountBuilders
-            .buildAtAGlanceResponse(
-                defendantAccountSummaryViewRepositoryService.getSummaryViewById(defendantAccountId));
+        DefendantAccountSummaryViewEntity defendantAccountSummary =
+            defendantAccountSummaryViewRepositoryService.getSummaryViewById(defendantAccountId);
+        return OpalDefendantAccountBuilders.buildAtAGlanceResponse(defendantAccountSummary);
     }
 
     @Override
