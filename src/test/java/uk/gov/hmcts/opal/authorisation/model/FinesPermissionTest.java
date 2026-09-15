@@ -5,9 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
@@ -48,19 +51,43 @@ class FinesPermissionTest {
     void whenOperationalReportPermissionsRequested_returnsConfiguredMetadata_happyPath() {
         assertAll(
             () -> assertAll(
-                () -> assertEquals(18L, FinesPermission.OPERATIONAL_REPORT_BY_ENFORCEMENT.getId()),
+                () -> assertEquals(14L, FinesPermission.OPERATIONAL_REPORT_BY_ENFORCEMENT.getId()),
                 () -> assertEquals(
                     "Operational report (by enforcement)",
                     FinesPermission.OPERATIONAL_REPORT_BY_ENFORCEMENT.getDescription()
                 )
             ),
             () -> assertAll(
-                () -> assertEquals(19L, FinesPermission.OPERATIONAL_REPORT_BY_PAYMENTS.getId()),
+                () -> assertEquals(15L, FinesPermission.OPERATIONAL_REPORT_BY_PAYMENTS.getId()),
                 () -> assertEquals(
                     "Operational report (by payment)",
                     FinesPermission.OPERATIONAL_REPORT_BY_PAYMENTS.getDescription()
                 )
             )
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("newSuspensePermissions")
+    void whenNewSuspensePermissionsRequested_returnsConfiguredMetadata_happyPath(
+        FinesPermission finesPermission,
+        long expectedId,
+        String expectedDescription
+    ) {
+        Permission commonPermission = finesPermission.toCommonPermission();
+
+        assertAll(
+            () -> assertEquals(expectedId, finesPermission.getId()),
+            () -> assertEquals(expectedDescription, finesPermission.getDescription()),
+            () -> assertEquals(expectedId, commonPermission.getPermissionId()),
+            () -> assertEquals(expectedDescription, commonPermission.getPermissionName())
+        );
+    }
+
+    private static Stream<Arguments> newSuspensePermissions() {
+        return Stream.of(
+            Arguments.of(FinesPermission.VIEW_SUSPENSE_ITEMS, 21L, "View suspense items"),
+            Arguments.of(FinesPermission.MANAGE_SUSPENSE_ITEMS, 22L, "Manage suspense items")
         );
     }
 
