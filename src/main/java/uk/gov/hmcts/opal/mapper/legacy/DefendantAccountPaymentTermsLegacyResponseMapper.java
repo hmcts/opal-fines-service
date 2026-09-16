@@ -23,7 +23,10 @@ public interface DefendantAccountPaymentTermsLegacyResponseMapper {
 
     DefendantAccountPaymentTermsCommonStrict toPaymentTerms(LegacyPaymentTerms paymentTerms);
 
-    @Mapping(target = "instalmentPeriodDisplayName", source = "instalmentPeriodCode", qualifiedByName = "legacyPeriodToDisplayName")
+    @Mapping(
+        target = "instalmentPeriodDisplayName",
+        source = "instalmentPeriodCode",
+        qualifiedByName = "legacyPeriodToDisplayName")
     DefendantAccountInstalmentPeriodCommonStrict toInstalmentPeriod(LegacyInstalmentPeriod period);
 
     DefendantAccountPostedDetailsCommonStrict toPostedDetails(LegacyPostedDetails postedDetails);
