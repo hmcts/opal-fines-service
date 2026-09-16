@@ -26,10 +26,8 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import uk.gov.hmcts.opal.config.JacksonCompatibilityConfiguration;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.generated.model.ReportReports;
-import uk.gov.hmcts.opal.mapper.helper.JsonMapperHelper;
 
-@SpringJUnitConfig(classes = {JacksonCompatibilityConfiguration.class, ReportEntityMapperImpl.class,
-    JsonMapperHelper.class})
+@SpringJUnitConfig(classes = {JacksonCompatibilityConfiguration.class, ReportEntityMapperImpl.class})
 @DisplayName("ReportEntityMapper Tests")
 class ReportEntityMapperTest {
 

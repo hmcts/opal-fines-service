@@ -13,5 +13,5 @@
 *
 **/
 
-DELETE FROM configuration_items WHERE configuration_item_id IN (95001, 95002);
+DELETE FROM configuration_items WHERE configuration_item_id IN (95001, 95002, 95003, 95004);
 DELETE FROM business_units WHERE business_unit_id IN (501, 599);

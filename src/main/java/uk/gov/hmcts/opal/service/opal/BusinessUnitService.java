@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import static uk.gov.hmcts.opal.mapper.helper.HibernateJsonValueMapper.toJsonCompatibleValue;
+
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
@@ -103,7 +105,7 @@ public class BusinessUnitService {
         return new BusinessUnitReferenceData.ConfigItemRefData(
             entity.getItemName(),
             entity.getItemValue(),
-            entity.getItemValues()
+            toJsonCompatibleValue(entity.getItemValues())
         );
     }
 

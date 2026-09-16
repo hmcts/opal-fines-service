@@ -1,0 +1,16 @@
+meta {
+  name: Get-Party-Ind
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseURL}}/defendant-accounts/{{defendantAccount_id}}/defendant-account-parties/{{defendantAccount_party_idInd}}
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -7,7 +7,9 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.clearInvocations;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -17,6 +19,7 @@ import static uk.gov.hmcts.opal.support.SpyInvocationSupport.countInvocationsByM
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.http.MediaType;
@@ -40,6 +43,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Sql(scripts = "classpath:db/deleteData/delete_from_business_units.sql", executionPhase = AFTER_TEST_CLASS)
 @DisplayName("Business Unit Controller Integration Tests")
 @Isolated
+@Tag("ExtendedTest")
 class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/business-units";
@@ -70,6 +74,28 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.opalDomain").value("Fines"))
             .andExpect(jsonPath("$.welshLanguage").value(true))
             .andExpect(jsonPath("$.parentBusinessUnit.businessUnitId").value(9091));
+    }
+
+    @Test
+    @JiraStory("PO-304")
+    @JiraStory("PO-313")
+    @JiraEpic("PO-304")
+    @DisplayName("Get Business Unit by ID - configuration items exclude recursive business unit reference")
+    @Sql(
+        scripts = "classpath:db/insertData/insert_into_business_units_configuration_items.sql",
+        executionPhase = BEFORE_TEST_METHOD
+    )
+    @Sql(
+        scripts = "classpath:db/deleteData/delete_from_business_units_configuration_items.sql",
+        executionPhase = AFTER_TEST_METHOD
+    )
+    void testGetBusinessUnitById_configurationItemsExcludeRecursiveBusinessUnitReference() throws Exception {
+        mockMvc.perform(get(URL_BASE + "/9092"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.configurationItems[0].configurationItemId").value(909201))
+            .andExpect(jsonPath("$.configurationItems[0].businessUnitId").value(9092))
+            .andExpect(jsonPath("$.configurationItems[0].businessUnit").doesNotExist());
     }
 
 

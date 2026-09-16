@@ -31,6 +31,8 @@ import uk.gov.hmcts.opal.entity.debtordetail.Language;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 
 @Slf4j(topic = "opal.DefendantPartyPutIntegrationTest")
 class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
@@ -74,7 +76,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(body)
+                .content(withRequiredPartyFields(body))
         );
 
         log.info("PUT DAP account controls resp:\n{}", res.andReturn().getResponse().getContentAsString());
@@ -121,7 +123,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(body)
+                .content(withRequiredPartyFields(body))
         );
 
         log.info("PUT DAP wrong BU resp:\n{}", res.andReturn().getResponse().getContentAsString());
@@ -186,7 +188,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(body)
+                .content(withRequiredPartyFields(body))
         );
 
         String resp = call.andReturn().getResponse().getContentAsString();
@@ -229,7 +231,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(body)
+                .content(withRequiredPartyFields(body))
         );
 
         log.info("PUT DAP missing DAP resp:\n{}", res.andReturn().getResponse().getContentAsString());
@@ -276,7 +278,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
             put("/defendant-accounts/22004/defendant-account-parties/22004")
                 .headers(headers)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .contentType(MediaType.APPLICATION_JSON).content(body));
+                .contentType(MediaType.APPLICATION_JSON).content(withRequiredPartyFields(body)));
 
         String resp = call.andReturn().getResponse().getContentAsString();
         log.info("PUT DAP individual aliases (22004) resp:\n{}", resp);
@@ -357,7 +359,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
             put("/defendant-accounts/20010/defendant-account-parties/20010")
                 .headers(headers)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .contentType(MediaType.APPLICATION_JSON).content(body));
+                .contentType(MediaType.APPLICATION_JSON).content(withRequiredPartyFields(body)));
 
         String resp = call.andReturn().getResponse().getContentAsString();
         log.info("PUT DAP (org aliases upsert/trim) resp:\n{}", resp);
@@ -437,7 +439,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(body));
+                .content(withRequiredPartyFields(body)));
 
         String resp = call.andReturn().getResponse().getContentAsString();
         log.info("PUT DAP (is_debtor=false) resp:\n{}", ToJsonString.toPrettyJson(resp));
@@ -509,7 +511,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
             put("/defendant-accounts/20010/defendant-account-parties/20010")
                 .headers(headers)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .contentType(MediaType.APPLICATION_JSON).content(body));
+                .contentType(MediaType.APPLICATION_JSON).content(withRequiredPartyFields(body)));
 
         String resp = call.andReturn().getResponse().getContentAsString();
         log.info("PUT DAP (is_debtor=true) resp:\n{}", resp);
@@ -569,7 +571,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(body));
+                .content(withRequiredPartyFields(body)));
 
         call.andExpect(status().isOk())
             .andExpect(header().string(HttpHeaders.ETAG, "\"" + (currentVersion + 1) + "\""))
@@ -635,7 +637,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
             ResultActions call = mockMvc.perform(
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                    .contentType(MediaType.APPLICATION_JSON).content(body));
+                    .contentType(MediaType.APPLICATION_JSON).content(withRequiredPartyFields(body)));
 
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
 
@@ -693,7 +695,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
             ResultActions call = mockMvc.perform(
                 put("/defendant-accounts/22006/defendant-account-parties/22006").headers(headers)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                    .contentType(MediaType.APPLICATION_JSON).content(body));
+                    .contentType(MediaType.APPLICATION_JSON).content(withRequiredPartyFields(body)));
 
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
 
@@ -750,7 +752,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
             ResultActions call = mockMvc.perform(
                 put("/defendant-accounts/22006/defendant-account-parties/22006").headers(headers)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                    .contentType(MediaType.APPLICATION_JSON).content(body));
+                    .contentType(MediaType.APPLICATION_JSON).content(withRequiredPartyFields(body)));
 
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
 
@@ -830,7 +832,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
             ResultActions call = mockMvc.perform(
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                    .contentType(MediaType.APPLICATION_JSON).content(body));
+                    .contentType(MediaType.APPLICATION_JSON).content(withRequiredPartyFields(body)));
 
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
 
@@ -897,7 +899,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
             ResultActions call = mockMvc.perform(
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                    .contentType(MediaType.APPLICATION_JSON).content(body));
+                    .contentType(MediaType.APPLICATION_JSON).content(withRequiredPartyFields(body)));
 
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
 
@@ -963,7 +965,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
             ResultActions call = mockMvc.perform(
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                    .contentType(MediaType.APPLICATION_JSON).content(body));
+                    .contentType(MediaType.APPLICATION_JSON).content(withRequiredPartyFields(body)));
 
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
 
@@ -1027,7 +1029,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
             ResultActions call = mockMvc.perform(
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                    .contentType(MediaType.APPLICATION_JSON).content(body));
+                    .contentType(MediaType.APPLICATION_JSON).content(withRequiredPartyFields(body)));
 
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
 
@@ -1091,7 +1093,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
             ResultActions call = mockMvc.perform(
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                    .contentType(MediaType.APPLICATION_JSON).content(body));
+                    .contentType(MediaType.APPLICATION_JSON).content(withRequiredPartyFields(body)));
 
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
 
@@ -1157,7 +1159,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
             ResultActions call = mockMvc.perform(
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                    .contentType(MediaType.APPLICATION_JSON).content(body));
+                    .contentType(MediaType.APPLICATION_JSON).content(withRequiredPartyFields(body)));
 
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
 
@@ -1226,7 +1228,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
             ResultActions call = mockMvc.perform(
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                    .contentType(MediaType.APPLICATION_JSON).content(body));
+                    .contentType(MediaType.APPLICATION_JSON).content(withRequiredPartyFields(body)));
 
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
 
@@ -1293,7 +1295,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
             ResultActions call = mockMvc.perform(
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                    .contentType(MediaType.APPLICATION_JSON).content(body));
+                    .contentType(MediaType.APPLICATION_JSON).content(withRequiredPartyFields(body)));
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
 
             call.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, expectedNextEtag))
@@ -1306,6 +1308,112 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
 
             Integer updatedVersion = versionFor(22005L);
             assertEquals(currentVersion + 1, updatedVersion);
+        }
+    }
+
+    private String withRequiredPartyFields(String body) throws Exception {
+        ObjectNode party = (ObjectNode) objectMapper.readTree(body);
+        if (!party.has("is_debtor")) {
+            party.put("is_debtor", false);
+        }
+
+        ObjectNode address = party.has("address") && party.get("address").isObject()
+            ? (ObjectNode) party.get("address") : party.putObject("address");
+        addRequiredNulls(address, "address_line_2", "address_line_3", "address_line_4", "address_line_5",
+            "postcode");
+        if (!address.has("address_line_1")) {
+            address.put("address_line_1", "");
+        }
+
+        addRequiredNulls(party, "contact_details", "vehicle_details", "employer_details", "language_preferences");
+        if (party.get("employer_details").isObject() && party.get("employer_details").isEmpty()) {
+            party.putNull("employer_details");
+        }
+        completePartyDetails((ObjectNode) party.get("party_details"));
+        completeContactDetails(party.get("contact_details"));
+        completeVehicleDetails(party.get("vehicle_details"));
+        completeEmployerDetails(party.get("employer_details"));
+        completeLanguagePreferences(party.get("language_preferences"));
+        return objectMapper.writeValueAsString(party);
+    }
+
+    private void completePartyDetails(ObjectNode partyDetails) {
+        JsonNode organisationDetails = partyDetails.get("organisation_details");
+        if (organisationDetails != null && organisationDetails.isObject()) {
+            JsonNode aliases = organisationDetails.get("organisation_aliases");
+            if (aliases != null && aliases.isArray()) {
+                aliases.forEach(alias -> addRequiredText((ObjectNode) alias, "alias_id", ""));
+            }
+        }
+        JsonNode individualDetails = partyDetails.get("individual_details");
+        if (individualDetails != null && individualDetails.isObject()) {
+            ObjectNode individual = (ObjectNode) individualDetails;
+            addRequiredNulls(individual, "title", "forenames", "date_of_birth", "age",
+                "national_insurance_number", "individual_aliases");
+            JsonNode aliases = individual.get("individual_aliases");
+            if (aliases != null && aliases.isArray()) {
+                aliases.forEach(alias -> addRequiredNulls((ObjectNode) alias, "forenames"));
+            }
+        }
+    }
+
+    private void completeContactDetails(JsonNode contactDetails) {
+        if (contactDetails != null && contactDetails.isObject()) {
+            addRequiredNulls((ObjectNode) contactDetails, "primary_email_address", "secondary_email_address",
+                "mobile_telephone_number", "home_telephone_number", "work_telephone_number");
+        }
+    }
+
+    private void completeVehicleDetails(JsonNode vehicleDetails) {
+        if (vehicleDetails != null && vehicleDetails.isObject()) {
+            addRequiredNulls((ObjectNode) vehicleDetails, "vehicle_make_and_model", "vehicle_registration");
+        }
+    }
+
+    private void completeEmployerDetails(JsonNode employerDetails) {
+        if (employerDetails != null && employerDetails.isObject()) {
+            ObjectNode employer = (ObjectNode) employerDetails;
+            addRequiredNulls(employer, "employer_name", "employer_reference", "employer_email_address",
+                "employer_telephone_number", "employer_address");
+            JsonNode employerAddress = employer.get("employer_address");
+            if (employerAddress != null && employerAddress.isObject()) {
+                ObjectNode address = (ObjectNode) employerAddress;
+                addRequiredNulls(address, "address_line_2", "address_line_3", "address_line_4", "address_line_5",
+                    "postcode");
+            }
+        }
+    }
+
+    private void completeLanguagePreferences(JsonNode languagePreferences) {
+        if (languagePreferences != null && languagePreferences.isObject()) {
+            ObjectNode preferences = (ObjectNode) languagePreferences;
+            addRequiredNulls(preferences, "document_language_preference", "hearing_language_preference");
+            completeLanguagePreference(preferences.get("document_language_preference"));
+            completeLanguagePreference(preferences.get("hearing_language_preference"));
+        }
+    }
+
+    private void completeLanguagePreference(JsonNode languagePreference) {
+        if (languagePreference != null && languagePreference.isObject()) {
+            ObjectNode preference = (ObjectNode) languagePreference;
+            if (!preference.has("language_display_name")) {
+                preference.put("language_display_name", "CY".equals(preference.path("language_code").asText())
+                    ? "Welsh and English" : "English only");
+            }
+        }
+    }
+
+    private void addRequiredNulls(ObjectNode object, String... fields) {
+        for (String field : fields) {
+            if (!object.has(field)) {
+                object.putNull(field);
+            }
+        }
+    }
+
+    private void addRequiredText(ObjectNode object, String field, String value) {
+        if (!object.has(field)) {
+            object.put(field, value);
         }
     }
 }

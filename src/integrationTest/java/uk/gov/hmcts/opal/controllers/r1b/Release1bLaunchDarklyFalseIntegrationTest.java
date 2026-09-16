@@ -13,6 +13,7 @@ import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
 
 import com.launchdarkly.sdk.LDContext;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.MediaType;
@@ -31,6 +32,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
     "launchdarkly.sdk-key=test-sdk-key",
     "launchdarkly.default-flag-values.release-1b=true"
 })
+@Tag("ExtendedTest")
 class Release1bLaunchDarklyFalseIntegrationTest extends AbstractIntegrationTest {
 
     @MockitoBean

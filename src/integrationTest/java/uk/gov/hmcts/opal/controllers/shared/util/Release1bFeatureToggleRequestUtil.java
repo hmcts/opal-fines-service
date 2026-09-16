@@ -109,7 +109,19 @@ public final class Release1bFeatureToggleRequestUtil {
                         "organisation_details": {
                           "organisation_name": "Feature Toggle Test Ltd"
                         }
-                      }
+                      },
+                      "address": {
+                        "address_line_1": "1 Test Street",
+                        "address_line_2": null,
+                        "address_line_3": null,
+                        "address_line_4": null,
+                        "address_line_5": null,
+                        "postcode": "TE1 1ST"
+                      },
+                      "contact_details": null,
+                      "vehicle_details": null,
+                      "employer_details": null,
+                      "language_preferences": null
                     }
                     """
                 )

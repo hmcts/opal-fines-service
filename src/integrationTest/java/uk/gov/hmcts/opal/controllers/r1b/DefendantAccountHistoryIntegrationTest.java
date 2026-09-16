@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -33,6 +34,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
     "launchdarkly.default-flag-values.release-1b=true"
 })
 @DisplayName("Defendant Account History Controller Integration Tests")
+@Tag("ExtendedTest")
 @Slf4j(topic = "opal.DefendantAccountHistoryIntegrationTest")
 @SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
 @Sql(scripts = "classpath:db/insertData/insert_opal_account_history_base.sql", executionPhase = BEFORE_TEST_METHOD)

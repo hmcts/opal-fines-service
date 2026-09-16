@@ -12,11 +12,13 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.NoteType;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
+import uk.gov.hmcts.opal.service.AccountNoteContextFactory;
 import uk.gov.hmcts.opal.service.iface.NotesServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.util.Versioned;
@@ -29,14 +31,21 @@ public class OpalNotesService implements NotesServiceInterface {
     private final NoteRepository repository;
     private final DefendantAccountRepositoryService defendantAccountRepositoryService;
     private final CreditorAccountRepository creditorAccountRepository;
+    private final AccountNoteContextFactory accountNoteContextFactory;
     private final Clock clock;
 
     @Override
     @Transactional
+    public String addNote(AddNoteRequest req, String ifMatch, UserState user, Short businessUnitId) {
+        AccountNoteContext target = accountNoteContextFactory.from(req.getActivityNote());
+        return addNote(req, ifMatch, user, target);
+    }
+
+    @Transactional
     public String addNote(AddNoteRequest req, String ifMatch, UserState user, AccountNoteContext target) {
         log.info(":OpalAddNote");
 
-        getAccountAndVerifyVersion(target, ifMatch);
+        final Versioned account = getAccountAndVerifyVersion(target, ifMatch);
 
         Note requestNote = req.getActivityNote();
 
@@ -50,8 +59,15 @@ public class OpalNotesService implements NotesServiceInterface {
         note.setPostedByUsername(user.getDisplayName());
 
         NoteEntity entity = repository.save(note);
+        incrementAccountVersion(target, account);
 
         return entity.getNoteId().toString();
+    }
+
+    private void incrementAccountVersion(AccountNoteContext target, Versioned account) {
+        if (target.associatedRecordType() == AssociatedRecordType.DEFENDANT_ACCOUNTS) {
+            defendantAccountRepositoryService.incrementVersionNumber(target.accountId(), account.getVersion());
+        }
     }
 
     private Versioned getAccountAndVerifyVersion(AccountNoteContext target, String ifMatch) {

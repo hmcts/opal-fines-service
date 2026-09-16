@@ -17,6 +17,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -31,6 +32,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.DraftAccountPublishTransactionTest")
 @DisplayName("DraftAccountPublishTransactionIntegrationTest")
+@Tag("ExtendedTest")
 class DraftAccountPublishTransactionTest extends AbstractIntegrationTest {
 
     private static final long DRAFT_ACCOUNT_ID = 9_999_901L;

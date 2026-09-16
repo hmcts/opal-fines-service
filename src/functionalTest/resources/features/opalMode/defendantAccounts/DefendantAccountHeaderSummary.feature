@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:account-enquiry @R1B
+@Opal @JIRA-LABEL:account-enquiry @R1BDrop1
 Feature: Defendant Account Header Summary
 
   @cleanUpData @JIRA-STORY:PO-2969 @JIRA-EPIC:PO-2630

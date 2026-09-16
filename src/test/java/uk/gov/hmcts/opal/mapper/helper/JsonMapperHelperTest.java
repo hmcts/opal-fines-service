@@ -6,18 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.mapper.helper.JsonMapperHelper.parseJsonToMap;
+import static uk.gov.hmcts.opal.mapper.helper.JsonMapperHelper.reportParametersToMap;
 import static uk.gov.hmcts.opal.testdata.ReportTestData.createComplexReportParameters;
 
-import tools.jackson.core.JacksonException;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -27,13 +21,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import uk.gov.hmcts.opal.service.report.ReportParameterData;
 
 class JsonMapperHelperTest {
-
-    private JsonMapperHelper jsonMapperHelper;
-
-    @BeforeEach
-    void setUp() {
-        jsonMapperHelper = new JsonMapperHelper(new ObjectMapper());
-    }
 
     @Nested
     class ParseJsonToMapSuccessCases {
@@ -47,7 +34,7 @@ class JsonMapperHelperTest {
                     "key3": 123
                 }""";
 
-            Map<String, Object> actual = jsonMapperHelper.parseJsonToMap(json);
+            Map<String, Object> actual = parseJsonToMap(json);
 
             assertAll("Verify valid JSON parsing",
                 () -> assertNotNull(actual),
@@ -66,7 +53,7 @@ class JsonMapperHelperTest {
                     "top": "level"
                 }""";
 
-            Map<String, Object> actual = jsonMapperHelper.parseJsonToMap(json);
+            Map<String, Object> actual = parseJsonToMap(json);
 
             assertAll("Verify nested JSON parsing",
                 () -> assertNotNull(actual),
@@ -84,7 +71,7 @@ class JsonMapperHelperTest {
                     "count": 2
                 }""";
 
-            Map<String, Object> actual = jsonMapperHelper.parseJsonToMap(json);
+            Map<String, Object> actual = parseJsonToMap(json);
 
             assertAll("Verify JSON with arrays parsing",
                 () -> assertNotNull(actual),
@@ -102,7 +89,7 @@ class JsonMapperHelperTest {
         @NullSource
         @ValueSource(strings = {"", "{}"})
         void parseJsonToMap_withNullOrEmptyJson_shouldReturnEmptyMap(String json) {
-            Map<String, Object> actual = jsonMapperHelper.parseJsonToMap(json);
+            Map<String, Object> actual = parseJsonToMap(json);
 
             assertAll(
                 () -> assertNotNull(actual),
@@ -122,29 +109,11 @@ class JsonMapperHelperTest {
         })
         void parseJsonToMap_withInvalidJson_shouldThrowIllegalArgumentException(String invalidJson) {
             assertThrows(IllegalArgumentException.class,
-                () -> jsonMapperHelper.parseJsonToMap(invalidJson),
+                () -> parseJsonToMap(invalidJson),
                 "Expected IllegalArgumentException for invalid/malformed JSON input"
             );
         }
 
-        @SuppressWarnings("unchecked")
-        @Test
-        void parseJsonToMap_whenObjectMapperThrowsJacksonException_shouldThrowIllegalArgumentException()
-            throws JacksonException {
-
-            ObjectMapper objectMapper = mock(ObjectMapper.class);
-            JsonMapperHelper helper = new JsonMapperHelper(objectMapper);
-            String json = "{\"key\":\"value\"}";
-            JacksonException parseException = new JacksonException("bad json") {
-            };
-            when(objectMapper.readValue(eq(json), any(TypeReference.class))).thenThrow(parseException);
-
-            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> helper.parseJsonToMap(json));
-
-            assertEquals("Invalid JSON in report_parameters: " + json, exception.getMessage());
-            assertEquals(parseException, exception.getCause());
-        }
     }
 
     @Nested
@@ -154,7 +123,7 @@ class JsonMapperHelperTest {
         void reportParametersToMap_fullParameters_shouldParseCorrectly() {
             List<ReportParameterData> reportParameters = createComplexReportParameters();
 
-            Map<?, ?> params = jsonMapperHelper.reportParametersToMap(reportParameters);
+            Map<?, ?> params = reportParametersToMap(reportParameters);
 
             assertAll(
                 () -> assertEquals(9, params.size()),
@@ -192,7 +161,7 @@ class JsonMapperHelperTest {
         void reportParametersToMap_emptyParameters_shouldParseCorrectly() {
             List<ReportParameterData> reportParameters = List.of();
 
-            Map<?, ?> params = jsonMapperHelper.reportParametersToMap(reportParameters);
+            Map<?, ?> params = reportParametersToMap(reportParameters);
             assertEquals(0, params.size());
         }
 
@@ -201,7 +170,7 @@ class JsonMapperHelperTest {
         void reportParametersToMap_nullParameters_shouldParseCorrectly() {
             List<ReportParameterData> reportParameters = null;
 
-            Map<?, ?> params = jsonMapperHelper.reportParametersToMap(reportParameters);
+            Map<?, ?> params = reportParametersToMap(reportParameters);
             assertEquals(0, params.size());
         }
     }

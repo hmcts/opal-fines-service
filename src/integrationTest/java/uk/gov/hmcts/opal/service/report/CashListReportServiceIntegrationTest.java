@@ -18,6 +18,7 @@ import java.time.ZoneOffset;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.test.context.TestConstructor;
@@ -38,6 +39,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Transactional
 @RequiredArgsConstructor
+@Tag("ExtendedTest")
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class CashListReportServiceIntegrationTest extends AbstractIntegrationTest {
 

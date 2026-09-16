@@ -1372,3 +1372,26 @@ VALUES (575700, 0, 78, '575700A',
         '575700PCR', 'N', 'N', 'Fine',
         'N', 'N')
 ON CONFLICT (defendant_account_id) DO NOTHING;
+
+-- Dedicated child defendant account for enforcement-status integration tests.
+INSERT INTO defendant_accounts
+(defendant_account_id, version_number, business_unit_id, account_number,
+ amount_imposed, amount_paid, account_balance, account_status,
+ enforcing_court_id, last_movement_date, last_changed_date,
+ allow_writeoffs, allow_cheques, account_type, collection_order,
+ payment_card_requested, prosecutor_case_reference, jail_days)
+VALUES (2007, 0, 78, '2007A',
+        100.00, 0.00, 100.00, 'L',
+        780000000185, '2025-01-02 17:08:09', '2025-01-03 12:00:12',
+        'N', 'N', 'Fine', 'N', 'N', '2007PCR', 30);
+
+INSERT INTO parties
+(party_id, organisation, organisation_name, surname, forenames, title,
+ address_line_1, postcode, account_type, birth_date, age)
+VALUES (2007, 'N', NULL, 'Young', 'Casey', 'Mx',
+        '1 Test Street', 'NE1 1AA', 'Defendant', '2011-01-01 00:00:00', 15);
+
+INSERT INTO defendant_account_parties
+(defendant_account_party_id, defendant_account_id, party_id, association_type, debtor)
+VALUES (2007, 2007, 2007, 'Defendant', 'Y');
+

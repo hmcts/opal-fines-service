@@ -309,8 +309,7 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
-    @JiraTestKey("PO-8274")
-    void getReportInstance_403_incorrectBUs() throws Exception {
+    void getReportInstance_success_whenUserHasAccessToOneOfMultipleBusinessUnits() throws Exception {
         Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
@@ -321,7 +320,27 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
                 .header("authorization", "Bearer some_value"));
 
         String body = result.andReturn().getResponse().getContentAsString();
-        log.info(":getReportInstance_403_incorrectBUs response:\n{}", ToJsonString.toPrettyJson(body));
+        log.info(":getReportInstance_success_whenUserHasAccessToOneOfMultipleBusinessUnits response:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        result.andExpect(status().isOk())
+            .andExpect(jsonPath("$.instance_id").value(REPORT_INSTANCE_ID_IN_PROGRESS))
+            .andExpect(jsonPath("$.business_units").value(Matchers.hasSize(2)));
+    }
+
+    @Test
+    @JiraStory("PO-2254")
+    @JiraEpic("PO-2248")
+    @JiraTestKey("PO-8274")
+    void getReportInstance_whenUserHasNoAccessToAssociatedBusinessUnits_returnsForbidden() throws Exception {
+        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
+        Mockito.when(buUser1.getBusinessUnitId()).thenReturn((short) 3);
+
+        ResultActions result = mockMvc.perform(
+            get(REPORT_INSTANCE_URL_BASE + "/" + REPORT_INSTANCE_ID_IN_PROGRESS)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("authorization", "Bearer some_value"));
 
         result.andExpect(status().isForbidden())
             .andExpect(jsonPath("$.title").value("Forbidden"))

@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -18,6 +19,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {"opal.testing-support-endpoints.enabled=false"})
+@Tag("ExtendedTest")
 public class TestingSupportEndpointToggleIntegrationTest extends AbstractFeatureToggleIntegrationTest {
     static Stream<Arguments> testingSupportEndpoints() {
         return Stream.of(

@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestConstructor;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
@@ -23,6 +24,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @RequiredArgsConstructor
+@Tag("ExtendedTest")
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class ReportCSVServiceIntegrationTest extends AbstractIntegrationTest {
 

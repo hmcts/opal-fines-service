@@ -10,5 +10,6 @@ public enum InterfaceFileSourceEnum {
     CDER,
     JACOBS,
     MARSTON,
-    OTHER
+    OTHER,
+    VARIANT_BANKING
 }

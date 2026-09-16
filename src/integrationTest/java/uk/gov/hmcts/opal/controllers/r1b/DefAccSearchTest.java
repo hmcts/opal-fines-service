@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
@@ -35,6 +36,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
     scripts = {"classpath:db/deleteData/delete_from_defendant_accounts.sql"}
 )
 @DisplayName("Defendant Accounts Search Controller Integration Tests")
+@Tag("ExtendedTest")
 public class DefAccSearchTest extends AbstractIntegrationTest {
 
     private static final String DEFENDANT_ACCOUNT_SEARCH_API_URL = "/defendant-accounts/search";

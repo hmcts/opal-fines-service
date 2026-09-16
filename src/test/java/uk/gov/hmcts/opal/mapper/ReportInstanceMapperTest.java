@@ -15,10 +15,10 @@ import static uk.gov.hmcts.opal.entity.report.SupportedFileType.PDF;
 
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
-import java.util.Collections;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,19 +28,18 @@ import org.testcontainers.shaded.org.hamcrest.MatcherAssert;
 import org.testcontainers.shaded.org.hamcrest.Matchers;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
-import uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus;
 import uk.gov.hmcts.opal.entity.report.SupportedFileType;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
+import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceReports;
 import uk.gov.hmcts.opal.generated.model.ReportReferenceReports.SupportedFileTypesEnum;
-import uk.gov.hmcts.opal.generated.model.StatusReports.CodeEnum;
-import uk.gov.hmcts.opal.mapper.common.BusinessUnitSummaryMapper;
-import uk.gov.hmcts.opal.mapper.helper.JsonMapperHelper;
-import uk.gov.hmcts.opal.service.report.ReportError;
-import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
 import uk.gov.hmcts.opal.generated.model.StatusReports;
+import uk.gov.hmcts.opal.generated.model.StatusReports.CodeEnum;
 import uk.gov.hmcts.opal.generated.model.UserByNameDetailsCommon;
+import uk.gov.hmcts.opal.mapper.common.BusinessUnitSummaryMapper;
+import uk.gov.hmcts.opal.service.report.ReportError;
 
 class ReportInstanceMapperTest extends AbstractMapperTest {
 
@@ -49,9 +48,6 @@ class ReportInstanceMapperTest extends AbstractMapperTest {
 
     @Autowired
     private BusinessUnitSummaryMapper businessUnitSummaryMapper;
-
-    @Autowired
-    private JsonMapperHelper jsonMapperHelper;
 
     private ReportEntity buildReportEntity() {
         return ReportEntity.builder()

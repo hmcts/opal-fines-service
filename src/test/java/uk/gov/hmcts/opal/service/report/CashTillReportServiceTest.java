@@ -35,11 +35,11 @@ import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.DestinationType;
 import uk.gov.hmcts.opal.entity.MiscellaneousAccountEntity;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
+import uk.gov.hmcts.opal.entity.PaymentMethod;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.TillEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.PaymentMethod;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.MiscellaneousAccountRepository;
@@ -144,6 +144,28 @@ class CashTillReportServiceTest {
         verify(paymentInRepository).findAll(anySpecification(), any(Sort.class));
         verify(defendantAccountRepository).findAllByDefendantAccountIdIn(List.of(11L));
         verify(miscellaneousAccountRepository).findAllByMiscellaneousAccountIdIn(List.of(22L));
+    }
+
+    @Test
+    void generateReportData_mapsUnlinkedSuspensePayment() {
+        TillEntity till = till();
+        PaymentInEntity payment = unlinkedSuspensePayment();
+        ReportInstanceEntity reportInstance = reportInstance("""
+            {"till_id":321}
+            """);
+
+        when(tillRepository.findById(321L)).thenReturn(Optional.of(till));
+        when(paymentInRepository.findAll(anySpecification(), any(Sort.class))).thenReturn(List.of(payment));
+
+        CashTillReportData reportData = service.generateReportData(reportInstance);
+
+        assertThat(reportData.getRows()).singleElement().satisfies(row -> {
+            assertThat(row.getDestinationType()).isEqualTo(CashTillDestinationType.SA);
+            assertThat(row.getDetails()).isEqualTo("PAYMENTS_IN");
+            assertThat(row.getAutoPayment()).isTrue();
+            assertThat(row.getAmount()).isEqualByComparingTo("12.30");
+        });
+        assertThat(reportData.getReportMetaData().getPdpoPartyIds()).isEmpty();
     }
 
     @Test
@@ -569,6 +591,20 @@ class CashTillReportServiceTest {
             .receipt(false)
             .autoPayment(true)
             .allocated(false)
+            .build();
+    }
+
+    private static PaymentInEntity unlinkedSuspensePayment() {
+        return PaymentInEntity.builder()
+            .paymentInId(1003L)
+            .paymentDate(LocalDateTime.of(2026, Month.MAY, 4, 11, 20))
+            .paymentAmount(money("12.30"))
+            .paymentMethod(PaymentMethod.NC)
+            .destinationType(DestinationType.S)
+            .receipt(false)
+            .autoPayment(true)
+            .allocated(false)
+            .additionalInformation("PAYMENTS_IN")
             .build();
     }
 
