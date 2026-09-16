@@ -250,7 +250,7 @@ INSERT INTO defendant_accounts
  prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
  collection_order, payment_card_requested)
 VALUES (262901, 0, 78, '262901A',
-        0.00, -500.00, -500.00, 'L', '2025-01-02 17:08:09',
+        0.00, 500.00, -500.00, 'L', '2025-01-02 17:08:09',
         '262901PCR', 'N', 'N', 'Fine',
         'N', 'N')
     ON CONFLICT (defendant_account_id) DO NOTHING;
