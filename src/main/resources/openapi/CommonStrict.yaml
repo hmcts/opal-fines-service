@@ -8,6 +8,16 @@ info:
   version: v0.0.1
 components:
   schemas:
+    removeDefendantAccountPartyDetails:
+      title: Remove Defendant Account Party Details
+      type: object
+      additionalProperties: false
+      required:
+        - party_id
+      properties:
+        party_id:
+          type: string
+          minLength: 1
     partyDetails:
       title: Party Details
       type: object
@@ -654,10 +664,17 @@ components:
       additionalProperties: false
       required:
         - instalment_period_code
+        - instalment_period_display_name
       properties:
         instalment_period_code:
           type: string
           enum: [ W, M, F ]
+        instalment_period_display_name:
+          type: string
+          enum:
+            - Weekly
+            - Monthly
+            - Fortnightly
     defendantAccountPostedDetails:
       title: Defendant Account Posted Details
       type:

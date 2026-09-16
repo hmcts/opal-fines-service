@@ -2,16 +2,14 @@ package uk.gov.hmcts.opal.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 import org.openapitools.jackson.nullable.JsonNullable;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
-import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
-import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.entity.paymentterms.InstalmentPeriod;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.TermsTypeCode;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountInstalmentPeriodCommonStrict;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountInstalmentPeriodCommonStrict.InstalmentPeriodDisplayNameEnum;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsTypeCommonStrict;
@@ -37,19 +35,16 @@ public interface DefendantAccountPaymentTermsMapper {
     DefendantAccountPaymentTermsTypeCommonStrict toPaymentTermsType(TermsTypeCode typeCode);
 
     @Mapping(target = "instalmentPeriodCode", source = "code")
+    @Mapping(target = "instalmentPeriodDisplayName", source = "reportText", qualifiedByName = "toDisplayName")
     DefendantAccountInstalmentPeriodCommonStrict toInstalmentPeriod(InstalmentPeriod period);
 
     @Mapping(target = "postedByName", source = "postedByUsername")
     DefendantAccountPostedDetailsCommonStrict toPostedDetails(PaymentTermsEntity entity);
 
-    @Mapping(target = "version", defaultValue = "1L")
-    DefendantAccountPaymentTermsResponse legacyToResponse(LegacyGetDefendantAccountPaymentTermsResponse response);
-
-    DefendantAccountPaymentTermsCommonStrict legacyToPaymentTerms(LegacyPaymentTerms paymentTerms);
-
-    DefendantAccountInstalmentPeriodCommonStrict legacyToInstalmentPeriod(LegacyInstalmentPeriod period);
-
-    DefendantAccountPostedDetailsCommonStrict legacyToPostedDetails(LegacyPostedDetails postedDetails);
+    @Named("toDisplayName")
+    default InstalmentPeriodDisplayNameEnum toDisplayName(String reportText) {
+        return InstalmentPeriodDisplayNameEnum.valueOf(reportText.toUpperCase());
+    }
 
     default <T> JsonNullable<T> toJsonNullable(T value) {
         return JsonNullable.of(value);

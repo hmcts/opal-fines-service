@@ -27,7 +27,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.mapper.DefendantAccountPaymentTermsMapper;
+import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountPaymentTermsLegacyResponseMapper;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPaymentTermsServiceInterface;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
@@ -42,7 +42,7 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
 
     private final GatewayService gatewayService;
 
-    private final DefendantAccountPaymentTermsMapper defendantAccountPaymentTermsMapper;
+    private final DefendantAccountPaymentTermsLegacyResponseMapper defendantAccountPaymentTermsLegacyMapper;
 
     @Override
     public DefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
@@ -64,7 +64,7 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
             log.info(":getPaymentTerms: Legacy Gateway response: Success.");
         }
 
-        return defendantAccountPaymentTermsMapper.legacyToResponse(response.responseEntity);
+        return defendantAccountPaymentTermsLegacyMapper.toResponse(response.responseEntity);
     }
 
     @Override

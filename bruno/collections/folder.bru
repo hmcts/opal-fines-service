@@ -26,13 +26,18 @@ script:pre-request {
   }
 
   const refreshBufferMs = 60 * 1000;
-  const token = bru.getEnvVar("BEARER_TOKEN");
-  const tokenExpiresAt = Number(bru.getEnvVar("tokenExpiresAt"));
-  const tokenNeedsRefresh = !token || !Number.isFinite(tokenExpiresAt)
-    || Date.now() >= tokenExpiresAt - refreshBufferMs;
+  const token = bru.getVar("BEARER_TOKEN") || bru.getEnvVar("BEARER_TOKEN");
+  const tokenExpiresAtValue = bru.getVar("tokenExpiresAt");
+  const hasTokenExpiry = tokenExpiresAtValue != null && String(tokenExpiresAtValue).trim() !== "";
+  const tokenExpiresAt = hasTokenExpiry ? Number(tokenExpiresAtValue) : null;
+  const tokenNeedsRefresh = !token || hasTokenExpiry
+    && (!Number.isFinite(tokenExpiresAt) || Date.now() >= tokenExpiresAt - refreshBufferMs);
 
   if (!tokenNeedsRefresh) {
-    console.log(`[collections pre-request] Using stored bearer token; expires ${new Date(tokenExpiresAt).toISOString()}`);
+    const expiryMessage = hasTokenExpiry
+      ? `; expires ${new Date(tokenExpiresAt).toISOString()}`
+      : "; expiry not supplied";
+    console.log(`[collections pre-request] Using stored bearer token${expiryMessage}`);
     return;
   }
 
@@ -54,7 +59,7 @@ script:pre-request {
 
   const refreshedTokenExpiresAt = getTokenExpiresAt(body.access_token)
     ?? Date.now() + (20 * 60 * 1000);
-  bru.setEnvVar("BEARER_TOKEN", body.access_token, { persist: true });
-  bru.setEnvVar("tokenExpiresAt", String(refreshedTokenExpiresAt), { persist: true });
+  bru.setVar("BEARER_TOKEN", body.access_token);
+  bru.setVar("tokenExpiresAt", String(refreshedTokenExpiresAt));
   console.log(`[collections pre-request] Using newly refreshed bearer token; expires ${new Date(refreshedTokenExpiresAt).toISOString()}`);
 }
