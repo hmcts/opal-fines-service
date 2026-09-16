@@ -16,6 +16,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles({"integration", "opal"})
@@ -32,6 +33,7 @@ class DefendantSearchPaymentFeatureDisabledIntegrationTest extends AbstractInteg
 
     @Test
     @DisplayName("PO-3631: collection_order is omitted when release-1c-payment is disabled")
+    @JiraEpic("PO-2439")
     @JiraStory("PO-3631")
     void postDefendantAccountSearch_omitsCollectionOrderWhenPaymentFeatureIsDisabled() throws Exception {
         mockMvc.perform(post(DEFENDANTS_SEARCH_URL)
