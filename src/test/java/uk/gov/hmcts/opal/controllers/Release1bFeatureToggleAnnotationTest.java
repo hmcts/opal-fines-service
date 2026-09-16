@@ -66,10 +66,10 @@ class Release1bFeatureToggleAnnotationTest {
             "DefendantAccountApiController#removeEnforcementHold",
             "DefendantAccountApiController#replaceDefendantAccountParty",
             "DefendantAccountApiController#updateDefendantAccount",
+            "DefendantAccountApiController#defendantAccountPaymentTerms",
 
             // Defendant Account controller
             "DefendantAccountController#addPaymentTerms",
-            "DefendantAccountController#defendantAccountPaymentTerms",
 
             // Major Creditor API controller
             "MajorCreditorApiController#getCentralFundByBusinessUnit",
