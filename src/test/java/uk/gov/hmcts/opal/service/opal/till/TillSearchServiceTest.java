@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.opal;
+package uk.gov.hmcts.opal.service.opal.till;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -33,10 +33,10 @@ import uk.gov.hmcts.opal.generated.model.TillsResponse;
 import uk.gov.hmcts.opal.mapper.TillMapper;
 import uk.gov.hmcts.opal.repository.TillSummaryRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
-import uk.gov.hmcts.opal.service.opal.TillService.TillSearchCriteria;
+import uk.gov.hmcts.opal.service.opal.till.TillSearchService.TillSearchCriteria;
 
 @ExtendWith(MockitoExtension.class)
-class TillServiceTest {
+class TillSearchServiceTest {
 
     @Mock
     private TillSummaryRepository tillSummaryRepository;
@@ -120,8 +120,8 @@ class TillServiceTest {
         assertEquals("Unknown till status: unknown", exception.getMessage());
     }
 
-    private TillService service() {
-        return new TillService(tillSummaryRepository, tillMapper, userStateService);
+    private TillSearchService service() {
+        return new TillSearchService(tillSummaryRepository, tillMapper, userStateService);
     }
 
     private TillSummaryEntity tillSummaryEntity() {

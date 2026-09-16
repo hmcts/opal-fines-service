@@ -6,7 +6,7 @@ import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.entity.TillStatusEnum;
 import uk.gov.hmcts.opal.entity.TillSummaryEntity;
 import uk.gov.hmcts.opal.entity.TillSummaryEntity_;
-import uk.gov.hmcts.opal.service.opal.TillService.TillSearchCriteria;
+import uk.gov.hmcts.opal.service.opal.till.TillSearchService.TillSearchCriteria;
 
 public class TillSummarySpecs extends EntitySpecs<TillSummaryEntity> {
 

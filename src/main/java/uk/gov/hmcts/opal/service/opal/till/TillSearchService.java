@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.opal;
+package uk.gov.hmcts.opal.service.opal.till;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Arrays;
@@ -29,7 +29,7 @@ import uk.gov.hmcts.opal.service.UserStateService;
 
 @Service
 @RequiredArgsConstructor
-public class TillService {
+public class TillSearchService {
 
     private static final Sort TILL_SORT = Sort.by(
         Sort.Order.asc(TillSummaryEntity_.BUSINESS_UNIT_NAME),
