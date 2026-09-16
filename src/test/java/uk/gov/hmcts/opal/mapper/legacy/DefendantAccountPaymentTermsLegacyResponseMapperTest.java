@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.mapper.legacy;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
