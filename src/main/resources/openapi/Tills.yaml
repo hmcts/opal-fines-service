@@ -222,6 +222,8 @@ components:
           minItems: 1
           items:
             $ref: '#/components/schemas/TillsCreatePaymentIn'
+        additional_information:
+          $ref: '#/components/schemas/TillsCreateAdditionalInformation'
     TillsCreatePaymentIn:
       type: object
       additionalProperties: false
@@ -232,8 +234,6 @@ components:
           $ref: './types.yaml#/components/schemas/BigInt'
         payment_details:
           $ref: '#/components/schemas/TillsCreatePaymentDetails'
-        additional_information:
-          $ref: '#/components/schemas/TillsCreateAdditionalInformation'
     TillsCreatePaymentDetails:
       type: object
       additionalProperties: false
@@ -242,7 +242,7 @@ components:
         - method
         - destination_type
         - allocation_type
-        - payment_received_from
+        - additional_information
       properties:
         amount:
           type: number
@@ -251,28 +251,41 @@ components:
         method:
           type: string
           enum:
-            - NC
-            - CQ
-            - CT
-            - PO
-          description: DB Mapping - payments_in.payment_method
+            - Notes & Coins
+            - Cheque
+            - Creditor Transfer
+            - Postal Order
+          description: |-
+            Accepted real-world values are mapped by the backend for storage in payments_in.payment_method:
+            - Notes & Coins to NC
+            - Cheque to CQ
+            - Creditor Transfer to CT
+            - Postal Order to PO
         destination_type:
           type: string
           enum:
-            - F
-            - S
-            - C
-          description: DB Mapping - payments_in.destination_type
+            - Fines
+            - Suspense
+            - Court Fee
+          description: |-
+            Accepted real-world values are mapped by the backend for storage in payments_in.destination_type:
+            - Fines to F
+            - Suspense to S
+            - Court Fee to C
         allocation_type:
           type: string
           description: Describes the allocation category when an initial payment amount is split.
-        payment_received_from:
+        additional_information:
           type: string
           enum:
-            - D
-            - A
-            - T
-          description: DB Mapping - payments_in.additional_information
+            - Defendant
+            - Applicant
+            - Third Party
+          description: |-
+            Payment received from. Accepted real-world values are mapped by the backend for storage in payments_in.additional_information:
+            - Defendant to D
+            - Applicant to A
+            - Third Party to T
         third_party_payer_name:
           type: string
           description: DB Mapping - payments_in.third_party_payer_name
@@ -290,8 +303,29 @@ components:
           type: string
         transfer_source:
           type: string
+          enum:
+            - NatWest
+            - allpay
+            - Barclaycard
+            - British Telecom
+            - Other
+            - DWP
+            - CDER
+            - JACOBS
+            - MARSTONS
         suspense_reason_code:
           type: string
+          enum:
+            - Fines Overpayment
+            - Fine paid in advance
+            - Miscellaneous payment
+            - Unidentified amount
+          description: |-
+            Accepted real-world values are mapped by the backend for storage:
+            - Fines Overpayment to OF
+            - Fine paid in advance to FA
+            - Miscellaneous payment to MS
+            - Unidentified amount to UN
         suspense_reason_detail:
           type: string
         suspense_note:
