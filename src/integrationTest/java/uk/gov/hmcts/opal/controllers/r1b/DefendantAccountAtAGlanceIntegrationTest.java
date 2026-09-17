@@ -45,7 +45,7 @@ class DefendantAccountAtAGlanceIntegrationTest extends AbstractOpalDefendantsInt
             .andExpect(jsonPath("$.payment_terms.instalment_amount").doesNotExist())
             .andExpect(jsonPath("$.payment_terms.lump_sum_amount").doesNotExist())
             .andExpect(jsonPath("$.account_status_code").value("L"))
-            .andExpect(jsonPath("$.account_balance").value("500.0"));
+            .andExpect(jsonPath("$.account_balance").value("-500.0"));
     }
 
     @Test
