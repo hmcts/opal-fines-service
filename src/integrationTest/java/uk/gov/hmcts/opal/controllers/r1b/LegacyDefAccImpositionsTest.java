@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -13,7 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.SchemaPaths.GET_DEFENDANT_ACCOUNT_IMPOSITIONS_RESPONSE;
+import static uk.gov.hmcts.opal.controllers.shared.util.OpenApiContractAssertions.assertGet200JsonResponseMatchesBundledSpec;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -29,7 +30,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.client.HttpClientErrorException;
@@ -45,11 +45,11 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyGetImpositionsRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyImpositionCreditorReferenceCommon;
 import uk.gov.hmcts.opal.dto.legacy.LegacyOffenceReferenceCommon;
 import uk.gov.hmcts.opal.dto.legacy.LegacyResultReferenceCommon;
-import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon.AccountTypeEnum;
-import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon.DisplayNameEnum;
+import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.AccountTypeEnum;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.DisplayNameEnum;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.legacy.LegacyImpositionService;
-import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -76,9 +76,6 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
 
     @MockitoBean
     private GatewayService gatewayService;
-
-    @MockitoSpyBean
-    private JsonSchemaValidationService jsonSchemaValidationService;
 
     @BeforeEach
     void setupUserState() {
@@ -111,21 +108,25 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.impositions[0].imposition.result_title")
                 .value("Application made for Benefit Deductions"))
             .andExpect(jsonPath("$.impositions[0].creditor.creditor_account_id").value(99000000000806L))
-            .andExpect(jsonPath("$.impositions[0].creditor.account_type").value("MN"))
-            .andExpect(jsonPath("$.impositions[0].creditor.display_name").value("Minor Creditor"))
-            .andExpect(jsonPath("$.impositions[0].creditor.minor_creditor_party_id").value(99000000000906L))
-            .andExpect(jsonPath("$.impositions[0].creditor.name").value("Metropolitan Traffic Unit"))
+            .andExpect(jsonPath("$.impositions[0].creditor.creditor_account_type.account_type").value("MN"))
+            .andExpect(jsonPath("$.impositions[0].creditor.creditor_account_type.display_name")
+                .value("Minor Creditor"))
+            .andExpect(jsonPath("$.impositions[0].creditor.major_creditor_name").value(nullValue()))
+            .andExpect(jsonPath("$.impositions[0].creditor.minor_creditor_organisation_flag").value(true))
+            .andExpect(jsonPath("$.impositions[0].creditor.individual_name").value(nullValue()))
+            .andExpect(jsonPath("$.impositions[0].creditor.company_name.organisation_name")
+                .value("Metropolitan Traffic Unit"))
             .andExpect(jsonPath("$.impositions[0].imposed_amount").value(600.00))
             .andExpect(jsonPath("$.impositions[0].paid_amount").value(60.00))
             .andExpect(jsonPath("$.impositions[0].balance").value(540.00))
-            .andExpect(jsonPath("$.impositions[0].offence.code").value("OFF0006"))
-            .andExpect(jsonPath("$.impositions[0].offence.title").value("Test Offence 6"))
+            .andExpect(jsonPath("$.impositions[0].offence.cjs_code").value("OFF0006"))
+            .andExpect(jsonPath("$.impositions[0].offence.offence_title").value("Test Offence 6"))
             .andExpect(jsonPath("$.impositions[0].imposition_id").value(99000000003006L))
             .andReturn();
 
-        jsonSchemaValidationService.validateOrError(
-            result.getResponse().getContentAsString(),
-            GET_DEFENDANT_ACCOUNT_IMPOSITIONS_RESPONSE
+        assertGet200JsonResponseMatchesBundledSpec(
+            ToJsonString.toJsonNode(result.getResponse().getContentAsString()),
+            "/defendant-accounts/{id}/impositions"
         );
 
         verify(gatewayService).postToGateway(
