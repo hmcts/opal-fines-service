@@ -14,17 +14,17 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @XmlAccessorType(XmlAccessType.FIELD)
-public class LegacyOffenceReferenceCommon {
+public class OffenceReferenceLegacy {
 
-    @JsonProperty("id")
-    @XmlElement(name = "id")
-    private Long id;
+    @JsonProperty("offence_id")
+    @XmlElement(name = "offence_id")
+    private Long offenceId;
 
-    @JsonProperty("code")
-    @XmlElement(name = "code")
-    private String code;
+    @JsonProperty("cjs_code")
+    @XmlElement(name = "cjs_code")
+    private String cjsCode;
 
-    @JsonProperty("title")
-    @XmlElement(name = "title")
-    private String title;
+    @JsonProperty("offence_title")
+    @XmlElement(name = "offence_title")
+    private String offenceTitle;
 }
