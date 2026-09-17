@@ -16,6 +16,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static uk.gov.hmcts.opal.util.VersionUtils.extractBigInteger;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -27,11 +28,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mapstruct.factory.Mappers;
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpServerErrorException;
 import tools.jackson.databind.JsonNode;
@@ -41,12 +44,8 @@ import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
-import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddPaymentTermsLegacyRequest;
@@ -54,11 +53,20 @@ import uk.gov.hmcts.opal.dto.legacy.AddPaymentTermsLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
-import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
-import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountPaymentTermsLegacyResponseMapper;
+import uk.gov.hmcts.opal.generated.model.AddPaymentTermsRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountPostedDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.EnforcementPostedDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.GetPaymentTermsResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.InstalmentPeriodCommonStrict;
+import uk.gov.hmcts.opal.generated.model.InstalmentPeriodCommonStrict.InstalmentPeriodCodeEnum;
+import uk.gov.hmcts.opal.generated.model.PaymentTermsDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PaymentTermsTypeCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PaymentTermsTypeCommonStrict.PaymentTermsTypeCodeEnum;
+import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountPaymentTermsLegacyResponseMapper;
+import uk.gov.hmcts.opal.mapper.legacy.LegacyPaymentTermsMapper;
+import uk.gov.hmcts.opal.service.opal.CourtService;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyDefendantAccountPaymentTermsServiceTest {
@@ -69,21 +77,35 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
     @Mock
     private LegacyGatewayProperties gatewayProperties;
 
+    @Mock
+    private CourtService courtService;
+
     private GatewayService gatewayService;
 
-    private final DefendantAccountPaymentTermsLegacyResponseMapper mapper =
+    @Spy
+    private LegacyPaymentTermsMapper legacyPaymentTermsMapper = Mappers.getMapper(LegacyPaymentTermsMapper.class);
+
+    @Spy
+    private DefendantAccountPaymentTermsLegacyResponseMapper defendantAccountPaymentTermsLegacyResponseMapper =
         Mappers.getMapper(DefendantAccountPaymentTermsLegacyResponseMapper.class);
 
-    private  LegacyDefendantAccountPaymentTermsService legacyDefendantAccountPaymentTermsService;
+    @InjectMocks
+    private LegacyDefendantAccountPaymentTermsService legacyDefendantAccountPaymentTermsService;
 
     @BeforeEach
-    void openMocks() {
+    void openMocks() throws Exception {
         gatewayService = spy(new LegacyGatewayService(gatewayProperties, restClient));
-
-        legacyDefendantAccountPaymentTermsService =
-            new LegacyDefendantAccountPaymentTermsService(gatewayService, mapper);
+        injectGatewayService(legacyDefendantAccountPaymentTermsService, gatewayService);
     }
 
+    private void injectGatewayService(
+        LegacyDefendantAccountPaymentTermsService legacyDefendantAccountService, GatewayService gatewayService)
+        throws NoSuchFieldException, IllegalAccessException {
+
+        Field field = LegacyDefendantAccountPaymentTermsService.class.getDeclaredField("gatewayService");
+        field.setAccessible(true);
+        field.set(legacyDefendantAccountService, gatewayService);
+    }
 
     @Test
     void addPaymentCardRequest_legacy_happyPath() {
@@ -132,7 +154,8 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         );
 
         // When
-        legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L, (short) 78, "L080JG", "Tester Name", "9");
+        legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L, (short) 78,
+            "L080JG", "Tester Name", "9");
 
         // Then
         AddPaymentCardLegacyRequest sent = captor.getValue();
@@ -415,16 +438,22 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         String ifMatch = "\"835509468493002959816526022013198014020000027212\"";
         var legacyResponse = createAddPaymentTermsLegacyResponse(defendantAccountId, ifMatch);
         var gateWayResponse = new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
-        var addPaymentTermsRequest = AddDefendantAccountPaymentTermsRequest.builder()
-            .paymentTerms(PaymentTerms.builder()
-                .extension(true)
-                .reasonForExtension("dmweoapde")
-                .paymentTermsType(new PaymentTermsType(PaymentTermsType.PaymentTermsTypeCode.B))
-                .effectiveDate(LocalDate.parse("2026-08-09"))
-                .instalmentPeriod(new InstalmentPeriod(InstalmentPeriod.InstalmentPeriodCode.W))
-                .lumpSumAmount(new BigDecimal("100.00"))
-                .postedDetails(new PostedDetails(null, businessUnitUserId, "opal-test"))
+        PaymentTermsDefendantAccount paymentTermsDefendantAccount = PaymentTermsDefendantAccount.builder()
+            .extension(true)
+            .reasonForExtension("dmweoapde")
+            .paymentTermsType(PaymentTermsTypeCommonStrict.builder().paymentTermsTypeCode(PaymentTermsTypeCodeEnum.B)
                 .build())
+            .effectiveDate(LocalDate.parse("2026-08-09"))
+            .instalmentPeriod(InstalmentPeriodCommonStrict.builder().instalmentPeriodCode(InstalmentPeriodCodeEnum.W)
+                .build())
+            .lumpSumAmount(new BigDecimal("100.00"))
+            .postedDetails(EnforcementPostedDetailsCommonStrict.builder()
+                .postedBy(businessUnitUserId)
+                .postedByName("opal-test")
+                .build())
+            .build();
+        AddPaymentTermsRequestDefendantAccount addPaymentTermsRequest = AddPaymentTermsRequestDefendantAccount.builder()
+            .paymentTerms(paymentTermsDefendantAccount)
             .build();
 
         doReturn(gateWayResponse).when(gatewayService).postToGateway(any(), any(), any(), any());
@@ -493,14 +522,15 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
     }
 
     private static void assertGetDefendantAccountPaymentTermsResponse(
-        GetDefendantAccountPaymentTermsResponse actualResponse, AddPaymentTermsLegacyResponse legacyResponse) {
+        GetPaymentTermsResponseDefendantAccount actualResponse, AddPaymentTermsLegacyResponse legacyResponse) {
 
         assertNotNull(actualResponse);
         assertThat(actualResponse.getVersion()).isEqualTo(legacyResponse.getVersion());
         assertNotNull(actualResponse.getPaymentTerms());
         assertThat(actualResponse.getPaymentCardLastRequested())
-            .isEqualTo(legacyResponse.getPaymentCardLastRequested());
-        assertThat(actualResponse.getLastEnforcement()).isEqualTo(legacyResponse.getLastEnforcement());
+            .isEqualTo(JsonNullable.of(legacyResponse.getPaymentCardLastRequested()));
+        assertThat(actualResponse.getLastEnforcement())
+            .isEqualTo(JsonNullable.of(legacyResponse.getLastEnforcement()));
     }
 
     @Test

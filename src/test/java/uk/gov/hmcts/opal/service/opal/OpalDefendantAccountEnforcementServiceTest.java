@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
@@ -45,7 +46,6 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mapstruct.factory.Mappers;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
@@ -54,9 +54,6 @@ import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
-import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
-import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
@@ -71,11 +68,14 @@ import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddPaymentTermsRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementInstalmentPeriodCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsTypeCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementResultIdCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementResultResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.mapper.EnforcementPaymentTermsMapper;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.UserStateService;
@@ -664,7 +664,7 @@ class OpalDefendantAccountEnforcementServiceTest {
             eq(BUSINESS_UNIT_USER_ID),
             eq(USER_NAME),
             eq(IF_MATCH),
-            ArgumentMatchers.any(AddDefendantAccountPaymentTermsRequest.class)
+            ArgumentMatchers.any(AddPaymentTermsRequestDefendantAccount.class)
         );
     }
 
