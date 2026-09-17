@@ -12,12 +12,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.history.DefendantTransactionDetails;
@@ -34,6 +36,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
 
@@ -54,7 +57,28 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
         assertEquals("99000000000001", request.getDefendantAccountId());
         assertEquals(LocalDate.of(2026, Month.MAY, 11), request.getFromDate());
         assertEquals(LocalDate.of(2026, Month.MAY, 12), request.getToDate());
-        assertEquals(List.of("Enforcement", "Payment Terms", "Note"), request.getItemTypes());
+        assertEquals(List.of("Enforcement", "Payment terms", "Note"), request.getItemTypes());
+    }
+
+    @Test
+    void createGetDefendantAccountHistoryRequest_buildsLegacySchemaCompliantJson() {
+        // Arrange
+        DefendantAccountHistoryFilter filter = DefendantAccountHistoryFilter.builder()
+            .dateFrom(LocalDate.of(2026, Month.MAY, 11))
+            .dateTo(LocalDate.of(2026, Month.MAY, 12))
+            .itemTypes(List.of(HistoryItemType.PAYMENT_TERMS))
+            .build();
+
+        // Act
+        GetDefendantAccountHistoryLegacyRequest request =
+            LegacyDefendantAccountService.createGetDefendantAccountHistoryRequest(99000000000001L, filter);
+        String json = ToJsonString.getObjectMapper().writeValueAsString(request);
+
+        // Assert
+        assertEquals(
+            Set.of(),
+            new JsonSchemaValidationService().validate(json, "legacy/getDefendantAccountHistoryLegacyRequest.json")
+        );
     }
 
     @SuppressWarnings("unchecked")
