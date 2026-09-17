@@ -69,14 +69,17 @@ public class DeleteInterfaceJobsIntegrationTest extends AbstractIntegrationTest 
     void shouldDeleteInterfaceJobsAndAssociatedData() throws Exception {
         long interfaceJobId1 = 987651L;
         long interfaceJobId2 = 987652L;
+        List<Long> interfaceJobIds = List.of(interfaceJobId1, interfaceJobId2);
         List<Long> interfaceFileIds = List.of(987751L, 987752L);
+        List<Long> interfaceMessageIds = List.of(987851L, 987852L);
+        List<Long> paymentInIds = List.of(988051L, 988052L);
 
 
-        assertThat(interfaceJobRepository.count()).isEqualTo(2);
-        assertThat(interfaceFileRepository.count()).isEqualTo(2);
-        assertThat(interfaceMessageRepository.count()).isEqualTo(2);
+        assertThat(interfaceJobRepository.findAllById(interfaceJobIds)).hasSize(2);
+        assertThat(interfaceFileRepository.findAllById(interfaceFileIds)).hasSize(2);
+        assertThat(interfaceMessageRepository.findAllById(interfaceMessageIds)).hasSize(2);
         assertThat(tillRepository.countByInterfaceFile_InterfaceFileIdIn(interfaceFileIds)).isEqualTo(2);
-        assertThat(paymentInRepository.count()).isEqualTo(2);
+        assertThat(paymentInRepository.findAllById(paymentInIds)).hasSize(2);
 
         ResultActions actions = mockMvc.perform(delete(URL)
             .queryParam("ids", "" + interfaceJobId1, "" + interfaceJobId2));
@@ -84,11 +87,11 @@ public class DeleteInterfaceJobsIntegrationTest extends AbstractIntegrationTest 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$").doesNotExist());
 
-        assertThat(paymentInRepository.count()).isZero();
+        assertThat(paymentInRepository.findAllById(paymentInIds)).isEmpty();
         assertThat(tillRepository.countByInterfaceFile_InterfaceFileIdIn(interfaceFileIds)).isZero();
-        assertThat(interfaceMessageRepository.count()).isZero();
-        assertThat(interfaceFileRepository.count()).isZero();
-        assertThat(interfaceJobRepository.count()).isZero();
+        assertThat(interfaceMessageRepository.findAllById(interfaceMessageIds)).isEmpty();
+        assertThat(interfaceFileRepository.findAllById(interfaceFileIds)).isEmpty();
+        assertThat(interfaceJobRepository.findAllById(interfaceJobIds)).isEmpty();
     }
 
     @Test

@@ -1,15 +1,15 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.verify;
-import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
@@ -59,10 +59,8 @@ class LegacyDefAccServiceHeaderHelperTest extends AbstractLegacyDefAccServiceTes
         doReturn(respError, respSuccess).when(gatewayService)
             .postToGateway(any(), any(), any(), any());
 
-        legacyDefendantAccountService.getHeaderSummary(1L);
-        legacyDefendantAccountService.getHeaderSummary(1L);
-
-        verify(gatewayService, times(2)).postToGateway(any(), any(), any(), any());
+        assertThatThrownBy(() -> legacyDefendantAccountService.getHeaderSummary(1L))
+            .isInstanceOf(HttpServerErrorException.class).hasMessage("500 Legacy gateway returned failure");
     }
 
     @Test

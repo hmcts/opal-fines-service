@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
@@ -16,7 +17,6 @@ import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
-import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.http.api.DefendantAccountApi;
@@ -24,6 +24,7 @@ import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddPaymentCardRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddPaymentTermsRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
@@ -32,8 +33,11 @@ import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Resp
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.GetPaymentTermsResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.ReplacePartyRequestDefendantAccount;
@@ -42,14 +46,14 @@ import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.ReplacePartyRequestMapper;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
-import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
+import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
+import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.ImpositionService;
-import uk.gov.hmcts.opal.util.VersionUtils;
 
 @RestController
 @Slf4j(topic = "opal.DefendantAccountApiController")
@@ -60,9 +64,9 @@ public class DefendantAccountApiController implements DefendantAccountApi {
     private final DefendantAccountEnforcementService defendantAccountEnforcementService;
     private final DefendantAccountHistoryResponseMapper defendantAccountHistoryResponseMapper;
     private final ImpositionService impositionService;
+    private final DefendantAccountPartyService defendantAccountPartyService;
     private final DefendantAccountFixedPenaltyService defendantAccountFixedPenaltyService;
     private final DefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
-    private final DefendantAccountPartyService defendantAccountPartyService;
     private final ReplacePartyRequestMapper replacePartyRequestMapper;
 
     @Override
@@ -96,12 +100,25 @@ public class DefendantAccountApiController implements DefendantAccountApi {
 
     @Override
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
+    public ResponseEntity<GetPaymentTermsResponseDefendantAccount> addPaymentTerms(
+        Long defendantAccountId, String businessUnitId,
+        AddPaymentTermsRequestDefendantAccount addPaymentTermsRequestDefendantAccount,
+        @Nullable String ifMatch) {
+        log.debug(":POST: :addPaymentTerms: for defendant id: {}", defendantAccountId);
+        GetPaymentTermsResponseDefendantAccount response = defendantAccountPaymentTermsService.addPaymentTerms(
+            defendantAccountId, businessUnitId, ifMatch, addPaymentTermsRequestDefendantAccount);
+
+        return buildResponse(response, response);
+    }
+
+    @Override
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<GetDefendantAccountHeaderSummary200Response> getDefendantAccountHeaderSummary(Long id) {
         log.debug(":GET:getDefendantAccountHeaderSummary: for defendant id: {}", id);
 
         DefendantAccountHeaderSummary summary = defendantAccountService.getHeaderSummary(id);
 
-        return ResponseEntity.ok().eTag(VersionUtils.createETag(summary)).body(summary.getResponse());
+        return buildResponse(summary, summary.getResponse());
     }
 
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
@@ -111,7 +128,7 @@ public class DefendantAccountApiController implements DefendantAccountApi {
 
         GetDefendantAccountImpositionsResponse response = impositionService.getImpositions(id);
 
-        return ResponseEntity.ok().eTag(VersionUtils.createETag(response)).body(response.getPayload());
+        return buildResponse(response, response.getPayload());
     }
 
     @Override
@@ -123,19 +140,16 @@ public class DefendantAccountApiController implements DefendantAccountApi {
         GetDefendantAccountConsolidatedAccountsResult response =
             defendantAccountService.getConsolidatedAccounts(defendantAccountId);
 
-        return ResponseEntity.ok().eTag(VersionUtils.createETag(response)).body(response.getPayload());
+        return buildResponse(response, response.getPayload());
     }
 
     @Override
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<AtAGlanceResponseDefendantAccount> getDefendantAccountAtAGlance(Long id) {
         log.debug(":GET:getDefendantAccountAtAGlance: for defendant account id: {}", id);
-
         GetDefendantAccountAtAGlanceResponse response = defendantAccountService.getAtAGlance(id);
 
-        return ResponseEntity.ok()
-            .eTag(VersionUtils.createETag(response))
-            .body(response.getPayload());
+        return buildResponse(response, response.getPayload());
     }
 
     @Override
@@ -152,10 +166,8 @@ public class DefendantAccountApiController implements DefendantAccountApi {
         Long defendantAccountId) {
         log.debug(":GET:getDefendantAccountFixedPenalty: for defendantAccountId={}", defendantAccountId);
 
-        GetDefendantAccountFixedPenaltyResponse response =
-            defendantAccountFixedPenaltyService.getDefendantAccountFixedPenalty(defendantAccountId);
-
-        return ResponseEntity.ok().eTag(VersionUtils.createETag(response)).body(response);
+        return buildResponse(
+            defendantAccountFixedPenaltyService.getDefendantAccountFixedPenalty(defendantAccountId));
     }
 
     @Override
@@ -210,6 +222,22 @@ public class DefendantAccountApiController implements DefendantAccountApi {
 
     @Override
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
+    public ResponseEntity<RemoveDefendantAccountPartyResponseDefendantAccount> removeDefendantAccountParty(
+        Long defendantAccountId,
+        Long defendantAccountPartyId,
+        Short businessUnitId,
+        RemoveDefendantAccountPartyRequestDefendantAccount request,
+        String ifMatch) {
+
+        log.debug(":DELETE:removeDefendantAccountParty: for defendant id: {} and defendantAccountPartyId: {}",
+            defendantAccountId, defendantAccountPartyId);
+
+        return buildResponse(defendantAccountPartyService.removeDefendantAccountParty(
+            defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, request));
+    }
+
+    @Override
+    @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<UpdateDefendantAccountResponsePayload> updateDefendantAccount(Long defendantAccountId,
         String businessUnitId, UpdateDefendantAccountRequestPayload request, String ifMatch) {
         log.debug(":PATCH:updateDefendantAccount: id={}", defendantAccountId);
@@ -217,7 +245,7 @@ public class DefendantAccountApiController implements DefendantAccountApi {
         UpdateDefendantAccountResponse response =
             defendantAccountService.updateDefendantAccount(defendantAccountId, businessUnitId, request, ifMatch);
 
-        return ResponseEntity.ok().eTag(VersionUtils.createETag(response)).body(response.getPayload());
+        return buildResponse(response, response.getPayload());
     }
 
     @Override
@@ -236,9 +264,7 @@ public class DefendantAccountApiController implements DefendantAccountApi {
         GetDefendantAccountHistoryResponse generatedResponse =
             defendantAccountHistoryResponseMapper.toGeneratedResponse(response);
 
-        return ResponseEntity.ok()
-            .eTag(VersionUtils.createETag(response))
-            .body(generatedResponse);
+        return buildResponse(response, generatedResponse);
     }
 
     @Override

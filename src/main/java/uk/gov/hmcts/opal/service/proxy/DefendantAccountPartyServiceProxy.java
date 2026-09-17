@@ -3,11 +3,11 @@ package uk.gov.hmcts.opal.service.proxy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
-import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
+import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPartyServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
@@ -62,9 +62,10 @@ public class DefendantAccountPartyServiceProxy implements DefendantAccountPartyS
     }
 
     @Override
-    public RemoveDefendantAccountPartyResponse removeDefendantAccountParty(Long defendantAccountId,
+    public RemoveDefendantAccountPartyResponseDefendantAccount removeDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId, Short businessUnitId, String businessUserId,
-        String postedBy, String postedByName, String ifMatch, RemoveDefendantAccountPartyRequest request) {
+        String postedBy, String postedByName, String ifMatch,
+        RemoveDefendantAccountPartyRequestDefendantAccount request) {
 
         return getCurrentModeService().removeDefendantAccountParty(defendantAccountId,
             defendantAccountPartyId, businessUnitId, businessUserId,

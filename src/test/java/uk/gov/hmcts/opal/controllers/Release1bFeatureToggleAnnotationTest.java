@@ -51,13 +51,15 @@ class Release1bFeatureToggleAnnotationTest {
         Set<String> expectedAnnotatedMethods = Set.of(
             // Defendant Account API controller
             "DefendantAccountApiController#addDefendantAccountParty",
+            "DefendantAccountApiController#addPaymentTerms",
+            "DefendantAccountApiController#getDefendantAccountHistory",
             "DefendantAccountApiController#addEnforcement",
             "DefendantAccountApiController#addPaymentCardRequest",
             "DefendantAccountApiController#getConsolidatedAccounts",
+            "DefendantAccountApiController#removeDefendantAccountParty",
             "DefendantAccountApiController#getDefendantAccountAtAGlance",
             "DefendantAccountApiController#getDefendantAccountFixedPenalty",
             "DefendantAccountApiController#getDefendantAccountHeaderSummary",
-            "DefendantAccountApiController#getDefendantAccountHistory",
             "DefendantAccountApiController#getDefendantAccountParty",
             "DefendantAccountApiController#getEnforcementStatus",
             "DefendantAccountApiController#getImpositions",
@@ -67,9 +69,7 @@ class Release1bFeatureToggleAnnotationTest {
             "DefendantAccountApiController#updateDefendantAccount",
 
             // Defendant Account controller
-            "DefendantAccountController#addPaymentTerms",
             "DefendantAccountController#defendantAccountPaymentTerms",
-            "DefendantAccountController#removeDefendantAccountParty",
 
             // Major Creditor API controller
             "MajorCreditorApiController#getCentralFundByBusinessUnit",
