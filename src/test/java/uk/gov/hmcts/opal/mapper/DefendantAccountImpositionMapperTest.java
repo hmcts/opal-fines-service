@@ -14,9 +14,9 @@ import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountType;
 import uk.gov.hmcts.opal.entity.projection.DefendantAccountImpositionData;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
-import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon;
 
 class DefendantAccountImpositionMapperTest {
 
@@ -76,17 +76,21 @@ class DefendantAccountImpositionMapperTest {
         assertEquals("IGR001", mapped.getImposition().getResultId());
         assertEquals("Imposition Graph Result", mapped.getImposition().getResultTitle());
         assertEquals(551004L, mapped.getCreditor().getCreditorAccountId());
-        assertEquals(ImpositionCreditorReferenceCommon.AccountTypeEnum.MJ, mapped.getCreditor().getAccountType());
         assertEquals(
-            ImpositionCreditorReferenceCommon.DisplayNameEnum.MAJOR_CREDITOR,
-            mapped.getCreditor().getDisplayName()
+            CreditorAccountTypeReferenceCommon.AccountTypeEnum.MJ,
+            mapped.getCreditor().getCreditorAccountType().getAccountType()
         );
-        assertEquals(551003L, mapped.getCreditor().getMajorCreditorId());
-        assertNull(mapped.getCreditor().getMinorCreditorPartyId());
-        assertEquals("Graph Major Creditor", mapped.getCreditor().getName());
-        assertEquals(5510L, mapped.getOffence().getId());
-        assertEquals("IG5510", mapped.getOffence().getCode());
-        assertEquals("Imposition Graph Offence", mapped.getOffence().getTitle());
+        assertEquals(
+            CreditorAccountTypeReferenceCommon.DisplayNameEnum.MAJOR_CREDITOR,
+            mapped.getCreditor().getCreditorAccountType().getDisplayName()
+        );
+        assertEquals("Graph Major Creditor", mapped.getCreditor().getMajorCreditorName());
+        assertNull(mapped.getCreditor().getMinorCreditorOrganisationFlag());
+        assertNull(mapped.getCreditor().getIndividualName());
+        assertNull(mapped.getCreditor().getCompanyName());
+        assertEquals(5510L, mapped.getOffence().getOffenceId());
+        assertEquals("IG5510", mapped.getOffence().getCjsCode());
+        assertEquals("Imposition Graph Offence", mapped.getOffence().getOffenceTitle());
         assertEquals(551001L, mapped.getImposedBy().getCourtId());
         assertEquals((short) 101, mapped.getImposedBy().getCourtCode());
         assertEquals("Graph Test Court", mapped.getImposedBy().getCourtName());
@@ -112,16 +116,21 @@ class DefendantAccountImpositionMapperTest {
 
         DefendantAccountImpositionCommon mapped = mapper.toImposition(data);
 
-        assertEquals(ImpositionCreditorReferenceCommon.AccountTypeEnum.MN, mapped.getCreditor().getAccountType());
         assertEquals(
-            ImpositionCreditorReferenceCommon.DisplayNameEnum.MINOR_CREDITOR,
-            mapped.getCreditor().getDisplayName()
+            CreditorAccountTypeReferenceCommon.AccountTypeEnum.MN,
+            mapped.getCreditor().getCreditorAccountType().getAccountType()
         );
-        assertNull(mapped.getCreditor().getMajorCreditorId());
-        assertEquals(551006L, mapped.getCreditor().getMinorCreditorPartyId());
-        assertEquals("Ms Creditor Minor", mapped.getCreditor().getName());
-        assertEquals("LOCAL1", mapped.getOffence().getCode());
-        assertEquals("Local offence title", mapped.getOffence().getTitle());
+        assertEquals(
+            CreditorAccountTypeReferenceCommon.DisplayNameEnum.MINOR_CREDITOR,
+            mapped.getCreditor().getCreditorAccountType().getDisplayName()
+        );
+        assertNull(mapped.getCreditor().getMajorCreditorName());
+        assertEquals(false, mapped.getCreditor().getMinorCreditorOrganisationFlag());
+        assertEquals("Creditor", mapped.getCreditor().getIndividualName().getForenames());
+        assertEquals("Minor", mapped.getCreditor().getIndividualName().getSurname());
+        assertNull(mapped.getCreditor().getCompanyName());
+        assertEquals("LOCAL1", mapped.getOffence().getCjsCode());
+        assertEquals("Local offence title", mapped.getOffence().getOffenceTitle());
         assertNull(mapped.getImposedBy());
     }
 
@@ -145,11 +154,13 @@ class DefendantAccountImpositionMapperTest {
 
         DefendantAccountImpositionCommon mapped = mapper.toImposition(data);
 
-        assertEquals("Minor Org Ltd", mapped.getCreditor().getName());
+        assertEquals(true, mapped.getCreditor().getMinorCreditorOrganisationFlag());
+        assertNull(mapped.getCreditor().getIndividualName());
+        assertEquals("Minor Org Ltd", mapped.getCreditor().getCompanyName().getOrganisationName());
     }
 
     @Test
-    void toImposition_shouldFallbackToOrganisationNameWhenMinorCreditorIndividualNameIsBlank() {
+    void toImposition_shouldNotMapNameWhenMinorCreditorIndividualSurnameIsBlank() {
         DefendantAccountImpositionData data = impositionData(
             DefendantAccountType.FINES,
             CreditorAccountType.MN,
@@ -168,7 +179,9 @@ class DefendantAccountImpositionMapperTest {
 
         DefendantAccountImpositionCommon mapped = mapper.toImposition(data);
 
-        assertEquals("Minor Org Ltd", mapped.getCreditor().getName());
+        assertEquals(false, mapped.getCreditor().getMinorCreditorOrganisationFlag());
+        assertNull(mapped.getCreditor().getIndividualName());
+        assertNull(mapped.getCreditor().getCompanyName());
     }
 
     @Test
@@ -191,12 +204,16 @@ class DefendantAccountImpositionMapperTest {
 
         DefendantAccountImpositionCommon mapped = mapper.toImposition(data);
 
-        assertEquals(ImpositionCreditorReferenceCommon.AccountTypeEnum.CF, mapped.getCreditor().getAccountType());
         assertEquals(
-            ImpositionCreditorReferenceCommon.DisplayNameEnum.CENTRAL_FUND,
-            mapped.getCreditor().getDisplayName()
+            CreditorAccountTypeReferenceCommon.AccountTypeEnum.CF,
+            mapped.getCreditor().getCreditorAccountType().getAccountType()
         );
-        assertEquals("Configured Central Fund", mapped.getCreditor().getName());
+        assertEquals(
+            CreditorAccountTypeReferenceCommon.DisplayNameEnum.CENTRAL_FUND,
+            mapped.getCreditor().getCreditorAccountType().getDisplayName()
+        );
+        assertNull(mapped.getCreditor().getMajorCreditorName());
+        assertEquals("Configured Central Fund", mapped.getCreditor().getCompanyName().getOrganisationName());
     }
 
     @Test
@@ -219,7 +236,7 @@ class DefendantAccountImpositionMapperTest {
 
         DefendantAccountImpositionCommon mapped = mapper.toImposition(data);
 
-        assertEquals("Central Fund", mapped.getCreditor().getName());
+        assertEquals("Central Fund", mapped.getCreditor().getCompanyName().getOrganisationName());
     }
 
     @Test
@@ -321,12 +338,14 @@ class DefendantAccountImpositionMapperTest {
 
         assertNull(mapped.getDateAdded());
         assertNull(mapped.getDateImposed());
-        assertNull(mapped.getCreditor().getAccountType());
-        assertNull(mapped.getCreditor().getDisplayName());
-        assertNull(mapped.getCreditor().getName());
+        assertNull(mapped.getCreditor().getCreditorAccountType());
+        assertNull(mapped.getCreditor().getMajorCreditorName());
+        assertNull(mapped.getCreditor().getMinorCreditorOrganisationFlag());
+        assertNull(mapped.getCreditor().getIndividualName());
+        assertNull(mapped.getCreditor().getCompanyName());
         assertNull(mapped.getBalance());
-        assertNull(mapped.getOffence().getCode());
-        assertNull(mapped.getOffence().getTitle());
+        assertNull(mapped.getOffence().getCjsCode());
+        assertNull(mapped.getOffence().getOffenceTitle());
         assertNull(mapped.getImposedBy());
     }
 
