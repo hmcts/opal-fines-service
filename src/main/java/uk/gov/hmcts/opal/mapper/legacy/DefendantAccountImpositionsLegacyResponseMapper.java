@@ -15,11 +15,12 @@ import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Imposition;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Offence;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.CreditorAccountDisplayNameEnum;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.CreditorAccountTypeEnum;
+import uk.gov.hmcts.opal.generated.model.CreditorSummaryCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
-import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon;
-import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon.AccountTypeEnum;
-import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon.DisplayNameEnum;
 import uk.gov.hmcts.opal.generated.model.OffenceReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.ResultReferenceCommon;
 
@@ -37,19 +38,19 @@ public interface DefendantAccountImpositionsLegacyResponseMapper {
 
     ResultReferenceCommon toOpal(GetDefendantAccountImpositionsLegacyResponse.Result legacy);
 
-    @Mapping(target = "accountType", source = "creditorAccountType.creditorAccountType",
-        qualifiedByName = "toAccountType")
-    @Mapping(target = "displayName", source = "creditorAccountType.creditorAccountType",
-        qualifiedByName = "toDisplayName")
-    @Mapping(target = "majorCreditorId", ignore = true)
-    @Mapping(target = "minorCreditorPartyId", ignore = true)
-    @Mapping(target = "name", source = "majorCreditorName")
-    ImpositionCreditorReferenceCommon toOpal(Creditor legacy);
+    @Mapping(target = "creditorAccountTypeReference", source = ".")
+    CreditorSummaryCommon toOpal(Creditor legacy);
 
-    @Mapping(target = "id", source = "offenceId")
-    @Mapping(target = "code", source = "cjsCode")
-    @Mapping(target = "title", source = "offenceTitle")
+    @Mapping(target = "offenceId", source = "offenceId")
+    @Mapping(target = "cjsCode", source = "cjsCode")
+    @Mapping(target = "offenceTitle", source = "offenceTitle")
     OffenceReferenceCommon toOpal(Offence legacy);
+
+    @Mapping(target = "creditorAccountType", source = "creditorAccountType.creditorAccountType",
+        qualifiedByName = "toAccountType")
+    @Mapping(target = "creditorAccountDisplayName", source = "creditorAccountType.creditorAccountType",
+        qualifiedByName = "toDisplayName")
+    CreditorAccountTypeReferenceCommon toCreditorAccountTypeReference(Creditor legacy);
 
     @Named("toPayload")
     default DefendantAccountImpositionsResponseCommon toPayload(List<Imposition> impositions) {
@@ -76,13 +77,13 @@ public interface DefendantAccountImpositionsLegacyResponseMapper {
     }
 
     @Named("toAccountType")
-    default AccountTypeEnum toAccountType(String value) {
-        return value == null ? null : AccountTypeEnum.fromValue(value);
+    default CreditorAccountTypeEnum toAccountType(String value) {
+        return value == null ? null : CreditorAccountTypeEnum.fromValue(value);
     }
 
     @Named("toDisplayName")
-    default DisplayNameEnum toDisplayName(String accountType) {
+    default CreditorAccountDisplayNameEnum toDisplayName(String accountType) {
         String displayName = CreditorAccountType.getDisplayName(accountType);
-        return displayName == null ? null : DisplayNameEnum.fromValue(displayName);
+        return displayName == null ? null : CreditorAccountDisplayNameEnum.fromValue(displayName);
     }
 }
