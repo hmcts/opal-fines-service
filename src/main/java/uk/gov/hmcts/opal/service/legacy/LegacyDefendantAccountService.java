@@ -77,6 +77,7 @@ import uk.gov.hmcts.opal.generated.model.EnforcerReferenceCommonStrict;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.AccountTypeEnum;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.DebtorTypeEnum;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.OriginatorTypeEnum;
 import uk.gov.hmcts.opal.generated.model.IndividualAliasCommon;
 import uk.gov.hmcts.opal.generated.model.IndividualAliasCommonStrict;
 import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
@@ -150,6 +151,12 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             );
 
             checkResponseForError(response, "getHeaderSummary");
+            /*
+            TODO: Currently the getDefendantAccountHeaderSummaryLegacyResponse.json file is not being used to
+             validate the response from the legacy system this either needs to be done in the future or the
+             file is a candidate for removal.
+             */
+
 
             return toHeaderSumaryDto(response.responseEntity);
 
@@ -363,6 +370,11 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 .partyDetails(opalPartyDetails)
                 .hasConsolidatedAccounts(
                     Optional.ofNullable(response.getHasConsolidatedAccounts()).orElse(Boolean.FALSE))
+                .originatorType(
+                    response.getOriginatorType() == null ? null :
+                        OriginatorTypeEnum.fromValue(response.getOriginatorType()))
+                .originatorName(response.getOriginatorName())
+                .collectionOrder(response.getCollectionOrder())
                 .build();
 
         return DefendantAccountHeaderSummary.builder()
