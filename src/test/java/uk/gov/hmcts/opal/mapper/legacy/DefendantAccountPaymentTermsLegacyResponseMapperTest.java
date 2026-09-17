@@ -67,6 +67,39 @@ class DefendantAccountPaymentTermsLegacyResponseMapperTest {
         assertEquals(1L, result.getVersion());
     }
 
+    @Test
+    void shouldReturnFortnightlyInstalmentPeriodDisplayName() {
+        LegacyPaymentTerms paymentTerms = getLegacyPaymentTerms();
+        paymentTerms.setInstalmentPeriod(new LegacyInstalmentPeriod(InstalmentPeriodCode.F));
+
+        LegacyGetDefendantAccountPaymentTermsResponse legacyGetDefendantAccountPaymentTermsResponse =
+            new LegacyGetDefendantAccountPaymentTermsResponse(new BigInteger("5"), paymentTerms,
+                LocalDate.of(2026, 8, 15), "123456");
+
+        var defendantAccountPaymentTerm = mapper.toResponse(legacyGetDefendantAccountPaymentTermsResponse);
+
+        assertNotNull(defendantAccountPaymentTerm);
+        assertEquals(5L, defendantAccountPaymentTerm.getVersion());
+        assertEquals(LocalDate.of(2026, 8, 15), defendantAccountPaymentTerm.getPaymentCardLastRequested());
+        assertEquals("123456", defendantAccountPaymentTerm.getLastEnforcement());
+
+        var defendantAccountPaymentTerms = defendantAccountPaymentTerm.getPaymentTerms();
+        assertNotNull(defendantAccountPaymentTerms);
+        assertEquals(10, defendantAccountPaymentTerms.getDaysInDefault().get());
+        assertEquals(LocalDate.of(2026, 8, 15), defendantAccountPaymentTerms.getDateDaysInDefaultImposed().get());
+        assertEquals(BigDecimal.valueOf(1000.99), defendantAccountPaymentTerms.getLumpSumAmount().get());
+        assertEquals(PaymentTermsTypeCodeEnum.I,
+            defendantAccountPaymentTerms.getPaymentTermsType().getPaymentTermsTypeCode());
+        assertEquals(InstalmentPeriodCodeEnum.F,
+            defendantAccountPaymentTerms.getInstalmentPeriod().get().getInstalmentPeriodCode());
+        assertEquals(InstalmentPeriodDisplayNameEnum.FORTNIGHTLY,
+            defendantAccountPaymentTerms.getInstalmentPeriod().get().getInstalmentPeriodDisplayName());
+        assertEquals(LocalDateTime.of(2026, 8, 20, 9, 0),
+            defendantAccountPaymentTerms.getPostedDetails().get().getPostedDate());
+        assertEquals("John Doe", defendantAccountPaymentTerms.getPostedDetails().get().getPostedBy().get());
+        assertEquals("j.doe", defendantAccountPaymentTerms.getPostedDetails().get().getPostedByName().get());
+    }
+
     private static @NonNull LegacyPaymentTerms getLegacyPaymentTerms() {
         LocalDateTime postedDate = LocalDateTime.of(2026, 8, 20, 9, 0, 0);
 
