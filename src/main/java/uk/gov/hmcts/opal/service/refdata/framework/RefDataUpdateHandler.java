@@ -1,8 +1,7 @@
 package uk.gov.hmcts.opal.service.refdata.framework;
 
+import java.util.List;
 import java.util.Optional;
-
-//also need cache refresh. Define cache names to be refreshed in the handler?
 
 public interface RefDataUpdateHandler<T, E> {
     String refDataType();
@@ -19,4 +18,8 @@ public interface RefDataUpdateHandler<T, E> {
     E saveEntity(E entity);
 
     RefDataUpdateMapper<T, E> mapper();
+
+    default List<String> cachesToClear() {
+        return List.of();
+    }
 }

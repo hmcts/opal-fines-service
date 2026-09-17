@@ -1,9 +1,14 @@
 package uk.gov.hmcts.opal.service.refdata.framework;
 
+import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
@@ -19,15 +24,18 @@ public class RefDataMessageProcessor {
     private final SchemaValidationService schemaValidationService;
     private final RefDataHandlerRegistry handlerRegistry;
     private final FeatureToggleApi featureToggleApi;
+    private final CacheManager cacheManager;
 
     public RefDataMessageProcessor(ObjectMapper objectMapper,
         SchemaValidationService schemaValidationService,
         RefDataHandlerRegistry handlerRegistry,
-        FeatureToggleApi featureToggleApi) {
+        FeatureToggleApi featureToggleApi,
+        CacheManager cacheManager) {
         this.objectMapper = objectMapper;
         this.schemaValidationService = schemaValidationService;
         this.handlerRegistry = handlerRegistry;
         this.featureToggleApi = featureToggleApi;
+        this.cacheManager = cacheManager;
     }
 
     @Transactional
@@ -48,12 +56,13 @@ public class RefDataMessageProcessor {
 
         String dataProduct = extractDataProduct(messageNode);
 
-        Optional<RefDataUpdateHandler<?, ?>> handler = handlerRegistry.find(dataProduct);
-        if (handler.isEmpty()) {
+        Optional<RefDataUpdateHandler<?, ?>> maybeHandler = handlerRegistry.find(dataProduct);
+        if (maybeHandler.isEmpty()) {
             log.debug("Ignoring ref-data message with no registered handler for type: {}",
                 dataProduct);
             return;
         }
+        RefDataUpdateHandler<?, ?> handler = maybeHandler.get();
 
         JsonNode payloadNode = messageNode.path("payload");
         JsonNode recordsNode = payloadNode.path("records");
@@ -61,7 +70,12 @@ public class RefDataMessageProcessor {
             return;
         }
 
-        recordsNode.forEach(recordNode -> applyUpdate(handler.get(), recordNode));
+        recordsNode.forEach(recordNode -> applyUpdate(handler, recordNode));
+
+        List<String> associatedCaches = handler.cachesToClear();
+        associatedCaches.forEach(
+            this::clearCache
+        );
     }
 
     private JsonNode readMessageNode(String messagePayload) {
@@ -93,5 +107,15 @@ public class RefDataMessageProcessor {
             .orElseGet(() -> handler.createEntity(dto));
         handler.mapper().updateEntityFromDto(dto, entity);
         handler.saveEntity(entity); //this could be a newly created entity
+    }
+
+    private void clearCache(String cacheName) {
+        Cache cache = cacheManager.getCache(cacheName);
+        if (cache == null) {
+            log.warn("Unable to clear ref-data cache because no cache is registered with name: {}", cacheName);
+            return;
+        }
+        cache.clear();
+        log.debug("Cleared ref-data cache: {}", cacheName);
     }
 }

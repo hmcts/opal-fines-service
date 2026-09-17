@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.service.refdata.lja;
 
-import jakarta.persistence.criteria.CriteriaBuilder.In;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -51,5 +51,10 @@ public class LocalJusticeAreaRefDataHandler
     @Override
     public LocalJusticeAreaMapper mapper() {
         return mapper;
+    }
+
+    @Override
+    public List<String> cachesToClear() {
+        return List.of("ljaReferenceDataCache");
     }
 }
