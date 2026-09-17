@@ -14,7 +14,7 @@ import uk.gov.hmcts.opal.service.refdata.framework.RefDataMessageProcessor;
 @ConditionalOnProperty(prefix = "opal.ref-data.service-bus", name = "consumer-enabled", havingValue = "true")
 public class RefDataTopicListener {
 
-    private final RefDataMessageProcessor consumer;
+    private final RefDataMessageProcessor processor;
 
     @JmsListener(
         destination = "${opal.ref-data.service-bus.topic-name}",
@@ -23,7 +23,7 @@ public class RefDataTopicListener {
     )
     public void onMessage(Message message) throws JMSException {
         if (message instanceof TextMessage textMessage) {
-            consumer.processMessage(textMessage.getText());
+            processor.processMessage(textMessage.getText());
         } else {
             throw new IllegalArgumentException("Message must be of type TextMessage");
         }
