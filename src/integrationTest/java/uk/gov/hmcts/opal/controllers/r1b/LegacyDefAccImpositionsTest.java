@@ -38,15 +38,15 @@ import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil;
+import uk.gov.hmcts.opal.dto.legacy.CompanyNameLegacy;
+import uk.gov.hmcts.opal.dto.legacy.CreditorSummaryLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCourtReferenceCommon;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountImpositionCommon;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountImpositionsResponseCommon;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetImpositionsRequest;
-import uk.gov.hmcts.opal.dto.legacy.LegacyImpositionCreditorReferenceCommon;
-import uk.gov.hmcts.opal.dto.legacy.LegacyOffenceReferenceCommon;
 import uk.gov.hmcts.opal.dto.legacy.LegacyResultReferenceCommon;
-import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon.AccountTypeEnum;
-import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon.DisplayNameEnum;
+import uk.gov.hmcts.opal.dto.legacy.OffenceReferenceLegacy;
+import uk.gov.hmcts.opal.dto.legacy.common.CreditorAccountTypeReference;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.legacy.LegacyImpositionService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
@@ -113,7 +113,6 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.impositions[0].creditor.creditor_account_id").value(99000000000806L))
             .andExpect(jsonPath("$.impositions[0].creditor.account_type").value("MN"))
             .andExpect(jsonPath("$.impositions[0].creditor.display_name").value("Minor Creditor"))
-            .andExpect(jsonPath("$.impositions[0].creditor.minor_creditor_party_id").value(99000000000906L))
             .andExpect(jsonPath("$.impositions[0].creditor.name").value("Metropolitan Traffic Unit"))
             .andExpect(jsonPath("$.impositions[0].imposed_amount").value(600.00))
             .andExpect(jsonPath("$.impositions[0].paid_amount").value(60.00))
@@ -190,20 +189,21 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
                     .resultId("ABDC")
                     .resultTitle("Application made for Benefit Deductions")
                     .build())
-                .creditor(LegacyImpositionCreditorReferenceCommon.builder()
+                .creditor(CreditorSummaryLegacy.builder()
+                    .creditorAccountType(CreditorAccountTypeReference.builder().accountType("MN").build())
                     .creditorAccountId(99000000000806L)
-                    .accountType(AccountTypeEnum.MN)
-                    .displayName(DisplayNameEnum.MINOR_CREDITOR)
-                    .minorCreditorPartyId(99000000000906L)
-                    .name("Metropolitan Traffic Unit")
+                    .minorCreditorOrganisationFlag(true)
+                    .companyName(CompanyNameLegacy.builder()
+                        .organisationName("Metropolitan Traffic Unit")
+                        .build())
                     .build())
                 .imposedAmount(new BigDecimal("600.00"))
                 .paidAmount(new BigDecimal("60.00"))
                 .balance(new BigDecimal("540.00"))
-                .offence(LegacyOffenceReferenceCommon.builder()
-                    .id(5510L)
-                    .code("OFF0006")
-                    .title("Test Offence 6")
+                .offence(OffenceReferenceLegacy.builder()
+                    .offenceId(5510L)
+                    .cjsCode("OFF0006")
+                    .offenceTitle("Test Offence 6")
                     .build())
                 .imposedBy(LegacyCourtReferenceCommon.builder()
                     .courtId(101L)
