@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Stream;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
@@ -105,7 +104,7 @@ public class DefendantAccountControlValidator {
     }
 
     private void validate(DefendantAccountEntity account, Check... checks) {
-        List<String> failures = Stream.of(checks)
+        List<String> failures = List.of(checks).stream()
             .map(check -> check.failureMessage(account))
             .filter(Objects::nonNull)
             .toList();
@@ -153,7 +152,7 @@ public class DefendantAccountControlValidator {
             @Override
             String failureMessage(DefendantAccountEntity account) {
                 BigDecimal accountBalance = account.getAccountBalance();
-                if (accountBalance != null && accountBalance.compareTo(BigDecimal.ZERO) >= 0) {
+                if (accountBalance != null && accountBalance.compareTo(BigDecimal.ZERO) <= 0) {
                     return "Zero balance check failed because account_balance is " + accountBalance;
                 }
                 return null;

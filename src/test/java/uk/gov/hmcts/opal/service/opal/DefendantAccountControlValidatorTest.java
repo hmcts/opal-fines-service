@@ -72,7 +72,7 @@ class DefendantAccountControlValidatorTest {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .accountStatus(DefendantAccountStatus.LIVE)
             .lastEnforcement("AEO")
-            .accountBalance(BigDecimal.TEN.negate())
+            .accountBalance(BigDecimal.TEN)
             .build();
 
         UnprocessableException exception = assertThrows(

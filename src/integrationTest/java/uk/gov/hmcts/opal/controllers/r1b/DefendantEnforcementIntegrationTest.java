@@ -166,7 +166,7 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
             .andExpect(jsonPath("title").value("Unprocessable Content"))
             .andExpect(jsonPath("status").value(422))
             .andExpect(jsonPath("detail").value(
-                "Defendant account update blocked: Zero balance check failed because account_balance is 99.42."
+                "Defendant account update blocked: Zero balance check failed because account_balance is -500.58."
             ))
             .andExpect(jsonPath("retriable").value(false));
 
@@ -201,7 +201,7 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
             .andExpect(jsonPath("title").value("Unprocessable Content"))
             .andExpect(jsonPath("status").value(422))
             .andExpect(jsonPath("detail").value(
-                "Defendant account update blocked: Zero balance check failed because account_balance is 99.42."
+                "Defendant account update blocked: Zero balance check failed because account_balance is -500.58."
             ))
             .andExpect(jsonPath("retriable").value(false));
 

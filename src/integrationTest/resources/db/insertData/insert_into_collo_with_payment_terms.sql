@@ -10,7 +10,7 @@ INSERT INTO public.defendant_accounts (
     account_type,
     version_number
 ) VALUES (
-    90007, 77, '900007A', -700.00, 70.00, -630.00, 'L', 'NEW', 'Fine', 1
+    90007, 77, '900007A', 700.00, 70.00, 630.00, 'L', 'NEW', 'Fine', 1
 );
 
 INSERT INTO public.parties (party_id, organisation, surname, forenames, title, birth_date)
