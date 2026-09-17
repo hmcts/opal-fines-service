@@ -36,7 +36,7 @@ public class LegacyDefendantAccountImpositionCommon {
 
     @JsonProperty("creditor")
     @XmlElement(name = "creditor")
-    private LegacyImpositionCreditorReferenceCommon creditor;
+    private CreditorSummaryLegacy creditor;
 
     @JsonProperty("imposed_amount")
     @XmlElement(name = "imposed_amount")
@@ -52,7 +52,7 @@ public class LegacyDefendantAccountImpositionCommon {
 
     @JsonProperty("offence")
     @XmlElement(name = "offence")
-    private LegacyOffenceReferenceCommon offence;
+    private OffenceReferenceLegacy offence;
 
     @JsonProperty("imposed_by")
     @XmlElement(name = "imposed_by")
