@@ -2195,6 +2195,10 @@ components:
         parent_guardian_firstnames:
           type: string
           nullable: true
+        collection_order:
+          type: boolean
+          nullable: true
+          x-extra-annotation: '@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)'
         has_collection_order:
           type: boolean
           nullable: true
