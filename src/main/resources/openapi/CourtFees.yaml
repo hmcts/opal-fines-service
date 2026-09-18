@@ -13,7 +13,7 @@ paths:
       operationId: getCourtFees
       parameters:
         - in: query
-          name: businessUnitId
+          name: business_unit_id
           description: DB Mapping - business_units.business_unit_id
           schema:
             type: integer
@@ -21,7 +21,7 @@ paths:
           required: true
       responses:
         "200":
-          description: Business unit outstanding auto payment count response
+          description: Court Fees retrieved
           content:
             application/json:
               schema:
