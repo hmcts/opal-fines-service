@@ -36,7 +36,7 @@ Feature: Minor Creditor Account Search API restrictions
     Then the minor creditor account search returns the created account
 
   @JIRA-TEST-KEY:PO-10063
-  Scenario: AC3 - First name without last name returns bad request
+  Scenario: Minor creditor account AC3 - First name without last name returns bad request
     When I search minor creditor accounts with first name and no last name populated
     Then the minor creditor account search request is rejected as a schema bad request
 

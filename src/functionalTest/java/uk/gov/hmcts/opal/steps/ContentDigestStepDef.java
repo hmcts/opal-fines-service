@@ -22,26 +22,43 @@ public class ContentDigestStepDef extends BaseStepDef {
     private static final String POST_BODY = "{}";
     private static final String POST_ENDPOINT = "/business-units/search";
 
+    /**
+     * Sends a root request without a Content-Digest header.
+     */
     @When("I make a content digest request without a Content-Digest header")
     public void getRootWithoutContentDigestHeader() {
         getRoot(Map.of("Accept", "*/*"));
     }
 
+    /**
+     * Sends a JSON request with a valid Content-Digest header.
+     */
     @When("I make a content digest request with a valid Content-Digest header")
     public void getRootWithValidContentDigestHeader() {
         postWithBody(Map.of("Accept", "*/*", CONTENT_DIGEST, contentDigestHeaderForPostBody()));
     }
 
+    /**
+     * Sends a JSON request with an invalid Content-Digest header.
+     */
     @When("I make a content digest request with an invalid Content-Digest header")
     public void getRootWithInvalidContentDigestHeader() {
         postWithBody(Map.of("Accept", "*/*", CONTENT_DIGEST, invalidContentDigestHeader()));
     }
 
+    /**
+     * Sends a JSON request with a malformed Content-Digest header.
+     */
     @When("I make a content digest request with a malformed Content-Digest header")
     public void getRootWithMalformedContentDigestHeader() {
         postWithBody(Map.of("Accept", "*/*", CONTENT_DIGEST, malformedContentDigestHeader()));
     }
 
+    /**
+     * Asserts that the latest content-digest response returned the expected status code.
+     *
+     * @param statusCode expected HTTP status code.
+     */
     @Then("The content digest response returns {int}")
     public void contentDigestResponseReturns(int statusCode) {
         then()
@@ -49,11 +66,19 @@ public class ContentDigestStepDef extends BaseStepDef {
             .statusCode(statusCode);
     }
 
+    /**
+     * Asserts that the latest response does not include a Content-Digest header.
+     */
     @Then("The content digest response does not contain a Content-Digest header")
     public void responseDoesNotContainContentDigestHeader() {
         assertThat(SerenityRest.lastResponse().getHeader(CONTENT_DIGEST)).isNull();
     }
 
+    /**
+     * Asserts that the latest content-digest response contains the expected field values.
+     *
+     * @param data Cucumber table mapping response fields to expected values.
+     */
     @Then("The content digest response contains the following")
     public void responseContainsTheFollowing(DataTable data) {
         Map<String, String> expectedData = data.asMap(String.class, String.class);

@@ -70,6 +70,9 @@ public class Release1aFeatureToggleStepDef extends BaseStepDef {
         }
     }
 
+    /**
+     * Asserts that the latest response uses the standard feature-disabled problem detail.
+     */
     @Then("the response reports that the feature is disabled")
     public void theResponseReportsThatTheFeatureIsDisabled() {
         lastResponse().then()
