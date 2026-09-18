@@ -130,12 +130,12 @@ Feature: Results Reference Data
       | effectivedate    | date | true               |                                           |
       | cy_effectivedate | date | true               | Provide a welsh version for the defendant |
 
-  @JIRA-STORY:PO-3765 @Ignore @R1BDrop1
+  @JIRA-STORY:PO-3765 @JIRA-EPIC:PO-3685 @Ignore @R1BDrop1
   Scenario: Result filtering is available when release-1b is enabled
     When I request results for identifiers "NBWT,NAP" using filter "enforcement_override" with value "true"
     Then 1 results are returned
 
-  @JIRA-STORY:PO-3765 @Ignore @R1BDrop1
+  @JIRA-STORY:PO-3765 @JIRA-EPIC:PO-3685 @Ignore @R1BDrop1
   Scenario: Result filtering is rejected when release-1b is disabled
     When I request results using filter "active" with value "true"
     Then the response status code is 404
