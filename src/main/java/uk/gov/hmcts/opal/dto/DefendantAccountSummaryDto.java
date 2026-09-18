@@ -82,6 +82,10 @@ public class DefendantAccountSummaryDto implements ToJsonString {
     @JsonProperty("parent_guardian_firstnames")
     private String parentGuardianFirstnames;
 
+    @JsonProperty("collection_order")
+    @JsonInclude(Include.NON_NULL)
+    private Boolean collectionOrder;
+
     @JsonProperty("has_collection_order")
     @JsonInclude(Include.NON_NULL)
     private Boolean hasCollectionOrder;
