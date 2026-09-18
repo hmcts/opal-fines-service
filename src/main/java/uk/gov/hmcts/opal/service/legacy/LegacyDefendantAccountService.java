@@ -151,11 +151,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             );
 
             checkResponseForError(response, "getHeaderSummary");
-            /*
-            TODO: Currently the getDefendantAccountHeaderSummaryLegacyResponse.json file is not being used to
-             validate the response from the legacy system this either needs to be done in the future or the
-             file is a candidate for removal.
-             */
+            // TODO: Add XSD validation of the XML response
 
 
             return toHeaderSumaryDto(response.responseEntity);
