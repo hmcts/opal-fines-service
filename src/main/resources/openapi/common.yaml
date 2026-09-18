@@ -1008,7 +1008,7 @@ components:
           maxLength: 10
           description: DB Mapping - court_fees.court_fee_code
         description:
-          type: String
+          type: string
           maxLength: 50
           description: DB Mapping - court_fees.description
         amount:
