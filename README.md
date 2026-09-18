@@ -419,6 +419,12 @@ export TEST_URL=https://opal-fines-service.demo.platform.hmcts.net
 export OPAL_USER_SERVICE_API_URL=https://opal-user-service.demo.platform.hmcts.net
 export OPAL_LOGGING_SERVICE_API_URL=https://opal-logging-service.demo.platform.hmcts.net
 
+To run an individual functional scenario against demo from IntelliJ, open F5 VPN first, run the
+scenario once with the feature-file gutter action, then edit the generated temporary run
+configuration in `.idea/workspace.xml` or `Run > Edit Configurations...` to add the same demo
+environment variables shown above. Re-run the same temporary configuration after saving the
+environment variables.
+
 ./gradlew functionalOpalTagsR1AOnly
 ./gradlew -PzephyrFunctionalStage=runR1AOnly createJiraExecutionFromFunctionalReport
 
