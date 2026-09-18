@@ -31,6 +31,9 @@ public class InterfaceJobsDelStepDef extends BaseStepDef {
 
     private Long createdInterfaceJobId;
 
+    /**
+     * Creates an isolated interface job for the delete E2E scenario and stores its identifier.
+     */
     @Given("an isolated interface job has been created")
     public void createAnIsolatedInterfaceJob() {
         TestHttpResponse response = TestHttpClient.request(
@@ -44,17 +47,26 @@ public class InterfaceJobsDelStepDef extends BaseStepDef {
         createdInterfaceJobId = JsonPath.from(response.body()).getLong("interface_jobs[0].interface_job_id");
     }
 
+    /**
+     * Deletes the interface job created earlier in the scenario using the testing-support endpoint.
+     */
     @When("I delete the created interface job using testing support")
     public void deleteCreatedInterfaceJobUsingTestingSupport() {
         deleteInterfaceJob(createdInterfaceJobIdOrFail());
     }
 
+    /**
+     * Asserts that the created interface job is visible in the summary response.
+     */
     @Then("the created interface job is returned by the interface-jobs summary API")
     public void createdInterfaceJobIsReturnedByTheSummaryApi() {
         assertTrue(summaryContains(createdInterfaceJobIdOrFail()),
             "Created interface job is not present in the summary response");
     }
 
+    /**
+     * Asserts that the deleted interface job is no longer visible in the summary response.
+     */
     @Then("the created interface job is no longer returned by the interface-jobs summary API")
     public void createdInterfaceJobIsNoLongerReturnedByTheSummaryApi() {
         assertFalse(summaryContains(createdInterfaceJobIdOrFail()),

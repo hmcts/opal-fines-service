@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:auto-enforcement-config
+@Opal @R1CAutoEnforcement @JIRA-LABEL:auto-enforcement-config
 Feature: Get Auto Enforcement Config
 
   @JIRA-STORY:PO-2434 @JIRA-EPIC:PO-2433 @JIRA-TEST-KEY:PO-9524

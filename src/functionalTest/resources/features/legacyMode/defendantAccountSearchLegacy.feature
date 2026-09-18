@@ -1,4 +1,4 @@
-@PO-118 @PO-120 @Legacy @Ignore
+@PO-118 @JIRA-STORY:PO-119 @PO-120 @Legacy @R1BDrop1 @JIRA-EPIC:PO-33 @Ignore
 Feature: Defendant Account Search API In Legacy Mode
 
   Scenario: Defendant account search returns stubbed data in legacy mode
