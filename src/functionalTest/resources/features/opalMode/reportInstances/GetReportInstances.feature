@@ -3,7 +3,7 @@
 Feature: Get Report Instances
 
   @JIRA-STORY:PO-2251 @JIRA-EPIC:PO-2248
-  Scenario: Get report instances with multiple filters applied
+  Scenario: Get report instances with multiple filters applied returns matching data
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I request report instances with the following filters
       | report_id       | fp_register |
@@ -45,7 +45,7 @@ Feature: Get Report Instances
 
 
   @JIRA-STORY:PO-2251 @JIRA-EPIC:PO-2248
-  Scenario: Get report instances with multiple filters applied
+  Scenario: Get report instances with multiple filters applied returns 200
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I request report instances with the following filters
       | report_id       | fp_register |
