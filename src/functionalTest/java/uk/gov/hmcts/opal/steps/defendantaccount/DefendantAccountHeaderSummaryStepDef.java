@@ -44,42 +44,70 @@ public class DefendantAccountHeaderSummaryStepDef extends BaseStepDef {
     private final DefendantAccountEnforcementWorkflow enforcementWorkflow =
         new DefendantAccountEnforcementWorkflow();
 
+    /**
+     * Creates a defendant account with header-summary data from the supplied submitted-by value and fixture.
+     *
+     * @param submittedBy submitted-by identifier for the account fixture.
+     * @param accountFixture account fixture path to create.
+     * @throws Exception if the account cannot be created.
+     */
     @Given("a defendant account with header summary data exists for submitted by {string} using fixture {string}")
     public void defendantAccountWithHeaderSummaryDataExistsForSubmittedByUsingFixture(
         String submittedBy,
         String accountFixture
     ) throws Exception {
-        actAs(BearerTokenStepDef.DEFAULT_USER);
+        actAsDefaultUser();
         enforcementWorkflow.createEnforceableDefendantAccount(headerSummaryAccountData(submittedBy, accountFixture));
     }
 
+    /**
+     * Requests the header summary for the defendant account created in the scenario.
+     */
     @When("I request defendant account header summary for the created defendant account")
     public void requestDefendantAccountHeaderSummaryForTheCreatedDefendantAccount() {
         getHeaderSummary(BearerTokenStepDef.getToken(), createdDefendantAccountId());
     }
 
+    /**
+     * Requests the created defendant account header summary without an access token.
+     */
     @When("I request defendant account header summary for the created defendant account without a token")
     public void requestDefendantAccountHeaderSummaryForTheCreatedDefendantAccountWithoutAToken() {
         getHeaderSummary(null, createdDefendantAccountId());
     }
 
+    /**
+     * Requests the created defendant account header summary with an invalid access token.
+     */
     @When("I request defendant account header summary for the created defendant account with an invalid token")
     public void requestDefendantAccountHeaderSummaryForTheCreatedDefendantAccountWithAnInvalidToken() {
         getHeaderSummary("invalid-token", createdDefendantAccountId());
     }
 
+    /**
+     * Requests the created defendant account header summary as the supplied user.
+     *
+     * @param user user email used to resolve the access token.
+     */
     @When("the {string} user requests defendant account header summary for the created defendant account")
     public void userRequestsDefendantAccountHeaderSummaryForTheCreatedDefendantAccount(String user) {
         getHeaderSummary(BearerTokenStepDef.getAccessTokenForUser(user), createdDefendantAccountId());
     }
 
+    /**
+     * Requests a header summary for a defendant account identifier that should not exist.
+     */
     @When("I request defendant account header summary for a non-existent defendant account")
     public void requestDefendantAccountHeaderSummaryForANonExistentDefendantAccount() {
         getHeaderSummary(BearerTokenStepDef.getToken(), NON_EXISTENT_ACCOUNT_ID);
     }
 
+    /**
+     * Asserts that the successful header-summary response contains the documented top-level fields.
+     *
+     */
     @Then("the defendant account header summary response is returned as documented")
-    public void defendantAccountHeaderSummaryResponseIsReturnedAsDocumented() throws Exception {
+    public void defendantAccountHeaderSummaryResponseIsReturnedAsDocumented() {
         Response response = lastResponse();
         assertEquals(200, response.statusCode(), "Unexpected header-summary status");
 
@@ -87,47 +115,73 @@ public class DefendantAccountHeaderSummaryStepDef extends BaseStepDef {
         assertTrue(root.isObject(), "header-summary response should be a JSON object");
         assertEquals(createdDefendantAccountId(), root.path("defendant_account_id").asLong(),
             "Unexpected defendant_account_id");
-        assertTrue(root.path("account_number").isTextual(), "account_number should be present");
+        assertTrue(root.path("account_number").isString(), "account_number should be present");
         assertTrue(root.path("account_status_reference").isObject(), "account_status_reference should be present");
-        assertTrue(root.path("account_type").isTextual(), "account_type should be present");
+        assertTrue(root.path("account_type").isString(), "account_type should be present");
         assertTrue(root.path("business_unit_summary").isObject(), "business_unit_summary should be present");
-        assertTrue(root.path("defendant_account_party_id").isTextual(),
+        assertTrue(root.path("defendant_account_party_id").isString(),
             "defendant_account_party_id should be present");
         assertTrue(root.path("is_youth").isBoolean(), "is_youth should be present");
         assertTrue(root.path("has_consolidated_accounts").isBoolean(),
             "has_consolidated_accounts should be present");
-        assertTrue(root.path("debtor_type").isTextual(), "debtor_type should be present");
+        assertTrue(root.path("debtor_type").isString(), "debtor_type should be present");
         assertTrue(root.path("payment_state_summary").isObject(), "payment_state_summary should be present");
         assertTrue(root.path("party_details").isObject(), "party_details should be present");
-        assertTrue(root.path("prosecutor_case_reference").isTextual(),
+        assertTrue(root.path("prosecutor_case_reference").isString(),
             "prosecutor_case_reference should be present");
-        assertTrue(root.path("originator_type").isTextual(), "originator_type should be present");
-        assertTrue(root.path("originator_name").isTextual(), "originator_name should be present");
+        assertTrue(root.path("originator_type").isString(), "originator_type should be present");
+        assertTrue(root.path("originator_name").isString(), "originator_name should be present");
         assertTrue(root.path("collection_order").isBoolean(), "collection_order should be present");
     }
 
+    /**
+     * Asserts the expected originator type in the latest header-summary response.
+     *
+     * @param expectedOriginatorType expected originator type value.
+     */
     @Then("the defendant account header summary contains originator type {string}")
     public void defendantAccountHeaderSummaryContainsOriginatorType(String expectedOriginatorType) {
         assertEquals(expectedOriginatorType, lastResponse().jsonPath().getString("originator_type"));
     }
 
+    /**
+     * Asserts the expected originator name in the latest header-summary response.
+     *
+     * @param expectedOriginatorName expected originator name value.
+     */
     @Then("the defendant account header summary contains originator name {string}")
     public void defendantAccountHeaderSummaryContainsOriginatorName(String expectedOriginatorName) {
         assertEquals(expectedOriginatorName, lastResponse().jsonPath().getString("originator_name"));
     }
 
+    /**
+     * Asserts the expected collection-order flag in the latest header-summary response.
+     *
+     * @param expectedCollectionOrder expected collection-order value as text.
+     */
     @Then("the defendant account header summary contains collection order {string}")
     public void defendantAccountHeaderSummaryContainsCollectionOrder(String expectedCollectionOrder) {
         assertEquals(Boolean.parseBoolean(expectedCollectionOrder),
             lastResponse().jsonPath().getBoolean("collection_order"));
     }
 
+    /**
+     * Asserts the expected organisation flag in the header-summary party details.
+     *
+     * @param expectedOrganisationFlag expected organisation flag value as text.
+     */
     @Then("the defendant account header summary contains party details organisation flag {string}")
     public void defendantAccountHeaderSummaryContainsPartyDetailsOrganisationFlag(String expectedOrganisationFlag) {
         assertEquals(Boolean.parseBoolean(expectedOrganisationFlag),
             lastResponse().jsonPath().getBoolean("party_details.organisation_flag"));
     }
 
+    /**
+     * Asserts the expected individual forenames and surname in the header-summary party details.
+     *
+     * @param expectedForenames expected party forenames.
+     * @param expectedSurname expected party surname.
+     */
     @Then("the defendant account header summary contains party details forenames {string} surname {string}")
     public void defendantAccountHeaderSummaryContainsPartyDetailsForenamesSurname(
         String expectedForenames,
@@ -140,9 +194,13 @@ public class DefendantAccountHeaderSummaryStepDef extends BaseStepDef {
         assertEquals(expectedSurname, actualSurname);
     }
 
+    /**
+     * Asserts live header-summary values from the supplied expected-value table.
+     *
+     * @param dataTable Cucumber table mapping response fields to expected values.
+     */
     @Then("the defendant account header summary contains the expected live values")
-    public void defendantAccountHeaderSummaryContainsTheExpectedLiveValues(io.cucumber.datatable.DataTable dataTable)
-        throws Exception {
+    public void defendantAccountHeaderSummaryContainsTheExpectedLiveValues(io.cucumber.datatable.DataTable dataTable) {
 
         Map<String, String> expectedValues = dataTable.asMap(String.class, String.class);
         JsonNode root = OBJECT_MAPPER.readTree(lastResponse().getBody().asString());
@@ -156,23 +214,28 @@ public class DefendantAccountHeaderSummaryStepDef extends BaseStepDef {
                 assertEquals(Boolean.parseBoolean(entry.getValue()), actual.asBoolean(),
                     "Unexpected value for collection_order");
             } else {
-                assertEquals(entry.getValue(), actual.asText(), "Unexpected value for " + entry.getKey());
+                assertEquals(entry.getValue(), actual.asString(), "Unexpected value for " + entry.getKey());
             }
         }
     }
 
+    /**
+     * Asserts that the latest error response follows the standard problem-detail shape.
+     *
+     * @param expectedStatus expected HTTP status code.
+     */
     @Then("the defendant account header summary error response matches the standard problem detail contract "
         + "for status {int}")
     public void defendantAccountHeaderSummaryErrorResponseMatchesTheStandardProblemDetailContractForStatus(
         int expectedStatus
-    ) throws Exception {
+    ) {
         Response response = lastResponse();
         assertEquals(expectedStatus, response.statusCode(), "Unexpected HTTP status");
 
         JsonNode root = OBJECT_MAPPER.readTree(response.getBody().asString());
         assertTrue(root.isObject(), "Problem detail response should be an object");
-        assertTrue(root.path("title").isTextual(), "title should be a string");
-        assertTrue(root.path("detail").isTextual(), "detail should be a string");
+        assertTrue(root.path("title").isString(), "title should be a string");
+        assertTrue(root.path("detail").isString(), "detail should be a string");
         assertTrue(root.path("status").isInt(), "status should be an integer");
         assertEquals(expectedStatus, root.path("status").asInt(), "Unexpected status in problem detail");
 
@@ -184,16 +247,29 @@ public class DefendantAccountHeaderSummaryStepDef extends BaseStepDef {
         }
     }
 
+    /**
+     * Asserts that the problem-detail title contains the expected text.
+     *
+     * @param expectedText expected title fragment.
+     */
     @Then("the defendant account header summary error title contains {string}")
     public void defendantAccountHeaderSummaryErrorTitleContains(String expectedText) {
         assertContainsIgnoringCase(lastResponse().jsonPath().getString("title"), expectedText, "title");
     }
 
+    /**
+     * Asserts that the problem-detail detail contains the expected text.
+     *
+     * @param expectedText expected detail fragment.
+     */
     @Then("the defendant account header summary error detail contains {string}")
     public void defendantAccountHeaderSummaryErrorDetailContains(String expectedText) {
         assertContainsIgnoringCase(lastResponse().jsonPath().getString("detail"), expectedText, "detail");
     }
 
+    /**
+     * Asserts that the latest problem-detail response is explicitly non-retriable.
+     */
     @Then("the defendant account header summary error is non-retriable")
     public void defendantAccountHeaderSummaryErrorIsNonRetriable() {
         JsonNode root;
@@ -210,6 +286,9 @@ public class DefendantAccountHeaderSummaryStepDef extends BaseStepDef {
         assertFalse(field.asBoolean(), "retriable should be false");
     }
 
+    /**
+     * Asserts that the latest error response does not expose internal implementation details.
+     */
     @Then("the defendant account header summary error response does not leak internal details")
     public void defendantAccountHeaderSummaryErrorResponseDoesNotLeakInternalDetails() {
         String body = lastResponse().getBody().asString();
@@ -220,7 +299,7 @@ public class DefendantAccountHeaderSummaryStepDef extends BaseStepDef {
             "Error response leaked requested account id");
     }
 
-    private Response getHeaderSummary(String token, long defendantAccountId) {
+    private void getHeaderSummary(String token, long defendantAccountId) {
         RequestSpecification request = given()
             .accept("*/*")
             .contentType("application/json");
@@ -229,7 +308,7 @@ public class DefendantAccountHeaderSummaryStepDef extends BaseStepDef {
             request.header(HttpHeaders.AUTHORIZATION, "Bearer " + token);
         }
 
-        return request
+        request
             .when()
             .get(getTestUrl() + HEADER_SUMMARY_PATH.formatted(defendantAccountId));
     }
@@ -249,14 +328,14 @@ public class DefendantAccountHeaderSummaryStepDef extends BaseStepDef {
         return Long.parseLong(scenarioContext().getCreatedDefendantAccountIdOrFail());
     }
 
-    private void actAs(String user) {
-        BearerTokenStepDef.setTokenOverride(BearerTokenStepDef.getAccessTokenForUser(user));
-        scenarioContext().setCurrentUser(user);
+    private void actAsDefaultUser() {
+        BearerTokenStepDef.setTokenOverride(BearerTokenStepDef.getAccessTokenForUser(BearerTokenStepDef.DEFAULT_USER));
+        scenarioContext().setCurrentUser(BearerTokenStepDef.DEFAULT_USER);
     }
 
     private void assertOptionalText(JsonNode field, String fieldName) {
         if (!field.isMissingNode() && !field.isNull()) {
-            assertTrue(field.isTextual(), fieldName + " should be a string when present");
+            assertTrue(field.isString(), fieldName + " should be a string when present");
         }
     }
 
