@@ -44,11 +44,17 @@ public class MajorCreditorRefDataStepDef {
         );
     }
 
+    /**
+     * Requests the major-creditor reference-data collection.
+     */
     @When("I request the major creditor reference data")
     public void requestMajorCreditorReferenceData() {
         methods.getRequest(MAJOR_CREDITORS_URI);
     }
 
+    /**
+     * Asserts that major-creditor records expose repayment data and omit the legacy from-suspense field.
+     */
     @Then("the response contains repayment and does not contain from suspense")
     public void responseContainsRepaymentAndDoesNotContainFromSuspense() {
         then().assertThat().statusCode(HttpStatus.SC_OK);
