@@ -72,6 +72,8 @@ class MinorCreditorAccountAtAGlanceResponseMapperTest {
         AtAGlanceDefendant defendant = AtAGlanceDefendant.builder()
             .accountNumber("R3B3LS")
             .accountId(66L)
+            .organisationFlag(Boolean.TRUE)
+            .organisationName("Acme Corporation")
             .build();
 
         LegacyPayment payment = LegacyPayment.builder()
@@ -103,6 +105,8 @@ class MinorCreditorAccountAtAGlanceResponseMapperTest {
             .getIndividualAliases().get().getFirst().getSurname());
         assertEquals("SP4 C3", result.getAddress().getPostcode().get());
         assertEquals(66L, result.getDefendant().getAccountId().get());
+        //assertEquals(Boolean.TRUE, result.getDefendant().getOrganisation());
+        //assertEquals("Acme Corporation", result.getDefendant().getOrganisationName());
         assertTrue(result.getPayment().getIsBacs());
     }
 

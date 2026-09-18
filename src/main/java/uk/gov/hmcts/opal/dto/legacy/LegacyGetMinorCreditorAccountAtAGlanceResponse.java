@@ -79,5 +79,11 @@ public class  LegacyGetMinorCreditorAccountAtAGlanceResponse implements ToXmlStr
 
         @XmlElement(name = "surname")
         private String surname;
+
+        @XmlElement(name = "organisation_flag")
+        private Boolean organisationFlag;
+
+        @XmlElement(name = "organisation_name")
+        private String organisationName;
     }
 }

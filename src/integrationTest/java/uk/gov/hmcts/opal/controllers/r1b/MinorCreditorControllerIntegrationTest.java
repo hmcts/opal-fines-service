@@ -1396,6 +1396,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.defendant.title").value("Mr"))
             .andExpect(jsonPath("$.defendant.forenames").value("Michael James"))
             .andExpect(jsonPath("$.defendant.surname").value("Johnson"))
+            // TODO: uncomment once PO-10677 is in master
+            //.andExpect(jsonPath("$.defendant.organisation").value(true))
+            //.andExpect(jsonPath("$.defendant.organisation_name").value("Speed Camera Services Ltd"))
 
             // payment
             .andExpect(jsonPath("$.payment.is_bacs").value(true))

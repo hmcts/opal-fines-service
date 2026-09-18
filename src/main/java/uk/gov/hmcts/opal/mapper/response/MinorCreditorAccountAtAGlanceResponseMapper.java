@@ -73,6 +73,8 @@ public interface MinorCreditorAccountAtAGlanceResponseMapper {
 
     @Mapping(target = "version", source = "creditorAccountVersion")
     @Mapping(target = "payment.isBacs", source = "payment.bacs")
+    //@Mapping(target = "defendant.organisation", source = "defendant.organisationFlag")
+    //@Mapping(target = "defendant.organisationName", source = "defendant.organisationName")
     MinorCreditorAccountAtAGlanceResponse toDto(LegacyGetMinorCreditorAccountAtAGlanceResponse legacy);
 
     @Mappings({
