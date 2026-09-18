@@ -20,7 +20,7 @@ class CreditorAccountTypeMapperTest {
         CreditorAccountTypeReference mapped = mapper.toDto(entity);
 
         //Assert
-        assertEquals("MN", mapped.getType());
+        assertEquals("MN", mapped.getCreditorAccountType());
         assertEquals("Minor Creditor", mapped.getDisplayName());
     }
 
@@ -33,7 +33,7 @@ class CreditorAccountTypeMapperTest {
         CreditorAccountTypeReference mapped = mapper.toDto(entity);
 
         //Assert
-        assertEquals("MJ", mapped.getType());
+        assertEquals("MJ", mapped.getCreditorAccountType());
         assertEquals("Major Creditor", mapped.getDisplayName());
     }
 
@@ -46,7 +46,7 @@ class CreditorAccountTypeMapperTest {
         CreditorAccountTypeReference mapped = mapper.toDto(entity);
 
         //Assert
-        assertEquals("CF", mapped.getType());
+        assertEquals("CF", mapped.getCreditorAccountType());
         assertEquals("Central Fund", mapped.getDisplayName());
     }
 }

@@ -1254,7 +1254,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
             .andExpect(jsonPath("$.creditor.account_id").value(String.valueOf(minorCreditorHeaderSummaryAccountId())))
             .andExpect(jsonPath("$.creditor.account_number").value(minorCreditorHeaderSummaryAccountNumber()))
-            .andExpect(jsonPath("$.creditor.account_type.type").value("MN"))
+            .andExpect(jsonPath("$.creditor.account_type.creditor_account_type").value("MN"))
             .andExpect(jsonPath("$.creditor.account_type.display_name").value("Minor Creditor"))
             .andExpect(jsonPath("$.creditor.has_associated_defendant").value(false))
 

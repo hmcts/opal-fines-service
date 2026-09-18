@@ -14,8 +14,8 @@ import lombok.NoArgsConstructor;
 public class CreditorAccountTypeReference {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonProperty("type")
-    private String type;
+    @JsonProperty("creditor_account_type")
+    private String creditorAccountType;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty("display_name")

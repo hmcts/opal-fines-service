@@ -9,7 +9,7 @@ import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 @Mapper(componentModel = "spring")
 public interface CreditorAccountTypeMapper {
 
-    @Mapping(target = "type", source = "enumValue", qualifiedByName = "mapType")
+    @Mapping(target = "creditorAccountType", source = "enumValue", qualifiedByName = "mapType")
     @Mapping(target = "displayName", source = "enumValue", qualifiedByName = "mapDisplayName")
     CreditorAccountTypeReference toDto(CreditorAccountType enumValue);
 
