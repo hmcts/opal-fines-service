@@ -15,10 +15,12 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyGetImpositionsRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyImpositionCreditorReferenceCommon;
 import uk.gov.hmcts.opal.dto.legacy.LegacyOffenceReferenceCommon;
 import uk.gov.hmcts.opal.dto.legacy.LegacyResultReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.CompanyNameCommon;
 import uk.gov.hmcts.opal.generated.model.CourtReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.CreditorSummaryCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
-import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.OffenceReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.ResultReferenceCommon;
 import uk.gov.hmcts.opal.service.iface.ImpositionServiceInterface;
@@ -118,23 +120,40 @@ public class LegacyImpositionService implements ImpositionServiceInterface {
     private OffenceReferenceCommon buildOffence(LegacyOffenceReferenceCommon offence) {
         return Optional.ofNullable(offence).map(offenceItem ->
             OffenceReferenceCommon.builder()
-                .id(offenceItem.getId())
-                .code(offenceItem.getCode())
-                .title(offenceItem.getTitle())
+                .offenceId(offenceItem.getId())
+                .cjsCode(offenceItem.getCode())
+                .offenceTitle(offenceItem.getTitle())
                 .build()).orElse(null);
     }
 
-    private ImpositionCreditorReferenceCommon buildCreditor(LegacyImpositionCreditorReferenceCommon creditor) {
+    private CreditorSummaryCommon buildCreditor(LegacyImpositionCreditorReferenceCommon creditor) {
         return Optional.ofNullable(creditor).map(creditorItem ->
-                ImpositionCreditorReferenceCommon.builder()
+                CreditorSummaryCommon.builder()
+                    .creditorAccountType(buildCreditorAccountType(creditorItem))
                     .creditorAccountId(creditorItem.getCreditorAccountId())
-                    .accountType(creditorItem.getAccountType())
-                    .displayName(creditorItem.getDisplayName())
-                    .majorCreditorId(creditorItem.getMajorCreditorId())
-                    .minorCreditorPartyId(creditorItem.getMinorCreditorPartyId())
-                    .name(creditorItem.getName())
+                    .majorCreditorName(creditorItem.getMajorCreditorId() == null
+                                           ? null
+                                           : trimToNull(creditorItem.getName()))
+                    .minorCreditorOrganisationFlag(creditorItem.getMinorCreditorPartyId() == null ? null : true)
+                    .companyName(buildCompanyName(creditorItem.getName()))
                     .build()
             ).orElse(null);
+    }
+
+    private CreditorAccountTypeReferenceCommon buildCreditorAccountType(
+        LegacyImpositionCreditorReferenceCommon creditor) {
+        return new CreditorAccountTypeReferenceCommon()
+            .accountType(creditor.getAccountType())
+            .displayName(creditor.getDisplayName());
+    }
+
+    private CompanyNameCommon buildCompanyName(String name) {
+        String organisationName = trimToNull(name);
+        return organisationName == null ? null : new CompanyNameCommon().organisationName(organisationName);
+    }
+
+    private String trimToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 
     private ResultReferenceCommon buildImposition(LegacyResultReferenceCommon imposition) {

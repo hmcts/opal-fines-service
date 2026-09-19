@@ -8,8 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon.AccountTypeEnum;
-import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon.DisplayNameEnum;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.AccountTypeEnum;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.DisplayNameEnum;
 
 @Builder
 @Data

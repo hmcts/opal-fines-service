@@ -643,50 +643,59 @@ components:
             - Minor Creditor
             - Major Creditor
             - Central Fund
-    impositionCreditorReference:
-      title: Imposition Creditor Reference
+    individualName:
+      title: Individual Name
       type: object
       additionalProperties: false
       required:
-        - creditor_account_id
-        - account_type
-        - display_name
-        - name
+        - surname
       properties:
+        forenames:
+          type: string
+          description: DB Mapping - parties.forenames
+        surname:
+          type: string
+          description: DB Mapping - parties.surname
+    companyName:
+      title: Company Name
+      type: object
+      additionalProperties: false
+      required:
+        - organisation_name
+      properties:
+        organisation_name:
+          type: string
+          description: DB Mapping - parties.organisation_name
+    creditorSummary:
+      title: Creditor Summary
+      type: object
+      additionalProperties: false
+      required:
+        - creditor_account_type
+        - creditor_account_id
+      properties:
+        creditor_account_type:
+          description: DB Mapping - creditor_accounts.creditor_account_type
+          $ref: '#/components/schemas/creditorAccountTypeReference'
         creditor_account_id:
           description: DB Mapping - creditor_accounts.creditor_account_id. Used by the UI to navigate to the linked minor or major creditor account.
           $ref: './types.yaml#/components/schemas/BigInt'
-        account_type:
+        major_creditor_name:
+          nullable: true
           type: string
-          description: DB Mapping - creditor_accounts.creditor_account_type
-          enum:
-            - MN
-            - MJ
-            - CF
-        display_name:
-          type: string
-          description: |
-            Converts the short hand code of creditor_accounts.creditor_account_type into a display name.
-            Mapping:
-              'MN' becomes 'Minor Creditor'
-              'MJ' becomes 'Major Creditor'
-              'CF' becomes 'Central Fund'
-          enum:
-            - Minor Creditor
-            - Major Creditor
-            - Central Fund
-        major_creditor_id:
-          description: DB Mapping - creditor_accounts.major_creditor_id when creditor_accounts.creditor_account_type is 'MJ'.
-          $ref: './types.yaml#/components/schemas/BigInt'
-        minor_creditor_party_id:
-          description: DB Mapping - creditor_accounts.minor_creditor_party_id when creditor_accounts.creditor_account_type is 'MN'.
-          $ref: './types.yaml#/components/schemas/BigInt'
-        name:
-          type: string
-          description: |
-            Major creditor name from major_creditors.name when creditor_accounts.creditor_account_type is 'MJ'.
-            Minor creditor name from parties.organisation_name or the derived individual party name when creditor_accounts.creditor_account_type is 'MN'.
-            Central Fund name from the configured central fund account when creditor_accounts.creditor_account_type is 'CF'.
+          description: DB Mapping - major_creditors.major_creditor_name
+        minor_creditor_organisation_flag:
+          nullable: true
+          type: boolean
+          description: DB Mapping - parties.organisation. Only set where creditor_accounts.creditor_account_type is 'MN'.
+        individual_name:
+          nullable: true
+          description: Minor creditor individual name when creditor_accounts.creditor_account_type is 'MN' and the linked party is an individual.
+          $ref: '#/components/schemas/individualName'
+        company_name:
+          nullable: true
+          description: Minor creditor organisation name, or central fund organisation name.
+          $ref: '#/components/schemas/companyName'
     majorCreditorAddressDetails:
       title: Major Creditor Address Details
       type: object
@@ -708,16 +717,18 @@ components:
       type: object
       additionalProperties: false
       required:
-        - title
+        - offence_title
       properties:
-        id:
+        offence_id:
+          nullable: true
           $ref: './types.yaml#/components/schemas/BigInt'
           description: DB mapping - offences.offence_id
-        code:
+        cjs_code:
+          nullable: true
           type: string
           maxLength: 10
           description: DB mapping - offences.cjs_code
-        title:
+        offence_title:
           type: string
           maxLength: 120
           description: DB mapping - offences.offence_title
@@ -757,7 +768,7 @@ components:
           $ref: '#/components/schemas/resultReference'
         creditor:
           description: DB Mapping - impositions.creditor_account_id joined to creditor_accounts, major_creditors or parties.
-          $ref: '#/components/schemas/impositionCreditorReference'
+          $ref: '#/components/schemas/creditorSummary'
         imposed_amount:
           description: Imposed amount. DB Mapping - impositions.imposed_amount.
           $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
@@ -776,6 +787,7 @@ components:
           $ref: '#/components/schemas/offenceReference'
         imposed_by:
           description: Sentencing court. DB Mapping - impositions.imposing_court_id. Only populated for Fines accounts created externally.
+          nullable: true
           $ref: '#/components/schemas/courtReference'
         imposition_id:
           description: DB Mapping - impositions.imposition_id
