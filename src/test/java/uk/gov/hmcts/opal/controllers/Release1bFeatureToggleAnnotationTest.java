@@ -25,7 +25,6 @@ class Release1bFeatureToggleAnnotationTest {
             CreateFineAccountsController.class,
             DebtorProfileSearchController.class,
             DefendantAccountApiController.class,
-            DefendantAccountController.class,
             DraftAccountController.class,
             EnforcerController.class,
             LocalJusticeAreaController.class,
@@ -67,9 +66,7 @@ class Release1bFeatureToggleAnnotationTest {
             "DefendantAccountApiController#removeEnforcementHold",
             "DefendantAccountApiController#replaceDefendantAccountParty",
             "DefendantAccountApiController#updateDefendantAccount",
-
-            // Defendant Account controller
-            "DefendantAccountController#defendantAccountPaymentTerms",
+            "DefendantAccountApiController#defendantAccountPaymentTerms",
 
             // Major Creditor API controller
             "MajorCreditorApiController#getCentralFundByBusinessUnit",
