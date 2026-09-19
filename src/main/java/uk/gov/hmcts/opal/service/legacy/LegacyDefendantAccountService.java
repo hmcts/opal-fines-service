@@ -248,7 +248,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     }
 
     private static String toLegacyHistoryItemType(HistoryItemType itemType) {
-        return itemType == HistoryItemType.PAYMENT_TERMS ? "Payment Terms" : itemType.getResponseValue();
+        return itemType == HistoryItemType.PAYMENT_TERMS ? "Payment terms" : itemType.getResponseValue();
     }
 
     DefendantAccountHeaderSummary toHeaderSumaryDto(
