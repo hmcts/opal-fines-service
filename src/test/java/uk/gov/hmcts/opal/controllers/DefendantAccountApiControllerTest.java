@@ -12,6 +12,7 @@ import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_ENABLED_PROPERTY;
 
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.Month;
@@ -36,6 +37,8 @@ import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddPaymentTermsRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount.AccountStatusCodeEnum;
+import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount.DebtorTypeEnum;
 import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchReferenceNumberDefendantAccount;
@@ -518,6 +521,35 @@ class DefendantAccountApiControllerTest {
         assertSame(serviceResponse, response.getBody());
         verify(defendantAccountEnforcementService).removeEnforcementHold(
             defendantAccountId, businessUnitId, ifMatch, request);
+    }
+
+    @Test
+    void getDefendantAccountAtAGlance_returnsAtAGlanceResponseWithAccountBalanceAndStatus() {
+        Long defendantAccountId = 1234L;
+        AtAGlanceResponseDefendantAccount payload = AtAGlanceResponseDefendantAccount.builder()
+            .defendantAccountId("1234")
+            .accountNumber("5678")
+            .accountBalance(new BigDecimal("100.00"))
+            .accountStatusCode(AccountStatusCodeEnum.C)
+            .accountStatusName("Status Name")
+            .debtorType(DebtorTypeEnum.DEFENDANT)
+            .isYouth(true)
+            .build();
+        GetDefendantAccountAtAGlanceResponse response = GetDefendantAccountAtAGlanceResponse.builder()
+            .payload(payload)
+            .version(BigInteger.ONE)
+            .build();
+
+        when(defendantAccountService.getAtAGlance(defendantAccountId)).thenReturn(response);
+
+        ResponseEntity<AtAGlanceResponseDefendantAccount> atAGlanceResponse = defendantAccountApiController
+            .getDefendantAccountAtAGlance(defendantAccountId);
+
+        assertEquals(HttpStatus.OK, atAGlanceResponse.getStatusCode());
+        assertEquals("\"1\"", atAGlanceResponse.getHeaders().getETag());
+        assertSame(payload, atAGlanceResponse.getBody());
+
+        verify(defendantAccountService).getAtAGlance(defendantAccountId);
     }
 
 }
