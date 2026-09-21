@@ -39,6 +39,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {
     "launchdarkly.default-flag-values.release-1b=true",
+    "launchdarkly.default-flag-values.release-1c-payment=true",
     "launchdarkly.default-flag-values.release-1c-write-off=true"
 })
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -86,10 +87,14 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
         if (!consolidated) {
             actions
+                .andExpect(jsonPath("$.defendant_accounts[0].collection_order").value(true))
                 .andExpect(jsonPath("$.defendant_accounts[0].has_collection_order").doesNotExist())
                 .andExpect(jsonPath("$.defendant_accounts[0].account_version").doesNotExist())
                 .andExpect(jsonPath("$.defendant_accounts[0].checks").doesNotExist());
+        } else {
+            actions.andExpect(jsonPath("$.defendant_accounts[0].collection_order").doesNotExist());
         }
+        jsonSchemaValidationService.validateOrError(body, DEFENDANTS_SEARCH_RESP_SCHEMA);
     }
 
     @ParameterizedTest(name = "consolidated={0}")

@@ -41,12 +41,12 @@ Feature: Update Draft Accounts
       | account_snapshot.defendant_name     | LNAME, FNAME         |
       | account_snapshot.date_of_birth      | 2000-01-01           |
       | account_snapshot.account_type       | Fine                 |
-      | account_snapshot.submitted_by       | L073JG               |
+      | account_snapshot.submitted_by       | BU_USER_ID           |
       | account_snapshot.business_unit_name | West London          |
       | timeline_data[0].status             | Created              |
-      | timeline_data[0].username           | L073JG               |
+      | timeline_data[0].username           | BU_USER_ID           |
       | timeline_data[1].status             | Rejected             |
-      | timeline_data[1].username           | L073JG               |
+      | timeline_data[1].username           | BU_USER_ID           |
       | timeline_data[1].reason_text        | Reason for rejection |
     And the account status date matches the rejected date
 
