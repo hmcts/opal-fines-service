@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:auto-enforcement-config
+@Opal @R1CAutoEnforcement @JIRA-LABEL:auto-enforcement-config
 Feature: Update Auto Enforcement Config
 
   Background:

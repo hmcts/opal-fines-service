@@ -34,7 +34,7 @@ Feature: Defendant Account Search API restrictions
       | birth_date        |
 
   @JIRA-TEST-KEY:PO-10049
-  Scenario: AC3 - First name without last name returns bad request
+  Scenario: Defendant account AC3 - First name without last name returns bad request
     When I search defendant accounts with only "forenames" populated
     Then the defendant account search request is rejected as a schema bad request
 

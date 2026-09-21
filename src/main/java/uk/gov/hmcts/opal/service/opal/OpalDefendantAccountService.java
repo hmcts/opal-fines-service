@@ -8,6 +8,8 @@ import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildE
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementOverrideResultDefendantAccount;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementStatus;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.filterDefendantParty;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_PAYMENT;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_PAYMENT_ENABLED_PROPERTY;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
@@ -26,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.Checks;
@@ -54,6 +57,7 @@ import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.search.SearchConsolidatedEntity;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
+import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount.BasicEntity;
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
@@ -137,6 +141,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final DefendantAccountControlValidator defendantAccountControlValidator;
 
+    private final FeatureToggleApi featureToggleApi;
+
     @Override
     @Transactional(readOnly = true)
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
@@ -179,7 +185,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         List<DefendantAccountSummaryDto> summaries = consolidatedSearch
             ? consolidatedSearch(accountSearchDto)
-            : basicSearch(accountSearchDto);
+            : basicSearch(accountSearchDto, isCollectionOrderEnabled());
 
         return DefendantAccountSearchResultsDto.builder()
             .defendantAccounts(summaries)
@@ -202,16 +208,26 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return results;
     }
 
-    private List<DefendantAccountSummaryDto> basicSearch(AccountSearchDto accountSearchDto) {
+    private List<DefendantAccountSummaryDto> basicSearch(
+        AccountSearchDto accountSearchDto,
+        boolean collectionOrderEnabled
+    ) {
         return searchDefendantBasicRepository
             .findAll(searchBasicEntitySpecs.findBySearch(accountSearchDto))
             .stream()
-            .map(this::toSummaryDto)
+            .map(account -> toSummaryDto(account, collectionOrderEnabled))
             .toList();
     }
 
-    private DefendantAccountSummaryDto toSummaryDto(SearchDefendantAccount account) {
-        return toSummaryBuilder(account).build();
+    private DefendantAccountSummaryDto toSummaryDto(
+        BasicEntity account,
+        boolean collectionOrderEnabled
+    ) {
+        DefendantAccountSummaryDtoBuilder builder = toSummaryBuilder(account);
+        if (collectionOrderEnabled) {
+            builder.collectionOrder(account.getCollectionOrder());
+        }
+        return builder.build();
     }
 
     private DefendantAccountSummaryDto toSummaryDto(SearchConsolidatedEntity account) {
@@ -238,6 +254,19 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private boolean isNotBlank(String s) {
         return !s.isBlank();
+    }
+
+    private boolean isCollectionOrderEnabled() {
+        boolean enabled = featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
+            RELEASE_1C_PAYMENT,
+            RELEASE_1C_PAYMENT_ENABLED_PROPERTY,
+            false
+        );
+        if (!enabled) {
+            log.debug(":searchDefendantAccounts: collection_order omitted because feature {} is disabled",
+                RELEASE_1C_PAYMENT);
+        }
+        return enabled;
     }
 
     private DefendantAccountSummaryDtoBuilder toSummaryBuilder(SearchDefendantAccount account) {
