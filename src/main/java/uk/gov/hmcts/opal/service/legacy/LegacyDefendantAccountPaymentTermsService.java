@@ -11,7 +11,6 @@ import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
@@ -33,6 +32,8 @@ import uk.gov.hmcts.opal.generated.model.InstalmentPeriodCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsTypeCommonStrict;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyPaymentTermsMapper;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountPaymentTermsLegacyResponseMapper;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPaymentTermsServiceInterface;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
@@ -48,8 +49,10 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
     private final GatewayService gatewayService;
     private final LegacyPaymentTermsMapper legacyPaymentTermsMapper;
 
+    private final DefendantAccountPaymentTermsLegacyResponseMapper defendantAccountPaymentTermsLegacyMapper;
+
     @Override
-    public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
+    public DefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
 
         Response<LegacyGetDefendantAccountPaymentTermsResponse> response = gatewayService.postToGateway(
             GET_PAYMENT_TERMS, LegacyGetDefendantAccountPaymentTermsResponse.class,
@@ -68,7 +71,7 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
             log.info(":getPaymentTerms: Legacy Gateway response: Success.");
         }
 
-        return toPaymentTermsResponse(response.responseEntity);
+        return defendantAccountPaymentTermsLegacyMapper.toResponse(response.responseEntity);
     }
 
     @Override
@@ -217,22 +220,6 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
     public static LegacyGetDefendantAccountRequest createGetDefendantAccountRequest(String defendantAccountId) {
         return LegacyGetDefendantAccountRequest.builder()
             .defendantAccountId(defendantAccountId)
-            .build();
-    }
-
-    private GetDefendantAccountPaymentTermsResponse toPaymentTermsResponse(
-        LegacyGetDefendantAccountPaymentTermsResponse legacy) {
-
-        if (legacy == null) {
-            return null;
-        }
-
-        return GetDefendantAccountPaymentTermsResponse.builder()
-            .version(Optional.ofNullable(legacy.getVersion())
-                .orElse(BigInteger.ONE))
-            .paymentTerms(toPaymentTerms(legacy.getPaymentTerms()))
-            .paymentCardLastRequested(legacy.getPaymentCardLastRequested())
-            .lastEnforcement(legacy.getLastEnforcement())
             .build();
     }
 
