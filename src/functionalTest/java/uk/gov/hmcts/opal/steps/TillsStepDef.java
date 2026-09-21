@@ -1,10 +1,18 @@
 package uk.gov.hmcts.opal.steps;
 
+import static net.serenitybdd.rest.SerenityRest.then;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.cucumber.java.After;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.response.Response;
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,13 +24,6 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
-
-import static net.serenitybdd.rest.SerenityRest.then;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Defines deployed-environment steps for the till summary endpoint.
@@ -232,6 +233,8 @@ public class TillsStepDef extends BaseStepDef {
             .put("file_name", createdAutoPaymentFileName)
             .put("source", "NATWEST")
             .put("records", new JSONArray().put(record).toString())
+            .put("record_count", 1)
+            .put("total_amount", new BigDecimal("123.45"))
             .put("business_unit_id", AUTO_PAYMENT_BUSINESS_UNIT_ID)
             .put("interface_name", AUTO_PAYMENT_INTERFACE_NAME)
             .put("created_datetime", LocalDateTime.now().withNano(0).toString())));

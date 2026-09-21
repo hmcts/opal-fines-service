@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers.shared;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
@@ -9,13 +10,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.SchemaPaths.POST_INTERFACE_JOBS_CREATE_RESPONSE;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -24,6 +30,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.entity.InterfaceFileEntity;
@@ -32,6 +39,7 @@ import uk.gov.hmcts.opal.entity.InterfaceJobStatus;
 import uk.gov.hmcts.opal.repository.InterfaceFileRepository;
 import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -59,6 +67,9 @@ class InterfaceJobsCreateIT extends AbstractIntegrationTest {
     @Autowired
     private InterfaceFileRepository interfaceFileRepository;
 
+    @Autowired
+    private JsonSchemaValidationService jsonSchemaValidationService;
+
     @MockitoBean
     private UserStateService userStateService;
 
@@ -80,7 +91,9 @@ class InterfaceJobsCreateIT extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.interface_jobs[0].interface_job_id").isNumber())
             .andReturn();
 
-        JsonNode response = objectMapper.readTree(result.getResponse().getContentAsString());
+        String responseBody = result.getResponse().getContentAsString();
+        jsonSchemaValidationService.validateOrError(responseBody, POST_INTERFACE_JOBS_CREATE_RESPONSE);
+        JsonNode response = objectMapper.readTree(responseBody);
         JsonNode item = response.get("interface_jobs").get(0);
 
         assertEquals(Set.of("interface_jobs"), response.properties().stream()
@@ -112,6 +125,8 @@ class InterfaceJobsCreateIT extends AbstractIntegrationTest {
         assertEquals(INTERFACE_NAME, interfaceJob.getInterfaceName());
         assertEquals("auto-payments-in-endpoint.dat", interfaceFile.getFileName());
         assertEquals("NATWEST", interfaceFile.getSource());
+        assertEquals((short) 1, interfaceFile.getRecordCount());
+        assertEquals(new BigDecimal("123.45"), interfaceFile.getTotalAmount());
         assertEquals(
             objectMapper.readTree("[{\"account\":\"abc123\"}]"),
             objectMapper.readTree(interfaceFile.getRecords()));
@@ -181,6 +196,79 @@ class InterfaceJobsCreateIT extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.retriable").value(false));
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"record_count", "total_amount"})
+    @DisplayName("Rejects missing file totals")
+    @JiraStory("PO-10680")
+    @JiraEpic("PO-2468")
+    void rejectsMissingFileTotals(String field) throws Exception {
+        JsonNode request = objectMapper.readTree(requestBody("auto-payments-in-endpoint.dat", INTERFACE_NAME));
+        ((ObjectNode) request.get("interface_jobs").get(0)).remove(field);
+
+        mockMvc.perform(post(URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(userStateService);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"record_count", "total_amount"})
+    @DisplayName("Rejects null file totals")
+    @JiraStory("PO-10680")
+    @JiraEpic("PO-2468")
+    void rejectsNullFileTotals(String field) throws Exception {
+        JsonNode request = objectMapper.readTree(requestBody("auto-payments-in-endpoint.dat", INTERFACE_NAME));
+        ((ObjectNode) request.get("interface_jobs").get(0)).putNull(field);
+
+        mockMvc.perform(post(URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(userStateService);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"record_count,-1", "record_count,32768", "total_amount,-0.01", "total_amount,1000000000000"})
+    @DisplayName("Rejects file totals outside their permitted ranges")
+    @JiraStory("PO-10680")
+    @JiraEpic("PO-2468")
+    void rejectsInvalidFileTotals(String field, BigDecimal value) throws Exception {
+        JsonNode request = objectMapper.readTree(requestBody("auto-payments-in-endpoint.dat", INTERFACE_NAME));
+        ((ObjectNode) request.get("interface_jobs").get(0)).put(field, value);
+
+        mockMvc.perform(post(URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(userStateService);
+    }
+
+    @Test
+    @DisplayName("Accepts zero file totals")
+    @JiraStory("PO-10680")
+    @JiraEpic("PO-2468")
+    void acceptsZeroFileTotals() throws Exception {
+        stubPermission();
+        JsonNode request = objectMapper.readTree(requestBody("auto-payments-in-endpoint.dat", INTERFACE_NAME));
+        ((ObjectNode) request.get("interface_jobs").get(0))
+            .put("records", "[]")
+            .put("record_count", 0)
+            .put("total_amount", 0);
+
+        mockMvc.perform(post(URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isOk());
+
+        InterfaceFileEntity interfaceFile = singleFile(singleJob(INTERFACE_NAME).getInterfaceJobId());
+        assertEquals((short) 0, interfaceFile.getRecordCount());
+        assertEquals(new BigDecimal("0.00"), interfaceFile.getTotalAmount());
+    }
+
     private String requestBody(String fileName, String interfaceName) {
         return """
                {
@@ -188,6 +276,8 @@ class InterfaceJobsCreateIT extends AbstractIntegrationTest {
                    {
                      "file_name": "%s",
                      "source": "NATWEST",
+                     "record_count": 1,
+                     "total_amount": 123.45,
                      "records": "[{\\"account\\":\\"abc123\\"}]",
                      "business_unit_id": %d,
                      "interface_name": "%s",
