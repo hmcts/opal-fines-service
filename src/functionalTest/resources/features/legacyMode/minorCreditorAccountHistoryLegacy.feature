@@ -1,8 +1,8 @@
-@Legacy @JIRA-LABEL:account-enquiry @MinorCreditorHistory
+@Legacy @R1BDrop2 @JIRA-LABEL:account-enquiry @MinorCreditorHistory
 Feature: Minor Creditor Account History API In Legacy Mode
 
   @cleanUpData @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653
-  Scenario: E2E.01 Happy path history retrieval
+  Scenario: Legacy minor creditor account history - E2E.01 Happy path history retrieval
     Given a minor creditor account with representative history exists for submitted by "MCHIST101"
     When I request minor creditor account history for the created minor creditor account
     Then the minor creditor account history response is returned as documented
@@ -13,7 +13,7 @@ Feature: Minor Creditor Account History API In Legacy Mode
     And the minor creditor account history is ordered newest first
 
   @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653
-  Scenario: E2E.02 Authentication propagation returns 401 when authentication is missing or invalid
+  Scenario: Legacy minor creditor account history - E2E.02 Authentication propagation returns 401 when authentication is missing or invalid
     When I request minor creditor account history for a non-existent minor creditor account without a token
     Then the minor creditor account history error response matches the standard problem detail contract for status 401
     And the minor creditor account history error response contains no account data
@@ -22,14 +22,14 @@ Feature: Minor Creditor Account History API In Legacy Mode
     And the minor creditor account history error response contains no account data
 
   @cleanUpData @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653
-  Scenario: E2E.03 Authorization propagation returns 403 when permission is missing
+  Scenario: Legacy minor creditor account history - E2E.03 Authorization propagation returns 403 when permission is missing
     Given a minor creditor account with representative history exists for submitted by "MCHIST103"
     When the "opal-test-2@dev.platform.hmcts.net" user requests minor creditor account history for the created minor creditor account
     Then the minor creditor account history error response matches the standard problem detail contract for status 403
     And the minor creditor account history error response contains no account data
 
   @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653
-  Scenario: E2E.04 Unknown creditor returns 404
+  Scenario: Legacy minor creditor account history - E2E.04 Unknown creditor returns 404
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I request minor creditor account history for a non-existent minor creditor account
     Then the minor creditor account history error response matches the standard problem detail contract for status 404
