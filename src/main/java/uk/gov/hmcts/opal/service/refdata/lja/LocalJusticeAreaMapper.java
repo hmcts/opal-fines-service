@@ -59,6 +59,6 @@ public interface LocalJusticeAreaMapper
 
     default String firstPostcode(LjaRecord dto) {
         Address address = firstAddress(dto);
-        return address == null ? null : address.getPostcode();
+        return address == null ? null : address.getPostCode();
     }
 }

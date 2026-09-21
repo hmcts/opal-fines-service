@@ -7,8 +7,6 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
@@ -18,7 +16,7 @@ import uk.gov.hmcts.opal.util.FeatureFlags;
 @Service
 public class RefDataMessageProcessor {
 
-    private static final String VALCON_REF_DATA_MESSAGE_SCHEMA = "ref-data/ref_data_schema.json";
+    private static final String REF_DATA_MESSAGE_SCHEMA = "ref-data/ref_data_schema.json";
 
     private final ObjectMapper objectMapper;
     private final SchemaValidationService schemaValidationService;
@@ -52,7 +50,7 @@ public class RefDataMessageProcessor {
 
         JsonNode messageNode = readMessageNode(messagePayload);
 
-        schemaValidationService.validateOrError(messageNode, VALCON_REF_DATA_MESSAGE_SCHEMA);
+        schemaValidationService.validateOrError(messageNode, REF_DATA_MESSAGE_SCHEMA);
 
         String dataProduct = extractDataProduct(messageNode);
 
@@ -87,11 +85,7 @@ public class RefDataMessageProcessor {
     }
 
     private String extractDataProduct(JsonNode messageNode) {
-        String dataProduct = messageNode.path("header").path("dataProduct").asText(null);
-        if (dataProduct == null || dataProduct.isBlank()) {
-            dataProduct = messageNode.path("dataProduct").asText(null);
-        }
-        return dataProduct;
+        return messageNode.path("header").path("data_product").asText(null);
     }
 
     @SuppressWarnings("unchecked")

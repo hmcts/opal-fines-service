@@ -35,7 +35,7 @@ import uk.gov.hmcts.opal.util.FeatureFlags;
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
 
-    private static final String VALCON_REF_DATA_MESSAGE_SCHEMA = "ref-data/ref_data_schema.json";
+    private static final String REF_DATA_MESSAGE_SCHEMA = "ref-data/ref_data_schema.json";
 
     private final RefDataMessageProcessor consumer;
     private final LocalJusticeAreaRepository localJusticeAreaRepository;
@@ -68,7 +68,8 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
         entityManager.flush();
         entityManager.clear();
 
-        consumer.processMessage(buildValconLjaMessage("LJA", 1, true, String.valueOf(localJusticeAreaId), "Updated LJA", "2027-03-04",
+        consumer.processMessage(buildRefDataLjaMessage("LJA", 1, true, String.valueOf(localJusticeAreaId),
+            "Updated LJA", "2027-03-04",
             "New address line 1", "New address line 2", "New address line 3", "New address line 4",
             "NE1 2BB"));
 
@@ -95,7 +96,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
         String ljaCode = "124";
         final long beforeCount = localJusticeAreaRepository.count();
 
-        consumer.processMessage(buildValconLjaMessage("LJA", 1, true, ljaCode, "Created LJA", "2027-03-04",
+        consumer.processMessage(buildRefDataLjaMessage("LJA", 1, true, ljaCode, "Created LJA", "2027-03-04",
             "New address line 1", "New address line 2", "New address line 3", "New address line 4",
             "NE1 2BB"));
 
@@ -137,7 +138,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
         entityManager.flush();
         entityManager.clear();
 
-        consumer.processMessage(buildValconLjaMessage("LJA", 1, true, ljaCode, "Ignored LJA", "2027-03-04",
+        consumer.processMessage(buildRefDataLjaMessage("LJA", 1, true, ljaCode, "Ignored LJA", "2027-03-04",
             "New address line 1", "New address line 2", "New address line 3", "New address line 4",
             "NE1 2BB"));
 
@@ -178,7 +179,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
         entityManager.clear();
 
         ObjectMapper objectMapper = new ObjectMapper();
-        String message = buildValconLjaMessage(
+        String message = buildRefDataLjaMessage(
             objectMapper,
             "LJA",
             2,
@@ -224,11 +225,11 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
         final String ljaCode = original.getLjaCode() == null ? "Z125" : original.getLjaCode();
         final long beforeCount = localJusticeAreaRepository.count();
 
-        assertThatThrownBy(() -> consumer.processMessage(buildValconLjaMessage("LJA", 1, false, ljaCode,
+        assertThatThrownBy(() -> consumer.processMessage(buildRefDataLjaMessage("LJA", 1, false, ljaCode,
             "Updated LJA", "2027-03-04", "New address line 1", "New address line 2",
             "New address line 3", "New address line 4", "NE1 2BB")))
             .isInstanceOf(JsonSchemaValidationException.class)
-            .hasMessageContaining(VALCON_REF_DATA_MESSAGE_SCHEMA);
+            .hasMessageContaining(REF_DATA_MESSAGE_SCHEMA);
 
         entityManager.flush();
         entityManager.clear();
@@ -258,11 +259,11 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
             entityManager.clear();
         }
 
-        assertThatThrownBy(() -> consumer.processMessage(buildValconLjaMessage("LJA", 0, true, ljaCode,
+        assertThatThrownBy(() -> consumer.processMessage(buildRefDataLjaMessage("LJA", 0, true, ljaCode,
             "Updated LJA", "2027-03-04", "New address line 1", "New address line 2", "New address line 3",
             "New address line 4", "NE1 2BB")))
             .isInstanceOf(JsonSchemaValidationException.class)
-            .hasMessageContaining(VALCON_REF_DATA_MESSAGE_SCHEMA);
+            .hasMessageContaining(REF_DATA_MESSAGE_SCHEMA);
 
         entityManager.flush();
         entityManager.clear();
@@ -279,11 +280,11 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
     void processMessage_throwsSchemaValidationExceptionWhenUnknownRefDataTypeIsSupplied() {
         final long beforeCount = localJusticeAreaRepository.count();
 
-        assertThatThrownBy(() -> consumer.processMessage(buildValconLjaMessage("UNKNOWN_REF_DATA_TYPE", 1, true,
+        assertThatThrownBy(() -> consumer.processMessage(buildRefDataLjaMessage("UNKNOWN_REF_DATA_TYPE", 1, true,
             "Z127", "Unknown", "2027-03-04", "New address line 1", "New address line 2",
             "New address line 3", "New address line 4", "NE1 2BB")))
             .isInstanceOf(JsonSchemaValidationException.class)
-            .hasMessageContaining(VALCON_REF_DATA_MESSAGE_SCHEMA);
+            .hasMessageContaining(REF_DATA_MESSAGE_SCHEMA);
 
         entityManager.flush();
         entityManager.clear();
@@ -298,36 +299,36 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
             .hasMessage("Unable to parse ref data message");
     }
 
-    private String buildValconLjaMessage(String dataProduct, int recordCount, boolean includeLjaCode, String ljaCode,
+    private String buildRefDataLjaMessage(String dataProduct, int recordCount, boolean includeLjaName, String ljaCode,
         String ljaName, String endDate, String addressLine1, String addressLine2, String addressLine3,
         String addressLine4, String postcode) {
         ObjectMapper objectMapper = new ObjectMapper();
-        return buildValconLjaMessage(
+        return buildRefDataLjaMessage(
             objectMapper,
             dataProduct,
             recordCount,
-            buildLjaRecordNode(objectMapper, includeLjaCode, ljaCode, ljaName, endDate, addressLine1, addressLine2,
+            buildLjaRecordNode(objectMapper, includeLjaName, ljaCode, ljaName, endDate, addressLine1, addressLine2,
                 addressLine3, addressLine4, postcode)
         );
     }
 
-    private String buildValconLjaMessage(String dataProduct, int recordCount, ObjectNode... recordNodes) {
-        return buildValconLjaMessage(new ObjectMapper(), dataProduct, recordCount, recordNodes);
+    private String buildRefDataLjaMessage(String dataProduct, int recordCount, ObjectNode... recordNodes) {
+        return buildRefDataLjaMessage(new ObjectMapper(), dataProduct, recordCount, recordNodes);
     }
 
-    private String buildValconLjaMessage(ObjectMapper objectMapper, String dataProduct, int recordCount,
+    private String buildRefDataLjaMessage(ObjectMapper objectMapper, String dataProduct, int recordCount,
         ObjectNode... recordNodes) {
         try {
             ObjectNode rootNode = objectMapper.createObjectNode();
             ObjectNode headerNode = rootNode.putObject("header");
-            headerNode.put("messageId", "437dacf6-511c-4e93-95f3-23e82b12e735");
-            headerNode.put("messageType", "ReferenceData");
-            headerNode.put("dataProduct", dataProduct);
+            headerNode.put("message_id", "437dacf6-511c-4e93-95f3-23e82b12e735");
+            headerNode.put("message_type", "ReferenceData");
+            headerNode.put("data_product", dataProduct);
             headerNode.put("operation", "PUBLISH");
-            headerNode.put("sourceSystem", "Semarchy");
-            headerNode.put("createdDateTime", "2026-09-02T08:28:56.935738+00:00");
-            headerNode.put("ReleasePackageId", 202);
-            headerNode.put("recordCount", recordCount);
+            headerNode.put("source_system", "Semarchy");
+            headerNode.put("created_date_time", "2026-09-02T08:28:56.935738+00:00");
+            headerNode.put("release_package_id", 202);
+            headerNode.put("record_count", recordCount);
 
             ObjectNode payloadNode = rootNode.putObject("payload");
             ArrayNode recordsNode = payloadNode.putArray("records");
@@ -341,41 +342,33 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
-    private ObjectNode buildLjaRecordNode(ObjectMapper objectMapper, boolean includeLjaCode, String ljaCode,
+    private ObjectNode buildLjaRecordNode(ObjectMapper objectMapper, boolean includeLjaName, String ljaCode,
         String ljaName, String endDate, String addressLine1, String addressLine2, String addressLine3,
         String addressLine4, String postcode) {
         ObjectNode recordNode = objectMapper.createObjectNode();
-        if (includeLjaCode) {
-            recordNode.put("LJACode", ljaCode);
+        recordNode.put("lja_code", ljaCode);
+        if (includeLjaName) {
+            recordNode.put("lja_name", ljaName);
         }
-        recordNode.put("LJAName", ljaName);
-        recordNode.put("EndDate", endDate);
-        recordNode.putNull("CourtWelshName");
-        recordNode.putNull("CourtLocationCode");
-        recordNode.put("StartDate", "2027-03-01");
-        recordNode.putNull("EnforcementCode");
-        recordNode.putNull("ClusterCode");
-        recordNode.putNull("DivisionCode");
-        recordNode.putNull("DefaultStartTime");
-        recordNode.putNull("DefaultDuration");
-        recordNode.putNull("CommonPlatformUUID");
-        recordNode.putNull("Notes");
-        recordNode.put("CourtHearingOperationAreaIndicator", false);
-        recordNode.put("CrownCourtIndicator", false);
-        recordNode.put("NorthernIrelandCourtIndicator", false);
-        recordNode.put("MagistratesCourtIndicator", true);
-        recordNode.put("ScottishDistrictCourtIndicator", false);
-        recordNode.put("ScottishSheriffCourtIndicator", false);
-        recordNode.put("ScottishJusticeOfPeaceCourtIndicator", false);
-        recordNode.put("YouthCourtIndicator", false);
+        recordNode.put("end_date", endDate);
+        recordNode.put("lja_type", "LJA");
+        recordNode.put("start_date", "2027-03-01");
 
-        ObjectNode addressNode = recordNode.putArray("Addresses").addObject();
-        addressNode.put("AddressType", "Test Address");
-        addressNode.put("AddressLine1", addressLine1);
-        addressNode.put("AddressLine2", addressLine2);
-        addressNode.put("AddressLine3", addressLine3);
-        addressNode.put("AddressLine4", addressLine4);
-        addressNode.put("Postcode", postcode);
+        ArrayNode addressesNode = recordNode.putArray("addresses");
+        ObjectNode addressNode = addressesNode.addObject();
+        addressNode.put("address_type", "Test Address");
+        addressNode.put("address_line_1", addressLine1);
+        addressNode.put("address_line_2", addressLine2);
+        addressNode.put("address_line_3", addressLine3);
+        addressNode.put("address_line_4", addressLine4);
+        addressNode.put("post_code", postcode);
+
+        ObjectNode secondaryAddressNode = addressesNode.addObject();
+        secondaryAddressNode.put("address_type", "Secondary Address");
+        secondaryAddressNode.put("address_line_1", "Secondary address line 1");
+        secondaryAddressNode.put("post_code", "NE1 2BB");
+
+        recordNode.putArray("contact_information");
 
         return recordNode;
     }

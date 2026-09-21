@@ -17,71 +17,50 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class LjaRecord implements ToJsonString {
 
-    @JsonProperty("LJACode")
-    private String ljaCode;
+    @JsonProperty("cja_code")
+    private String cjaCode;
 
-    @JsonProperty("LJAName")
-    private String ljaName;
-
-    @JsonProperty("EndDate")
-    private LocalDate endDate;
-
-    @JsonProperty("CourtWelshName")
-    private String courtWelshName;
-
-    @JsonProperty("CourtLocationCode")
-    private String courtLocationCode;
-
-    @JsonProperty("StartDate")
-    private LocalDate startDate;
-
-    @JsonProperty("EnforcementCode")
-    private String enforcementCode;
-
-    @JsonProperty("ClusterCode")
-    private String clusterCode;
-
-    @JsonProperty("DivisionCode")
-    private String divisionCode;
-
-    @JsonProperty("DefaultStartTime")
-    private String defaultStartTime;
-
-    @JsonProperty("DefaultDuration")
-    private Object defaultDuration;
-
-    @JsonProperty("CommonPlatformUUID")
+    @JsonProperty("common_platform_uuid")
     private String commonPlatformUUID;
 
-    @JsonProperty("Notes")
+    @JsonProperty("division_code")
+    private String divisionCode;
+
+    @JsonProperty("end_date")
+    private LocalDate endDate;
+
+    @JsonProperty("lja_code")
+    private String ljaCode;
+
+    @JsonProperty("lja_name")
+    private String ljaName;
+
+    @JsonProperty("lja_type")
+    private String ljaType;
+
+    @JsonProperty("lja_welsh_name")
+    private String ljaWelshName;
+
+    @JsonProperty("notes")
     private String notes;
 
-    @JsonProperty("CourtHearingOperationAreaIndicator")
-    private Boolean courtHearingOperationAreaIndicator;
+    @JsonProperty("start_date")
+    private LocalDate startDate;
 
-    @JsonProperty("CrownCourtIndicator")
-    private Boolean crownCourtIndicator;
+    @JsonProperty("cluster_information_code")
+    private Integer clusterInformationCode;
 
-    @JsonProperty("NorthernIrelandCourtIndicator")
-    private Boolean northernIrelandCourtIndicator;
+    @JsonProperty("enforcement_area_code")
+    private Integer enforcementAreaCode;
 
-    @JsonProperty("MagistratesCourtIndicator")
-    private Boolean magistratesCourtIndicator;
+    @JsonProperty("region_code")
+    private Integer regionCode;
 
-    @JsonProperty("ScottishDistrictCourtIndicator")
-    private Boolean scottishDistrictCourtIndicator;
-
-    @JsonProperty("ScottishSheriffCourtIndicator")
-    private Boolean scottishSheriffCourtIndicator;
-
-    @JsonProperty("ScottishJusticeOfPeaceCourtIndicator")
-    private Boolean scottishJusticeOfPeaceCourtIndicator;
-
-    @JsonProperty("YouthCourtIndicator")
-    private Boolean youthCourtIndicator;
-
-    @JsonProperty("Addresses")
+    @JsonProperty("addresses")
     private List<Address> addresses;
+
+    @JsonProperty("contact_information")
+    private List<ContactInformation> contactInformation;
 
     @Data
     @Builder
@@ -90,22 +69,42 @@ public class LjaRecord implements ToJsonString {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Address implements ToJsonString {
 
-        @JsonProperty("AddressType")
-        private String addressType;
-
-        @JsonProperty("AddressLine1")
+        @JsonProperty("address_line_1")
         private String addressLine1;
 
-        @JsonProperty("AddressLine2")
+        @JsonProperty("address_line_2")
         private String addressLine2;
 
-        @JsonProperty("AddressLine3")
+        @JsonProperty("address_line_3")
         private String addressLine3;
 
-        @JsonProperty("AddressLine4")
+        @JsonProperty("address_line_4")
         private String addressLine4;
 
-        @JsonProperty("Postcode")
-        private String postcode;
+        @JsonProperty("address_line_5")
+        private String addressLine5;
+
+        @JsonProperty("address_type")
+        private String addressType;
+
+        @JsonProperty("post_code")
+        private String postCode;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class ContactInformation implements ToJsonString {
+
+        @JsonProperty("contact_sub_type")
+        private String contactSubType;
+
+        @JsonProperty("contact_type")
+        private String contactType;
+
+        @JsonProperty("contact_value")
+        private String contactValue;
     }
 }
