@@ -2,7 +2,7 @@
 Feature: Minor Creditor Account History
 
   @cleanUpData @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653 @JIRA-TEST-KEY:PO-9546
-  Scenario: E2E.01 Happy path history retrieval
+  Scenario: Minor creditor account history - E2E.01 Happy path history retrieval
     Given a minor creditor account with representative history exists for submitted by "MCHIST001"
     When I request minor creditor account history for the created minor creditor account
     Then the minor creditor account history response is returned as documented

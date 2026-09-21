@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.generated.model.AddPaymentTermsRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.GetPaymentTermsResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPaymentTermsServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
@@ -27,7 +27,7 @@ public class DefendantAccountPaymentTermsServiceProxy implements DefendantAccoun
     }
 
     @Override
-    public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
+    public DefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
         return getCurrentModeService().getPaymentTerms(defendantAccountId);
     }
 

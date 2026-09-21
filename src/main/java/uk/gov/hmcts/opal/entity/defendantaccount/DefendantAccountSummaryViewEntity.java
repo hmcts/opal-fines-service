@@ -174,4 +174,10 @@ public class DefendantAccountSummaryViewEntity implements Versioned {
 
     @Column(name = "effective_date")
     private LocalDateTime effectiveDate;
+
+    @Column(name = "balance")
+    private BigDecimal accountBalance;
+
+    @Column(name = "account_status")
+    private DefendantAccountStatus accountStatus;
 }
