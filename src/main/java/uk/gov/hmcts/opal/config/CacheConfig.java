@@ -103,10 +103,10 @@ public class CacheConfig {
             .serializeKeysWith(SerializationPair.fromSerializer(redisKeySerializer()))
             .serializeValuesWith(SerializationPair.fromSerializer(redisValueSerializer()));
 
-        return logCacheDetails(RedisCacheManager.builder(redisConnectionFactory)
+        return RedisCacheManager.builder(redisConnectionFactory)
             .cacheDefaults(defaultCacheConfig)
             .withCacheConfiguration(CacheNames.HMRC_AUTH_SERVICE, hmrcAuthCacheConfig)
-            .build());
+            .build();
     }
 
     private RedisSerializer<Object> redisValueSerializer() {
@@ -134,32 +134,7 @@ public class CacheConfig {
     @Bean
     @ConditionalOnProperty(name = "opal.redis.enabled", havingValue = "false", matchIfMissing = true)
     public CacheManager simpleCacheManager() {
-        return logCacheDetails(new ConcurrentMapCacheManager());
-    }
-
-    public CacheManager logCacheDetails(CacheManager cacheManager) {
-        log.info("------------------------------");
-        log.info("Cache Configuration Details:");
-        log.info("Redis Enabled: {}", redisEnabled);
-        log.info("Redis TTL (duration): {}", redisTtlDuration);
-        log.info("Redis HMRC Token TTL (duration): {}", redisHmrcAuthTokenTtlDuration);
-        if (cacheManager != null) {
-            log.info("Cache Manager: {}", cacheManager.getClass().getName());
-            if (cacheManager instanceof RedisCacheManager) {
-                log.info("Using Redis Cache Manager");
-            } else if (cacheManager instanceof ConcurrentMapCacheManager) {
-                log.info("Using Concurrent Map Cache Manager (local cache)");
-            }
-        } else {
-            log.warn("Cache Manager is null. This might indicate a configuration issue.");
-        }
-
-        log.info("Available Caches:");
-        if (cacheManager != null) {
-            cacheManager.getCacheNames().forEach(cacheName -> log.debug("- {}", cacheName));
-        }
-        log.info("------------------------------");
-        return cacheManager;
+        return new ConcurrentMapCacheManager();
     }
 
     @Bean("KeyGeneratorForOptionalList")
