@@ -141,7 +141,6 @@ public class CacheConfig {
         log.info("------------------------------");
         log.info("Cache Configuration Details:");
         log.info("Redis Enabled: {}", redisEnabled);
-        log.info("Redis Url: {}", redisUrl);
         log.info("Redis TTL (duration): {}", redisTtlDuration);
         log.info("Redis HMRC Token TTL (duration): {}", redisHmrcAuthTokenTtlDuration);
         if (cacheManager != null) {
