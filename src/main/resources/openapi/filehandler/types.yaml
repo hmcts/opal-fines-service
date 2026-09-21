@@ -1,0 +1,38 @@
+openapi: 3.1.1
+info:
+  description: Opal File Handler Service - Types
+  license:
+    name: MIT
+    url: 'https://opensource.org/licenses/MIT'
+  title: Opal File Handler Service
+  version: v0.0.1
+components:
+  schemas:
+    domainEnum:
+      type: string
+      enum:
+        - FINES
+        - MAINTENANCE
+        - FILE_HANDLER
+        - CONFISCATION
+    BigInt:
+      type: integer
+      format: int64
+    monetaryZeroOrPositive:
+      type: number
+      description: A monetary value that is zero or positive, with up to two decimal places.
+      maximum: 999999999999
+      minimum: 0
+      multipleOf: 0.01
+    monetaryNegativeOrPositive:
+      type: number
+      description: A monetary value that can be negative, zero, or positive, with up to two decimal places.
+      minimum: -9999999999
+      maximum: 9999999999
+      multipleOf: 0.01
+    monetaryZeroOrNegative:
+      type: number
+      description: A monetary value that is zero or negative, with up to two decimal places.
+      maximum: 0
+      minimum: -9999999999
+      multipleOf: 0.01
