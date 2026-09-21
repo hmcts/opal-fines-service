@@ -44,8 +44,6 @@ import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyRequest;
@@ -56,6 +54,9 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsRespons
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.generated.model.AddPaymentTermsRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountPostedDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementPostedDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.GetPaymentTermsResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.InstalmentPeriodCommonStrict;
@@ -63,6 +64,7 @@ import uk.gov.hmcts.opal.generated.model.InstalmentPeriodCommonStrict.Instalment
 import uk.gov.hmcts.opal.generated.model.PaymentTermsDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsTypeCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsTypeCommonStrict.PaymentTermsTypeCodeEnum;
+import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountPaymentTermsLegacyResponseMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyPaymentTermsMapper;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 
@@ -82,6 +84,10 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
 
     @Spy
     private LegacyPaymentTermsMapper legacyPaymentTermsMapper = Mappers.getMapper(LegacyPaymentTermsMapper.class);
+
+    @Spy
+    private DefendantAccountPaymentTermsLegacyResponseMapper defendantAccountPaymentTermsLegacyResponseMapper =
+        Mappers.getMapper(DefendantAccountPaymentTermsLegacyResponseMapper.class);
 
     @InjectMocks
     private LegacyDefendantAccountPaymentTermsService legacyDefendantAccountPaymentTermsService;
@@ -148,7 +154,8 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         );
 
         // When
-        legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L, (short) 78, "L080JG", "Tester Name", "9");
+        legacyDefendantAccountPaymentTermsService.addPaymentCardRequest(123L, (short) 78,
+            "L080JG", "Tester Name", "9");
 
         // Then
         AddPaymentCardLegacyRequest sent = captor.getValue();
@@ -263,7 +270,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
             .when(gatewayService).postToGateway(eq(LegacyDefendantAccountPaymentTermsService.GET_PAYMENT_TERMS),
                 eq(LegacyGetDefendantAccountPaymentTermsResponse.class), any(), any());
 
-        GetDefendantAccountPaymentTermsResponse out =
+        DefendantAccountPaymentTermsResponse out =
             legacyDefendantAccountPaymentTermsService.getPaymentTerms(123L);
 
         assertNotNull(out.getPaymentTerms().getPaymentTermsType());
@@ -279,7 +286,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
                 eq(LegacyGetDefendantAccountPaymentTermsResponse.class),
                 any(), any());
 
-        GetDefendantAccountPaymentTermsResponse resp =
+        DefendantAccountPaymentTermsResponse resp =
             legacyDefendantAccountPaymentTermsService.getPaymentTerms(100L);
 
         // When legacy responseEntity is null, service should return null
@@ -312,22 +319,22 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
                 eq(LegacyGetDefendantAccountPaymentTermsResponse.class),
                 any(), any());
 
-        GetDefendantAccountPaymentTermsResponse out =
+        DefendantAccountPaymentTermsResponse out =
             legacyDefendantAccountPaymentTermsService.getPaymentTerms(200L);
 
         assertNotNull(out);
         // version null -> defaults to BigInteger.ONE
-        assertEquals(BigInteger.ONE, out.getVersion());
+        assertEquals(1L, out.getVersion());
 
         // payment terms mapped and posted details mapped correctly
-        PaymentTerms pt = out.getPaymentTerms();
+        DefendantAccountPaymentTermsCommonStrict pt = out.getPaymentTerms();
         assertNotNull(pt);
-        PostedDetails pd = pt.getPostedDetails();
+        DefendantAccountPostedDetailsCommonStrict pd = pt.getPostedDetails().get();
         assertNotNull(pd);
         assertEquals(
             LocalDateTime.of(2025, 2, 14, 9, 10, 11), pd.getPostedDate());
-        assertEquals("u-x", pd.getPostedBy());
-        assertEquals("User X", pd.getPostedByName());
+        assertEquals("u-x", pd.getPostedBy().get());
+        assertEquals("User X", pd.getPostedByName().get());
     }
 
     @Test
@@ -347,11 +354,11 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
                 eq(LegacyGetDefendantAccountPaymentTermsResponse.class),
                 any(), any());
 
-        GetDefendantAccountPaymentTermsResponse out =
+        DefendantAccountPaymentTermsResponse out =
             legacyDefendantAccountPaymentTermsService.getPaymentTerms(300L);
 
         assertNotNull(out);
-        assertEquals(BigInteger.valueOf(2L), out.getVersion());
+        assertEquals(2L, out.getVersion());
         assertNull(out.getPaymentTerms());
         assertEquals(LocalDate.parse("2024-01-01"), out.getPaymentCardLastRequested());
         assertEquals("LE-1", out.getLastEnforcement());
