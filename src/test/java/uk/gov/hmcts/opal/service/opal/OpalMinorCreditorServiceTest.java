@@ -557,7 +557,7 @@ class OpalMinorCreditorServiceTest {
                 .accountId(creditorAccountId)
                 .accountNumber("404")
                 .accountType(CreditorAccountTypeReference.builder()
-                    .type("MN")
+                    .creditorAccountType("MN")
                     .displayName("Minor Creditor")
                     .build())
                 .hasAssociatedDefendant(false)

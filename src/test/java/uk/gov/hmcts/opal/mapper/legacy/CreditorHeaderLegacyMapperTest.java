@@ -32,7 +32,7 @@ class CreditorHeaderLegacyMapperTest {
                 .accountType("MN")
                 .build();
         CreditorAccountTypeReference mappedAccountType = CreditorAccountTypeReference.builder()
-            .type("MN")
+            .creditorAccountType("MN")
             .displayName("Minor Creditor")
             .build();
         CreditorHeaderLegacy legacy = CreditorHeaderLegacy.builder()

@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 )
 public interface CreditorAccountTypeReferenceMapper {
 
-    @Mapping(source = "accountType", target = "type")
+    @Mapping(source = "accountType", target = "creditorAccountType")
     @Mapping(target = "displayName", expression = "java(CreditorAccountType.getDisplayName(legacy.getAccountType()))")
     CreditorAccountTypeReference toOpal(
         uk.gov.hmcts.opal.dto.legacy.common.CreditorAccountTypeReference legacy

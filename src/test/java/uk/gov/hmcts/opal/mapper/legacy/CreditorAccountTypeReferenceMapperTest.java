@@ -27,7 +27,7 @@ class CreditorAccountTypeReferenceMapperTest extends AbstractMapperTest {
 
         // Assert
         assertNotNull(mapped);
-        assertEquals("MN", mapped.getType());
+        assertEquals("MN", mapped.getCreditorAccountType());
         assertEquals("Minor Creditor", mapped.getDisplayName());
     }
 
@@ -44,7 +44,7 @@ class CreditorAccountTypeReferenceMapperTest extends AbstractMapperTest {
 
         // Assert
         assertNotNull(mapped);
-        assertEquals("UNKNOWN", mapped.getType());
+        assertEquals("UNKNOWN", mapped.getCreditorAccountType());
         assertNull(mapped.getDisplayName());
     }
 }
