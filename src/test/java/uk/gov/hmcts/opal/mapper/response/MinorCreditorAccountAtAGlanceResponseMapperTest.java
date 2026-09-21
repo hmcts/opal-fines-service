@@ -107,8 +107,8 @@ class MinorCreditorAccountAtAGlanceResponseMapperTest {
             .getIndividualAliases().get().getFirst().getSurname());
         assertEquals("SP4 C3", result.getAddress().getPostcode().get());
         assertEquals(66L, result.getDefendant().getAccountId().get());
-        //assertEquals(Boolean.TRUE, result.getDefendant().getOrganisation());
-        //assertEquals("Acme Corporation", result.getDefendant().getOrganisationName());
+        assertEquals(Boolean.TRUE, result.getDefendant().getOrganisation());
+        assertEquals("Acme Corporation", result.getDefendant().getOrganisationName());
         assertTrue(result.getPayment().getIsBacs());
     }
 
