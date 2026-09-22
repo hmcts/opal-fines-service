@@ -7,8 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse.Financials;
 import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse.FinancialsLegacy;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponseFinancials;
 import uk.gov.hmcts.opal.mapper.AbstractMapperTest;
 
 class FinancialsLegacyMapperTest extends AbstractMapperTest {
@@ -27,7 +27,7 @@ class FinancialsLegacyMapperTest extends AbstractMapperTest {
             .build();
 
         // Act
-        Financials mapped = mapper.toOpal(legacy);
+        MinorCreditorAccountHeaderSummaryResponseFinancials mapped = mapper.toOpal(legacy);
 
         // Assert
         assertNotNull(mapped);

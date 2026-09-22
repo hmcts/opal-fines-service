@@ -109,6 +109,7 @@ import uk.gov.hmcts.opal.generated.model.PaymentTermsSummaryCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsTypeCommonStrict;
 import uk.gov.hmcts.opal.generated.model.ResultReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.ResultResponsesCommon;
+import uk.gov.hmcts.opal.util.DateTimeUtils;
 
 public class OpalDefendantAccountBuilders {
 
@@ -197,13 +198,13 @@ public class OpalDefendantAccountBuilders {
             // Only one of organisationDetails or individualDetails will be populated
             // if organisationFlag is true, then organisationDetails is populated
             .organisationDetails(
-                entity.getOrganisation()
+                Boolean.TRUE.equals(entity.getOrganisation())
                     ? buildOrganisationDetails(entity)
                     : null
             )
             // if organisationFlag is false, then individualDetails is populated
             .individualDetails(
-                !entity.getOrganisation()
+                Boolean.FALSE.equals(entity.getOrganisation())
                     ? buildIndividualDetails(entity)
                     : null
             )
@@ -615,6 +616,18 @@ public class OpalDefendantAccountBuilders {
         }
     }
 
+    static AtAGlanceResponseDefendantAccount.AccountStatusCodeEnum safeAccountStatusCode(
+        DefendantAccountStatus status) {
+        if (status == null) {
+            return null;
+        }
+        try {
+            return AtAGlanceResponseDefendantAccount.AccountStatusCodeEnum.fromValue(status.getCode());
+        } catch (RuntimeException ex) {
+            return null;
+        }
+    }
+
     /**
      * Split a full name into forenames + surname (surname = last token).
      */
@@ -934,6 +947,9 @@ public class OpalDefendantAccountBuilders {
 
     static AtAGlanceResponseDefendantAccount buildAtAGlancePayload(
         DefendantAccountSummaryViewEntity entity) {
+        if (entity == null) {
+            return null;
+        }
 
         return AtAGlanceResponseDefendantAccount.builder()
             .defendantAccountId(entity.getDefendantAccountId().toString())
@@ -947,6 +963,8 @@ public class OpalDefendantAccountBuilders {
             .paymentTerms(toStrictPaymentTerms(buildPaymentTerms(entity)))
             .enforcementStatus(toStrictEnforcementStatus(buildEnforcementStatusSummary(entity)))
             .commentsAndNotes(toStrictCommentsAndNotes(buildCommentsAndNotes(entity)))
+            .accountBalance(entity.getAccountBalance())
+            .accountStatusCode(safeAccountStatusCode(entity.getAccountStatus()))
             .build();
     }
 
@@ -1279,7 +1297,7 @@ public class OpalDefendantAccountBuilders {
     }
 
     public static boolean isNotYouth(PartyEntity party) {
-        return !isYouth(party.getBirthDate().atStartOfDay(), party.getAge());
+        return !isYouth(DateTimeUtils.startOf(party.getBirthDate()), party.getAge());
     }
 
     public static DefendantAccountPartiesEntity filterDefendantParty(DefendantAccountEntity account) {

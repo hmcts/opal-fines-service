@@ -45,7 +45,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @DisplayName("DraftAccountControllerPostIntegrationTest")
 class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountControllerIntegrationTest {
 
-    // adding a cmment
     private String validRawJsonCreateRequestBody() {
         AddDraftAccountRequestDto dto = AddDraftAccountRequestDto.builder()
             .businessUnitId((short) 78)
@@ -632,6 +631,28 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     }
 
     @Test
+    @DisplayName("Create draft account - Should return 400 when enforcement court does not exist")
+    @JiraStory("PO-5745")
+    @JiraEpic("PO-8248")
+    void shouldReturn400WhenEnforcementCourtDoesNotExist() throws Exception {
+        long countBefore = draftAccountRepository.count();
+
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(invalidEnforcementCourtCreateRequestBody()))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedEnforcementCourtValidationErrorMessage(),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+
+        assertEquals(countBefore, draftAccountRepository.count());
+    }
+
+    @Test
     @DisplayName("Create draft account - Should return 400 when payment term enforcement result is not an enforcement")
     @JiraStory("PO-5752")
     @JiraEpic("PO-8248")
@@ -1101,10 +1122,15 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .replace("\"major_creditor_id\": null", "\"major_creditor_id\": 999996");
     }
 
+    private static String invalidEnforcementCourtCreateRequestBody() {
+        return validCreateRequestBody()
+            .replace("\"enforcement_court_id\": 260000000048", "\"enforcement_court_id\": 999999");
+    }
+
     private static String expectedReferenceValidationErrorMessage() {
         return """
             Draft account reference validation failed with 5 error(s):
-             - $.enforcement_court_id: court id 999999 does not exist
+             - account.enforcement_court_id: court id 999999 does not exist
              - account.offences[0].offence_id: offence id 999998 does not exist
              - $.offences[0].imposing_court_id: court id 999997 does not exist
              - $.offences[0].impositions[0].result_id: result id NOT-A-RESULT does not exist
@@ -1158,6 +1184,13 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             Draft account reference validation failed with 1 error(s):
              - %s
             """.formatted(detail).stripIndent().stripTrailing();
+    }
+
+    private static String expectedEnforcementCourtValidationErrorMessage() {
+        return """
+            Draft account reference validation failed with 1 error(s):
+             - account.enforcement_court_id: court id 999999 does not exist
+            """.stripIndent().stripTrailing();
     }
 
     private static String invalidCreateRequestBody() {

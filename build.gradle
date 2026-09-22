@@ -1107,7 +1107,7 @@ dependencyManagement {
   imports {
     mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.1.3'
     mavenBom "org.springframework.integration:spring-integration-bom:7.1.1"
-    mavenBom "io.netty:netty-bom:4.2.17.Final"
+    mavenBom "io.netty:netty-bom:4.2.18.Final"
     mavenBom "com.fasterxml.jackson:jackson-bom:2.22.2"
   }
 
@@ -1142,7 +1142,7 @@ ext['postgresql.version'] = '42.7.13'
 
 dependencies {
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.3.26'
+  implementation 'uk.gov.hmcts:opal-common-lib:0.3.29'
 
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.2.2'
   testImplementation 'uk.gov.hmcts:zephyr-automation:1.2.2'

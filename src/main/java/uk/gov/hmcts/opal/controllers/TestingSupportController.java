@@ -166,7 +166,7 @@ public class TestingSupportController {
     }
 
     /**
-     * From {@link MinorCreditorController}.
+     * From {@link MinorCreditorApiController}.
      * @param minorCreditorId path param
      * @param ifMatch header
      * @param ignoreMissing query param

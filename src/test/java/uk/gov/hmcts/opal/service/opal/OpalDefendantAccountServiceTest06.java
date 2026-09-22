@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -9,6 +10,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_PAYMENT;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_PAYMENT_ENABLED_PROPERTY;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -17,12 +20,15 @@ import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.Checks;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.WarnError;
@@ -52,6 +58,9 @@ class OpalDefendantAccountServiceTest06 {
 
     @Spy
     private SearchConsolidatedEntitySpecs searchConsolidatedEntitySpecs;
+
+    @Mock
+    private FeatureToggleApi featureToggleApi;
 
     // Service under test
     @InjectMocks
@@ -187,6 +196,37 @@ class OpalDefendantAccountServiceTest06 {
         assertEquals(1, aliases.getFirst().getAliasNumber());
         assertEquals("John", aliases.getFirst().getForenames());
         assertEquals("Doe", aliases.getFirst().getSurname());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void testSearch_mapsCollectionOrder_onlyWhenPaymentFeatureIsEnabled(boolean featureEnabled) {
+        BasicEntity row = BasicEntity.builder()
+            .defendantAccountId(4L)
+            .collectionOrder(true)
+            .build();
+
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
+            RELEASE_1C_PAYMENT,
+            RELEASE_1C_PAYMENT_ENABLED_PROPERTY,
+            false
+        )).thenReturn(featureEnabled);
+        when(searchDefendantBasicRepository.findAll(
+            ArgumentMatchers.<Specification<BasicEntity>>any()
+        )).thenReturn(List.of(row));
+
+        DefendantAccountSummaryDto summary = service.searchDefendantAccounts(emptyCriteria())
+            .getDefendantAccounts()
+            .getFirst();
+
+        assertAll(
+            () -> assertEquals(featureEnabled ? Boolean.TRUE : null, summary.getCollectionOrder()),
+            () -> verify(featureToggleApi, times(1)).isFeatureEnabledWithPropertyValueDefault(
+                RELEASE_1C_PAYMENT,
+                RELEASE_1C_PAYMENT_ENABLED_PROPERTY,
+                false
+            )
+        );
     }
 
     @Test
