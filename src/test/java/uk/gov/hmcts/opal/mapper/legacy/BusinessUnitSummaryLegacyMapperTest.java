@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
+import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
 import uk.gov.hmcts.opal.mapper.AbstractMapperTest;
 
 class BusinessUnitSummaryLegacyMapperTest extends AbstractMapperTest {
@@ -26,11 +26,11 @@ class BusinessUnitSummaryLegacyMapperTest extends AbstractMapperTest {
                 .build();
 
         // Act
-        BusinessUnitSummary mapped = mapper.toOpal(legacy);
+        BusinessUnitSummaryCommon mapped = mapper.toBusinessUnitSummaryCommon(legacy);
 
         // Assert
         assertNotNull(mapped);
-        assertEquals("77", mapped.getBusinessUnitId());
+        assertEquals((short) 77, mapped.getBusinessUnitId());
         assertEquals("CBG", mapped.getBusinessUnitCode());
         assertEquals("Camberwell Green", mapped.getBusinessUnitName());
         assertEquals("Y", mapped.getWelshSpeaking());
@@ -38,6 +38,6 @@ class BusinessUnitSummaryLegacyMapperTest extends AbstractMapperTest {
 
     @Test
     void givenNullLegacyBusinessUnitSummary_whenToOpal_thenReturnsNull() {
-        assertNull(mapper.toOpal(null));
+        assertNull(mapper.toBusinessUnitSummaryCommon(null));
     }
 }
