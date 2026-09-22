@@ -53,6 +53,10 @@ java:
           alias: OPAL_HMRC_AUTH_CLIENT_SECRET
         - name: opal-hmrc-url
           alias: OPAL_HMRC_URL
+        - name: opal-system-user-client-id
+          alias: OPAL_SYSTEM_USER_CLIENT_ID
+        - name: opal-system-user-client-secret
+          alias: OPAL_SYSTEM_USER_CLIENT_SECRET
   environment:
     RUN_DB_MIGRATION_ON_STARTUP: true
     OPAL_FRONTEND_URL: https://opal-frontend.{{ .Values.global.environment }}.apps.hmcts.net
@@ -61,6 +65,7 @@ java:
     OPAL_REDIS_ENABLED: true
     OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub-{{ .Values.global.environment }}.platform.hmcts.net/opal
     OPAL_USER_SERVICE_API_URL: https://opal-user-service.{{ .Values.global.environment }}.platform.hmcts.net
+    OPAL_FILE_HANDLER_SERVICE_URL: https://opal-file-handler-service.{{ .Values.global.environment }}.platform.hmcts.net
     FLYWAY_LOCATIONS: classpath:db/migration/ddl,classpath:db/migration/data/allEnvs
     SERVICEBUS_LOGGING_PDPL_PROTOCOL: amqps
     SERVICEBUS_PROTOCOL: amqps
