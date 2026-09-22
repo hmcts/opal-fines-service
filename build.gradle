@@ -1163,7 +1163,7 @@ ext['postgresql.version'] = '42.7.13'
 
 dependencies {
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.3.33'
+  implementation 'uk.gov.hmcts:opal-common-lib:0.3.30'
 
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.2.2'
   testImplementation 'uk.gov.hmcts:zephyr-automation:1.2.2'
@@ -1341,6 +1341,7 @@ flyway {
 checkstyle {
   checkstyleMain.exclude '**uk/gov/hmcts/opal/generated/**'
   checkstyleMain.exclude '**uk/gov/hmcts/opal/hmrc/generated/**'
+  checkstyleMain.exclude '**uk/gov/hmcts/opal/filehandler/generated/**'
   checkstyleMain.exclude '**org/openapitools/configuration/**'
 }
 tasks.register('migratePostgresDatabase', FlywayMigrateTask) {
