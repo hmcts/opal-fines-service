@@ -61,7 +61,6 @@ public class AccountNumberTranslationService {
                     }
                 }
 
-                // Check APR
                 var apr = lookUpAPR(transaction.getOriginatorDetails().getAccountReference());
                 if (apr.isPresent()) {
                     OriginatorDetails originatorDetails = transaction.getOriginatorDetails();
@@ -82,7 +81,6 @@ public class AccountNumberTranslationService {
                     continue;
                 }
 
-                // repeat with originator name
                 apr = lookUpAPR(transaction.getOriginatorDetails().getName());
                 if (apr.isPresent()) {
                     OriginatorDetails originatorDetails = transaction.getOriginatorDetails();
@@ -104,7 +102,6 @@ public class AccountNumberTranslationService {
 
             }
         }
-        interfaceFileEntity.setRecordCount((short)transformed.getTransactions().size());
 
         return transformed;
     }

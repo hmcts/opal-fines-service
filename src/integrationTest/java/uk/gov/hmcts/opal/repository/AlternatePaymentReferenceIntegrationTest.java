@@ -10,6 +10,8 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.alternatepaymentreference.AlternatePaymentReferenceEntity;
 import uk.gov.hmcts.opal.entity.alternatepaymentreference.Category;
 import uk.gov.hmcts.opal.entity.alternatepaymentreference.Relationship;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 public class AlternatePaymentReferenceIntegrationTest extends AbstractIntegrationTest {
 
@@ -42,6 +44,8 @@ public class AlternatePaymentReferenceIntegrationTest extends AbstractIntegratio
     }
 
     @Test
+    @JiraStory("PO-6461")
+    @JiraEpic("PO-3497")
     void shouldPersistAndLoadAlternatePaymentReference() {
         AlternatePaymentReferenceEntity original = withAlternatePaymentReference();
         saveAndFlushEntity(original);
@@ -59,6 +63,8 @@ public class AlternatePaymentReferenceIntegrationTest extends AbstractIntegratio
     }
 
     @Test
+    @JiraStory("PO-6461")
+    @JiraEpic("PO-3497")
     void shouldFetchByAPRText() {
         AlternatePaymentReferenceEntity original = withAlternatePaymentReference();
         saveAndFlushEntity(original);
