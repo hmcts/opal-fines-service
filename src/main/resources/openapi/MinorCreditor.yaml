@@ -447,6 +447,12 @@ components:
             - 'null'
         surname:
           type: string
+        organisation:
+          type: boolean
+          nullable: true
+        organisation_name:
+          type: string
+          nullable: true
     MinorCreditorAtAGlancePayment:
       type: object
       properties:

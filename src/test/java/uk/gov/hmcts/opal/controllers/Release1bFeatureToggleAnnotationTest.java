@@ -25,7 +25,6 @@ class Release1bFeatureToggleAnnotationTest {
             CreateFineAccountsController.class,
             DebtorProfileSearchController.class,
             DefendantAccountApiController.class,
-            DefendantAccountController.class,
             DraftAccountController.class,
             EnforcerController.class,
             LocalJusticeAreaController.class,
@@ -51,6 +50,8 @@ class Release1bFeatureToggleAnnotationTest {
         Set<String> expectedAnnotatedMethods = Set.of(
             // Defendant Account API controller
             "DefendantAccountApiController#addDefendantAccountParty",
+            "DefendantAccountApiController#addPaymentTerms",
+            "DefendantAccountApiController#getDefendantAccountHistory",
             "DefendantAccountApiController#addEnforcement",
             "DefendantAccountApiController#addPaymentCardRequest",
             "DefendantAccountApiController#getConsolidatedAccounts",
@@ -58,7 +59,6 @@ class Release1bFeatureToggleAnnotationTest {
             "DefendantAccountApiController#getDefendantAccountAtAGlance",
             "DefendantAccountApiController#getDefendantAccountFixedPenalty",
             "DefendantAccountApiController#getDefendantAccountHeaderSummary",
-            "DefendantAccountApiController#getDefendantAccountHistory",
             "DefendantAccountApiController#getDefendantAccountParty",
             "DefendantAccountApiController#getEnforcementStatus",
             "DefendantAccountApiController#getImpositions",
@@ -66,10 +66,7 @@ class Release1bFeatureToggleAnnotationTest {
             "DefendantAccountApiController#removeEnforcementHold",
             "DefendantAccountApiController#replaceDefendantAccountParty",
             "DefendantAccountApiController#updateDefendantAccount",
-
-            // Defendant Account controller
-            "DefendantAccountController#addPaymentTerms",
-            "DefendantAccountController#defendantAccountPaymentTerms",
+            "DefendantAccountApiController#defendantAccountPaymentTerms",
 
             // Major Creditor API controller
             "MajorCreditorApiController#getCentralFundByBusinessUnit",

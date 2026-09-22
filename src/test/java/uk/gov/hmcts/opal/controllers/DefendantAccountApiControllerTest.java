@@ -12,6 +12,7 @@ import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_ENABLED_PROPERTY;
 
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.Month;
@@ -34,17 +35,24 @@ import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddPaymentTermsRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount.AccountStatusCodeEnum;
+import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount.DebtorTypeEnum;
 import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchReferenceNumberDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.FixedPenaltyTicketDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse;
+import uk.gov.hmcts.opal.generated.model.FixedPenaltyTicketDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.GetPaymentTermsResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.VehicleFixedPenaltyDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyDetailsCommonStrict;
@@ -57,6 +65,9 @@ import uk.gov.hmcts.opal.generated.model.VehicleFixedPenaltyDetailsCommonStrict;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.ReplacePartyRequestMapper;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
+import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
+import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
+import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
@@ -449,6 +460,26 @@ class DefendantAccountApiControllerTest {
     }
 
     @Test
+    void validRequest_addPaymentTerms_returnsOkResponse() {
+        Long defendantAccountId = 123L;
+        String businessUnitId = "BU_id";
+        String ifMatch = "match";
+        AddPaymentTermsRequestDefendantAccount request = new AddPaymentTermsRequestDefendantAccount();
+        GetPaymentTermsResponseDefendantAccount response = GetPaymentTermsResponseDefendantAccount.builder()
+            .version(BigInteger.ONE).build();
+
+        when(defendantAccountPaymentTermsService.addPaymentTerms(defendantAccountId, businessUnitId, ifMatch, request))
+            .thenReturn(response);
+
+        ResponseEntity<GetPaymentTermsResponseDefendantAccount> responseEntity = defendantAccountApiController
+            .addPaymentTerms(defendantAccountId, businessUnitId, request, ifMatch);
+
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertSame(response, responseEntity.getBody());
+        assertEquals("\"" + BigInteger.ONE + "\"", responseEntity.getHeaders().getETag());
+    }
+
+    @Test
     void given_validRequest_when_getDefendantAccountHeaderSummary_then_returnsOkResponse() {
         Long defendantId = 1L;
         GetDefendantAccountHeaderSummary200Response summaryResponse =
@@ -490,6 +521,35 @@ class DefendantAccountApiControllerTest {
         assertSame(serviceResponse, response.getBody());
         verify(defendantAccountEnforcementService).removeEnforcementHold(
             defendantAccountId, businessUnitId, ifMatch, request);
+    }
+
+    @Test
+    void getDefendantAccountAtAGlance_returnsAtAGlanceResponseWithAccountBalanceAndStatus() {
+        Long defendantAccountId = 1234L;
+        AtAGlanceResponseDefendantAccount payload = AtAGlanceResponseDefendantAccount.builder()
+            .defendantAccountId("1234")
+            .accountNumber("5678")
+            .accountBalance(new BigDecimal("100.00"))
+            .accountStatusCode(AccountStatusCodeEnum.C)
+            .accountStatusName("Status Name")
+            .debtorType(DebtorTypeEnum.DEFENDANT)
+            .isYouth(true)
+            .build();
+        GetDefendantAccountAtAGlanceResponse response = GetDefendantAccountAtAGlanceResponse.builder()
+            .payload(payload)
+            .version(BigInteger.ONE)
+            .build();
+
+        when(defendantAccountService.getAtAGlance(defendantAccountId)).thenReturn(response);
+
+        ResponseEntity<AtAGlanceResponseDefendantAccount> atAGlanceResponse = defendantAccountApiController
+            .getDefendantAccountAtAGlance(defendantAccountId);
+
+        assertEquals(HttpStatus.OK, atAGlanceResponse.getStatusCode());
+        assertEquals("\"1\"", atAGlanceResponse.getHeaders().getETag());
+        assertSame(payload, atAGlanceResponse.getBody());
+
+        verify(defendantAccountService).getAtAGlance(defendantAccountId);
     }
 
 }

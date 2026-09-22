@@ -1,11 +1,11 @@
 meta {
   name: Get-Fixed-Penalty
   type: http
-  seq: 3
+  seq: 4
 }
 
 get {
-  url: {{baseURL}}/defendant-accounts/{{defendantAccountWithImpositionsId}}/fixed-penalty
+  url: {{baseURL}}/defendant-accounts/{{defendantAccount_idWithImpositions}}/fixed-penalty
   body: none
   auth: bearer
 }

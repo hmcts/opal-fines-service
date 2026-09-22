@@ -34,7 +34,8 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
     private static final String TEST_USER = "opal-test@dev.platform.hmcts.net";
     private static final String BUSINESS_UNIT_ID = "77";
     private static final String EXPECTED_BUSINESS_USER_ID = "L077JG";
-    private static final String ACCOUNT_FIXTURE = "draftAccounts/accountJson/adultAccount.json";
+    private static final String ACCOUNT_FIXTURE = "draftAccounts/accountJson/auditableAccount.json";
+    private static final String POSITIVE_BALANCE_ACCOUNT_FIXTURE = "draftAccounts/accountJson/adultAccount.json";
     private static final String ENFORCEMENT_OVERRIDE_RESULT_ID = "FWEC";
     private static final String REPLACED_FORENAMES = "Audit Party Replace";
 
@@ -51,6 +52,21 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
     public void auditableDefendantAccountExistsForSubmittedBy(String submittedBy) throws Exception {
         actAsAuditTestUser();
         enforcementWorkflow.createEnforceableDefendantAccount(auditableAccountData(submittedBy));
+    }
+
+    /**
+     * Creates a published defendant account with a non-negative balance for negative mutation
+     * scenarios.
+     *
+     * @param submittedBy value used to keep scenario setup distinct.
+     * @throws Exception if the draft-account fixture cannot be published.
+     */
+    @Given("a positive-balance defendant account exists for submitted by {string}")
+    public void positiveBalanceDefendantAccountExistsForSubmittedBy(String submittedBy) throws Exception {
+        actAsAuditTestUser();
+        enforcementWorkflow.createEnforceableDefendantAccount(
+            auditableAccountData(submittedBy, POSITIVE_BALANCE_ACCOUNT_FIXTURE)
+        );
     }
 
     /**
@@ -290,9 +306,13 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
     }
 
     private Map<String, String> auditableAccountData(String submittedBy) {
+        return auditableAccountData(submittedBy, ACCOUNT_FIXTURE);
+    }
+
+    private Map<String, String> auditableAccountData(String submittedBy, String accountFixture) {
         Map<String, String> accountData = new LinkedHashMap<>();
         accountData.put("business_unit_id", BUSINESS_UNIT_ID);
-        accountData.put("account", ACCOUNT_FIXTURE);
+        accountData.put("account", accountFixture);
         accountData.put("account_type", "Fine");
         accountData.put("account_status", "Submitted");
         return accountData;
