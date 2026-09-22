@@ -127,7 +127,7 @@ public class AccountNumberTranslationService {
     }
 
     private boolean lookUpOpalAccountFromAccountReference(String accountReference, short businessUnitId) {
-        return defendantAccountRepository.findByAccountNumberAndBusinessUnitId(
+        return defendantAccountRepository.findByAccountNumberAndBusinessUnit_BusinessUnitId(
             accountReference,
             businessUnitId
         ).isPresent();

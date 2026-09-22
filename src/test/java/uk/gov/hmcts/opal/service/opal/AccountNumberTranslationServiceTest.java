@@ -115,7 +115,7 @@ public class AccountNumberTranslationServiceTest {
             interfaceFileCommonDataExtract,
             businessUnit);
 
-        verify(defendantAccountRepository, never()).findByAccountNumberAndBusinessUnitId(any(), any());
+        verify(defendantAccountRepository, never()).findByAccountNumberAndBusinessUnit_BusinessUnitId(any(), any());
         verify(aprRepository, never()).findByAprText(any());
 
         assertThat(transformedInterfaceFileData.getTransactions()).isEmpty();
@@ -140,7 +140,7 @@ public class AccountNumberTranslationServiceTest {
             interfaceFileCommonDataExtract,
             businessUnit);
 
-        verify(defendantAccountRepository, never()).findByAccountNumberAndBusinessUnitId(any(), any());
+        verify(defendantAccountRepository, never()).findByAccountNumberAndBusinessUnit_BusinessUnitId(any(), any());
         verify(aprRepository, never()).findByAprText(any());
 
         assertThat(transformedInterfaceFileData.getTransactions()).isEmpty();
@@ -160,7 +160,7 @@ public class AccountNumberTranslationServiceTest {
             withTransaction("99", "", VALID_ACCOUNT_REFERENCE, 500L)
         ));
 
-        when(defendantAccountRepository.findByAccountNumberAndBusinessUnitId(
+        when(defendantAccountRepository.findByAccountNumberAndBusinessUnit_BusinessUnitId(
             eq(VALID_ACCOUNT_REFERENCE), eq((short)1005))
         ).thenReturn(Optional.of(defendantAccount));
 
@@ -170,7 +170,7 @@ public class AccountNumberTranslationServiceTest {
             businessUnit);
 
         verify(defendantAccountRepository, times(5))
-            .findByAccountNumberAndBusinessUnitId(VALID_ACCOUNT_REFERENCE, (short)1005);
+            .findByAccountNumberAndBusinessUnit_BusinessUnitId(VALID_ACCOUNT_REFERENCE, (short)1005);
         verify(aprRepository, never()).findByAprText(any());
 
         assertThat(transformedInterfaceFileData.getTransactions()).hasSize(5);
@@ -198,7 +198,7 @@ public class AccountNumberTranslationServiceTest {
             withTransaction("55", "", VALID_ACCOUNT_REFERENCE, 500L)
         ));
 
-        when(defendantAccountRepository.findByAccountNumberAndBusinessUnitId(
+        when(defendantAccountRepository.findByAccountNumberAndBusinessUnit_BusinessUnitId(
             eq(VALID_ACCOUNT_REFERENCE), eq((short)1005))
         ).thenReturn(Optional.of(defendantAccount));
 
@@ -208,7 +208,7 @@ public class AccountNumberTranslationServiceTest {
             businessUnit);
 
         verify(defendantAccountRepository, times(3))
-            .findByAccountNumberAndBusinessUnitId(VALID_ACCOUNT_REFERENCE, (short)1005);
+            .findByAccountNumberAndBusinessUnit_BusinessUnitId(VALID_ACCOUNT_REFERENCE, (short)1005);
         verify(aprRepository, never()).findByAprText(any());
 
         assertThat(transformedInterfaceFileData.getTransactions()).hasSize(3);
@@ -239,7 +239,7 @@ public class AccountNumberTranslationServiceTest {
             withTransaction("99", "", "$%^" + VALID_ACCOUNT_REFERENCE + "£$%", 500L)
         ));
 
-        when(defendantAccountRepository.findByAccountNumberAndBusinessUnitId(
+        when(defendantAccountRepository.findByAccountNumberAndBusinessUnit_BusinessUnitId(
             eq(VALID_ACCOUNT_REFERENCE), eq((short)1005))
         ).thenReturn(Optional.of(defendantAccount));
 
@@ -249,7 +249,7 @@ public class AccountNumberTranslationServiceTest {
             businessUnit);
 
         verify(defendantAccountRepository, times(8))
-            .findByAccountNumberAndBusinessUnitId(VALID_ACCOUNT_REFERENCE, (short)1005);
+            .findByAccountNumberAndBusinessUnit_BusinessUnitId(VALID_ACCOUNT_REFERENCE, (short)1005);
         verify(aprRepository, never()).findByAprText(any());
 
         assertThat(transformedInterfaceFileData.getTransactions()).hasSize(8);
@@ -274,7 +274,7 @@ public class AccountNumberTranslationServiceTest {
             withTransaction("99", "", VALID_ACCOUNT_REFERENCE, 500L)
         ));
 
-        when(defendantAccountRepository.findByAccountNumberAndBusinessUnitId(
+        when(defendantAccountRepository.findByAccountNumberAndBusinessUnit_BusinessUnitId(
             eq(VALID_ACCOUNT_REFERENCE), eq((short)1005))
         ).thenReturn(Optional.empty());
         when(aprRepository.findByAprText(eq(VALID_ACCOUNT_REFERENCE)))
@@ -287,7 +287,7 @@ public class AccountNumberTranslationServiceTest {
             businessUnit);
 
         verify(defendantAccountRepository, times(4))
-            .findByAccountNumberAndBusinessUnitId(VALID_ACCOUNT_REFERENCE, (short)1005);
+            .findByAccountNumberAndBusinessUnit_BusinessUnitId(VALID_ACCOUNT_REFERENCE, (short)1005);
         verify(aprRepository, times(2)).findByAprText(VALID_ACCOUNT_REFERENCE);
 
         assertThat(transformedInterfaceFileData.getTransactions()).hasSize(2);
@@ -313,7 +313,7 @@ public class AccountNumberTranslationServiceTest {
             withTransaction("99", VALID_ACCOUNT_REFERENCE, VALID_ACCOUNT_REFERENCE_2, 500L)
         ));
 
-        when(defendantAccountRepository.findByAccountNumberAndBusinessUnitId(
+        when(defendantAccountRepository.findByAccountNumberAndBusinessUnit_BusinessUnitId(
             eq(VALID_ACCOUNT_REFERENCE_2), eq((short)1005))
         ).thenReturn(Optional.empty());
         when(aprRepository.findByAprText(eq(INVALID_ACCOUNT_REFERENCE))).thenReturn(Optional.empty());
@@ -328,7 +328,7 @@ public class AccountNumberTranslationServiceTest {
             businessUnit);
 
         verify(defendantAccountRepository, times(2))
-            .findByAccountNumberAndBusinessUnitId(VALID_ACCOUNT_REFERENCE_2, (short)1005);
+            .findByAccountNumberAndBusinessUnit_BusinessUnitId(VALID_ACCOUNT_REFERENCE_2, (short)1005);
         verify(aprRepository, times(3)).findByAprText(VALID_ACCOUNT_REFERENCE);
 
         assertThat(transformedInterfaceFileData.getTransactions()).hasSize(3);
@@ -364,7 +364,7 @@ public class AccountNumberTranslationServiceTest {
             businessUnit);
 
         verify(defendantAccountRepository, never())
-            .findByAccountNumberAndBusinessUnitId(any(), any());
+            .findByAccountNumberAndBusinessUnit_BusinessUnitId(any(), any());
         verify(aprRepository, times(5)).findByAprText(contains(INVALID_ACCOUNT_REFERENCE));
 
         assertThat(transformedInterfaceFileData.getTransactions()).hasSize(0);
@@ -381,7 +381,7 @@ public class AccountNumberTranslationServiceTest {
             withTransaction("99", "", VALID_ACCOUNT_REFERENCE, 500L)
         ));
 
-        when(defendantAccountRepository.findByAccountNumberAndBusinessUnitId(
+        when(defendantAccountRepository.findByAccountNumberAndBusinessUnit_BusinessUnitId(
             eq(VALID_ACCOUNT_REFERENCE), eq((short)1005))
         ).thenReturn(Optional.empty());
         when(aprRepository.findByAprText(eq(VALID_ACCOUNT_REFERENCE)))
@@ -394,7 +394,7 @@ public class AccountNumberTranslationServiceTest {
             businessUnit);
 
         verify(defendantAccountRepository, times(4))
-            .findByAccountNumberAndBusinessUnitId(VALID_ACCOUNT_REFERENCE, (short)1005);
+            .findByAccountNumberAndBusinessUnit_BusinessUnitId(VALID_ACCOUNT_REFERENCE, (short)1005);
         verify(aprRepository, times(2)).findByAprText(VALID_ACCOUNT_REFERENCE);
 
         assertThat(transformedInterfaceFileData.getTransactions()).hasSize(2);

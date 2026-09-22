@@ -25,7 +25,8 @@ public interface DefendantAccountRepository extends JpaRepository<DefendantAccou
     @EntityGraph(attributePaths = {"parties", "parties.party"})
     List<DefendantAccountEntity> findAllByDefendantAccountIdIn(List<Long> defendantAccountIds);
 
-    Optional<DefendantAccountEntity> findByAccountNumberAndBusinessUnitId(String accountNumber, Short businessUnitId);
+    Optional<DefendantAccountEntity> findByAccountNumberAndBusinessUnit_BusinessUnitId(
+        String accountNumber, Short businessUnitId);
 
     @Query("""
         SELECT new uk.gov.hmcts.opal.entity.projection.DefendantAccountVersionData(
