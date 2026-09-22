@@ -77,12 +77,12 @@ class DefendantAccountImpositionMapperTest {
         assertEquals("Imposition Graph Result", mapped.getImposition().getResultTitle());
         assertEquals(551004L, mapped.getCreditor().getCreditorAccountId());
         assertEquals(
-            CreditorAccountTypeReferenceCommon.AccountTypeEnum.MJ,
-            mapped.getCreditor().getCreditorAccountType().getAccountType()
+            CreditorAccountTypeReferenceCommon.CreditorAccountTypeEnum.MJ,
+            mapped.getCreditor().getCreditorAccountTypeReference().getCreditorAccountType()
         );
         assertEquals(
-            CreditorAccountTypeReferenceCommon.DisplayNameEnum.MAJOR_CREDITOR,
-            mapped.getCreditor().getCreditorAccountType().getDisplayName()
+            CreditorAccountTypeReferenceCommon.CreditorAccountDisplayNameEnum.MAJOR_CREDITOR,
+            mapped.getCreditor().getCreditorAccountTypeReference().getCreditorAccountDisplayName()
         );
         assertEquals("Graph Major Creditor", mapped.getCreditor().getMajorCreditorName());
         assertNull(mapped.getCreditor().getMinorCreditorOrganisationFlag());
@@ -117,12 +117,12 @@ class DefendantAccountImpositionMapperTest {
         DefendantAccountImpositionCommon mapped = mapper.toImposition(data);
 
         assertEquals(
-            CreditorAccountTypeReferenceCommon.AccountTypeEnum.MN,
-            mapped.getCreditor().getCreditorAccountType().getAccountType()
+            CreditorAccountTypeReferenceCommon.CreditorAccountTypeEnum.MN,
+            mapped.getCreditor().getCreditorAccountTypeReference().getCreditorAccountType()
         );
         assertEquals(
-            CreditorAccountTypeReferenceCommon.DisplayNameEnum.MINOR_CREDITOR,
-            mapped.getCreditor().getCreditorAccountType().getDisplayName()
+            CreditorAccountTypeReferenceCommon.CreditorAccountDisplayNameEnum.MINOR_CREDITOR,
+            mapped.getCreditor().getCreditorAccountTypeReference().getCreditorAccountDisplayName()
         );
         assertNull(mapped.getCreditor().getMajorCreditorName());
         assertEquals(false, mapped.getCreditor().getMinorCreditorOrganisationFlag());
@@ -185,7 +185,7 @@ class DefendantAccountImpositionMapperTest {
     }
 
     @Test
-    void toImposition_shouldMapCentralFundCreditorWithConfiguredName() {
+    void toImposition_shouldMapCentralFundCreditorWithoutNameDetails() {
         DefendantAccountImpositionData data = impositionData(
             DefendantAccountType.FINES,
             CreditorAccountType.CF,
@@ -205,38 +205,17 @@ class DefendantAccountImpositionMapperTest {
         DefendantAccountImpositionCommon mapped = mapper.toImposition(data);
 
         assertEquals(
-            CreditorAccountTypeReferenceCommon.AccountTypeEnum.CF,
-            mapped.getCreditor().getCreditorAccountType().getAccountType()
+            CreditorAccountTypeReferenceCommon.CreditorAccountTypeEnum.CF,
+            mapped.getCreditor().getCreditorAccountTypeReference().getCreditorAccountType()
         );
         assertEquals(
-            CreditorAccountTypeReferenceCommon.DisplayNameEnum.CENTRAL_FUND,
-            mapped.getCreditor().getCreditorAccountType().getDisplayName()
+            CreditorAccountTypeReferenceCommon.CreditorAccountDisplayNameEnum.CENTRAL_FUND,
+            mapped.getCreditor().getCreditorAccountTypeReference().getCreditorAccountDisplayName()
         );
         assertNull(mapped.getCreditor().getMajorCreditorName());
-        assertEquals("Configured Central Fund", mapped.getCreditor().getCompanyName().getOrganisationName());
-    }
-
-    @Test
-    void toImposition_shouldUseCentralFundLabelWhenConfiguredNameIsBlank() {
-        DefendantAccountImpositionData data = impositionData(
-            DefendantAccountType.FINES,
-            CreditorAccountType.CF,
-            null,
-            " ",
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        );
-
-        DefendantAccountImpositionCommon mapped = mapper.toImposition(data);
-
-        assertEquals("Central Fund", mapped.getCreditor().getCompanyName().getOrganisationName());
+        assertNull(mapped.getCreditor().getMinorCreditorOrganisationFlag());
+        assertNull(mapped.getCreditor().getIndividualName());
+        assertNull(mapped.getCreditor().getCompanyName());
     }
 
     @Test
@@ -338,7 +317,7 @@ class DefendantAccountImpositionMapperTest {
 
         assertNull(mapped.getDateAdded());
         assertNull(mapped.getDateImposed());
-        assertNull(mapped.getCreditor().getCreditorAccountType());
+        assertNull(mapped.getCreditor().getCreditorAccountTypeReference());
         assertNull(mapped.getCreditor().getMajorCreditorName());
         assertNull(mapped.getCreditor().getMinorCreditorOrganisationFlag());
         assertNull(mapped.getCreditor().getIndividualName());

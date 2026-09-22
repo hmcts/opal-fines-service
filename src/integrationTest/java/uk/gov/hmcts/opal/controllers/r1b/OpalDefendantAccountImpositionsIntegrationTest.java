@@ -38,6 +38,10 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/defendant-accounts";
+    private static final String CREDITOR_ACCOUNT_TYPE =
+        "$.impositions[0].creditor.creditor_account_type_reference.creditor_account_type";
+    private static final String CREDITOR_ACCOUNT_DISPLAY_NAME =
+        "$.impositions[0].creditor.creditor_account_type_reference.creditor_account_display_name";
 
     @Test
     @DisplayName("OPAL: Get Defendant Account Impositions returns major creditor imposition with schema-valid body")
@@ -54,9 +58,8 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
             .andExpect(jsonPath("$.impositions[0].imposition.result_id").value("IGR001"))
             .andExpect(jsonPath("$.impositions[0].imposition.result_title").value("Imposition Graph Result"))
             .andExpect(jsonPath("$.impositions[0].creditor.creditor_account_id").value(551004))
-            .andExpect(jsonPath("$.impositions[0].creditor.creditor_account_type.account_type").value("MJ"))
-            .andExpect(jsonPath("$.impositions[0].creditor.creditor_account_type.display_name")
-                .value("Major Creditor"))
+            .andExpect(jsonPath(CREDITOR_ACCOUNT_TYPE).value("MJ"))
+            .andExpect(jsonPath(CREDITOR_ACCOUNT_DISPLAY_NAME).value("Major Creditor"))
             .andExpect(jsonPath("$.impositions[0].creditor.major_creditor_name").value("Graph Major Creditor"))
             .andExpect(jsonPath("$.impositions[0].creditor.minor_creditor_organisation_flag")
                 .value(is(nullValue())))
@@ -93,9 +96,8 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
             .andExpect(header().string("ETag", "\"8\""))
             .andExpect(jsonPath("$.impositions", hasSize(1)))
             .andExpect(jsonPath("$.impositions[0].creditor.creditor_account_id").value(551007))
-            .andExpect(jsonPath("$.impositions[0].creditor.creditor_account_type.account_type").value("MN"))
-            .andExpect(jsonPath("$.impositions[0].creditor.creditor_account_type.display_name")
-                .value("Minor Creditor"))
+            .andExpect(jsonPath(CREDITOR_ACCOUNT_TYPE).value("MN"))
+            .andExpect(jsonPath(CREDITOR_ACCOUNT_DISPLAY_NAME).value("Minor Creditor"))
             .andExpect(jsonPath("$.impositions[0].creditor.major_creditor_name").value(is(nullValue())))
             .andExpect(jsonPath("$.impositions[0].creditor.minor_creditor_organisation_flag").value(false))
             .andExpect(jsonPath("$.impositions[0].creditor.individual_name.forenames").value("Creditor"))
