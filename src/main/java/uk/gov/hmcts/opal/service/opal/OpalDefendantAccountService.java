@@ -26,6 +26,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
@@ -194,19 +196,21 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     }
 
     private List<DefendantAccountSummaryDto> consolidatedSearch(AccountSearchDto accountSearchDto) {
-        List<DefendantAccountSummaryDto> results = searchConsolidatedRepository
-            .findAll(searchConsolidatedEntitySpecs.findBySearch(accountSearchDto))
+        Pageable pageable = Pageable.ofSize(TOO_MANY_SEARCH_RESULTS + 1);
+        //List<DefendantAccountSummaryDto> results =
+        return searchConsolidatedRepository
+            .findAll(searchConsolidatedEntitySpecs.findBySearchWithNonZeroBalance(accountSearchDto), pageable)
             .stream()
             .map(this::toSummaryDto)
-            .filter(this::hasNonZeroBalance)
-            .toList();
+            //.filter(this::hasNonZeroBalance)
+            .toList()
 
-        if (results.size() > TOO_MANY_SEARCH_RESULTS) {
+        /*if (results.size() > TOO_MANY_SEARCH_RESULTS) {
             log.warn("Consolidated search returned {} results, limiting to 100", results.size());
             throw new UnprocessableException("Search generated more than " + TOO_MANY_SEARCH_RESULTS
                 + " results. Please refine your search and try again.");
         }
-        return results;
+        return results;*/
     }
 
     private List<DefendantAccountSummaryDto> basicSearch(
