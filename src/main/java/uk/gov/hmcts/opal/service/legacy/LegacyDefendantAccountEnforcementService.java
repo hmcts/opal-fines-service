@@ -9,7 +9,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
@@ -47,6 +49,7 @@ public class LegacyDefendantAccountEnforcementService implements DefendantAccoun
     public static final String ADD_ENFORCEMENT = "addDefendantAccountEnforcement";
     public static final String GET_ENFORCEMENT_STATUS = "getDefendantAccountEnforcementStatus";
     public static final String REMOVE_ENFORCEMENT_HOLD = "removeDefendantAccountEnforcementHold";
+    private static final String LEGACY_FAILURE_MESSAGE = "Legacy exception thrown during addEnforcement";
 
     private final GatewayService gatewayService;
     private final CourtService courtService;
@@ -80,17 +83,28 @@ public class LegacyDefendantAccountEnforcementService implements DefendantAccoun
                 .paymentTerms(mapPaymentTerms(request == null ? null : request.getPaymentTerms().orElse(null)))
                 .build();
 
-        Response<AddDefendantAccountEnforcementLegacyResponse> response = gatewayService.postToGateway(
-            ADD_ENFORCEMENT, AddDefendantAccountEnforcementLegacyResponse.class,
-            legacyRequest, null);
+        Response<AddDefendantAccountEnforcementLegacyResponse> response;
+        try {
+            response = gatewayService.postToGateway(ADD_ENFORCEMENT, AddDefendantAccountEnforcementLegacyResponse.class,
+                legacyRequest, null);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, LEGACY_FAILURE_MESSAGE, e);
+        }
 
         if (response.isError()) {
             log.error(":AddEnforcement: Legacy error HTTP {}", response.code);
             if (response.isException()) {
                 log.error(":AddEnforcement: exception:", response.exception);
+                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, response.exception.getMessage(),
+                    response.exception);
+            } else if (response.hasErrorResponse()) {
+                log.error(":AddEnforcement: legacy error response: \n{}", response.body);
+                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, LEGACY_FAILURE_MESSAGE);
             } else if (response.isLegacyFailure()) {
                 log.error(":AddEnforcement: legacy failure body:\n{}", response.body);
+                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, LEGACY_FAILURE_MESSAGE);
             }
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Unknown error during addEnforcement");
         } else if (response.isSuccessful()) {
             log.info(":AddEnforcement: Legacy success.");
         }
