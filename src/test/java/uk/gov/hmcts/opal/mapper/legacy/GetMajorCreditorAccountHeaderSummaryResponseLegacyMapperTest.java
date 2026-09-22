@@ -47,9 +47,9 @@ class GetMajorCreditorAccountHeaderSummaryResponseLegacyMapperTest extends Abstr
         assertEquals(123L, result.getMajorCreditor().getCreditorAccountId());
         assertEquals("87654321", result.getMajorCreditor().getAccountNumber());
         assertEquals("Major Creditor Ltd", result.getMajorCreditor().getName());
-        assertEquals("MJ", result.getMajorCreditor().getAccountReference().getAccountType().getValue());
+        assertEquals("MJ", result.getMajorCreditor().getAccountReference().getCreditorAccountType().getValue());
         assertEquals("Major Creditor",
-                     result.getMajorCreditor().getAccountReference().getDisplayName().getValue());
+                     result.getMajorCreditor().getAccountReference().getCreditorAccountDisplayName().getValue());
         assertEquals((short) 77, result.getBusinessUnitDetails().getBusinessUnitId());
         assertEquals("Camberwell Green", result.getBusinessUnitDetails().getBusinessUnitName());
         assertEquals("CBG", result.getBusinessUnitDetails().getBusinessUnitCode());
@@ -103,7 +103,7 @@ class GetMajorCreditorAccountHeaderSummaryResponseLegacyMapperTest extends Abstr
     void toOpal_mapsAccountReferenceWithNullAccountType() {
         CreditorAccountTypeReferenceCommon result = mapper.toOpal(CreditorAccountTypeReference.builder().build());
 
-        assertNull(result.getAccountType());
-        assertNull(result.getDisplayName());
+        assertNull(result.getCreditorAccountType());
+        assertNull(result.getCreditorAccountDisplayName());
     }
 }

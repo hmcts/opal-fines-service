@@ -622,16 +622,16 @@ components:
       type: object
       additionalProperties: false
       required:
-        - account_type
+        - creditor_account_type
       properties:
-        account_type:
+        creditor_account_type:
           type: string
           description: DB Mapping - creditor_accounts.creditor_account_type
           enum:
             - MN
             - MJ
             - CF
-        display_name:
+        creditor_account_display_name:
           type: string
           description: |
             Converts the short hand code of creditor_accounts.creditor_account_type into a display name.
@@ -671,10 +671,10 @@ components:
       type: object
       additionalProperties: false
       required:
-        - creditor_account_type
+        - creditor_account_type_reference
         - creditor_account_id
       properties:
-        creditor_account_type:
+        creditor_account_type_reference:
           description: DB Mapping - creditor_accounts.creditor_account_type
           $ref: '#/components/schemas/creditorAccountTypeReference'
         creditor_account_id:
@@ -694,7 +694,7 @@ components:
           $ref: '#/components/schemas/individualName'
         company_name:
           nullable: true
-          description: Minor creditor organisation name, or central fund organisation name.
+          description: Minor creditor organisation name when creditor_accounts.creditor_account_type is 'MN' and minor_creditor_organisation_flag is true.
           $ref: '#/components/schemas/companyName'
     majorCreditorAddressDetails:
       title: Major Creditor Address Details
@@ -771,13 +771,13 @@ components:
           $ref: '#/components/schemas/creditorSummary'
         imposed_amount:
           description: Imposed amount. DB Mapping - impositions.imposed_amount.
-          $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
+          $ref: './types.yaml#/components/schemas/monetaryNegativeOrPositive'
         paid_amount:
           description: Paid or written-off amount. DB Mapping - impositions.paid_amount.
           $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
         balance:
           description: Current imposition balance, derived from impositions.imposed_amount minus impositions.paid_amount.
-          $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
+          $ref: './types.yaml#/components/schemas/monetaryNegativeOrPositive'
         date_imposed:
           type: string
           format: date

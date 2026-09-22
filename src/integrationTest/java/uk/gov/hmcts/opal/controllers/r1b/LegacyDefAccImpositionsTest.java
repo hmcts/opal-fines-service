@@ -46,8 +46,8 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyImpositionCreditorReferenceCommon;
 import uk.gov.hmcts.opal.dto.legacy.LegacyOffenceReferenceCommon;
 import uk.gov.hmcts.opal.dto.legacy.LegacyResultReferenceCommon;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.AccountTypeEnum;
-import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.DisplayNameEnum;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.CreditorAccountTypeEnum;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.CreditorAccountDisplayNameEnum;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.legacy.LegacyImpositionService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -64,6 +64,10 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/defendant-accounts";
     private static final String AUTH_HEADER = "Bearer test-token";
+    private static final String CREDITOR_ACCOUNT_TYPE =
+        "$.impositions[0].creditor.creditor_account_type_reference.creditor_account_type";
+    private static final String CREDITOR_ACCOUNT_DISPLAY_NAME =
+        "$.impositions[0].creditor.creditor_account_type_reference.creditor_account_display_name";
 
     @MockitoBean
     private UserStateService userStateService;
@@ -108,9 +112,8 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.impositions[0].imposition.result_title")
                 .value("Application made for Benefit Deductions"))
             .andExpect(jsonPath("$.impositions[0].creditor.creditor_account_id").value(99000000000806L))
-            .andExpect(jsonPath("$.impositions[0].creditor.creditor_account_type.account_type").value("MN"))
-            .andExpect(jsonPath("$.impositions[0].creditor.creditor_account_type.display_name")
-                .value("Minor Creditor"))
+            .andExpect(jsonPath(CREDITOR_ACCOUNT_TYPE).value("MN"))
+            .andExpect(jsonPath(CREDITOR_ACCOUNT_DISPLAY_NAME).value("Minor Creditor"))
             .andExpect(jsonPath("$.impositions[0].creditor.major_creditor_name").value(nullValue()))
             .andExpect(jsonPath("$.impositions[0].creditor.minor_creditor_organisation_flag").value(true))
             .andExpect(jsonPath("$.impositions[0].creditor.individual_name").value(nullValue()))
@@ -193,8 +196,8 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
                     .build())
                 .creditor(LegacyImpositionCreditorReferenceCommon.builder()
                     .creditorAccountId(99000000000806L)
-                    .accountType(AccountTypeEnum.MN)
-                    .displayName(DisplayNameEnum.MINOR_CREDITOR)
+                    .accountType(CreditorAccountTypeEnum.MN)
+                    .displayName(CreditorAccountDisplayNameEnum.MINOR_CREDITOR)
                     .minorCreditorPartyId(99000000000906L)
                     .name("Metropolitan Traffic Unit")
                     .build())

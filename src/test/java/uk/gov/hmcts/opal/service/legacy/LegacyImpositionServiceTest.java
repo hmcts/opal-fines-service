@@ -28,8 +28,8 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyGetImpositionsRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyImpositionCreditorReferenceCommon;
 import uk.gov.hmcts.opal.dto.legacy.LegacyOffenceReferenceCommon;
 import uk.gov.hmcts.opal.dto.legacy.LegacyResultReferenceCommon;
-import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.AccountTypeEnum;
-import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.DisplayNameEnum;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.CreditorAccountTypeEnum;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.CreditorAccountDisplayNameEnum;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionCommon;
 
 @ExtendWith(MockitoExtension.class)
@@ -85,10 +85,13 @@ class LegacyImpositionServiceTest {
         assertEquals("Application made for Benefit Deductions", imposition.getImposition().getResultTitle());
 
         assertEquals(99000000000806L, imposition.getCreditor().getCreditorAccountId());
-        assertEquals(AccountTypeEnum.MN, imposition.getCreditor().getCreditorAccountType().getAccountType());
         assertEquals(
-            DisplayNameEnum.MINOR_CREDITOR,
-            imposition.getCreditor().getCreditorAccountType().getDisplayName()
+            CreditorAccountTypeEnum.MN,
+            imposition.getCreditor().getCreditorAccountTypeReference().getCreditorAccountType()
+        );
+        assertEquals(
+            CreditorAccountDisplayNameEnum.MINOR_CREDITOR,
+            imposition.getCreditor().getCreditorAccountTypeReference().getCreditorAccountDisplayName()
         );
         assertNull(imposition.getCreditor().getMajorCreditorName());
         assertEquals(true, imposition.getCreditor().getMinorCreditorOrganisationFlag());
@@ -126,8 +129,8 @@ class LegacyImpositionServiceTest {
                 .build())
             .creditor(LegacyImpositionCreditorReferenceCommon.builder()
                 .creditorAccountId(99000000000806L)
-                .accountType(AccountTypeEnum.MN)
-                .displayName(DisplayNameEnum.MINOR_CREDITOR)
+                .accountType(CreditorAccountTypeEnum.MN)
+                .displayName(CreditorAccountDisplayNameEnum.MINOR_CREDITOR)
                 .minorCreditorPartyId(99000000000906L)
                 .name("Metropolitan Traffic Unit")
                 .build())

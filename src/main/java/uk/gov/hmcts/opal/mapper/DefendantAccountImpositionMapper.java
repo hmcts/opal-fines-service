@@ -73,7 +73,7 @@ public interface DefendantAccountImpositionMapper {
             return null;
         }
         return new CreditorSummaryCommon()
-            .creditorAccountType(toCreditorAccountTypeReference(imposition.creditorAccountType()))
+            .creditorAccountTypeReference(toCreditorAccountTypeReference(imposition.creditorAccountType()))
             .creditorAccountId(imposition.creditorAccountId())
             .majorCreditorName(toMajorCreditorName(imposition))
             .minorCreditorOrganisationFlag(toMinorCreditorOrganisationFlag(imposition))
@@ -119,8 +119,11 @@ public interface DefendantAccountImpositionMapper {
             return null;
         }
         return new CreditorAccountTypeReferenceCommon()
-            .accountType(CreditorAccountTypeReferenceCommon.AccountTypeEnum.fromValue(creditorAccountType.name()))
-            .displayName(CreditorAccountTypeReferenceCommon.DisplayNameEnum.fromValue(creditorAccountType.getLabel()));
+            .creditorAccountType(
+                CreditorAccountTypeReferenceCommon.CreditorAccountTypeEnum.fromValue(creditorAccountType.name()))
+            .creditorAccountDisplayName(
+                CreditorAccountTypeReferenceCommon.CreditorAccountDisplayNameEnum.fromValue(
+                    creditorAccountType.getLabel()));
     }
 
     private String toMajorCreditorName(DefendantAccountImpositionData imposition) {
@@ -156,7 +159,7 @@ public interface DefendantAccountImpositionMapper {
             case MN -> Boolean.TRUE.equals(imposition.minorCreditorOrganisation())
                 ? imposition.minorCreditorOrganisationName()
                 : null;
-            case CF -> firstNonBlank(imposition.majorCreditorName(), CreditorAccountType.CF.getLabel());
+            case CF -> null;
             case MJ -> null;
         };
         String trimmedOrganisationName = trimToNull(organisationName);

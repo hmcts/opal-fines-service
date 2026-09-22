@@ -129,7 +129,7 @@ public class LegacyImpositionService implements ImpositionServiceInterface {
     private CreditorSummaryCommon buildCreditor(LegacyImpositionCreditorReferenceCommon creditor) {
         return Optional.ofNullable(creditor).map(creditorItem ->
                 CreditorSummaryCommon.builder()
-                    .creditorAccountType(buildCreditorAccountType(creditorItem))
+                    .creditorAccountTypeReference(buildCreditorAccountType(creditorItem))
                     .creditorAccountId(creditorItem.getCreditorAccountId())
                     .majorCreditorName(creditorItem.getMajorCreditorId() == null
                                            ? null
@@ -143,8 +143,8 @@ public class LegacyImpositionService implements ImpositionServiceInterface {
     private CreditorAccountTypeReferenceCommon buildCreditorAccountType(
         LegacyImpositionCreditorReferenceCommon creditor) {
         return new CreditorAccountTypeReferenceCommon()
-            .accountType(creditor.getAccountType())
-            .displayName(creditor.getDisplayName());
+            .creditorAccountType(creditor.getAccountType())
+            .creditorAccountDisplayName(creditor.getDisplayName());
     }
 
     private CompanyNameCommon buildCompanyName(String name) {

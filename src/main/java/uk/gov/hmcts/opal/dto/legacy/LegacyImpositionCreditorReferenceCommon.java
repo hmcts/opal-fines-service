@@ -8,8 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.AccountTypeEnum;
-import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.DisplayNameEnum;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.CreditorAccountDisplayNameEnum;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.CreditorAccountTypeEnum;
 
 @Builder
 @Data
@@ -24,11 +24,11 @@ public class LegacyImpositionCreditorReferenceCommon {
 
     @JsonProperty("account_type")
     @XmlElement(name = "account_type")
-    private AccountTypeEnum accountType;
+    private CreditorAccountTypeEnum accountType;
 
     @JsonProperty("display_name")
     @XmlElement(name = "display_name")
-    private DisplayNameEnum displayName;
+    private CreditorAccountDisplayNameEnum displayName;
 
     @JsonProperty("major_creditor_id")
     @XmlElement(name = "major_creditor_id")
