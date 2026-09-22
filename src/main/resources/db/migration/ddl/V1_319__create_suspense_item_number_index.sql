@@ -14,7 +14,7 @@
 **/
 
 CREATE SEQUENCE suspense_item_number_index_id_seq
-    START WITH 100000
+    START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
