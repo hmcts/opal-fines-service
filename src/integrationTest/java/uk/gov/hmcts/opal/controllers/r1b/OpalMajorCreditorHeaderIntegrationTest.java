@@ -220,9 +220,12 @@ class OpalMajorCreditorHeaderIntegrationTest extends AbstractIntegrationTest {
         assertEquals("TFL2 ATCM Testing", majorCreditor.get("name").asText());
 
         JsonNode accountReference = majorCreditor.get("account_reference");
-        assertEquals(Set.of("account_type", "display_name"), fieldNames(accountReference));
-        assertEquals("MJ", accountReference.get("account_type").asText());
-        assertEquals("Major Creditor", accountReference.get("display_name").asText());
+        assertEquals(
+            Set.of("creditor_account_type", "creditor_account_display_name"),
+            fieldNames(accountReference)
+        );
+        assertEquals("MJ", accountReference.get("creditor_account_type").asText());
+        assertEquals("Major Creditor", accountReference.get("creditor_account_display_name").asText());
 
         JsonNode businessUnitDetails = response.get("business_unit_details");
         assertEquals(
