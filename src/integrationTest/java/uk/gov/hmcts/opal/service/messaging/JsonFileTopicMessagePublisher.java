@@ -6,20 +6,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
 
-import jakarta.jms.ConnectionFactory;
-import jakarta.jms.JMSContext;
-import jakarta.jms.JMSException;
-import jakarta.jms.JMSProducer;
-import jakarta.jms.JMSRuntimeException;
-import jakarta.jms.TextMessage;
-import jakarta.jms.Topic;
+import com.azure.messaging.servicebus.ServiceBusClientBuilder;
+import com.azure.messaging.servicebus.ServiceBusMessage;
+import com.azure.messaging.servicebus.ServiceBusSenderClient;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.qpid.jms.JmsConnectionFactory;
 import org.springframework.util.StringUtils;
-import uk.gov.hmcts.opal.config.ServiceBusConnectionStringParser;
 
 @Slf4j(topic = "opal.JsonFileTopicMessagePublisher")
-public class JsonFileTopicMessagePublisher {
+public class JsonFileTopicMessagePublisher implements AutoCloseable {
 
     private static final Path CONFIG_FILE = Path.of(".local/ref-data-publisher.properties");
 
@@ -28,17 +22,11 @@ public class JsonFileTopicMessagePublisher {
     private static final String SUBSCRIPTION_NAME_PROPERTY = "subscription-name";
     private static final String JSON_FILE_PROPERTY = "json-file";
     private static final String SESSION_ID_PROPERTY = "session-id";
-    private static final String PROTOCOL_PROPERTY = "protocol";
 
-    private static final String DEFAULT_PROTOCOL = "amqps";
-    private static final long IDLE_TIMEOUT_MS = 30000;
-    private static final long SEND_TIMEOUT_MS = 10000;
     private static final Path DEFAULT_JSON_FILE = Path.of("src/test/resources/test_payloads/lja_message.json");
     private static final String DEFAULT_SESSION_ID = "refdata-session";
-    private static final String SERVICE_BUS_SESSION_ID_PROPERTY = "JMSXGroupID";
 
-    private final ConnectionFactory connectionFactory;
-    private final String topicName;
+    private final ServiceBusSenderClient senderClient;
     private final Path jsonFile;
     private final String sessionId;
 
@@ -46,24 +34,24 @@ public class JsonFileTopicMessagePublisher {
         this(loadConfig());
     }
 
-    JsonFileTopicMessagePublisher(ConnectionFactory connectionFactory, String topicName) {
-        this(connectionFactory, topicName, DEFAULT_JSON_FILE, DEFAULT_SESSION_ID);
+    JsonFileTopicMessagePublisher(ServiceBusSenderClient senderClient) {
+        this(senderClient, DEFAULT_JSON_FILE, DEFAULT_SESSION_ID);
     }
 
     JsonFileTopicMessagePublisher(PublisherConfig config) {
-        this(buildConnectionFactory(config), config.topicName(), config.jsonFile(), config.sessionId());
+        this(buildSenderClient(config), config.jsonFile(), config.sessionId());
     }
 
-    private JsonFileTopicMessagePublisher(ConnectionFactory connectionFactory, String topicName, Path jsonFile,
-                                          String sessionId) {
-        this.connectionFactory = connectionFactory;
-        this.topicName = topicName;
+    private JsonFileTopicMessagePublisher(ServiceBusSenderClient senderClient, Path jsonFile, String sessionId) {
+        this.senderClient = senderClient;
         this.jsonFile = jsonFile;
         this.sessionId = sessionId;
     }
 
     public static void main(String[] args) {
-        new JsonFileTopicMessagePublisher().publishConfiguredMessage();
+        try (JsonFileTopicMessagePublisher publisher = new JsonFileTopicMessagePublisher()) {
+            publisher.publishConfiguredMessage();
+        }
     }
 
     public void publishConfiguredMessage() {
@@ -74,36 +62,27 @@ public class JsonFileTopicMessagePublisher {
         validateInputs(jsonFile, sessionId);
         String payload = readPayload(jsonFile);
 
-        try (JMSContext context = connectionFactory.createContext()) {
-            Topic topic = context.createTopic(topicName);
-            TextMessage message = context.createTextMessage(payload);
-            message.setStringProperty(SERVICE_BUS_SESSION_ID_PROPERTY, sessionId);
-            JMSProducer producer = context.createProducer();
-            producer.send(topic, message);
-            log.info("Published JSON message from {} to topic {} with sessionId={}", jsonFile, topicName, sessionId);
-        } catch (JMSException | JMSRuntimeException ex) {
+        try {
+            ServiceBusMessage message = new ServiceBusMessage(payload);
+            message.setSessionId(sessionId);
+            senderClient.sendMessage(message);
+            log.info(
+                "Published JSON message from {} to topic {} with sessionId={}",
+                jsonFile,
+                senderClient.getEntityPath(),
+                sessionId
+            );
+        } catch (RuntimeException ex) {
             throw new IllegalStateException("Unable to publish JSON message to topic", ex);
         }
     }
 
-    static String buildRemoteUri(String fullyQualifiedNamespace, String protocol) {
-        return "%s://%s?jms.sendTimeout=%d&amqp.idleTimeout=%d".formatted(
-            protocol,
-            fullyQualifiedNamespace,
-            SEND_TIMEOUT_MS,
-            IDLE_TIMEOUT_MS
-        );
-    }
-
-    private static ConnectionFactory buildConnectionFactory(PublisherConfig config) {
-        ServiceBusConnectionStringParser.ConnectionDetails details =
-            new ServiceBusConnectionStringParser().parse(config.connectionString());
-        String remoteUri = buildRemoteUri(details.fullyQualifiedNamespace(), config.protocol());
-
-        JmsConnectionFactory connectionFactory = new JmsConnectionFactory(remoteUri);
-        connectionFactory.setUsername(details.sharedAccessKeyName());
-        connectionFactory.setPassword(details.sharedAccessKey());
-        return connectionFactory;
+    private static ServiceBusSenderClient buildSenderClient(PublisherConfig config) {
+        return new ServiceBusClientBuilder()
+            .connectionString(config.connectionString())
+            .sender()
+            .topicName(config.topicName())
+            .buildClient();
     }
 
     static PublisherConfig loadConfig() {
@@ -119,9 +98,8 @@ public class JsonFileTopicMessagePublisher {
         String subscriptionName = requiredProperty(properties, SUBSCRIPTION_NAME_PROPERTY);
         Path jsonFile = Path.of(optionalProperty(properties, JSON_FILE_PROPERTY, DEFAULT_JSON_FILE.toString()));
         String sessionId = optionalProperty(properties, SESSION_ID_PROPERTY, DEFAULT_SESSION_ID);
-        String protocol = optionalProperty(properties, PROTOCOL_PROPERTY, DEFAULT_PROTOCOL);
 
-        return new PublisherConfig(connectionString, topicName, subscriptionName, jsonFile, sessionId, protocol);
+        return new PublisherConfig(connectionString, topicName, subscriptionName, jsonFile, sessionId);
     }
 
     private static String requiredProperty(Properties properties, String name) {
@@ -158,8 +136,12 @@ public class JsonFileTopicMessagePublisher {
         }
     }
 
+    @Override
+    public void close() {
+        senderClient.close();
+    }
+
     record PublisherConfig(String connectionString, String topicName, String subscriptionName, Path jsonFile,
-                           String sessionId,
-                           String protocol) {
+                           String sessionId) {
     }
 }

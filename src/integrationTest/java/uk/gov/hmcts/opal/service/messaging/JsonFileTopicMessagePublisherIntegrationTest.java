@@ -43,7 +43,6 @@ class JsonFileTopicMessagePublisherIntegrationTest extends AbstractIntegrationTe
     @DynamicPropertySource
     static void refDataServiceBusProperties(DynamicPropertyRegistry registry) {
         registry.add("opal.common.service-bus.connection-string", () -> publisherConfig().connectionString());
-        registry.add("opal.common.service-bus.protocol", () -> publisherConfig().protocol());
         registry.add("opal.ref-data.service-bus.topic-name", () -> publisherConfig().topicName());
         registry.add("opal.ref-data.service-bus.subscription-name", () -> publisherConfig().subscriptionName());
         registry.add("opal.ref-data.service-bus.consumer-enabled", () -> true);
@@ -60,11 +59,13 @@ class JsonFileTopicMessagePublisherIntegrationTest extends AbstractIntegrationTe
     }
 
     @Test
-    void publishAndProcessJsonMessageThroughRefDataTopicListener() {
+    void publishAndProcessJsonMessageThroughRefDataServiceBusSessionProcessor() {
         prepareExistingLocalJusticeAreaForUpdate();
         JsonFileTopicMessagePublisher.PublisherConfig publisherConfig = publisherConfig();
 
-        new JsonFileTopicMessagePublisher(publisherConfig).publishConfiguredMessage();
+        try (JsonFileTopicMessagePublisher publisher = new JsonFileTopicMessagePublisher(publisherConfig)) {
+            publisher.publishConfiguredMessage();
+        }
 
         LocalJusticeAreaEntity localJusticeArea = awaitProcessedLocalJusticeArea();
 
@@ -99,7 +100,8 @@ class JsonFileTopicMessagePublisherIntegrationTest extends AbstractIntegrationTe
             }
             sleepBeforeRetry();
         }
-        fail("Timed out waiting for ref-data JMS listener to process LJA message with id %s", EXISTING_LOCAL_JUSTICE_AREA_ID);
+        fail("Timed out waiting for ref-data Service Bus processor to process LJA message with id %s",
+             EXISTING_LOCAL_JUSTICE_AREA_ID);
         return null;
     }
 
@@ -115,7 +117,7 @@ class JsonFileTopicMessagePublisherIntegrationTest extends AbstractIntegrationTe
             Thread.sleep(POLL_INTERVAL.toMillis());
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-            throw new IllegalStateException("Interrupted while waiting for ref-data JMS listener", ex);
+            throw new IllegalStateException("Interrupted while waiting for ref-data Service Bus processor", ex);
         }
     }
 
