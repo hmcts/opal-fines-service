@@ -23,6 +23,8 @@ public interface DefendantAccountRepository extends JpaRepository<DefendantAccou
 
     List<DefendantAccountEntity> findAllByDefendantAccountIdIn(List<Long> defendantAccountIds);
 
+    Optional<DefendantAccountEntity> findByAccountNumberAndBusinessUnitId(String accountNumber, Short businessUnitId);
+
     @Query("""
         SELECT new uk.gov.hmcts.opal.entity.projection.DefendantAccountVersionData(
             defendantAccount.defendantAccountId,
