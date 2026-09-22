@@ -28,6 +28,7 @@ import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.dto.legacy.CompanyNameLegacy;
+import uk.gov.hmcts.opal.dto.legacy.CreditorAccountTypeReferenceLegacy;
 import uk.gov.hmcts.opal.dto.legacy.CreditorSummaryLegacy;
 import uk.gov.hmcts.opal.dto.legacy.IndividualNameLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCourtReferenceCommon;
@@ -36,7 +37,6 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountImpositionsResponseCom
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetImpositionsRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyResultReferenceCommon;
 import uk.gov.hmcts.opal.dto.legacy.OffenceReferenceLegacy;
-import uk.gov.hmcts.opal.dto.legacy.CreditorAccountTypeReferenceLegacy;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionCommon;
 import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon.AccountTypeEnum;
 import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon.DisplayNameEnum;
@@ -94,12 +94,7 @@ class LegacyImpositionServiceTest {
                 () -> assertEquals("ABDC", imposition.getImposition().getResultId()),
                 () -> assertEquals("Application made for Benefit Deductions",
                     imposition.getImposition().getResultTitle()),
-                () -> assertEquals(99000000000806L, imposition.getCreditor().getCreditorAccountId()),
-                () -> assertEquals(AccountTypeEnum.MN, imposition.getCreditor().getAccountType()),
-                () -> assertEquals(DisplayNameEnum.MINOR_CREDITOR, imposition.getCreditor().getDisplayName()),
-                () -> assertNull(imposition.getCreditor().getMajorCreditorId()),
-                () -> assertNull(imposition.getCreditor().getMinorCreditorPartyId()),
-                () -> assertEquals("Metropolitan Traffic Unit", imposition.getCreditor().getName()),
+                () -> assertCreditor(imposition),
                 () -> assertEquals(5510L, imposition.getOffence().getId()),
                 () -> assertEquals("OFF0006", imposition.getOffence().getCode()),
                 () -> assertEquals("Test Offence 6", imposition.getOffence().getTitle()),
@@ -151,6 +146,17 @@ class LegacyImpositionServiceTest {
                 () -> assertNull(imposition.getCreditor()),
                 () -> assertNull(imposition.getOffence()),
                 () -> assertNull(imposition.getImposedBy())
+            );
+        }
+
+        private void assertCreditor(DefendantAccountImpositionCommon imposition) {
+            assertAll(
+                () -> assertEquals(99000000000806L, imposition.getCreditor().getCreditorAccountId()),
+                () -> assertEquals(AccountTypeEnum.MN, imposition.getCreditor().getAccountType()),
+                () -> assertEquals(DisplayNameEnum.MINOR_CREDITOR, imposition.getCreditor().getDisplayName()),
+                () -> assertNull(imposition.getCreditor().getMajorCreditorId()),
+                () -> assertNull(imposition.getCreditor().getMinorCreditorPartyId()),
+                () -> assertEquals("Metropolitan Traffic Unit", imposition.getCreditor().getName())
             );
         }
 
