@@ -54,7 +54,6 @@ class Release1bFeatureToggleAnnotationTest {
             "DefendantAccountApiController#addEnforcement",
             "DefendantAccountApiController#addPaymentCardRequest",
             "DefendantAccountApiController#getConsolidatedAccounts",
-            "MinorCreditorApiController#getMinorCreditorAccountHeaderSummary",
             "DefendantAccountApiController#removeDefendantAccountParty",
             "DefendantAccountApiController#getEnforcementStatus",
             "DefendantAccountApiController#getDefendantAccountAtAGlance",
@@ -80,9 +79,7 @@ class Release1bFeatureToggleAnnotationTest {
             "MinorCreditorApiController#getMinorCreditorHistory",
             "MinorCreditorApiController#patchMinorCreditorAccount",
             "MinorCreditorApiController#postMinorCreditorSearch",
-
-            // Minor Creditor controller
-            "MinorCreditorController#getMinorCreditorAccountHeaderSummary",
+            "MinorCreditorApiController#getMinorCreditorAccountHeaderSummary",
 
             // Notes controller
             "NotesController#addNote",
