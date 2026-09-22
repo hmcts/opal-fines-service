@@ -25,6 +25,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.entity.InterfaceFileSourceEnum;
 import uk.gov.hmcts.opal.entity.TillStatusEnum;
 import uk.gov.hmcts.opal.entity.TillSummaryEntity;
@@ -48,29 +49,52 @@ class TillSearchServiceTest {
     private UserStateService userStateService;
 
     @Test
-    void getTills_returnsEmptyResponseWhenUserHasNoPermittedBusinessUnits() {
-        TillSearchCriteria searchCriteria = TillSearchCriteria.builder()
-            .businessUnitIds(List.of((short) 78))
-            .build();
+    void getTills_returnsEmptyResponseWhenNoFilterAndUserHasNoPermittedBusinessUnits() {
+        TillSearchCriteria searchCriteria = TillSearchCriteria.builder().build();
 
-        when(userStateService.getPermittedBusinessUnitIds(
-            List.of((short) 78), FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(List.of());
+        when(userStateService.getBusinessUnitIdsFor(
+            FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(List.of());
 
         TillsResponse result = service().getTills(searchCriteria);
 
         assertEquals(List.of(), result.getTills());
         assertEquals(List.of(), searchCriteria.getPermittedBusinessUnitIds());
+        verify(userStateService).getBusinessUnitIdsFor(
+            FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
+        verifyNoInteractions(tillSummaryRepository, tillMapper);
+    }
+
+    @Test
+    void getTills_rejectsSuppliedBusinessUnitWithoutPermission() {
+        List<Short> requestedBusinessUnitIds = List.of((short) 78, (short) 80);
+        TillSearchCriteria searchCriteria = TillSearchCriteria.builder()
+            .businessUnitIds(requestedBusinessUnitIds)
+            .build();
+
+        when(userStateService.getPermittedBusinessUnitIds(
+            requestedBusinessUnitIds,
+            FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS
+        )).thenReturn(List.of((short) 78));
+
+        PermissionNotAllowedException exception = assertThrows(
+            PermissionNotAllowedException.class,
+            () -> service().getTills(searchCriteria)
+        );
+
+        assertEquals((short) 80, exception.getBusinessUnitId());
         verify(userStateService).getPermittedBusinessUnitIds(
-            List.of((short) 78), FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
-        verifyNoInteractions(tillSummaryRepository);
-        verifyNoInteractions(tillMapper);
+            requestedBusinessUnitIds,
+            FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS
+        );
+        verifyNoInteractions(tillSummaryRepository, tillMapper);
     }
 
     @SuppressWarnings("unchecked")
     @Test
-    void getTills_returnsMappedTillsForPermittedBusinessUnits() {
+    void getTills_returnsMappedTillsForSuppliedPermittedBusinessUnits() {
+        List<Short> requestedBusinessUnitIds = List.of((short) 78, (short) 80);
         TillSearchCriteria searchCriteria = TillSearchCriteria.builder()
-            .businessUnitIds(List.of((short) 78, (short) 80))
+            .businessUnitIds(requestedBusinessUnitIds)
             .statuses(List.of("Allocated"))
             .autoPayments(true)
             .build();
@@ -88,11 +112,15 @@ class TillSearchServiceTest {
         ArgumentCaptor<Sort> sortCaptor = ArgumentCaptor.forClass(Sort.class);
 
         when(userStateService.getPermittedBusinessUnitIds(
-            List.of((short) 78, (short) 80), FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS))
-            .thenReturn(List.of((short) 78));
+            requestedBusinessUnitIds,
+            FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS
+        )).thenReturn(requestedBusinessUnitIds);
         when(fluentQuery.sortBy(sortCaptor.capture())).thenReturn(fluentQuery);
         when(fluentQuery.page(Pageable.unpaged())).thenReturn(mockPage);
-        when(tillSummaryRepository.findBy(any(Specification.class), any(Function.class))).thenAnswer(invocation -> {
+        when(tillSummaryRepository.findBy(
+            any(Specification.class),
+            any(Function.class)
+        )).thenAnswer(invocation -> {
             Function<SpecificationFluentQuery<TillSummaryEntity>, Page<TillSummaryEntity>> queryFunction =
                 invocation.getArgument(1);
             return queryFunction.apply(fluentQuery);
@@ -102,9 +130,51 @@ class TillSearchServiceTest {
         TillsResponse result = service().getTills(searchCriteria);
 
         assertEquals(List.of(responseItem), result.getTills());
-        assertEquals(List.of((short) 78), searchCriteria.getPermittedBusinessUnitIds());
+        assertEquals(requestedBusinessUnitIds, searchCriteria.getPermittedBusinessUnitIds());
         assertEquals(List.of(TillStatusEnum.Allocated), searchCriteria.getTillStatuses());
         assertSummarySort(sortCaptor.getValue());
+        verify(tillMapper).toResponse(entity);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void getTills_usesAllPermittedBusinessUnitsWhenNoFilterSupplied() {
+        List<Short> permittedBusinessUnitIds = List.of((short) 78, (short) 80);
+        TillSearchCriteria searchCriteria = TillSearchCriteria.builder().build();
+        TillSummaryEntity entity = tillSummaryEntity();
+        TillsItem responseItem = TillsItem.builder()
+            .tillNumber((short) 12)
+            .errors(2L)
+            .amount(BigDecimal.valueOf(123.45))
+            .businessUnitName("Luton")
+            .processedBy("L078JG")
+            .build();
+        Page<TillSummaryEntity> mockPage = new PageImpl<>(List.of(entity), Pageable.unpaged(), 1);
+        SpecificationFluentQuery<TillSummaryEntity> fluentQuery =
+            (SpecificationFluentQuery<TillSummaryEntity>) mock(SpecificationFluentQuery.class);
+
+        when(userStateService.getBusinessUnitIdsFor(
+            FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS
+        )).thenReturn(permittedBusinessUnitIds);
+        when(fluentQuery.sortBy(any(Sort.class))).thenReturn(fluentQuery);
+        when(fluentQuery.page(Pageable.unpaged())).thenReturn(mockPage);
+        when(tillSummaryRepository.findBy(
+            any(Specification.class),
+            any(Function.class)
+        )).thenAnswer(invocation -> {
+            Function<SpecificationFluentQuery<TillSummaryEntity>, Page<TillSummaryEntity>> queryFunction =
+                invocation.getArgument(1);
+            return queryFunction.apply(fluentQuery);
+        });
+        when(tillMapper.toResponse(entity)).thenReturn(responseItem);
+
+        TillsResponse result = service().getTills(searchCriteria);
+
+        assertEquals(List.of(responseItem), result.getTills());
+        assertEquals(permittedBusinessUnitIds, searchCriteria.getPermittedBusinessUnitIds());
+        verify(userStateService).getBusinessUnitIdsFor(
+            FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS
+        );
         verify(tillMapper).toResponse(entity);
     }
 
