@@ -40,8 +40,11 @@ import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
+import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
@@ -148,18 +151,16 @@ class LegacyDefendantAccountEnforcementServiceTest {
     }
 
     @Test
-    void addEnforcement_legacyFailure5xx_withEntity_stillReturnsMappedResponse_simple() {
-        AddDefendantAccountEnforcementLegacyResponse legacyResp =
-            mock(AddDefendantAccountEnforcementLegacyResponse.class);
-        when(legacyResp.getEnforcementId()).thenReturn("ENF-500");
-        when(legacyResp.getDefendantAccountId()).thenReturn("500");
-        when(legacyResp.getVersion()).thenReturn(BigInteger.valueOf(5));
+    void addEnforcement_legacyFailure5xx_throws() {
+        AddDefendantAccountEnforcementLegacyResponse legacyResp = AddDefendantAccountEnforcementLegacyResponse
+            .builder()
+            .defendantAccountId("500")
+            .version(BigInteger.valueOf(5))
+            .enforcementId("ENF-500")
+            .build();
 
         GatewayService.Response<AddDefendantAccountEnforcementLegacyResponse> resp =
-            new GatewayService.Response<>(
-                HttpStatus.SERVICE_UNAVAILABLE,
-                legacyResp, "<legacy-failure/>", null
-            );
+            new GatewayService.Response<>(HttpStatus.SERVICE_UNAVAILABLE, legacyResp, "<legacy-failure/>", null);
 
         doReturn(resp).when(gatewayService).postToGateway(
             eq(LegacyDefendantAccountEnforcementService.ADD_ENFORCEMENT),
@@ -169,17 +170,14 @@ class LegacyDefendantAccountEnforcementServiceTest {
         );
 
         // Act
-        AddEnforcementResponseDefendantAccount out =
-            legacyDefendantAccountEnforcementService.addEnforcement(
-                500L,
-                (short) 500, "user-500", "5", null
-            );
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () ->
+            legacyDefendantAccountEnforcementService.addEnforcement(500L, (short) 500,
+                "user-500", "5", null));
 
         // Assert
-        assertNotNull(out);
-        assertEquals("ENF-500", out.getEnforcementId());
-        assertEquals("500", out.getDefendantAccountId());
-        assertEquals(BigInteger.valueOf(5), out.getVersion());
+        assertNotNull(ex);
+        assertEquals(HttpStatus.BAD_GATEWAY, ex.getStatusCode());
+        assertEquals("Legacy exception thrown during addEnforcement", ex.getReason());
     }
 
 
@@ -272,17 +270,22 @@ class LegacyDefendantAccountEnforcementServiceTest {
     }
 
     @Test
-    void addEnforcement_legacyFailure5xx_withEntity_stillReturnsMappedResponse_simpleCoverage() {
+    void addEnforcement_legacyFailure5xx_withEntity_stillThrowsWhenLegacyReturns200WithErrorResponse() {
         // Arrange - legacy 5xx but responseEntity present (exercises legacy-failure logging path)
-        AddDefendantAccountEnforcementLegacyResponse legacyResp =
-            mock(AddDefendantAccountEnforcementLegacyResponse.class);
-        when(legacyResp.getEnforcementId()).thenReturn("ENF-500");
-        when(legacyResp.getDefendantAccountId()).thenReturn("500");
-        when(legacyResp.getVersion()).thenReturn(BigInteger.valueOf(5));
+        AddDefendantAccountEnforcementLegacyResponse legacyResp = AddDefendantAccountEnforcementLegacyResponse
+            .builder()
+            .defendantAccountId("500")
+            .version(BigInteger.valueOf(5))
+            .enforcementId("ENF-500")
+            .errorResponse(ErrorResponse.builder()
+                .errorCode("error-code")
+                .errorMessage("Error message")
+                .build())
+            .build();
 
         GatewayService.Response<AddDefendantAccountEnforcementLegacyResponse> resp =
             new GatewayService.Response<>(
-                HttpStatus.SERVICE_UNAVAILABLE, legacyResp, "<legacy-failure/>",
+                HttpStatus.OK, legacyResp, "<legacy-failure/>",
                 null
             );
 
@@ -294,17 +297,39 @@ class LegacyDefendantAccountEnforcementServiceTest {
         );
 
         // Act
-        AddEnforcementResponseDefendantAccount out =
-            legacyDefendantAccountEnforcementService.addEnforcement(
-                500L, (short) 500,
-                "user-500", "5", null
-            );
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () ->
+            legacyDefendantAccountEnforcementService.addEnforcement(500L, (short) 500,
+                "user-500", "5", null));
 
         // Assert
-        assertNotNull(out);
-        assertEquals("ENF-500", out.getEnforcementId());
-        assertEquals("500", out.getDefendantAccountId());
-        assertEquals(BigInteger.valueOf(5), out.getVersion());
+        assertNotNull(ex);
+        assertEquals(HttpStatus.BAD_GATEWAY, ex.getStatusCode());
+        assertEquals("Legacy exception thrown during addEnforcement", ex.getReason());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void addEnforcement_shouldThrowBadGateway_whenLegacyReturnsUnknownError() {
+        // Arrange
+        Response<AddDefendantAccountEnforcementLegacyResponse> response = mock(Response.class);
+
+        when(response.isError()).thenReturn(true);
+        when(response.isException()).thenReturn(false);
+        when(response.hasErrorResponse()).thenReturn(false);
+        when(response.isLegacyFailure()).thenReturn(false);
+
+        doReturn(response).when(gatewayService)
+            .postToGateway(eq(LegacyDefendantAccountEnforcementService.ADD_ENFORCEMENT),
+                eq(AddDefendantAccountEnforcementLegacyResponse.class), any(), Mockito.nullable(String.class));
+
+        // Act
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () ->
+            legacyDefendantAccountEnforcementService.addEnforcement(500L, (short) 500,
+                "user-500", "5", null));
+
+        // Assert
+        assertEquals(HttpStatus.BAD_GATEWAY, ex.getStatusCode());
+        assertEquals("Unknown error during addEnforcement", ex.getReason());
     }
 
     @Test
@@ -321,16 +346,9 @@ class LegacyDefendantAccountEnforcementServiceTest {
         );
 
         // Act & Assert: calling the public method should throw a NullPointerException inside production code
-        assertThrows(
-            NullPointerException.class, () ->
-                legacyDefendantAccountEnforcementService.addEnforcement(
-                    1L,
-                    (short) 1,
-                    "U",
-                    "1",
-                    null
-                )
-        );
+        assertThrows(ResponseStatusException.class,
+            () -> legacyDefendantAccountEnforcementService.addEnforcement(1L, (short) 1,
+                "U", "1", null));
     }
 
     @Test
