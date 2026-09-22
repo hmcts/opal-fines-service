@@ -36,7 +36,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountImpositionsResponseCom
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetImpositionsRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyResultReferenceCommon;
 import uk.gov.hmcts.opal.dto.legacy.OffenceReferenceLegacy;
-import uk.gov.hmcts.opal.dto.legacy.common.CreditorAccountTypeReference;
+import uk.gov.hmcts.opal.dto.legacy.CreditorAccountTypeReferenceLegacy;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionCommon;
 import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon.AccountTypeEnum;
 import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon.DisplayNameEnum;
@@ -158,13 +158,15 @@ class LegacyImpositionServiceTest {
             return Stream.of(
                 Arguments.of(
                     CreditorSummaryLegacy.builder()
-                        .creditorAccountType(CreditorAccountTypeReference.builder().accountType("MJ").build())
+                        .creditorAccountTypeReference(
+                            CreditorAccountTypeReferenceLegacy.builder().creditorAccountType("MJ").build())
                         .majorCreditorName("  Major Creditor Name  ")
                         .build(),
                     AccountTypeEnum.MJ, DisplayNameEnum.MAJOR_CREDITOR, "Major Creditor Name"),
                 Arguments.of(
                     CreditorSummaryLegacy.builder()
-                        .creditorAccountType(CreditorAccountTypeReference.builder().accountType("MN").build())
+                        .creditorAccountTypeReference(
+                            CreditorAccountTypeReferenceLegacy.builder().creditorAccountType("MN").build())
                         .individualName(IndividualNameLegacy.builder()
                             .forenames("Jane Mary")
                             .surname("Doe")
@@ -214,7 +216,8 @@ class LegacyImpositionServiceTest {
 
     private CreditorSummaryLegacy minorCompanyCreditor() {
         return CreditorSummaryLegacy.builder()
-            .creditorAccountType(CreditorAccountTypeReference.builder().accountType("MN").build())
+            .creditorAccountTypeReference(
+                CreditorAccountTypeReferenceLegacy.builder().creditorAccountType("MN").build())
             .creditorAccountId(99000000000806L)
             .minorCreditorOrganisationFlag(true)
             .companyName(CompanyNameLegacy.builder()

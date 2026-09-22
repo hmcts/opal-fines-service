@@ -8,7 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.dto.legacy.common.CreditorAccountTypeReference;
 
 @Builder
 @Data
@@ -17,9 +16,9 @@ import uk.gov.hmcts.opal.dto.legacy.common.CreditorAccountTypeReference;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class CreditorSummaryLegacy {
 
-    @JsonProperty("creditor_account_type")
-    @XmlElement(name = "creditor_account_type")
-    private CreditorAccountTypeReference creditorAccountType;
+    @JsonProperty("creditor_account_type_reference")
+    @XmlElement(name = "creditor_account_type_reference")
+    private CreditorAccountTypeReferenceLegacy creditorAccountTypeReference;
 
     @JsonProperty("creditor_account_id")
     @XmlElement(name = "creditor_account_id")

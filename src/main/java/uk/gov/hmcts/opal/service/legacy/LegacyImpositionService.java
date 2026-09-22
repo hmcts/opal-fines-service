@@ -152,9 +152,9 @@ public class LegacyImpositionService implements ImpositionServiceInterface {
     }
 
     private String getAccountType(CreditorSummaryLegacy creditor) {
-        return creditor.getCreditorAccountType() == null
+        return creditor.getCreditorAccountTypeReference() == null
             ? null
-            : creditor.getCreditorAccountType().getAccountType();
+            : creditor.getCreditorAccountTypeReference().getCreditorAccountType();
     }
 
     private String buildCreditorName(CreditorSummaryLegacy creditor) {

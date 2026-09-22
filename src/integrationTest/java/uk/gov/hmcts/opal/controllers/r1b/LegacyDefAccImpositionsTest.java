@@ -46,7 +46,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountImpositionsResponseCom
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetImpositionsRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyResultReferenceCommon;
 import uk.gov.hmcts.opal.dto.legacy.OffenceReferenceLegacy;
-import uk.gov.hmcts.opal.dto.legacy.common.CreditorAccountTypeReference;
+import uk.gov.hmcts.opal.dto.legacy.CreditorAccountTypeReferenceLegacy;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.legacy.LegacyImpositionService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
@@ -190,7 +190,8 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
                     .resultTitle("Application made for Benefit Deductions")
                     .build())
                 .creditor(CreditorSummaryLegacy.builder()
-                    .creditorAccountType(CreditorAccountTypeReference.builder().accountType("MN").build())
+                    .creditorAccountTypeReference(
+                        CreditorAccountTypeReferenceLegacy.builder().creditorAccountType("MN").build())
                     .creditorAccountId(99000000000806L)
                     .minorCreditorOrganisationFlag(true)
                     .companyName(CompanyNameLegacy.builder()
