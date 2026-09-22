@@ -51,9 +51,7 @@ public class AccountNumberTranslationService {
                 accountRef = extractOpalAccountReference(accountRef);
                 if (!accountRef.isBlank()) {
                     if (lookUpOpalAccountFromAccountReference(accountRef, businessUnit.getBusinessUnitId())) {
-                        OriginatorDetails details = transaction.getOriginatorDetails();
-                        details.setAccountReference(accountRef);
-                        transaction.setOriginatorDetails(details);
+                        replaceAccountReference(transaction, accountRef);
 
                         transformed.setTotalAmount(transformed.getTotalAmount() + transaction.getAmount());
                         transformed.addTransaction(transaction);
@@ -63,17 +61,10 @@ public class AccountNumberTranslationService {
 
                 var apr = lookUpAPR(transaction.getOriginatorDetails().getAccountReference());
                 if (apr.isPresent()) {
-                    OriginatorDetails originatorDetails = transaction.getOriginatorDetails();
-                    originatorDetails.setAccountReference(String.format("%d", apr.get().getDefendantAccountId()));
-                    transaction.setOriginatorDetails(originatorDetails);
+                    replaceAccountReference(transaction, String.format("%d", apr.get().getDefendantAccountId()));
 
                     if (!apr.get().getBusinessUnitCode().equals(businessUnit.getBusinessUnitCode())) {
-                        DestinationDetails destDetails = transformed.getDestinationDetails();
-                        BankDetails bankDetails = destDetails.getBankDetails();
-                        bankDetails.setAccountNumber(null);
-                        bankDetails.setSortCode(null);
-                        destDetails.setBankDetails(bankDetails);
-                        transformed.setDestinationDetails(destDetails);
+                        removeBankDetails(transformed);
                     }
 
                     transformed.setTotalAmount(transformed.getTotalAmount() + transaction.getAmount());
@@ -83,17 +74,10 @@ public class AccountNumberTranslationService {
 
                 apr = lookUpAPR(transaction.getOriginatorDetails().getName());
                 if (apr.isPresent()) {
-                    OriginatorDetails originatorDetails = transaction.getOriginatorDetails();
-                    originatorDetails.setAccountReference(String.format("%d", apr.get().getDefendantAccountId()));
-                    transaction.setOriginatorDetails(originatorDetails);
+                    replaceAccountReference(transaction, String.format("%d", apr.get().getDefendantAccountId()));
 
                     if (!apr.get().getBusinessUnitCode().equals(businessUnit.getBusinessUnitCode())) {
-                        DestinationDetails destDetails = transformed.getDestinationDetails();
-                        BankDetails bankDetails = destDetails.getBankDetails();
-                        bankDetails.setAccountNumber(null);
-                        bankDetails.setSortCode(null);
-                        destDetails.setBankDetails(bankDetails);
-                        transformed.setDestinationDetails(destDetails);
+                        removeBankDetails(transformed);
                     }
 
                     transformed.setTotalAmount(transformed.getTotalAmount() + transaction.getAmount());
@@ -104,6 +88,21 @@ public class AccountNumberTranslationService {
         }
 
         return transformed;
+    }
+
+    private void removeBankDetails(TransformedInterfaceFileData transformedInterfaceFileData) {
+        DestinationDetails destDetails = transformedInterfaceFileData.getDestinationDetails();
+        BankDetails bankDetails = destDetails.getBankDetails();
+        bankDetails.setAccountNumber(null);
+        bankDetails.setSortCode(null);
+        destDetails.setBankDetails(bankDetails);
+        transformedInterfaceFileData.setDestinationDetails(destDetails);
+    }
+
+    private void replaceAccountReference(Transaction transaction, String acctRef) {
+        OriginatorDetails originatorDetails = transaction.getOriginatorDetails();
+        originatorDetails.setAccountReference(acctRef);
+        transaction.setOriginatorDetails(originatorDetails);
     }
 
     private boolean isCheque(Transaction transaction) {
