@@ -160,12 +160,20 @@ components:
         - business_unit_name
         - processed_by
       properties:
+        till_id:
+          type: integer
+          format: int64
+          description: DB Mapping - v_till_summary.till_id
         till_number:
           type: integer
           format: int16
         errors:
           type: integer
           format: int64
+        payments_count:
+          type: integer
+          format: int16
+          description: DB Mapping - v_till_summary.payments_count
         file_name:
           type: string
         source:
