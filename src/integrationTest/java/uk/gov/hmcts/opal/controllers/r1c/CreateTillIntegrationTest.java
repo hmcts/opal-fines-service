@@ -55,6 +55,8 @@ class CreateTillIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
     private static final String URL = "/tills";
     private static final short BUSINESS_UNIT_ID = 10;
+    private static final String SCHEMA_VALIDATION_ERROR_DETAIL =
+        "The request does not conform to the required JSON schema";
     private static final String VALID_PAYMENT_DETAILS = """
         {
           "amount": 12.34,
@@ -98,8 +100,10 @@ class CreateTillIntegrationTest extends AbstractIntegrationWithSecurityTest {
         mockMvc.perform(post(URL)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"payments_in\":[]}"))
-            .andExpect(status().isBadRequest());
+            .content(VALID_REQUEST.replace("\"business_unit_id\": 10,", "")))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value(SCHEMA_VALIDATION_ERROR_DETAIL));
     }
 
     @Test
@@ -110,7 +114,9 @@ class CreateTillIntegrationTest extends AbstractIntegrationWithSecurityTest {
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"business_unit_id\":3630,\"payments_in\":[]}"))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value(SCHEMA_VALIDATION_ERROR_DETAIL));
     }
 
     @ParameterizedTest
@@ -122,7 +128,23 @@ class CreateTillIntegrationTest extends AbstractIntegrationWithSecurityTest {
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value(SCHEMA_VALIDATION_ERROR_DETAIL));
+    }
+
+    @ParameterizedTest
+    @MethodSource("unreadableRequestBodies")
+    @JiraStory("PO-3630")
+    @JiraEpic("PO-2439")
+    void postTills_rejectsUnreadableRequest(String request) throws Exception {
+        mockMvc.perform(post(URL)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/message-not-readable"));
     }
 
     @Test
@@ -227,7 +249,9 @@ class CreateTillIntegrationTest extends AbstractIntegrationWithSecurityTest {
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(VALID_REQUEST.replace("\"Fines\"", "\"" + destinationType + "\"")))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("Only fines payments are supported when creating a till"));
 
         assertThat(tillRepository.count()).isEqualTo(tillsBefore);
         assertThat(paymentInRepository.count()).isEqualTo(paymentsBefore);
@@ -247,7 +271,9 @@ class CreateTillIntegrationTest extends AbstractIntegrationWithSecurityTest {
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(VALID_REQUEST.replace("\"defendant_account_id\": 123,", "")))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value("defendant_account_id is required for fines payments"));
 
         assertThat(tillRepository.count()).isEqualTo(tillsBefore);
         assertThat(paymentInRepository.count()).isEqualTo(paymentsBefore);
@@ -276,7 +302,12 @@ class CreateTillIntegrationTest extends AbstractIntegrationWithSecurityTest {
                 """),
             requestWithPaymentDetails("""
                 {"amount":12.34,"method":"Notes & Coins","destination_type":"Fines","allocation_type":"FULL"}
-                """),
+                """)
+        );
+    }
+
+    static Stream<String> unreadableRequestBodies() {
+        return Stream.of(
             requestWithPaymentDetails(VALID_PAYMENT_DETAILS.replace("Notes & Coins", "XX")),
             requestWithPaymentDetails(VALID_PAYMENT_DETAILS.replace("Fines", "X")),
             requestWithPaymentDetails(VALID_PAYMENT_DETAILS.replace("Third Party", "X"))
