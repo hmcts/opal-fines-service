@@ -49,7 +49,7 @@ public class Release1bFeatureToggleStepDef extends BaseStepDef {
                 );
             case "Add Note" ->
                 callPost(
-                    NOTES_URI + "/add",
+                    NOTES_URI,
                     Map.of("If-Match", DEFAULT_IF_MATCH),
                     buildAddNoteRequest()
                 );
@@ -298,7 +298,7 @@ public class Release1bFeatureToggleStepDef extends BaseStepDef {
     /**
      * Builds a representative add-note request body.
      *
-     * @return request body for POST /notes/add.
+     * @return request body for POST /notes.
      */
     private JSONObject buildAddNoteRequest() {
         return jsonObject("""
