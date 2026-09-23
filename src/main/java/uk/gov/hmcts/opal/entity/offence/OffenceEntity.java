@@ -20,6 +20,7 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlType;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -29,8 +30,6 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
-
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -74,10 +73,10 @@ public class OffenceEntity {
     @Column(name = "cjs_code", length = 10, nullable = false)
     private String cjsCode;
 
-    @Column(name = "offence_title", length = 120)
+    @Column(name = "offence_title", length = 1000)
     private String offenceTitle;
 
-    @Column(name = "offence_title_cy", length = 120)
+    @Column(name = "offence_title_cy", length = 1000)
     private String offenceTitleCy;
 
     @Column(name = "date_used_from")

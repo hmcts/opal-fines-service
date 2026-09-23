@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -51,6 +52,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @DisplayName("PaymentDetailedReportServiceTest")
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+@Tag("ExtendedTest")
 public class PaymentDetailedReportServiceTest extends AbstractIntegrationTest {
 
     private final PaymentReportService service;
@@ -134,9 +136,9 @@ public class PaymentDetailedReportServiceTest extends AbstractIntegrationTest {
             () -> assertThat(account.getDateOfHearing()).isEqualTo(LocalDate.of(2023, 11, 3)),
             () -> assertThat(account.getImposingCourt()).isEqualTo("AAA Test Court"),
             () -> assertThat(account.getPaymentTerms()).isEqualTo("12/10/2025"),
-            () -> assertThat(account.getAmountImposed()).isEqualByComparingTo("700.58"),
-            () -> assertThat(account.getBalance()).isEqualByComparingTo("-500.58"),
-            () -> assertThat(account.getArrearsTotal()).isEqualByComparingTo("500.58"),
+            () -> assertThat(account.getAmountImposed()).isEqualByComparingTo("-700.58"),
+            () -> assertThat(account.getBalance()).isEqualByComparingTo("99.42"),
+            () -> assertThat(account.getArrearsTotal()).isEqualByComparingTo("0"),
             () -> assertThat(account.getFineImpositions()).isEqualByComparingTo("120.00"),
             () -> assertThat(account.getCostImpositions()).isEqualByComparingTo("100.00"),
             () -> assertThat(account.getCompensationImpositions()).isEqualByComparingTo("50.00"),

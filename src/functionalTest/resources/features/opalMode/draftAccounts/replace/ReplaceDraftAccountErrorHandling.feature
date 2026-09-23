@@ -90,3 +90,111 @@ Feature: Replace Draft Account Error Handling
   Scenario: Replacing a draft account with a malformed request fails
     When I put the draft account trying to provoke an internal server error
     Then the request fails with an internal server error
+
+  @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
+  Scenario: Replacing a draft account with an unknown originator id is rejected
+    Given a draft account exists with the following details
+      | business_unit_id  | 73                                      |
+      | account           | draftAccounts/accountJson/account.json  |
+      | account_type      | Fine                                    |
+      | account_status    | Submitted                               |
+      | submitted_by      | BUUID                                   |
+      | submitted_by_name | Laura Clerk                             |
+    When I attempt to put a draft account with an invalid request payload
+      | business_unit_id         | 73                                  |
+      | account                  | draftAccounts/accountJson/account.json |
+      | account_type             | Fine                                 |
+      | account_status           | Submitted                            |
+      | submitted_by             | BUUID                                |
+      | submitted_by_name        | Laura Clerk                          |
+      | account_originator_type   | NEW                                  |
+      | account_originator_id     | 999999                               |
+      | account_originator_name   | Missing Originator                   |
+    Then the request is rejected as bad request and the created draft account remains with the following data
+      | business_unit_id                   | 73                    |
+      | account_type                        | Fine                  |
+      | account_status                      | Submitted             |
+      | account.originator_type             | TFO                   |
+      | account.originator_id               | 1980                  |
+      | account.originator_name             | Humber Magistrates' Court |
+
+  @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
+  Scenario: Replacing a draft account with a prosecutor id in the wrong source is rejected
+    Given a draft account exists with the following details
+      | business_unit_id  | 73                                      |
+      | account           | draftAccounts/accountJson/account.json  |
+      | account_type      | Fine                                    |
+      | account_status    | Submitted                               |
+      | submitted_by      | BUUID                                   |
+      | submitted_by_name | Laura Clerk                             |
+    When I attempt to put a draft account with an invalid request payload
+      | business_unit_id         | 73                                                    |
+      | account                  | draftAccounts/accountJson/account.json                 |
+      | account_type             | Fine                                                   |
+      | account_status           | Submitted                                              |
+      | submitted_by             | BUUID                                                  |
+      | submitted_by_name        | Laura Clerk                                            |
+      | account_originator_type   | NEW                                                    |
+      | account_originator_id     | 1                                                      |
+      | account_originator_name   | Met Camera Processing Services / Traffic Offence Reports |
+    Then the request is rejected as bad request and the created draft account remains with the following data
+      | business_unit_id                   | 73                    |
+      | account_type                        | Fine                  |
+      | account_status                      | Submitted             |
+      | account.originator_type             | TFO                   |
+      | account.originator_id               | 1980                  |
+      | account.originator_name             | Humber Magistrates' Court |
+
+  @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
+  Scenario: Replacing a draft account with a mismatched originator name is rejected
+    Given a draft account exists with the following details
+      | business_unit_id  | 73                                      |
+      | account           | draftAccounts/accountJson/account.json  |
+      | account_type      | Fine                                    |
+      | account_status    | Submitted                               |
+      | submitted_by      | BUUID                                   |
+      | submitted_by_name | Laura Clerk                             |
+    When I attempt to put a draft account with an invalid request payload
+      | business_unit_id         | 73                                  |
+      | account                  | draftAccounts/accountJson/account.json |
+      | account_type             | Fine                                 |
+      | account_status           | Submitted                            |
+      | submitted_by             | BUUID                                |
+      | submitted_by_name        | Laura Clerk                          |
+      | account_originator_type   | TFO                                  |
+      | account_originator_id     | 3190                                 |
+      | account_originator_name   | Wrong Originator Name                |
+    Then the request is rejected as bad request and the created draft account remains with the following data
+      | business_unit_id                   | 73                    |
+      | account_type                        | Fine                  |
+      | account_status                      | Submitted             |
+      | account.originator_type             | TFO                   |
+      | account.originator_id               | 1980                  |
+      | account.originator_name             | Humber Magistrates' Court |
+
+  @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
+  Scenario: Replacing a draft account with an unsupported originator-account combination is rejected
+    Given a draft account exists with the following details
+      | business_unit_id  | 73                                      |
+      | account           | draftAccounts/accountJson/account.json  |
+      | account_type      | Fine                                    |
+      | account_status    | Submitted                               |
+      | submitted_by      | BUUID                                   |
+      | submitted_by_name | Laura Clerk                             |
+    When I attempt to put a draft account with an invalid request payload
+      | business_unit_id         | 73                                  |
+      | account                  | draftAccounts/accountJson/account.json |
+      | account_type             | Conditional Caution                  |
+      | account_status           | Submitted                            |
+      | submitted_by             | BUUID                                |
+      | submitted_by_name        | Laura Clerk                          |
+      | account_originator_type   | FP                                   |
+      | account_originator_id     | 1                                    |
+      | account_originator_name   | Met Camera Processing Services / Traffic Offence Reports |
+    Then the request is rejected as bad request and the created draft account remains with the following data
+      | business_unit_id                   | 73                    |
+      | account_type                        | Fine                  |
+      | account_status                      | Submitted             |
+      | account.originator_type             | TFO                   |
+      | account.originator_id               | 1980                  |
+      | account.originator_name             | Humber Magistrates' Court |

@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.repository;
 
 import jakarta.persistence.LockModeType;
 import java.util.Optional;
+import org.jspecify.annotations.NonNull;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -9,6 +10,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 
 @Repository
@@ -17,7 +19,7 @@ public interface CreditorAccountRepository extends JpaRepository<CreditorAccount
 
     @Override
     @EntityGraph(value = CreditorAccountEntity.ENTITY_GRAPH_LITE, type = EntityGraph.EntityGraphType.FETCH)
-    Optional<CreditorAccountEntity> findById(Long creditorAccountId);
+    Optional<CreditorAccountEntity> findById(@NonNull Long creditorAccountId);
 
     @EntityGraph(value = CreditorAccountEntity.ENTITY_GRAPH_FULL, type = EntityGraph.EntityGraphType.FETCH)
     Optional<CreditorAccountEntity> findFullByCreditorAccountId(Long creditorAccountId);
@@ -31,6 +33,30 @@ public interface CreditorAccountRepository extends JpaRepository<CreditorAccount
     @Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
     @Query("select c from CreditorAccountEntity c where c.creditorAccountId = :id")
     Optional<CreditorAccountEntity> findByCreditorAccountIdForUpdate(@Param("id") Long creditorAccountId);
+
+    boolean existsByBusinessUnitIdAndCreditorAccountType(
+        Short businessUnitId,
+        CreditorAccountType creditorAccountType
+    );
+
+    boolean existsByBusinessUnitIdAndCreditorAccountTypeAndProsecutionService(
+        Short businessUnitId,
+        CreditorAccountType creditorAccountType,
+        boolean prosecutionService
+    );
+
+    boolean existsByBusinessUnitIdAndCreditorAccountTypeAndMajorCreditorId(
+        Short businessUnitId,
+        CreditorAccountType creditorAccountType,
+        Long majorCreditorId
+    );
+
+    boolean existsByBusinessUnitIdAndCreditorAccountTypeAndProsecutionServiceAndMajorCreditorId(
+        Short businessUnitId,
+        CreditorAccountType creditorAccountType,
+        boolean prosecutionService,
+        Long majorCreditorId
+    );
 
     @Query(value = """
         SELECT ca.creditor_account_id AS "creditorAccountId",

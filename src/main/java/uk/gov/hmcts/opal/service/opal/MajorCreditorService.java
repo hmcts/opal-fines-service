@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
 import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
@@ -20,6 +21,7 @@ import uk.gov.hmcts.opal.repository.jpa.MajorCreditorSpecs;
 
 import java.util.List;
 import java.util.Optional;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @Service
 @Slf4j(topic = "opal.MajorCreditorService")
@@ -30,6 +32,8 @@ public class MajorCreditorService {
     private final MajorCreditorRepository majorCreditorRepository;
 
     private final MajorCreditorMapper majorCreditorMapper;
+
+    private final FeatureToggleApi featureToggleApi;
 
     private final MajorCreditorSpecs specs = new MajorCreditorSpecs();
 
@@ -66,8 +70,12 @@ public class MajorCreditorService {
                         .sortBy(nameSort)
                         .page(Pageable.unpaged()));
 
+        boolean release1bEnabled = featureToggleApi.isFeatureEnabled(FeatureFlags.RELEASE_1B);
         return page.getContent().stream()
-            .map(majorCreditorMapper::toRefData)
+            .map(majorCreditor -> {
+                MajorCreditorReferenceData refData = majorCreditorMapper.toRefData(majorCreditor);
+                return refData.useRepaymentFieldName(release1bEnabled);
+            })
             .toList();
 
     }

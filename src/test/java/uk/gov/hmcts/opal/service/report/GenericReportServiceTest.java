@@ -270,12 +270,11 @@ class GenericReportServiceTest {
     }
 
     @Test
-    void getReportInstance_withMatchingBusinessUnits_returnsReportInstance() {
+    void getReportInstance_whenUserHasAccessToOneOfMultipleBusinessUnits_returnsReportInstance() {
         when(reportInstanceRepository.findById(1L)).thenReturn(Optional.of(reportInstance));
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1, businessUnitUser2));
+        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
         when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
-        when(businessUnitUser2.getBusinessUnitId()).thenReturn((short) 2);
         reportInstance.setBusinessUnit(List.of((short) 1, (short) 2));
         when(businessUnitRepository.findAllById(List.of((short) 1, (short) 2))).thenReturn(
             List.of(businessUnitEntity1, businessUnitEntity2));
@@ -291,11 +290,11 @@ class GenericReportServiceTest {
     }
 
     @Test
-    void getReportInstance_withForeignBusinessUnits_throwsAccessDenied() {
+    void getReportInstance_whenUserHasNoAccessToAssociatedBusinessUnits_throwsAccessDenied() {
         when(reportInstanceRepository.findById(1L)).thenReturn(Optional.of(reportInstance));
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
-        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
+        when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 3);
         reportInstance.setBusinessUnit(List.of((short) 1, (short) 2));
 
         AccessDeniedException exception = assertThrows(AccessDeniedException.class,

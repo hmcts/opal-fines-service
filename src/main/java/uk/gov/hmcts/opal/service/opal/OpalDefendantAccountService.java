@@ -8,6 +8,8 @@ import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildE
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementOverrideResultDefendantAccount;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementStatus;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.filterDefendantParty;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_PAYMENT;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_PAYMENT_ENABLED_PROPERTY;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
@@ -26,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.Checks;
@@ -34,7 +37,6 @@ import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto.WarnError;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
@@ -44,7 +46,6 @@ import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
-import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
@@ -52,10 +53,12 @@ import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.search.SearchConsolidatedEntity;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
+import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount.BasicEntity;
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
@@ -139,6 +142,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final DefendantAccountControlValidator defendantAccountControlValidator;
 
+    private final FeatureToggleApi featureToggleApi;
+
     @Override
     @Transactional(readOnly = true)
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
@@ -181,7 +186,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         List<DefendantAccountSummaryDto> summaries = consolidatedSearch
             ? consolidatedSearch(accountSearchDto)
-            : basicSearch(accountSearchDto);
+            : basicSearch(accountSearchDto, isCollectionOrderEnabled());
 
         return DefendantAccountSearchResultsDto.builder()
             .defendantAccounts(summaries)
@@ -204,16 +209,26 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return results;
     }
 
-    private List<DefendantAccountSummaryDto> basicSearch(AccountSearchDto accountSearchDto) {
+    private List<DefendantAccountSummaryDto> basicSearch(
+        AccountSearchDto accountSearchDto,
+        boolean collectionOrderEnabled
+    ) {
         return searchDefendantBasicRepository
             .findAll(searchBasicEntitySpecs.findBySearch(accountSearchDto))
             .stream()
-            .map(this::toSummaryDto)
+            .map(account -> toSummaryDto(account, collectionOrderEnabled))
             .toList();
     }
 
-    private DefendantAccountSummaryDto toSummaryDto(SearchDefendantAccount account) {
-        return toSummaryBuilder(account).build();
+    private DefendantAccountSummaryDto toSummaryDto(
+        BasicEntity account,
+        boolean collectionOrderEnabled
+    ) {
+        DefendantAccountSummaryDtoBuilder builder = toSummaryBuilder(account);
+        if (collectionOrderEnabled) {
+            builder.collectionOrder(account.getCollectionOrder());
+        }
+        return builder.build();
     }
 
     private DefendantAccountSummaryDto toSummaryDto(SearchConsolidatedEntity account) {
@@ -242,6 +257,19 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return !s.isBlank();
     }
 
+    private boolean isCollectionOrderEnabled() {
+        boolean enabled = featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
+            RELEASE_1C_PAYMENT,
+            RELEASE_1C_PAYMENT_ENABLED_PROPERTY,
+            false
+        );
+        if (!enabled) {
+            log.debug(":searchDefendantAccounts: collection_order omitted because feature {} is disabled",
+                RELEASE_1C_PAYMENT);
+        }
+        return enabled;
+    }
+
     private DefendantAccountSummaryDtoBuilder toSummaryBuilder(SearchDefendantAccount account) {
         boolean isOrganisation = Boolean.TRUE.equals(account.getOrganisation());
 
@@ -266,28 +294,12 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .aliases(OpalDefendantAccountBuilders.buildSearchAliases(account));
     }
 
-    //Deprecated - use OpalDefendantAccountFixedPenaltyService
-    //TODO - Remove once OpalDefendantAccountFixedPenaltyService is in use
-    @Override
-    @Transactional(readOnly = true)
-    public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(Long defendantAccountId) {
-        log.debug(":getDefendantAccountFixedPenalty (Opal): id={}", defendantAccountId);
-
-        DefendantAccountEntity account = defendantAccountRepositoryService.findById(defendantAccountId);
-
-        FixedPenaltyOffenceEntity offence = fixedPenaltyOffenceRepository.findByDefendantAccountId(defendantAccountId)
-            .orElseThrow(() -> new EntityNotFoundException(
-                "Fixed Penalty Offence not found for account: " + defendantAccountId));
-
-        return OpalDefendantAccountBuilders.toFixedPenaltyResponse(account, offence);
-    }
-
     @Transactional(readOnly = true)
     public GetDefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId) {
         log.debug(":getAtAGlance (Opal): id: {}.", defendantAccountId);
-        return OpalDefendantAccountBuilders
-            .buildAtAGlanceResponse(
-                defendantAccountSummaryViewRepositoryService.getSummaryViewById(defendantAccountId));
+        DefendantAccountSummaryViewEntity defendantAccountSummary =
+            defendantAccountSummaryViewRepositoryService.getSummaryViewById(defendantAccountId);
+        return OpalDefendantAccountBuilders.buildAtAGlanceResponse(defendantAccountSummary);
     }
 
     @Override

@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -32,10 +31,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
-import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
-import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItemType;
@@ -43,9 +39,12 @@ import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCreditorPayment;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,26 +56,24 @@ class MinorCreditorServiceTest {
     @Mock
     MinorCreditorSearchProxy minorCreditorSearchProxy;
 
-    @Mock
-    MinorCreditorSearchRequestValidator minorCreditorSearchRequestValidator;
-
     @InjectMocks
     private MinorCreditorService minorCreditorService;
 
     @Test
     void testPostSearchMinorCreditors() {
         // Arrange
-        PostMinorCreditorAccountsSearchResponse postMinorCreditorAccountsSearchResponse =
-            PostMinorCreditorAccountsSearchResponse.builder().build();
+        MinorCreditorAccountsSearchResponse minorCreditorAccountsSearchResponse = MinorCreditorAccountsSearchResponse
+            .builder().build();
 
+        when(minorCreditorSearchProxy.searchMinorCreditors(any())).thenReturn(minorCreditorAccountsSearchResponse);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
         when(minorCreditorSearchProxy.searchMinorCreditors(any())).thenReturn(postMinorCreditorAccountsSearchResponse);
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
         doNothing().when(minorCreditorSearchRequestValidator).validateAndCheckFeature(any(MinorCreditorSearch.class));
 
         // Act
-        PostMinorCreditorAccountsSearchResponse result =
-            minorCreditorService.searchMinorCreditors(
-                (MinorCreditorSearch.builder().build()));
+        MinorCreditorAccountsSearchResponse result = minorCreditorService
+            .searchMinorCreditors(MinorCreditorSearchRequest.builder().build());
 
         // Assert
         assertNotNull(result);
@@ -86,14 +83,13 @@ class MinorCreditorServiceTest {
     void testGetMinorCreditorAccountHeaderSummary() {
         // Arrange
         long id = 123L;
-        GetMinorCreditorAccountHeaderSummaryResponse response =
-            GetMinorCreditorAccountHeaderSummaryResponse.builder().build();
+        MinorCreditorAccountHeaderSummaryResponse response = new MinorCreditorAccountHeaderSummaryResponse();
 
         when(minorCreditorSearchProxy.getHeaderSummary(id)).thenReturn(response);
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
 
         // Act
-        GetMinorCreditorAccountHeaderSummaryResponse result =
+        MinorCreditorAccountHeaderSummaryResponse result =
             minorCreditorService.getMinorCreditorAccountHeaderSummary(id);
 
         // Assert
@@ -439,7 +435,8 @@ class MinorCreditorServiceTest {
         // Act & Assert
         PermissionNotAllowedException ex = Assertions.assertThrows(
             PermissionNotAllowedException.class,
-            () -> minorCreditorService.searchMinorCreditors(MinorCreditorSearch.builder().build())
+            () -> minorCreditorService.searchMinorCreditors(MinorCreditorSearchRequest
+                .builder().build())
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
     }
@@ -527,7 +524,7 @@ class MinorCreditorServiceTest {
             () -> minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, null)
         );
 
-        assertThat(ex.getPermission()).containsExactly(FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR);
         assertThat(ex.getBusinessUnitId()).isEqualTo(null);
 
     }
@@ -541,6 +538,9 @@ class MinorCreditorServiceTest {
         when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ACCOUNT_MAINTENANCE))
             .thenReturn(true);
         when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.VIEW_CREDITOR_BACS))
+        UserState userState = mock(UserState.class);
+        when(userState.hasBusinessUnitUserWithPermission((short) 10,
+            FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR))
             .thenReturn(true);
         when(userState.getUsername()).thenReturn("test.user@hmcts.net");
         when(userState.getBusinessUnitUserForBusinessUnit((short) 10)).thenReturn(Optional.of(
@@ -570,10 +570,14 @@ class MinorCreditorServiceTest {
     }
 
     @Test
-    void updateMinorCreditorAccount_paymentObjectWithoutHoldPermission_evenWhenHoldUnchanged_throwsPermissionNotAllowed(
+    void updateMinorCreditorAccount_withLegacyPermissionsButWithoutMinorCreditorMaintenance_throwsPermissionNotAllowed(
     ) {
         // Arrange
         UserStateV2 userState = UserStateUtil.permissionUser((short) 10, FinesPermission.ACCOUNT_MAINTENANCE);
+        UserState userState = UserStateUtil.permissionUser((short) 10,
+            FinesPermission.ACCOUNT_MAINTENANCE,
+            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
+            FinesPermission.VIEW_CREDITOR_BACS);
         PatchMinorCreditorAccountRequest request = unchangedHoldPatchRequest();
 
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
@@ -590,12 +594,12 @@ class MinorCreditorServiceTest {
         );
 
         // Assert
-        assertThat(ex.getPermission()).containsExactly(FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
+        assertThat(ex.getPermission()).containsExactly(FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR);
         assertThat(ex.getBusinessUnitId()).isEqualTo((short) 10);
     }
 
     @Test
-    void updateMinorCreditorAccount_viewCreditorBacsPermissionNotAllowed() {
+    void updateMinorCreditorAccount_viewCreditorBacsPermissionNotRequired() {
         // Arrange
         UserStateV2 userState = mock(UserStateV2.class);
         when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD))
@@ -606,33 +610,40 @@ class MinorCreditorServiceTest {
             .thenReturn(false);
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
 
+        UserState userState = UserStateUtil.permissionUser((short) 10,
+            FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         PatchMinorCreditorAccountRequest request = validPatchRequest();
+        when(minorCreditorSearchProxy.updateMinorCreditorAccount(eq(1L), eq(request), eq(BigInteger.ONE), any(),
+            any(), eq((short) 10))).thenReturn(new MinorCreditorAccountResponse());
 
-        // Act & Assert
-        PermissionNotAllowedException ex = Assertions.assertThrows(
-            PermissionNotAllowedException.class,
-            () -> minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "10")
-        );
-        assertThat(ex.getPermission()).containsExactly(FinesPermission.VIEW_CREDITOR_BACS);
-        assertThat(ex.getBusinessUnitId()).isEqualTo((short) 10);
+        // Act
+        minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "10");
+
+        // Assert
+        verify(minorCreditorSearchProxy).updateMinorCreditorAccount(eq(1L), eq(request), eq(BigInteger.ONE), any(),
+            any(), eq((short) 10));
     }
 
     @Test
-    void updateMinorCreditorAccount_paymentObjectWithoutHoldPermission_whenHoldChanges_throwsPermissionNotAllowed() {
+    void updateMinorCreditorAccount_addAndRemovePaymentHoldPermissionNotRequired() {
         // Arrange
+        UserState userState = UserStateUtil.permissionUser((short) 10,
+            FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR);
         UserStateV2 userState = UserStateUtil.permissionUser((short) 10, FinesPermission.ACCOUNT_MAINTENANCE);
         PatchMinorCreditorAccountRequest request = validPatchRequest();
 
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(minorCreditorSearchProxy.updateMinorCreditorAccount(eq(1L), eq(request), eq(BigInteger.ONE), any(),
+            any(), eq((short) 10))).thenReturn(new MinorCreditorAccountResponse());
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
 
-        // Act & Assert
-        PermissionNotAllowedException ex = Assertions.assertThrows(
-            PermissionNotAllowedException.class,
-            () -> minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE,
-                "10")
-        );
-        assertThat(ex.getPermission()).containsExactly(FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD);
-        assertThat(ex.getBusinessUnitId()).isEqualTo((short) 10);
+        // Act
+        minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "10");
+
+        // Assert
+        verify(minorCreditorSearchProxy).updateMinorCreditorAccount(eq(1L), eq(request), eq(BigInteger.ONE), any(),
+            any(), eq((short) 10));
     }
 
     private PatchMinorCreditorAccountRequest validPatchRequest() {

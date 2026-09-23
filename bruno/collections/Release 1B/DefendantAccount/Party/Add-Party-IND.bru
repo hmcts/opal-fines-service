@@ -1,18 +1,17 @@
 meta {
-  name: Add-Party-IND
+  name: Add-Party-Ind
   type: http
-  seq: 4
+  seq: 3
 }
 
 post {
-  url: {{baseURL}}/defendant-accounts/99000000000010/defendant-account-parties
+  url: {{baseURL}}/defendant-accounts/{{defendantAccount_id}}/defendant-account-parties
   body: json
   auth: inherit
 }
 
 headers {
   Business-Unit-Id: 77
-  If-Match: 1
 }
 
 body:json {
@@ -77,7 +76,6 @@ body:json {
       }
     }
   }
-  
 }
 
 settings {

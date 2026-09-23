@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPaymentTermsServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountPaymentTermsService;
@@ -47,11 +47,11 @@ class DefendantAccountPaymentTermsServiceProxyTest extends ProxyTestsBase {
     void testGetPaymentTerms(DefendantAccountPaymentTermsServiceInterface targetService,
                              DefendantAccountPaymentTermsServiceInterface otherService) {
 
-        GetDefendantAccountPaymentTermsResponse expected = new GetDefendantAccountPaymentTermsResponse();
+        DefendantAccountPaymentTermsResponse expected = new DefendantAccountPaymentTermsResponse();
 
         when(targetService.getPaymentTerms(77L)).thenReturn(expected);
 
-        GetDefendantAccountPaymentTermsResponse result = serviceProxy.getPaymentTerms(77L);
+        DefendantAccountPaymentTermsResponse result = serviceProxy.getPaymentTerms(77L);
 
         verify(targetService).getPaymentTerms(77L);
         verifyNoInteractions(otherService);
@@ -78,11 +78,11 @@ class DefendantAccountPaymentTermsServiceProxyTest extends ProxyTestsBase {
     void shouldDelegateGetPaymentTermsToOpalServiceWhenInOpalMode() {
 
         setLegacyMode(false);
-        GetDefendantAccountPaymentTermsResponse expected = new GetDefendantAccountPaymentTermsResponse();
+        DefendantAccountPaymentTermsResponse expected = new DefendantAccountPaymentTermsResponse();
 
         when(opalService.getPaymentTerms(77L)).thenReturn(expected);
 
-        GetDefendantAccountPaymentTermsResponse result = serviceProxy.getPaymentTerms(77L);
+        DefendantAccountPaymentTermsResponse result = serviceProxy.getPaymentTerms(77L);
 
         verify(opalService).getPaymentTerms(77L);
         verifyNoInteractions(legacyService);

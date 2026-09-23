@@ -70,4 +70,13 @@ public class LegacyGetDefendantAccountHeaderSummaryResponse implements ToXmlStri
 
     @XmlElement(name = "has_consolidated_accounts")
     private Boolean hasConsolidatedAccounts;
+
+    @XmlElement(name = "originator_type")
+    private String originatorType;
+
+    @XmlElement(name = "originator_name")
+    private String originatorName;
+
+    @XmlElement(name = "collection_order")
+    private Boolean collectionOrder;
 }

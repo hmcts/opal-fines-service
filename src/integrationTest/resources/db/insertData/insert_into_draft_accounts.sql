@@ -67,7 +67,7 @@ VALUES
         '[
           {
             "username": "opal-test",
-            "status": "Submitted",
+            "status": "Created",
             "status_date": "2025-01-09",
             "reason_text": null
           }
@@ -134,7 +134,7 @@ VALUES
         '[
           {
             "username": "opal-test",
-            "status": "Submitted",
+            "status": "Created",
             "status_date": "2025-01-09",
             "reason_text": null
           }
@@ -201,7 +201,7 @@ VALUES
         '[
           {
             "username": "opal-test",
-            "status": "Submitted",
+            "status": "Created",
             "status_date": "2025-01-09",
             "reason_text": null
           }
@@ -268,7 +268,7 @@ VALUES
         '[
           {
             "username": "opal-test",
-            "status": "Submitted",
+            "status": "Created",
             "status_date": "2025-01-09",
             "reason_text": null
           }
@@ -335,7 +335,7 @@ VALUES
         '[
           {
             "username": "opal-test",
-            "status": "Submitted",
+            "status": "Created",
             "status_date": "2025-01-09",
             "reason_text": null
           }
@@ -402,7 +402,7 @@ VALUES
         '[
           {
             "username": "opal-test",
-            "status": "Submitted",
+            "status": "Created",
             "status_date": "2025-01-09",
             "reason_text": null
           }
@@ -469,7 +469,7 @@ VALUES
     '[
         {
            "username": "opal-test",
-           "status": "Submitted",
+           "status": "Created",
            "status_date": "2025-01-09",
            "reason_text": null
         }
@@ -812,7 +812,7 @@ VALUES
     '[
         {
            "username": "opal-test",
-           "status": "Submitted",
+           "status": "Created",
            "status_date": "2025-01-09",
            "reason_text": null
         }
@@ -1496,7 +1496,7 @@ INSERT INTO draft_accounts (
              '[
                {
                  "username": "opal-test",
-                 "status": "Submitted",
+                 "status": "Created",
                  "status_date": "2025-01-09",
                  "reason_text": null
                }
@@ -1801,7 +1801,7 @@ INSERT INTO draft_accounts (
              '[
                {
                  "username": "opal-test",
-                 "status": "Submitted",
+                 "status": "Created",
                  "status_date": "2025-01-09",
                  "reason_text": null
                }
@@ -2088,7 +2088,7 @@ INSERT INTO draft_accounts (
              '[
                {
                  "username": "opal-test",
-                 "status": "Submitted",
+                 "status": "Created",
                  "status_date": "2025-01-09",
                  "reason_text": null
                }

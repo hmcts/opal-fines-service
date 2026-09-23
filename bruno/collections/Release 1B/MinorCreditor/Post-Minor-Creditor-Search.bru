@@ -1,0 +1,29 @@
+meta {
+  name: Post-Minor-Creditor-Search
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseURL}}/minor-creditor-accounts/search
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "active_accounts_only": "",
+    "business_unit_ids": "",
+    "account_number": "",
+    "creditor": ""
+  }
+}
+
+vars:pre-request {
+  baseURL: http://localhost:4550
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

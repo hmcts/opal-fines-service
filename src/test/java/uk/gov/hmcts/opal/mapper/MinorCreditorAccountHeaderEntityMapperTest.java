@@ -8,19 +8,18 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
-import uk.gov.hmcts.opal.dto.common.CreditorAccountTypeReference;
-import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.entity.PartyEntity;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
+import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.mapper.common.BusinessUnitSummaryMapper;
-import uk.gov.hmcts.opal.mapper.common.CreditorAccountTypeMapper;
 import uk.gov.hmcts.opal.mapper.common.PartyMapper;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
@@ -38,17 +37,15 @@ class MinorCreditorAccountHeaderEntityMapperTest extends AbstractMapperTest {
     private BusinessUnitSummaryMapper businessUnitSummaryMapper;
 
     @MockitoBean
-    private CreditorAccountTypeMapper creditorAccountTypeMapper;
-
-    @MockitoBean
     private EnforcementRepositoryService enforcementService;
 
     @MockitoBean
     private DebtorDetailRepositoryService debtorService;
 
 
-    @Test
-    void givenFullEntity_whenToResponse_thenMapsExpectedFieldsAndCallsSubmappers() {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void givenFullEntity_whenToResponse_thenMapsExpectedFieldsAndCallsSubmappers(boolean repayment) {
         // Arrange
         MinorCreditorAccountHeaderEntity entity = MinorCreditorAccountHeaderEntity.builder()
             .creditorAccountId(101L)
@@ -65,19 +62,19 @@ class MinorCreditorAccountHeaderEntityMapperTest extends AbstractMapperTest {
             .awaitingPayment(new BigDecimal("1.00"))
             .outstanding(BigDecimal.ZERO)
             .hasAssociatedDefendant(true)
+            .repayment(repayment)
             .build();
 
         PartyEntity party = PartyEntity.builder()
             .partyId(999L)
             .build();
 
-        when(partyMapper.toDto(party)).thenReturn(PartyDetails.builder().build());
-        when(businessUnitSummaryMapper.toBusinessUnitSummary(entity)).thenReturn(BusinessUnitSummary.builder().build());
-        when(creditorAccountTypeMapper.toDto(entity.getCreditorAccountType()))
-            .thenReturn(CreditorAccountTypeReference.builder().build());
+        when(partyMapper.toPartyDetailsCommon(party)).thenReturn(new PartyDetailsCommon());
+        when(businessUnitSummaryMapper.toBusinessUnitSummaryCommon(entity)).thenReturn(
+            new BusinessUnitSummaryCommon());
 
         // Act
-        GetMinorCreditorAccountHeaderSummaryResponse mapped = mapper.toResponse(entity, party);
+        MinorCreditorAccountHeaderSummaryResponse mapped = mapper.toResponse(entity, party);
 
         // Assert
         assertNotNull(mapped);
@@ -89,10 +86,10 @@ class MinorCreditorAccountHeaderEntityMapperTest extends AbstractMapperTest {
         assertEquals(new BigDecimal("2.00"), mapped.getFinancials().getPaidOut());
         assertEquals(new BigDecimal("1.00"), mapped.getFinancials().getAwaitingPayout());
         assertEquals(BigDecimal.ZERO, mapped.getFinancials().getOutstanding());
+        assertEquals(repayment, mapped.getRepayment());
 
 
-        verify(partyMapper).toDto(party);
-        verify(businessUnitSummaryMapper).toBusinessUnitSummary(entity);
-        verify(creditorAccountTypeMapper).toDto(entity.getCreditorAccountType());
+        verify(partyMapper).toPartyDetailsCommon(party);
+        verify(businessUnitSummaryMapper).toBusinessUnitSummaryCommon(entity);
     }
 }

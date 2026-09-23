@@ -5,14 +5,15 @@ import jakarta.jms.Message;
 import jakarta.jms.TextMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j(topic = "opal.InterfaceJobQueueListener")
-@ConditionalOnProperty(prefix = "opal.interface-jobs.service-bus", name = "consumer-enabled", havingValue = "true")
+@ConditionalOnExpression("${opal.interface-jobs.service-bus.consumer-enabled} == true "
+    + "and '${opal.automated-task:}' == ''")
 public class InterfaceJobQueueListener {
 
     private final InterfaceJobQueueConsumerService consumer;

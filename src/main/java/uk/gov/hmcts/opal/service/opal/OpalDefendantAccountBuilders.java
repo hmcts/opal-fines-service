@@ -19,7 +19,6 @@ import java.util.stream.StreamSupport;
 import org.openapitools.jackson.nullable.JsonNullable;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
@@ -36,7 +35,6 @@ import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverrideResult;
 import uk.gov.hmcts.opal.dto.common.EnforcementStatusSummary;
 import uk.gov.hmcts.opal.dto.common.Enforcer;
-import uk.gov.hmcts.opal.dto.common.FixedPenaltyTicketDetails;
 import uk.gov.hmcts.opal.dto.common.IndividualAlias;
 import uk.gov.hmcts.opal.dto.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
@@ -52,7 +50,6 @@ import uk.gov.hmcts.opal.dto.common.PaymentTermsSummary;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails.VehicleDetailsBuilder;
-import uk.gov.hmcts.opal.dto.common.VehicleFixedPenaltyDetails;
 import uk.gov.hmcts.opal.dto.search.AliasDto;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.AliasEntity;
@@ -65,7 +62,6 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
-import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.Language;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
@@ -107,6 +103,7 @@ import uk.gov.hmcts.opal.generated.model.LjaReferenceCommonStrict;
 import uk.gov.hmcts.opal.generated.model.LocalJusticeAreaDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.OrganisationAliasCommon;
 import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PartyContactDetailsDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsSummaryCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsTypeCommonStrict;
@@ -201,13 +198,13 @@ public class OpalDefendantAccountBuilders {
             // Only one of organisationDetails or individualDetails will be populated
             // if organisationFlag is true, then organisationDetails is populated
             .organisationDetails(
-                entity.getOrganisation()
+                Boolean.TRUE.equals(entity.getOrganisation())
                     ? buildOrganisationDetails(entity)
                     : null
             )
             // if organisationFlag is false, then individualDetails is populated
             .individualDetails(
-                !entity.getOrganisation()
+                Boolean.FALSE.equals(entity.getOrganisation())
                     ? buildIndividualDetails(entity)
                     : null
             )
@@ -619,6 +616,18 @@ public class OpalDefendantAccountBuilders {
         }
     }
 
+    static AtAGlanceResponseDefendantAccount.AccountStatusCodeEnum safeAccountStatusCode(
+        DefendantAccountStatus status) {
+        if (status == null) {
+            return null;
+        }
+        try {
+            return AtAGlanceResponseDefendantAccount.AccountStatusCodeEnum.fromValue(status.getCode());
+        } catch (RuntimeException ex) {
+            return null;
+        }
+    }
+
     /**
      * Split a full name into forenames + surname (surname = last token).
      */
@@ -938,6 +947,9 @@ public class OpalDefendantAccountBuilders {
 
     static AtAGlanceResponseDefendantAccount buildAtAGlancePayload(
         DefendantAccountSummaryViewEntity entity) {
+        if (entity == null) {
+            return null;
+        }
 
         return AtAGlanceResponseDefendantAccount.builder()
             .defendantAccountId(entity.getDefendantAccountId().toString())
@@ -951,6 +963,8 @@ public class OpalDefendantAccountBuilders {
             .paymentTerms(toStrictPaymentTerms(buildPaymentTerms(entity)))
             .enforcementStatus(toStrictEnforcementStatus(buildEnforcementStatusSummary(entity)))
             .commentsAndNotes(toStrictCommentsAndNotes(buildCommentsAndNotes(entity)))
+            .accountBalance(entity.getAccountBalance())
+            .accountStatusCode(safeAccountStatusCode(entity.getAccountStatus()))
             .build();
     }
 
@@ -1283,7 +1297,7 @@ public class OpalDefendantAccountBuilders {
     }
 
     public static boolean isNotYouth(PartyEntity party) {
-        return !isYouth(party.getBirthDate().atStartOfDay(), party.getAge());
+        return !isYouth(DateTimeUtils.startOf(party.getBirthDate()), party.getAge());
     }
 
     public static DefendantAccountPartiesEntity filterDefendantParty(DefendantAccountEntity account) {
@@ -1362,13 +1376,13 @@ public class OpalDefendantAccountBuilders {
 
     }
 
-    static void applyPartyCoreReplace(PartyEntity party, PartyDetails details) {
+    static void applyPartyCoreReplace(PartyEntity party, PartyDetailsCommonStrict details) {
 
         Boolean orgFlag = details.getOrganisationFlag();
         party.setOrganisation(orgFlag);
 
         if (orgFlag) {
-            OrganisationDetails od = details.getOrganisationDetails();
+            OrganisationDetailsCommonStrict od = nullableValue(details.getOrganisationDetails());
             if (od != null) {
                 party.setOrganisationName(od.getOrganisationName());
             } else {
@@ -1381,14 +1395,14 @@ public class OpalDefendantAccountBuilders {
             party.setAge(null);
             party.setNiNumber(null);
         } else {
-            IndividualDetails id = details.getIndividualDetails();
+            IndividualDetailsCommonStrict id = nullableValue(details.getIndividualDetails());
             if (id != null) {
-                party.setTitle(id.getTitle());
-                party.setForenames(id.getForenames());
+                party.setTitle(nullableValue(id.getTitle()));
+                party.setForenames(nullableValue(id.getForenames()));
                 party.setSurname(id.getSurname());
-                party.setBirthDate(safeParseLocalDate(id.getDateOfBirth()));
-                party.setAge(safeParseShort(id.getAge()));
-                party.setNiNumber(id.getNationalInsuranceNumber());
+                party.setBirthDate(safeParseLocalDate(nullableValue(id.getDateOfBirth())));
+                party.setAge(safeParseShort(nullableValue(id.getAge())));
+                party.setNiNumber(nullableValue(id.getNationalInsuranceNumber()));
             } else {
                 party.setTitle(null);
                 party.setForenames(null);
@@ -1401,7 +1415,7 @@ public class OpalDefendantAccountBuilders {
         }
     }
 
-    static void applyPartyAddressReplace(PartyEntity party, AddressDetails a) {
+    static void applyPartyAddressReplace(PartyEntity party, AddressDetailsCommonStrict a) {
         if (a == null) {
             party.setAddressLine1(null);
             party.setAddressLine2(null);
@@ -1412,14 +1426,14 @@ public class OpalDefendantAccountBuilders {
             return;
         }
         party.setAddressLine1(a.getAddressLine1());
-        party.setAddressLine2(a.getAddressLine2());
-        party.setAddressLine3(a.getAddressLine3());
-        party.setAddressLine4(a.getAddressLine4());
-        party.setAddressLine5(a.getAddressLine5());
-        party.setPostcode(a.getPostcode());
+        party.setAddressLine2(nullableValue(a.getAddressLine2()));
+        party.setAddressLine3(nullableValue(a.getAddressLine3()));
+        party.setAddressLine4(nullableValue(a.getAddressLine4()));
+        party.setAddressLine5(nullableValue(a.getAddressLine5()));
+        party.setPostcode(nullableValue(a.getPostcode()));
     }
 
-    static void applyPartyContactReplace(PartyEntity party, ContactDetails c) {
+    static void applyPartyContactReplace(PartyEntity party, PartyContactDetailsDefendantAccount c) {
         if (c == null) {
             party.setPrimaryEmailAddress(null);
             party.setSecondaryEmailAddress(null);
@@ -1428,45 +1442,15 @@ public class OpalDefendantAccountBuilders {
             party.setWorkTelephoneNumber(null);
             return;
         }
-        party.setPrimaryEmailAddress(c.getPrimaryEmailAddress());
-        party.setSecondaryEmailAddress(c.getSecondaryEmailAddress());
-        party.setMobileTelephoneNumber(c.getMobileTelephoneNumber());
-        party.setHomeTelephoneNumber(c.getHomeTelephoneNumber());
-        party.setWorkTelephoneNumber(c.getWorkTelephoneNumber());
+        party.setPrimaryEmailAddress(nullableValue(c.getPrimaryEmailAddress()));
+        party.setSecondaryEmailAddress(nullableValue(c.getSecondaryEmailAddress()));
+        party.setMobileTelephoneNumber(nullableValue(c.getMobileTelephoneNumber()));
+        party.setHomeTelephoneNumber(nullableValue(c.getHomeTelephoneNumber()));
+        party.setWorkTelephoneNumber(nullableValue(c.getWorkTelephoneNumber()));
     }
 
-    static GetDefendantAccountFixedPenaltyResponse toFixedPenaltyResponse(
-        DefendantAccountEntity account, FixedPenaltyOffenceEntity offence) {
-
-        boolean isVehicle =
-            offence.getVehicleRegistration() != null
-                && !"NV".equalsIgnoreCase(offence.getVehicleRegistration());
-
-        FixedPenaltyTicketDetails ticketDetails = FixedPenaltyTicketDetails.builder()
-            .issuingAuthority(account.getOriginatorName())
-            .ticketNumber(offence.getTicketNumber())
-            .timeOfOffence(
-                offence.getTimeOfOffence() != null
-                    ? offence.getTimeOfOffence().toString()
-                    : null
-            )
-            .placeOfOffence(offence.getOffenceLocation())
-            .build();
-
-        VehicleFixedPenaltyDetails vehicleDetails = isVehicle
-            ? VehicleFixedPenaltyDetails.builder()
-            .vehicleRegistrationNumber(offence.getVehicleRegistration())
-            .vehicleDriversLicense(offence.getLicenceNumber())
-            .noticeNumber(offence.getNoticeNumber())
-            .dateNoticeIssued(DateTimeUtils.toString(offence.getIssuedDate()))
-            .build()
-            : null;
-        return GetDefendantAccountFixedPenaltyResponse.builder()
-            .vehicleFixedPenaltyFlag(isVehicle)
-            .fixedPenaltyTicketDetails(ticketDetails)
-            .vehicleFixedPenaltyDetails(vehicleDetails)
-            .version(account.getVersion())
-            .build();
+    static <T> T nullableValue(JsonNullable<T> value) {
+        return value == null ? null : value.orElse(null);
     }
 
     record ParsedAlias(

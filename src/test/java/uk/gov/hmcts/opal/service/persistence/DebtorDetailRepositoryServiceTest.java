@@ -13,13 +13,13 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.dto.common.AddressDetails;
-import uk.gov.hmcts.opal.dto.common.EmployerDetails;
-import uk.gov.hmcts.opal.dto.common.LanguagePreference;
-import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
-import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.Language;
+import uk.gov.hmcts.opal.generated.model.AddressDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.LanguagePreferenceCommonStrict;
+import uk.gov.hmcts.opal.generated.model.LanguagePreferencesCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PartyEmployerDetailsDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PartyVehicleDetailsDefendantAccount;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -258,16 +258,16 @@ class DebtorDetailRepositoryServiceTest {
     // builder helpers
     // ─────────────────────────────────────────────────────────────────────────
 
-    private VehicleDetails vehicle(String makeAndModel, String registration) {
-        return VehicleDetails.builder()
+    private PartyVehicleDetailsDefendantAccount vehicle(String makeAndModel, String registration) {
+        return PartyVehicleDetailsDefendantAccount.builder()
             .vehicleMakeAndModel(makeAndModel)
             .vehicleRegistration(registration)
             .build();
     }
 
-    private EmployerDetails employer(String name, String ref, String email, String telephone,
-        AddressDetails employerAddress) {
-        return EmployerDetails.builder()
+    private PartyEmployerDetailsDefendantAccount employer(String name, String ref, String email, String telephone,
+        AddressDetailsCommonStrict employerAddress) {
+        return PartyEmployerDetailsDefendantAccount.builder()
             .employerName(name)
             .employerReference(ref)
             .employerEmailAddress(email)
@@ -276,9 +276,9 @@ class DebtorDetailRepositoryServiceTest {
             .build();
     }
 
-    private AddressDetails address(String line1, String line2, String line3, String line4, String line5,
+    private AddressDetailsCommonStrict address(String line1, String line2, String line3, String line4, String line5,
         String postcode) {
-        return AddressDetails.builder()
+        return AddressDetailsCommonStrict.builder()
             .addressLine1(line1)
             .addressLine2(line2)
             .addressLine3(line3)
@@ -288,11 +288,19 @@ class DebtorDetailRepositoryServiceTest {
             .build();
     }
 
-    private LanguagePreferences languagePreferences(String documentCode, String hearingCode) {
-        return LanguagePreferences.builder()
-            .documentLanguagePreference(LanguagePreference.fromCode(documentCode))
-            .hearingLanguagePreference(LanguagePreference.fromCode(hearingCode))
+    private LanguagePreferencesCommonStrict languagePreferences(String documentCode, String hearingCode) {
+        return LanguagePreferencesCommonStrict.builder()
+            .documentLanguagePreference(languagePreference(documentCode))
+            .hearingLanguagePreference(languagePreference(hearingCode))
+            .build();
+    }
+
+    private LanguagePreferenceCommonStrict languagePreference(String languageCode) {
+        return LanguagePreferenceCommonStrict.builder()
+            .languageCode(LanguagePreferenceCommonStrict.LanguageCodeEnum.fromValue(languageCode))
+            .languageDisplayName("CY".equals(languageCode)
+                ? LanguagePreferenceCommonStrict.LanguageDisplayNameEnum.WELSH_AND_ENGLISH
+                : LanguagePreferenceCommonStrict.LanguageDisplayNameEnum.ENGLISH_ONLY)
             .build();
     }
 }
-

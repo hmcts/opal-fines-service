@@ -14,8 +14,16 @@ vars:pre-request {
   baseURL: http://localhost:4550
 }
 
+params:query {
+  result_ids:
+  active:
+  manual_enforcement_only:
+  generates_hearing:
+  enforcement:
+  enforcement_override:
+}
+
 settings {
   encodeUrl: true
   timeout: 0
 }
-

@@ -127,7 +127,7 @@ VALUES (
     'SUBMITTED',
     $$[
       {
-        "status": "Submitted",
+        "status": "Created",
         "username": "SUBMITTER",
         "reason_text": null,
         "status_date": "2026-06-22"

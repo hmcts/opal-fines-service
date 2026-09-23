@@ -31,8 +31,6 @@ public class DefendantAccountSearchFeatureToggleStepDef extends BaseStepDef {
     private static final String REVIEWING_USER = "opal-test-10@dev.platform.hmcts.net";
     private static final String DEFAULT_ACCOUNT_FIXTURE = "draftAccounts/accountJson/adultAccount.json";
     private static final String DEFAULT_BUSINESS_UNIT_ID = "77";
-    private static final String DEFAULT_SUBMITTED_BY = "DEFENF001";
-    private static final String DEFAULT_SUBMITTED_BY_NAME = "Laura Clerk";
     private static final String SEARCH_URL = "/defendant-accounts/search";
 
     private final DraftAccountActions draftAccountActions = new DraftAccountActions();
@@ -157,8 +155,6 @@ public class DefendantAccountSearchFeatureToggleStepDef extends BaseStepDef {
     private JSONObject buildDraftAccountCreateRequest() throws JSONException, IOException {
         JSONObject requestBody = new JSONObject();
         requestBody.put("business_unit_id", Long.parseLong(businessUnitId));
-        requestBody.put("submitted_by", DEFAULT_SUBMITTED_BY);
-        requestBody.put("submitted_by_name", DEFAULT_SUBMITTED_BY_NAME);
         requestBody.put("account_type", "Fine");
         requestBody.put("account_status", JSONObject.NULL);
         requestBody.put("account", buildUniqueAccountFixture());
@@ -198,7 +194,6 @@ public class DefendantAccountSearchFeatureToggleStepDef extends BaseStepDef {
         Map<String, String> patchData = new LinkedHashMap<>();
         patchData.put("business_unit_id", businessUnitId);
         patchData.put("account_status", "Publishing Pending");
-        patchData.put("validated_by", DEFAULT_SUBMITTED_BY + "_REVIEWER");
         patchData.put("If-Match", "0");
         return patchData;
     }

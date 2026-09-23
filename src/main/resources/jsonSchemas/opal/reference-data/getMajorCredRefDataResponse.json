@@ -16,6 +16,7 @@
   },
   "$defs": {
     "major_creditor": {
+      "type": "object",
       "properties": {
         "creditor_account_id": {
           "type": "integer",
@@ -31,15 +32,19 @@
           "type": "string",
           "description": "The account number"
         },
-         "creditor_account_type": {
+        "creditor_account_type": {
           "type": "string",
           "description": "The creditor account type"
         },
-         "repayment": {
+        "repayment": {
           "type": "boolean",
           "description": "The repayment flag"
         },
-         "hold_payout": {
+        "from_suspense": {
+          "type": "boolean",
+          "description": "The from suspense flag (pre R1B field)"
+        },
+        "hold_payout": {
           "type": "boolean",
           "description": "The hold payout flag"
         },
@@ -73,19 +78,40 @@
         "prosecution_service": {
           "type": "boolean",
           "description": "The prosecution service"
+        }
+      },
+      "required": [
+        "creditor_account_id",
+        "business_unit_id",
+        "account_number",
+        "creditor_account_type",
+        "hold_payout",
+        "major_creditor_id",
+        "name",
+        "prosecution_service"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "repayment"
+          ],
+          "not": {
+            "required": [
+              "from_suspense"
+            ]
+          }
         },
-        "required": [
-          "creditor_account_id",
-          "business_unit_id",
-          "account_number",
-          "creditor_account_type",
-          "repayment",
-          "hold_payout",
-          "major_creditor_id",
-          "name",
-          "prosecution_service"
-        ]
-      }
+        {
+          "required": [
+            "from_suspense"
+          ],
+          "not": {
+            "required": [
+              "repayment"
+            ]
+          }
+        }
+      ]
     }
   }
 }

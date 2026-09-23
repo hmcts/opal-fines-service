@@ -8,6 +8,7 @@ import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
 @Mapper(componentModel = "spring")
 public interface MajorCreditorMapper {
 
+    @Mapping(ignore = true, target = "fromSuspense")
     @Mapping(source = "creditorAccountEntity.creditorAccountId", target = "creditorAccountId")
     @Mapping(source = "creditorAccountEntity.accountNumber", target = "accountNumber") // if you fixed the typo
     @Mapping(source = "creditorAccountEntity.creditorAccountType", target = "creditorAccountType")

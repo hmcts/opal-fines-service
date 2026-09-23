@@ -37,7 +37,7 @@ public class LanguagePreferences implements ToXmlString {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class DocumentLanguagePreference {
 
-        @XmlElement(name = "document_language_code")
+        @XmlElement(name = "language_code")
         private String documentLanguageCode;
 
         @XmlElement(name = "document_language_display_name")
@@ -53,7 +53,7 @@ public class LanguagePreferences implements ToXmlString {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class HearingLanguagePreference {
 
-        @XmlElement(name = "hearing_language_code")
+        @XmlElement(name = "language_code")
         private String hearingLanguageCode;
 
         @XmlElement(name = "hearing_language_display_name")

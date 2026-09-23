@@ -69,6 +69,7 @@
         "national_insurance_number": { "type": ["string", "null"] },
         "parent_guardian_surname": { "type": ["string", "null"] },
         "parent_guardian_firstnames": { "type": ["string", "null"] },
+        "collection_order": { "type": ["boolean", "null"] },
         "has_collection_order": { "type": ["boolean", "null"] },
         "account_version": { "type": ["integer", "null"] },
         "checks": {

@@ -1,21 +1,25 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_ENABLED_PROPERTY;
 
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -30,19 +34,43 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddPaymentTermsRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount.AccountStatusCodeEnum;
+import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount.DebtorTypeEnum;
 import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchReferenceNumberDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
+import uk.gov.hmcts.opal.generated.model.FixedPenaltyTicketDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse;
+import uk.gov.hmcts.opal.generated.model.FixedPenaltyTicketDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
+import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.GetPaymentTermsResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.VehicleFixedPenaltyDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.ReplacePartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.VehicleFixedPenaltyDetailsCommonStrict;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
+import uk.gov.hmcts.opal.mapper.request.ReplacePartyRequestMapper;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
+import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
+import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
+import uk.gov.hmcts.opal.service.DefendantAccountService;
+import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
+import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
+import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.ImpositionService;
 
@@ -56,10 +84,22 @@ class DefendantAccountApiControllerTest {
     private ImpositionService impositionService;
 
     @Mock
+    private DefendantAccountHistoryResponseMapper defendantAccountHistoryResponseMapper;
+
+    @Mock
+    private DefendantAccountPartyService defendantAccountPartyService;
+
+    @Mock
+    private ReplacePartyRequestMapper replacePartyRequestMapper;
+
+    @Mock
     private DefendantAccountEnforcementService defendantAccountEnforcementService;
 
     @Mock
-    private DefendantAccountHistoryResponseMapper defendantAccountHistoryResponseMapper;
+    private DefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
+
+    @Mock
+    private DefendantAccountFixedPenaltyService defendantAccountFixedPenaltyService;
 
     @InjectMocks
     private DefendantAccountApiController defendantAccountApiController;
@@ -84,6 +124,40 @@ class DefendantAccountApiControllerTest {
             () -> assertEquals(BigInteger.ONE, response.getBody().getVersion()),
             () -> assertSame(mappedResponse, response.getBody()),
             () -> verify(defendantAccountEnforcementService).addEnforcement(1L, (short) 77, "1", request)
+        );
+    }
+
+    @Test
+    void given_validRequest_when_getDefendantAccountFixedPenalty_then_returnsOkResponseWithEtag() {
+        Long defendantAccountId = 77L;
+        GetDefendantAccountFixedPenaltyResponse serviceResponse = GetDefendantAccountFixedPenaltyResponse.builder()
+            .vehicleFixedPenaltyFlag(true)
+            .fixedPenaltyTicketDetails(FixedPenaltyTicketDetailsCommonStrict.builder()
+                .issuingAuthority("Kingston-upon-Thames Mags Court")
+                .ticketNumber("888")
+                .timeOfOffence("12:34")
+                .placeOfOffence("London")
+                .build())
+            .vehicleFixedPenaltyDetails(VehicleFixedPenaltyDetailsCommonStrict.builder()
+                .vehicleRegistrationNumber("AB12CDE")
+                .vehicleDriversLicense("DOE1234567")
+                .noticeNumber("PN98765")
+                .dateNoticeIssued(LocalDate.of(2024, 1, 1))
+                .build())
+            .version(BigInteger.valueOf(12))
+            .build();
+        when(defendantAccountFixedPenaltyService.getDefendantAccountFixedPenalty(defendantAccountId))
+            .thenReturn(serviceResponse);
+
+        ResponseEntity<GetDefendantAccountFixedPenaltyResponse> response =
+            defendantAccountApiController.getDefendantAccountFixedPenalty(defendantAccountId);
+
+        assertAll(
+            () -> assertEquals(HttpStatus.OK, response.getStatusCode()),
+            () -> assertEquals("\"12\"", response.getHeaders().getETag()),
+            () -> assertSame(serviceResponse, response.getBody()),
+            () -> verify(defendantAccountFixedPenaltyService)
+                .getDefendantAccountFixedPenalty(defendantAccountId)
         );
     }
 
@@ -195,6 +269,83 @@ class DefendantAccountApiControllerTest {
     }
 
     @Test
+    void given_validRequest_when_getDefendantAccountParty_then_returnsMappedResponseWithEtag() {
+        Long defendantAccountId = 1L;
+        Long defendantAccountPartyId = 2L;
+        PartyResponseDefendantAccount serviceResponse = PartyResponseDefendantAccount.builder()
+            .version(BigInteger.TEN)
+            .build();
+        when(defendantAccountPartyService.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId))
+            .thenReturn(serviceResponse);
+
+        ResponseEntity<PartyResponseDefendantAccount> response =
+            defendantAccountApiController.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
+
+        assertAll(
+            () -> assertEquals(HttpStatus.OK, response.getStatusCode()),
+            () -> assertEquals("\"10\"", response.getHeaders().getETag()),
+            () -> assertSame(serviceResponse, response.getBody()),
+            () -> verify(defendantAccountPartyService).getDefendantAccountParty(
+                defendantAccountId, defendantAccountPartyId)
+        );
+    }
+
+    @Test
+    void given_validRequest_when_addDefendantAccountParty_then_returnsMappedResponseWithEtag() {
+        Long defendantAccountId = 1L;
+        Short businessUnitId = 10;
+        String ifMatch = "\"3\"";
+        AddPartyRequestDefendantAccount request = AddPartyRequestDefendantAccount.builder().build();
+        PartyResponseDefendantAccount serviceResponse = PartyResponseDefendantAccount.builder()
+            .version(BigInteger.TEN)
+            .build();
+        when(defendantAccountPartyService.addDefendantAccountParty(
+            defendantAccountId, ifMatch, businessUnitId.toString(), request)).thenReturn(serviceResponse);
+
+        ResponseEntity<PartyResponseDefendantAccount> response =
+            defendantAccountApiController.addDefendantAccountParty(
+                defendantAccountId, businessUnitId, request, ifMatch);
+
+        assertAll(
+            () -> assertEquals(HttpStatus.OK, response.getStatusCode()),
+            () -> assertEquals("\"10\"", response.getHeaders().getETag()),
+            () -> assertSame(serviceResponse, response.getBody()),
+            () -> verify(defendantAccountPartyService).addDefendantAccountParty(
+                defendantAccountId, ifMatch, businessUnitId.toString(), request)
+        );
+    }
+
+    @Test
+    void given_validRequest_when_replaceDefendantAccountParty_then_returnsMappedResponseWithEtag() {
+        Long defendantAccountId = 1L;
+        Long defendantAccountPartyId = 2L;
+        Short businessUnitId = 10;
+        String ifMatch = "\"3\"";
+        ReplacePartyRequestDefendantAccount request = ReplacePartyRequestDefendantAccount.builder().build();
+        DefendantAccountParty mappedRequest = DefendantAccountParty.builder().build();
+        PartyResponseDefendantAccount serviceResponse = PartyResponseDefendantAccount.builder()
+            .version(BigInteger.TEN)
+            .build();
+
+        when(defendantAccountPartyService.replaceDefendantAccountParty(
+            defendantAccountId, defendantAccountPartyId, ifMatch, businessUnitId.toString(), mappedRequest))
+            .thenReturn(serviceResponse);
+        when(replacePartyRequestMapper.toDefendantAccountParty(request)).thenReturn(mappedRequest);
+
+        ResponseEntity<PartyResponseDefendantAccount> response =
+            defendantAccountApiController.replaceDefendantAccountParty(
+                defendantAccountId, defendantAccountPartyId, businessUnitId, request, ifMatch);
+
+        assertAll(
+            () -> assertEquals(HttpStatus.OK, response.getStatusCode()),
+            () -> assertEquals("\"10\"", response.getHeaders().getETag()),
+            () -> assertSame(serviceResponse, response.getBody()),
+            () -> verify(defendantAccountPartyService).replaceDefendantAccountParty(
+                defendantAccountId, defendantAccountPartyId, ifMatch, businessUnitId.toString(), mappedRequest)
+        );
+    }
+
+    @Test
     void given_validRequest_when_postDefendantAccountSearch_then_returnsOkResponse() {
         PostDefendantAccountSearchRequestDefendantAccount request =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
@@ -218,6 +369,53 @@ class DefendantAccountApiControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertSame(serviceResponse, response.getBody());
         verify(defendantAccountService).searchDefendantAccounts(request);
+    }
+
+    @Test
+    void given_validRequest_when_removeDefendantAccountParty_then_returnsOkResponseWithEtag() {
+        Long defendantAccountId = 1L;
+        Long defendantAccountPartyId = 10L;
+        Short businessUnitId = 10;
+        String ifMatch = "\"1\"";
+        RemoveDefendantAccountPartyRequestDefendantAccount request =
+            RemoveDefendantAccountPartyRequestDefendantAccount.builder()
+                .defendantAccountPartyId("10")
+                .partyDetails(RemoveDefendantAccountPartyDetailsCommonStrict.builder()
+                    .partyId("10")
+                    .build())
+                .build();
+        RemoveDefendantAccountPartyResponseDefendantAccount serviceResponse =
+            RemoveDefendantAccountPartyResponseDefendantAccount.builder()
+                .defendantAccountPartyId("10")
+                .version(BigInteger.valueOf(2))
+                .build();
+
+        when(defendantAccountPartyService.removeDefendantAccountParty(
+            eq(defendantAccountId),
+            eq(defendantAccountPartyId),
+            eq(businessUnitId),
+            eq(ifMatch),
+            any(RemoveDefendantAccountPartyRequestDefendantAccount.class)))
+            .thenReturn(serviceResponse);
+
+        ResponseEntity<RemoveDefendantAccountPartyResponseDefendantAccount> response =
+            defendantAccountApiController.removeDefendantAccountParty(
+                defendantAccountId, defendantAccountPartyId, businessUnitId, request, ifMatch);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("\"2\"", response.getHeaders().getETag());
+        assertNotNull(response.getBody());
+        assertEquals("10", response.getBody().getDefendantAccountPartyId());
+
+        ArgumentCaptor<RemoveDefendantAccountPartyRequestDefendantAccount> requestCaptor =
+            ArgumentCaptor.forClass(RemoveDefendantAccountPartyRequestDefendantAccount.class);
+        verify(defendantAccountPartyService).removeDefendantAccountParty(
+            eq(defendantAccountId),
+            eq(defendantAccountPartyId),
+            eq(businessUnitId),
+            eq(ifMatch),
+            requestCaptor.capture());
+        assertEquals("10", requestCaptor.getValue().getDefendantAccountPartyId());
     }
 
     @Test
@@ -262,6 +460,26 @@ class DefendantAccountApiControllerTest {
     }
 
     @Test
+    void validRequest_addPaymentTerms_returnsOkResponse() {
+        Long defendantAccountId = 123L;
+        String businessUnitId = "BU_id";
+        String ifMatch = "match";
+        AddPaymentTermsRequestDefendantAccount request = new AddPaymentTermsRequestDefendantAccount();
+        GetPaymentTermsResponseDefendantAccount response = GetPaymentTermsResponseDefendantAccount.builder()
+            .version(BigInteger.ONE).build();
+
+        when(defendantAccountPaymentTermsService.addPaymentTerms(defendantAccountId, businessUnitId, ifMatch, request))
+            .thenReturn(response);
+
+        ResponseEntity<GetPaymentTermsResponseDefendantAccount> responseEntity = defendantAccountApiController
+            .addPaymentTerms(defendantAccountId, businessUnitId, request, ifMatch);
+
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertSame(response, responseEntity.getBody());
+        assertEquals("\"" + BigInteger.ONE + "\"", responseEntity.getHeaders().getETag());
+    }
+
+    @Test
     void given_validRequest_when_getDefendantAccountHeaderSummary_then_returnsOkResponse() {
         Long defendantId = 1L;
         GetDefendantAccountHeaderSummary200Response summaryResponse =
@@ -303,6 +521,35 @@ class DefendantAccountApiControllerTest {
         assertSame(serviceResponse, response.getBody());
         verify(defendantAccountEnforcementService).removeEnforcementHold(
             defendantAccountId, businessUnitId, ifMatch, request);
+    }
+
+    @Test
+    void getDefendantAccountAtAGlance_returnsAtAGlanceResponseWithAccountBalanceAndStatus() {
+        Long defendantAccountId = 1234L;
+        AtAGlanceResponseDefendantAccount payload = AtAGlanceResponseDefendantAccount.builder()
+            .defendantAccountId("1234")
+            .accountNumber("5678")
+            .accountBalance(new BigDecimal("100.00"))
+            .accountStatusCode(AccountStatusCodeEnum.C)
+            .accountStatusName("Status Name")
+            .debtorType(DebtorTypeEnum.DEFENDANT)
+            .isYouth(true)
+            .build();
+        GetDefendantAccountAtAGlanceResponse response = GetDefendantAccountAtAGlanceResponse.builder()
+            .payload(payload)
+            .version(BigInteger.ONE)
+            .build();
+
+        when(defendantAccountService.getAtAGlance(defendantAccountId)).thenReturn(response);
+
+        ResponseEntity<AtAGlanceResponseDefendantAccount> atAGlanceResponse = defendantAccountApiController
+            .getDefendantAccountAtAGlance(defendantAccountId);
+
+        assertEquals(HttpStatus.OK, atAGlanceResponse.getStatusCode());
+        assertEquals("\"1\"", atAGlanceResponse.getHeaders().getETag());
+        assertSame(payload, atAGlanceResponse.getBody());
+
+        verify(defendantAccountService).getAtAGlance(defendantAccountId);
     }
 
 }

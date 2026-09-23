@@ -25,6 +25,15 @@ class FinesPermissionTest {
     }
 
     @Test
+    void whenMinorCreditorMaintenancePermissionRequested_returnsMappedPermission_happyPath() {
+        Permission permission = FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR.toCommonPermission();
+
+        assertAll(
+            () -> assertEquals(20L, permission.getPermissionId()),
+            () -> assertEquals("Account Maintenance - Minor Creditor", permission.getPermissionName()));
+    }
+
+    @Test
     void whenDraftAccountPermissionsRequested_returnsStableOrder_happyPath() {
         assertArrayEquals(
             new FinesPermission[] {
@@ -32,6 +41,26 @@ class FinesPermissionTest {
                 FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS
             },
             FinesPermission.draftAccountPermissions()
+        );
+    }
+
+    @Test
+    void whenOperationalReportPermissionsRequested_returnsConfiguredMetadata_happyPath() {
+        assertAll(
+            () -> assertAll(
+                () -> assertEquals(18L, FinesPermission.OPERATIONAL_REPORT_BY_ENFORCEMENT.getId()),
+                () -> assertEquals(
+                    "Operational report (by enforcement)",
+                    FinesPermission.OPERATIONAL_REPORT_BY_ENFORCEMENT.getDescription()
+                )
+            ),
+            () -> assertAll(
+                () -> assertEquals(19L, FinesPermission.OPERATIONAL_REPORT_BY_PAYMENTS.getId()),
+                () -> assertEquals(
+                    "Operational report (by payment)",
+                    FinesPermission.OPERATIONAL_REPORT_BY_PAYMENTS.getDescription()
+                )
+            )
         );
     }
 

@@ -3,6 +3,8 @@ package uk.gov.hmcts.opal.controllers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -20,8 +22,12 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.generated.model.GetMinorCreditorHistory200Response;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.service.MinorCreditorService;
 
@@ -133,5 +139,50 @@ class MinorCreditorApiControllerTest {
         assertEquals("\"2\"", result.getHeaders().getETag());
         assertSame(response, result.getBody());
         verify(minorCreditorService).updateMinorCreditorAccount(101L, request, BigInteger.ONE, "77");
+    }
+
+    @Test
+    void testPostMinorCreditorSearch_Success() {
+        // Arrange
+        MinorCreditorAccountsSearchResponse mockResponse = new MinorCreditorAccountsSearchResponse();
+
+        MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
+            .businessUnitIds(List.of((short) 101, (short) 202, (short) 303))
+            .activeAccountsOnly(true)
+            .accountNumber("ACC123456")
+            .creditor(MinorCreditorAccountSearchCreditor.builder().build())
+            .build();
+
+        when(minorCreditorService.searchMinorCreditors(any())).thenReturn(mockResponse);
+
+        // Act
+        ResponseEntity<MinorCreditorAccountsSearchResponse> responseEntity =
+            minorCreditorApiController.postMinorCreditorSearch(search);
+
+        // Assert
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(mockResponse, responseEntity.getBody());
+        verify(minorCreditorService, times(1)).searchMinorCreditors(any());
+    }
+
+    @Test
+    void givenValidRequest_whenGetMinorCreditorAccountHeaderSummary_thenReturnsGeneratedResponseWithEtag() {
+        // Arrange
+        Long minorCreditorAccountId = 1L;
+        MinorCreditorAccountHeaderSummaryResponse response = new MinorCreditorAccountHeaderSummaryResponse();
+        response.setVersion(BigInteger.valueOf(3));
+        when(minorCreditorService.getMinorCreditorAccountHeaderSummary(minorCreditorAccountId))
+            .thenReturn(response);
+
+        // Act
+        ResponseEntity<MinorCreditorAccountHeaderSummaryResponse> result =
+            minorCreditorApiController.getMinorCreditorAccountHeaderSummary(minorCreditorAccountId);
+
+        // Assert
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals("\"3\"", result.getHeaders().getETag());
+        assertSame(response, result.getBody());
+        verify(minorCreditorService).getMinorCreditorAccountHeaderSummary(minorCreditorAccountId);
+
     }
 }

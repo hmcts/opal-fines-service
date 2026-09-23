@@ -1,0 +1,20 @@
+NOTICE:  === Cleanup data before tests ===
+NOTICE:  === Data cleanup before tests completed ===
+NOTICE:  === Setting up test data for v_search_defendant_accounts tests ===
+NOTICE:  Test data setup completed: defendant_account_ids are 1 to 10
+NOTICE:  --- Running test Scenario 1 ---
+NOTICE:  --- Running test Scenario 2 ---
+NOTICE:  --- Running test Scenario 3 ---
+NOTICE:  --- Running test Scenario 4 ---
+NOTICE:  --- Running test Scenario 5 ---
+NOTICE:  --- Running test Scenario 6 ---
+NOTICE:  --- Running test Scenario 7 ---
+NOTICE:  --- Running test Scenario 8 ---
+NOTICE:  --- Running test Scenario 9 ---
+NOTICE:  --- Running test Scenario 10 ---
+NOTICE:  ALL TESTS COMPLETED AND PASSED: All information retrieved and validated successfully for defendant accounts with all details
+NOTICE:  === Cleaning up test data ===
+NOTICE:  Test data cleanup completed
+DO
+
+Query returned successfully in 1 secs 392 msec.

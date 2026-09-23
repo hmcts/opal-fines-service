@@ -18,6 +18,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -28,7 +29,9 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
@@ -38,6 +41,7 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
+import uk.gov.hmcts.opal.exception.JsonSchemaValidationException.JsonSchemaValidationError;
 import uk.gov.hmcts.opal.exception.MissingMappingTypeException;
 import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
@@ -225,6 +229,44 @@ class GlobalExceptionHandlerTest {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("Bad Request", response.getBody().getTitle());
         assertEquals("The request does not conform to the required JSON schema", response.getBody().getDetail());
+    }
+
+    @Test
+    void handleJsonSchemaValidation_returnsStructuredAdditionalPropertiesProblem() {
+        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleJsonSchemaValidationException(
+            new JsonSchemaValidationException(
+                "validator message",
+                Set.of(new JsonSchemaValidationError("additionalProperties", "submitted_by", "changed message"))
+            )
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Bad Request", response.getBody().getTitle());
+        assertEquals(
+            "Request contains unexpected additional properties: submitted_by",
+            response.getBody().getDetail()
+        );
+    }
+
+    @Test
+    void handleMethodArgumentNotValid_returnsSchemaValidationProblem() throws NoSuchMethodException {
+        Method method = TestRequestValidationClass.class.getMethod("testMethod", String.class);
+        MethodArgumentNotValidException exception = new MethodArgumentNotValidException(
+            new MethodParameter(method, 0), new BeanPropertyBindingResult(new Object(), "request"));
+
+        ResponseEntity<ProblemDetail> response = globalExceptionHandler
+            .handleMethodArgumentNotValidException(exception);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(MediaType.APPLICATION_PROBLEM_JSON, response.getHeaders().getContentType());
+        assertEquals("Bad Request", response.getBody().getTitle());
+        assertEquals("The request does not conform to the required JSON schema", response.getBody().getDetail());
+        assertEquals(URI.create("https://hmcts.gov.uk/problems/json-schema-validation"), response.getBody().getType());
+    }
+
+    static class TestRequestValidationClass {
+        public void testMethod(String request) {
+        }
     }
 
     @Test

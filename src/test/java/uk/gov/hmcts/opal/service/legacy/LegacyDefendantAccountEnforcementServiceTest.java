@@ -40,8 +40,11 @@ import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
+import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
@@ -148,18 +151,16 @@ class LegacyDefendantAccountEnforcementServiceTest {
     }
 
     @Test
-    void addEnforcement_legacyFailure5xx_withEntity_stillReturnsMappedResponse_simple() {
-        AddDefendantAccountEnforcementLegacyResponse legacyResp =
-            mock(AddDefendantAccountEnforcementLegacyResponse.class);
-        when(legacyResp.getEnforcementId()).thenReturn("ENF-500");
-        when(legacyResp.getDefendantAccountId()).thenReturn("500");
-        when(legacyResp.getVersion()).thenReturn(BigInteger.valueOf(5));
+    void addEnforcement_legacyFailure5xx_throws() {
+        AddDefendantAccountEnforcementLegacyResponse legacyResp = AddDefendantAccountEnforcementLegacyResponse
+            .builder()
+            .defendantAccountId("500")
+            .version(BigInteger.valueOf(5))
+            .enforcementId("ENF-500")
+            .build();
 
         GatewayService.Response<AddDefendantAccountEnforcementLegacyResponse> resp =
-            new GatewayService.Response<>(
-                HttpStatus.SERVICE_UNAVAILABLE,
-                legacyResp, "<legacy-failure/>", null
-            );
+            new GatewayService.Response<>(HttpStatus.SERVICE_UNAVAILABLE, legacyResp, "<legacy-failure/>", null);
 
         doReturn(resp).when(gatewayService).postToGateway(
             eq(LegacyDefendantAccountEnforcementService.ADD_ENFORCEMENT),
@@ -169,17 +170,14 @@ class LegacyDefendantAccountEnforcementServiceTest {
         );
 
         // Act
-        AddEnforcementResponseDefendantAccount out =
-            legacyDefendantAccountEnforcementService.addEnforcement(
-                500L,
-                (short) 500, "user-500", "5", null
-            );
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () ->
+            legacyDefendantAccountEnforcementService.addEnforcement(500L, (short) 500,
+                "user-500", "5", null));
 
         // Assert
-        assertNotNull(out);
-        assertEquals("ENF-500", out.getEnforcementId());
-        assertEquals("500", out.getDefendantAccountId());
-        assertEquals(BigInteger.valueOf(5), out.getVersion());
+        assertNotNull(ex);
+        assertEquals(HttpStatus.BAD_GATEWAY, ex.getStatusCode());
+        assertEquals("Legacy exception thrown during addEnforcement", ex.getReason());
     }
 
 
@@ -272,17 +270,22 @@ class LegacyDefendantAccountEnforcementServiceTest {
     }
 
     @Test
-    void addEnforcement_legacyFailure5xx_withEntity_stillReturnsMappedResponse_simpleCoverage() {
+    void addEnforcement_legacyFailure5xx_withEntity_stillThrowsWhenLegacyReturns200WithErrorResponse() {
         // Arrange - legacy 5xx but responseEntity present (exercises legacy-failure logging path)
-        AddDefendantAccountEnforcementLegacyResponse legacyResp =
-            mock(AddDefendantAccountEnforcementLegacyResponse.class);
-        when(legacyResp.getEnforcementId()).thenReturn("ENF-500");
-        when(legacyResp.getDefendantAccountId()).thenReturn("500");
-        when(legacyResp.getVersion()).thenReturn(BigInteger.valueOf(5));
+        AddDefendantAccountEnforcementLegacyResponse legacyResp = AddDefendantAccountEnforcementLegacyResponse
+            .builder()
+            .defendantAccountId("500")
+            .version(BigInteger.valueOf(5))
+            .enforcementId("ENF-500")
+            .errorResponse(ErrorResponse.builder()
+                .errorCode("error-code")
+                .errorMessage("Error message")
+                .build())
+            .build();
 
         GatewayService.Response<AddDefendantAccountEnforcementLegacyResponse> resp =
             new GatewayService.Response<>(
-                HttpStatus.SERVICE_UNAVAILABLE, legacyResp, "<legacy-failure/>",
+                HttpStatus.OK, legacyResp, "<legacy-failure/>",
                 null
             );
 
@@ -294,17 +297,39 @@ class LegacyDefendantAccountEnforcementServiceTest {
         );
 
         // Act
-        AddEnforcementResponseDefendantAccount out =
-            legacyDefendantAccountEnforcementService.addEnforcement(
-                500L, (short) 500,
-                "user-500", "5", null
-            );
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () ->
+            legacyDefendantAccountEnforcementService.addEnforcement(500L, (short) 500,
+                "user-500", "5", null));
 
         // Assert
-        assertNotNull(out);
-        assertEquals("ENF-500", out.getEnforcementId());
-        assertEquals("500", out.getDefendantAccountId());
-        assertEquals(BigInteger.valueOf(5), out.getVersion());
+        assertNotNull(ex);
+        assertEquals(HttpStatus.BAD_GATEWAY, ex.getStatusCode());
+        assertEquals("Legacy exception thrown during addEnforcement", ex.getReason());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void addEnforcement_shouldThrowBadGateway_whenLegacyReturnsUnknownError() {
+        // Arrange
+        Response<AddDefendantAccountEnforcementLegacyResponse> response = mock(Response.class);
+
+        when(response.isError()).thenReturn(true);
+        when(response.isException()).thenReturn(false);
+        when(response.hasErrorResponse()).thenReturn(false);
+        when(response.isLegacyFailure()).thenReturn(false);
+
+        doReturn(response).when(gatewayService)
+            .postToGateway(eq(LegacyDefendantAccountEnforcementService.ADD_ENFORCEMENT),
+                eq(AddDefendantAccountEnforcementLegacyResponse.class), any(), Mockito.nullable(String.class));
+
+        // Act
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () ->
+            legacyDefendantAccountEnforcementService.addEnforcement(500L, (short) 500,
+                "user-500", "5", null));
+
+        // Assert
+        assertEquals(HttpStatus.BAD_GATEWAY, ex.getStatusCode());
+        assertEquals("Unknown error during addEnforcement", ex.getReason());
     }
 
     @Test
@@ -321,16 +346,9 @@ class LegacyDefendantAccountEnforcementServiceTest {
         );
 
         // Act & Assert: calling the public method should throw a NullPointerException inside production code
-        assertThrows(
-            NullPointerException.class, () ->
-                legacyDefendantAccountEnforcementService.addEnforcement(
-                    1L,
-                    (short) 1,
-                    "U",
-                    "1",
-                    null
-                )
-        );
+        assertThrows(ResponseStatusException.class,
+            () -> legacyDefendantAccountEnforcementService.addEnforcement(1L, (short) 1,
+                "U", "1", null));
     }
 
     @Test
@@ -374,6 +392,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
         assertEquals("Arthur", override.getEnforcer().getEnforcerName());
         assertNotNull(override.getLja());
         assertEquals((short) 1, override.getLja().getLjaId());
+        assertEquals("50", override.getLja().getLjaCode());
         assertEquals("England", override.getLja().getLjaName());
 
         EnforcementActionDefendantAccount action = response.getLastEnforcementAction();
@@ -383,6 +402,80 @@ class LegacyDefendantAccountEnforcementServiceTest {
         assertNotNull(action.getEnforcer());
         assertEquals(4L, action.getEnforcer().getEnforcerId());
         assertEquals("Merlin", action.getEnforcer().getEnforcerName());
+        assertNotNull(action.getEnforcementAction());
+        assertEquals("FEE", action.getEnforcementAction().getResultId());
+        assertEquals("Result Ref", action.getEnforcementAction().getResultTitle());
+        assertNotNull(action.getResultResponses());
+        assertNotNull(action.getResultResponses().getFirst());
+        assertEquals("Param Name", action.getResultResponses().getFirst().getParameterName());
+        assertEquals("A response", action.getResultResponses().getFirst().getResponse());
+
+        EnforcementOverviewDefendantAccount overview = response.getEnforcementOverview();
+        assertEquals(6, overview.getDaysInDefault());
+        assertNotNull(overview.getCollectionOrder());
+        assertEquals(true, overview.getCollectionOrder().getCollectionOrderFlag());
+        assertEquals(
+            LocalDate.of(2024, 3, 4),
+            overview.getCollectionOrder().getCollectionOrderDate()
+        );
+        assertNotNull(overview.getEnforcementCourt());
+        assertEquals(3, overview.getEnforcementCourt().getCourtId());
+        assertEquals((short) 123, overview.getEnforcementCourt().getCourtCode());
+        assertEquals("Bath", overview.getEnforcementCourt().getCourtName());
+
+        AccountStatusReferenceCommon statusRef = response.getAccountStatusReference();
+        assertEquals(AccountStatusCodeEnum.L, statusRef.getAccountStatusCode());
+        assertEquals("Alive", statusRef.getAccountStatusDisplayName());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetEnforcementStatus_successNullEnforcerReference() {
+        // Arrange
+        LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
+            createLegacyEnforcementStatusResponse(true);
+        responseBody.getEnforcementOverride().setEnforcer(null);
+        responseBody.getLastEnforcementAction().setEnforcer(null);
+
+        when(restClient.responseSpec
+            .body(Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()))
+            .thenReturn(responseBody);
+
+        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short) 123).build());
+
+        ResponseEntity<String> serverSuccessResponse =
+            new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
+        when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
+
+        // Act
+        EnforcementStatus response = legacyDefendantAccountEnforcementService
+            .getEnforcementStatus(33L);
+
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.getEmployerFlag());
+        assertEquals(new BigInteger("1234567890123456789012345678901234567890"), response.getVersion());
+        assertFalse(response.getIsHmrcCheckEligible());
+        assertNull(response.getNextEnforcementActionData());
+        assertNotNull(response.getEnforcementOverride());
+        assertNotNull(response.getLastEnforcementAction());
+        assertNotNull(response.getEnforcementOverview());
+        assertNotNull(response.getAccountStatusReference());
+
+        EnforcementOverrideCommon override = response.getEnforcementOverride();
+        assertNotNull(override.getEnforcementOverrideResult());
+        assertEquals("AAB", override.getEnforcementOverrideResult().getEnforcementOverrideResultId());
+        assertEquals("AaAaBb", override.getEnforcementOverrideResult().getEnforcementOverrideResultName());
+        assertNull(override.getEnforcer());
+        assertNotNull(override.getLja());
+        assertEquals((short) 1, override.getLja().getLjaId());
+        assertEquals("England", override.getLja().getLjaName());
+
+        EnforcementActionDefendantAccount action = response.getLastEnforcementAction();
+        assertEquals("late", action.getReason());
+        assertEquals("123", action.getWarrantNumber());
+        assertEquals(LocalDateTime.of(2024, 1, 1, 10, 0), action.getDateAdded());
+        assertNull(action.getEnforcer());
         assertNotNull(action.getEnforcementAction());
         assertEquals("FEE", action.getEnforcementAction().getResultId());
         assertEquals("Result Ref", action.getEnforcementAction().getResultTitle());
@@ -449,6 +542,79 @@ class LegacyDefendantAccountEnforcementServiceTest {
         );
         assertNotNull(overview.getEnforcementCourt());
         assertEquals(3, overview.getEnforcementCourt().getCourtId());
+        assertEquals("Bath", overview.getEnforcementCourt().getCourtName());
+
+        AccountStatusReferenceCommon statusRef = response.getAccountStatusReference();
+        assertEquals(AccountStatusCodeEnum.L, statusRef.getAccountStatusCode());
+        assertEquals("Alive", statusRef.getAccountStatusDisplayName());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetEnforcementStatus_successNullLja() {
+        // Arrange
+        LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
+            createLegacyEnforcementStatusResponse(true);
+        responseBody.getEnforcementOverride().setLja(null);
+
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()
+        )).thenReturn(responseBody);
+
+        ResponseEntity<String> serverSuccessResponse = new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
+        when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
+        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short) 123).build());
+
+        // Act
+        EnforcementStatus response = legacyDefendantAccountEnforcementService
+            .getEnforcementStatus(72L);
+
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.getEmployerFlag());
+        assertEquals(new BigInteger("1234567890123456789012345678901234567890"), response.getVersion());
+        assertFalse(response.getIsHmrcCheckEligible());
+        assertNull(response.getNextEnforcementActionData());
+        assertNotNull(response.getEnforcementOverride());
+        assertNotNull(response.getLastEnforcementAction());
+        assertNotNull(response.getEnforcementOverview());
+        assertNotNull(response.getAccountStatusReference());
+
+        EnforcementOverrideCommon override = response.getEnforcementOverride();
+        assertNotNull(override.getEnforcementOverrideResult());
+        assertEquals("AAB", override.getEnforcementOverrideResult().getEnforcementOverrideResultId());
+        assertEquals("AaAaBb", override.getEnforcementOverrideResult().getEnforcementOverrideResultName());
+        assertNotNull(override.getEnforcer());
+        assertEquals(2L, override.getEnforcer().getEnforcerId());
+        assertEquals("Arthur", override.getEnforcer().getEnforcerName());
+        assertNull(override.getLja());
+
+        EnforcementActionDefendantAccount action = response.getLastEnforcementAction();
+        assertEquals("late", action.getReason());
+        assertEquals("123", action.getWarrantNumber());
+        assertEquals(LocalDateTime.of(2024, 1, 1, 10, 0), action.getDateAdded());
+        assertNotNull(action.getEnforcer());
+        assertEquals(4L, action.getEnforcer().getEnforcerId());
+        assertEquals("Merlin", action.getEnforcer().getEnforcerName());
+        assertNotNull(action.getEnforcementAction());
+        assertEquals("FEE", action.getEnforcementAction().getResultId());
+        assertEquals("Result Ref", action.getEnforcementAction().getResultTitle());
+        assertNotNull(action.getResultResponses());
+        assertNotNull(action.getResultResponses().getFirst());
+        assertEquals("Param Name", action.getResultResponses().getFirst().getParameterName());
+        assertEquals("A response", action.getResultResponses().getFirst().getResponse());
+
+        EnforcementOverviewDefendantAccount overview = response.getEnforcementOverview();
+        assertEquals(6, overview.getDaysInDefault());
+        assertNotNull(overview.getCollectionOrder());
+        assertEquals(true, overview.getCollectionOrder().getCollectionOrderFlag());
+        assertEquals(
+            LocalDate.of(2024, 3, 4),
+            overview.getCollectionOrder().getCollectionOrderDate()
+        );
+        assertNotNull(overview.getEnforcementCourt());
+        assertEquals(3, overview.getEnforcementCourt().getCourtId());
+        assertEquals((short) 123, overview.getEnforcementCourt().getCourtCode());
         assertEquals("Bath", overview.getEnforcementCourt().getCourtName());
 
         AccountStatusReferenceCommon statusRef = response.getAccountStatusReference();
@@ -543,7 +709,10 @@ class LegacyDefendantAccountEnforcementServiceTest {
                     .build())
             .enforcementOverride(full ? EnforcementOverride.builder()  // Optional
                 .lja(LjaReference.builder()
-                    .ljaId((short) 1).ljaName("England").build())
+                    .ljaId((short) 1)
+                     .ljaCode("50")
+                     .ljaName("England")
+                     .build())
                 .enforcer(EnforcerReference.builder()
                     .enforcerId(2L).enforcerName("Arthur").build())
                 .enforcementOverrideResult(EnforcementOverrideResultReference.builder()

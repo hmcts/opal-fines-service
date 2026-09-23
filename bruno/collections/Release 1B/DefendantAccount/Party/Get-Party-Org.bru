@@ -1,0 +1,16 @@
+meta {
+  name: Get-Party-Org
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseURL}}/defendant-accounts/{{defendantAccount_idOrg}}/defendant-account-parties/{{defendantAccount_party_idOrg}}
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

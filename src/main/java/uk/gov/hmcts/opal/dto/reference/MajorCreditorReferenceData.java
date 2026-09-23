@@ -52,10 +52,23 @@ public class MajorCreditorReferenceData implements ToJsonString {
     @JsonProperty("repayment")
     private Boolean repayment;
 
+    @JsonProperty("from_suspense")
+    private Boolean fromSuspense;
+
     @JsonProperty("hold_payout")
     private Boolean holdPayout;
 
     @JsonProperty("last_changed_date")
     private LocalDateTime lastChangedDate;
+
+    public MajorCreditorReferenceData useRepaymentFieldName(boolean release1bEnabled) {
+        if (release1bEnabled) {
+            this.fromSuspense = null;
+        } else {
+            this.fromSuspense = this.repayment;
+            this.repayment = null;
+        }
+        return this;
+    }
 
 }

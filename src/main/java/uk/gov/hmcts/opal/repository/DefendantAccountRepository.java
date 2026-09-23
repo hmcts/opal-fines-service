@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -21,6 +22,7 @@ public interface DefendantAccountRepository extends JpaRepository<DefendantAccou
 
     Optional<DefendantAccountEntity> findByDefendantAccountId(Long defendantAccountId);
 
+    @EntityGraph(attributePaths = {"parties", "parties.party"})
     List<DefendantAccountEntity> findAllByDefendantAccountIdIn(List<Long> defendantAccountIds);
 
     @Query("""

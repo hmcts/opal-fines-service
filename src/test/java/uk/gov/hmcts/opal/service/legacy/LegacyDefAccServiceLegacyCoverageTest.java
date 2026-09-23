@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -10,6 +10,7 @@ import java.time.LocalDate;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
@@ -21,7 +22,7 @@ import uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails;
 class LegacyDefAccServiceLegacyCoverageTest extends AbstractLegacyDefAccServiceTest {
 
     @Test
-    void legacy_getHeaderSummary_legacyFailureBranch_logsAndContinues() {
+    void legacy_getHeaderSummary_legacyFailureBranch_logsAndThrowsHttpServerErrorException() {
         LegacyGetDefendantAccountHeaderSummaryResponse entity =
             LegacyGetDefendantAccountHeaderSummaryResponse.builder()
                 .accountNumber("ACC")
@@ -39,10 +40,8 @@ class LegacyDefAccServiceLegacyCoverageTest extends AbstractLegacyDefAccServiceT
             any()
         );
 
-        DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(123L);
-
-        assertNotNull(out);
-        assertEquals("ACC", out.getResponse().getAccountNumber());
+        assertThatThrownBy(() -> legacyDefendantAccountService.getHeaderSummary(123L))
+            .isInstanceOf(HttpServerErrorException.class).hasMessage("500 Legacy gateway returned failure");
     }
 
     @Test

@@ -178,8 +178,9 @@ public class DraftAccountService {
             applySubmittedBy(dto, userState, unitUser);
 
             jsonSchemaValidationService.validateOrError(dto.toJson(), ADD_DRAFT_ACCOUNT_REQUEST_JSON);
-            referenceValidationService.validateReferences(dto.getAccount());
-            DraftAccountEntity entity = draftAccountTransactional.submitDraftAccount(dto);
+            referenceValidationService.validateReferences(dto.getBusinessUnitId(), dto.getAccount());
+            DraftAccountEntity entity = draftAccountTransactional.submitDraftAccount(
+                dto, unitUser.getBusinessUnitUserId(), userState.getDisplayName());
             log.debug(":submitDraftAccount: created in DB: {}", entity);
 
             loggingService.pdplForDraftAccount(entity, Action.SUBMIT, userState);
@@ -204,10 +205,12 @@ public class DraftAccountService {
                                                         FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
             BusinessUnitUserV2 unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());
             applySubmittedBy(dto, userState, unitUser);
+            BusinessUnitUserV2 unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());
             jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
-            referenceValidationService.validateReferences(dto.getAccount());
+            referenceValidationService.validateReferences(dto.getBusinessUnitId(), dto.getAccount());
             DraftAccountEntity replacedEntity = draftAccountTransactional
-                .replaceDraftAccount(draftAccountId, dto, draftAccountTransactional, ifMatch);
+                .replaceDraftAccount(draftAccountId, dto, draftAccountTransactional, ifMatch,
+                                     unitUser.getBusinessUnitUserId(), userState.getDisplayName());
             verifyUpdated(replacedEntity, dto, draftAccountId, "replaceDraftAccount");
             log.debug(":replaceDraftAccount: replaced with version: {}", replacedEntity.getVersion());
 
@@ -234,8 +237,10 @@ public class DraftAccountService {
             }
             jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
             BigInteger updateVersion = extractBigInteger(ifMatch);
+            BusinessUnitUserV2 validator = unitUser.orElseThrow();
             DraftAccountEntity updatedEntity = draftAccountTransactional.updateDraftAccount(draftAccountId, dto,
-                draftAccountTransactional, updateVersion, userState);
+                draftAccountTransactional, updateVersion, userState, validator.getBusinessUnitUserId(),
+                userState.getDisplayName());
             verifyUpdated(updatedEntity, updateVersion, draftAccountId, "updateDraftAccount");
 
             loggingService.pdplForDraftAccount(updatedEntity, Action.RESUBMIT, userState);

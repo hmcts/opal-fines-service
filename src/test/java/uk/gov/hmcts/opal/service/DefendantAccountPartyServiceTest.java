@@ -29,6 +29,13 @@ import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
+import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountPartyServiceProxy;
 
 @ExtendWith(MockitoExtension.class)
@@ -55,7 +62,7 @@ class DefendantAccountPartyServiceTest {
         Long defendantAccountId = 1L;
         Long defendantAccountPartyId = 2L;
 
-        GetDefendantAccountPartyResponse expectedResponse = mock(GetDefendantAccountPartyResponse.class);
+        PartyResponseDefendantAccount expectedResponse = mock(PartyResponseDefendantAccount.class);
 
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
@@ -63,7 +70,7 @@ class DefendantAccountPartyServiceTest {
             .thenReturn(expectedResponse);
 
         // Act
-        GetDefendantAccountPartyResponse actual = defendantAccountPartyService
+        PartyResponseDefendantAccount actual = defendantAccountPartyService
             .getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
 
         // Assert
@@ -106,7 +113,7 @@ class DefendantAccountPartyServiceTest {
         short buId = Short.parseShort(businessUnitId);
 
         DefendantAccountParty request = new DefendantAccountParty();
-        GetDefendantAccountPartyResponse expectedResponse = mock(GetDefendantAccountPartyResponse.class);
+        PartyResponseDefendantAccount expectedResponse = mock(PartyResponseDefendantAccount.class);
 
         BusinessUnitUserV2 buUser = mock(BusinessUnitUserV2.class);
         when(buUser.getBusinessUnitUserId()).thenReturn("b-user-id");
@@ -122,7 +129,7 @@ class DefendantAccountPartyServiceTest {
             .thenReturn(expectedResponse);
 
         // Act
-        GetDefendantAccountPartyResponse actual = defendantAccountPartyService.replaceDefendantAccountParty(
+        PartyResponseDefendantAccount actual = defendantAccountPartyService.replaceDefendantAccountParty(
             defendantAccountId, defendantAccountPartyId, ifMatch, businessUnitId, request
         );
 
@@ -159,8 +166,8 @@ class DefendantAccountPartyServiceTest {
         short buId = Short.parseShort(businessUnitId);
 
         // DTO - constructor should exist
-        AddDefendantAccountPartyRequest request = new AddDefendantAccountPartyRequest();
-        GetDefendantAccountPartyResponse expectedResponse = mock(GetDefendantAccountPartyResponse.class);
+        AddPartyRequestDefendantAccount request = new AddPartyRequestDefendantAccount();
+        PartyResponseDefendantAccount expectedResponse = mock(PartyResponseDefendantAccount.class);
 
         BusinessUnitUserV2 buUser = mock(BusinessUnitUserV2.class);
         when(buUser.getBusinessUnitUserId()).thenReturn("b-user-id");
@@ -172,11 +179,11 @@ class DefendantAccountPartyServiceTest {
 
         when(defendantAccountPartyServiceProxy.addDefendantAccountParty(
             anyLong(), anyString(), anyString(), anyString(), anyString(), anyString(),
-            any(AddDefendantAccountPartyRequest.class)))
+            any(AddPartyRequestDefendantAccount.class)))
             .thenReturn(expectedResponse);
 
         // Act
-        GetDefendantAccountPartyResponse actual = defendantAccountPartyService.addDefendantAccountParty(
+        PartyResponseDefendantAccount actual = defendantAccountPartyService.addDefendantAccountParty(
             defendantAccountId, ifMatch, businessUnitId, request
         );
 
@@ -213,7 +220,7 @@ class DefendantAccountPartyServiceTest {
         short buId = Short.parseShort(businessUnitId);
 
         DefendantAccountParty request = new DefendantAccountParty();
-        GetDefendantAccountPartyResponse expectedResponse = mock(GetDefendantAccountPartyResponse.class);
+        PartyResponseDefendantAccount expectedResponse = mock(PartyResponseDefendantAccount.class);
 
         // No BusinessUnitUser present
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
@@ -228,7 +235,7 @@ class DefendantAccountPartyServiceTest {
             .thenReturn(expectedResponse);
 
         // Act
-        GetDefendantAccountPartyResponse actual = defendantAccountPartyService.replaceDefendantAccountParty(
+        PartyResponseDefendantAccount actual = defendantAccountPartyService.replaceDefendantAccountParty(
             defendantAccountId, defendantAccountPartyId, ifMatch, businessUnitId, request
         );
 
@@ -265,8 +272,8 @@ class DefendantAccountPartyServiceTest {
         String businessUnitId = "7";
         short buId = Short.parseShort(businessUnitId);
 
-        AddDefendantAccountPartyRequest request = new AddDefendantAccountPartyRequest();
-        GetDefendantAccountPartyResponse expectedResponse = mock(GetDefendantAccountPartyResponse.class);
+        AddPartyRequestDefendantAccount request = new AddPartyRequestDefendantAccount();
+        PartyResponseDefendantAccount expectedResponse = mock(PartyResponseDefendantAccount.class);
 
         // No BusinessUnitUser present
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
@@ -277,11 +284,11 @@ class DefendantAccountPartyServiceTest {
 
         when(defendantAccountPartyServiceProxy.addDefendantAccountParty(
             anyLong(), anyString(), anyString(), anyString(), anyString(), anyString(),
-            any(AddDefendantAccountPartyRequest.class)))
+            any(AddPartyRequestDefendantAccount.class)))
             .thenReturn(expectedResponse);
 
         // Act
-        GetDefendantAccountPartyResponse actual = defendantAccountPartyService.addDefendantAccountParty(
+        PartyResponseDefendantAccount actual = defendantAccountPartyService.addDefendantAccountParty(
             defendantAccountId, ifMatch, businessUnitId, request
         );
 
@@ -346,7 +353,7 @@ class DefendantAccountPartyServiceTest {
         String ifMatch = "W/\"X\"";
         Short businessUnitId = 3;
         String stringBusinessUnitId = String.valueOf(businessUnitId);
-        AddDefendantAccountPartyRequest request = new AddDefendantAccountPartyRequest();
+        AddPartyRequestDefendantAccount request = new AddPartyRequestDefendantAccount();
 
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
@@ -374,8 +381,10 @@ class DefendantAccountPartyServiceTest {
         Long defendantAccountPartyId = 44L;
         short businessUnitId = 9;
         String ifMatch = "W/\"3\"";
-        RemoveDefendantAccountPartyRequest request = new RemoveDefendantAccountPartyRequest();
-        RemoveDefendantAccountPartyResponse expectedResponse = mock(RemoveDefendantAccountPartyResponse.class);
+        RemoveDefendantAccountPartyRequestDefendantAccount request =
+            new RemoveDefendantAccountPartyRequestDefendantAccount();
+        RemoveDefendantAccountPartyResponseDefendantAccount expectedResponse =
+            mock(RemoveDefendantAccountPartyResponseDefendantAccount.class);
 
         BusinessUnitUserV2 buUser = mock(BusinessUnitUserV2.class);
         when(buUser.getBusinessUnitUserId()).thenReturn("bu-user-id");
@@ -396,8 +405,9 @@ class DefendantAccountPartyServiceTest {
         )).thenReturn(expectedResponse);
 
         // Act
-        RemoveDefendantAccountPartyResponse actual = defendantAccountPartyService.removeDefendantAccountParty(
-            defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, request);
+        RemoveDefendantAccountPartyResponseDefendantAccount actual =
+            defendantAccountPartyService.removeDefendantAccountParty(
+                defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, request);
 
         // Assert
         assertThat(actual).isSameAs(expectedResponse);
@@ -431,8 +441,10 @@ class DefendantAccountPartyServiceTest {
         Long defendantAccountPartyId = 66L;
         short businessUnitId = 11;
         String ifMatch = "W/\"4\"";
-        RemoveDefendantAccountPartyRequest request = new RemoveDefendantAccountPartyRequest();
-        RemoveDefendantAccountPartyResponse expectedResponse = mock(RemoveDefendantAccountPartyResponse.class);
+        RemoveDefendantAccountPartyRequestDefendantAccount request =
+            new RemoveDefendantAccountPartyRequestDefendantAccount();
+        RemoveDefendantAccountPartyResponseDefendantAccount expectedResponse =
+            mock(RemoveDefendantAccountPartyResponseDefendantAccount.class);
 
         // No BusinessUnitUser present
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
@@ -452,8 +464,9 @@ class DefendantAccountPartyServiceTest {
         )).thenReturn(expectedResponse);
 
         // Act
-        RemoveDefendantAccountPartyResponse actual = defendantAccountPartyService.removeDefendantAccountParty(
-            defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, request);
+        RemoveDefendantAccountPartyResponseDefendantAccount actual =
+            defendantAccountPartyService.removeDefendantAccountParty(
+                defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, request);
 
         // Assert
         assertThat(actual).isSameAs(expectedResponse);
@@ -486,7 +499,8 @@ class DefendantAccountPartyServiceTest {
         Long defendantAccountPartyId = 88L;
         short businessUnitId = 13;
         String ifMatch = "W/\"5\"";
-        RemoveDefendantAccountPartyRequest request = new RemoveDefendantAccountPartyRequest();
+        RemoveDefendantAccountPartyRequestDefendantAccount request =
+            new RemoveDefendantAccountPartyRequestDefendantAccount();
 
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.hasBusinessUnitUserWithPermission(

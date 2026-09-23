@@ -3,16 +3,19 @@
 *
 * MODULE      : delete_from_creditor_accounts.sql
 *
-* DESCRIPTION : Deletes rows of data in CREDITOR ACCOUNTS table for the Integration Tests
+* DESCRIPTION : Cleans up the rows inserted into the creditor_accounts
+*               tables major_creditors for the Integration Tests.
 *
 * VERSION HISTORY:
 *
-* Date         Author      Version    Nature of Change
-* ----------   -------     --------   ----------------------------------------------------------------------------------
-* 11/08/2025   J.SHEEN      1.0        Deletes rows of data into CREDITOR ACCOUNTS table for the Integration Tests
-*
-**/
+* Date        Author      Version  Nature of Change
+* ----------  ----------  -------  -------------------------------------------------------------
+* 05/08/2025  J SHEEN     1.0      PO-2972 Deletes data for major creditors R1B disabled integration test
+*/
 
-DELETE FROM major_creditors WHERE major_creditor_id = 0001;
+DELETE FROM public.creditor_accounts
+WHERE creditor_account_id = 100000000001;
 
-DELETE FROM business_units WHERE business_unit_id = 992;
+DELETE FROM public.major_creditors
+WHERE major_creditor_id = 0001;
+

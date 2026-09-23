@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import uk.gov.hmcts.opal.entity.converter.DefendantAccountStatusConverter;
 import uk.gov.hmcts.opal.entity.converter.DefendantAccountTypeConverter;
+import uk.gov.hmcts.opal.entity.converter.OriginatorTypeConverter;
 
 @Entity
 @Table(name = "v_defendant_accounts_header")
@@ -97,6 +98,17 @@ public class DefendantAccountHeaderViewEntity {
 
     @Column(name = "ticket_number")
     private String fixedPenaltyTicketNumber;
+
+    @Column(name = "originator_type")
+    @ColumnTransformer(read = "originator_type::text")
+    @Convert(converter = OriginatorTypeConverter.class)
+    private OriginatorType originatorType;
+
+    @Column(name = "originator_name")
+    private String originatorName;
+
+    @Column(name = "collection_order")
+    private Boolean collectionOrder;
 
     @Column(name = "parent_guardian_account_party_id")
     private Long parentGuardianAccountPartyId;

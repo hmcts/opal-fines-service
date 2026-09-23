@@ -15,12 +15,6 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UpdateDraftAccountRequestDto implements ToJsonString {
 
-    @JsonProperty("validated_by")
-    private String validatedBy;
-
-    @JsonProperty("validated_by_name")
-    private String validatedByName;
-
     @JsonProperty("business_unit_id")
     private Short businessUnitId;
 

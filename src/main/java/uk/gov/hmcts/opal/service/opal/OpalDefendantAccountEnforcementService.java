@@ -21,6 +21,7 @@ import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.AddPaymentTermsRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementResultResponseDefendantAccount;
 import uk.gov.hmcts.opal.dto.RecordType;
@@ -28,7 +29,6 @@ import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAc
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.mapper.EnforcementPaymentTermsMapper;
-import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
@@ -150,7 +150,7 @@ public class OpalDefendantAccountEnforcementService
                 businessUnitUserId,
                 userState.getUserName(),
                 defendantEntity.getVersion().toString(),
-                AddDefendantAccountPaymentTermsRequest.builder()
+                AddPaymentTermsRequestDefendantAccount.builder()
                     .paymentTerms(enforcementPaymentTermsMapper.toPaymentTerms(enforcementPaymentTerms))
                     .requestPaymentCard(false)
                     .generatePaymentTermsChangeLetter(false)

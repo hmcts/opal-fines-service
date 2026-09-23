@@ -68,6 +68,8 @@ java:
     enabled: false
     image:
       tag: '17.5.0'
+hmcts-redis:
+  enabled: false
 opal-frontend:
   enabled: false
 opal-user-service:
