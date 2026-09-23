@@ -7,7 +7,7 @@ properties([
     booleanParam(name: 'Integration', defaultValue: true, description: 'Run integration tests'),
     booleanParam(name: 'Functional', defaultValue: true, description: 'Run functional tests'),
     booleanParam(name: 'Smoke', defaultValue: true, description: 'Run smoke tests'),
-    choice(name: 'DemoTaggedFunctionalMode', choices: ['RunR1AOnly', 'RunR1AAndR1BDrop1Only', 'RunR1AAndR1BDropsOnly', 'RunR1BOffOnly', 'RunAllFlagsOff'], description: 'Select which demo tagged functional stage to run'),
+    choice(name: 'DemoTaggedFunctionalMode', choices: ['RunR1AAndR1BDrop1Only', 'RunR1AOnly', 'RunR1AAndR1BDropsOnly', 'RunR1BOffOnly', 'RunAllFlagsOff'], description: 'Select which demo tagged functional stage to run'),
     booleanParam(name: 'ZephyrExecution', defaultValue: false, description: 'Create Zephyr Execution'),
   ])
 ])
