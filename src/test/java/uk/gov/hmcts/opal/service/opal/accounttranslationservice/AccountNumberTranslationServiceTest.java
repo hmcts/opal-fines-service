@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.opal;
+package uk.gov.hmcts.opal.service.opal.accounttranslationservice;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -23,15 +23,16 @@ import uk.gov.hmcts.opal.entity.alternatepaymentreference.AlternatePaymentRefere
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.interfacefile.BankDetails;
-import uk.gov.hmcts.opal.entity.interfacefile.DestinationDetails;
-import uk.gov.hmcts.opal.entity.interfacefile.InterfaceFileCommonDataExtract;
-import uk.gov.hmcts.opal.entity.interfacefile.OriginatorDetails;
-import uk.gov.hmcts.opal.entity.interfacefile.PaymentType;
-import uk.gov.hmcts.opal.entity.interfacefile.Transaction;
-import uk.gov.hmcts.opal.entity.interfacefile.TransformedInterfaceFileData;
+import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.BankDetails;
+import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.DestinationDetails;
+import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.InterfaceFileCommonDataExtract;
+import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.OriginatorDetails;
+import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.PaymentType;
+import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.Transaction;
+import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.TransformedInterfaceFileData;
 import uk.gov.hmcts.opal.repository.AlternatePaymentReferenceRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.AccountNumberTranslationService;
 
 @ExtendWith(MockitoExtension.class)
 public class AccountNumberTranslationServiceTest {
@@ -118,7 +119,7 @@ public class AccountNumberTranslationServiceTest {
         verify(defendantAccountRepository, never()).findByAccountNumberAndBusinessUnit_BusinessUnitId(any(), any());
         verify(aprRepository, never()).findByAprText(any());
 
-        assertThat(transformedInterfaceFileData.getTransactions()).isEmpty();
+        assertThat(transformedInterfaceFileData.getTransactions()).hasSize(2);
         assertThat(transformedInterfaceFileData.getTotalAmount()).isEqualTo(1000L);
     }
 
@@ -143,7 +144,7 @@ public class AccountNumberTranslationServiceTest {
         verify(defendantAccountRepository, never()).findByAccountNumberAndBusinessUnit_BusinessUnitId(any(), any());
         verify(aprRepository, never()).findByAprText(any());
 
-        assertThat(transformedInterfaceFileData.getTransactions()).isEmpty();
+        assertThat(transformedInterfaceFileData.getTransactions()).hasSize(2);
         assertThat(transformedInterfaceFileData.getTotalAmount()).isEqualTo(1000L);
     }
 
@@ -177,7 +178,6 @@ public class AccountNumberTranslationServiceTest {
         assertThat(transformedInterfaceFileData.getTotalAmount()).isEqualTo(2500L);
 
         for (int i = 0; i < transformedInterfaceFileData.getTransactions().size(); i++) {
-            // TODO CHECK THESE ARE UDPATED CORRECTLY (AND BU's)
             Transaction transaction = transformedInterfaceFileData.getTransactions().get(i);
             assertThat(transaction.getAmount()).isEqualTo(500L);
             assertThat(transaction.getTransactionCode()).isIn("00", "68", "99");
@@ -215,7 +215,6 @@ public class AccountNumberTranslationServiceTest {
         assertThat(transformedInterfaceFileData.getTotalAmount()).isEqualTo(1500L);
 
         for (int i = 0; i < transformedInterfaceFileData.getTransactions().size(); i++) {
-            // TODO CHECK THESE ARE UDPATED CORRECTLY (AND BU's)
             Transaction transaction = transformedInterfaceFileData.getTransactions().get(i);
             assertThat(transaction.getAmount()).isEqualTo(500L);
             assertThat(transaction.getTransactionCode()).isIn("00", "68", "99");
@@ -256,7 +255,6 @@ public class AccountNumberTranslationServiceTest {
         assertThat(transformedInterfaceFileData.getTotalAmount()).isEqualTo(4000L);
 
         for (int i = 0; i < transformedInterfaceFileData.getTransactions().size(); i++) {
-            // TODO CHECK THESE ARE UDPATED CORRECTLY (AND BU's)
             Transaction transaction = transformedInterfaceFileData.getTransactions().get(i);
             assertThat(transaction.getAmount()).isEqualTo(500L);
             assertThat(transaction.getTransactionCode()).isEqualTo("99");
@@ -294,7 +292,6 @@ public class AccountNumberTranslationServiceTest {
         assertThat(transformedInterfaceFileData.getTotalAmount()).isEqualTo(1000L);
 
         for (int i = 0; i < transformedInterfaceFileData.getTransactions().size(); i++) {
-            // TODO CHECK THESE ARE UDPATED CORRECTLY (AND BU's)
             Transaction transaction = transformedInterfaceFileData.getTransactions().get(i);
             assertThat(transaction.getAmount()).isEqualTo(500L);
             assertThat(transaction.getTransactionCode()).isEqualTo("99");
@@ -335,7 +332,6 @@ public class AccountNumberTranslationServiceTest {
         assertThat(transformedInterfaceFileData.getTotalAmount()).isEqualTo(1500L);
 
         for (int i = 0; i < transformedInterfaceFileData.getTransactions().size(); i++) {
-            // TODO CHECK THESE ARE UDPATED CORRECTLY (AND BU's)
             Transaction transaction = transformedInterfaceFileData.getTransactions().get(i);
             assertThat(transaction.getAmount()).isEqualTo(500L);
             assertThat(transaction.getTransactionCode()).isEqualTo("99");

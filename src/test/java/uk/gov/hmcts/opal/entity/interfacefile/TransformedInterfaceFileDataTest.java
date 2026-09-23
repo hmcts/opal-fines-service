@@ -4,6 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.BankDetails;
+import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.DestinationDetails;
+import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.InterfaceFileCommonDataExtract;
+import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.PaymentType;
+import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.Transaction;
+import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.TransformedInterfaceFileData;
 
 public class TransformedInterfaceFileDataTest {
 
@@ -47,12 +53,12 @@ public class TransformedInterfaceFileDataTest {
 
         TransformedInterfaceFileData transformed = new TransformedInterfaceFileData(parent);
 
-        assertThat(transformed.fileName).isEqualTo(parent.fileName);
-        assertThat(transformed.destinationDetails).isEqualTo(parent.destinationDetails);
-        assertThat(transformed.dwpCourtCode).isEqualTo(parent.dwpCourtCode);
-        assertThat(transformed.paymentType).isEqualTo(parent.paymentType);
+        assertThat(transformed.getFileName()).isEqualTo(parent.getFileName());
+        assertThat(transformed.getDestinationDetails()).isEqualTo(parent.getDestinationDetails());
+        assertThat(transformed.getDwpCourtCode()).isEqualTo(parent.getDwpCourtCode());
+        assertThat(transformed.getPaymentType()).isEqualTo(parent.getPaymentType());
 
-        assertThat(transformed.transactions).isEmpty();
+        assertThat(transformed.getTransactions()).isEmpty();
     }
 
     @Test
@@ -61,11 +67,11 @@ public class TransformedInterfaceFileDataTest {
         Transaction transaction = withTransaction();
 
         TransformedInterfaceFileData transformed = new TransformedInterfaceFileData(parent);
-        assertThat(transformed.transactions).isEmpty();
+        assertThat(transformed.getTransactions()).isEmpty();
         transformed.addTransaction(transaction);
 
-        assertThat(transformed.transactions).isNotEmpty();
-        assertThat(transformed.transactions.getFirst()).isEqualTo(transaction);
+        assertThat(transformed.getTransactions()).isNotEmpty();
+        assertThat(transformed.getTransactions().getFirst()).isEqualTo(transaction);
 
     }
 }

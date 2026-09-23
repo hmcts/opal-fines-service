@@ -1,7 +1,6 @@
-package uk.gov.hmcts.opal.service.opal;
+package uk.gov.hmcts.opal.service.opal.accountnumbertranslation;
 
 import java.util.Optional;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.AllArgsConstructor;
@@ -9,12 +8,12 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.entity.InterfaceFileEntity;
 import uk.gov.hmcts.opal.entity.alternatepaymentreference.AlternatePaymentReferenceEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.interfacefile.BankDetails;
-import uk.gov.hmcts.opal.entity.interfacefile.DestinationDetails;
-import uk.gov.hmcts.opal.entity.interfacefile.InterfaceFileCommonDataExtract;
-import uk.gov.hmcts.opal.entity.interfacefile.OriginatorDetails;
-import uk.gov.hmcts.opal.entity.interfacefile.Transaction;
-import uk.gov.hmcts.opal.entity.interfacefile.TransformedInterfaceFileData;
+import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.BankDetails;
+import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.DestinationDetails;
+import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.InterfaceFileCommonDataExtract;
+import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.OriginatorDetails;
+import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.Transaction;
+import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.TransformedInterfaceFileData;
 import uk.gov.hmcts.opal.repository.AlternatePaymentReferenceRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 
@@ -32,9 +31,9 @@ public class AccountNumberTranslationService {
         TransformedInterfaceFileData transformed = new TransformedInterfaceFileData(interfaceFileCommonDataExtract);
 
         for (Transaction transaction : interfaceFileCommonDataExtract.getTransactions()) {
-            if (isCheque(transaction)) {
-                transformed.setTotalAmount(transformed.getTotalAmount() + transaction.getAmount());
-            } else if (isValidTransaction(transaction)) {
+            if (transaction.isCheque()) {
+                transformed.addTransaction(transaction);
+            } else if (transaction.isValidTransaction()) {
                 if (transaction.getTransactionCode().equals("15") || transaction.getTransactionCode().equals("93")) {
                     transaction.setTransactionCode("99");
                 }
@@ -42,7 +41,6 @@ public class AccountNumberTranslationService {
                 String accountRef = transaction.getOriginatorDetails().getAccountReference();
                 if (isOpalAccountReference(accountRef)) {
                     if (lookUpOpalAccountFromAccountReference(accountRef, businessUnit.getBusinessUnitId())) {
-                        transformed.setTotalAmount(transformed.getTotalAmount() + transaction.getAmount());
                         transformed.addTransaction(transaction);
                         continue;
                     }
@@ -53,7 +51,6 @@ public class AccountNumberTranslationService {
                     if (lookUpOpalAccountFromAccountReference(accountRef, businessUnit.getBusinessUnitId())) {
                         replaceAccountReference(transaction, accountRef);
 
-                        transformed.setTotalAmount(transformed.getTotalAmount() + transaction.getAmount());
                         transformed.addTransaction(transaction);
                         continue;
                     }
@@ -67,7 +64,6 @@ public class AccountNumberTranslationService {
                         removeBankDetails(transformed);
                     }
 
-                    transformed.setTotalAmount(transformed.getTotalAmount() + transaction.getAmount());
                     transformed.addTransaction(transaction);
                     continue;
                 }
@@ -80,7 +76,6 @@ public class AccountNumberTranslationService {
                         removeBankDetails(transformed);
                     }
 
-                    transformed.setTotalAmount(transformed.getTotalAmount() + transaction.getAmount());
                     transformed.addTransaction(transaction);
                 }
 
@@ -103,14 +98,6 @@ public class AccountNumberTranslationService {
         OriginatorDetails originatorDetails = transaction.getOriginatorDetails();
         originatorDetails.setAccountReference(acctRef);
         transaction.setOriginatorDetails(originatorDetails);
-    }
-
-    private boolean isCheque(Transaction transaction) {
-        return transaction.getTransactionCode().equals("11");
-    }
-
-    private boolean isValidTransaction(Transaction transaction) {
-        return Set.of("00", "15", "68", "93", "99").contains(transaction.getTransactionCode());
     }
 
     private boolean isOpalAccountReference(String opalAccountId) {
