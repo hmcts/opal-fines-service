@@ -378,7 +378,9 @@ feignClients.each { client ->
             useLombokAnnotations                : "true",
             generateBuilders                    : "true",
             useFeignClientUrl                   : "true",
-            feign                               : "true"
+            feign                               : "true",
+            useFeignClientContextId             : "false",
+
     ]
   }
 }
