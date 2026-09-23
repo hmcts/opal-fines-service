@@ -27,6 +27,8 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.service.UserStateService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles({"integration"})
 @TestPropertySource(properties = "launchdarkly.default-flag-values.release-1c-payment=true")
@@ -44,6 +46,8 @@ public class CourtFeesApiControllerIntegrationTest extends AbstractIntegrationTe
     UserStateService userStateService;
 
     @Test
+    @JiraStory("PO-3701")
+    @JiraEpic("PO-2660")
     void testGetCourtFees_happyPath() throws Exception {
         mockAuthenticatedUser(BUSINESS_UNIT_ID, true);
 
@@ -63,6 +67,8 @@ public class CourtFeesApiControllerIntegrationTest extends AbstractIntegrationTe
     }
 
     @Test
+    @JiraStory("PO-3701")
+    @JiraEpic("PO-2660")
     void testGretCourtFees_businessUnitNotFound() throws Exception {
         mockMvc.perform(get(URL_BASE).param("business_unit_id", "999"))
             .andExpect(status().isNotFound())
@@ -71,6 +77,8 @@ public class CourtFeesApiControllerIntegrationTest extends AbstractIntegrationTe
     }
 
     @Test
+    @JiraStory("PO-3701")
+    @JiraEpic("PO-2660")
     void testGretCourtFees_notAuthorized() throws Exception {
         mockAuthenticatedUser(BUSINESS_UNIT_ID, false);
 
@@ -79,6 +87,20 @@ public class CourtFeesApiControllerIntegrationTest extends AbstractIntegrationTe
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Forbidden"))
             .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"));
+    }
+
+    @Test
+    @JiraStory("PO-3701")
+    @JiraEpic("PO-2660")
+    void testGetCourtFees_happyPathEmptyList() throws Exception {
+        short businessUnitId = 954;
+        mockAuthenticatedUser(businessUnitId, true);
+
+        mockMvc.perform(get(URL_BASE).param("business_unit_id", String.valueOf(businessUnitId)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.court_fees").isArray())
+            .andExpect(jsonPath("$.court_fees", hasSize(0)));
     }
 
     private void mockAuthenticatedUser(short businessUnitId, boolean authorised) {

@@ -11,10 +11,10 @@ INSERT INTO business_units (
     business_unit_id, business_unit_name, business_unit_code, business_unit_type,
     account_number_prefix, parent_business_unit_id, opal_domain, welsh_language
 )
-VALUES (
-    953, 'Court Fees Business Unit', 'CFBU', 'Area',
-    'CF', NULL, 'Fines', false
-);
+VALUES (953, 'Court Fees Business Unit', 'CFBU', 'Area',
+    'CF', NULL, 'Fines', false),
+    (954, 'BU no court fees', 'NCF', 'Area',
+    'NF', NULL, 'Fines', false);
 
 INSERT INTO court_fees (
     court_fee_id, business_unit_id, court_fee_code, description, amount, stats_code

@@ -36,6 +36,7 @@ class Release1CPaymentFeatureToggleIntegrationTest extends AbstractFeatureToggle
 
     private static final String OUTSTANDING_AUTO_PAYMENT_PATH = "/business-units/outstanding-auto-payment-count";
     private static final String INTERFACE_JOBS_PATH = "/testing-support/interface-jobs";
+    private static final String COURT_FEES_PATH = "/court-fees";
     private static final String DEFENDANT_ACCOUNTS_MASTER_PATH = "/defendant-accounts/%d/master";
     private static final String TILLS_PATH = "/tills";
     private static final String VALID_TILLS_REQUEST = """
@@ -58,6 +59,9 @@ class Release1CPaymentFeatureToggleIntegrationTest extends AbstractFeatureToggle
     static Stream<Arguments> release1cPaymentEndpoints() {
         return Stream.of(
             endpoint("GET " + OUTSTANDING_AUTO_PAYMENT_PATH, get(OUTSTANDING_AUTO_PAYMENT_PATH)),
+            endpoint("DELETE " + INTERFACE_JOBS_PATH, delete(INTERFACE_JOBS_PATH).queryParam("ids", "1")),
+            endpoint("GET " + COURT_FEES_PATH,
+                get(COURT_FEES_PATH).queryParam("business_unit_id", "953")));
             endpoint("DELETE " + INTERFACE_JOBS_PATH, delete(INTERFACE_JOBS_PATH).queryParam("ids", "1")),
             endpoint("GET " + DEFENDANT_ACCOUNTS_MASTER_PATH, get(DEFENDANT_ACCOUNTS_MASTER_PATH.formatted(1))),
             endpoint("DELETE " + INTERFACE_JOBS_PATH, delete(INTERFACE_JOBS_PATH).queryParam("ids", "1")),
