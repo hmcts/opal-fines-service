@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -27,6 +26,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
@@ -38,7 +39,6 @@ import uk.gov.hmcts.opal.dto.search.AliasDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.search.SearchConsolidatedEntity;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount.BasicEntity;
-import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.repository.SearchDefendantBasicRepository;
 import uk.gov.hmcts.opal.repository.SearchDefendantConsolidatedRepository;
 import uk.gov.hmcts.opal.repository.jpa.SearchBasicEntitySpecs;
@@ -340,8 +340,8 @@ class OpalDefendantAccountServiceTest06 {
             .build();
         List<SearchConsolidatedEntity> dbEntities = List.of(entity1, entity2);
 
-        when(searchConsolidatedRepository.findAll(ArgumentMatchers.<Specification<SearchConsolidatedEntity>>any()))
-            .thenReturn(dbEntities);
+        when(searchConsolidatedRepository.findAll(ArgumentMatchers.<Specification<SearchConsolidatedEntity>>any(),
+            ArgumentMatchers.<Pageable>any())).thenReturn(new PageImpl<>(dbEntities));
 
         AccountSearchDto dto = AccountSearchDto.builder()
             .activeAccountsOnly(true)
@@ -379,59 +379,14 @@ class OpalDefendantAccountServiceTest06 {
     }
 
     @Test
-    void testConsolidatedSearch_removesZeroBalance() {
-        SearchConsolidatedEntity entity1 = SearchConsolidatedEntity.builder()
-            .defendantAccountBalance(BigDecimal.TEN)
-            .build();
-        SearchConsolidatedEntity entity2 = SearchConsolidatedEntity.builder()
-            .defendantAccountBalance(BigDecimal.ZERO)
-            .build();
-
-        SearchConsolidatedEntity entity3 = SearchConsolidatedEntity.builder().build();
-        List<SearchConsolidatedEntity> dbEntities = List.of(entity1, entity2, entity3);
-
-        when(searchConsolidatedRepository.findAll(ArgumentMatchers.<Specification<SearchConsolidatedEntity>>any()))
-            .thenReturn(dbEntities);
-
-        AccountSearchDto dto = AccountSearchDto.builder()
-            .activeAccountsOnly(true)
-            .referenceNumberDto(ReferenceNumberDto.builder().prosecutorCaseReference("177").build())
-            .businessUnitIds(List.of((short) 78))
-            .consolidationSearch(true)
-            .build();
-
-        DefendantAccountSearchResultsDto resultsDto = service.searchDefendantAccounts(dto);
-        assertEquals(1, resultsDto.getCount());
-    }
-
-    @Test
-    void testConsolidatedSearch_tooManyResults() {
-        SearchConsolidatedEntity entity2 = SearchConsolidatedEntity.builder()
-            .defendantAccountBalance(BigDecimal.valueOf(100))
-            .build();
-        List<SearchConsolidatedEntity> dbEntities = Collections.nCopies(101, entity2);
-
-        when(searchConsolidatedRepository.findAll(ArgumentMatchers.<Specification<SearchConsolidatedEntity>>any()))
-            .thenReturn(dbEntities);
-
-        AccountSearchDto dto = AccountSearchDto.builder().consolidationSearch(true).build();
-
-        UnprocessableException ex = assertThrows(UnprocessableException.class,
-            () -> service.searchDefendantAccounts(dto));
-
-        assertEquals("Search generated more than 100 results. Please refine your search and try again.",
-            ex.getDetailedReason());
-    }
-
-    @Test
     void testConsolidatedSearch_notTooManyResults() {
         SearchConsolidatedEntity entity2 = SearchConsolidatedEntity.builder()
             .defendantAccountBalance(BigDecimal.valueOf(100))
             .build();
         List<SearchConsolidatedEntity> dbEntities = Collections.nCopies(100, entity2);
 
-        when(searchConsolidatedRepository.findAll(ArgumentMatchers.<Specification<SearchConsolidatedEntity>>any()))
-            .thenReturn(dbEntities);
+        when(searchConsolidatedRepository.findAll(ArgumentMatchers.<Specification<SearchConsolidatedEntity>>any(),
+            ArgumentMatchers.<Pageable>any())).thenReturn(new PageImpl<>(dbEntities));
 
         AccountSearchDto dto = AccountSearchDto.builder().consolidationSearch(true).build();
 

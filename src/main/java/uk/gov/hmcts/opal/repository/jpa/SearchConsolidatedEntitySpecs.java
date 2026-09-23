@@ -24,7 +24,7 @@ public class SearchConsolidatedEntitySpecs extends SearchDefendantAccountSpecs<S
                 criteriaBuilder.isNotNull(balance),
                 criteriaBuilder.notEqual(balance, BigDecimal.ZERO)
             );
-        }
+        };
     }
 
 }

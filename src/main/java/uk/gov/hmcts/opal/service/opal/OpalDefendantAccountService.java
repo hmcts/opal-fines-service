@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,7 +61,6 @@ import uk.gov.hmcts.opal.entity.search.SearchConsolidatedEntity;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount.BasicEntity;
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
-import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementCourtDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
@@ -96,7 +94,7 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 @RequiredArgsConstructor
 public class OpalDefendantAccountService implements DefendantAccountServiceInterface {
 
-    private static final int TOO_MANY_SEARCH_RESULTS = 100;
+    private static final int SEARCH_RESULT_LIMIT = 100;
 
     private final DefendantAccountRepository defendantAccountRepository;
 
@@ -196,21 +194,12 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     }
 
     private List<DefendantAccountSummaryDto> consolidatedSearch(AccountSearchDto accountSearchDto) {
-        Pageable pageable = Pageable.ofSize(TOO_MANY_SEARCH_RESULTS + 1);
-        //List<DefendantAccountSummaryDto> results =
+        Pageable pageable = Pageable.ofSize(SEARCH_RESULT_LIMIT);
         return searchConsolidatedRepository
             .findAll(searchConsolidatedEntitySpecs.findBySearchWithNonZeroBalance(accountSearchDto), pageable)
             .stream()
             .map(this::toSummaryDto)
-            //.filter(this::hasNonZeroBalance)
-            .toList()
-
-        /*if (results.size() > TOO_MANY_SEARCH_RESULTS) {
-            log.warn("Consolidated search returned {} results, limiting to 100", results.size());
-            throw new UnprocessableException("Search generated more than " + TOO_MANY_SEARCH_RESULTS
-                + " results. Please refine your search and try again.");
-        }
-        return results;*/
+            .toList();
     }
 
     private List<DefendantAccountSummaryDto> basicSearch(
