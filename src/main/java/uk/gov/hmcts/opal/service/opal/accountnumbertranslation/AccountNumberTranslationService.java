@@ -8,14 +8,14 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.entity.InterfaceFileEntity;
 import uk.gov.hmcts.opal.entity.alternatepaymentreference.AlternatePaymentReferenceEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.repository.AlternatePaymentReferenceRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.BankDetails;
 import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.DestinationDetails;
 import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.InterfaceFileCommonDataExtract;
 import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.OriginatorDetails;
 import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.Transaction;
 import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.TransformedInterfaceFileData;
-import uk.gov.hmcts.opal.repository.AlternatePaymentReferenceRepository;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 
 @Service
 @AllArgsConstructor
@@ -56,11 +56,14 @@ public class AccountNumberTranslationService {
                     }
                 }
 
-                var apr = lookUpAPR(transaction.getOriginatorDetails().getAccountReference());
+                var apr = lookUpAPR(transaction.getOriginatorDetails().getAccountReference(),
+                    businessUnit.getBusinessUnitCode());
                 if (apr.isPresent()) {
-                    replaceAccountReference(transaction, String.format("%d", apr.get().getDefendantAccountId()));
+                    String newReference = String.format("%d", apr.get().getDefendantAccount().getDefendantAccountId());
+                    replaceAccountReference(transaction, newReference);
 
-                    if (!apr.get().getBusinessUnitCode().equals(businessUnit.getBusinessUnitCode())) {
+                    if (!apr.get().getDefendantAccount().getBusinessUnit().getBusinessUnitId().equals(
+                        businessUnit.getBusinessUnitId())) {
                         removeBankDetails(transformed);
                     }
 
@@ -68,11 +71,13 @@ public class AccountNumberTranslationService {
                     continue;
                 }
 
-                apr = lookUpAPR(transaction.getOriginatorDetails().getName());
+                apr = lookUpAPR(transaction.getOriginatorDetails().getName(), businessUnit.getBusinessUnitCode());
                 if (apr.isPresent()) {
-                    replaceAccountReference(transaction, String.format("%d", apr.get().getDefendantAccountId()));
+                    String newReference = String.format("%d", apr.get().getDefendantAccount().getDefendantAccountId());
+                    replaceAccountReference(transaction, newReference);
 
-                    if (!apr.get().getBusinessUnitCode().equals(businessUnit.getBusinessUnitCode())) {
+                    if (!apr.get().getDefendantAccount().getBusinessUnit().getBusinessUnitId().equals(
+                        businessUnit.getBusinessUnitId())) {
                         removeBankDetails(transformed);
                     }
 
@@ -119,7 +124,7 @@ public class AccountNumberTranslationService {
         ).isPresent();
     }
 
-    private Optional<AlternatePaymentReferenceEntity> lookUpAPR(String accountReference) {
-        return aprRepository.findByAprText(accountReference);
+    private Optional<AlternatePaymentReferenceEntity> lookUpAPR(String accountReference, String buCode) {
+        return aprRepository.findByAprTextAndBusinessUnitCode(accountReference, buCode);
     }
 }

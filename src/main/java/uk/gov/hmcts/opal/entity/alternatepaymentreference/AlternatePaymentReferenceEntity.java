@@ -2,9 +2,10 @@ package uk.gov.hmcts.opal.entity.alternatepaymentreference;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -14,7 +15,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.ColumnTransformer;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 @Entity
@@ -30,20 +33,18 @@ public class AlternatePaymentReferenceEntity {
     @NotNull
     private long alternatePaymentReferenceId;
 
-    @Column
-    @NotNull
-    private long defendantAccountId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "defendant_account_id", nullable = false)
+    private DefendantAccountEntity defendantAccount;
 
     @Column
     @NotNull
-    @Enumerated(EnumType.STRING)
-    @ColumnTransformer(read = "relationship::text", write = "?::t_apr_relationship_enum")
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private Relationship relationship;
 
     @Column
     @NotNull
-    @Enumerated(EnumType.STRING)
-    @ColumnTransformer(read = "category::text", write = "?::t_apr_category_enum")
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private Category category;
 
     @Column

@@ -10,5 +10,5 @@ import uk.gov.hmcts.opal.entity.alternatepaymentreference.AlternatePaymentRefere
 public interface AlternatePaymentReferenceRepository extends JpaRepository<AlternatePaymentReferenceEntity, Long>,
         JpaSpecificationExecutor<AlternatePaymentReferenceEntity> {
 
-    Optional<AlternatePaymentReferenceEntity> findByAprText(String aprText);
+    Optional<AlternatePaymentReferenceEntity> findByAprTextAndBusinessUnitCode(String aprText, String businessUnitCode);
 }

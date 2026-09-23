@@ -14,12 +14,13 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.alternatepaymentreference.AlternatePaymentReferenceEntity;
 import uk.gov.hmcts.opal.entity.alternatepaymentreference.Category;
 import uk.gov.hmcts.opal.entity.alternatepaymentreference.Relationship;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
-public class AlternatePaymentReferenceIntegrationTest extends AbstractIntegrationTest {
+public class AlternatePaymentReferenceRepositoryIntegrationTest extends AbstractIntegrationTest {
 
     private static final long TYPICAL_ID = 920001L;
 
@@ -34,9 +35,12 @@ public class AlternatePaymentReferenceIntegrationTest extends AbstractIntegratio
     }
 
     AlternatePaymentReferenceEntity withAlternatePaymentReference() {
+        DefendantAccountEntity t = entityManager.getReference(
+            DefendantAccountEntity.builder().defendantAccountId(77L).build()
+        );
         return AlternatePaymentReferenceEntity.builder()
             .alternatePaymentReferenceId(TYPICAL_ID)
-            .defendantAccountId(77)
+            .defendantAccount(t)
             .relationship(Relationship.AMALGAMATED)
             .category(Category.ACC)
             .businessUnitCode("A01")
@@ -64,10 +68,11 @@ public class AlternatePaymentReferenceIntegrationTest extends AbstractIntegratio
 
         assertThat(fetched.getAlternatePaymentReferenceId()).isEqualTo(original.getAlternatePaymentReferenceId());
         assertThat(fetched.getBusinessUnitCode()).isEqualTo(original.getBusinessUnitCode());
-        assertThat(fetched.getDefendantAccountId()).isEqualTo(original.getDefendantAccountId());
         assertThat(fetched.getRelationship()).isEqualTo(original.getRelationship());
         assertThat(fetched.getCategory()).isEqualTo(original.getCategory());
         assertThat(fetched.getAprText()).isEqualTo(original.getAprText());
+        assertThat(fetched.getDefendantAccount().getDefendantAccountId())
+            .isEqualTo(original.getDefendantAccount().getDefendantAccountId());
     }
 
     @Test
@@ -79,14 +84,16 @@ public class AlternatePaymentReferenceIntegrationTest extends AbstractIntegratio
 
         entityManager.clear();
 
-        AlternatePaymentReferenceEntity fetched = repository.findByAprText("12345678A").orElseThrow();
+        AlternatePaymentReferenceEntity fetched =
+            repository.findByAprTextAndBusinessUnitCode("12345678A", "A01").orElseThrow();
 
         assertThat(fetched.getAlternatePaymentReferenceId()).isEqualTo(original.getAlternatePaymentReferenceId());
         assertThat(fetched.getBusinessUnitCode()).isEqualTo(original.getBusinessUnitCode());
-        assertThat(fetched.getDefendantAccountId()).isEqualTo(original.getDefendantAccountId());
         assertThat(fetched.getRelationship()).isEqualTo(original.getRelationship());
         assertThat(fetched.getCategory()).isEqualTo(original.getCategory());
         assertThat(fetched.getAprText()).isEqualTo(original.getAprText());
+        assertThat(fetched.getDefendantAccount().getDefendantAccountId())
+            .isEqualTo(original.getDefendantAccount().getDefendantAccountId());
     }
 
 }
