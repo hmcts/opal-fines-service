@@ -57,6 +57,8 @@ class CreateTillIntegrationTest extends AbstractIntegrationWithSecurityTest {
     private static final short BUSINESS_UNIT_ID = 10;
     private static final String SCHEMA_VALIDATION_ERROR_DETAIL =
         "The request does not conform to the required JSON schema";
+    private static final String UNREADABLE_REQUEST_ERROR_DETAIL =
+        "The request body could not be read. It may be missing or invalid JSON.";
     private static final String VALID_PAYMENT_DETAILS = """
         {
           "amount": 12.34,
@@ -144,6 +146,7 @@ class CreateTillIntegrationTest extends AbstractIntegrationWithSecurityTest {
                 .content(request))
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.detail").value(UNREADABLE_REQUEST_ERROR_DETAIL))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/message-not-readable"));
     }
 
