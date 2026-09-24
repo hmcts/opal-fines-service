@@ -3,14 +3,15 @@ package uk.gov.hmcts.opal.service.opal;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,7 +80,34 @@ class InterfaceJobCreateIntegrationTest extends AbstractIntegrationTest {
         assertEquals("Auto Payments In Create", interfaceJob.getInterfaceName());
         assertEquals("auto-payments-in-create.dat", interfaceFile.getFileName());
         assertEquals("NATWEST", interfaceFile.getSource());
-        assertTrue(interfaceFile.getRecords().contains("abc123"));
+        assertEquals(objectMapper.readTree(paymentRecords()), objectMapper.readTree(interfaceFile.getRecords()));
+        assertEquals((short) 1, interfaceFile.getRecordCount());
+        assertEquals(new BigDecimal("123.45"), interfaceFile.getTotalAmount());
+    }
+
+    @Test
+    @DisplayName("Completed file summary view exposes the supplied numeric totals")
+    @JiraStory("PO-10680")
+    @JiraEpic("PO-2468")
+    void shouldExposeTotalsInProcessedFileSummary() {
+        stubPermission(BUSINESS_UNIT_ID);
+        InterfaceJobsCreateResponse response = interfaceJobService.create(
+            InterfaceJobsCreateRequest.builder()
+                .interfaceJobs(List.of(createJob(BUSINESS_UNIT_ID, "Auto Payments In Create")))
+                .build());
+        Long interfaceJobId = response.getInterfaceJobs().getFirst().getInterfaceJobId();
+        InterfaceJobEntity interfaceJob = interfaceJobRepository.findById(interfaceJobId).orElseThrow();
+        interfaceJob.setStatus(InterfaceJobStatus.COMPLETED);
+        interfaceJobRepository.save(interfaceJob);
+
+        Map<String, Object> summary = jdbcTemplate.queryForMap("""
+            SELECT total_records, total_amount
+            FROM v_interface_jobs_processed_file_summary
+            WHERE interface_job_id = ?
+            """, interfaceJobId);
+
+        assertEquals(1, summary.get("total_records"));
+        assertEquals(new BigDecimal("123.45"), summary.get("total_amount"));
     }
 
     @Test
@@ -104,7 +132,9 @@ class InterfaceJobCreateIntegrationTest extends AbstractIntegrationTest {
         return InterfaceJobsCreateItem.builder()
             .fileName(interfaceName.toLowerCase().replace(" ", "-") + ".dat")
             .source(InterfaceJobsFileSource.NATWEST)
-            .records("[{\"account\":\"abc123\"}]")
+            .records(paymentRecords())
+            .recordCount((short) 1)
+            .totalAmount(new BigDecimal("123.45"))
             .businessUnitId(businessUnitId)
             .interfaceName(interfaceName)
             .createdDatetime(LocalDateTime.of(2026, 7, 14, 10, 0))
@@ -117,6 +147,23 @@ class InterfaceJobCreateIntegrationTest extends AbstractIntegrationTest {
             when(userStateService.getPermittedBusinessUnitIds(
                 businessUnitIdList, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(businessUnitIdList);
         }
+    }
+
+    private String paymentRecords() {
+        return """
+            [{
+              "receiving_sort_code": "123456",
+              "receiving_bank_account_number": "01234567",
+              "receiving_account_type": "5",
+              "transaction_code": "68",
+              "originator_sort_code": "654321",
+              "originator_bank_account_number": "98765432",
+              "amount_pence": "12345",
+              "originator_name": "Test Payer",
+              "originator_reference": "99000001A",
+              "originator_beneficiary_name": "Test Court"
+            }]
+            """;
     }
 
     private List<InterfaceJobEntity> jobsByInterfaceName(String interfaceName) {
