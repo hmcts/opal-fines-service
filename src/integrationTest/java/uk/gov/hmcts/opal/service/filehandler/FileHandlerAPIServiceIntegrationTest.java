@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.filehandler;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
@@ -19,6 +18,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
@@ -47,6 +47,11 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
 
     @Autowired
     private FileHandlerAPIService fileHandlerAPIService;
+
+    private final Map<String, String> userAuthToken = Map.of(
+        "token_type", "Bearer",
+        "access_token", "token-value"
+    );
 
     private final InterfaceFileObject interfaceFileEntity = InterfaceFileObject.builder()
         .interfaceFileId(0L)
@@ -79,15 +84,7 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
     @BeforeEach
     public void beforeEach() {
         wireMockServer.stubFor(post(urlEqualTo("/"))
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withHeader("Content-Type", "application/json")
-                .withBody("""
-                    {
-                      "token_type": "Bearer",
-                      "access_token": "token-value"
-                    }
-                    """)));
+            .willReturn(okJson(objectMapper.writeValueAsString(userAuthToken))));
 
         stubFor(get(urlEqualTo("/interface-files/0/content"))
             .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
