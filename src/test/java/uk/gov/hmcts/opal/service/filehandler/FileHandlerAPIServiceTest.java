@@ -29,7 +29,7 @@ class FileHandlerAPIServiceTest {
     private static final Long INTERFACE_FILE_ID = 123L;
 
     @Mock
-    private FileHandlerClient fileHandlerClient;
+    private FileHandlerClient client;
 
     private FileHandlerSystemUserContext systemUserContext;
     private FileHandlerAPIService service;
@@ -37,14 +37,14 @@ class FileHandlerAPIServiceTest {
     @BeforeEach
     void setUp() {
         systemUserContext = new FileHandlerSystemUserContext();
-        service = new FileHandlerAPIService(fileHandlerClient, systemUserContext);
+        service = new FileHandlerAPIService(client, systemUserContext);
     }
 
     @Test
     void getInterfaceFiles_returnsResponseBodyUsingSelectedSystemUser() {
         GetInterfaceFiles200Response expected = new GetInterfaceFiles200Response();
 
-        when(fileHandlerClient.getInterfaceFiles(null, null, null, null, null, null, null)).thenAnswer(invocation -> {
+        when(client.getInterfaceFiles(null, null, null, null, null, null, null)).thenAnswer(invocation -> {
             assertThat(systemUserContext.getCurrentSystemUser()).contains(SystemUserEnum.OPAL_SYSTEM_USER);
             return ResponseEntity.ok(expected);
         });
@@ -59,7 +59,7 @@ class FileHandlerAPIServiceTest {
     @Test
     void getInterfaceFileContent_returnsResponseBodyUsingSelectedSystemUser() {
         Resource expected = new ByteArrayResource("file-content".getBytes(StandardCharsets.UTF_8));
-        when(fileHandlerClient.getInterfaceFileContent(INTERFACE_FILE_ID)).thenAnswer(invocation -> {
+        when(client.getInterfaceFileContent(INTERFACE_FILE_ID)).thenAnswer(invocation -> {
             assertThat(systemUserContext.getCurrentSystemUser()).contains(SystemUserEnum.OPAL_SYSTEM_USER);
             return ResponseEntity.ok(expected);
         });
@@ -73,7 +73,7 @@ class FileHandlerAPIServiceTest {
     @Test
     void getInterfaceFile_notFoundPropagatesFeignNotFoundAndClearsSelectedSystemUser() {
         FeignException.NotFound notFound = (FeignException.NotFound) feignException(404, "Not Found");
-        when(fileHandlerClient.getInterfaceFiles(null, null, null, null, null, null, null)).thenThrow(notFound);
+        when(client.getInterfaceFiles(null, null, null, null, null, null, null)).thenThrow(notFound);
 
         assertThatThrownBy(() -> service.getInterfaceFiles(
             SystemUserEnum.OPAL_SYSTEM_USER, null, null, null, null, null, null, null))
@@ -84,7 +84,7 @@ class FileHandlerAPIServiceTest {
     @Test
     void getInterfaceFileContent_unexpectedResponseThrowsDownstreamServiceUnavailableException() {
         FeignException failure = feignException(500, "Internal Server Error");
-        when(fileHandlerClient.getInterfaceFileContent(INTERFACE_FILE_ID)).thenThrow(failure);
+        when(client.getInterfaceFileContent(INTERFACE_FILE_ID)).thenThrow(failure);
 
         assertThatThrownBy(() -> service.getInterfaceFileContent(SystemUserEnum.OPAL_SYSTEM_USER, INTERFACE_FILE_ID))
             .isInstanceOf(DownstreamServiceUnavailableException.class)

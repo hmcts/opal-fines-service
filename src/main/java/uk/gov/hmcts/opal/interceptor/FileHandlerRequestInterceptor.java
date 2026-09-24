@@ -7,8 +7,8 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserAuthenticationService;
-import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.client.InterfaceFilesApiClient;
 import uk.gov.hmcts.opal.service.filehandler.FileHandlerSystemUserContext;
+import uk.gov.hmcts.opal.service.filehandler.clients.FileHandlerClient;
 
 @Component
 @AllArgsConstructor
@@ -20,7 +20,7 @@ public class FileHandlerRequestInterceptor implements RequestInterceptor {
     @Override
     public void apply(RequestTemplate template) {
         if (template.feignTarget() == null
-            || !InterfaceFilesApiClient.class.equals(template.feignTarget().type())) {
+            || !FileHandlerClient.class.equals(template.feignTarget().type())) {
             return;
         }
 
