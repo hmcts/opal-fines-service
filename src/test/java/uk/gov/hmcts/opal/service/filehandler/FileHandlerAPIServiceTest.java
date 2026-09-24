@@ -96,7 +96,7 @@ class FileHandlerAPIServiceTest {
     private FeignException feignException(int status, String reason) {
         Request request = Request.create(
             Request.HttpMethod.GET,
-            "/interface-files/" + INTERFACE_FILE_ID,
+            "/interface-files/" + INTERFACE_FILE_ID + "/content",
             Map.of(),
             null,
             StandardCharsets.UTF_8,
