@@ -17,8 +17,8 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpHeaders;
 import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserAuthenticationService;
 import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserEnum;
-import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.client.InterfaceFilesApiClient;
 import uk.gov.hmcts.opal.interceptor.FileHandlerRequestInterceptor;
+import uk.gov.hmcts.opal.service.filehandler.clients.FileHandlerClient;
 
 @ExtendWith(MockitoExtension.class)
 class FileHandlerRequestInterceptorTest {
@@ -78,7 +78,7 @@ class FileHandlerRequestInterceptorTest {
     private RequestTemplate fileHandlerRequestTemplate() {
         RequestTemplate template = new RequestTemplate();
         template.feignTarget(new Target.HardCodedTarget<>(
-            InterfaceFilesApiClient.class,
+            FileHandlerClient.class,
             "interfaceFiles",
             "http://localhost"
         ));

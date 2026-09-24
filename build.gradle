@@ -376,6 +376,8 @@ feignClients.each { client ->
             useFeignClientUrl                   : "true",
             feign                               : "true",
             useFeignClientContextId             : "false",
+            interfaceOnly                       : "true",
+            skipDefaultInterface                : "true"
 
     ]
   }
