@@ -47,6 +47,7 @@ import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.exception.ReportGenerationException;
 import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
@@ -200,6 +201,18 @@ class GlobalExceptionHandlerTest {
             "No report service implementation found for reportId: REPORT_1",
             response.getBody().getDetail()
         );
+    }
+
+    @Test
+    void handleReportGeneration_returnsRetriableInternalServerErrorProblem() {
+        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleReportGenerationException(
+            new ReportGenerationException("Storage connection refused", new RuntimeException()));
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals(MediaType.APPLICATION_PROBLEM_JSON, response.getHeaders().getContentType());
+        assertEquals("Report Generation Failed", response.getBody().getTitle());
+        assertEquals("Unable to generate the requested report", response.getBody().getDetail());
+        assertEquals(true, response.getBody().getProperties().get("retriable"));
     }
 
     @Test

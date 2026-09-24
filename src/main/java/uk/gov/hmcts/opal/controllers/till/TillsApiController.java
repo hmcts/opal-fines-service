@@ -7,6 +7,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
@@ -14,6 +15,8 @@ import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.generated.http.api.TillsApi;
 import uk.gov.hmcts.opal.generated.model.TillsGetResponse;
 import uk.gov.hmcts.opal.generated.model.TillsResponse;
+import uk.gov.hmcts.opal.generated.model.TillsCreateRequest;
+import uk.gov.hmcts.opal.service.opal.till.CreateTillService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.till.TillSearchService;
 import uk.gov.hmcts.opal.service.opal.till.TillSearchService.TillSearchCriteria;
@@ -29,6 +32,8 @@ public class TillsApiController implements TillsApi {
     private final TillSearchService tillSearchService;
 
     private final TillsService tillsService;
+
+    private final CreateTillService createTillService;
 
     @Override
     @FeatureToggle(feature = RELEASE_1C_PAYMENT,
@@ -57,5 +62,13 @@ public class TillsApiController implements TillsApi {
     public ResponseEntity<TillsGetResponse> getTill(Long id) {
         log.debug(":GET:getTill: id={}", id);
         return buildResponse(tillsService.getTill(id));
+    }
+
+    @Override
+    @FeatureToggle(feature = RELEASE_1C_PAYMENT, defaultValueProperty = RELEASE_1C_PAYMENT_ENABLED_PROPERTY)
+    public ResponseEntity<Void> postTills(TillsCreateRequest tillsCreateRequest) {
+        log.debug(":POST:postTills: businessUnitId: {}", tillsCreateRequest.getBusinessUnitId());
+        createTillService.createTill(tillsCreateRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }
