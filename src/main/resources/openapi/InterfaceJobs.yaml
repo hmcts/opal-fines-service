@@ -303,6 +303,8 @@ components:
         - file_name
         - source
         - records
+        - record_count
+        - total_amount
         - business_unit_id
         - interface_name
         - created_datetime
@@ -318,6 +320,15 @@ components:
           type: string
           minLength: 1
           description: JSON records. DB Mapping - interface_files.records
+        record_count:
+          type: integer
+          format: int16
+          minimum: 0
+          maximum: 32767
+          description: Number of payment records in the file. DB Mapping - interface_files.record_count
+        total_amount:
+          $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
+          description: Total payment amount in pounds. DB Mapping - interface_files.total_amount
         business_unit_id:
           type: integer
           format: int16

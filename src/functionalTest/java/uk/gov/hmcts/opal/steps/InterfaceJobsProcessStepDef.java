@@ -9,6 +9,7 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -182,6 +183,8 @@ public class InterfaceJobsProcessStepDef extends BaseStepDef {
             .put("interface_jobs", new JSONArray().put(new JSONObject()
                 .put("file_name", "e2e-process-" + UUID.randomUUID() + ".dat")
                 .put("source", "NATWEST")
+                .put("record_count", 1)
+                .put("total_amount", new BigDecimal("123.45"))
                 .put("records", "[{\"account\":\"abc123\"}]")
                 .put("business_unit_id", BUSINESS_UNIT_ID)
                 .put("interface_name", INTERFACE_NAME)
