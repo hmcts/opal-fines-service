@@ -188,9 +188,6 @@ opal:
       scope: ${OPAL_HMRC_AUTH_SCOPE:}
       grant-type: ${OPAL_HMRC_AUTH_GRANT_TYPE:client_credentials}
 
-interfaceFiles:
-  url: ${OPAL_FILE_HANDLER_SERVICE_URL:http://localhost:4075}
-
 be-developer-config:
   user-role-permissions: ${BE_DEV_ROLE_PERMISSIONS:}
 
