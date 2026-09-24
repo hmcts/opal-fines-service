@@ -993,8 +993,8 @@ components:
     courtFee:
       type: object
       required:
-        - courtFeeId
-        - courtFeeCode
+        - court_fee_id
+        - court_fee_code
         - description
         - amount
       additionalProperties: false
