@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.mapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.Month;
 import org.junit.jupiter.api.Test;
@@ -46,6 +47,8 @@ class InterfaceJobMapperTest {
             .fileName("auto-payments-in.dat")
             .source(InterfaceJobsFileSource.NATWEST)
             .records("[{\"account\":\"123\"}]")
+            .recordCount((short) 1)
+            .totalAmount(new BigDecimal("123.45"))
             .createdDatetime(createdDateTime)
             .build();
 
@@ -55,6 +58,8 @@ class InterfaceJobMapperTest {
         assertEquals("auto-payments-in.dat", entity.getFileName());
         assertEquals("NATWEST", entity.getSource());
         assertEquals("[{\"account\":\"123\"}]", entity.getRecords());
+        assertEquals((short) 1, entity.getRecordCount());
+        assertEquals(new BigDecimal("123.45"), entity.getTotalAmount());
         assertEquals(createdDateTime, entity.getCreatedDateTime());
     }
 

@@ -32,7 +32,8 @@ public interface InterfaceJobMapper {
     @Mapping(target = "createdDateTime", source = "request.createdDatetime")
     @Mapping(target = "source", source = "request.source")
     @Mapping(target = "records", source = "request.records")
-    @Mapping(target = "recordCount", ignore = true)
+    @Mapping(target = "recordCount", source = "request.recordCount")
+    @Mapping(target = "totalAmount", source = "request.totalAmount")
     @Mapping(target = "overrideInhibits", ignore = true)
     @Mapping(target = "tillEntities", ignore = true)
     InterfaceFileEntity toFileEntity(InterfaceJobsCreateItem request, InterfaceJobEntity interfaceJob);

@@ -25,7 +25,7 @@
           "Enforcement",
           "Financial",
           "Note",
-          "Payment Terms"
+          "Payment terms"
         ]
       },
       "minItems": 1,
