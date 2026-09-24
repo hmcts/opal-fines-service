@@ -351,7 +351,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
             recordNode.put("lja_name", ljaName);
         }
         recordNode.put("end_date", endDate);
-        recordNode.put("lja_type", "LJA");
+        recordNode.put("lja_type", "CRWCRT");
         recordNode.put("start_date", "2027-03-01");
 
         ArrayNode addressesNode = recordNode.putArray("addresses");
