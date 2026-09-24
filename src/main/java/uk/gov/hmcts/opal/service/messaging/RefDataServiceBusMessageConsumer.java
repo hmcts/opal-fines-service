@@ -29,7 +29,11 @@ public class RefDataServiceBusMessageConsumer {
                 message.getSessionId(),
                 ex
             );
-            abandonMessage(context, ex);
+            try {
+                context.abandon();
+            } catch (RuntimeException abandonException) {
+                ex.addSuppressed(abandonException);
+            }
             throw ex;
         }
     }
@@ -42,13 +46,5 @@ public class RefDataServiceBusMessageConsumer {
             context.getErrorSource(),
             context.getException()
         );
-    }
-
-    private void abandonMessage(ServiceBusReceivedMessageContext context, RuntimeException processingException) {
-        try {
-            context.abandon();
-        } catch (RuntimeException abandonException) {
-            processingException.addSuppressed(abandonException);
-        }
     }
 }

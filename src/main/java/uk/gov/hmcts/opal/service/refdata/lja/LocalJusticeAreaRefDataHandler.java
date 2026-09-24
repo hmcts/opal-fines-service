@@ -49,8 +49,8 @@ public class LocalJusticeAreaRefDataHandler
     }
 
     @Override
-    public LocalJusticeAreaMapper mapper() {
-        return mapper;
+    public void updateEntityFromDto(LjaRecord dto, LocalJusticeAreaEntity entity) {
+        mapper.updateEntityFromDto(dto, entity);
     }
 
     @Override

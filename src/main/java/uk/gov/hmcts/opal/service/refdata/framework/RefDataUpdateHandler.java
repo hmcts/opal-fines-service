@@ -17,7 +17,7 @@ public interface RefDataUpdateHandler<T, E> {
 
     E saveEntity(E entity);
 
-    RefDataUpdateMapper<T, E> mapper();
+    void updateEntityFromDto(T dto, E entity);
 
     default List<String> cachesToClear() {
         return List.of();

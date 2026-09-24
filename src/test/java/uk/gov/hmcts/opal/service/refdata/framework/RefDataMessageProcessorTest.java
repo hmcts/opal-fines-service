@@ -131,10 +131,8 @@ class RefDataMessageProcessorTest {
 
     private static class TestRefDataUpdateHandler implements RefDataUpdateHandler<JsonNode, Object> {
 
-        private final RefDataUpdateMapper<JsonNode, Object> mapper;
 
         private TestRefDataUpdateHandler(RefDataUpdateMapper<JsonNode, Object> mapper) {
-            this.mapper = mapper;
         }
 
         @Override
@@ -167,9 +165,7 @@ class RefDataMessageProcessorTest {
         }
 
         @Override
-        public RefDataUpdateMapper<JsonNode, Object> mapper() {
-            return mapper;
-        }
+        public void updateEntityFromDto(JsonNode dto, Object entity) { }
     }
 
     private static class ClearingTestRefDataUpdateHandler extends TestRefDataUpdateHandler {

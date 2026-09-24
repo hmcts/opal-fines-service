@@ -99,7 +99,7 @@ public class RefDataMessageProcessor {
         handler.validateDto(dto);
         E entity = handler.findEntity(dto)
             .orElseGet(() -> handler.createEntity(dto));
-        handler.mapper().updateEntityFromDto(dto, entity);
+        handler.updateEntityFromDto(dto, entity);
         handler.saveEntity(entity); //this could be a newly created entity
     }
 
