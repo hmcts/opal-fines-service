@@ -52,8 +52,8 @@ public interface CreateTillMapper {
     @Mapping(target = "destinationType", source = "requestPayment.paymentDetails.destinationType")
     @Mapping(target = "allocationType", source = "requestPayment.paymentDetails.allocationType")
     @Mapping(target = "thirdPartyPayerName", source = "requestPayment.paymentDetails.thirdPartyPayerName")
-    @Mapping(target = "receipt", constant = "false")
-    @Mapping(target = "allocated", constant = "false")
+    @Mapping(target = "receipt", ignore = true)
+    @Mapping(target = "allocated", ignore = true)
     @Mapping(target = "autoPayment", constant = "false")
     PaymentInEntity toPaymentIn(TillsCreatePaymentIn requestPayment, TillEntity till, LocalDateTime paymentDate,
                                 String additionalInformation, AssociatedRecordType associatedRecordType,
