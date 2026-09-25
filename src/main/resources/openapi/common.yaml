@@ -555,6 +555,19 @@ components:
         - business_unit_id
         - business_unit_code
         - welsh_speaking
+    businessUnitSummaryLite:
+      title: Business Unit Summary Lite
+      type: object
+      additionalProperties: false
+      properties:
+        business_unit_name:
+          type: string
+        business_unit_id:
+          type: integer
+          format: int16
+      required:
+        - business_unit_name
+        - business_unit_id
     languagePreference:
       title: Language Preference
       type: object
