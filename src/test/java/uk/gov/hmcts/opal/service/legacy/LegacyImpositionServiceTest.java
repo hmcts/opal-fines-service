@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -11,7 +12,9 @@ import static org.mockito.Mockito.when;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -21,13 +24,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyCourtReferenceCommon;
-import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountImpositionCommon;
-import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountImpositionsResponseCommon;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Creditor;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.CreditorAccountType;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Imposition;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Offence;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.PostedDetails;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Result;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetImpositionsRequest;
-import uk.gov.hmcts.opal.dto.legacy.LegacyImpositionCreditorReferenceCommon;
-import uk.gov.hmcts.opal.dto.legacy.LegacyOffenceReferenceCommon;
-import uk.gov.hmcts.opal.dto.legacy.LegacyResultReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionCommon;
 import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon.AccountTypeEnum;
 import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon.DisplayNameEnum;
@@ -41,106 +45,137 @@ class LegacyImpositionServiceTest {
     @InjectMocks
     private LegacyImpositionService legacyImpositionService;
 
-    @Test
-    void getImpositions_postsLegacyRequestAndMapsResponse() {
-        LegacyDefendantAccountImpositionsResponseCommon legacyResponse =
-            LegacyDefendantAccountImpositionsResponseCommon.builder()
-                .version(BigInteger.valueOf(4L))
-                .impositions(List.of(legacyImposition()))
-                .build();
+    @Nested
+    class GetImpositions {
 
-        ArgumentCaptor<LegacyGetImpositionsRequest> requestCaptor =
-            ArgumentCaptor.forClass(LegacyGetImpositionsRequest.class);
+        @Test
+        void whenGatewayReturnsLegacyResponse_mapsImposition_happyPath() {
+            ArgumentCaptor<LegacyGetImpositionsRequest> requestCaptor =
+                ArgumentCaptor.forClass(LegacyGetImpositionsRequest.class);
 
-        when(gatewayService.postToGateway(
-            eq(LegacyImpositionService.GET_IMPOSITIONS),
-            eq(LegacyDefendantAccountImpositionsResponseCommon.class),
-            requestCaptor.capture(),
-            isNull()
-        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null));
+            when(gatewayService.postToGateway(
+                eq(LegacyImpositionService.GET_IMPOSITIONS),
+                eq(GetDefendantAccountImpositionsLegacyResponse.class),
+                requestCaptor.capture(),
+                isNull()
+            )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse(), null, null));
 
-        GetDefendantAccountImpositionsResponse response = legacyImpositionService.getImpositions(12345L);
+            GetDefendantAccountImpositionsResponse response = legacyImpositionService.getImpositions(12345L);
+            DefendantAccountImpositionCommon imposition = response.getPayload().getImpositions().getFirst();
 
-        verify(gatewayService).postToGateway(
-            eq(LegacyImpositionService.GET_IMPOSITIONS),
-            eq(LegacyDefendantAccountImpositionsResponseCommon.class),
-            eq(requestCaptor.getValue()),
-            isNull()
-        );
+            assertAll(
+                () -> verify(gatewayService).postToGateway(
+                    eq(LegacyImpositionService.GET_IMPOSITIONS),
+                    eq(GetDefendantAccountImpositionsLegacyResponse.class),
+                    eq(requestCaptor.getValue()),
+                    isNull()
+                ),
+                () -> assertEquals("12345", requestCaptor.getValue().getDefendantAccountId()),
+                () -> assertEquals(new BigInteger("18338687664539878704807506660830801130000030349"),
+                                   response.getVersion()),
+                () -> assertNotNull(response.getPayload()),
+                () -> assertEquals(1, response.getPayload().getImpositions().size()),
+                () -> assertEquals(LocalDate.parse("2026-08-19"), imposition.getDateAdded()),
+                () -> assertEquals(LocalDate.parse("2025-05-15"), imposition.getDateImposed()),
+                () -> assertEquals(new BigDecimal("-250.00"), imposition.getImposedAmount()),
+                () -> assertEquals(new BigDecimal("300.00"), imposition.getPaidAmount()),
+                () -> assertEquals(new BigDecimal("50.00"), imposition.getBalance()),
+                () -> assertEquals(770000027211L, imposition.getImpositionId()),
+                () -> assertResult(imposition),
+                () -> assertCreditor(imposition),
+                () -> assertOffence(imposition),
+                () -> assertNull(imposition.getImposedBy())
+            );
+        }
 
-        assertEquals("12345", requestCaptor.getValue().getDefendantAccountId());
-        assertEquals(BigInteger.valueOf(4), response.getVersion());
-        assertNotNull(response.getPayload());
-        assertEquals(1, response.getPayload().getImpositions().size());
+        @Test
+        void whenGatewayReturnsNullEntity_returnsNull_sadPath() {
+            mock_getImpositionsResponse(null);
 
-        DefendantAccountImpositionCommon imposition = response.getPayload().getImpositions().getFirst();
-        assertEquals(LocalDate.parse("2026-05-06"), imposition.getDateAdded());
-        assertEquals(LocalDate.parse("2026-05-05"), imposition.getDateImposed());
-        assertEquals(new BigDecimal("600.00"), imposition.getImposedAmount());
-        assertEquals(new BigDecimal("60.00"), imposition.getPaidAmount());
-        assertEquals(new BigDecimal("540.00"), imposition.getBalance());
-        assertEquals(99000000003006L, imposition.getImpositionId());
+            assertNull(legacyImpositionService.getImpositions(12345L));
+        }
 
-        assertEquals("ABDC", imposition.getImposition().getResultId());
-        assertEquals("Application made for Benefit Deductions", imposition.getImposition().getResultTitle());
+        @Test
+        void whenGatewayReturnsEmptyImposition_mapsNullFields_happyPath() {
+            mock_getImpositionsResponse(GetDefendantAccountImpositionsLegacyResponse.builder()
+                .version(BigInteger.ONE)
+                .impositions(List.of(Imposition.builder().build()))
+                .build());
 
-        assertEquals(99000000000806L, imposition.getCreditor().getCreditorAccountId());
-        assertEquals(AccountTypeEnum.MN, imposition.getCreditor().getAccountType());
-        assertEquals(DisplayNameEnum.MINOR_CREDITOR, imposition.getCreditor().getDisplayName());
-        assertNull(imposition.getCreditor().getMajorCreditorId());
-        assertEquals(99000000000906L, imposition.getCreditor().getMinorCreditorPartyId());
-        assertEquals("Metropolitan Traffic Unit", imposition.getCreditor().getName());
+            DefendantAccountImpositionCommon imposition = legacyImpositionService.getImpositions(12345L)
+                .getPayload().getImpositions().getFirst();
 
-        assertEquals(5510L, imposition.getOffence().getId());
-        assertEquals("OFF0006", imposition.getOffence().getCode());
-        assertEquals("Test Offence 6", imposition.getOffence().getTitle());
-
-        assertEquals(101L, imposition.getImposedBy().getCourtId());
-        assertEquals((short) 102, imposition.getImposedBy().getCourtCode());
-        assertEquals("Legacy Court", imposition.getImposedBy().getCourtName());
+            assertAll(
+                () -> assertNull(imposition.getDateAdded()),
+                () -> assertNull(imposition.getImposition()),
+                () -> assertNull(imposition.getCreditor()),
+                () -> assertNull(imposition.getOffence()),
+                () -> assertNull(imposition.getImposedBy())
+            );
+        }
     }
 
-    @Test
-    void getImpositions_whenGatewayReturnsNullEntity_returnsNull() {
+    private void assertResult(DefendantAccountImpositionCommon imposition) {
+        assertAll(
+            () -> assertEquals("FO", imposition.getImposition().getResultId()),
+            () -> assertEquals("FINE", imposition.getImposition().getResultTitle())
+        );
+    }
+
+    private void assertCreditor(DefendantAccountImpositionCommon imposition) {
+        assertAll(
+            () -> assertEquals(77L, imposition.getCreditor().getCreditorAccountId()),
+            () -> assertEquals(AccountTypeEnum.CF, imposition.getCreditor().getAccountType()),
+            () -> assertEquals(DisplayNameEnum.CENTRAL_FUND, imposition.getCreditor().getDisplayName()),
+            () -> assertNull(imposition.getCreditor().getMajorCreditorId()),
+            () -> assertNull(imposition.getCreditor().getMinorCreditorPartyId()),
+            () -> assertEquals("HM Courts & Tribunals Service", imposition.getCreditor().getName())
+        );
+    }
+
+    private void assertOffence(DefendantAccountImpositionCommon imposition) {
+        assertAll(
+            () -> assertEquals(33369L, imposition.getOffence().getId()),
+            () -> assertEquals("HY35014", imposition.getOffence().getCode()),
+            () -> assertEquals("Riding a bicycle on a footpath", imposition.getOffence().getTitle())
+        );
+    }
+
+    private GetDefendantAccountImpositionsLegacyResponse legacyResponse() {
+        return GetDefendantAccountImpositionsLegacyResponse.builder()
+            .version(new BigInteger("18338687664539878704807506660830801130000030349"))
+            .impositions(List.of(Imposition.builder()
+                .postedDetails(PostedDetails.builder()
+                    .postedDate(LocalDateTime.parse("2026-08-19T00:00:00.00001"))
+                    .postedBy("L077AO")
+                    .postedByName("L077AO")
+                    .build())
+                .result(Result.builder().resultId("FO").resultTitle("FINE").build())
+                .creditor(Creditor.builder()
+                    .creditorAccountType(CreditorAccountType.builder().creditorAccountType("CF").build())
+                    .creditorAccountId(77L)
+                    .majorCreditorName("HM Courts & Tribunals Service")
+                    .build())
+                .imposedAmount(new BigDecimal("-250.00"))
+                .paidAmount(new BigDecimal("300.00"))
+                .balance(new BigDecimal("50.00"))
+                .dateImposed(LocalDate.parse("2025-05-15"))
+                .offence(Offence.builder()
+                    .offenceId(33369L)
+                    .cjsCode("HY35014")
+                    .offenceTitle("Riding a bicycle on a footpath")
+                    .build())
+                .impositionId(770000027211L)
+                .build()))
+            .build();
+    }
+
+    private void mock_getImpositionsResponse(GetDefendantAccountImpositionsLegacyResponse response) {
         when(gatewayService.postToGateway(
             eq(LegacyImpositionService.GET_IMPOSITIONS),
-            eq(LegacyDefendantAccountImpositionsResponseCommon.class),
+            eq(GetDefendantAccountImpositionsLegacyResponse.class),
             eq(LegacyGetImpositionsRequest.builder().defendantAccountId("12345").build()),
             isNull()
-        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, null, null, null));
-
-        assertNull(legacyImpositionService.getImpositions(12345L));
-    }
-
-    private LegacyDefendantAccountImpositionCommon legacyImposition() {
-        return LegacyDefendantAccountImpositionCommon.builder()
-            .dateAdded(LocalDate.parse("2026-05-06"))
-            .dateImposed(LocalDate.parse("2026-05-05"))
-            .imposition(LegacyResultReferenceCommon.builder()
-                .resultId("ABDC")
-                .resultTitle("Application made for Benefit Deductions")
-                .build())
-            .creditor(LegacyImpositionCreditorReferenceCommon.builder()
-                .creditorAccountId(99000000000806L)
-                .accountType(AccountTypeEnum.MN)
-                .displayName(DisplayNameEnum.MINOR_CREDITOR)
-                .minorCreditorPartyId(99000000000906L)
-                .name("Metropolitan Traffic Unit")
-                .build())
-            .imposedAmount(new BigDecimal("600.00"))
-            .paidAmount(new BigDecimal("60.00"))
-            .balance(new BigDecimal("540.00"))
-            .offence(LegacyOffenceReferenceCommon.builder()
-                .id(5510L)
-                .code("OFF0006")
-                .title("Test Offence 6")
-                .build())
-            .imposedBy(LegacyCourtReferenceCommon.builder()
-                .courtId(101L)
-                .courtCode(102)
-                .courtName("Legacy Court")
-                .build())
-            .impositionId(99000000003006L)
-            .build();
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, response, null, null));
     }
 }
