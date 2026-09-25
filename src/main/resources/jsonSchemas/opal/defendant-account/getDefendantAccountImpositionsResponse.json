@@ -52,7 +52,7 @@
           },
           "imposed_amount": {
             "type": "number",
-            "minimum": 0
+            "minimum": -9999999999
           },
           "paid_amount": {
             "type": "number",
