@@ -81,3 +81,7 @@ opal:
 user:
   service:
     url: http://localhost:4553/opal
+
+file-handler:
+  service:
+    url: http://localhost:4075
