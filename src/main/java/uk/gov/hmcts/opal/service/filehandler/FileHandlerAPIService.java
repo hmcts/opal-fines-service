@@ -81,6 +81,8 @@ public class FileHandlerAPIService implements FileHandlerInterfaceFiles {
                 systemUser,
                 () -> client.getInterfaceFileContent(interfaceFileId).getBody()
             );
+        } catch (FeignException.NotFound exception) {
+            throw exception;
         } catch (FeignException exception) {
             throw new DownstreamServiceUnavailableException(
                 "Unable to retrieve interface file content from file-handler service",
