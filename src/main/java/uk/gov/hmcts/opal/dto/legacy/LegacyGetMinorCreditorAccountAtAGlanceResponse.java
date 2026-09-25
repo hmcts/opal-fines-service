@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.dto.legacy;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -10,6 +11,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.annotation.JsonNaming;
 import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.model.HasErrorResponse;
 import uk.gov.hmcts.opal.dto.ToXmlString;
@@ -61,6 +64,8 @@ public class LegacyGetMinorCreditorAccountAtAGlanceResponse implements ToXmlStri
     @AllArgsConstructor
     @Builder
     @Jacksonized
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     @XmlRootElement
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class AtAGlanceDefendant {
