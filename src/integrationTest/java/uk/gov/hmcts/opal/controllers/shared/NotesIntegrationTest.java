@@ -67,7 +67,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
         // Act
         ResultActions result =
             mockMvc.perform(
-                post(URL_BASE)
+                post(URL_BASE + "/add") //todo PO-8990 remove this
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(payload)
                     .header("authorization", userStateStub.getBearerToken())
