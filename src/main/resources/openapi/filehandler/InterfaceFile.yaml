@@ -10,6 +10,123 @@ info:
 
 paths:
   /interface-files:
+    post:
+      tags:
+        - Interface Files
+      summary: Add Interface File
+      description: The Add Interface File API will be used to add a new Interface File to the File Handling Data Store. (User must have the Create Interface File permission)
+      operationId: addInterfaceFile
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+                - metadata
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The Interface File to be added to the File Handling Data Store.
+                metadata:
+                  type: object
+                  description: The metadata for the Interface File to be added to the File Handling Data Store.
+                  required:
+                    - source
+                    - target
+                    - type
+                    - domain
+                    - file_name
+                  allOf:
+                    - if:
+                        required:
+                          - type
+                        properties:
+                          type:
+                            not:
+                              const: SOURCE
+                      then:
+                        properties:
+                          should_pre_process_file:
+                            const: false
+                    - if:
+                        required:
+                          - type
+                        properties:
+                          type:
+                            not:
+                              const: TRANSFORMED_JSON
+                      then:
+                        properties:
+                          business_unit_code:
+                            const: null
+                  properties:
+                    related_interface_file_id:
+                      $ref: './types.yaml/#/components/schemas/BigInt'
+                      description: DB Mapping - interface_files.related_interface_file_id
+                    should_pre_process_file:
+                      type: boolean
+                      default: false
+                      description: DB Mapping - interface_files.should_pre_process_file -> defaulted to false if not provided. Only applied if type = 'SOURCE'
+                    source:
+                      $ref: '#/components/schemas/interfaceFileEnum'
+                    target:
+                      $ref: '#/components/schemas/interfaceFileEnum'
+                    type:
+                      $ref: '#/components/schemas/interfaceFileTypeEnum'
+                    domain:
+                      $ref: './types.yaml/#/components/schemas/domainEnum'
+                    payment_type:
+                      $ref: './types.yaml/#/components/schemas/paymentTypeEnum'
+                      description: DB Mapping - interface_files.payment_type
+                    file_name:
+                      type: string
+                      maxLength: 200
+                      description: DB Mapping - interface_files.file_name
+                    business_unit_code:
+                      type:
+                        - string
+                        - 'null'
+                      maxLength: 4
+                      description: DB Mapping - interface_files.business_unit_code. Must be null or omitted unless type = 'TRANSFORMED_JSON'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/interfaceFileObject'
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
     get:
       tags:
         - Interface Files
