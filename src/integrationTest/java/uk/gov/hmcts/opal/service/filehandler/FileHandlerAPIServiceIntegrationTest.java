@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.filehandler;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.badRequest;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
@@ -10,6 +11,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
@@ -30,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
 import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserEnum;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.GetInterfaceFiles200Response;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.InterfaceFileEnum;
@@ -44,6 +47,9 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @DisplayName("FileHandler API Service Integration Test")
 @WireMockTest(httpPort = 4075)
 public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTest {
+
+    private static final String WIREMOCK_SCENARIO = "GET FileHandler service test";
+    private static final String WIREMOCK_STATE_ERROR = "Downstream error";
 
     @Autowired
     private FileHandlerAPIService fileHandlerAPIService;
@@ -83,20 +89,48 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
 
     @BeforeEach
     public void beforeEach() {
+        // System user auth
+
         wireMockServer.stubFor(post(urlEqualTo("/"))
+            .inScenario(WIREMOCK_SCENARIO)
             .willReturn(okJson(objectMapper.writeValueAsString(userAuthToken))));
 
+        // Success'
+
         stubFor(get(urlEqualTo("/interface-files/0/content"))
+            .inScenario(WIREMOCK_SCENARIO)
             .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
             .willReturn(okJson(objectMapper.writeValueAsString(interfaceFileEntity))));
 
         stubFor(get(urlEqualTo("/interface-files/0"))
+            .inScenario(WIREMOCK_SCENARIO)
             .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
             .willReturn(okJson(objectMapper.writeValueAsString(interfaceFileEntity))));
 
         stubFor(get(urlEqualTo("/interface-files"))
+            .inScenario(WIREMOCK_SCENARIO)
             .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
             .willReturn(okJson(objectMapper.writeValueAsString(getInterfaceFiles200Response))));
+
+        // Errors
+
+        stubFor(get(urlEqualTo("/interface-files/0/content"))
+            .inScenario(WIREMOCK_SCENARIO)
+            .whenScenarioStateIs(WIREMOCK_STATE_ERROR)
+            .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
+            .willReturn(badRequest()));
+
+        stubFor(get(urlEqualTo("/interface-files/0"))
+            .inScenario(WIREMOCK_SCENARIO)
+            .whenScenarioStateIs(WIREMOCK_STATE_ERROR)
+            .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
+            .willReturn(badRequest()));
+
+        stubFor(get(urlEqualTo("/interface-files"))
+            .inScenario(WIREMOCK_SCENARIO)
+            .whenScenarioStateIs(WIREMOCK_STATE_ERROR)
+            .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
+            .willReturn(badRequest()));
     }
 
     @Test
@@ -137,6 +171,43 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
         assertEquals(response, getInterfaceFiles200Response);
 
         WireMock.verify(1, getRequestedFor(urlPathEqualTo("/interface-files")));
+    }
+
+    @Test
+    @DisplayName("Handles downstream error FileHandler - getInterfaceFiles")
+    @JiraStory("PO-6497")
+    @JiraEpic("PO-3497")
+    void getInterfaceFiles_downstreamError() {
+        WireMock.setScenarioState(WIREMOCK_SCENARIO, WIREMOCK_STATE_ERROR);
+
+        assertThrows(
+            DownstreamServiceUnavailableException.class,
+            () -> fileHandlerAPIService.getInterfaceFiles(
+                SystemUserEnum.OPAL_SYSTEM_USER, null, null, null, null, null, null, null));
+    }
+
+    @Test
+    @DisplayName("Handles downstream error FileHandler - getInterfaceFile")
+    @JiraStory("PO-6497")
+    @JiraEpic("PO-3497")
+    void getInterfaceFile_downstreamError() {
+        WireMock.setScenarioState(WIREMOCK_SCENARIO, WIREMOCK_STATE_ERROR);
+
+        assertThrows(
+            DownstreamServiceUnavailableException.class,
+            () -> fileHandlerAPIService.getInterfaceFile(SystemUserEnum.OPAL_SYSTEM_USER, 0L));
+    }
+
+    @Test
+    @DisplayName("Handles downstream error FileHandler - getInterfaceFileContent")
+    @JiraStory("PO-6497")
+    @JiraEpic("PO-3497")
+    void getInterfaceFileContent_downstreamError() {
+        WireMock.setScenarioState(WIREMOCK_SCENARIO, WIREMOCK_STATE_ERROR);
+
+        assertThrows(
+            DownstreamServiceUnavailableException.class,
+            () -> fileHandlerAPIService.getInterfaceFileContent(SystemUserEnum.OPAL_SYSTEM_USER, 0L));
     }
 
 }
