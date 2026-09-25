@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.steps.defendantaccount;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -217,10 +218,10 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     /**
      * Asserts the successful response follows the documented history contract.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then("the defendant account history response is returned as documented")
-    public void defendantAccountHistoryResponseIsReturnedAsDocumented() throws Exception {
+    public void defendantAccountHistoryResponseIsReturnedAsDocumented() throws JacksonException {
         defendantAccountHistoryRequestSucceeds();
         JsonNode root = latestJsonBody();
 
@@ -246,11 +247,11 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
      * Asserts minimum item-type counts in the latest history response.
      *
      * @param dataTable expected item type to minimum count mappings.
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then("the defendant account history contains at least the following item counts")
     public void defendantAccountHistoryContainsAtLeastTheFollowingItemCounts(DataTable dataTable)
-        throws Exception {
+        throws JacksonException {
 
         Map<String, Long> actualCounts = typeCounts();
         dataTable.asMap(String.class, String.class).forEach((type, count) -> {
@@ -266,10 +267,10 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     /**
      * Stores the oldest and newest posted dates from the latest full history response.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then("I remember the returned defendant account history date range")
-    public void rememberReturnedDefendantAccountHistoryDateRange() throws Exception {
+    public void rememberReturnedDefendantAccountHistoryDateRange() throws JacksonException {
         List<LocalDate> postedDates = historyItems().stream()
             .map(this::postedDateOf)
             .toList();
@@ -283,10 +284,10 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
      * Asserts the latest history response contains only the supplied item types.
      *
      * @param dataTable expected item type values.
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then("the defendant account history contains only the following item types")
-    public void defendantAccountHistoryContainsOnlyTheFollowingItemTypes(DataTable dataTable) throws Exception {
+    public void defendantAccountHistoryContainsOnlyTheFollowingItemTypes(DataTable dataTable) throws JacksonException {
         Set<String> expectedTypes = new LinkedHashSet<>(dataTable.asList(String.class));
         Set<String> actualTypes = new LinkedHashSet<>();
         for (JsonNode historyItem : historyItems()) {
@@ -299,10 +300,10 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     /**
      * Asserts the seeded enforcement history row is present and schema-compliant.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then("the defendant account history contains seeded enforcement history")
-    public void defendantAccountHistoryContainsSeededEnforcementHistory() throws Exception {
+    public void defendantAccountHistoryContainsSeededEnforcementHistory() throws JacksonException {
         List<JsonNode> enforcementItems = historyItems().stream()
             .filter(item -> "Enforcement".equals(typeOf(item)))
             .toList();
@@ -321,10 +322,10 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     /**
      * Asserts the latest history response contains amendment history.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then("the defendant account history contains seeded amendment history")
-    public void defendantAccountHistoryContainsSeededAmendmentHistory() throws Exception {
+    public void defendantAccountHistoryContainsSeededAmendmentHistory() throws JacksonException {
         List<JsonNode> amendmentItems = historyItems().stream()
             .filter(item -> "Amendment".equals(typeOf(item)))
             .toList();
@@ -337,7 +338,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
      *
      * @param expectedPostedBy expected posted_by value.
      * @param expectedPostedByName expected posted_by_name value.
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then(
         "the defendant account history contains seeded amendment history posted by {string} "
@@ -346,7 +347,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     public void defendantAccountHistoryContainsSeededAmendmentHistoryPostedByAndName(
         String expectedPostedBy,
         String expectedPostedByName
-    ) throws Exception {
+    ) throws JacksonException {
         List<JsonNode> amendmentItems = historyItems().stream()
             .filter(item -> "Amendment".equals(typeOf(item)))
             .toList();
@@ -365,10 +366,10 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     /**
      * Asserts the latest history response is ordered newest first by posted date.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then("the defendant account history is ordered newest first")
-    public void defendantAccountHistoryIsOrderedNewestFirst() throws Exception {
+    public void defendantAccountHistoryIsOrderedNewestFirst() throws JacksonException {
         LocalDate previous = null;
         for (JsonNode historyItem : historyItems()) {
             LocalDate current = postedDateOf(historyItem);
@@ -385,10 +386,10 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     /**
      * Asserts every returned item is on or after the remembered dateFrom boundary.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then("the defendant account history response contains only items on or after the remembered dateFrom")
-    public void defendantAccountHistoryContainsOnlyItemsOnOrAfterRememberedDateFrom() throws Exception {
+    public void defendantAccountHistoryContainsOnlyItemsOnOrAfterRememberedDateFrom() throws JacksonException {
         assertRememberedDateRange();
         assertHistoryContainsOnlyItemsOnOrAfter(historyState.getRememberedDateFrom());
     }
@@ -396,10 +397,10 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     /**
      * Asserts every returned item is on or before the remembered dateTo boundary.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then("the defendant account history response contains only items on or before the remembered dateTo")
-    public void defendantAccountHistoryContainsOnlyItemsOnOrBeforeRememberedDateTo() throws Exception {
+    public void defendantAccountHistoryContainsOnlyItemsOnOrBeforeRememberedDateTo() throws JacksonException {
         assertRememberedDateRange();
         assertHistoryContainsOnlyItemsOnOrBefore(historyState.getRememberedDateTo());
     }
@@ -408,10 +409,10 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
      * Asserts the latest history response contains at least one item on the remembered dateFrom
      * boundary.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then("the defendant account history response includes an item on the remembered dateFrom")
-    public void defendantAccountHistoryResponseIncludesAnItemOnRememberedDateFrom() throws Exception {
+    public void defendantAccountHistoryResponseIncludesAnItemOnRememberedDateFrom() throws JacksonException {
         assertRememberedDateRange();
         assertHistoryIncludesItemOn(historyState.getRememberedDateFrom());
     }
@@ -420,10 +421,10 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
      * Asserts the latest history response contains at least one item on the remembered dateTo
      * boundary.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then("the defendant account history response includes an item on the remembered dateTo")
-    public void defendantAccountHistoryResponseIncludesAnItemOnRememberedDateTo() throws Exception {
+    public void defendantAccountHistoryResponseIncludesAnItemOnRememberedDateTo() throws JacksonException {
         assertRememberedDateRange();
         assertHistoryIncludesItemOn(historyState.getRememberedDateTo());
     }
@@ -451,11 +452,11 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
      * Asserts the latest error response follows the shared ProblemDetail contract.
      *
      * @param expectedStatus expected HTTP status code.
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then("the defendant account history error response matches the standard problem detail contract for status {int}")
     public void defendantAccountHistoryErrorResponseMatchesStandardProblemDetailContract(int expectedStatus)
-        throws tools.jackson.core.JacksonException {
+        throws JacksonException {
 
         Response response = net.serenitybdd.rest.SerenityRest.lastResponse();
         assertEquals(expectedStatus, response.statusCode(), "Unexpected HTTP status");
@@ -577,21 +578,21 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
         assertNotNull(historyState.getRememberedDateTo(), "No remembered dateTo boundary");
     }
 
-    private void assertHistoryContainsOnlyItemsOnOrAfter(LocalDate boundary) throws Exception {
+    private void assertHistoryContainsOnlyItemsOnOrAfter(LocalDate boundary) throws JacksonException {
         for (JsonNode historyItem : historyItems()) {
             LocalDate postedDate = postedDateOf(historyItem);
             assertFalse(postedDate.isBefore(boundary), "History item was before dateFrom boundary");
         }
     }
 
-    private void assertHistoryContainsOnlyItemsOnOrBefore(LocalDate boundary) throws Exception {
+    private void assertHistoryContainsOnlyItemsOnOrBefore(LocalDate boundary) throws JacksonException {
         for (JsonNode historyItem : historyItems()) {
             LocalDate postedDate = postedDateOf(historyItem);
             assertFalse(postedDate.isAfter(boundary), "History item was after dateTo boundary");
         }
     }
 
-    private void assertHistoryIncludesItemOn(LocalDate expectedDate) throws Exception {
+    private void assertHistoryIncludesItemOn(LocalDate expectedDate) throws JacksonException {
         boolean found = historyItems().stream()
             .map(this::postedDateOf)
             .anyMatch(expectedDate::equals);
@@ -599,11 +600,11 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
         assertTrue(found, "Expected at least one history item on " + expectedDate);
     }
 
-    private JsonNode latestJsonBody() throws tools.jackson.core.JacksonException {
+    private JsonNode latestJsonBody() throws JacksonException {
         return OBJECT_MAPPER.readTree(net.serenitybdd.rest.SerenityRest.lastResponse().getBody().asString());
     }
 
-    private List<JsonNode> historyItems() throws Exception {
+    private List<JsonNode> historyItems() throws JacksonException {
         JsonNode historyItems = latestJsonBody().path("historyItems");
         assertTrue(historyItems.isArray(), "historyItems should be an array");
 
@@ -614,7 +615,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
         return items;
     }
 
-    private Map<String, Long> typeCounts() throws Exception {
+    private Map<String, Long> typeCounts() throws JacksonException {
         Map<String, Long> counts = new LinkedHashMap<>();
         for (JsonNode historyItem : historyItems()) {
             counts.merge(typeOf(historyItem), 1L, Long::sum);
