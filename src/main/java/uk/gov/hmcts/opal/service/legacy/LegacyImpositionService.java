@@ -8,13 +8,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
+import uk.gov.hmcts.opal.dto.legacy.CreditorSummaryLegacy;
+import uk.gov.hmcts.opal.dto.legacy.IndividualNameLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCourtReferenceCommon;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountImpositionCommon;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountImpositionsResponseCommon;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetImpositionsRequest;
-import uk.gov.hmcts.opal.dto.legacy.LegacyImpositionCreditorReferenceCommon;
-import uk.gov.hmcts.opal.dto.legacy.LegacyOffenceReferenceCommon;
 import uk.gov.hmcts.opal.dto.legacy.LegacyResultReferenceCommon;
+import uk.gov.hmcts.opal.dto.legacy.OffenceReferenceLegacy;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.generated.model.CourtReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
@@ -115,26 +117,72 @@ public class LegacyImpositionService implements ImpositionServiceInterface {
         return value == null ? null : value.shortValue();
     }
 
-    private OffenceReferenceCommon buildOffence(LegacyOffenceReferenceCommon offence) {
+    private OffenceReferenceCommon buildOffence(OffenceReferenceLegacy offence) {
         return Optional.ofNullable(offence).map(offenceItem ->
             OffenceReferenceCommon.builder()
-                .id(offenceItem.getId())
-                .code(offenceItem.getCode())
-                .title(offenceItem.getTitle())
+                .id(offenceItem.getOffenceId())
+                .code(offenceItem.getCjsCode())
+                .title(offenceItem.getOffenceTitle())
                 .build()).orElse(null);
     }
 
-    private ImpositionCreditorReferenceCommon buildCreditor(LegacyImpositionCreditorReferenceCommon creditor) {
+    private ImpositionCreditorReferenceCommon buildCreditor(CreditorSummaryLegacy creditor) {
         return Optional.ofNullable(creditor).map(creditorItem ->
                 ImpositionCreditorReferenceCommon.builder()
                     .creditorAccountId(creditorItem.getCreditorAccountId())
-                    .accountType(creditorItem.getAccountType())
-                    .displayName(creditorItem.getDisplayName())
-                    .majorCreditorId(creditorItem.getMajorCreditorId())
-                    .minorCreditorPartyId(creditorItem.getMinorCreditorPartyId())
-                    .name(creditorItem.getName())
+                    .accountType(buildAccountType(creditorItem))
+                    .displayName(buildDisplayName(creditorItem))
+                    .name(buildCreditorName(creditorItem))
                     .build()
             ).orElse(null);
+    }
+
+    private ImpositionCreditorReferenceCommon.AccountTypeEnum buildAccountType(
+        CreditorSummaryLegacy creditor) {
+        String accountType = getAccountType(creditor);
+        return accountType == null ? null : ImpositionCreditorReferenceCommon.AccountTypeEnum.fromValue(accountType);
+    }
+
+    private ImpositionCreditorReferenceCommon.DisplayNameEnum buildDisplayName(
+        CreditorSummaryLegacy creditor) {
+        String displayName = CreditorAccountType.getDisplayName(getAccountType(creditor));
+        return displayName == null
+            ? null
+            : ImpositionCreditorReferenceCommon.DisplayNameEnum.fromValue(displayName);
+    }
+
+    private String getAccountType(CreditorSummaryLegacy creditor) {
+        return creditor.getCreditorAccountTypeReference() == null
+            ? null
+            : creditor.getCreditorAccountTypeReference().getCreditorAccountType();
+    }
+
+    private String buildCreditorName(CreditorSummaryLegacy creditor) {
+        String individualName = buildIndividualName(creditor.getIndividualName());
+        String companyName = creditor.getCompanyName() == null
+            ? null
+            : creditor.getCompanyName().getOrganisationName();
+        return firstNonBlank(creditor.getMajorCreditorName(), individualName, companyName);
+    }
+
+    private String buildIndividualName(IndividualNameLegacy individualName) {
+        return individualName == null
+            ? null
+            : firstNonBlank(String.join(" ", nullToEmpty(individualName.getForenames()),
+                                         nullToEmpty(individualName.getSurname())));
+    }
+
+    private String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value.trim();
+            }
+        }
+        return null;
+    }
+
+    private String nullToEmpty(String value) {
+        return value == null ? "" : value;
     }
 
     private ResultReferenceCommon buildImposition(LegacyResultReferenceCommon imposition) {

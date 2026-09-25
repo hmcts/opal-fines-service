@@ -13,7 +13,6 @@ Feature: Defendant Account Impositions API In Legacy Mode
       | impositions[0].creditor.creditor_account_id     | 99000000000806                          |
       | impositions[0].creditor.account_type            | MN                                       |
       | impositions[0].creditor.display_name            | Minor Creditor                          |
-      | impositions[0].creditor.minor_creditor_party_id | 99000000000906                          |
       | impositions[0].creditor.name                    | Metropolitan Traffic Unit               |
       | impositions[0].offence.code                     | OFF0006                                  |
       | impositions[0].offence.title                    | Test Offence 6                           |

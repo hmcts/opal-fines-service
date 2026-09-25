@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Imposition Creditor Account Type Reference",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "creditor_account_type": {
+      "type": "string",
+      "enum": [
+        "MN",
+        "MJ",
+        "CF"
+      ]
+    }
+  },
+  "required": [
+    "creditor_account_type"
+  ]
+}
