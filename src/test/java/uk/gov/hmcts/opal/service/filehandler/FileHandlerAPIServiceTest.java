@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
 import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserEnum;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.GetInterfaceFiles200Response;
+import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.InterfaceFileObject;
 import uk.gov.hmcts.opal.service.filehandler.clients.FileHandlerClient;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,6 +58,20 @@ class FileHandlerAPIServiceTest {
     }
 
     @Test
+    void getInterfaceFile_returnsResponseBodyUsingSelectedSystemUser() {
+        InterfaceFileObject expected = new InterfaceFileObject();
+        when(client.getInterfaceFile(INTERFACE_FILE_ID)).thenAnswer(invocation -> {
+            assertThat(systemUserContext.getCurrentSystemUser()).contains(SystemUserEnum.OPAL_SYSTEM_USER);
+            return ResponseEntity.ok(expected);
+        });
+
+        InterfaceFileObject actual = service.getInterfaceFile(SystemUserEnum.OPAL_SYSTEM_USER, INTERFACE_FILE_ID);
+
+        assertThat(actual).isSameAs(expected);
+        assertThat(systemUserContext.getCurrentSystemUser()).isEmpty();
+    }
+
+    @Test
     void getInterfaceFileContent_returnsResponseBodyUsingSelectedSystemUser() {
         Resource expected = new ByteArrayResource("file-content".getBytes(StandardCharsets.UTF_8));
         when(client.getInterfaceFileContent(INTERFACE_FILE_ID)).thenAnswer(invocation -> {
@@ -71,13 +86,24 @@ class FileHandlerAPIServiceTest {
     }
 
     @Test
-    void getInterfaceFile_notFoundPropagatesFeignNotFoundAndClearsSelectedSystemUser() {
+    void getInterfaceFiles_notFoundPropagatesFeignNotFoundAndClearsSelectedSystemUser() {
         FeignException.NotFound notFound = (FeignException.NotFound) feignException(404, "Not Found");
         when(client.getInterfaceFiles(null, null, null, null, null, null, null)).thenThrow(notFound);
 
         assertThatThrownBy(() -> service.getInterfaceFiles(
             SystemUserEnum.OPAL_SYSTEM_USER, null, null, null, null, null, null, null))
             .isSameAs(notFound);
+        assertThat(systemUserContext.getCurrentSystemUser()).isEmpty();
+    }
+
+    @Test
+    void getInterfaceFile_notFoundPropagatesFeignNotFoundAndClearsSelectedSystemUser() {
+        FeignException.NotFound notFound = (FeignException.NotFound) feignException(404, "Not Found");
+        when(client.getInterfaceFile(INTERFACE_FILE_ID)).thenThrow(notFound);
+
+        assertThatThrownBy(() -> service.getInterfaceFile(SystemUserEnum.OPAL_SYSTEM_USER, INTERFACE_FILE_ID))
+            .isSameAs(notFound);
+
         assertThat(systemUserContext.getCurrentSystemUser()).isEmpty();
     }
 

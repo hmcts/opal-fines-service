@@ -11,6 +11,7 @@ import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
 import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserEnum;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.GetInterfaceFiles200Response;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.InterfaceFileEnum;
+import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.InterfaceFileObject;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.InterfaceFileTypeEnum;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.StatusEnum;
 import uk.gov.hmcts.opal.service.filehandler.clients.FileHandlerClient;
@@ -51,6 +52,23 @@ public class FileHandlerAPIService implements FileHandlerInterfaceFiles {
         } catch (FeignException exception) {
             throw new DownstreamServiceUnavailableException(
                 "Unable to retrieve interface file from file-handler service",
+                exception
+            );
+        }
+    }
+
+    @Override
+    public InterfaceFileObject getInterfaceFile(SystemUserEnum systemUser, Long interfaceFileId) {
+        try {
+            return systemUserContext.executeAs(
+                systemUser,
+                () -> client.getInterfaceFile(interfaceFileId).getBody()
+            );
+        } catch (FeignException.NotFound exception) {
+            throw exception;
+        } catch (FeignException exception) {
+            throw new DownstreamServiceUnavailableException(
+                "Unable to retrieve interface file from file-handler-service",
                 exception
             );
         }
