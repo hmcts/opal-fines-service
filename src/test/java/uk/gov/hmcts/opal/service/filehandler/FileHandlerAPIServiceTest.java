@@ -18,8 +18,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
 import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserEnum;
+import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.AddInterfaceFileRequestMetadata;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.GetInterfaceFiles200Response;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.InterfaceFileObject;
 import uk.gov.hmcts.opal.service.filehandler.clients.FileHandlerClient;
@@ -31,6 +33,12 @@ class FileHandlerAPIServiceTest {
 
     @Mock
     private FileHandlerClient client;
+
+    @Mock
+    MultipartFile file;
+
+    @Mock
+    AddInterfaceFileRequestMetadata metadata;
 
     private FileHandlerSystemUserContext systemUserContext;
     private FileHandlerAPIService service;
@@ -86,6 +94,20 @@ class FileHandlerAPIServiceTest {
     }
 
     @Test
+    void addInterfaceFile_returnsResponseBodyUsingSelectedSystemUser() {
+        InterfaceFileObject expected = new InterfaceFileObject();
+        when(client.addInterfaceFile(file, metadata)).thenAnswer(invocation -> {
+            assertThat(systemUserContext.getCurrentSystemUser()).contains(SystemUserEnum.OPAL_SYSTEM_USER);
+            return ResponseEntity.ok(expected);
+        });
+
+        InterfaceFileObject actual = service.addInterfaceFile(SystemUserEnum.OPAL_SYSTEM_USER, file, metadata);
+
+        assertThat(actual).isSameAs(expected);
+        assertThat(systemUserContext.getCurrentSystemUser()).isEmpty();
+    }
+
+    @Test
     void getInterfaceFiles_notFoundPropagatesFeignNotFoundAndClearsSelectedSystemUser() {
         FeignException.NotFound notFound = (FeignException.NotFound) feignException(404, "Not Found");
         when(client.getInterfaceFiles(null, null, null, null, null, null, null)).thenThrow(notFound);
@@ -116,6 +138,18 @@ class FileHandlerAPIServiceTest {
             .isInstanceOf(DownstreamServiceUnavailableException.class)
             .hasMessageContaining("file content")
             .hasCause(failure);
+        assertThat(systemUserContext.getCurrentSystemUser()).isEmpty();
+    }
+
+    @Test
+    void addInterfaceFile_unexepectedResponseThrowsDownstreamServiceUnavailableException() {
+        FeignException failure = feignException(500, "Internal Server Error");
+        when(client.addInterfaceFile(file, metadata)).thenThrow(failure);
+
+        assertThatThrownBy(() -> service.addInterfaceFile(SystemUserEnum.OPAL_SYSTEM_USER, file, metadata))
+            .isInstanceOf(DownstreamServiceUnavailableException.class)
+            .hasCause(failure);
+
         assertThat(systemUserContext.getCurrentSystemUser()).isEmpty();
     }
 

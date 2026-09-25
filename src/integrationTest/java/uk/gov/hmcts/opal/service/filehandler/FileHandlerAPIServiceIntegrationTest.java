@@ -6,6 +6,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
@@ -59,7 +60,7 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
         "access_token", "token-value"
     );
 
-    private final InterfaceFileObject interfaceFileEntity = InterfaceFileObject.builder()
+    private final InterfaceFileObject interfaceFileObject = InterfaceFileObject.builder()
         .interfaceFileId(0L)
         .fileName("filename")
         .checksum("00000000000000000000000000000000")
@@ -74,7 +75,7 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
 
     private final GetInterfaceFiles200Response getInterfaceFiles200Response = GetInterfaceFiles200Response.builder()
         .numberOfResults(1)
-        .interfaceFiles(List.of(interfaceFileEntity))
+        .interfaceFiles(List.of(interfaceFileObject))
         .build();
 
     @RegisterExtension
@@ -100,17 +101,22 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
         stubFor(get(urlEqualTo("/interface-files/0/content"))
             .inScenario(WIREMOCK_SCENARIO)
             .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
-            .willReturn(okJson(objectMapper.writeValueAsString(interfaceFileEntity))));
+            .willReturn(okJson(objectMapper.writeValueAsString(interfaceFileObject))));
 
         stubFor(get(urlEqualTo("/interface-files/0"))
             .inScenario(WIREMOCK_SCENARIO)
             .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
-            .willReturn(okJson(objectMapper.writeValueAsString(interfaceFileEntity))));
+            .willReturn(okJson(objectMapper.writeValueAsString(interfaceFileObject))));
 
         stubFor(get(urlEqualTo("/interface-files"))
             .inScenario(WIREMOCK_SCENARIO)
             .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
             .willReturn(okJson(objectMapper.writeValueAsString(getInterfaceFiles200Response))));
+
+        stubFor(post(urlEqualTo("/interface-files"))
+            .inScenario(WIREMOCK_SCENARIO)
+            .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
+            .willReturn(okJson(objectMapper.writeValueAsString(interfaceFileObject))));
 
         // Errors
 
@@ -143,7 +149,7 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
         var responseObject = objectMapper.readValue(
             response.getContentAsString(StandardCharsets.UTF_8), InterfaceFileObject.class);
 
-        assertEquals(responseObject, interfaceFileEntity);
+        assertEquals(responseObject, interfaceFileObject);
 
         WireMock.verify(1, getRequestedFor(urlPathEqualTo("/interface-files/0/content")));
     }
@@ -155,7 +161,7 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
     void getInterfaceFile_success() {
         var response = fileHandlerAPIService.getInterfaceFile(SystemUserEnum.OPAL_SYSTEM_USER, 0L);
 
-        assertEquals(response, interfaceFileEntity);
+        assertEquals(response, interfaceFileObject);
 
         WireMock.verify(1, getRequestedFor(urlPathEqualTo("/interface-files/0")));
     }
@@ -171,6 +177,18 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
         assertEquals(response, getInterfaceFiles200Response);
 
         WireMock.verify(1, getRequestedFor(urlPathEqualTo("/interface-files")));
+    }
+
+    @Test
+    @DisplayName("Correctly calls FileHandler endpoint with auth header - addInterfaceFile")
+    @JiraStory("PO-6497")
+    @JiraEpic("PO-3497")
+    void addInterfaceFile_success() {
+        var response = fileHandlerAPIService.addInterfaceFile(SystemUserEnum.OPAL_SYSTEM_USER, null, null);
+
+        assertEquals(response, interfaceFileObject);
+
+        WireMock.verify(1, postRequestedFor(urlEqualTo("/interface-files")));
     }
 
     @Test
