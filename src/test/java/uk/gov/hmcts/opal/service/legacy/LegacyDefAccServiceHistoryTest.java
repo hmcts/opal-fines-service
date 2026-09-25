@@ -31,6 +31,7 @@ import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse.LegacyDefendantAccountHistoryDetails;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse.LegacyDefendantAccountHistoryItem;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse.LegacyDefendantAccountNoteDetails;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse.LegacyHistoryTypeReference;
 import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
@@ -197,7 +198,9 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
             .postedDetails(postedDetails(2026, 5, 11, 12, 0, "note-user", "Note User"))
             .type("Note")
             .details(LegacyDefendantAccountHistoryDetails.builder()
-                .noteText("Account note text")
+                .noteDetails(LegacyDefendantAccountNoteDetails.builder()
+                    .noteText("Account note text")
+                    .build())
                 .build())
             .build();
     }
