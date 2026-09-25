@@ -2,6 +2,8 @@ package uk.gov.hmcts.opal.controllers;
 
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_ENABLED_PROPERTY;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_PAYMENT;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_PAYMENT_ENABLED_PROPERTY;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 import java.time.LocalDate;
@@ -35,6 +37,7 @@ import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.GetPaymentTermsResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.MasterAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
@@ -47,13 +50,10 @@ import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountResponsePayload;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.ReplacePartyRequestMapper;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
-import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
-import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
-import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
 import uk.gov.hmcts.opal.service.ImpositionService;
 
 @RestController
@@ -290,5 +290,15 @@ public class DefendantAccountApiController implements DefendantAccountApi {
     public ResponseEntity<DefendantAccountPaymentTermsResponse> defendantAccountPaymentTerms(Long id) {
         log.debug(":GET:defendantAccountPaymentTerms: for defendant id: {}", id);
         return buildResponse(defendantAccountPaymentTermsService.getPaymentTerms(id));
+    }
+
+    @Override
+    @FeatureToggle(feature =  RELEASE_1C_PAYMENT, defaultValueProperty = RELEASE_1C_PAYMENT_ENABLED_PROPERTY)
+    public ResponseEntity<MasterAccountDefendantAccount> getDefendantAccountMaster(Long defendantAccountId) {
+        log.debug(":GET:getDefendantAccountMaster: for defendant account id: {}", defendantAccountId);
+
+        MasterAccountDefendantAccount response = defendantAccountService.getMasterDefendantAccount(defendantAccountId);
+
+        return buildResponse(response);
     }
 }
