@@ -28,9 +28,9 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyGetImpositionsRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyImpositionCreditorReferenceCommon;
 import uk.gov.hmcts.opal.dto.legacy.LegacyOffenceReferenceCommon;
 import uk.gov.hmcts.opal.dto.legacy.LegacyResultReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.CreditorAccountTypeEnum;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.CreditorAccountDisplayNameEnum;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionCommon;
-import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon.AccountTypeEnum;
-import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon.DisplayNameEnum;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyImpositionServiceTest {
@@ -85,15 +85,22 @@ class LegacyImpositionServiceTest {
         assertEquals("Application made for Benefit Deductions", imposition.getImposition().getResultTitle());
 
         assertEquals(99000000000806L, imposition.getCreditor().getCreditorAccountId());
-        assertEquals(AccountTypeEnum.MN, imposition.getCreditor().getAccountType());
-        assertEquals(DisplayNameEnum.MINOR_CREDITOR, imposition.getCreditor().getDisplayName());
-        assertNull(imposition.getCreditor().getMajorCreditorId());
-        assertEquals(99000000000906L, imposition.getCreditor().getMinorCreditorPartyId());
-        assertEquals("Metropolitan Traffic Unit", imposition.getCreditor().getName());
+        assertEquals(
+            CreditorAccountTypeEnum.MN,
+            imposition.getCreditor().getCreditorAccountTypeReference().getCreditorAccountType()
+        );
+        assertEquals(
+            CreditorAccountDisplayNameEnum.MINOR_CREDITOR,
+            imposition.getCreditor().getCreditorAccountTypeReference().getCreditorAccountDisplayName()
+        );
+        assertNull(imposition.getCreditor().getMajorCreditorName());
+        assertEquals(true, imposition.getCreditor().getMinorCreditorOrganisationFlag());
+        assertNull(imposition.getCreditor().getIndividualName());
+        assertEquals("Metropolitan Traffic Unit", imposition.getCreditor().getCompanyName().getOrganisationName());
 
-        assertEquals(5510L, imposition.getOffence().getId());
-        assertEquals("OFF0006", imposition.getOffence().getCode());
-        assertEquals("Test Offence 6", imposition.getOffence().getTitle());
+        assertEquals(5510L, imposition.getOffence().getOffenceId());
+        assertEquals("OFF0006", imposition.getOffence().getCjsCode());
+        assertEquals("Test Offence 6", imposition.getOffence().getOffenceTitle());
 
         assertEquals(101L, imposition.getImposedBy().getCourtId());
         assertEquals((short) 102, imposition.getImposedBy().getCourtCode());
@@ -122,8 +129,8 @@ class LegacyImpositionServiceTest {
                 .build())
             .creditor(LegacyImpositionCreditorReferenceCommon.builder()
                 .creditorAccountId(99000000000806L)
-                .accountType(AccountTypeEnum.MN)
-                .displayName(DisplayNameEnum.MINOR_CREDITOR)
+                .accountType(CreditorAccountTypeEnum.MN)
+                .displayName(CreditorAccountDisplayNameEnum.MINOR_CREDITOR)
                 .minorCreditorPartyId(99000000000906L)
                 .name("Metropolitan Traffic Unit")
                 .build())

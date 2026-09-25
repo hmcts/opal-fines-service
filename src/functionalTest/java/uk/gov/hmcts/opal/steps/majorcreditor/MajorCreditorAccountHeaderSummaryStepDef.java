@@ -36,8 +36,8 @@ public class MajorCreditorAccountHeaderSummaryStepDef extends BaseStepDef {
         "account_reference"
     );
     private static final Set<String> ACCOUNT_REFERENCE_FIELDS = Set.of(
-        "account_type",
-        "display_name"
+        "creditor_account_type",
+        "creditor_account_display_name"
     );
     private static final Set<String> BUSINESS_UNIT_FIELDS = Set.of(
         "business_unit_code",
@@ -130,8 +130,8 @@ public class MajorCreditorAccountHeaderSummaryStepDef extends BaseStepDef {
             .body("major_creditor.creditor_account_id", equalTo(10770000000041L))
             .body("major_creditor.account_number", equalTo("00001235G"))
             .body("major_creditor.name", equalTo("TFL2 ATCM Testing"))
-            .body("major_creditor.account_reference.account_type", equalTo("MJ"))
-            .body("major_creditor.account_reference.display_name", equalTo("Major Creditor"))
+            .body("major_creditor.account_reference.creditor_account_type", equalTo("MJ"))
+            .body("major_creditor.account_reference.creditor_account_display_name", equalTo("Major Creditor"))
             .body("business_unit_details.business_unit_id", equalTo(77))
             .body("business_unit_details.business_unit_name", equalTo("Camberwell Green"))
             .body("business_unit_details.welsh_speaking", equalTo("N"));
