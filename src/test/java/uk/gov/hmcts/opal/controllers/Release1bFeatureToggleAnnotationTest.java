@@ -31,7 +31,7 @@ class Release1bFeatureToggleAnnotationTest {
             MajorCreditorApiController.class,
             MajorCreditorController.class,
             MinorCreditorApiController.class,
-            NotesController.class,
+            NotesApiController.class,
             OffenceController.class,
             PrintRequestController.class,
             ProscutorController.class,
@@ -63,6 +63,7 @@ class Release1bFeatureToggleAnnotationTest {
             "DefendantAccountApiController#getImpositions",
             "DefendantAccountApiController#postDefendantAccountSearch",
             "DefendantAccountApiController#removeEnforcementHold",
+            "NotesApiController#addNote",
             "DefendantAccountApiController#replaceDefendantAccountParty",
             "DefendantAccountApiController#updateDefendantAccount",
             "DefendantAccountApiController#defendantAccountPaymentTerms",
@@ -80,9 +81,6 @@ class Release1bFeatureToggleAnnotationTest {
             "MinorCreditorApiController#patchMinorCreditorAccount",
             "MinorCreditorApiController#postMinorCreditorSearch",
             "MinorCreditorApiController#getMinorCreditorAccountHeaderSummary",
-
-            // Notes controller
-            "NotesController#addNote",
 
             // Results API controller
             "ResultsApiController#getResultById"
