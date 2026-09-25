@@ -18,6 +18,7 @@ import static uk.gov.hmcts.opal.SchemaPaths.GET_DEFENDANT_ACCOUNT_IMPOSITIONS_RE
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -38,15 +39,14 @@ import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil;
-import uk.gov.hmcts.opal.dto.legacy.LegacyCourtReferenceCommon;
-import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountImpositionCommon;
-import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountImpositionsResponseCommon;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Creditor;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.CreditorAccountType;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Imposition;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Offence;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.PostedDetails;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Result;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetImpositionsRequest;
-import uk.gov.hmcts.opal.dto.legacy.LegacyImpositionCreditorReferenceCommon;
-import uk.gov.hmcts.opal.dto.legacy.LegacyOffenceReferenceCommon;
-import uk.gov.hmcts.opal.dto.legacy.LegacyResultReferenceCommon;
-import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon.AccountTypeEnum;
-import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon.DisplayNameEnum;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.legacy.LegacyImpositionService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
@@ -96,7 +96,7 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
 
         when(gatewayService.postToGateway(
             eq(LegacyImpositionService.GET_IMPOSITIONS),
-            eq(LegacyDefendantAccountImpositionsResponseCommon.class),
+            eq(GetDefendantAccountImpositionsLegacyResponse.class),
             requestCaptor.capture(),
             isNull()
         )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse(), null, null));
@@ -113,7 +113,6 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.impositions[0].creditor.creditor_account_id").value(99000000000806L))
             .andExpect(jsonPath("$.impositions[0].creditor.account_type").value("MN"))
             .andExpect(jsonPath("$.impositions[0].creditor.display_name").value("Minor Creditor"))
-            .andExpect(jsonPath("$.impositions[0].creditor.minor_creditor_party_id").value(99000000000906L))
             .andExpect(jsonPath("$.impositions[0].creditor.name").value("Metropolitan Traffic Unit"))
             .andExpect(jsonPath("$.impositions[0].imposed_amount").value(600.00))
             .andExpect(jsonPath("$.impositions[0].paid_amount").value(60.00))
@@ -130,7 +129,7 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
 
         verify(gatewayService).postToGateway(
             eq(LegacyImpositionService.GET_IMPOSITIONS),
-            eq(LegacyDefendantAccountImpositionsResponseCommon.class),
+            eq(GetDefendantAccountImpositionsLegacyResponse.class),
             eq(requestCaptor.getValue()),
             isNull()
         );
@@ -162,7 +161,7 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
     void getImpositions_whenGatewayReturnsNotFound_returnsNotFound() throws Exception {
         when(gatewayService.postToGateway(
             eq(LegacyImpositionService.GET_IMPOSITIONS),
-            eq(LegacyDefendantAccountImpositionsResponseCommon.class),
+            eq(GetDefendantAccountImpositionsLegacyResponse.class),
             any(),
             isNull()
         )).thenThrow(HttpClientErrorException.create(
@@ -180,35 +179,32 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
                                    .accept(MediaType.APPLICATION_JSON));
     }
 
-    private LegacyDefendantAccountImpositionsResponseCommon legacyResponse() {
-        return LegacyDefendantAccountImpositionsResponseCommon.builder()
+    private GetDefendantAccountImpositionsLegacyResponse legacyResponse() {
+        return GetDefendantAccountImpositionsLegacyResponse.builder()
             .version(BigInteger.ONE)
-            .impositions(List.of(LegacyDefendantAccountImpositionCommon.builder()
-                .dateAdded(LocalDate.parse("2026-05-06"))
+            .impositions(List.of(Imposition.builder()
+                .postedDetails(PostedDetails.builder()
+                    .postedDate(LocalDateTime.parse("2026-05-06T12:30:00"))
+                    .postedBy("L077AO")
+                    .postedByName("Legacy User")
+                    .build())
                 .dateImposed(LocalDate.parse("2026-05-05"))
-                .imposition(LegacyResultReferenceCommon.builder()
+                .result(Result.builder()
                     .resultId("ABDC")
                     .resultTitle("Application made for Benefit Deductions")
                     .build())
-                .creditor(LegacyImpositionCreditorReferenceCommon.builder()
+                .creditor(Creditor.builder()
+                    .creditorAccountType(CreditorAccountType.builder().creditorAccountType("MN").build())
                     .creditorAccountId(99000000000806L)
-                    .accountType(AccountTypeEnum.MN)
-                    .displayName(DisplayNameEnum.MINOR_CREDITOR)
-                    .minorCreditorPartyId(99000000000906L)
-                    .name("Metropolitan Traffic Unit")
+                    .majorCreditorName("Metropolitan Traffic Unit")
                     .build())
                 .imposedAmount(new BigDecimal("600.00"))
                 .paidAmount(new BigDecimal("60.00"))
                 .balance(new BigDecimal("540.00"))
-                .offence(LegacyOffenceReferenceCommon.builder()
-                    .id(5510L)
-                    .code("OFF0006")
-                    .title("Test Offence 6")
-                    .build())
-                .imposedBy(LegacyCourtReferenceCommon.builder()
-                    .courtId(101L)
-                    .courtCode(102)
-                    .courtName("Legacy Court")
+                .offence(Offence.builder()
+                    .offenceId(5510L)
+                    .cjsCode("OFF0006")
+                    .offenceTitle("Test Offence 6")
                     .build())
                 .impositionId(99000000003006L)
                 .build()))

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -7,22 +8,22 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
+import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyCourtReferenceCommon;
-import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountImpositionCommon;
-import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountImpositionsResponseCommon;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Creditor;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Imposition;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Offence;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.PostedDetails;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Result;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetImpositionsRequest;
-import uk.gov.hmcts.opal.dto.legacy.LegacyImpositionCreditorReferenceCommon;
-import uk.gov.hmcts.opal.dto.legacy.LegacyOffenceReferenceCommon;
-import uk.gov.hmcts.opal.dto.legacy.LegacyResultReferenceCommon;
-import uk.gov.hmcts.opal.generated.model.CourtReferenceCommon;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
 import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.OffenceReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.ResultReferenceCommon;
 import uk.gov.hmcts.opal.service.iface.ImpositionServiceInterface;
-import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 
 @Service
 @RequiredArgsConstructor
@@ -39,8 +40,8 @@ public class LegacyImpositionService implements ImpositionServiceInterface {
         log.debug(":getImpositions: id: {}", defendantAccountId);
 
         try {
-            Response<LegacyDefendantAccountImpositionsResponseCommon> response = gatewayService.postToGateway(
-                GET_IMPOSITIONS, LegacyDefendantAccountImpositionsResponseCommon.class,
+            Response<GetDefendantAccountImpositionsLegacyResponse> response = gatewayService.postToGateway(
+                GET_IMPOSITIONS, GetDefendantAccountImpositionsLegacyResponse.class,
                 createGetDefendantAccountImpositionsRequest(defendantAccountId.toString()), null);
 
             checkResponseForError(response, "getImpositions");
@@ -55,7 +56,7 @@ public class LegacyImpositionService implements ImpositionServiceInterface {
 
     /* This maybe should move to the common response builders later */
     private GetDefendantAccountImpositionsResponse toAccountImpositionsResponse(
-        LegacyDefendantAccountImpositionsResponseCommon legacyImpositionsResponse) {
+        GetDefendantAccountImpositionsLegacyResponse legacyImpositionsResponse) {
 
         return Optional.ofNullable(legacyImpositionsResponse).map(imposition ->
             GetDefendantAccountImpositionsResponse.builder()
@@ -65,7 +66,7 @@ public class LegacyImpositionService implements ImpositionServiceInterface {
     }
 
     private DefendantAccountImpositionsResponseCommon buildImpositionList(
-        List<LegacyDefendantAccountImpositionCommon> impositions) {
+        List<Imposition> impositions) {
         return Optional.ofNullable(impositions).map(content ->
             DefendantAccountImpositionsResponseCommon.builder()
                 .impositions(buildImpositions(impositions))
@@ -74,25 +75,24 @@ public class LegacyImpositionService implements ImpositionServiceInterface {
     }
 
     private List<DefendantAccountImpositionCommon> buildImpositions(
-        List<LegacyDefendantAccountImpositionCommon> impositions) {
+        List<Imposition> impositions) {
 
         List<DefendantAccountImpositionCommon> outcome = null;
 
         if (impositions != null) {
-            for (LegacyDefendantAccountImpositionCommon imposition : impositions) {
+            for (Imposition imposition : impositions) {
                 if (imposition != null) {
                     outcome = outcome == null ? new ArrayList<>() : outcome;
 
                     outcome.add(DefendantAccountImpositionCommon.builder()
-                            .dateAdded(imposition.getDateAdded())
-                            .imposition(buildImposition(imposition.getImposition()))
+                            .dateAdded(buildDateAdded(imposition.getPostedDetails()))
+                            .imposition(buildImposition(imposition.getResult()))
                             .creditor(buildCreditor(imposition.getCreditor()))
                             .imposedAmount(imposition.getImposedAmount())
                             .paidAmount(imposition.getPaidAmount())
                             .balance(imposition.getBalance())
                             .dateImposed(imposition.getDateImposed())
                             .offence(buildOffence(imposition.getOffence()))
-                            .imposedBy(buildCourtReference(imposition.getImposedBy()))
                             .impositionId(imposition.getImpositionId())
                         .build());
                 }
@@ -102,42 +102,51 @@ public class LegacyImpositionService implements ImpositionServiceInterface {
         return outcome;
     }
 
-    private CourtReferenceCommon buildCourtReference(LegacyCourtReferenceCommon courtReference) {
-        return Optional.ofNullable(courtReference).map(courtReferenceItem ->
-            CourtReferenceCommon.builder()
-                .courtId(courtReferenceItem.getCourtId())
-                .courtCode(toShort(courtReferenceItem.getCourtCode()))
-                .courtName(courtReferenceItem.getCourtName())
-                .build()).orElse(null);
+    private LocalDate buildDateAdded(PostedDetails postedDetails) {
+        return postedDetails == null || postedDetails.getPostedDate() == null
+            ? null
+            : postedDetails.getPostedDate().toLocalDate();
     }
 
-    private Short toShort(Integer value) {
-        return value == null ? null : value.shortValue();
-    }
-
-    private OffenceReferenceCommon buildOffence(LegacyOffenceReferenceCommon offence) {
+    private OffenceReferenceCommon buildOffence(Offence offence) {
         return Optional.ofNullable(offence).map(offenceItem ->
             OffenceReferenceCommon.builder()
-                .id(offenceItem.getId())
-                .code(offenceItem.getCode())
-                .title(offenceItem.getTitle())
+                .id(offenceItem.getOffenceId())
+                .code(offenceItem.getCjsCode())
+                .title(offenceItem.getOffenceTitle())
                 .build()).orElse(null);
     }
 
-    private ImpositionCreditorReferenceCommon buildCreditor(LegacyImpositionCreditorReferenceCommon creditor) {
+    private ImpositionCreditorReferenceCommon buildCreditor(Creditor creditor) {
         return Optional.ofNullable(creditor).map(creditorItem ->
                 ImpositionCreditorReferenceCommon.builder()
                     .creditorAccountId(creditorItem.getCreditorAccountId())
-                    .accountType(creditorItem.getAccountType())
-                    .displayName(creditorItem.getDisplayName())
-                    .majorCreditorId(creditorItem.getMajorCreditorId())
-                    .minorCreditorPartyId(creditorItem.getMinorCreditorPartyId())
-                    .name(creditorItem.getName())
+                    .accountType(buildAccountType(creditorItem))
+                    .displayName(buildDisplayName(creditorItem))
+                    .name(creditorItem.getMajorCreditorName())
                     .build()
             ).orElse(null);
     }
 
-    private ResultReferenceCommon buildImposition(LegacyResultReferenceCommon imposition) {
+    private ImpositionCreditorReferenceCommon.AccountTypeEnum buildAccountType(Creditor creditor) {
+        String accountType = getAccountType(creditor);
+        return accountType == null ? null : ImpositionCreditorReferenceCommon.AccountTypeEnum.fromValue(accountType);
+    }
+
+    private ImpositionCreditorReferenceCommon.DisplayNameEnum buildDisplayName(Creditor creditor) {
+        String displayName = CreditorAccountType.getDisplayName(getAccountType(creditor));
+        return displayName == null
+            ? null
+            : ImpositionCreditorReferenceCommon.DisplayNameEnum.fromValue(displayName);
+    }
+
+    private String getAccountType(Creditor creditor) {
+        return creditor.getCreditorAccountType() == null
+            ? null
+            : creditor.getCreditorAccountType().getCreditorAccountType();
+    }
+
+    private ResultReferenceCommon buildImposition(Result imposition) {
         return Optional.ofNullable(imposition).map(impositionItem ->
             ResultReferenceCommon.builder()
                 .resultId(impositionItem.getResultId())
