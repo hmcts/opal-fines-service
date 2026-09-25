@@ -15,6 +15,11 @@ components:
         - MAINTENANCE
         - FILE_HANDLER
         - CONFISCATION
+    paymentTypeEnum:
+      type: string
+      enum:
+        - CASH
+        - CHEQUE
     BigInt:
       type: integer
       format: int64
