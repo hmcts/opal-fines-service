@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 
 /**
- * Runs tagged Opal functional scenarios that must be selected deliberately at execution time.
+ * Runs tagged functional scenarios that must be selected deliberately at execution time.
  *
  * <p>This runner exists separately from {@link OpalTestRunner} because the default Opal suite
  * excludes the release-toggle scenarios that are not safe to include in the normal
@@ -22,6 +22,7 @@ import uk.gov.hmcts.opal.steps.BaseStepDef;
 @Suite
 @IncludeEngines("cucumber")
 @SelectClasspathResource("features/opalMode")
+@SelectClasspathResource("features/legacyMode")
 public class OpalTaggedTestRunner {
 
     static Logger log = LoggerFactory.getLogger(OpalTaggedTestRunner.class.getName());

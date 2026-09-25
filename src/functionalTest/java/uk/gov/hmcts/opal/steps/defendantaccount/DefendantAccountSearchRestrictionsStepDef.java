@@ -32,6 +32,7 @@ public class DefendantAccountSearchRestrictionsStepDef extends BaseStepDef {
     private static final String REVIEWING_USER = "opal-test-10@dev.platform.hmcts.net";
     private static final String DEFAULT_ACCOUNT_FIXTURE = "draftAccounts/accountJson/adultAccount.json";
     private static final String DEFAULT_BUSINESS_UNIT_ID = "77";
+    private static final long LEGACY_SAFE_COURT_ID = 770000000001L;
     private static final String SEARCH_URL = "/defendant-accounts/search";
     private static final String BIRTH_DATE = "1980-02-03";
     private static final String POSTCODE = "ZZ1 1ZZ";
@@ -251,12 +252,18 @@ public class DefendantAccountSearchRestrictionsStepDef extends BaseStepDef {
                 buildPublishPatchData()
             );
             responseAssertions.assertStatus(publishResponse, 200);
-            Object accountId = publishResponse.jsonPath().get("account_id");
-            if (accountId == null) {
-                accountId = draftAccountActions.getDraftAccount(draftAccountId).jsonPath().get("account_id");
+            Object publishedAccountId = publishedAccountIdFrom(publishResponse);
+            assertNotNull(
+                publishedAccountId,
+                "Expected published draft account response to expose account_id"
+            );
+            String defendantAccountId = String.valueOf(publishedAccountId);
+            scenarioContext().setCreatedDefendantAccountId(defendantAccountId);
+            if (!isLegacyMode()) {
+                scenarioContext().addCreatedDefendantAccountId(defendantAccountId);
             }
-            assertNotNull(accountId, "Expected published draft account to expose account_id");
-            return String.valueOf(accountId);
+            scenarioContext().removeDraftAccountId(draftAccountId);
+            return defendantAccountId;
         } finally {
             actAs(originalUser);
         }
@@ -275,6 +282,7 @@ public class DefendantAccountSearchRestrictionsStepDef extends BaseStepDef {
         JSONObject account = requestFactory.loadAccountFixture(DEFAULT_ACCOUNT_FIXTURE);
         account.put("prosecutor_case_reference", accountData.prosecutorCaseReference());
         account.put("account_sentence_date", BIRTH_DATE);
+        account.put("enforcement_court_id", LEGACY_SAFE_COURT_ID);
 
         JSONObject defendant = account.getJSONObject("defendant");
         defendant.put("surname", accountData.surname());
@@ -283,6 +291,11 @@ public class DefendantAccountSearchRestrictionsStepDef extends BaseStepDef {
         defendant.put("address_line_1", accountData.addressLine1());
         defendant.put("post_code", accountData.postcode());
         defendant.put("national_insurance_number", accountData.nationalInsuranceNumber());
+
+        JSONArray offences = account.getJSONArray("offences");
+        for (int i = 0; i < offences.length(); i++) {
+            offences.getJSONObject(i).put("imposing_court_id", LEGACY_SAFE_COURT_ID);
+        }
 
         return account;
     }
@@ -341,6 +354,19 @@ public class DefendantAccountSearchRestrictionsStepDef extends BaseStepDef {
     private void actAs(String user) {
         BearerTokenStepDef.setTokenOverride(BearerTokenStepDef.getAccessTokenForUser(user));
         scenarioContext().setCurrentUser(user);
+    }
+
+    private Object publishedAccountIdFrom(Response response) {
+        Object accountId = response.jsonPath().get("account_id");
+        return accountId != null ? accountId : response.jsonPath().get("defendant_account_id");
+    }
+
+    private boolean isLegacyMode() {
+        Response response = authorisedJsonRequest()
+            .when()
+            .get(getTestUrl() + "/testing-support/is-legacy-mode");
+        responseAssertions.assertStatus(response, 200);
+        return Boolean.parseBoolean(response.asString());
     }
 
     private String uniqueToken() {
