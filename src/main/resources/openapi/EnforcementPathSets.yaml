@@ -1,0 +1,402 @@
+openapi: 3.1.1
+
+servers:
+  - url: http://localhost:4550/
+
+info:
+  description: Opal Fines Service - Enforcement Path Sets
+  version: v0.0.1
+  title: Opal Fines Service
+
+paths:
+  /enforcement-path-sets:
+    post:
+      tags:
+        - Enforcement Path Sets
+      summary: Add Enforcement Path Sets
+      description: User must have the 'Auto Enforcement' Permission must be in the admin business unit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - name
+                - business_units
+                - paths
+              properties:
+                name:
+                  type: string
+                  maxLength: 240
+                  description: DB Mapping - enforcement_path_sets.description
+                business_units:
+                  type: array
+                  items:
+                    $ref: './types.yaml/#/components/schemas/BigInt'
+                paths:
+                  type: array
+                  items:
+                    type: object
+                    $ref: '#/components/schemas/enforcementPath'
+      responses:
+        '201':
+          description: CREATED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getEnforcementPathSetResponse'
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+    get:
+      tags:
+        - Enforcement Path Sets
+      summary: Get Enforcement Path Sets
+      description: User must have the 'Auto Enforcement' Permission must be in the admin business unit
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                additionalProperties: false
+                type: array
+                items:
+                  type: object
+                  $ref: '#/components/schemas/getEnforcementPathSetResponse'
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+  /enforcement-path-sets/{enforcementPathSetId}:
+    patch:
+      tags:
+        - Enforcement Path Set
+      summary: Update Enforcement Path Set
+      description: User must have the 'Auto Enforcement' Permission must be in the admin business unit
+      parameters:
+        - name: enforcementPathSetId
+          in: path
+          required: true
+          schema:
+            $ref: './types.yaml/#/components/schemas/BigInt'
+        - in: header
+          name: If-Match
+          description: Version of the Enforcement path set. DB Mapping - enforcement_path_sets.version
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                name:
+                  type: string
+                  maxLength: 240
+                  description: DB Mapping - enforcement_path_sets.description
+                business_units:
+                  type: array
+                  items:
+                    $ref: './types.yaml/#/components/schemas/BigInt'
+                paths:
+                  type: array
+                  items:
+                    type: object
+                    $ref: '#/components/schemas/enforcementPath'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getEnforcementPathSetResponse'
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: Not Found
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+    delete:
+      tags:
+        - Enforcement Path Set
+      summary: Delete Enforcement Path Set
+      description: User must have the 'Auto Enforcement' Permission must be in the admin business unit
+      parameters:
+        - name: enforcementPathSetId
+          in: path
+          required: true
+          schema:
+            $ref: './types.yaml/#/components/schemas/BigInt'
+        - in: header
+          name: If-Match
+          description: Version of the Enforcement path set. DB Mapping - enforcement_path_sets.version
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getEnforcementPathSetResponse'
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: Not Found
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+    get:
+      tags:
+        - Enforcement Path Set
+      summary: Get Enforcement Path Set
+      description: User must have the 'Auto Enforcement' Permission must be in the admin business unit
+      parameters:
+        - name: enforcementPathSetId
+          in: path
+          required: true
+          schema:
+            $ref: './types.yaml/#/components/schemas/BigInt'
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getEnforcementPathSetResponse'
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: Not Found
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+components:
+  schemas:
+    getEnforcementPathSetResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - version
+        - contains_missing_paths
+        - business_units
+        - paths
+      properties:
+        name:
+          type: string
+          description: DB Mapping - enforcement_path_sets.description
+        version:
+          $ref: "./types.yaml#/components/schemas/BigInt"
+          description: DB Mapping - enforcement_path_sets.version
+        contains_missing_paths:
+          type: boolean
+          description: Returns true if this enforcement path set does not have a linked enforcement path for every enforcement account type excluding any account types of path high with 0 balancee lse returns false.
+        business_units:
+          type: array
+          items:
+            $ref: './common.yaml/#/components/schemas/businessUnitSummaryLite'
+        paths:
+          type: array
+          items:
+            type: object
+            $ref: '#/components/schemas/enforcementPath'
+    enforcementPath:
+      type: object
+      additionalProperties: false
+      required:
+        - enforcement_account_type_id
+        - missed_payments
+        - enforcement_action_1
+      properties:
+        enforcement_path_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+        enforcement_account_type_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+        missed_payments:
+          $ref: '#/components/schemas/missedPayments'
+        enforcement_action_1:
+          $ref: '#/components/schemas/enforcementAction'
+        enforcement_action_2:
+          $ref: '#/components/schemas/enforcementAction'
+        enforcement_action_3:
+          $ref: '#/components/schemas/enforcementAction'
+    missedPayments:
+      type: object
+      additionalProperties: false
+      required:
+        - missed_weeks
+        - missed_fortnights
+        - missed_months
+      properties:
+        missed_weeks:
+          type: Integer
+          minimum: 0
+        missed_fortnights:
+          type: Integer
+          minimum: 0
+        missed_months:
+          type: Integer
+          minimum: 0
+    enforcementAction:
+      type: object
+      additionalProperties: false
+      required:
+        - days_until_next_action
+      properties:
+        result_id:
+          type: Integer
+        days_until_next_action:
+          minimum: 0
+          type: Integer
