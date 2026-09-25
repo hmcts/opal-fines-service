@@ -90,13 +90,17 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
             .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
             .willReturn(okJson(objectMapper.writeValueAsString(interfaceFileEntity))));
 
+        stubFor(get(urlEqualTo("/interface-files/0"))
+            .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
+            .willReturn(okJson(objectMapper.writeValueAsString(interfaceFileEntity))));
+
         stubFor(get(urlEqualTo("/interface-files"))
             .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
             .willReturn(okJson(objectMapper.writeValueAsString(getInterfaceFiles200Response))));
     }
 
     @Test
-    @DisplayName("Correctly calls FileHandler endpoint with auth header")
+    @DisplayName("Correctly calls FileHandler endpoint with auth header - getInterfaceFiles")
     @JiraStory("PO-6497")
     @JiraEpic("PO-3497")
     void getInterfaceFileContent_success() throws IOException {
@@ -111,7 +115,19 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
     }
 
     @Test
-    @DisplayName("Correctly calls FileHandler endpoint with auth header")
+    @DisplayName("Correctly calls FileHandler endpoint with auth header - getInterfaceFile")
+    @JiraStory("PO-6497")
+    @JiraEpic("PO-3497")
+    void getInterfaceFile_success() {
+        var response = fileHandlerAPIService.getInterfaceFile(SystemUserEnum.OPAL_SYSTEM_USER, 0L);
+
+        assertEquals(response, interfaceFileEntity);
+
+        WireMock.verify(1, getRequestedFor(urlPathEqualTo("/interface-files/0")));
+    }
+
+    @Test
+    @DisplayName("Correctly calls FileHandler endpoint with auth header - getInterfaceFileContent")
     @JiraStory("PO-6497")
     @JiraEpic("PO-3497")
     void getInterfaceFiles_success() {

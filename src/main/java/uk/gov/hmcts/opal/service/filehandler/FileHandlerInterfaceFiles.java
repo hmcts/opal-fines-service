@@ -6,6 +6,7 @@ import org.springframework.core.io.Resource;
 import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserEnum;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.GetInterfaceFiles200Response;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.InterfaceFileEnum;
+import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.InterfaceFileObject;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.InterfaceFileTypeEnum;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.StatusEnum;
 
@@ -19,6 +20,8 @@ public interface FileHandlerInterfaceFiles {
         @Nullable StatusEnum status,
         @Nullable LocalDateTime fromDate,
         @Nullable LocalDateTime toDate);
+
+    InterfaceFileObject getInterfaceFile(SystemUserEnum systemUser, Long interfaceFileId);
 
     Resource getInterfaceFileContent(SystemUserEnum systemUser, Long interfaceFileId);
 
