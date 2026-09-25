@@ -118,6 +118,10 @@ public class GetDefendantAccountHistoryLegacyResponse implements ToXmlString {
         @XmlElement(name = "note_text")
         private String noteText;
 
+        @JsonProperty("note_details")
+        @XmlElement(name = "note_details")
+        private LegacyDefendantAccountNoteDetails noteDetails;
+
         @JsonProperty("transaction_type")
         @XmlElement(name = "transaction_type")
         private LegacyHistoryTypeReference transactionType;
@@ -205,6 +209,25 @@ public class GetDefendantAccountHistoryLegacyResponse implements ToXmlString {
         @JsonProperty("instalment_amount")
         @XmlElement(name = "instalment_amount")
         private BigDecimal instalmentAmount;
+
+        public String getNoteText() {
+            if (noteText != null) {
+                return noteText;
+            }
+            return noteDetails == null ? null : noteDetails.getNoteText();
+        }
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class LegacyDefendantAccountNoteDetails {
+
+        @JsonProperty("note_text")
+        @XmlElement(name = "note_text")
+        private String noteText;
     }
 
     @Data
