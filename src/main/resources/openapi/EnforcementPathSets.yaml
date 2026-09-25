@@ -23,9 +23,9 @@ paths:
               type: object
               additionalProperties: false
               required:
-                -name
-                -business_units
-                -paths
+                - name
+                - business_units
+                - paths
               properties:
                 name:
                   type: string
