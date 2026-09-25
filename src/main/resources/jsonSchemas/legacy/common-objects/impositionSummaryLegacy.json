@@ -14,16 +14,16 @@
   ],
   "properties": {
     "posted_details": {
-      "$ref": "./postedDetailsLegacy.json"
+      "$ref": "./impositionPostedDetailsLegacy.json"
     },
     "result": {
       "$ref": "./resultReferenceLegacy.json"
     },
     "creditor": {
-      "$ref": "./creditorAccountTypeReferenceLegacy.json"
+      "$ref": "./impositionCreditorReferenceLegacy.json"
     },
     "imposed_amount": {
-      "$ref": "./monetaryZeroOrPositive.json"
+      "$ref": "./monetaryNegativeOrPositive.json"
     },
     "paid_amount": {
       "$ref": "./monetaryZeroOrPositive.json"
@@ -37,9 +37,6 @@
     },
     "offence": {
       "$ref": "./offenceReferenceLegacy.json"
-    },
-    "imposing_court": {
-      "$ref": "./courtReferenceLegacy.json"
     },
     "imposition_id": {
       "$ref": "./bigInt.json"

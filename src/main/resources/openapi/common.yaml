@@ -761,7 +761,7 @@ components:
           $ref: '#/components/schemas/impositionCreditorReference'
         imposed_amount:
           description: Imposed amount. DB Mapping - impositions.imposed_amount.
-          $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
+          $ref: './types.yaml#/components/schemas/monetaryNegativeOrPositive'
         paid_amount:
           description: Paid or written-off amount. DB Mapping - impositions.paid_amount.
           $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
