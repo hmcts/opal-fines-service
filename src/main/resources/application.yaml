@@ -216,6 +216,10 @@ user:
   service:
     url: ${OPAL_USER_SERVICE_API_URL:http://localhost:4555}
 
+file-handler:
+  service:
+    url: ${OPAL_FILE_HANDLER_SERVICE_API_URL:http://localhost:4075}
+
 logging-service:
   pdpl:
     async:
