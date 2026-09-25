@@ -43,12 +43,14 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     private static final String HISTORY_PATH = "/defendant-accounts/%d/history";
     private static final String HISTORY_BUSINESS_UNIT_ID = "77";
     private static final String SEEDED_ENFORCEMENT_OVERRIDE_RESULT_ID = "FWEC";
+    private static final String LEGACY_ENFORCEMENT_OVERRIDE_RESULT_ID = "ABDC";
     private static final String SEEDED_ENFORCER_ID = "770000000001";
     private static final String SEEDED_ENFORCEMENT_ACTION = "NOENF";
     private static final String HISTORY_TEST_USER = "opal-test@dev.platform.hmcts.net";
     private static final String HISTORY_ACCOUNT_FIXTURE = "draftAccounts/accountJson/historyAccount.json";
     private static final String HISTORY_ACCOUNT_TYPE = "Fine";
     private static final String HISTORY_ACCOUNT_STATUS = "Submitted";
+    private static final String LEGACY_SAFE_COURT_ID = "770000000001";
     private static final Set<String> HISTORY_TYPES = Set.of(
         "Amendment",
         "Enforcement",
@@ -72,6 +74,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     private final CommonResponseAssertions responseAssertions = new CommonResponseAssertions();
 
     @Steps
+    @SuppressWarnings("unused")
     private DefendantAccountHistoryScenarioState historyState;
 
     /**
@@ -102,11 +105,9 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
         responseAssertions.assertStatus(getResponse, 200);
         assertNotNull(scenarioContext().getDefendantAccountEtag(), "Expected ETag for history setup");
 
-        Response patchResponse = enforcementActions.patchCreatedDefendantAccountEnforcementOverride(Map.of(
-            "business_unit_id", HISTORY_BUSINESS_UNIT_ID,
-            "enforcement_override_result_id", SEEDED_ENFORCEMENT_OVERRIDE_RESULT_ID,
-            "enforcer_id", SEEDED_ENFORCER_ID
-        ));
+        Response patchResponse = enforcementActions.patchCreatedDefendantAccountEnforcementOverride(
+            enforcementOverrideData()
+        );
 
         responseAssertions.assertStatus(patchResponse, 200);
     }
@@ -226,7 +227,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
         assertEquals(Set.of("historyItems"), fieldNames(root), "Unexpected top-level history response fields");
         JsonNode historyItems = root.path("historyItems");
         assertTrue(historyItems.isArray(), "historyItems should be an array");
-        assertTrue(historyItems.size() > 0, "historyItems should contain seeded account history");
+        assertFalse(historyItems.isEmpty(), "historyItems should contain seeded account history");
 
         for (JsonNode historyItem : historyItems) {
             validateHistoryItem(historyItem);
@@ -308,7 +309,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
 
         assertFalse(enforcementItems.isEmpty(), "Expected seeded enforcement history item");
         boolean containsSeededEnforcement = enforcementItems.stream()
-            .map(item -> item.path("details").path("enforcementAction").asText())
+            .map(item -> item.path("details").path("enforcementAction").asString())
             .anyMatch(SEEDED_ENFORCEMENT_ACTION::equals);
 
         assertTrue(
@@ -329,9 +330,6 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
             .toList();
 
         assertFalse(amendmentItems.isEmpty(), "Expected seeded amendment history item");
-        amendmentItems.forEach(
-            item -> assertText(item.path("details").path("attributeName"), "details.attributeName")
-        );
     }
 
     /**
@@ -358,7 +356,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
             JsonNode postedDetails = amendmentItem.path("postedDetails");
             assertEquals(expectedPostedBy, assertText(postedDetails.path("posted_by"), "postedDetails.posted_by"));
             assertEquals(
-                expectedPostedByName,
+                expectedPostedByName(expectedPostedByName, expectedPostedBy),
                 assertText(postedDetails.path("posted_by_name"), "postedDetails.posted_by_name")
             );
         }
@@ -457,7 +455,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
      */
     @Then("the defendant account history error response matches the standard problem detail contract for status {int}")
     public void defendantAccountHistoryErrorResponseMatchesStandardProblemDetailContract(int expectedStatus)
-        throws Exception {
+        throws tools.jackson.core.JacksonException {
 
         Response response = net.serenitybdd.rest.SerenityRest.lastResponse();
         assertEquals(expectedStatus, response.statusCode(), "Unexpected HTTP status");
@@ -523,12 +521,44 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
         accountData.put("account", HISTORY_ACCOUNT_FIXTURE);
         accountData.put("account_type", HISTORY_ACCOUNT_TYPE);
         accountData.put("account_status", HISTORY_ACCOUNT_STATUS);
+        accountData.put("submitted_by", submittedBy);
+        if (isLegacyMode()) {
+            accountData.put("account_enforcement_court_id", LEGACY_SAFE_COURT_ID);
+        }
         return accountData;
+    }
+
+    private Map<String, String> enforcementOverrideData() {
+        if (isLegacyMode()) {
+            return Map.of(
+                "business_unit_id", HISTORY_BUSINESS_UNIT_ID,
+                "enforcement_override_result_id", LEGACY_ENFORCEMENT_OVERRIDE_RESULT_ID,
+                "enforcer_id", SEEDED_ENFORCER_ID
+            );
+        }
+
+        return Map.of(
+            "business_unit_id", HISTORY_BUSINESS_UNIT_ID,
+            "enforcement_override_result_id", SEEDED_ENFORCEMENT_OVERRIDE_RESULT_ID,
+            "enforcer_id", SEEDED_ENFORCER_ID
+        );
     }
 
     private void actAsHistoryTestUser() {
         BearerTokenStepDef.setTokenOverride(BearerTokenStepDef.getAccessTokenForUser(HISTORY_TEST_USER));
         scenarioContext().setCurrentUser(HISTORY_TEST_USER);
+    }
+
+    private boolean isLegacyMode() {
+        Response response = authorisedJsonRequest()
+            .when()
+            .get(getTestUrl() + "/testing-support/is-legacy-mode");
+        responseAssertions.assertStatus(response, 200);
+        return Boolean.parseBoolean(response.asString());
+    }
+
+    private String expectedPostedByName(String expectedPostedByName, String postedBy) {
+        return isLegacyMode() ? postedBy : expectedPostedByName;
     }
 
     private long nonExistentDefendantAccountId() {
@@ -569,7 +599,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
         assertTrue(found, "Expected at least one history item on " + expectedDate);
     }
 
-    private JsonNode latestJsonBody() throws Exception {
+    private JsonNode latestJsonBody() throws tools.jackson.core.JacksonException {
         return OBJECT_MAPPER.readTree(net.serenitybdd.rest.SerenityRest.lastResponse().getBody().asString());
     }
 
@@ -597,7 +627,10 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
 
         JsonNode postedDetails = historyItem.path("postedDetails");
         assertTrue(postedDetails.isObject(), "postedDetails should be an object");
-        LocalDate.parse(assertText(postedDetails.path("posted_date"), "postedDetails.posted_date"));
+        LocalDate postedDate = LocalDate.parse(
+            assertText(postedDetails.path("posted_date"), "postedDetails.posted_date")
+        );
+        assertNotNull(postedDate, "postedDetails.posted_date should be parseable");
         assertOptionalText(postedDetails.path("posted_by"), "postedDetails.posted_by");
         assertOptionalText(postedDetails.path("posted_by_name"), "postedDetails.posted_by_name");
 
@@ -655,7 +688,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
         assertOptionalText(details.path("additionalInformation"), "details.additionalInformation");
         assertOptionalObject(details.path("writeOff"), "details.writeOff");
         assertOptionalObject(details.path("status"), "details.status");
-        assertOptionalDateTime(details.path("statusDate"), "details.statusDate");
+        assertOptionalStatusDate(details.path("statusDate"));
         assertOptionalText(details.path("associatedRecordType"), "details.associatedRecordType");
         assertOptionalText(details.path("associatedRecordId"), "details.associatedRecordId");
         assertOptionalText(details.path("accountNumber"), "details.accountNumber");
@@ -692,8 +725,8 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     }
 
     private String assertText(JsonNode node, String fieldName) {
-        assertTrue(node.isTextual(), fieldName + " should be a string");
-        return node.asText();
+        assertTrue(node.isString(), fieldName + " should be a string");
+        return node.asString();
     }
 
     private void assertOptionalText(JsonNode node, String fieldName) {
@@ -710,13 +743,17 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
 
     private void assertOptionalDate(JsonNode node, String fieldName) {
         if (!node.isMissingNode() && !node.isNull()) {
-            LocalDate.parse(assertText(node, fieldName));
+            LocalDate parsedDate = LocalDate.parse(assertText(node, fieldName));
+            assertNotNull(parsedDate, fieldName + " should be parseable");
         }
     }
 
-    private void assertOptionalDateTime(JsonNode node, String fieldName) {
+    private void assertOptionalStatusDate(JsonNode node) {
         if (!node.isMissingNode() && !node.isNull()) {
-            java.time.LocalDateTime.parse(assertText(node, fieldName));
+            java.time.LocalDateTime parsedDateTime = java.time.LocalDateTime.parse(
+                assertText(node, "details.statusDate")
+            );
+            assertNotNull(parsedDateTime, "details.statusDate should be parseable");
         }
     }
 

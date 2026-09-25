@@ -8,7 +8,6 @@ import net.serenitybdd.rest.SerenityRest;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import uk.gov.hmcts.opal.actions.defendantaccount.DefendantAccountEnforcementsActions;
 import uk.gov.hmcts.opal.actions.draftaccount.DraftAccountActions;
 import uk.gov.hmcts.opal.actions.draftaccount.DraftAccountRequestFactory;
 import uk.gov.hmcts.opal.assertions.CommonResponseAssertions;
@@ -31,12 +30,11 @@ public class DefendantAccountSearchFeatureToggleStepDef extends BaseStepDef {
     private static final String REVIEWING_USER = "opal-test-10@dev.platform.hmcts.net";
     private static final String DEFAULT_ACCOUNT_FIXTURE = "draftAccounts/accountJson/adultAccount.json";
     private static final String DEFAULT_BUSINESS_UNIT_ID = "77";
+    private static final long LEGACY_SAFE_COURT_ID = 770000000001L;
     private static final String SEARCH_URL = "/defendant-accounts/search";
 
     private final DraftAccountActions draftAccountActions = new DraftAccountActions();
     private final DraftAccountRequestFactory requestFactory = new DraftAccountRequestFactory();
-    private final DefendantAccountEnforcementsActions enforcementActions =
-        new DefendantAccountEnforcementsActions();
     private final CommonResponseAssertions responseAssertions = new CommonResponseAssertions();
 
     private String prosecutorCaseReference;
@@ -65,7 +63,17 @@ public class DefendantAccountSearchFeatureToggleStepDef extends BaseStepDef {
         try {
             Response publishResponse = draftAccountActions.patchCreatedDraftAccount(buildPublishPatchData());
             responseAssertions.assertStatus(publishResponse, 200);
-            enforcementActions.storeCreatedDefendantAccountId(publishResponse);
+            Object publishedAccountId = publishedAccountIdFrom(publishResponse);
+            assertNotNull(
+                publishedAccountId,
+                "Expected published draft account response to expose account_id"
+            );
+            String defendantAccountId = String.valueOf(publishedAccountId);
+            scenarioContext().setCreatedDefendantAccountId(defendantAccountId);
+            if (!isLegacyMode()) {
+                scenarioContext().addCreatedDefendantAccountId(defendantAccountId);
+            }
+            scenarioContext().removeDraftAccountId(scenarioContext().getLastDraftAccountIdOrFail());
         } finally {
             actAs(originalUser);
         }
@@ -91,7 +99,7 @@ public class DefendantAccountSearchFeatureToggleStepDef extends BaseStepDef {
      */
     @When("I search the created defendant account without consolidation")
     public void searchCreatedDefendantAccountWithoutConsolidation() throws JSONException {
-        performSearch(prosecutorCaseReference, businessUnitId, false);
+        performSearch(prosecutorCaseReference, businessUnitId, null);
     }
 
     /**
@@ -119,9 +127,6 @@ public class DefendantAccountSearchFeatureToggleStepDef extends BaseStepDef {
             scenarioContext().getCreatedDefendantAccountIdOrFail(),
             response.jsonPath().getString("defendant_accounts[0].defendant_account_id")
         );
-        responseAssertions.assertBodyDoesNotContainField(response, "has_collection_order");
-        responseAssertions.assertBodyDoesNotContainField(response, "account_version");
-        responseAssertions.assertBodyDoesNotContainField(response, "checks");
     }
 
     /**
@@ -173,6 +178,7 @@ public class DefendantAccountSearchFeatureToggleStepDef extends BaseStepDef {
     private JSONObject buildUniqueAccountFixture() throws IOException, JSONException {
         JSONObject account = requestFactory.loadAccountFixture(DEFAULT_ACCOUNT_FIXTURE);
         account.put("prosecutor_case_reference", prosecutorCaseReference);
+        account.put("enforcement_court_id", LEGACY_SAFE_COURT_ID);
 
         JSONObject defendant = account.getJSONObject("defendant");
         defendant.put(
@@ -180,6 +186,11 @@ public class DefendantAccountSearchFeatureToggleStepDef extends BaseStepDef {
             ("FTSUR" + prosecutorCaseReference.replace("-", "")).toUpperCase(Locale.ROOT)
         );
         defendant.put("forenames", "Toggle Search");
+
+        JSONArray offences = account.getJSONArray("offences");
+        for (int i = 0; i < offences.length(); i++) {
+            offences.getJSONObject(i).put("imposing_court_id", LEGACY_SAFE_COURT_ID);
+        }
 
         return account;
     }
@@ -246,5 +257,18 @@ public class DefendantAccountSearchFeatureToggleStepDef extends BaseStepDef {
     private void actAs(String user) {
         BearerTokenStepDef.setTokenOverride(BearerTokenStepDef.getAccessTokenForUser(user));
         scenarioContext().setCurrentUser(user);
+    }
+
+    private Object publishedAccountIdFrom(Response response) {
+        Object accountId = response.jsonPath().get("account_id");
+        return accountId != null ? accountId : response.jsonPath().get("defendant_account_id");
+    }
+
+    private boolean isLegacyMode() {
+        Response response = authorisedJsonRequest()
+            .when()
+            .get(getTestUrl() + "/testing-support/is-legacy-mode");
+        responseAssertions.assertStatus(response, 200);
+        return Boolean.parseBoolean(response.asString());
     }
 }

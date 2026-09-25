@@ -45,6 +45,7 @@ public class DefendantAccountEnforcementWorkflow extends BaseStepDef {
             );
             responseAssertions.assertStatus(publishResponse, 200);
             enforcementActions.storeCreatedDefendantAccountId(publishResponse);
+            scenarioContext().removeDraftAccountId(scenarioContext().getLastDraftAccountIdOrFail());
         } finally {
             actAs(originalUser);
         }
