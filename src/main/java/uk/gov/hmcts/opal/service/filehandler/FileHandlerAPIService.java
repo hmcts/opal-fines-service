@@ -7,8 +7,10 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
 import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserEnum;
+import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.AddInterfaceFileRequestMetadata;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.GetInterfaceFiles200Response;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.InterfaceFileEnum;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.InterfaceFileObject;
@@ -86,6 +88,22 @@ public class FileHandlerAPIService implements FileHandlerInterfaceFiles {
         } catch (FeignException exception) {
             throw new DownstreamServiceUnavailableException(
                 "Unable to retrieve interface file content from file-handler service",
+                exception
+            );
+        }
+    }
+
+    @Override
+    public InterfaceFileObject addInterfaceFile(
+        SystemUserEnum systemUser, MultipartFile file, AddInterfaceFileRequestMetadata metadata) {
+        try {
+            return systemUserContext.executeAs(
+                systemUser,
+                () -> client.addInterfaceFile(file, metadata).getBody()
+            );
+        } catch (FeignException exception) {
+            throw new DownstreamServiceUnavailableException(
+                "unable to add interface file",
                 exception
             );
         }
