@@ -22,7 +22,6 @@ import static uk.gov.hmcts.opal.steps.BaseStepDef.addToJsonObjectOrNull;
 public class DraftAccountRequestFactory {
 
     public static final String DEFAULT_ACCOUNT_PATH = "draftAccounts/accountJson/account.json";
-    public static final String DEFAULT_TIMELINE_PATH = "draftAccounts/timelineJson/default.json";
 
     private static final String MANUAL_ACCOUNT_CREATION_RESOURCE_ROOT =
         "features/opalMode/manualAccountCreation/";
@@ -135,17 +134,6 @@ public class DraftAccountRequestFactory {
     }
 
     /**
-     * Loads the standard timeline fixture used by draft-account functional tests.
-     *
-     * @return parsed default timeline JSON array.
-     * @throws IOException if the fixture cannot be read.
-     * @throws JSONException if the fixture does not contain valid JSON.
-     */
-    public JSONArray loadDefaultTimelineFixture() throws IOException, JSONException {
-        return new JSONArray(readResource(MANUAL_ACCOUNT_CREATION_RESOURCE_ROOT + DEFAULT_TIMELINE_PATH));
-    }
-
-    /**
      * Applies optional account-level overrides from the scenario data to the loaded fixture.
      *
      * @param accountObject account JSON fixture to mutate.
@@ -172,6 +160,18 @@ public class DraftAccountRequestFactory {
         String originatorId = dataToPost.get("account_originator_id");
         if (dataExists(originatorId)) {
             accountObject.put("originator_id", Long.parseLong(originatorId));
+        }
+
+        String enforcementCourtId = dataToPost.get("account_enforcement_court_id");
+        if (dataExists(enforcementCourtId)) {
+            long courtId = Long.parseLong(enforcementCourtId);
+            accountObject.put("enforcement_court_id", courtId);
+            if (accountObject.has("offences")) {
+                JSONArray offences = accountObject.getJSONArray("offences");
+                for (int i = 0; i < offences.length(); i++) {
+                    offences.getJSONObject(i).put("imposing_court_id", courtId);
+                }
+            }
         }
     }
 
