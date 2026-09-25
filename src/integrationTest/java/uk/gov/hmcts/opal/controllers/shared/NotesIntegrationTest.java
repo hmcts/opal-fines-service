@@ -503,7 +503,9 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
                   </posted_details>
                   <type>Note</type>
                   <details>
-                    <note_text>legacy-only account note</note_text>
+                    <note_details>
+                      <note_text>legacy-only account note</note_text>
+                    </note_details>
                   </details>
                 </history_items_element>
               </history_items>
