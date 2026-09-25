@@ -503,9 +503,11 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
             request.header(HttpHeaders.AUTHORIZATION, "Bearer " + token);
         }
 
-        return request
+        Response response = request
             .when()
             .get(getTestUrl() + HISTORY_PATH.formatted(accountId) + querySuffix(query));
+        historyState.setLatestHistoryResponse(response);
+        return response;
     }
 
     private String querySuffix(String query) {
@@ -601,7 +603,9 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     }
 
     private JsonNode latestJsonBody() throws JacksonException {
-        return OBJECT_MAPPER.readTree(net.serenitybdd.rest.SerenityRest.lastResponse().getBody().asString());
+        Response latestHistoryResponse = historyState.getLatestHistoryResponse();
+        assertNotNull(latestHistoryResponse, "No defendant-account history response was captured");
+        return OBJECT_MAPPER.readTree(latestHistoryResponse.getBody().asString());
     }
 
     private List<JsonNode> historyItems() throws JacksonException {
