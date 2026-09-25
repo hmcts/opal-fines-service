@@ -319,21 +319,36 @@ openApiGenerate {
   ]
 }
 
-def feignClientList = []
-def dir = new File("$rootDir/src/main/resources/openapi/hmrc/".toString())
-dir.eachFileRecurse(FileType.FILES) { file ->
-  if (file.getName().endsWith(".yaml"))
-    feignClientList << file
+def feignClients = []
+def hmrcOpenApiDir = new File("$rootDir/src/main/resources/openapi/hmrc/".toString())
+hmrcOpenApiDir.eachFileRecurse(FileType.FILES) { specFile ->
+  if (specFile.getName().endsWith(".yaml")) {
+    def apiName = specFile.getName().replace(".yaml", "")
+    feignClients << [
+            taskName    : "openApiGenerateFeignClients${apiName}".toString(),
+            inputSpec   : specFile.absolutePath,
+            apiPackage  : "uk.gov.hmcts.opal.hmrc.generated.${apiName}.client".toString(),
+            modelPackage: "uk.gov.hmcts.opal.hmrc.generated.${apiName}.model".toString()
+    ]
+  }
 }
-feignClientList.each {
-  def apiName = it.getName().replace(".yaml", "")
-  tasks.register("openApiGenerateFeignClients${apiName}".toString(), GenerateTask) {
+
+def fileHandlerApiName = "InterfaceFile"
+feignClients << [
+        taskName    : "openApiGenerateFeignClientsFileHandler${fileHandlerApiName}".toString(),
+        inputSpec   : "$rootDir/src/main/resources/openapi/filehandler/${fileHandlerApiName}.yaml".toString(),
+        apiPackage  : "uk.gov.hmcts.opal.filehandler.generated.${fileHandlerApiName}.client".toString(),
+        modelPackage: "uk.gov.hmcts.opal.filehandler.generated.${fileHandlerApiName}.model".toString()
+]
+
+feignClients.each { client ->
+  tasks.register(client.taskName, GenerateTask) {
     generatorName = 'spring'
     library = 'spring-cloud'
-    inputSpec = "$rootDir/src/main/resources/openapi/hmrc/".toString() + "${apiName}.yaml"
+    inputSpec = client.inputSpec
     outputDir = layout.buildDirectory.dir("generated/openapi").get().asFile.absolutePath
-    apiPackage = "uk.gov.hmcts.opal.hmrc.generated.".toString() + "${apiName}.client"
-    modelPackage = "uk.gov.hmcts.opal.hmrc.generated.".toString() + "${apiName}.model"
+    apiPackage = client.apiPackage
+    modelPackage = client.modelPackage
     importMappings = [
             Nullable: "org.jspecify.annotations.Nullable",
             Short   : "java.lang.Short"
@@ -359,7 +374,11 @@ feignClientList.each {
             useLombokAnnotations                : "true",
             generateBuilders                    : "true",
             useFeignClientUrl                   : "true",
-            feign                               : "true"
+            feign                               : "true",
+            useFeignClientContextId             : "false",
+            interfaceOnly                       : "true",
+            skipDefaultInterface                : "true"
+
     ]
   }
 }
@@ -1148,7 +1167,7 @@ ext['postgresql.version'] = '42.7.13'
 
 dependencies {
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.3.29'
+  implementation 'uk.gov.hmcts:opal-common-lib:0.3.30'
 
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.2.2'
   testImplementation 'uk.gov.hmcts:zephyr-automation:1.2.2'
@@ -1326,6 +1345,7 @@ flyway {
 checkstyle {
   checkstyleMain.exclude '**uk/gov/hmcts/opal/generated/**'
   checkstyleMain.exclude '**uk/gov/hmcts/opal/hmrc/generated/**'
+  checkstyleMain.exclude '**uk/gov/hmcts/opal/filehandler/generated/**'
   checkstyleMain.exclude '**org/openapitools/configuration/**'
 }
 tasks.register('migratePostgresDatabase', FlywayMigrateTask) {
@@ -1362,11 +1382,10 @@ tasks.named("openApiGenerate") {
   }
 }
 tasks.register('generateFeignClients') {
-  feignClientList.each {
-    def apiName = it.getName().replace(".yaml", "")
-    dependsOn 'openApiGenerateFeignClients'+apiName
+  feignClients.each { client ->
+    dependsOn client.taskName
   }
-  description = "Generates feign clients for HMRC apis"
+  description = "Generates Feign clients for external APIs"
   group = "openapi tools"
 }
 

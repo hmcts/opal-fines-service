@@ -1,0 +1,429 @@
+openapi: 3.1.1
+
+servers:
+  - url: http://localhost:4550/
+
+info:
+  description: Opal File Handler Service - Interface File
+  version: v0.0.1
+  title: Opal File Handler Service
+
+paths:
+  /interface-files:
+    post:
+      tags:
+        - Interface Files
+      summary: Add Interface File
+      description: The Add Interface File API will be used to add a new Interface File to the File Handling Data Store. (User must have the Create Interface File permission)
+      operationId: addInterfaceFile
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+                - metadata
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The Interface File to be added to the File Handling Data Store.
+                metadata:
+                  type: object
+                  description: The metadata for the Interface File to be added to the File Handling Data Store.
+                  required:
+                    - source
+                    - target
+                    - type
+                    - domain
+                    - file_name
+                  allOf:
+                    - if:
+                        required:
+                          - type
+                        properties:
+                          type:
+                            not:
+                              const: SOURCE
+                      then:
+                        properties:
+                          should_pre_process_file:
+                            const: false
+                    - if:
+                        required:
+                          - type
+                        properties:
+                          type:
+                            not:
+                              const: TRANSFORMED_JSON
+                      then:
+                        properties:
+                          business_unit_code:
+                            const: null
+                  properties:
+                    related_interface_file_id:
+                      $ref: './types.yaml/#/components/schemas/BigInt'
+                      description: DB Mapping - interface_files.related_interface_file_id
+                    should_pre_process_file:
+                      type: boolean
+                      default: false
+                      description: DB Mapping - interface_files.should_pre_process_file -> defaulted to false if not provided. Only applied if type = 'SOURCE'
+                    source:
+                      $ref: '#/components/schemas/interfaceFileEnum'
+                    target:
+                      $ref: '#/components/schemas/interfaceFileEnum'
+                    type:
+                      $ref: '#/components/schemas/interfaceFileTypeEnum'
+                    domain:
+                      $ref: './types.yaml/#/components/schemas/domainEnum'
+                    payment_type:
+                      $ref: './types.yaml/#/components/schemas/paymentTypeEnum'
+                      description: DB Mapping - interface_files.payment_type
+                    file_name:
+                      type: string
+                      maxLength: 200
+                      description: DB Mapping - interface_files.file_name
+                    business_unit_code:
+                      type:
+                        - string
+                        - 'null'
+                      maxLength: 4
+                      description: DB Mapping - interface_files.business_unit_code. Must be null or omitted unless type = 'TRANSFORMED_JSON'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/interfaceFileObject'
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+    get:
+      tags:
+        - Interface Files
+      summary: Get Interface Files
+      description: The Get Interface Files API will be used to return a list of Interface File metadata records held in the File Handling Data Store. (User must have the View Interface Files permission)
+      operationId: getInterfaceFiles
+      parameters:
+        - in: query
+          name: source
+          description: DB Mapping - interface_files.source
+          schema:
+            $ref: '#/components/schemas/interfaceFileEnum'
+        - in: query
+          name: target
+          description: DB Mapping - interface_files.target
+          schema:
+            $ref: '#/components/schemas/interfaceFileEnum'
+        - in: query
+          name: type
+          description: DB Mapping - interface_files.type
+          schema:
+            $ref: '#/components/schemas/interfaceFileTypeEnum'
+        - in: query
+          name: domain
+          description: DB Mapping - interface_files.domain
+          schema:
+            $ref: './types.yaml#/components/schemas/domainEnum'
+        - in: query
+          name: status
+          description: DB Mapping - interface_files.status
+          schema:
+            $ref: '#/components/schemas/statusEnum'
+        - in: query
+          name: from_date
+          description: DB Mapping - interface_files.created_datetime
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: to_date
+          description: DB Mapping - interface_files.created_datetime
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                additionalProperties: false
+                type: object
+                required:
+                  - number_of_results
+                  - interface_files
+                properties:
+                  number_of_results:
+                    type: integer
+                    min: 0
+                    description: The number of results returned in the response
+                  interface_files:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/interfaceFileObject'
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: Not Found
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        422:
+          description: Too many results returned. Please narrow your search criteria and try again. (More then 500 results returned)
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+  /interface-files/{id}:
+    get:
+      tags:
+        - Interface Files
+      summary: Get Interface File
+      description: The Get Interface File API will be used to return a single Interface File metadata record held in the File Handling Data Store. (User must have the View Interface Files permission)
+      operationId: getInterfaceFile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: './types.yaml/#/components/schemas/BigInt'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/interfaceFileObject'
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: Not Found
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+  /interface-files/{id}/content:
+    get:
+      tags:
+        - Interface Files
+      summary: Get Interface File content
+      description: Get Interface File Content returns the binary content of a single Interface File by ID.
+      operationId: getInterfaceFileContent
+      parameters:
+        - in: path
+          name: id
+          description: DB Mapping - interface_files.interface_file_id
+          required: true
+          schema:
+            $ref: './types.yaml/#/components/schemas/BigInt'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                description: The raw content stored on the blob storage for the interface file.
+                type: string
+                format: binary
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: Not Found
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+components:
+  schemas:
+    interfaceFileObject:
+      additionalProperties: false
+      type: object
+      required:
+        - interface_file_id
+        - source
+        - target
+        - type
+        - domain
+        - status
+        - file_name
+        - created_datetime
+      properties:
+        interface_file_id:
+          $ref: './types.yaml/#/components/schemas/BigInt'
+          description: DB Mapping - interface_files.id
+        file_name:
+          type: string
+          maxLength: 200
+          description: DB Mapping - interface_files.file_name
+        filestore_uuid:
+          type: string
+          format: uuid
+          description: DB Mapping - interface_files.filestore_uuid
+        checksum:
+          type: string
+          maxLength: 32
+          description: DB Mapping - interface_files.checksum (MD5 checksum)
+        source:
+          $ref: '#/components/schemas/interfaceFileEnum'
+        target:
+          $ref: '#/components/schemas/interfaceFileEnum'
+        type:
+          $ref: '#/components/schemas/interfaceFileTypeEnum'
+        domain:
+          $ref: './types.yaml/#/components/schemas/domainEnum'
+        status:
+          $ref: '#/components/schemas/statusEnum'
+        created_datetime:
+          type: string
+          format: date-time
+          description: DB Mapping - interface_files.created_datetime
+        errors:
+          type: string
+          description: DB Mapping - interface_files.errors (This will be in JSON format)
+    interfaceFileEnum:
+      type: string
+      enum:
+        - NATWEST
+        - ALLPAY
+        - ALLPAY_DD
+        - BARCLAYCARD
+        - BTECKOH
+        - DWP
+        - CDER
+        - JACOBS
+        - MARSTON
+        - BTECKOH_REPORT
+        - CAPS_REPORT
+        - OPAL
+    interfaceFileTypeEnum:
+      type: string
+      enum:
+        - SOURCE
+        - SOURCE_JSON
+        - TRANSFORMED_JSON
+    statusEnum:
+      type: string
+      enum:
+        - DUPLICATE
+        - INGESTED
+        - SUCCESS
+        - SUCCESS_NO_TRANSACTIONS
+        - SUPERSEDED
+        - FAILED
+        - FAILED_SUPERSEDED
