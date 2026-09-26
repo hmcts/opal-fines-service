@@ -1007,17 +1007,17 @@ components:
     courtFee:
       type: object
       required:
-        - courtFeeId
-        - courtFeeCode
+        - court_fee_id
+        - court_fee_code
         - description
         - amount
       additionalProperties: false
       properties:
-        courtFeeId:
+        court_fee_id:
           type: integer
           format: int64
           description: DB Mapping - court_fees.court_fee_id
-        courtFeeCode:
+        court_fee_code:
           type: string
           maxLength: 10
           description: DB Mapping - court_fees.court_fee_code

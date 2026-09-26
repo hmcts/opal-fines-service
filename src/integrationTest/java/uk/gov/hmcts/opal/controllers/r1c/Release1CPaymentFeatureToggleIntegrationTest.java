@@ -34,11 +34,14 @@ class Release1CPaymentFeatureToggleIntegrationTest extends AbstractFeatureToggle
 
     private static final String OUTSTANDING_AUTO_PAYMENT_PATH = "/business-units/outstanding-auto-payment-count";
     private static final String INTERFACE_JOBS_PATH = "/testing-support/interface-jobs";
+    private static final String COURT_FEES_PATH = "/court-fees";
 
     static Stream<Arguments> release1cPaymentEndpoints() {
         return Stream.of(
             endpoint("GET " + OUTSTANDING_AUTO_PAYMENT_PATH, get(OUTSTANDING_AUTO_PAYMENT_PATH)),
-            endpoint("DELETE " + INTERFACE_JOBS_PATH, delete(INTERFACE_JOBS_PATH).queryParam("ids", "1")));
+            endpoint("DELETE " + INTERFACE_JOBS_PATH, delete(INTERFACE_JOBS_PATH).queryParam("ids", "1")),
+            endpoint("GET " + COURT_FEES_PATH,
+                get(COURT_FEES_PATH).queryParam("business_unit_id", "953")));
     }
 
     private static Arguments endpoint(String description, MockHttpServletRequestBuilder request) {
