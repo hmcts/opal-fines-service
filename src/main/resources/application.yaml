@@ -24,6 +24,12 @@ spring:
     import: "optional:configtree:/mnt/secrets/opal/"
   application:
     name: Opal Fines Service
+    cloud:
+      openfeign:
+        client:
+          config:
+            userService:
+              retryer: uk.gov.hmcts.opal.config.ReadOnlyFeignRetryer
   security:
     oauth2:
       client:
