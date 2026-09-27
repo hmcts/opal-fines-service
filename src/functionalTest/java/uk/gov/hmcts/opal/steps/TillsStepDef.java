@@ -40,11 +40,15 @@ public class TillsStepDef extends BaseStepDef {
     private static final String INTERFACE_JOBS_PATH = "/interface-jobs";
     private static final String PROCESS_INTERFACE_JOBS_PATH = "/interface-jobs/process";
     private static final String INTERFACE_JOBS_SUMMARY_PATH = "/interface-jobs/summary";
+    private static final String REPORT_INSTANCES_PATH = "/report-instances";
     private static final String TESTING_SUPPORT_INTERFACE_JOBS_PATH = "/testing-support/interface-jobs";
     // TODO(PO-3630): confirm the manual-till cleanup path specified by the TDIA before enabling AC2.
     private static final String TESTING_SUPPORT_TILLS_PATH = "/testing-support/tills/";
+    private static final String TESTING_SUPPORT_REPORT_INSTANCES_PATH = "/testing-support/report-instances";
     private static final short AUTO_PAYMENT_BUSINESS_UNIT_ID = 77;
     private static final String AUTO_PAYMENT_INTERFACE_NAME = "PAYMENTS_IN";
+    private static final String CASH_TILL_REPORT_ID = "cash_till";
+    private static final String PRE_ALLOCATED_REPORT_NAME = "Cash till report - Pre-allocated (%s)";
     private static final Duration TILL_PROCESSING_TIMEOUT = Duration.ofMinutes(2);
     private static final Duration TILL_PROCESSING_POLL_INTERVAL = Duration.ofSeconds(2);
     private static final List<String> DOCUMENTED_TILL_FIELDS = List.of(
@@ -59,6 +63,7 @@ public class TillsStepDef extends BaseStepDef {
 
     private Long createdInterfaceJobId;
     private String createdAutoPaymentFileName;
+    private Long createdReportInstanceId;
     private Response generatedTillResponse;
     private Map<String, Object> generatedTill;
     private Set<Long> existingTillIds = Set.of();
@@ -294,6 +299,7 @@ public class TillsStepDef extends BaseStepDef {
                     .findFirst()
                     .orElse(null);
                 if (generatedTill != null) {
+                    createdReportInstanceId = findGeneratedCashTillReportInstanceId();
                     return;
                 }
             }
@@ -361,11 +367,39 @@ public class TillsStepDef extends BaseStepDef {
     }
 
     /**
-     * Removes the scenario's job and its cascade-related payment and till data through the
-     * deployed test-support API. Cleanup must not hide a failure from the scenario itself.
+     * Removes the scenario's report instance, stored report content, job, and cascade-related
+     * payment and till data through deployed test-support APIs. Cleanup must not hide a failure
+     * from the scenario itself.
      */
     @After(order = Integer.MAX_VALUE)
     public void cleanUpCreatedAutoPaymentInterfaceJob() {
+        cleanUpCreatedCashTillReportInstance();
+        cleanUpCreatedInterfaceJob();
+    }
+
+    private void cleanUpCreatedCashTillReportInstance() {
+        if (createdReportInstanceId == null) {
+            createdReportInstanceId = findGeneratedCashTillReportInstanceId();
+        }
+        if (createdReportInstanceId == null) {
+            return;
+        }
+
+        try {
+            Response response = authorisedJsonRequest()
+                .queryParam("ids", createdReportInstanceId)
+                .when()
+                .delete(getTestUrl() + TESTING_SUPPORT_REPORT_INSTANCES_PATH);
+            if (response.statusCode() != 200 && response.statusCode() != 204) {
+                log.warn("Unable to clean up cash till report instance {}: HTTP {}",
+                    createdReportInstanceId, response.statusCode());
+            }
+        } catch (RuntimeException e) {
+            log.warn("Unable to clean up cash till report instance {}", createdReportInstanceId, e);
+        }
+    }
+
+    private void cleanUpCreatedInterfaceJob() {
         if (createdInterfaceJobId == null) {
             return;
         }
@@ -395,6 +429,43 @@ public class TillsStepDef extends BaseStepDef {
         } catch (RuntimeException exception) {
             log.warn("Unable to clean up manually created till {}", createdTillId, exception);
         }
+    }
+
+    private Long findGeneratedCashTillReportInstanceId() {
+        if (generatedTill == null) {
+            return null;
+        }
+
+        Object tillNumber = generatedTill.get("till_number");
+        if (!(tillNumber instanceof Number)) {
+            return null;
+        }
+
+        String expectedReportName = PRE_ALLOCATED_REPORT_NAME.formatted(((Number)tillNumber).longValue());
+        Response response = authorisedJsonRequest()
+            .queryParam("report_id", CASH_TILL_REPORT_ID)
+            .queryParam("business_units", AUTO_PAYMENT_BUSINESS_UNIT_ID)
+            .when()
+            .get(getTestUrl() + REPORT_INSTANCES_PATH);
+
+        if (response.statusCode() != 200) {
+            log.warn("Unable to find cash till report instance for cleanup: HTTP {}", response.statusCode());
+            return null;
+        }
+
+        List<Map<String, Object>> reportInstances = response.jsonPath().getList("$");
+        if (reportInstances == null) {
+            return null;
+        }
+
+        return reportInstances.stream()
+            .filter(reportInstance -> expectedReportName.equals(reportInstance.get("name")))
+            .map(reportInstance -> reportInstance.get("instance_id"))
+            .filter(Number.class::isInstance)
+            .map(Number.class::cast)
+            .map(Number::longValue)
+            .findFirst()
+            .orElse(null);
     }
 
     private JSONObject createAutoPaymentInterfaceJobRequest() throws JSONException {
