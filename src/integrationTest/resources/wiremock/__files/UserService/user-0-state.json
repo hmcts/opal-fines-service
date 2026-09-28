@@ -1,0 +1,482 @@
+{
+  "user_id": 500000000,
+  "username": "opal-test@HMCTS.NET",
+  "name": "Pablo",
+  "status": "ACTIVE",
+  "version": 0,
+  "cache_name": null,
+  "domains": {
+    "fines": {
+      "business_unit_users": [
+        {
+          "business_unit_user_id": "L065JG",
+          "business_unit_id": 65,
+          "permissions": [
+            {
+              "permission_id": 2,
+              "permission_name": "Account Enquiry - Account Notes"
+            },
+            {
+              "permission_id": 3,
+              "permission_name": "Account Enquiry"
+            },
+            {
+              "permission_id": 11,
+              "permission_name": "View Creditor BACS"
+            },
+            {
+              "permission_id": 14,
+              "permission_name": "Add and Remove payment hold"
+            },
+            {
+              "permission_id": 20,
+              "permission_name": "Account Maintenance - Minor Creditor"
+            },
+            {
+              "permission_id": 18,
+              "permission_name": "Operational report (by enforcement)"
+            },
+            {
+              "permission_id": 1,
+              "permission_name": "Create Manage Draft Accounts"
+            },
+            {
+              "permission_id": 16,
+              "permission_name": "Process and Allocate Payments"
+            },
+            {
+              "permission_id": 7,
+              "permission_name": "Account Maintenance"
+            },
+            {
+              "permission_id": 8,
+              "permission_name": "Add account activity notes"
+            },
+            {
+              "permission_id": 19,
+              "permission_name": "Operational report (by payment)"
+            },
+            {
+              "permission_id": 4,
+              "permission_name": "Collection Order"
+            },
+            {
+              "permission_id": 5,
+              "permission_name": "Check and Validate Draft Accounts"
+            },
+            {
+              "permission_id": 17,
+              "permission_name": "Auto Enforcement"
+            },
+            {
+              "permission_id": 9,
+              "permission_name": "Amend Payment Terms"
+            },
+            {
+              "permission_id": 13,
+              "permission_name": "Consolidate"
+            },
+            {
+              "permission_id": 10,
+              "permission_name": "Enter Enforcement"
+            },
+            {
+              "permission_id": 6,
+              "permission_name": "Search and View Accounts"
+            }
+          ]
+        },
+        {
+          "business_unit_user_id": "L068JG",
+          "business_unit_id": 68,
+          "permissions": [
+            {
+              "permission_id": 2,
+              "permission_name": "Account Enquiry - Account Notes"
+            },
+            {
+              "permission_id": 3,
+              "permission_name": "Account Enquiry"
+            },
+            {
+              "permission_id": 11,
+              "permission_name": "View Creditor BACS"
+            },
+            {
+              "permission_id": 14,
+              "permission_name": "Add and Remove payment hold"
+            },
+            {
+              "permission_id": 20,
+              "permission_name": "Account Maintenance - Minor Creditor"
+            },
+            {
+              "permission_id": 18,
+              "permission_name": "Operational report (by enforcement)"
+            },
+            {
+              "permission_id": 1,
+              "permission_name": "Create Manage Draft Accounts"
+            },
+            {
+              "permission_id": 16,
+              "permission_name": "Process and Allocate Payments"
+            },
+            {
+              "permission_id": 7,
+              "permission_name": "Account Maintenance"
+            },
+            {
+              "permission_id": 8,
+              "permission_name": "Add account activity notes"
+            },
+            {
+              "permission_id": 19,
+              "permission_name": "Operational report (by payment)"
+            },
+            {
+              "permission_id": 4,
+              "permission_name": "Collection Order"
+            },
+            {
+              "permission_id": 5,
+              "permission_name": "Check and Validate Draft Accounts"
+            },
+            {
+              "permission_id": 17,
+              "permission_name": "Auto Enforcement"
+            },
+            {
+              "permission_id": 9,
+              "permission_name": "Amend Payment Terms"
+            },
+            {
+              "permission_id": 13,
+              "permission_name": "Consolidate"
+            },
+            {
+              "permission_id": 10,
+              "permission_name": "Enter Enforcement"
+            },
+            {
+              "permission_id": 6,
+              "permission_name": "Search and View Accounts"
+            }
+          ]
+        },
+        {
+          "business_unit_user_id": "L070JG",
+          "business_unit_id": 70,
+          "permissions": [
+            {
+              "permission_id": 2,
+              "permission_name": "Account Enquiry - Account Notes"
+            },
+            {
+              "permission_id": 3,
+              "permission_name": "Account Enquiry"
+            },
+            {
+              "permission_id": 11,
+              "permission_name": "View Creditor BACS"
+            },
+            {
+              "permission_id": 14,
+              "permission_name": "Add and Remove payment hold"
+            },
+            {
+              "permission_id": 20,
+              "permission_name": "Account Maintenance - Minor Creditor"
+            },
+            {
+              "permission_id": 18,
+              "permission_name": "Operational report (by enforcement)"
+            },
+            {
+              "permission_id": 1,
+              "permission_name": "Create Manage Draft Accounts"
+            },
+            {
+              "permission_id": 16,
+              "permission_name": "Process and Allocate Payments"
+            },
+            {
+              "permission_id": 7,
+              "permission_name": "Account Maintenance"
+            },
+            {
+              "permission_id": 8,
+              "permission_name": "Add account activity notes"
+            },
+            {
+              "permission_id": 19,
+              "permission_name": "Operational report (by payment)"
+            },
+            {
+              "permission_id": 4,
+              "permission_name": "Collection Order"
+            },
+            {
+              "permission_id": 5,
+              "permission_name": "Check and Validate Draft Accounts"
+            },
+            {
+              "permission_id": 17,
+              "permission_name": "Auto Enforcement"
+            },
+            {
+              "permission_id": 9,
+              "permission_name": "Amend Payment Terms"
+            },
+            {
+              "permission_id": 13,
+              "permission_name": "Consolidate"
+            },
+            {
+              "permission_id": 10,
+              "permission_name": "Enter Enforcement"
+            },
+            {
+              "permission_id": 6,
+              "permission_name": "Search and View Accounts"
+            }
+          ]
+        },
+        {
+          "business_unit_user_id": "L073JG",
+          "business_unit_id": 73,
+          "permissions": [
+            {
+              "permission_id": 2,
+              "permission_name": "Account Enquiry - Account Notes"
+            },
+            {
+              "permission_id": 3,
+              "permission_name": "Account Enquiry"
+            },
+            {
+              "permission_id": 11,
+              "permission_name": "View Creditor BACS"
+            },
+            {
+              "permission_id": 14,
+              "permission_name": "Add and Remove payment hold"
+            },
+            {
+              "permission_id": 20,
+              "permission_name": "Account Maintenance - Minor Creditor"
+            },
+            {
+              "permission_id": 18,
+              "permission_name": "Operational report (by enforcement)"
+            },
+            {
+              "permission_id": 1,
+              "permission_name": "Create Manage Draft Accounts"
+            },
+            {
+              "permission_id": 16,
+              "permission_name": "Process and Allocate Payments"
+            },
+            {
+              "permission_id": 7,
+              "permission_name": "Account Maintenance"
+            },
+            {
+              "permission_id": 8,
+              "permission_name": "Add account activity notes"
+            },
+            {
+              "permission_id": 19,
+              "permission_name": "Operational report (by payment)"
+            },
+            {
+              "permission_id": 4,
+              "permission_name": "Collection Order"
+            },
+            {
+              "permission_id": 5,
+              "permission_name": "Check and Validate Draft Accounts"
+            },
+            {
+              "permission_id": 17,
+              "permission_name": "Auto Enforcement"
+            },
+            {
+              "permission_id": 9,
+              "permission_name": "Amend Payment Terms"
+            },
+            {
+              "permission_id": 13,
+              "permission_name": "Consolidate"
+            },
+            {
+              "permission_id": 10,
+              "permission_name": "Enter Enforcement"
+            },
+            {
+              "permission_id": 6,
+              "permission_name": "Search and View Accounts"
+            }
+          ]
+        },
+        {
+          "business_unit_user_id": "L077JG",
+          "business_unit_id": 77,
+          "permissions": [
+            {
+              "permission_id": 2,
+              "permission_name": "Account Enquiry - Account Notes"
+            },
+            {
+              "permission_id": 3,
+              "permission_name": "Account Enquiry"
+            },
+            {
+              "permission_id": 11,
+              "permission_name": "View Creditor BACS"
+            },
+            {
+              "permission_id": 14,
+              "permission_name": "Add and Remove payment hold"
+            },
+            {
+              "permission_id": 20,
+              "permission_name": "Account Maintenance - Minor Creditor"
+            },
+            {
+              "permission_id": 18,
+              "permission_name": "Operational report (by enforcement)"
+            },
+            {
+              "permission_id": 1,
+              "permission_name": "Create Manage Draft Accounts"
+            },
+            {
+              "permission_id": 16,
+              "permission_name": "Process and Allocate Payments"
+            },
+            {
+              "permission_id": 7,
+              "permission_name": "Account Maintenance"
+            },
+            {
+              "permission_id": 8,
+              "permission_name": "Add account activity notes"
+            },
+            {
+              "permission_id": 19,
+              "permission_name": "Operational report (by payment)"
+            },
+            {
+              "permission_id": 4,
+              "permission_name": "Collection Order"
+            },
+            {
+              "permission_id": 5,
+              "permission_name": "Check and Validate Draft Accounts"
+            },
+            {
+              "permission_id": 17,
+              "permission_name": "Auto Enforcement"
+            },
+            {
+              "permission_id": 9,
+              "permission_name": "Amend Payment Terms"
+            },
+            {
+              "permission_id": 13,
+              "permission_name": "Consolidate"
+            },
+            {
+              "permission_id": 10,
+              "permission_name": "Enter Enforcement"
+            },
+            {
+              "permission_id": 6,
+              "permission_name": "Search and View Accounts"
+            }
+          ]
+        },
+        {
+          "business_unit_user_id": "L078JG",
+          "business_unit_id": 78,
+          "permissions": [
+            {
+              "permission_id": 2,
+              "permission_name": "Account Enquiry - Account Notes"
+            },
+            {
+              "permission_id": 3,
+              "permission_name": "Account Enquiry"
+            },
+            {
+              "permission_id": 11,
+              "permission_name": "View Creditor BACS"
+            },
+            {
+              "permission_id": 14,
+              "permission_name": "Add and Remove payment hold"
+            },
+            {
+              "permission_id": 20,
+              "permission_name": "Account Maintenance - Minor Creditor"
+            },
+            {
+              "permission_id": 18,
+              "permission_name": "Operational report (by enforcement)"
+            },
+            {
+              "permission_id": 1,
+              "permission_name": "Create Manage Draft Accounts"
+            },
+            {
+              "permission_id": 16,
+              "permission_name": "Process and Allocate Payments"
+            },
+            {
+              "permission_id": 7,
+              "permission_name": "Account Maintenance"
+            },
+            {
+              "permission_id": 8,
+              "permission_name": "Add account activity notes"
+            },
+            {
+              "permission_id": 19,
+              "permission_name": "Operational report (by payment)"
+            },
+            {
+              "permission_id": 4,
+              "permission_name": "Collection Order"
+            },
+            {
+              "permission_id": 5,
+              "permission_name": "Check and Validate Draft Accounts"
+            },
+            {
+              "permission_id": 17,
+              "permission_name": "Auto Enforcement"
+            },
+            {
+              "permission_id": 9,
+              "permission_name": "Amend Payment Terms"
+            },
+            {
+              "permission_id": 13,
+              "permission_name": "Consolidate"
+            },
+            {
+              "permission_id": 10,
+              "permission_name": "Enter Enforcement"
+            },
+            {
+              "permission_id": 6,
+              "permission_name": "Search and View Accounts"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
