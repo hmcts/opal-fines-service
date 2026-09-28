@@ -82,8 +82,10 @@ public class AccountNumberTranslationService {
                     }
 
                     transformed.addTransaction(transaction);
+                    continue;
                 }
 
+                transformed.addTransaction(transaction);
             }
         }
 

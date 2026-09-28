@@ -375,8 +375,17 @@ public class AccountNumberTranslationServiceTest {
         verify(aprRepository, times(5))
             .findByAprTextAndBusinessUnitCode(contains(INVALID_ACCOUNT_REFERENCE), eq("06"));
 
-        assertThat(transformedInterfaceFileData.getTransactions()).hasSize(0);
-        assertThat(transformedInterfaceFileData.getTotalAmount()).isEqualTo(0);
+        assertThat(transformedInterfaceFileData.getTransactions()).hasSize(5);
+        assertThat(transformedInterfaceFileData.getTotalAmount()).isEqualTo(2500L);
+
+        for (int i = 0; i < transformedInterfaceFileData.getTransactions().size(); i++) {
+            Transaction transaction = transformedInterfaceFileData.getTransactions().get(i);
+            assertThat(transaction.getAmount()).isEqualTo(500L);
+            assertThat(transaction.getTransactionCode()).isEqualTo("99");
+            assertThat(transaction.getOriginatorDetails().getAccountReference()).isEqualTo(
+                interfaceFileCommonDataExtract.getTransactions().get(i).getOriginatorDetails().getAccountReference()
+            );
+        }
     }
 
     @Test
