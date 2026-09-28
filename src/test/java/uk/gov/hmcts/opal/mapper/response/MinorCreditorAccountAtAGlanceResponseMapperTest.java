@@ -74,6 +74,8 @@ class MinorCreditorAccountAtAGlanceResponseMapperTest {
         AtAGlanceDefendant defendant = AtAGlanceDefendant.builder()
             .accountNumber("R3B3LS")
             .accountId(66L)
+            .organisationFlag(Boolean.TRUE)
+            .organisationName("Acme Corporation")
             .build();
 
         LegacyPayment payment = LegacyPayment.builder()
@@ -105,7 +107,36 @@ class MinorCreditorAccountAtAGlanceResponseMapperTest {
             .getIndividualAliases().get().getFirst().getSurname());
         assertEquals("SP4 C3", result.getAddress().getPostcode().get());
         assertEquals(66L, result.getDefendant().getAccountId().get());
+        assertEquals(Boolean.TRUE, result.getDefendant().getOrganisation());
+        assertEquals("Acme Corporation", result.getDefendant().getOrganisationName());
         assertTrue(result.getPayment().getIsBacs());
+    }
+
+    @Test
+    void testLegacyToOpalConversionForIndividualDefendant() {
+        AtAGlanceDefendant defendant = AtAGlanceDefendant.builder()
+            .accountNumber("IND-1977")
+            .accountId(1977L)
+            .title("Master")
+            .forenames("Luke")
+            .surname("Skywalker")
+            .organisationFlag(Boolean.FALSE)
+            .build();
+
+        LegacyGetMinorCreditorAccountAtAGlanceResponse legacyResponse =
+            LegacyGetMinorCreditorAccountAtAGlanceResponse.builder()
+                .defendant(defendant)
+                .build();
+
+        MinorCreditorAtAGlanceDefendant result = mapper.toDto(legacyResponse).getDefendant();
+
+        assertEquals("IND-1977", result.getAccountNumber().get());
+        assertEquals(1977L, result.getAccountId().get());
+        assertEquals("Master", result.getTitle().get());
+        assertEquals("Luke", result.getForenames().get());
+        assertEquals("Skywalker", result.getSurname());
+        assertEquals(Boolean.FALSE, result.getOrganisation());
+        assertNull(result.getOrganisationName());
     }
 
     @Test
