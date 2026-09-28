@@ -152,6 +152,12 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
             .whenScenarioStateIs(WIREMOCK_STATE_ERROR)
             .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
             .willReturn(badRequest()));
+
+        stubFor(post(urlEqualTo("/interface-files"))
+            .inScenario(WIREMOCK_SCENARIO)
+            .whenScenarioStateIs(WIREMOCK_STATE_ERROR)
+            .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
+            .willReturn(badRequest()));
     }
 
     @Test
@@ -205,6 +211,20 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
 
         WireMock.verify(1, postRequestedFor(urlEqualTo("/interface-files")));
     }
+
+
+    @Test
+    @DisplayName("Handles downstream error FileHandler - addInterfaceFile")
+    @JiraStory("PO-6497")
+    @JiraEpic("PO-3497")
+    void addInterfaceFile_downstreamError() {
+        WireMock.setScenarioState(WIREMOCK_SCENARIO, WIREMOCK_STATE_ERROR);
+
+        assertThrows(
+            DownstreamServiceUnavailableException.class,
+            () -> fileHandlerAPIService.addInterfaceFile(SystemUserEnum.OPAL_SYSTEM_USER, null, null));
+    }
+
 
     @Test
     @DisplayName("Handles downstream error FileHandler - getInterfaceFiles")
