@@ -171,8 +171,8 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
     @JiraStory("PO-6497")
     @JiraEpic("PO-3497")
     void getInterfaceFiles_success() {
-        var response = fileHandlerAPIService.getInterfaceFiles(
-            SystemUserEnum.OPAL_SYSTEM_USER, null, null, null, null, null, null, null);
+        var params = GetInterfaceFilesParams.builder().build();
+        var response = fileHandlerAPIService.getInterfaceFiles(SystemUserEnum.OPAL_SYSTEM_USER, params);
 
         assertEquals(response, getInterfaceFiles200Response);
 
@@ -201,7 +201,7 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
         assertThrows(
             DownstreamServiceUnavailableException.class,
             () -> fileHandlerAPIService.getInterfaceFiles(
-                SystemUserEnum.OPAL_SYSTEM_USER, null, null, null, null, null, null, null));
+                SystemUserEnum.OPAL_SYSTEM_USER, GetInterfaceFilesParams.builder().build()));
     }
 
     @Test

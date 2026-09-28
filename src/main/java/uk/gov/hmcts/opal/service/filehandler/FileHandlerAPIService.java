@@ -1,9 +1,7 @@
 package uk.gov.hmcts.opal.service.filehandler;
 
 import feign.FeignException;
-import java.time.LocalDateTime;
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.Nullable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -12,10 +10,7 @@ import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
 import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserEnum;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.AddInterfaceFileRequestMetadata;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.GetInterfaceFiles200Response;
-import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.InterfaceFileEnum;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.InterfaceFileObject;
-import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.InterfaceFileTypeEnum;
-import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.StatusEnum;
 import uk.gov.hmcts.opal.service.filehandler.clients.FileHandlerClient;
 
 @Service
@@ -35,19 +30,20 @@ public class FileHandlerAPIService implements FileHandlerInterfaceFiles {
 
     @Override
     public GetInterfaceFiles200Response getInterfaceFiles(SystemUserEnum systemUser,
-        @Nullable InterfaceFileEnum source,
-        @Nullable InterfaceFileEnum target,
-        @Nullable InterfaceFileTypeEnum type,
-        @Nullable String domain,
-        @Nullable StatusEnum status,
-        @Nullable LocalDateTime fromDate,
-        @Nullable LocalDateTime toDate
+        GetInterfaceFilesParams params
     ) {
         try {
             return systemUserContext.executeAs(
                 systemUser,
                 () -> client.getInterfaceFiles(
-                    source, target, type, domain, status, fromDate, toDate).getBody()
+                    params.getSource(),
+                    params.getTarget(),
+                    params.getType(),
+                    params.getDomain(),
+                    params.getStatus(),
+                    params.getFromDate(),
+                    params.getToDate()
+                ).getBody()
             );
         } catch (FeignException.NotFound exception) {
             throw exception;

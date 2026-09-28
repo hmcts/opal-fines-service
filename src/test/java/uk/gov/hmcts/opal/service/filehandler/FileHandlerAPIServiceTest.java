@@ -40,11 +40,13 @@ class FileHandlerAPIServiceTest {
     @Mock
     AddInterfaceFileRequestMetadata metadata;
 
+    private GetInterfaceFilesParams params;
     private FileHandlerSystemUserContext systemUserContext;
     private FileHandlerAPIService service;
 
     @BeforeEach
     void setUp() {
+        params = GetInterfaceFilesParams.builder().build();
         systemUserContext = new FileHandlerSystemUserContext();
         service = new FileHandlerAPIService(client, systemUserContext);
     }
@@ -58,8 +60,7 @@ class FileHandlerAPIServiceTest {
             return ResponseEntity.ok(expected);
         });
 
-        GetInterfaceFiles200Response actual = service.getInterfaceFiles(
-            SystemUserEnum.OPAL_SYSTEM_USER, null, null, null, null, null, null, null);
+        GetInterfaceFiles200Response actual = service.getInterfaceFiles(SystemUserEnum.OPAL_SYSTEM_USER, params);
 
         assertThat(actual).isSameAs(expected);
         assertThat(systemUserContext.getCurrentSystemUser()).isEmpty();
@@ -112,8 +113,7 @@ class FileHandlerAPIServiceTest {
         FeignException.NotFound notFound = (FeignException.NotFound) feignException(404, "Not Found");
         when(client.getInterfaceFiles(null, null, null, null, null, null, null)).thenThrow(notFound);
 
-        assertThatThrownBy(() -> service.getInterfaceFiles(
-            SystemUserEnum.OPAL_SYSTEM_USER, null, null, null, null, null, null, null))
+        assertThatThrownBy(() -> service.getInterfaceFiles(SystemUserEnum.OPAL_SYSTEM_USER, params))
             .isSameAs(notFound);
         assertThat(systemUserContext.getCurrentSystemUser()).isEmpty();
     }
