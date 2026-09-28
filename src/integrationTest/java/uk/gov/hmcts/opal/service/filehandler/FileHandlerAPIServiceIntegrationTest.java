@@ -4,6 +4,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.badRequest;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
+import static com.github.tomakehurst.wiremock.client.WireMock.notFound;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
@@ -17,6 +18,7 @@ import static org.junit.Assert.assertThrows;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import feign.FeignException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -51,6 +53,7 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
 
     private static final String WIREMOCK_SCENARIO = "GET FileHandler service test";
     private static final String WIREMOCK_STATE_ERROR = "Downstream error";
+    private static final String WIREMOCK_STATE_NOT_FOUND = "Not found";
 
     @Autowired
     private FileHandlerAPIService fileHandlerAPIService;
@@ -126,11 +129,23 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
             .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
             .willReturn(badRequest()));
 
+        stubFor(get(urlEqualTo("/interface-files/0/content"))
+            .inScenario(WIREMOCK_SCENARIO)
+            .whenScenarioStateIs(WIREMOCK_STATE_NOT_FOUND)
+            .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
+            .willReturn(notFound()));
+
         stubFor(get(urlEqualTo("/interface-files/0"))
             .inScenario(WIREMOCK_SCENARIO)
             .whenScenarioStateIs(WIREMOCK_STATE_ERROR)
             .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
             .willReturn(badRequest()));
+
+        stubFor(get(urlEqualTo("/interface-files/0"))
+            .inScenario(WIREMOCK_SCENARIO)
+            .whenScenarioStateIs(WIREMOCK_STATE_NOT_FOUND)
+            .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
+            .willReturn(notFound()));
 
         stubFor(get(urlEqualTo("/interface-files"))
             .inScenario(WIREMOCK_SCENARIO)
@@ -225,6 +240,30 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
 
         assertThrows(
             DownstreamServiceUnavailableException.class,
+            () -> fileHandlerAPIService.getInterfaceFileContent(SystemUserEnum.OPAL_SYSTEM_USER, 0L));
+    }
+
+    @Test
+    @DisplayName("Handles not found error FileHandler - getInterfaceFile")
+    @JiraStory("PO-6497")
+    @JiraEpic("PO-3497")
+    void getInterfaceFile_notFoundError() {
+        WireMock.setScenarioState(WIREMOCK_SCENARIO, WIREMOCK_STATE_NOT_FOUND);
+
+        assertThrows(
+            FeignException.NotFound.class,
+            () -> fileHandlerAPIService.getInterfaceFile(SystemUserEnum.OPAL_SYSTEM_USER, 0L));
+    }
+
+    @Test
+    @DisplayName("Handles not found error FileHandler - getInterfaceFileContent")
+    @JiraStory("PO-6497")
+    @JiraEpic("PO-3497")
+    void getInterfaceFileContent_notFoundError() {
+        WireMock.setScenarioState(WIREMOCK_SCENARIO, WIREMOCK_STATE_NOT_FOUND);
+
+        assertThrows(
+            FeignException.NotFound.class,
             () -> fileHandlerAPIService.getInterfaceFileContent(SystemUserEnum.OPAL_SYSTEM_USER, 0L));
     }
 
