@@ -27,9 +27,9 @@ public class EmulatorUtil implements AutoCloseable {
 
     EmulatorUtil() {
         senderClient = new ServiceBusClientBuilder()
-            .connectionString("Endpoint=sb://localhost:5672;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true;")
+            .connectionString(CONNECTION_STRING)
             .sender()
-            .topicName("topic.sr2")
+            .topicName(TOPIC)
             .buildClient();
 
         //ServiceBusAdministrationClient doesn;t work with Java/Spring
