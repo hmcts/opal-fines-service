@@ -20,13 +20,27 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.wiremock.spring.ConfigureWireMock;
+import org.wiremock.spring.EnableWireMock;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.support.UserStateStub;
 import uk.hmcts.zephyr.automation.junit5.extension.ZephyrAutomationExtension;
 
+@EnableWireMock(
+    @ConfigureWireMock(
+        name = "user-service",
+        /*baseUrlProperties = {
+            "user.service.url",
+            "user.service.wiremock-url"
+        },*/
+        baseUrlProperties = "user.service.url",
+        filesUnderClasspath = "wiremock"
+    )
+)
 @SpringBootTest(classes = Application.class)
-@ActiveProfiles("integration")
+@ActiveProfiles({"integration-with-spring-security", "opal"})
+//@ActiveProfiles("integration")
 @ContextConfiguration(classes = {TestContainerConfig.class})
 @AutoConfigureMockMvc(htmlUnit = @AutoConfigureMockMvc.HtmlUnit(webClient = false, webDriver = false))
 @Import(IntegrationSecurityConfiguration.class)
