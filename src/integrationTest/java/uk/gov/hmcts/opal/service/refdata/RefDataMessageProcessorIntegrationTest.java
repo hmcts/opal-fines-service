@@ -183,9 +183,9 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
             objectMapper,
             "LJA",
             2,
-            buildLjaRecordNode(objectMapper, true, "T001", "Rollback LJA", "2027-03-04", "New address line 1",
-                "New address line 2", "New address line 3", "New address line 4", "NE1 2BB"),
-            buildLjaRecordNode(objectMapper, true, "TOO-LONG", "Broken LJA", "2027-03-04", "New address line 1",
+            buildLjaRecordNode(objectMapper, true, String.valueOf(localJusticeAreaId), "Rollback LJA", "2027-03-04",
+                "New address line 1", "New address line 2", "New address line 3", "New address line 4", "NE1 2BB"),
+            buildLjaRecordNode(objectMapper, true, "ABCD", "Broken LJA", "2027-03-04", "New address line 1",
                 "New address line 2", "New address line 3", "New address line 4", "NE1 2BB")
         );
 
@@ -356,7 +356,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
 
         ArrayNode addressesNode = recordNode.putArray("addresses");
         ObjectNode addressNode = addressesNode.addObject();
-        addressNode.put("address_type", "Test Address");
+        addressNode.put("address_type", "Court Address");
         addressNode.put("address_line_1", addressLine1);
         addressNode.put("address_line_2", addressLine2);
         addressNode.put("address_line_3", addressLine3);
@@ -364,7 +364,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
         addressNode.put("post_code", postcode);
 
         ObjectNode secondaryAddressNode = addressesNode.addObject();
-        secondaryAddressNode.put("address_type", "Secondary Address");
+        secondaryAddressNode.put("address_type", "Financial Office Address");
         secondaryAddressNode.put("address_line_1", "Secondary address line 1");
         secondaryAddressNode.put("post_code", "NE1 2BB");
 
