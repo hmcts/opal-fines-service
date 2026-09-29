@@ -59,7 +59,7 @@ public class MessageBuilder {
 
         ArrayNode addressesNode = recordNode.putArray("addresses");
         ObjectNode addressNode = addressesNode.addObject();
-        addressNode.put("address_type", "Test Address");
+        addressNode.put("address_type", "Court Address");
         addressNode.put("address_line_1", addressLine1);
         addressNode.put("address_line_2", addressLine2);
         addressNode.put("address_line_3", addressLine3);
@@ -67,7 +67,7 @@ public class MessageBuilder {
         addressNode.put("post_code", postcode);
 
         ObjectNode secondaryAddressNode = addressesNode.addObject();
-        secondaryAddressNode.put("address_type", "Secondary Address");
+        secondaryAddressNode.put("address_type", "Financial Office Address");
         secondaryAddressNode.put("address_line_1", "Secondary address line 1");
         secondaryAddressNode.put("post_code", "NE1 2BB");
 
