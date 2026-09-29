@@ -79,7 +79,7 @@ class RefDataMessagingIntegrationTest extends AbstractIntegrationTest {
             "New address line 4",
             "NE1 2BB");
 
-        emulatorUtil.publishConfiguredMessage(payload,"ref-data-session-id");
+        emulatorUtil.publishMessageToTopic(payload,"ref-data-session-id");
 
         await()
             .atMost(Duration.ofSeconds(10))
@@ -99,7 +99,7 @@ class RefDataMessagingIntegrationTest extends AbstractIntegrationTest {
             });
 
         //no messages on queue now
-        assertThat(emulatorUtil.getMessagesLeft()).isEmpty();
+        assertThat(emulatorUtil.getMessagesLeftOnTopicSubscription()).isEmpty();
     }
 
 }

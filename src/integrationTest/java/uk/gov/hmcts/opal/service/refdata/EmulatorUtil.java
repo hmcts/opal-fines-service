@@ -8,7 +8,6 @@ import com.azure.messaging.servicebus.ServiceBusSenderClient;
 import com.azure.messaging.servicebus.models.ServiceBusReceiveMode;
 import java.time.Duration;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -42,22 +41,20 @@ public class EmulatorUtil implements AutoCloseable {
             .buildClient();
     }
 
-    public void publishConfiguredMessage(String messageString, String sessionId) {
+    public void publishMessageToTopic(String messageString, String sessionId) {
 
         try {
             ServiceBusMessage message = new ServiceBusMessage(messageString);
             message.setSessionId(sessionId);
             senderClient.sendMessage(message);
-            log.info("Published message");
+            log.info("Published message to topic {}", TOPIC);
         } catch (RuntimeException ex) {
             throw new IllegalStateException("Unable to publish JSON message to topic", ex);
         }
     }
 
-    public List<ServiceBusReceivedMessage> getMessagesLeft() {
-        //no messages on queue now
-        // Attempt to read until it returns empty
-        return receiverClient.receiveMessages(10, Duration.ofMillis(500)).stream().collect(Collectors.toList());
+    public List<ServiceBusReceivedMessage> getMessagesLeftOnTopicSubscription() {
+        return receiverClient.receiveMessages(10, Duration.ofMillis(500)).stream().toList();
     }
 
     @Override
