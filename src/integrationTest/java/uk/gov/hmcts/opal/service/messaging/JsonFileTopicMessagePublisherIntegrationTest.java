@@ -23,7 +23,7 @@ import uk.gov.hmcts.opal.util.FeatureFlags;
 @EnabledIfEnvironmentVariable(named = "REF_DATA_TOPIC_IT_ENABLED", matches = "true")
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class JsonFileTopicMessagePublisherIntegrationTest extends AbstractIntegrationTest {
-    private static final Duration PROCESSING_TIMEOUT = Duration.ofSeconds(30);
+    private static final Duration PROCESSING_TIMEOUT = Duration.ofSeconds(300);
     private static final Duration POLL_INTERVAL = Duration.ofMillis(500);
     private static final String EXPECTED_LJA_NAME = "Example Local Justice Area";
     private static final String EXPECTED_ADDRESS_LINE_1 = "123 Example Street";

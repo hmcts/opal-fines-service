@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal;
 
+import com.github.dockerjava.api.model.PortBinding;
 import com.redis.testcontainers.RedisContainer;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -8,8 +9,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.MSSQLServerContainer;
+import org.testcontainers.containers.Network;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
+import org.testcontainers.utility.MountableFile;
 
 @TestConfiguration
 public class TestContainerConfig {
@@ -69,7 +74,41 @@ public class TestContainerConfig {
             log.warn("Port {} is already in use; reusing the existing legacy gateway at {}.", LEGACY_STUB_PORT,
                 legacyGatewayUrl());
         }
+
+        Network NETWORK = Network.newNetwork();
+
+        final MSSQLServerContainer<?> MSSQL_SERVER = new MSSQLServerContainer<>()
+            .withNetwork(NETWORK)
+            .withPassword("yourStrong(!)Password")
+            .withNetworkAliases("sqlserver");
+
+        final GenericContainer<?> SERVICE_BUS = new GenericContainer<>(
+            "mcr.microsoft.com/azure-messaging/servicebus-emulator:latest"
+        )
+            .withNetwork(NETWORK)
+            .withEnv("ACCEPT_EULA", "Y")
+            .withCreateContainerCmdModifier(cmd -> {
+                // This forces Testcontainers to bind exactly to your specified host ports
+                cmd.getHostConfig().withPortBindings(
+                    PortBinding.parse("5672:5672")
+                );
+            })
+            .withEnv("SQL_WAIT_INTERVAL", "0")
+            .withEnv("SQL_SERVER", "sqlserver")
+            .withEnv("MSSQL_SA_PASSWORD", "yourStrong(!)Password")
+            // Manually link to the SQL container using network aliases
+            .dependsOn(MSSQL_SERVER)
+            .withCopyFileToContainer(
+                MountableFile.forClasspathResource("Config.json"),
+                "/ServiceBus_Emulator/ConfigFiles/Config.json"
+            )
+            // Wait strategy ensuring the internal Service Bus instance is actually healthy
+            .waitingFor(Wait.forLogMessage(".*Emulator Service is Successfully Up!.*\\n", 1));
+
+        MSSQL_SERVER.start();
+        SERVICE_BUS.start();
     }
+    //also consider this ui  image: ghcr.io/veselovandrey/servicebusviewer:latest
 
     public static String legacyGatewayUrl() {
         return LOCAL_LEGACY_GATEWAY_URL;
