@@ -115,7 +115,7 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.impositions[0].creditor.account_type").value("CF"))
             .andExpect(jsonPath("$.impositions[0].creditor.display_name").value("Central Fund"))
             .andExpect(jsonPath("$.impositions[0].creditor.name").value("HM Courts & Tribunals Service"))
-            .andExpect(jsonPath("$.impositions[0].imposed_amount").value(-250.00))
+            .andExpect(jsonPath("$.impositions[0].imposed_amount").value(250.00))
             .andExpect(jsonPath("$.impositions[0].paid_amount").value(300.00))
             .andExpect(jsonPath("$.impositions[0].balance").value(50.00))
             .andExpect(jsonPath("$.impositions[0].offence.id").value(33369L))

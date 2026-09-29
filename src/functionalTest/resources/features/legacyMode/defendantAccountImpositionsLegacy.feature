@@ -15,7 +15,7 @@ Feature: Defendant Account Impositions API In Legacy Mode
       | impositions[0].creditor.account_type        | CF                                 |
       | impositions[0].creditor.display_name        | Central Fund                       |
       | impositions[0].creditor.name                | HM Courts & Tribunals Service      |
-      | impositions[0].imposed_amount               | -250.0                             |
+      | impositions[0].imposed_amount               | 250.0                              |
       | impositions[0].paid_amount                  | 300.0                              |
       | impositions[0].balance                      | 50.0                               |
       | impositions[0].offence.id                   | 33369                              |

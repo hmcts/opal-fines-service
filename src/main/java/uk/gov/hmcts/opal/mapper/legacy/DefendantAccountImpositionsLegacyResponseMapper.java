@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.mapper.legacy;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,6 +31,7 @@ public interface DefendantAccountImpositionsLegacyResponseMapper {
 
     @Mapping(target = "dateAdded", source = "postedDetails.postedDate", qualifiedByName = "toLocalDate")
     @Mapping(target = "imposition", source = "result")
+    @Mapping(target = "imposedAmount", source = "imposedAmount", qualifiedByName = "toPositiveAmount")
     @Mapping(target = "imposedBy", ignore = true)
     DefendantAccountImpositionCommon toOpal(Imposition legacy);
 
@@ -66,6 +68,11 @@ public interface DefendantAccountImpositionsLegacyResponseMapper {
     @Named("toLocalDate")
     default LocalDate toLocalDate(LocalDateTime value) {
         return value == null ? null : value.toLocalDate();
+    }
+
+    @Named("toPositiveAmount")
+    default BigDecimal toPositiveAmount(BigDecimal value) {
+        return value == null ? null : value.abs();
     }
 
     @Named("toAccountType")

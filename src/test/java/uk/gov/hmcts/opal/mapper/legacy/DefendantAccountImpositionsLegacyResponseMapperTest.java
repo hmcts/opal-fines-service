@@ -50,7 +50,7 @@ class DefendantAccountImpositionsLegacyResponseMapperTest extends AbstractMapper
                 () -> assertEquals(1, response.getPayload().getImpositions().size()),
                 () -> assertEquals(LocalDate.parse("2026-08-19"), imposition.getDateAdded()),
                 () -> assertEquals(LocalDate.parse("2025-05-15"), imposition.getDateImposed()),
-                () -> assertEquals(new BigDecimal("-250.00"), imposition.getImposedAmount()),
+                () -> assertEquals(new BigDecimal("250.00"), imposition.getImposedAmount()),
                 () -> assertEquals(new BigDecimal("300.00"), imposition.getPaidAmount()),
                 () -> assertEquals(new BigDecimal("50.00"), imposition.getBalance()),
                 () -> assertEquals(770000027211L, imposition.getImpositionId()),
@@ -106,6 +106,7 @@ class DefendantAccountImpositionsLegacyResponseMapperTest extends AbstractMapper
                 () -> assertNull(imposition.getDateAdded()),
                 () -> assertNull(imposition.getImposition()),
                 () -> assertNull(imposition.getCreditor()),
+                () -> assertNull(imposition.getImposedAmount()),
                 () -> assertNull(imposition.getOffence()),
                 () -> assertNull(imposition.getImposedBy())
             );
