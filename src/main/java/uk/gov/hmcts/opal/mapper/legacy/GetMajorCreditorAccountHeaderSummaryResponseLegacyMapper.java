@@ -32,8 +32,8 @@ public interface GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper {
     @Mapping(target = "businessUnitId", source = "businessUnitId", qualifiedByName = "toBusinessUnitId")
     BusinessUnitSummaryCommon toOpal(BusinessUnitSummary legacy);
 
-    @Mapping(target = "accountType", source = "accountType", qualifiedByName = "toAccountType")
-    @Mapping(target = "displayName", source = "accountType", qualifiedByName = "toDisplayName")
+    @Mapping(target = "creditorAccountType", source = "accountType", qualifiedByName = "toAccountType")
+    @Mapping(target = "creditorAccountDisplayName", source = "accountType", qualifiedByName = "toDisplayName")
     CreditorAccountTypeReferenceCommon toOpal(CreditorAccountTypeReference legacy);
 
     @Named("toVersion")
@@ -47,13 +47,17 @@ public interface GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper {
     }
 
     @Named("toAccountType")
-    default CreditorAccountTypeReferenceCommon.AccountTypeEnum toAccountType(String accountType) {
-        return accountType == null ? null : CreditorAccountTypeReferenceCommon.AccountTypeEnum.fromValue(accountType);
+    default CreditorAccountTypeReferenceCommon.CreditorAccountTypeEnum toAccountType(String accountType) {
+        return accountType == null
+            ? null
+            : CreditorAccountTypeReferenceCommon.CreditorAccountTypeEnum.fromValue(accountType);
     }
 
     @Named("toDisplayName")
-    default CreditorAccountTypeReferenceCommon.DisplayNameEnum toDisplayName(String accountType) {
+    default CreditorAccountTypeReferenceCommon.CreditorAccountDisplayNameEnum toDisplayName(String accountType) {
         String displayName = CreditorAccountType.getDisplayName(accountType);
-        return displayName == null ? null : CreditorAccountTypeReferenceCommon.DisplayNameEnum.fromValue(displayName);
+        return displayName == null
+            ? null
+            : CreditorAccountTypeReferenceCommon.CreditorAccountDisplayNameEnum.fromValue(displayName);
     }
 }
