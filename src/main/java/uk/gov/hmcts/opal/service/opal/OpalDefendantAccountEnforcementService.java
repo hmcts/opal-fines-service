@@ -107,7 +107,6 @@ public class OpalDefendantAccountEnforcementService
             && request.getEnforcementResultResponses() != null ? request.getEnforcementResultResponses() : List.of();
 
         for (EnforcementResultResponseDefendantAccount result : enforcementResultResponses) {
-            //todo PO-10826 here, need to add hearing date and
             if (Objects.equals(result.getParameterName(), "reason")) {
                 reason = result.getResponse();
             }
