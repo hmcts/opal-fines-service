@@ -265,6 +265,55 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     }
 
     @Test
+    @DisplayName("Get draft accounts - Restrict to count returns only count without PDPL")
+    @JiraStory("PO-10561")
+    @JiraEpic("PO-8256")
+    void testGetDraftAccounts_restrictCounts_returnsOnlyCountWithoutPdpl() throws Exception {
+        // Act
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
+            .param("business_unit", BU_ID.toString())
+            .param("restrict", "counts")
+            .contentType(MediaType.APPLICATION_JSON));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        JsonNode response = objectMapper.readTree(body);
+
+        // Assert
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.summaries").doesNotExist());
+
+        assertEquals(1, response.size());
+        verify(loggingService, times(0)).personalDataAccessLogAsync(any());
+    }
+
+    @Test
+    @DisplayName("Get draft accounts - Invalid restriction returns bad request")
+    @JiraStory("PO-10561")
+    @JiraEpic("PO-8256")
+    void testGetDraftAccounts_invalidRestriction_returnsBadRequest() throws Exception {
+        // Act
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
+            .param("restrict", "invalid")
+            .contentType(MediaType.APPLICATION_JSON));
+
+        // Assert
+        resultActions.andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequest(
+                "Invalid arguments were provided in the request",
+                "https://hmcts.gov.uk/problems/illegal-argument"
+            ));
+
+        verify(loggingService, times(0)).personalDataAccessLogAsync(any());
+    }
+
+    @Test
     @DisplayName("Get draft accounts summaries - Param business unit [@PO-973, @PO-606]")
     @JiraStory("PO-973")
     @JiraStory("PO-606")

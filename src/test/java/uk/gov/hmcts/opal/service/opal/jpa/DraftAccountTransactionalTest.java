@@ -117,6 +117,27 @@ class DraftAccountTransactionalTest {
 
     @SuppressWarnings("unchecked")
     @Test
+    void testCountDraftAccounts() {
+        // Arrange
+        when(draftAccountRepository.count(any(Specification.class))).thenReturn(7L);
+
+        // Act
+        long result = draftAccountTransactional.countDraftAccounts(
+            List.of((short) 1),
+            List.of(DraftAccountStatus.REJECTED),
+            List.of(),
+            List.of(),
+            Optional.empty(),
+            Optional.empty()
+        );
+
+        // Assert
+        assertEquals(7L, result);
+        verify(draftAccountRepository).count(any(Specification.class));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
     void testSearchDraftAccounts() {
         // Arrange
         SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
