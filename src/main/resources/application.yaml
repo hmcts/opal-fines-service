@@ -158,7 +158,14 @@ opal:
         algorithm: ${OPAL_COMMON_CONTENT_DIGEST_RESPONSE_ALGORITHM:SHA-512}
       supported-algorithms:
         sha-512: SHA-512
-
+    system-users:
+      token-url: https://login.microsoftonline.com/${AAD_TENANT_ID:}/oauth2/v2.0/token
+      users:
+        opal-system-user:
+          client-id: ${OPAL_SYSTEM_USER_CLIENT_ID:}
+          client-secret: ${OPAL_SYSTEM_USER_CLIENT_SECRET:}
+          scope: api://${opal.common.system-users.users.opal-system-user.client-id}/.default
+          grant-type: client_credentials
   report:
     storage:
       connection-string: ${AZURE_STORAGE_CONNECTION_STRING:UseDevelopmentStorage=true}
@@ -208,6 +215,10 @@ logging:
 user:
   service:
     url: ${OPAL_USER_SERVICE_API_URL:http://localhost:4555}
+
+file-handler:
+  service:
+    url: ${OPAL_FILE_HANDLER_SERVICE_API_URL:http://localhost:4075}
 
 logging-service:
   pdpl:
