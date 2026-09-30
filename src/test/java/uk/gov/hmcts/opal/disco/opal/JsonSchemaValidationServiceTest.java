@@ -2,6 +2,9 @@ package uk.gov.hmcts.opal.disco.opal;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -711,6 +714,79 @@ class JsonSchemaValidationServiceTest {
         assertDefendantAccountsSearchResponseIsInvalid(defendantSearchResponse(accountJson));
     }
 
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("legacyImpositionCreditorScenarios")
+    void whenCreditorShapeVaries_validatesLegacyImpositionSchema(
+        String scenario, String creditorJson, boolean expectedValid) {
+
+        assertEquals(expectedValid, jsonSchemaValidationService.isValid(
+            legacyImpositionsResponse(creditorJson),
+            "legacy/getDefendantAccountImpositionsLegacyResponse.json"
+        ));
+    }
+
+    private static Stream<Arguments> legacyImpositionCreditorScenarios() {
+        return Stream.of(
+            Arguments.of("major creditor", """
+                {
+                  "creditor_account_type": {"creditor_account_type": "CF"},
+                  "creditor_account_id": 77,
+                  "major_creditor_name": "HM Courts & Tribunals Service"
+                }
+                """, true),
+            Arguments.of("individual minor creditor", """
+                {
+                  "creditor_account_type": {"creditor_account_type": "MN"},
+                  "creditor_account_id": 78,
+                  "minor_creditor_organisation_flag": false,
+                  "individual_name": {
+                    "forenames": "Alex",
+                    "surname": "Smith"
+                  }
+                }
+                """, true),
+            Arguments.of("company minor creditor", """
+                {
+                  "creditor_account_type": {"creditor_account_type": "MN"},
+                  "creditor_account_id": 79,
+                  "minor_creditor_organisation_flag": true,
+                  "company_name": {"organisation_name": "Example Ltd"}
+                }
+                """, true),
+            Arguments.of("company flag with individual name", """
+                {
+                  "creditor_account_type": {"creditor_account_type": "MN"},
+                  "creditor_account_id": 80,
+                  "minor_creditor_organisation_flag": true,
+                  "individual_name": {"surname": "Smith"}
+                }
+                """, false),
+            Arguments.of("individual flag with company name", """
+                {
+                  "creditor_account_type": {"creditor_account_type": "MN"},
+                  "creditor_account_id": 81,
+                  "minor_creditor_organisation_flag": false,
+                  "company_name": {"organisation_name": "Example Ltd"}
+                }
+                """, false),
+            Arguments.of("both individual and company names", """
+                {
+                  "creditor_account_type": {"creditor_account_type": "MN"},
+                  "creditor_account_id": 82,
+                  "minor_creditor_organisation_flag": true,
+                  "individual_name": {"surname": "Smith"},
+                  "company_name": {"organisation_name": "Example Ltd"}
+                }
+                """, false),
+            Arguments.of("missing existing creditor account type", """
+                {
+                  "creditor_account_id": 83,
+                  "major_creditor_name": "HM Courts & Tribunals Service"
+                }
+                """, false)
+        );
+    }
+
     private void assertDefendantAccountsSearchRequestIsValid(String defendantJson) {
         assertTrue(jsonSchemaValidationService.isValid(
             defendantSearchRequest(defendantJson),
@@ -760,5 +836,37 @@ class JsonSchemaValidationServiceTest {
               ]
             }
             """.formatted(accountJson);
+    }
+
+    private String legacyImpositionsResponse(String creditorJson) {
+        return """
+            {
+              "version": 18338687664539878704807506660830801130000030354,
+              "impositions": [
+                {
+                  "posted_details": {
+                    "posted_date": "2026-08-19T00:00:00.00001Z",
+                    "posted_by": "L077AO",
+                    "posted_by_name": "L077AO"
+                  },
+                  "result": {
+                    "result_id": "FO",
+                    "result_title": "FINE"
+                  },
+                  "creditor": %s,
+                  "imposed_amount": -250.00,
+                  "paid_amount": 300.00,
+                  "balance": 50.00,
+                  "date_imposed": "2025-05-15",
+                  "offence": {
+                    "offence_id": 33369,
+                    "cjs_code": "HY35014",
+                    "offence_title": "Riding a bicycle on a footpath"
+                  },
+                  "imposition_id": 770000027211
+                }
+              ]
+            }
+            """.formatted(creditorJson);
     }
 }
