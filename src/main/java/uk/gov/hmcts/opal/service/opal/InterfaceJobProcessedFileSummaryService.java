@@ -48,17 +48,29 @@ public class InterfaceJobProcessedFileSummaryService {
         InterfaceJobProcessedFileSummaryEntity summary = findProcessedFileSummary(interfaceJobId);
         InterfaceJobEntity interfaceJob = findInterfaceJob(summary);
         checkPermission(getBusinessUnitId(interfaceJob));
+
         UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
-        List<InterfaceJobsMessageGroup> messageGroups = getMessageGroups(summary.getInterfaceFileId());
+        List<InterfaceMessageEntity> messages = interfaceMessageRepository
+            .findAllByInterfaceFile_InterfaceFileIdOrderByMessageTextAscInterfaceMessageIdAsc(
+                summary.getInterfaceFileId());
+
+        List<InterfaceJobsMessageGroup> messageGroups = getMessageGroups(messages);
+        List<Long> interfaceMessageIds = extractInterfaceMessageIds(messages);
         InterfaceJobsProcessedFileSummaryResponse response = processedFileSummaryMapper.toResponse(summary,
             resolveBusinessUnitName(summary, interfaceJob), messageGroups);
-        pdplLoggingService.logView(userState);
+
+        pdplLoggingService.logView(userState, interfaceMessageIds);
 
         return response;
     }
 
-    private InterfaceJobProcessedFileSummaryEntity findProcessedFileSummary(Long interfaceJobId) {
+    private List<Long> extractInterfaceMessageIds(List<InterfaceMessageEntity> messages) {
+        return messages.stream()
+            .map(InterfaceMessageEntity::getInterfaceMessageId)
+            .toList();
+    }
 
+    private InterfaceJobProcessedFileSummaryEntity findProcessedFileSummary(Long interfaceJobId) {
         List<InterfaceJobProcessedFileSummaryEntity> rows = summaryViewRepository
             .findAllByInterfaceJobIdOrderByInterfaceFileIdAsc(interfaceJobId);
 
@@ -106,12 +118,11 @@ public class InterfaceJobProcessedFileSummaryService {
         return interfaceJob.getBusinessUnit() == null ? null : interfaceJob.getBusinessUnit().getBusinessUnitName();
     }
 
-    private List<InterfaceJobsMessageGroup> getMessageGroups(Long interfaceFileId) {
-
-        Map<String, List<InterfaceJobsMessage>> messagesByText = interfaceMessageRepository
-            .findAllByInterfaceFile_InterfaceFileIdOrderByMessageTextAscInterfaceMessageIdAsc(interfaceFileId)
-            .stream()
-            .collect(Collectors.groupingBy(InterfaceMessageEntity::getMessageText, LinkedHashMap::new,
+    private List<InterfaceJobsMessageGroup> getMessageGroups(List<InterfaceMessageEntity> messages) {
+        Map<String, List<InterfaceJobsMessage>> messagesByText = messages.stream()
+            .collect(Collectors.groupingBy(
+                InterfaceMessageEntity::getMessageText,
+                LinkedHashMap::new,
                 Collectors.mapping(interfaceMessageMapper::toMessage, Collectors.toList())));
 
         return messagesByText.entrySet().stream()

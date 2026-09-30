@@ -20,15 +20,18 @@ public class InterfaceJobProcessedFileSummaryPdplLoggingService extends Abstract
         super(loggingService, clock);
     }
 
-    public void logView(UserStateV2 userState) {
-        ParticipantIdentifier payer = ParticipantIdentifier.builder()
-            .type(PdplIdentifierType.PAYER)
-            .build();
+    public void logView(UserStateV2 userState, List<Long> interfaceMessageList) {
+        List<ParticipantIdentifier> payers = interfaceMessageList.stream()
+            .map(interfaceMessageId -> ParticipantIdentifier.builder()
+                .identifier(interfaceMessageId.toString())
+                .type(PdplIdentifierType.PAYER)
+                .build())
+            .toList();
 
         try {
             // No recipient is involved when viewing a file processing summary.
             boolean sent = logPdpl(BUSINESS_IDENTIFIER, PersonalDataProcessingCategory.CONSULTATION,
-                List.of(payer), null, userState.getUserId());
+                payers, null, userState.getUserId());
             if (!sent) {
                 log.error("Unable to submit PDPO log for {}", BUSINESS_IDENTIFIER);
             }
