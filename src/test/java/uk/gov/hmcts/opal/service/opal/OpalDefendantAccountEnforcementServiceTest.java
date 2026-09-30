@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
@@ -60,6 +61,7 @@ import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
@@ -77,6 +79,7 @@ import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsTypeCommonStrict
 import uk.gov.hmcts.opal.generated.model.EnforcementResultIdCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementResultResponseDefendantAccount;
 import uk.gov.hmcts.opal.mapper.EnforcementPaymentTermsMapper;
+import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
@@ -129,6 +132,9 @@ class OpalDefendantAccountEnforcementServiceTest {
 
     @Mock
     private DefendantAccountRepositoryService defendantAccountRepositoryService;
+
+    @Mock
+    private CourtRepository courtRepository;
 
     @Mock
     private OpalDefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
@@ -234,6 +240,10 @@ class OpalDefendantAccountEnforcementServiceTest {
             null,
             "{}",
             null,
+            null,
+            null,
+            null,
+            null,
             VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
 
@@ -264,7 +274,13 @@ class OpalDefendantAccountEnforcementServiceTest {
     @Test
     void testAddEnforcement_whenGivenAllFields_createsEnforcement() throws JacksonException {
         mockAuthorisedUser();
-        mockDefendantAccount();
+        DefendantAccountEntity defendant = mock(DefendantAccountEntity.class);
+        when(defendant.getProsecutorCaseReference()).thenReturn(PROSECUTOR_CASE_REFERENCE);
+        when(defendant.getLastHearingCourt()).thenReturn(CourtEntity.builder().courtId(321L).build());
+        when(defendant.getLastHearingDate()).thenReturn(LocalDate.of(2026, 4, 1));
+        when(defendantAccountRepositoryService.findById(DEFENDANT_ACCOUNT_ID)).thenReturn(defendant);
+        when(courtRepository.findByCourtCodeAndBusinessUnitId((short) 123, BUSINESS_UNIT_ID))
+            .thenReturn(Optional.of(CourtEntity.builder().courtId(654L).build()));
         mockCreatedEnforcement();
 
         List<EnforcementResultResponseDefendantAccount> responses = List.of(
@@ -272,7 +288,10 @@ class OpalDefendantAccountEnforcementServiceTest {
             new EnforcementResultResponseDefendantAccount().parameterName("jail_days").response("14"),
             new EnforcementResultResponseDefendantAccount().parameterName("enforcer_id").response("55"),
             new EnforcementResultResponseDefendantAccount().parameterName("earliest_release_date")
-                .response("2026-05-01T00:00:00")
+                .response("2026-05-01T00:00:00"),
+            new EnforcementResultResponseDefendantAccount().parameterName("courtcode").response("123"),
+            new EnforcementResultResponseDefendantAccount().parameterName("hearingdate")
+                .response("2026-06-01T00:00:00")
         );
 
         AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
@@ -293,7 +312,9 @@ class OpalDefendantAccountEnforcementServiceTest {
             "reason", "test reason",
             "jail_days", "14",
             "enforcer_id", "55",
-            "earliest_release_date", "2026-05-01T00:00:00"
+            "earliest_release_date", "2026-05-01T00:00:00",
+            "courtcode", "123",
+            "hearingdate", "2026-06-01T00:00:00"
         ));
 
         verify(enforcementRepositoryService).addDefendantAccountEnforcement(
@@ -309,6 +330,10 @@ class OpalDefendantAccountEnforcementServiceTest {
             55L,
             responsesJson,
             LocalDateTime.of(2026, 5, 1, 0, 0, 0),
+            321L,
+            LocalDateTime.of(2026, 4, 1, 0, 0, 0),
+            654L,
+            LocalDateTime.of(2026, 6, 1, 0, 0, 0),
             VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
 
@@ -337,6 +362,10 @@ class OpalDefendantAccountEnforcementServiceTest {
             nullable(String.class),
             nullable(Long.class),
             anyString(),
+            nullable(LocalDateTime.class),
+            nullable(Long.class),
+            nullable(LocalDateTime.class),
+            nullable(Long.class),
             nullable(LocalDateTime.class),
             anyLong()
         )).thenReturn(ENFORCEMENT_ID);
@@ -376,6 +405,10 @@ class OpalDefendantAccountEnforcementServiceTest {
             null,
             responsesJson,
             null,
+            null,
+            null,
+            null,
+            null,
             VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
 
@@ -404,6 +437,10 @@ class OpalDefendantAccountEnforcementServiceTest {
             nullable(String.class),
             nullable(Long.class),
             anyString(),
+            nullable(LocalDateTime.class),
+            nullable(Long.class),
+            nullable(LocalDateTime.class),
+            nullable(Long.class),
             nullable(LocalDateTime.class),
             anyLong()
         )).thenReturn(ENFORCEMENT_ID);
@@ -443,6 +480,10 @@ class OpalDefendantAccountEnforcementServiceTest {
             null,
             responsesJson,
             null,
+            null,
+            null,
+            null,
+            null,
             VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
 
@@ -471,6 +512,10 @@ class OpalDefendantAccountEnforcementServiceTest {
             nullable(String.class),
             nullable(Long.class),
             anyString(),
+            nullable(LocalDateTime.class),
+            nullable(Long.class),
+            nullable(LocalDateTime.class),
+            nullable(Long.class),
             nullable(LocalDateTime.class),
             anyLong()
         )).thenReturn(ENFORCEMENT_ID);
@@ -510,6 +555,10 @@ class OpalDefendantAccountEnforcementServiceTest {
             55L,
             responsesJson,
             null,
+            null,
+            null,
+            null,
+            null,
             VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
 
@@ -538,6 +587,10 @@ class OpalDefendantAccountEnforcementServiceTest {
             nullable(String.class),
             nullable(Long.class),
             anyString(),
+            nullable(LocalDateTime.class),
+            nullable(Long.class),
+            nullable(LocalDateTime.class),
+            nullable(Long.class),
             nullable(LocalDateTime.class),
             anyLong()
         )).thenReturn(ENFORCEMENT_ID);
@@ -578,6 +631,10 @@ class OpalDefendantAccountEnforcementServiceTest {
             null,
             responsesJson,
             LocalDateTime.of(2026, 5, 1, 0, 0, 0),
+            null,
+            null,
+            null,
+            null,
             VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
 
@@ -606,6 +663,10 @@ class OpalDefendantAccountEnforcementServiceTest {
             nullable(String.class),
             nullable(Long.class),
             anyString(),
+            nullable(LocalDateTime.class),
+            nullable(Long.class),
+            nullable(LocalDateTime.class),
+            nullable(Long.class),
             nullable(LocalDateTime.class),
             anyLong()
         )).thenReturn(ENFORCEMENT_ID);
@@ -652,6 +713,10 @@ class OpalDefendantAccountEnforcementServiceTest {
             eq(null),
             eq(null),
             eq("{}"),
+            eq(null),
+            eq(null),
+            eq(null),
+            eq(null),
             eq(null),
             eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
         );
@@ -1055,6 +1120,10 @@ class OpalDefendantAccountEnforcementServiceTest {
             nullable(String.class),
             nullable(Long.class),
             anyString(),
+            nullable(LocalDateTime.class),
+            nullable(Long.class),
+            nullable(LocalDateTime.class),
+            nullable(Long.class),
             nullable(LocalDateTime.class),
             anyLong()
         )).thenReturn(ENFORCEMENT_ID);
