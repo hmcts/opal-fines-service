@@ -97,7 +97,7 @@ class InterfaceJobProcessedFileSummaryServiceTest {
 
         // Assert
         assertSame(mappedResponse, response);
-        verify(pdplLoggingService).logView(userState);
+        verify(pdplLoggingService).logView(userState, List.of());
     }
 
     @Test
@@ -116,6 +116,9 @@ class InterfaceJobProcessedFileSummaryServiceTest {
         when(firstRead.getMessageText()).thenReturn("records_read");
         when(secondRead.getMessageText()).thenReturn("records_read");
         when(rejected.getMessageText()).thenReturn("records_rejected");
+        when(firstRead.getInterfaceMessageId()).thenReturn(1L);
+        when(secondRead.getInterfaceMessageId()).thenReturn(2L);
+        when(rejected.getInterfaceMessageId()).thenReturn(3L);
         when(messageRepository
             .findAllByInterfaceFile_InterfaceFileIdOrderByMessageTextAscInterfaceMessageIdAsc(FILE_ID))
             .thenReturn(List.of(firstRead, secondRead, rejected));
@@ -136,6 +139,7 @@ class InterfaceJobProcessedFileSummaryServiceTest {
         assertEquals(List.of(1L, 2L), messageIds(groups.getFirst()));
         assertEquals("records_rejected", groups.get(1).getMessageText());
         assertEquals(List.of(3L), messageIds(groups.get(1)));
+        verify(pdplLoggingService).logView(userState, List.of(1L, 2L, 3L));
     }
 
     @Test

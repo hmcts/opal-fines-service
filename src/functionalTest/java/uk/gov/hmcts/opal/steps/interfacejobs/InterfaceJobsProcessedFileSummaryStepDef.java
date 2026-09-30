@@ -225,20 +225,35 @@ public class InterfaceJobsProcessedFileSummaryStepDef extends BaseStepDef {
     }
 
     private String createRequestBody() {
+        String records = """
+            [{
+              "receiving_sort_code": "123456",
+              "receiving_bank_account_number": "01234567",
+              "receiving_account_type": "5",
+              "transaction_code": "68",
+              "originator_sort_code": "654321",
+              "originator_bank_account_number": "98765432",
+              "amount_pence": "12345",
+              "originator_name": "Test Payer",
+              "originator_reference": "99000001A",
+              "originator_beneficiary_name": "Test Court"
+            }]
+            """.replace("\n", "").replace("\"", "\\\"");
+
         return """
             {
               "interface_jobs": [
                 {
                   "file_name": "e2e-processed-file-summary.dat",
                   "source": "NATWEST",
-                  "records": "[{\\\"receiving_sort_code\\\":\\\"123456\\\",\\\"receiving_bank_account_number\\\":\\\"01234567\\\",\\\"receiving_account_type\\\":\\\"5\\\",\\\"transaction_code\\\":\\\"68\\\",\\\"originator_sort_code\\\":\\\"654321\\\",\\\"originator_bank_account_number\\\":\\\"98765432\\\",\\\"amount_pence\\\":\\\"12345\\\",\\\"originator_name\\\":\\\"Test Payer\\\",\\\"originator_reference\\\":\\\"99000001A\\\",\\\"originator_beneficiary_name\\\":\\\"Test Court\\\"}]",
+                  "records": "%s",
                   "business_unit_id": %d,
                   "interface_name": "%s",
                   "created_datetime": "2026-07-14T10:00:00"
                 }
               ]
             }
-            """.formatted(BUSINESS_UNIT_ID, INTERFACE_NAME);
+            """.formatted(records, BUSINESS_UNIT_ID, INTERFACE_NAME);
     }
 
     private String processRequestBody(long interfaceJobId) {

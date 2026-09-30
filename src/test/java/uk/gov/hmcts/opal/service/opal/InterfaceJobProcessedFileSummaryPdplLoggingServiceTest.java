@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,6 +41,8 @@ class InterfaceJobProcessedFileSummaryPdplLoggingServiceTest {
     @DisplayName("PO-2576 - maps the payer consultation log")
     void logsConsultationWithPayerAndUserDetails() {
         // Arrange
+        final ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
         OffsetDateTime now = OffsetDateTime.parse("2026-08-24T10:15:30Z");
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
         when(userState.getUserId()).thenReturn(USER_ID);
@@ -52,14 +55,13 @@ class InterfaceJobProcessedFileSummaryPdplLoggingServiceTest {
             logUtil.when(LogUtil::getIpAddress).thenReturn("192.0.2.10");
 
             // Act
-            service.logView(userState);
+            service.logView(userState, List.of(1001L, 1002L));
         }
 
         // Assert
-        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
-            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
         verify(loggingService).personalDataAccessLogAsync(captor.capture());
         PersonalDataProcessingLogDetails details = captor.getValue();
+        final List<ParticipantIdentifier> payers = details.getIndividuals();
 
         assertEquals("View File Processing Summary", details.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, details.getCategory());
@@ -67,9 +69,11 @@ class InterfaceJobProcessedFileSummaryPdplLoggingServiceTest {
         assertEquals(now, details.getCreatedAt());
         assertEquals("42", details.getCreatedBy().getIdentifier());
         assertEquals(PdplIdentifierType.OPAL_USER_ID, details.getCreatedBy().getType());
-        ParticipantIdentifier payer = details.getIndividuals().getFirst();
-        assertEquals(PdplIdentifierType.PAYER, payer.getType());
-        assertNull(payer.getIdentifier());
+        assertEquals(List.of("1001", "1002"), payers.stream()
+            .map(ParticipantIdentifier::getIdentifier)
+            .toList());
+        assertEquals(List.of(PdplIdentifierType.PAYER, PdplIdentifierType.PAYER),
+            payers.stream().map(ParticipantIdentifier::getType).toList());
         assertNull(details.getRecipient());
     }
 
@@ -84,7 +88,7 @@ class InterfaceJobProcessedFileSummaryPdplLoggingServiceTest {
             new InterfaceJobProcessedFileSummaryPdplLoggingService(loggingService, Clock.systemUTC());
 
         // Act
-        service.logView(userState);
+        service.logView(userState, List.of(1001L));
 
         // Assert
         verify(loggingService).personalDataAccessLogAsync(any());
@@ -100,7 +104,7 @@ class InterfaceJobProcessedFileSummaryPdplLoggingServiceTest {
             new InterfaceJobProcessedFileSummaryPdplLoggingService(loggingService, Clock.systemUTC());
 
         // Act
-        service.logView(userState);
+        service.logView(userState, List.of(1001L));
 
         // Assert
         verify(loggingService).personalDataAccessLogAsync(any());
