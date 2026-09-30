@@ -4,10 +4,6 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "creditor_account_type": {
-      "$ref": "./creditorAccountTypeReferenceLegacy.json",
-      "description": "Creditor account type reference."
-    },
     "creditor_account_id": {
       "type": "integer",
       "description": "DB Mapping - creditor_accounts.creditor_account_id."
@@ -30,7 +26,6 @@
     }
   },
   "required": [
-    "creditor_account_type",
     "creditor_account_id"
   ],
   "allOf": [
