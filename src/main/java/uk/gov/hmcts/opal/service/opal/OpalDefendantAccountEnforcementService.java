@@ -150,12 +150,10 @@ public class OpalDefendantAccountEnforcementService
             enforcerId,
             resultResponses,
             earliestReleaseDate,
-
-            defendant.getLastHearingCourt() != null ? defendant.getLastHearingCourt().getCourtId() : null,
-            defendant.getLastHearingDate() != null ? defendant.getLastHearingDate().atStartOfDay() : null,
             hearingCourtId,
             hearingDate,
-
+            hearingCourtId,
+            hearingDate,
             VersionUtils.extractBigInteger(ifMatch).longValue()
         );
 
