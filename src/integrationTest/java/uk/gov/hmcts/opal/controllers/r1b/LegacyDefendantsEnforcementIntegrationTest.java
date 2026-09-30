@@ -4,7 +4,6 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TES
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -311,6 +310,5 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.last_enforcement_action").doesNotExist())
             .andExpect(jsonPath("$.next_enforcement_action_data").doesNotExist());
-            //.andExpect(jsonPath("$.next_enforcement_action_data").value("All"));
     }
 }
