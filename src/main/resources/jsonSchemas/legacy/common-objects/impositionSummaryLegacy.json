@@ -29,7 +29,7 @@
       "$ref": "./monetaryZeroOrPositive.json"
     },
     "balance": {
-      "$ref": "./monetaryZeroOrPositive.json"
+      "$ref": "./monetaryNegativeOrPositive.json"
     },
     "date_imposed": {
       "type": "string",
