@@ -144,6 +144,55 @@ paths:
             application/json+problem:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
+  /tills/allocate:
+    post:
+      tags:
+        - tills
+      summary: Allocate tills
+      operationId: allocate_tills
+      description: Allocate a list of tills by ID asynchronously.
+      security:
+        - permissions:
+            - Process and Allocate Payments in the business unit provided for each till
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TillsAllocateRequest'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "401":
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "403":
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "500":
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "503":
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
 
   /tills/{id}:
     get:
@@ -403,6 +452,26 @@ components:
       enum:
         - Individual
         - Organisation
+    TillsAllocateRequest:
+      type: object
+      required:
+        - tills
+      properties:
+        tills:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/TillsAllocateItem'
+    TillsAllocateItem:
+      type: object
+      required:
+        - till_id
+        - business_unit_id
+      properties:
+        till_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+        business_unit_id:
+          $ref: './types.yaml#/components/schemas/BusinessUnitId'
     TillsResponse:
       type: object
       required:
