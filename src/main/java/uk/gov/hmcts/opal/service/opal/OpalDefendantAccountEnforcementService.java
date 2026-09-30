@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import java.util.Optional;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddPaymentTermsRequestDefendantAccount;
@@ -31,6 +33,7 @@ import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
+import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
@@ -83,6 +86,8 @@ public class OpalDefendantAccountEnforcementService
 
     private final EnforcementPaymentTermsMapper enforcementPaymentTermsMapper;
 
+    private final CourtRepository courtRepository;
+
     @Override
     @Transactional
     public AddEnforcementResponseDefendantAccount addEnforcement(
@@ -96,10 +101,13 @@ public class OpalDefendantAccountEnforcementService
         Integer jailDays = null;
         Long enforcerId = null;
         LocalDateTime earliestReleaseDate = null;
+        Long hearingCourtId = null;
+        LocalDateTime hearingDate = null;
         List<EnforcementResultResponseDefendantAccount> enforcementResultResponses = request != null
             && request.getEnforcementResultResponses() != null ? request.getEnforcementResultResponses() : List.of();
 
         for (EnforcementResultResponseDefendantAccount result : enforcementResultResponses) {
+            //todo PO-10826 here, need to add hearing date and
             if (Objects.equals(result.getParameterName(), "reason")) {
                 reason = result.getResponse();
             }
@@ -111,6 +119,17 @@ public class OpalDefendantAccountEnforcementService
             }
             if (Objects.equals(result.getParameterName(), "earliest_release_date")) {
                 earliestReleaseDate = LocalDateTime.parse(result.getResponse());
+            }
+
+            if (Objects.equals(result.getParameterName(), "courtcode")) {
+                Optional<CourtEntity> court = courtRepository
+                    .findByCourtCodeAndBusinessUnitId(Short.valueOf(result.getResponse()), businessUnitId);
+                if (court.isPresent()) {
+                    hearingCourtId = court.get().getCourtId();
+                }
+            }
+            if (Objects.equals(result.getParameterName(), "hearingdate")) {
+                hearingDate = LocalDateTime.parse(result.getResponse());
             }
         }
 
@@ -132,6 +151,12 @@ public class OpalDefendantAccountEnforcementService
             enforcerId,
             resultResponses,
             earliestReleaseDate,
+
+            defendant.getLastHearingCourt() != null ? defendant.getLastHearingCourt().getCourtId() : null,
+            defendant.getLastHearingDate() != null ? defendant.getLastHearingDate().atStartOfDay() : null,
+            hearingCourtId,
+            hearingDate,
+
             VersionUtils.extractBigInteger(ifMatch).longValue()
         );
 
