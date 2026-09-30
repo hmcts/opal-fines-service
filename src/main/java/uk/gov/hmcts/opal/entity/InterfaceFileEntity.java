@@ -77,4 +77,10 @@ public class InterfaceFileEntity {
     @Builder.Default
     @OneToMany(mappedBy = "interfaceFile", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private List<TillEntity> tillEntities = new ArrayList<>();
+
+    @Column
+    private Long transformedJsonId;
+
+    @Column
+    private Long sourceJsonId;
 }

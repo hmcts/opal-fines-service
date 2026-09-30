@@ -6,6 +6,7 @@ import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureN
 import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.JPA_PROC_NAME;
 import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.POSTED_BY;
 import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.POSTED_BY_NAME;
+import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.RECORDS_JSON;
 
 import java.util.function.Function;
 import org.springframework.data.jpa.domain.Specification;
@@ -34,6 +35,7 @@ public interface InterfaceJobRepository extends JpaRepository<InterfaceJobEntity
     Long processPaymentsInJob(@Param(INTERFACE_JOB_ID) Long interfaceJobId,
                               @Param(BUSINESS_UNIT_ID) Short businessUnitId,
                               @Param(POSTED_BY) String postedBy,
-                              @Param(POSTED_BY_NAME) String postedByName);
+                              @Param(POSTED_BY_NAME) String postedByName,
+                              @Param(RECORDS_JSON) String recordsJson);
 
 }
