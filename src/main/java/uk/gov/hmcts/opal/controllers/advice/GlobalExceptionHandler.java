@@ -11,11 +11,13 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.dao.QueryTimeoutException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseEntity.BodyBuilder;
+import org.springframework.jms.JmsException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
@@ -144,14 +146,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ReportGenerationException.class)
     public ResponseEntity<ProblemDetail> handleReportGenerationException(ReportGenerationException ex) {
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            "Report Generation Failed",
-            "Unable to generate the requested report",
-            "report-generation-failed",
-            true,
-            ex
-        );
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Report Generation Failed",
+            "Unable to generate the requested report", "report-generation-failed", true, ex);
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
@@ -179,6 +175,22 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = createProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable",
             "The interface job queue is currently unavailable",
             "interface-job-queue-unavailable", true, ex);
+        return responseWithProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, problemDetail);
+    }
+
+    // Common-lib handles JPA timeouts but not Spring's translated repository exception.
+    @ExceptionHandler(QueryTimeoutException.class)
+    public ResponseEntity<ProblemDetail> handleQueryTimeoutException(QueryTimeoutException ex) {
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.REQUEST_TIMEOUT, "Request Timeout",
+            "The request did not receive a response from the database within the timeout period",
+            "query-timeout", true, ex);
+        return responseWithProblemDetail(HttpStatus.REQUEST_TIMEOUT, problemDetail);
+    }
+
+    @ExceptionHandler(JmsException.class)
+    public ResponseEntity<ProblemDetail> handleJmsException(JmsException ex) {
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable",
+            "The message queue is currently unavailable", "message-queue-unavailable", true, ex);
         return responseWithProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, problemDetail);
     }
 
