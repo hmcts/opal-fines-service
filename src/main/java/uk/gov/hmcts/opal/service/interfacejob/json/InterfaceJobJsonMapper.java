@@ -3,9 +3,6 @@ package uk.gov.hmcts.opal.service.interfacejob.json;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.PropertyNamingStrategies;
-import tools.jackson.databind.PropertyNamingStrategy;
-import tools.jackson.databind.json.JsonMapper;
 import uk.gov.hmcts.opal.service.interfacejob.json.fileHandler.InterfaceFileCommonDataExtract;
 import uk.gov.hmcts.opal.service.interfacejob.json.records.InterfaceJobRecord;
 
