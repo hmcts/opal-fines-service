@@ -131,6 +131,7 @@ public class CacheConfig {
         return new DataRedisHealthIndicator(redisConnectionFactory);
     }
 
+    // pushing for build
     @Bean
     @ConditionalOnProperty(name = "opal.redis.enabled", havingValue = "false", matchIfMissing = true)
     public CacheManager simpleCacheManager() {
