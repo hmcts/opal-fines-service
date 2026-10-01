@@ -28,6 +28,7 @@ public class InterfaceJobJsonMapperTest {
     private InterfaceJobJsonMapper mapper;
 
     @Test void toRecordsJson_correctlyOrchestratesCalls() throws JsonProcessingException {
+        // Arrange
         String extractJson = "{\"foo\":\"bar\"}";
         String recordsJson = "[{\"amount_pence\"=1599}]";
         InterfaceFileCommonDataExtract extract = mock(InterfaceFileCommonDataExtract.class);
@@ -36,8 +37,11 @@ public class InterfaceJobJsonMapperTest {
         when(jobRecordMapper.mapToRecords(extract)).thenReturn(records);
         when(objectMapper.writeValueAsString(records)).thenReturn(recordsJson);
 
+
+        // Act
         String result = mapper.toRecordsJson(extractJson);
 
+        // Assert
         assertThat(result).isEqualTo(recordsJson);
     }
 

@@ -18,10 +18,13 @@ public class InterfaceJobRecordMapperTest {
 
     @Test
     void mapToRecords_mapsAllFields() {
+        // Arrange
         InterfaceFileCommonDataExtract extract = createExtract();
 
+        // Act
         InterfaceJobRecord[] records = mapper.mapToRecords(extract);
 
+        // Assert
         assertThat(records).hasSize(2);
 
         assertThat(records[0].getDestinationAccountType()).isEqualTo("SAVINGS");
