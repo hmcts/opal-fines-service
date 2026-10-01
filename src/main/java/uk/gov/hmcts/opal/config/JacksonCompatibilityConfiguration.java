@@ -15,7 +15,6 @@ public class JacksonCompatibilityConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(ObjectMapper.class)
-    @Primary
     public ObjectMapper jackson2ObjectMapper() {
         return JsonMapper.builder()
             .findAndAddModules()
