@@ -30,17 +30,12 @@ import uk.hmcts.zephyr.automation.junit5.extension.ZephyrAutomationExtension;
 @EnableWireMock(
     @ConfigureWireMock(
         name = "user-service",
-        /*baseUrlProperties = {
-            "user.service.url",
-            "user.service.wiremock-url"
-        },*/
         baseUrlProperties = "user.service.url",
         filesUnderClasspath = "wiremock"
     )
 )
 @SpringBootTest(classes = Application.class)
 @ActiveProfiles({"integration-with-spring-security", "opal"})
-//@ActiveProfiles("integration")
 @ContextConfiguration(classes = {TestContainerConfig.class})
 @AutoConfigureMockMvc(htmlUnit = @AutoConfigureMockMvc.HtmlUnit(webClient = false, webDriver = false))
 @Import(IntegrationSecurityConfiguration.class)

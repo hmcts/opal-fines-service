@@ -24,7 +24,6 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
 @TestConfiguration
-//@Profile("integration")
 @Profile("integration-with-spring-security")
 public class IntegrationSecurityConfiguration {
 
@@ -33,27 +32,16 @@ public class IntegrationSecurityConfiguration {
     // the integration config patch is switched to use a local Spring-serialized handler shape instead of
     // the common-lib serializer.
     // This is test-profile only.
-    /*@Bean
-    @SuppressWarnings({"PMD.SignatureDeclareThrowsException", "squid:S4502"})
-    public SecurityFilterChain integrationFilterChain(HttpSecurity http) throws Exception {
-        return http
-            .csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
-            .exceptionHandling(exceptionHandling -> exceptionHandling
-                .authenticationEntryPoint((request, response, authException) -> writeForbidden(response))
-                .accessDeniedHandler((request, response, accessDeniedException) -> writeForbidden(response)))
-            .build();
-    }*/
     @Bean
     SecurityFilterChain integrationFilterChain(HttpSecurity http,
         AuthenticationManager integrationAuthenticationManager) throws Exception {
         return http.csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
+            .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
             .oauth2ResourceServer(oauth2 ->
                 oauth2.authenticationManagerResolver(request -> integrationAuthenticationManager))
             .exceptionHandling(exceptionHandling ->
                 exceptionHandling.authenticationEntryPoint((request, response,
-                        ex) -> writeForbidden(response))
+                        ex) -> writeUnauthorized(response))
                 .accessDeniedHandler((request, response,
                     ex) -> writeForbidden(response))).build();
     }
@@ -63,43 +51,27 @@ public class IntegrationSecurityConfiguration {
         UserStateClientService userStateClientService,
         OpalCommonConfiguration commonConfiguration
     ) {
+        Domain domain = Domain.findByDisplayName(commonConfiguration.getDomain());
 
-        Domain domain =
-            Domain.findByDisplayName(commonConfiguration.getDomain());
-
-        JwtGrantedAuthoritiesConverter authoritiesConverter =
-            new JwtGrantedAuthoritiesConverter();
+        JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
 
         return authentication -> {
-
-            BearerTokenAuthenticationToken bearer =
-                (BearerTokenAuthenticationToken) authentication;
+            BearerTokenAuthenticationToken bearer = (BearerTokenAuthenticationToken) authentication;
 
             Instant now = Instant.now();
-
             Jwt jwt = Jwt.withTokenValue(bearer.getToken())
                 .header("alg", "none")
                 .claim("sub", "opal-test@hmcts.net")
-                // Add the claim(s) UserStateClientService actually requires
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(3600))
                 .build();
 
-            UserStateV2 userState = userStateClientService
-                .getUserStateByAuthenticationToken(jwt)
-                .orElseThrow(() ->
-                    new BadCredentialsException("User state not found"));
+            UserStateV2 userState = userStateClientService.getUserStateByAuthenticationToken(jwt).orElseThrow(() ->
+                new BadCredentialsException("User state not found"));
 
-            Collection<GrantedAuthority> authorities =
-                authoritiesConverter.convert(jwt);
+            Collection<GrantedAuthority> authorities = authoritiesConverter.convert(jwt);
 
-            return new OpalJwtAuthenticationToken(
-                userState,
-                domain,
-                jwt,
-                authorities,
-                bearer.getDetails()
-            );
+            return new OpalJwtAuthenticationToken(userState, domain, jwt, authorities, bearer.getDetails());
         };
     }
 
@@ -112,6 +84,20 @@ public class IntegrationSecurityConfiguration {
               "title": "Forbidden",
               "status": 403,
               "detail": "You do not have permission to access this resource",
+              "retriable": false
+            }
+            """);
+    }
+
+    private static void writeUnauthorized(HttpServletResponse response) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+        response.getWriter().write("""
+            {
+              "type": "https://hmcts.gov.uk/problems/unauthorized",
+              "title": "Unauthorized",
+              "status": 401,
+              "detail": "Unauthorized request for this resource",
               "retriable": false
             }
             """);
