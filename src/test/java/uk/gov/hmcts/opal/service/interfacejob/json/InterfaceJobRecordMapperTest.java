@@ -33,7 +33,7 @@ public class InterfaceJobRecordMapperTest {
         assertThat(records[0].getDestinationSortCode()).isEqualTo("20-40-22");
         assertThat(records[0].getAmountPence()).isEqualTo(15000l);
         assertThat(records[0].getTransactionCode()).isEqualTo("01");
-        assertThat(records[0].getOriginatorName()).isEqualTo("S Originator");
+        assertThat(records[0].getOriginatorName()).isEqualTo("Sarah Originator");
         assertThat(records[0].getOriginatorReference()).isEqualTo("orig1");
         assertThat(records[0].getOriginatorSortCode()).isEqualTo("11-11-11");
         assertThat(records[0].getOriginatorBankAccountNumber()).isEqualTo("11111111");
@@ -44,7 +44,7 @@ public class InterfaceJobRecordMapperTest {
         assertThat(records[1].getDestinationSortCode()).isEqualTo("20-40-22");
         assertThat(records[1].getAmountPence()).isEqualTo(2500l);
         assertThat(records[1].getTransactionCode()).isEqualTo("01");
-        assertThat(records[1].getOriginatorName()).isEqualTo("P Originator");
+        assertThat(records[1].getOriginatorName()).isEqualTo("Penny Originator");
         assertThat(records[1].getOriginatorReference()).isEqualTo("orig2");
         assertThat(records[1].getOriginatorSortCode()).isEqualTo("22-22-22");
         assertThat(records[1].getOriginatorBankAccountNumber()).isEqualTo("22222222");
