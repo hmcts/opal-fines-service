@@ -564,6 +564,58 @@ class OpalDefendantAccountEnforcementServiceTest {
     }
 
     @Test
+    void testAddEnforcement_whenGivenDaysInDefaultAndEnforcer_createsEnforcement() throws JacksonException {
+        mockAuthorisedUser();
+        mockDefendantAccount();
+        mockCreatedEnforcement();
+
+        List<EnforcementResultResponseDefendantAccount> responses = List.of(
+            EnforcementResultResponseDefendantAccount.builder().parameterName("daysindefault").response("14").build(),
+            EnforcementResultResponseDefendantAccount.builder().parameterName("enforcer").response("55").build(),
+            EnforcementResultResponseDefendantAccount.builder().parameterName("earliestreleasedate")
+                .response("2026-10-01T00:00:00").build()
+        );
+
+        AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
+            .resultId(EnforcementResultIdCommonStrict.ABDC)
+            .enforcementResultResponses(responses)
+            .paymentTerms((EnforcementPaymentTermsCommonStrict) null)
+            .build();
+
+        AddEnforcementResponseDefendantAccount response = service.addEnforcement(
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            BUSINESS_UNIT_USER_ID,
+            IF_MATCH,
+            request
+        );
+
+        String responsesJson = objectMapper.writeValueAsString(resultResponsesMap(
+            "daysindefault", "14",
+            "enforcer", "55",
+            "earliestreleasedate", "2026-10-01T00:00:00"
+        ));
+
+        verify(enforcementRepositoryService).addDefendantAccountEnforcement(
+            RESULT_ID_AS_STRING,
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            PROSECUTOR_CASE_REFERENCE,
+            "ACCOUNT_ENQUIRY",
+            14,
+            BUSINESS_UNIT_USER_ID,
+            USER_NAME,
+            null,
+            55L,
+            responsesJson,
+            LocalDateTime.of(2026, 10, 1, 0, 0, 0),
+            VersionUtils.extractBigInteger(IF_MATCH).longValue()
+        );
+
+        assertCommonResponse(response);
+    }
+
+    @Test
     void testAddEnforcement_whenOnlyGivenReleaseDate_createsEnforcement() throws JacksonException {
         UserState userState = mock(UserState.class);
         when(userState.getUserName()).thenReturn(USER_NAME);

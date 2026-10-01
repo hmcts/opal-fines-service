@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -107,17 +106,12 @@ public class OpalDefendantAccountEnforcementService
             && request.getEnforcementResultResponses() != null ? request.getEnforcementResultResponses() : List.of();
 
         for (EnforcementResultResponseDefendantAccount result : enforcementResultResponses) {
-            if (Objects.equals(result.getParameterName(), "reason")) {
-                reason = result.getResponse();
-            }
-            if (Objects.equals(result.getParameterName(), "jail_days")) {
-                jailDays = Integer.valueOf(result.getResponse());
-            }
-            if (Objects.equals(result.getParameterName(), "enforcer_id")) {
-                enforcerId = Long.valueOf(result.getResponse());
-            }
-            if (Objects.equals(result.getParameterName(), "earliest_release_date")) {
-                earliestReleaseDate = LocalDateTime.parse(result.getResponse());
+            switch (result.getParameterName()) {
+                case "reason" -> reason = result.getResponse();
+                case "jail_days", "daysindefault" -> jailDays = Integer.valueOf(result.getResponse());
+                case "enforcer_id", "enforcer" -> enforcerId = Long.valueOf(result.getResponse());
+                case "earliest_release_date", "earliestreleasedate" ->
+                    earliestReleaseDate = LocalDateTime.parse(result.getResponse());
             }
 
             if (Objects.equals(result.getParameterName(), "courtcode")) {
