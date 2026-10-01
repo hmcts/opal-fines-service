@@ -276,8 +276,6 @@ class OpalDefendantAccountEnforcementServiceTest {
         mockAuthorisedUser();
         DefendantAccountEntity defendant = mock(DefendantAccountEntity.class);
         when(defendant.getProsecutorCaseReference()).thenReturn(PROSECUTOR_CASE_REFERENCE);
-        when(defendant.getLastHearingCourt()).thenReturn(CourtEntity.builder().courtId(321L).build());
-        when(defendant.getLastHearingDate()).thenReturn(LocalDate.of(2026, 4, 1));
         when(defendantAccountRepositoryService.findById(DEFENDANT_ACCOUNT_ID)).thenReturn(defendant);
         when(courtRepository.findByCourtCodeAndBusinessUnitId((short) 123, BUSINESS_UNIT_ID))
             .thenReturn(Optional.of(CourtEntity.builder().courtId(654L).build()));
@@ -330,8 +328,8 @@ class OpalDefendantAccountEnforcementServiceTest {
             55L,
             responsesJson,
             LocalDateTime.of(2026, 5, 1, 0, 0, 0),
-            321L,
-            LocalDateTime.of(2026, 4, 1, 0, 0, 0),
+            654L,
+            LocalDateTime.of(2026, 6, 1, 0, 0, 0),
             654L,
             LocalDateTime.of(2026, 6, 1, 0, 0, 0),
             VersionUtils.extractBigInteger(IF_MATCH).longValue()
