@@ -7,8 +7,8 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
-import jakarta.jms.JMSContext;
 import jakarta.jms.JMSConsumer;
+import jakarta.jms.JMSContext;
 import jakarta.jms.Message;
 import jakarta.jms.Queue;
 import jakarta.jms.QueueBrowser;
@@ -25,8 +25,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.config.ServiceBusConnectionStringParser;
-import uk.gov.hmcts.opal.config.ServiceBusConnectionStringParser.ConnectionDetails;
+import uk.gov.hmcts.opal.common.config.ServiceBusConnectionStringParser;
+import uk.gov.hmcts.opal.common.config.ServiceBusConnectionStringParser.ConnectionDetails;
 import uk.gov.hmcts.opal.entity.InterfaceJobStatus;
 import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -88,7 +88,7 @@ class InterfaceJobRealQueueIntegrationTest extends AbstractIntegrationTest {
 
         String serviceBusConnectionString = optionalEnv("SERVICEBUS_CONNECTION_STRING", DEFAULT_CONNECTION_STRING);
         String protocol = optionalEnv("SERVICEBUS_PROTOCOL", "amqp");
-        ConnectionDetails details = new ServiceBusConnectionStringParser().parse(serviceBusConnectionString);
+        ConnectionDetails details = new ServiceBusConnectionStringParser(null).parse(serviceBusConnectionString);
 
         String remoteUri = "%s://%s".formatted(protocol, details.fullyQualifiedNamespace());
         connectionFactory = new JmsConnectionFactory(remoteUri);

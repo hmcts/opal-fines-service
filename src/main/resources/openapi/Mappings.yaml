@@ -63,12 +63,13 @@ components:
     mappingType:
       in: path
       name: type
-      description: Supported mapping type. Currently only `defendant-account-status`.
+      description: Supported mapping type.
       required: true
       schema:
         type: string
         enum:
           - defendant-account-status
+          - file-type
   schemas:
     mappingItem:
       title: Mapping Item
@@ -84,3 +85,6 @@ components:
         display_name:
           type: string
           description: The display name for the mapping entry.
+        mime_type:
+          type: string
+          description: The MIME type for the mapping entry.

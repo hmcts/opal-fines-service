@@ -10,6 +10,7 @@ import uk.gov.hmcts.opal.entity.MappingValue;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
 import uk.gov.hmcts.opal.exception.UnsupportedMappingTypeException;
 import uk.gov.hmcts.opal.generated.model.MappingItemMappings;
+import uk.gov.hmcts.opal.service.report.FileType;
 
 @Service
 @Qualifier("mappingsService")
@@ -17,9 +18,11 @@ import uk.gov.hmcts.opal.generated.model.MappingItemMappings;
 public class MappingsService {
 
     private static final String DEFENDANT_ACCOUNT_STATUS_TYPE = "defendant-account-status";
+    private static final String FILE_TYPE = "file-type";
 
     private static final Map<String, EnumMappingSource<?>> SUPPORTED_MAPPINGS = Map.of(
-        DEFENDANT_ACCOUNT_STATUS_TYPE, new EnumMappingSource<>(DefendantAccountStatus.class)
+        DEFENDANT_ACCOUNT_STATUS_TYPE, new EnumMappingSource<>(DefendantAccountStatus.class),
+        FILE_TYPE, new EnumMappingSource<>(FileType.class)
     );
 
     private static final List<String> SUPPORTED_MAPPING_TYPES = SUPPORTED_MAPPINGS.keySet()
@@ -46,11 +49,20 @@ public class MappingsService {
 
         private List<MappingItemMappings> getValues() {
             return Arrays.stream(enumClass.getEnumConstants())
-                .map(value -> MappingItemMappings.builder()
-                    .code(value.getCode())
-                    .displayName(value.getDisplayName())
-                    .build())
+                .map(this::toMappingItemMappings)
                 .toList();
+        }
+
+        private MappingItemMappings toMappingItemMappings(T value) {
+            MappingItemMappings mapping = MappingItemMappings.builder()
+                .code(value.getCode())
+                .displayName(value.getDisplayName())
+                .build();
+
+            if (value instanceof FileType fileType) {
+                mapping.mimeType(fileType.getMimeType());
+            }
+            return mapping;
         }
     }
 }

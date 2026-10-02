@@ -3,8 +3,6 @@ package uk.gov.hmcts.opal.config;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
 import jakarta.jms.JMSContext;
 import jakarta.jms.Message;
 import jakarta.jms.Queue;
@@ -17,7 +15,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.gov.hmcts.opal.config.ServiceBusConnectionStringParser.ConnectionDetails;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import uk.gov.hmcts.opal.common.config.ServiceBusConnectionStringParser;
+import uk.gov.hmcts.opal.common.config.ServiceBusConnectionStringParser.ConnectionDetails;
 import uk.gov.hmcts.opal.service.messaging.ReportQueueMessage;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -53,7 +54,7 @@ class ReportQueueConnectivityIntegrationTest {
         String protocol = optionalEnv("SERVICEBUS_PROTOCOL", "amqp");
 
         ConnectionDetails details =
-            new ServiceBusConnectionStringParser().parse(connectionString);
+            new ServiceBusConnectionStringParser(null).parse(connectionString);
 
         String remoteUri = "%s://%s".formatted(protocol, details.fullyQualifiedNamespace());
         connectionFactory = new JmsConnectionFactory(remoteUri);
@@ -64,7 +65,7 @@ class ReportQueueConnectivityIntegrationTest {
     @Test
     @JiraStory("PO-2257")
     @JiraEpic("PO-2627")
-    void sendsReportMessageToQueue() throws Exception {
+    void sendsReportMessageToQueue() {
 
         BlobServiceClient blobService = new BlobServiceClientBuilder()
             .connectionString("UseDevelopmentStorage=true")
