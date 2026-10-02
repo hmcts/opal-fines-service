@@ -20,7 +20,7 @@ import uk.gov.hmcts.opal.entity.InterfaceJobEntity;
 
 @Repository
 public interface InterfaceJobRepository extends JpaRepository<InterfaceJobEntity, Long>,
-    JpaSpecificationExecutor<InterfaceJobEntity> {
+    JpaSpecificationExecutor<InterfaceJobEntity>, InterfaceJobProcRepository {
 
     @Override
     @EntityGraph(attributePaths = {"businessUnit", "interfaceFiles"})
@@ -31,11 +31,11 @@ public interface InterfaceJobRepository extends JpaRepository<InterfaceJobEntity
     @EntityGraph(attributePaths = {"businessUnit", "interfaceFiles"})
     List<InterfaceJobEntity> findAllByInterfaceJobIdIn(List<Long> interfaceJobIds);
 
-    @Procedure(name = JPA_PROC_NAME)
-    Long processPaymentsInJob(@Param(INTERFACE_JOB_ID) Long interfaceJobId,
-                              @Param(BUSINESS_UNIT_ID) Short businessUnitId,
-                              @Param(POSTED_BY) String postedBy,
-                              @Param(POSTED_BY_NAME) String postedByName,
-                              @Param(RECORDS_JSON) String recordsJson);
+//    @Procedure(name = JPA_PROC_NAME)
+//    Long processPaymentsInJob(@Param(INTERFACE_JOB_ID) Long interfaceJobId,
+//                              @Param(BUSINESS_UNIT_ID) Short businessUnitId,
+//                              @Param(POSTED_BY) String postedBy,
+//                              @Param(POSTED_BY_NAME) String postedByName,
+//                              @Param(RECORDS_JSON) String recordsJson);
 
 }
