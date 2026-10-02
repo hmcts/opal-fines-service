@@ -48,6 +48,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountConsolidatedAccountsResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse.EnforcementAction;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountRequest;
@@ -61,8 +62,10 @@ import uk.gov.hmcts.opal.dto.legacy.ResultResponsesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LjaReference;
+import uk.gov.hmcts.opal.dto.legacy.common.ResultReference;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
@@ -99,6 +102,7 @@ import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountHistoryLegacyResponseMapp
 import uk.gov.hmcts.opal.mapper.legacy.LegacyConsolidatedAccountMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
+import uk.gov.hmcts.opal.repository.ResultRepository;
 import uk.gov.hmcts.opal.repository.jpa.SpecificationUtils;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.opal.CourtService;
@@ -133,6 +137,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     private final LocalJusticeAreaService ljaService;
     private final HistoryItemOrderingService historyItemOrderingService;
     private final LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
+
+    private final ResultRepository resultRepository;
 
     /* ---- Mappers ---- */
     private final DefendantAccountHistoryLegacyResponseMapper legacyDefendantAccountHistoryResponseMapper;
@@ -973,7 +979,9 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             LegacyGetDefendantAccountEnforcementStatusResponse enforcementStatus = response.responseEntity;
             populateCourtCode(enforcementStatus);
             populateLjaCode(enforcementStatus);
-            return toEnforcementStatusResponse(enforcementStatus);
+            String nextPermittedActions = retrieveEnforcementNextPermittedActions(enforcementStatus);
+
+            return toEnforcementStatusResponse(enforcementStatus, nextPermittedActions);
 
         } catch (RuntimeException e) {
             log.error(":getEnforcementStatus: problem with call to Legacy: {}", e.getClass().getName());
@@ -1004,6 +1012,20 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
     private String toWelshSpeaking(String welshSpeaking) {
         return "true".equalsIgnoreCase(welshSpeaking) || "Y".equalsIgnoreCase(welshSpeaking) ? "Y" : "N";
+    }
+
+    private String retrieveEnforcementNextPermittedActions(LegacyGetDefendantAccountEnforcementStatusResponse status) {
+        return getEnforcementActionResultId(status)
+            .flatMap(resultRepository::findById)
+            .map(ResultEntity::getEnfNextPermittedActions)
+            .orElse(null);
+    }
+
+    private Optional<String> getEnforcementActionResultId(LegacyGetDefendantAccountEnforcementStatusResponse status) {
+        return Optional.ofNullable(status)
+            .map(LegacyGetDefendantAccountEnforcementStatusResponse::getLastEnforcementAction)
+            .map(EnforcementAction::getResultReference)
+            .map(ResultReference::getResultId);
     }
 
     private static <T> void checkResponseForError(Response<T> response, String method) {
