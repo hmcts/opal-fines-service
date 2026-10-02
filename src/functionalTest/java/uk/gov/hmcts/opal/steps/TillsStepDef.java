@@ -16,6 +16,7 @@ import io.restassured.response.Response;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -40,11 +41,16 @@ public class TillsStepDef extends BaseStepDef {
     private static final String INTERFACE_JOBS_PATH = "/interface-jobs";
     private static final String PROCESS_INTERFACE_JOBS_PATH = "/interface-jobs/process";
     private static final String INTERFACE_JOBS_SUMMARY_PATH = "/interface-jobs/summary";
+    private static final String REPORT_INSTANCES_PATH = "/report-instances";
     private static final String TESTING_SUPPORT_INTERFACE_JOBS_PATH = "/testing-support/interface-jobs";
     // TODO(PO-3630): confirm the manual-till cleanup path specified by the TDIA before enabling AC2.
     private static final String TESTING_SUPPORT_TILLS_PATH = "/testing-support/tills/";
+    private static final String TESTING_SUPPORT_REPORT_INSTANCES_PATH = "/testing-support/report-instances";
     private static final short AUTO_PAYMENT_BUSINESS_UNIT_ID = 77;
     private static final String AUTO_PAYMENT_INTERFACE_NAME = "PAYMENTS_IN";
+    private static final String CASH_TILL_REPORT_ID = "cash_till";
+    private static final String PRE_ALLOCATED_REPORT_NAME = "Cash till report - Pre-allocated (%s)";
+    private static final long NON_EXISTENT_REPORT_INSTANCE_ID = 999999999999L;
     private static final Duration TILL_PROCESSING_TIMEOUT = Duration.ofMinutes(2);
     private static final Duration TILL_PROCESSING_POLL_INTERVAL = Duration.ofSeconds(2);
     private static final List<String> DOCUMENTED_TILL_FIELDS = List.of(
@@ -59,6 +65,10 @@ public class TillsStepDef extends BaseStepDef {
 
     private Long createdInterfaceJobId;
     private String createdAutoPaymentFileName;
+    private Long createdReportInstanceId;
+    private final List<Long> createdInterfaceJobIds = new ArrayList<>();
+    private final List<Long> createdReportInstanceIds = new ArrayList<>();
+    private Long unrelatedReportInstanceId;
     private Response generatedTillResponse;
     private Map<String, Object> generatedTill;
     private Set<Long> existingTillIds = Set.of();
@@ -255,6 +265,7 @@ public class TillsStepDef extends BaseStepDef {
         assertEquals(200, createResponse.statusCode(), "Creating the auto-payment interface job must succeed");
         createdInterfaceJobId = createResponse.jsonPath().getLong("interface_jobs[0].interface_job_id");
         assertNotNull(createdInterfaceJobId, "Creating the interface job must return its ID");
+        createdInterfaceJobIds.add(createdInterfaceJobId);
 
         Response processResponse = authorisedJsonRequest()
             .body(new JSONObject().put("interface_jobs", new JSONArray().put(new JSONObject()
@@ -294,6 +305,11 @@ public class TillsStepDef extends BaseStepDef {
                     .findFirst()
                     .orElse(null);
                 if (generatedTill != null) {
+                    createdReportInstanceId = findGeneratedCashTillReportInstanceId();
+                    if (createdReportInstanceId != null
+                        && !createdReportInstanceIds.contains(createdReportInstanceId)) {
+                        createdReportInstanceIds.add(createdReportInstanceId);
+                    }
                     return;
                 }
             }
@@ -361,26 +377,156 @@ public class TillsStepDef extends BaseStepDef {
     }
 
     /**
-     * Removes the scenario's job and its cascade-related payment and till data through the
-     * deployed test-support API. Cleanup must not hide a failure from the scenario itself.
+     * Confirms the generated Cash Till report's stored CSV content can be retrieved before deletion.
+     */
+    @Then("the generated Cash Till report instance content is available")
+    public void generatedCashTillReportInstanceContentIsAvailable() {
+        Response response = getGeneratedCashTillReportInstanceContent();
+
+        assertEquals(200, response.statusCode(), "Expected generated Cash Till report content to be available");
+    }
+
+    /**
+     * Deletes the Cash Till report instance generated for this scenario through testing support.
+     */
+    @When("I delete the generated Cash Till report instance using testing support")
+    public void deleteGeneratedCashTillReportInstanceUsingTestingSupport() {
+        Response response = authorisedJsonRequest()
+            .queryParam("ids", createdReportInstanceIdOrFail())
+            .when()
+            .delete(getTestUrl() + TESTING_SUPPORT_REPORT_INSTANCES_PATH);
+
+        assertEquals(200, response.statusCode(), "Expected Cash Till report instance deletion to succeed");
+    }
+
+    /**
+     * Deletes both scenario-generated report instances, repeating one ID and including an absent ID.
+     */
+    @When("I delete both generated Cash Till report instances using testing support with repeated and absent IDs")
+    public void deleteBothGeneratedCashTillReportInstancesWithRepeatedAndAbsentIds() {
+        Response response = authorisedJsonRequest()
+            .queryParam("ids", unrelatedReportInstanceIdOrFail(), createdReportInstanceIdOrFail(),
+                createdReportInstanceIdOrFail(), NON_EXISTENT_REPORT_INSTANCE_ID)
+            .when()
+            .delete(getTestUrl() + TESTING_SUPPORT_REPORT_INSTANCES_PATH);
+
+        assertEquals(200, response.statusCode(), "Expected multi-ID Cash Till report instance deletion to succeed");
+    }
+
+    /**
+     * Confirms the generated Cash Till report instance cannot be retrieved after deletion.
+     */
+    @Then("the generated Cash Till report instance is no longer available")
+    public void generatedCashTillReportInstanceIsNoLongerAvailable() {
+        Response response = authorisedJsonRequest()
+            .when()
+            .get(getTestUrl() + REPORT_INSTANCES_PATH + "/" + createdReportInstanceIdOrFail());
+
+        assertEquals(404, response.statusCode(), "Expected deleted Cash Till report instance to be unavailable");
+    }
+
+    /**
+     * Confirms the generated Cash Till report's stored content cannot be retrieved after deletion.
+     */
+    @Then("the generated Cash Till report instance content is no longer available")
+    public void generatedCashTillReportInstanceContentIsNoLongerAvailable() {
+        Response response = getGeneratedCashTillReportInstanceContent();
+
+        assertEquals(404, response.statusCode(), "Expected deleted Cash Till report content to be unavailable");
+    }
+
+    /**
+     * Retains the current generated report instance so a later deletion can prove explicit ID scoping.
+     */
+    @Then("I retain the generated Cash Till report instance as unrelated data")
+    public void retainGeneratedCashTillReportInstanceAsUnrelatedData() {
+        unrelatedReportInstanceId = createdReportInstanceIdOrFail();
+    }
+
+    /**
+     * Confirms deletion of another report instance did not affect the retained report or its content.
+     */
+    @Then("the unrelated Cash Till report instance remains available with its content")
+    public void unrelatedCashTillReportInstanceRemainsAvailableWithItsContent() {
+        Response reportResponse = authorisedJsonRequest()
+            .when()
+            .get(getTestUrl() + REPORT_INSTANCES_PATH + "/" + unrelatedReportInstanceIdOrFail());
+        assertEquals(200, reportResponse.statusCode(),
+            "Expected unrelated Cash Till report instance to remain available");
+
+        Response contentResponse = getCashTillReportInstanceContent(unrelatedReportInstanceIdOrFail());
+        assertEquals(200, contentResponse.statusCode(),
+            "Expected unrelated Cash Till report content to remain available");
+    }
+
+    /**
+     * Confirms the retained report and its stored content cannot be retrieved after multi-ID deletion.
+     */
+    @Then("the unrelated Cash Till report instance is no longer available with its content")
+    public void unrelatedCashTillReportInstanceIsNoLongerAvailableWithItsContent() {
+        Response reportResponse = authorisedJsonRequest()
+            .when()
+            .get(getTestUrl() + REPORT_INSTANCES_PATH + "/" + unrelatedReportInstanceIdOrFail());
+        assertEquals(404, reportResponse.statusCode(), "Expected deleted unrelated Cash Till report to be unavailable");
+
+        Response contentResponse = getCashTillReportInstanceContent(unrelatedReportInstanceIdOrFail());
+        assertEquals(404, contentResponse.statusCode(),
+            "Expected deleted unrelated Cash Till report content to be unavailable");
+    }
+
+    /**
+     * Removes the scenario's report instance, stored report content, job, and cascade-related
+     * payment and till data through deployed test-support APIs. Cleanup must not hide a failure
+     * from the scenario itself.
      */
     @After(order = Integer.MAX_VALUE)
     public void cleanUpCreatedAutoPaymentInterfaceJob() {
-        if (createdInterfaceJobId == null) {
-            return;
+        cleanUpCreatedCashTillReportInstance();
+        cleanUpCreatedInterfaceJob();
+    }
+
+    private void cleanUpCreatedCashTillReportInstance() {
+        if (createdReportInstanceIds.isEmpty() && createdReportInstanceId == null) {
+            createdReportInstanceId = findGeneratedCashTillReportInstanceId();
+        }
+        if (createdReportInstanceId != null && !createdReportInstanceIds.contains(createdReportInstanceId)) {
+            createdReportInstanceIds.add(createdReportInstanceId);
         }
 
-        try {
-            Response response = authorisedJsonRequest()
-                .queryParam("ids", createdInterfaceJobId)
-                .when()
-                .delete(getTestUrl() + TESTING_SUPPORT_INTERFACE_JOBS_PATH);
-            if (response.statusCode() != 200 && response.statusCode() != 204) {
-                log.warn("Unable to clean up auto-payment interface job {}: HTTP {}",
-                    createdInterfaceJobId, response.statusCode());
+        for (Long reportInstanceId : createdReportInstanceIds) {
+            try {
+                Response response = authorisedJsonRequest()
+                    .queryParam("ids", reportInstanceId)
+                    .when()
+                    .delete(getTestUrl() + TESTING_SUPPORT_REPORT_INSTANCES_PATH);
+                if (response.statusCode() != 200 && response.statusCode() != 204) {
+                    log.warn("Unable to clean up cash till report instance {}: HTTP {}",
+                        reportInstanceId, response.statusCode());
+                }
+            } catch (RuntimeException e) {
+                log.warn("Unable to clean up cash till report instance {}", reportInstanceId, e);
             }
-        } catch (RuntimeException e) {
-            log.warn("Unable to clean up auto-payment interface job {}", createdInterfaceJobId, e);
+        }
+    }
+
+    private void cleanUpCreatedInterfaceJob() {
+        if (createdInterfaceJobId != null && !createdInterfaceJobIds.contains(createdInterfaceJobId)) {
+            createdInterfaceJobIds.add(createdInterfaceJobId);
+        }
+
+        for (Long interfaceJobId : createdInterfaceJobIds) {
+            try {
+                Response response = authorisedJsonRequest()
+                    .queryParam("ids", interfaceJobId)
+                    .when()
+                    .delete(getTestUrl() + TESTING_SUPPORT_INTERFACE_JOBS_PATH);
+                if (response.statusCode() != 200 && response.statusCode() != 204) {
+                    log.warn("Unable to clean up auto-payment interface job {}: HTTP {}",
+                        interfaceJobId, response.statusCode());
+                }
+            } catch (RuntimeException e) {
+                log.warn("Unable to clean up auto-payment interface job {}", interfaceJobId, e);
+            }
         }
     }
 
@@ -395,6 +541,64 @@ public class TillsStepDef extends BaseStepDef {
         } catch (RuntimeException exception) {
             log.warn("Unable to clean up manually created till {}", createdTillId, exception);
         }
+    }
+
+    private Long findGeneratedCashTillReportInstanceId() {
+        if (generatedTill == null) {
+            return null;
+        }
+
+        Object tillNumber = generatedTill.get("till_number");
+        if (!(tillNumber instanceof Number)) {
+            return null;
+        }
+
+        String expectedReportName = PRE_ALLOCATED_REPORT_NAME.formatted(((Number)tillNumber).longValue());
+        Response response = authorisedJsonRequest()
+            .queryParam("report_id", CASH_TILL_REPORT_ID)
+            .queryParam("business_units", AUTO_PAYMENT_BUSINESS_UNIT_ID)
+            .when()
+            .get(getTestUrl() + REPORT_INSTANCES_PATH);
+
+        if (response.statusCode() != 200) {
+            log.warn("Unable to find cash till report instance for cleanup: HTTP {}", response.statusCode());
+            return null;
+        }
+
+        List<Map<String, Object>> reportInstances = response.jsonPath().getList("$");
+        if (reportInstances == null) {
+            return null;
+        }
+
+        return reportInstances.stream()
+            .filter(reportInstance -> expectedReportName.equals(reportInstance.get("name")))
+            .map(reportInstance -> reportInstance.get("instance_id"))
+            .filter(Number.class::isInstance)
+            .map(Number.class::cast)
+            .map(Number::longValue)
+            .findFirst()
+            .orElse(null);
+    }
+
+    private Response getGeneratedCashTillReportInstanceContent() {
+        return getCashTillReportInstanceContent(createdReportInstanceIdOrFail());
+    }
+
+    private Response getCashTillReportInstanceContent(long reportInstanceId) {
+        return authorisedJsonRequest()
+            .accept("application/csv")
+            .when()
+            .get(getTestUrl() + REPORT_INSTANCES_PATH + "/" + reportInstanceId + "/content");
+    }
+
+    private long createdReportInstanceIdOrFail() {
+        assertNotNull(createdReportInstanceId, "Expected a generated Cash Till report instance id");
+        return createdReportInstanceId;
+    }
+
+    private long unrelatedReportInstanceIdOrFail() {
+        assertNotNull(unrelatedReportInstanceId, "Expected an unrelated Cash Till report instance id");
+        return unrelatedReportInstanceId;
     }
 
     private JSONObject createAutoPaymentInterfaceJobRequest() throws JSONException {

@@ -5,6 +5,11 @@
   ],
   "packageRules": [
     {
+      "description": "Keep the build JDK on Java 21 until a newer Java version is deliberately adopted",
+      "matchDatasources": ["java-version"],
+      "allowedVersions": "/^21(?:[.+-]|$)/"
+    },
+    {
       "description": "Lock the cucumber dependencies to version 7.23.0 for serenity-bdd gradle plugin 4.2.34",
       "matchPackageNames": ["cucumber-core", "cucumber-java", "cucumber-junit", "io.cucumber{/,}**"],
       "rangeStrategy": "pin",
