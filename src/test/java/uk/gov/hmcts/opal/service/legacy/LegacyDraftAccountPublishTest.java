@@ -6,6 +6,7 @@ import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -35,6 +36,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
@@ -94,6 +96,7 @@ class LegacyDraftAccountPublishTest {
                 BusinessUnitEntity.builder()
                     .businessUnitId((short)6)
                     .build())
+            .submittedBy("submitter")
             .timelineData(emptyTimelineData())
             .build();
 
@@ -117,7 +120,15 @@ class LegacyDraftAccountPublishTest {
 
         DraftAccountEntity published = legacyDraftAccountPublish.publishDefendantAccount(publish, buu);
 
-        assertEquals(publish, published);
+        ArgumentCaptor<LegacyCreateDefendantAccountRequest> requestCaptor =
+            ArgumentCaptor.forClass(LegacyCreateDefendantAccountRequest.class);
+        verify(gatewayService).postToGatewayAsync(
+            eq(LegacyDraftAccountPublish.CREATE_DEFENDANT_ACCOUNT),
+            eq(LegacyCreateDefendantAccountResponse.class), requestCaptor.capture(), eq(null));
+        assertAll(
+            () -> assertEquals(publish, published),
+            () -> assertEquals("submitter", requestCaptor.getValue().getBusinessUnitUserId())
+        );
     }
 
     @SuppressWarnings("unchecked")
@@ -374,11 +385,10 @@ class LegacyDraftAccountPublishTest {
                         .businessUnitId((short) 6)
                         .build())
                 .account("{}")
-                .build(),
-            BusinessUnitUser.builder().businessUnitUserId("testUser").build()
-        );
+                .submittedBy("submitter")
+                .build());
 
-        assertEquals("testUser", lcdar.getBusinessUnitUserId());
+        assertEquals("submitter", lcdar.getBusinessUnitUserId());
         assertEquals("{}", lcdar.getDefendantAccount().toString());
     }
 
@@ -392,11 +402,10 @@ class LegacyDraftAccountPublishTest {
                         .businessUnitId((short) 6)
                         .build())
                 .account(null)
-                .build(),
-            BusinessUnitUser.builder().businessUnitUserId("testUser").build()
-        );
+                .submittedBy("submitter")
+                .build());
 
-        assertEquals("testUser", lcdar.getBusinessUnitUserId());
+        assertEquals("submitter", lcdar.getBusinessUnitUserId());
         assertEquals(null, lcdar.getDefendantAccount());
     }
 
@@ -410,11 +419,10 @@ class LegacyDraftAccountPublishTest {
                         .businessUnitId((short) 6)
                         .build())
                 .account("   ")
-                .build(),
-            BusinessUnitUser.builder().businessUnitUserId("testUser").build()
-        );
+                .submittedBy("submitter")
+                .build());
 
-        assertEquals("testUser", lcdar.getBusinessUnitUserId());
+        assertEquals("submitter", lcdar.getBusinessUnitUserId());
         assertEquals(null, lcdar.getDefendantAccount());
     }
 
@@ -424,10 +432,8 @@ class LegacyDraftAccountPublishTest {
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 6).build())
             .account("{invalidJson:}") // malformed JSON
             .build();
-        BusinessUnitUser user = BusinessUnitUser.builder().businessUnitUserId("testUser").build();
-
         assertThrows(JsonSchemaValidationException.class, () -> {
-            LegacyDraftAccountPublish.createDefendantAccountRequest(entity, user);
+            LegacyDraftAccountPublish.createDefendantAccountRequest(entity);
         });
     }
 
@@ -441,11 +447,10 @@ class LegacyDraftAccountPublishTest {
                         .businessUnitId((short) 6)
                         .build())
                 .account("{\"defendantAccountId\":12345,\"accountNumber\":\"77-007\"}")
-                .build(),
-            BusinessUnitUser.builder().businessUnitUserId("testUser").build()
-        );
+                .submittedBy("submitter")
+                .build());
 
-        assertEquals("testUser", lcdar.getBusinessUnitUserId());
+        assertEquals("submitter", lcdar.getBusinessUnitUserId());
         assertEquals(
             new ObjectMapper().createObjectNode()
                 .put("defendantAccountId", 12345)
