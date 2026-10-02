@@ -1,31 +1,3 @@
-INSERT INTO reports (
-    report_id,
-    report_title,
-    report_group,
-    audited_report,
-    report_parameters,
-    supports_multi_bu,
-    is_bespoke_journey,
-    shown_as_worklist,
-    retention_period,
-    permission,
-    supported_file_types,
-    can_manually_create
-) VALUES (
-    'cash_list',
-    'Cash List',
-    'Fines',
-    true,
-    NULL,
-    false,
-    false,
-    false,
-    NULL,
-    NULL,
-    NULL,
-    false
-);
-
 INSERT INTO business_units (
     business_unit_id,
     business_unit_name,

@@ -45,14 +45,13 @@ import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchReferenceNumberDe
 import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.FixedPenaltyTicketDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse;
-import uk.gov.hmcts.opal.generated.model.FixedPenaltyTicketDetailsCommonStrict;
-import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHistoryResponse;
+import uk.gov.hmcts.opal.generated.model.MasterAccountDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.VehicleFixedPenaltyDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.GetPaymentTermsResponseDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.VehicleFixedPenaltyDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyDetailsCommonStrict;
@@ -61,7 +60,6 @@ import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefe
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.ReplacePartyRequestDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.VehicleFixedPenaltyDetailsCommonStrict;
 import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.ReplacePartyRequestMapper;
 import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
@@ -69,9 +67,6 @@ import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
 import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
-import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
-import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
-import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.ImpositionService;
 
 @ExtendWith(MockitoExtension.class)
@@ -552,4 +547,20 @@ class DefendantAccountApiControllerTest {
         verify(defendantAccountService).getAtAGlance(defendantAccountId);
     }
 
+    @Test
+    void given_validRequest_when_getDefendantAccountMaster_then_returnsOkResponseWithEtag() {
+        Long defendantId = 77L;
+        MasterAccountDefendantAccount serviceResponse = MasterAccountDefendantAccount.builder()
+            .defendantAccountId(42L)
+            .build();
+
+        when(defendantAccountService.getMasterDefendantAccount(defendantId)).thenReturn(serviceResponse);
+
+        ResponseEntity<MasterAccountDefendantAccount> response =
+            defendantAccountApiController.getDefendantAccountMaster(defendantId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertSame(serviceResponse, response.getBody());
+        verify(defendantAccountService).getMasterDefendantAccount(defendantId);
+    }
 }

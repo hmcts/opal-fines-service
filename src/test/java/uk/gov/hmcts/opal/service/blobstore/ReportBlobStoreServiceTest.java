@@ -123,4 +123,21 @@ class ReportBlobStoreServiceTest {
         }
     }
 
+    @Nested
+    class DeleteReport {
+
+        private static final String LOCATION = "report-location";
+
+        @Test
+        void whenBlobExists_deletesBlob_happyPath() {
+            when(container.getBlobClient(LOCATION)).thenReturn(blob);
+
+            reportBlobStoreService.deleteReport(LOCATION);
+
+            assertAll(
+                () -> verify(container).getBlobClient(LOCATION),
+                () -> verify(blob).deleteIfExists()
+            );
+        }
+    }
 }

@@ -110,6 +110,8 @@ public class InterfaceJobsDelStepDef extends BaseStepDef {
                    {
                      "file_name": "e2e-delete-interface-job.dat",
                      "source": "NATWEST",
+                     "record_count": 1,
+                     "total_amount": 123.45,
                      "records": "[{\\"account\\":\\"abc123\\"}]",
                      "business_unit_id": %d,
                      "interface_name": "E2E Delete Interface Jobs",

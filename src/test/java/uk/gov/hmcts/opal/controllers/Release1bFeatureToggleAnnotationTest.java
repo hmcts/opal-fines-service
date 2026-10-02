@@ -31,8 +31,7 @@ class Release1bFeatureToggleAnnotationTest {
             MajorCreditorApiController.class,
             MajorCreditorController.class,
             MinorCreditorApiController.class,
-            MinorCreditorController.class,
-            NotesController.class,
+            NotesApiController.class,
             OffenceController.class,
             PrintRequestController.class,
             ProscutorController.class,
@@ -56,14 +55,15 @@ class Release1bFeatureToggleAnnotationTest {
             "DefendantAccountApiController#addPaymentCardRequest",
             "DefendantAccountApiController#getConsolidatedAccounts",
             "DefendantAccountApiController#removeDefendantAccountParty",
+            "DefendantAccountApiController#getEnforcementStatus",
             "DefendantAccountApiController#getDefendantAccountAtAGlance",
             "DefendantAccountApiController#getDefendantAccountFixedPenalty",
             "DefendantAccountApiController#getDefendantAccountHeaderSummary",
             "DefendantAccountApiController#getDefendantAccountParty",
-            "DefendantAccountApiController#getEnforcementStatus",
             "DefendantAccountApiController#getImpositions",
             "DefendantAccountApiController#postDefendantAccountSearch",
             "DefendantAccountApiController#removeEnforcementHold",
+            "NotesApiController#addNote",
             "DefendantAccountApiController#replaceDefendantAccountParty",
             "DefendantAccountApiController#updateDefendantAccount",
             "DefendantAccountApiController#defendantAccountPaymentTerms",
@@ -80,12 +80,7 @@ class Release1bFeatureToggleAnnotationTest {
             "MinorCreditorApiController#getMinorCreditorHistory",
             "MinorCreditorApiController#patchMinorCreditorAccount",
             "MinorCreditorApiController#postMinorCreditorSearch",
-
-            // Minor Creditor controller
-            "MinorCreditorController#getMinorCreditorAccountHeaderSummary",
-
-            // Notes controller
-            "NotesController#addNote",
+            "MinorCreditorApiController#getMinorCreditorAccountHeaderSummary",
 
             // Results API controller
             "ResultsApiController#getResultById"

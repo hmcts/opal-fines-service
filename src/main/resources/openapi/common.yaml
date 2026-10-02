@@ -259,12 +259,13 @@ components:
         record_type:
           type: string
           enum:
-            - Defendant Account
-            - Creditor Account
-            - Suspense Account
-            - Report Instances
+            - defendant_accounts
+            - creditor_accounts
+            - suspense_accounts
+            - report_instances
         record_id:
           type: string
+          maxLength: 30
         note_text:
           type: string
         note_type:
@@ -555,6 +556,19 @@ components:
         - business_unit_id
         - business_unit_code
         - welsh_speaking
+    businessUnitSummaryLite:
+      title: Business Unit Summary Lite
+      type: object
+      additionalProperties: false
+      properties:
+        business_unit_name:
+          type: string
+        business_unit_id:
+          type: integer
+          format: int16
+      required:
+        - business_unit_name
+        - business_unit_id
     languagePreference:
       title: Language Preference
       type: object
@@ -990,6 +1004,31 @@ components:
       required:
         - transactionType
         - transactionTypeDisplayName
+    courtFee:
+      type: object
+      required:
+        - courtFeeId
+        - courtFeeCode
+        - description
+        - amount
+      additionalProperties: false
+      properties:
+        courtFeeId:
+          type: integer
+          format: int64
+          description: DB Mapping - court_fees.court_fee_id
+        courtFeeCode:
+          type: string
+          maxLength: 10
+          description: DB Mapping - court_fees.court_fee_code
+        description:
+          type: string
+          maxLength: 50
+          description: DB Mapping - court_fees.description
+        amount:
+          type: number
+          multipleOf: 0.01
+          description: DB Mapping - court_fees.amount
 
     creditorTransactionStatusReference:
       type: object

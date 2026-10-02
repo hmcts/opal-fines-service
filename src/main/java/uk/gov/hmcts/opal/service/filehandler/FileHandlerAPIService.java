@@ -1,0 +1,107 @@
+package uk.gov.hmcts.opal.service.filehandler;
+
+import feign.FeignException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
+import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserEnum;
+import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.AddInterfaceFileRequestMetadata;
+import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.GetInterfaceFiles200Response;
+import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.InterfaceFileObject;
+import uk.gov.hmcts.opal.service.filehandler.clients.FileHandlerClient;
+
+@Service
+@Slf4j(topic = "opal.FileHandlerAPIService")
+public class FileHandlerAPIService implements FileHandlerInterfaceFiles {
+
+    private final FileHandlerClient client;
+    private final FileHandlerSystemUserContext systemUserContext;
+
+    public FileHandlerAPIService(
+        @Lazy FileHandlerClient client,
+        FileHandlerSystemUserContext systemUserContext
+    ) {
+        this.client = client;
+        this.systemUserContext = systemUserContext;
+    }
+
+    @Override
+    public GetInterfaceFiles200Response getInterfaceFiles(SystemUserEnum systemUser,
+        GetInterfaceFilesParams params
+    ) {
+        try {
+            return systemUserContext.executeAs(
+                systemUser,
+                () -> client.getInterfaceFiles(
+                    params.getSource(),
+                    params.getTarget(),
+                    params.getType(),
+                    params.getDomain(),
+                    params.getStatus(),
+                    params.getFromDate(),
+                    params.getToDate()
+                ).getBody()
+            );
+        } catch (FeignException.NotFound exception) {
+            throw exception;
+        } catch (FeignException exception) {
+            throw new DownstreamServiceUnavailableException(
+                "Unable to retrieve interface file from file-handler service",
+                exception
+            );
+        }
+    }
+
+    @Override
+    public InterfaceFileObject getInterfaceFile(SystemUserEnum systemUser, Long interfaceFileId) {
+        try {
+            return systemUserContext.executeAs(
+                systemUser,
+                () -> client.getInterfaceFile(interfaceFileId).getBody()
+            );
+        } catch (FeignException.NotFound exception) {
+            throw exception;
+        } catch (FeignException exception) {
+            throw new DownstreamServiceUnavailableException(
+                "Unable to retrieve interface file from file-handler-service",
+                exception
+            );
+        }
+    }
+
+    @Override
+    public Resource getInterfaceFileContent(SystemUserEnum systemUser, Long interfaceFileId) {
+        try {
+            return systemUserContext.executeAs(
+                systemUser,
+                () -> client.getInterfaceFileContent(interfaceFileId).getBody()
+            );
+        } catch (FeignException.NotFound exception) {
+            throw exception;
+        } catch (FeignException exception) {
+            throw new DownstreamServiceUnavailableException(
+                "Unable to retrieve interface file content from file-handler service",
+                exception
+            );
+        }
+    }
+
+    @Override
+    public InterfaceFileObject addInterfaceFile(
+        SystemUserEnum systemUser, MultipartFile file, AddInterfaceFileRequestMetadata metadata) {
+        try {
+            return systemUserContext.executeAs(
+                systemUser,
+                () -> client.addInterfaceFile(file, metadata).getBody()
+            );
+        } catch (FeignException exception) {
+            throw new DownstreamServiceUnavailableException(
+                "unable to add interface file",
+                exception
+            );
+        }
+    }
+}

@@ -13,6 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,6 +66,9 @@ public class InterfaceFileEntity {
 
     @Column(name = "record_count")
     private Short recordCount;
+
+    @Column(name = "total_amount", precision = 18, scale = 2)
+    private BigDecimal totalAmount;
 
     @Builder.Default
     @OneToMany(mappedBy = "interfaceFile", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)

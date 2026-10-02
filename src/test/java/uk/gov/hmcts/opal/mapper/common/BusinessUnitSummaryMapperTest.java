@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
-import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
@@ -27,11 +26,11 @@ class BusinessUnitSummaryMapperTest {
             .build();
 
         //Act
-        BusinessUnitSummary mapped = mapper.toBusinessUnitSummary(entity);
+        BusinessUnitSummaryCommon mapped = mapper.toBusinessUnitSummaryCommon(entity);
 
         //Assert
         assertNotNull(mapped);
-        assertEquals("77", mapped.getBusinessUnitId());
+        assertEquals((short) 77, mapped.getBusinessUnitId());
         assertEquals("CBG", mapped.getBusinessUnitCode());
         assertEquals("Camberwell Green", mapped.getBusinessUnitName());
         assertEquals("Y", mapped.getWelshSpeaking());
@@ -49,11 +48,11 @@ class BusinessUnitSummaryMapperTest {
             .build();
 
         //Act
-        BusinessUnitSummary mapped = mapper.toBusinessUnitSummary(entity);
+        BusinessUnitSummaryCommon mapped = mapper.toBusinessUnitSummaryCommon(entity);
 
         //Assert
         assertNotNull(mapped);
-        assertEquals("10", mapped.getBusinessUnitId());
+        assertEquals((short) 10, mapped.getBusinessUnitId());
         assertEquals("DBY", mapped.getBusinessUnitCode());
         assertEquals("Derbyshire", mapped.getBusinessUnitName());
         assertEquals("N", mapped.getWelshSpeaking());

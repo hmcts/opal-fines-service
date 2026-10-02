@@ -28,6 +28,7 @@ public class DefendantAccountHeaderSummaryStepDef extends BaseStepDef {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String BUSINESS_UNIT_ID = "77";
+    private static final String LEGACY_SAFE_COURT_ID = "770000000001";
     private static final String SUBMITTED_BY_NAME = "Laura Clerk";
     private static final String HEADER_SUMMARY_PATH = "/defendant-accounts/%d/header-summary";
     private static final long NON_EXISTENT_ACCOUNT_ID = 90_000_000_000_000L;
@@ -321,6 +322,9 @@ public class DefendantAccountHeaderSummaryStepDef extends BaseStepDef {
         accountData.put("account_status", "Submitted");
         accountData.put("submitted_by", submittedBy);
         accountData.put("submitted_by_name", SUBMITTED_BY_NAME);
+        if (isLegacyMode()) {
+            accountData.put("account_enforcement_court_id", LEGACY_SAFE_COURT_ID);
+        }
         return accountData;
     }
 
@@ -331,6 +335,15 @@ public class DefendantAccountHeaderSummaryStepDef extends BaseStepDef {
     private void actAsDefaultUser() {
         BearerTokenStepDef.setTokenOverride(BearerTokenStepDef.getAccessTokenForUser(BearerTokenStepDef.DEFAULT_USER));
         scenarioContext().setCurrentUser(BearerTokenStepDef.DEFAULT_USER);
+    }
+
+    private boolean isLegacyMode() {
+        Response response = given()
+            .accept("*/*")
+            .when()
+            .get(getTestUrl() + "/testing-support/is-legacy-mode");
+        assertEquals(200, response.statusCode(), "Unexpected legacy-mode status");
+        return Boolean.parseBoolean(response.asString());
     }
 
     private void assertOptionalText(JsonNode field, String fieldName) {
