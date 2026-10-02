@@ -81,13 +81,13 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
 
         log.info("PUT DAP account controls resp:\n{}", res.andReturn().getResponse().getContentAsString());
 
-        res.andExpect(status().isUnprocessableEntity())
+        res.andExpect(status().isUnprocessableContent())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Unprocessable Content"))
             .andExpect(jsonPath("$.status").value(422))
             .andExpect(jsonPath("$.detail").value(
                 "Defendant account update blocked: Account Status Check failed because account_status is CS."))
-            .andExpect(jsonPath("$.retriable").value(false));
+            .andExpect(jsonPath("$.retriable").value(false))
 
         assertEquals(currentVersion, versionFor(defendantAccountId));
     }

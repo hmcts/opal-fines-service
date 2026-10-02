@@ -37,7 +37,7 @@ class DefendantPartyDeleteIntegrationTest extends AbstractOpalDefendantsIntegrat
         Integer currentVersion = versionFor(defendantAccountId);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.setBearerAuth(AUTH_HEADER);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
 

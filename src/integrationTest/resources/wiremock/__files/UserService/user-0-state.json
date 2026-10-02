@@ -475,6 +475,26 @@
               "permission_name": "Search and View Accounts"
             }
           ]
+        },
+        {
+          "business_unit_user_id": "L099JG",
+          "business_unit_id": 99,
+          "permissions": [
+            {
+              "permission_id": 7,
+              "permission_name": "Account Maintenance"
+            }
+          ]
+        },
+        {
+          "business_unit_user_id": "L02470JG",
+          "business_unit_id": 2470,
+          "permissions": [
+            {
+              "permission_id": 16,
+              "permission_name": "Process and Allocate Payments"
+            }
+          ]
         }
       ]
     }
