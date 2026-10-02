@@ -41,15 +41,14 @@ INSERT INTO interface_files (
     interface_job_id,
     file_name,
     created_datetime,
-    records,
     source,
     record_count,
     total_amount)
 VALUES
-    (257501, 257501, 'luton-allocated.dat', '2026-08-27 09:01:00', '[]', 'NATWEST', 10, 1234.56),
-    (257502, 257501, 'luton-created.dat', '2026-08-27 09:02:00', '[]', 'ALLPAY', 11, 2345.67),
-    (257503, 257502, 'cardiff-allocated.dat', '2026-08-27 10:01:00', '[]', 'DWP', 12, 3456.78),
-    (257504, 257503, 'swansea-allocated.dat', '2026-08-27 11:01:00', '[]', 'OTHER', 13, 4567.89);
+    (257501, 257501, 'luton-allocated.dat', '2026-08-27 09:01:00', 'NATWEST', 10, 1234.56),
+    (257502, 257501, 'luton-created.dat', '2026-08-27 09:02:00', 'ALLPAY', 11, 2345.67),
+    (257503, 257502, 'cardiff-allocated.dat', '2026-08-27 10:01:00', 'DWP', 12, 3456.78),
+    (257504, 257503, 'swansea-allocated.dat', '2026-08-27 11:01:00', 'OTHER', 13, 4567.89);
 
 INSERT INTO tills (
     till_id,

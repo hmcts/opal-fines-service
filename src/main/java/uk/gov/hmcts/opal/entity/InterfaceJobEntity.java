@@ -6,6 +6,7 @@ import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureN
 import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.JPA_PROC_NAME;
 import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.POSTED_BY;
 import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.POSTED_BY_NAME;
+import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.RECORDS_JSON;
 import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.TILL_ID;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -51,6 +52,7 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
     @StoredProcedureParameter(mode = ParameterMode.IN, name = BUSINESS_UNIT_ID, type = Short.class),
     @StoredProcedureParameter(mode = ParameterMode.IN, name = POSTED_BY, type = String.class),
     @StoredProcedureParameter(mode = ParameterMode.IN, name = POSTED_BY_NAME, type = String.class),
+    @StoredProcedureParameter(mode = ParameterMode.IN, name = RECORDS_JSON, type = String.class),
     @StoredProcedureParameter(mode = ParameterMode.OUT, name = TILL_ID, type = Long.class)
 })
 public class InterfaceJobEntity {

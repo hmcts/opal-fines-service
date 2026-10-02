@@ -17,9 +17,7 @@ public class BankDetails {
     private String accountNumber;
     @NonNull
     private String sortCode;
-    @NonNull
     private String name;
-    @NonNull
     private String type;
 }
 

@@ -31,13 +31,12 @@ public interface InterfaceJobMapper {
     @Mapping(target = "fileName", source = "request.fileName")
     @Mapping(target = "createdDateTime", source = "request.createdDatetime")
     @Mapping(target = "source", source = "request.source")
-    @Mapping(target = "records", source = "request.records")
     @Mapping(target = "recordCount", source = "request.recordCount")
     @Mapping(target = "totalAmount", source = "request.totalAmount")
     @Mapping(target = "overrideInhibits", ignore = true)
     @Mapping(target = "tillEntities", ignore = true)
     @Mapping(target = "transformedJsonId", ignore = true)
-    @Mapping(target = "sourceJsonId", ignore = true)
+    @Mapping(target = "sourceJsonId", ignore = true) //TODO raise issue that "records" field still exists
     InterfaceFileEntity toFileEntity(InterfaceJobsCreateItem request, InterfaceJobEntity interfaceJob);
 
     @Mapping(target = "interfaceJobId", source = "interfaceJobId")

@@ -60,10 +60,6 @@ public class InterfaceFileEntity {
     @Column(name = "source", columnDefinition = "t_interface_file_source_enum")
     private String source;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "records", columnDefinition = "json")
-    private String records;
-
     @Column(name = "record_count")
     private Short recordCount;
 

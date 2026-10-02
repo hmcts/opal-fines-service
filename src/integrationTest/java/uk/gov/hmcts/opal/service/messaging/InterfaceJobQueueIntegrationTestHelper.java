@@ -69,14 +69,6 @@ class InterfaceJobQueueIntegrationTestHelper {
     @Value("${opal.report.storage.container}")
     private String reportContainerName;
 
-    @Transactional
-    void replaceInterfaceFileRecords(Long interfaceFileId, String recordsJson) {
-        InterfaceFileEntity interfaceFile = interfaceFileRepository.findById(interfaceFileId)
-            .orElseThrow();
-        interfaceFile.setRecords(recordsJson);
-        interfaceFileRepository.saveAndFlush(interfaceFile);
-    }
-
     Connection lockInterfaceJobForUpdate(Long interfaceJobId) throws SQLException {
         Connection connection = dataSource.getConnection();
         connection.setAutoCommit(false);
