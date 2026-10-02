@@ -1,0 +1,37 @@
+Timing is on.
+psql:create_view_v_till_summary_unit_tests_v2.sql:45: NOTICE:  === Cleanup data before tests ===
+psql:create_view_v_till_summary_unit_tests_v2.sql:45: NOTICE:  Cleanup completed
+DO
+Time: 8.157 ms
+psql:create_view_v_till_summary_unit_tests_v2.sql:314: NOTICE:  === Setting up test data for v_till_summary tests ===
+psql:create_view_v_till_summary_unit_tests_v2.sql:314: NOTICE:  Test data setup completed
+DO
+Time: 4.395 ms
+psql:create_view_v_till_summary_unit_tests_v2.sql:342: NOTICE:  === TEST 1: Till linked to file returns expected values and counts only warning and exception messages ===
+psql:create_view_v_till_summary_unit_tests_v2.sql:342: NOTICE:  TEST 1 PASSED
+DO
+Time: 2.050 ms
+psql:create_view_v_till_summary_unit_tests_v2.sql:370: NOTICE:  === TEST 2: Till without interface file is returned with null file name and zero errors ===
+psql:create_view_v_till_summary_unit_tests_v2.sql:370: NOTICE:  TEST 2 PASSED
+DO
+Time: 0.551 ms
+psql:create_view_v_till_summary_unit_tests_v2.sql:398: NOTICE:  === TEST 3: Nullable till values are preserved when a file exists ===
+psql:create_view_v_till_summary_unit_tests_v2.sql:398: NOTICE:  TEST 3 PASSED
+DO
+Time: 0.511 ms
+psql:create_view_v_till_summary_unit_tests_v2.sql:422: NOTICE:  === TEST 4: Failed till is included and Error or Info messages are not counted ===
+psql:create_view_v_till_summary_unit_tests_v2.sql:422: NOTICE:  TEST 4 PASSED
+DO
+Time: 0.477 ms
+psql:create_view_v_till_summary_unit_tests_v2.sql:438: NOTICE:  === TEST 5: Negative test - interface file without a till is excluded ===
+psql:create_view_v_till_summary_unit_tests_v2.sql:438: NOTICE:  TEST 5 PASSED
+DO
+Time: 0.696 ms
+psql:create_view_v_till_summary_unit_tests_v2.sql:458: NOTICE:  === TEST 6: Negative test - unrelated job-level messages do not affect till rows ===
+psql:create_view_v_till_summary_unit_tests_v2.sql:458: NOTICE:  TEST 6 PASSED
+DO
+Time: 0.591 ms
+psql:create_view_v_till_summary_unit_tests_v2.sql:486: NOTICE:  === Cleanup data after tests ===
+psql:create_view_v_till_summary_unit_tests_v2.sql:486: NOTICE:  Cleanup completed
+DO
+Time: 9.158 ms
