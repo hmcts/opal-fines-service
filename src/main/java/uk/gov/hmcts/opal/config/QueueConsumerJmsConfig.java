@@ -47,4 +47,16 @@ public class QueueConsumerJmsConfig {
         return factory;
     }
 
+    @Bean
+    public DefaultJmsListenerContainerFactory interfaceFileListenerContainerFactory(
+        ConnectionFactory reportConsumerConnectionFactory) {
+
+        DefaultJmsListenerContainerFactory factory =
+            new DefaultJmsListenerContainerFactory();
+
+        factory.setConnectionFactory(reportConsumerConnectionFactory);
+        factory.setSessionTransacted(true);
+
+        return factory;
+    }
 }
