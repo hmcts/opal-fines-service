@@ -60,10 +60,6 @@ public class InterfaceFileEntity {
     @Column(name = "source", columnDefinition = "t_interface_file_source_enum")
     private String source;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "records", columnDefinition = "json")
-    private String records;
-
     @Column(name = "record_count")
     private Short recordCount;
 
@@ -77,4 +73,10 @@ public class InterfaceFileEntity {
     @Builder.Default
     @OneToMany(mappedBy = "interfaceFile", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private List<TillEntity> tillEntities = new ArrayList<>();
+
+    @Column
+    private Long transformedJsonId;
+
+    @Column
+    private Long sourceJsonId;
 }

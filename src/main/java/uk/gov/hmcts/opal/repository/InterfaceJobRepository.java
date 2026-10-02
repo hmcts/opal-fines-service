@@ -6,6 +6,7 @@ import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureN
 import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.JPA_PROC_NAME;
 import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.POSTED_BY;
 import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.POSTED_BY_NAME;
+import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.RECORDS_JSON;
 
 import java.util.function.Function;
 import org.springframework.data.jpa.domain.Specification;
@@ -19,7 +20,7 @@ import uk.gov.hmcts.opal.entity.InterfaceJobEntity;
 
 @Repository
 public interface InterfaceJobRepository extends JpaRepository<InterfaceJobEntity, Long>,
-    JpaSpecificationExecutor<InterfaceJobEntity> {
+    JpaSpecificationExecutor<InterfaceJobEntity>, InterfaceJobProcRepository {
 
     @Override
     @EntityGraph(attributePaths = {"businessUnit", "interfaceFiles"})
@@ -30,10 +31,11 @@ public interface InterfaceJobRepository extends JpaRepository<InterfaceJobEntity
     @EntityGraph(attributePaths = {"businessUnit", "interfaceFiles"})
     List<InterfaceJobEntity> findAllByInterfaceJobIdIn(List<Long> interfaceJobIds);
 
-    @Procedure(name = JPA_PROC_NAME)
-    Long processPaymentsInJob(@Param(INTERFACE_JOB_ID) Long interfaceJobId,
-                              @Param(BUSINESS_UNIT_ID) Short businessUnitId,
-                              @Param(POSTED_BY) String postedBy,
-                              @Param(POSTED_BY_NAME) String postedByName);
+//    @Procedure(name = JPA_PROC_NAME)
+//    Long processPaymentsInJob(@Param(INTERFACE_JOB_ID) Long interfaceJobId,
+//                              @Param(BUSINESS_UNIT_ID) Short businessUnitId,
+//                              @Param(POSTED_BY) String postedBy,
+//                              @Param(POSTED_BY_NAME) String postedByName,
+//                              @Param(RECORDS_JSON) String recordsJson);
 
 }
