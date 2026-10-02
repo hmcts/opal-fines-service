@@ -25,20 +25,21 @@ import jakarta.jms.MessageProducer;
 import jakarta.jms.Session;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.qpid.jms.JmsConnectionFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.jms.core.JmsTemplate;
-import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
-import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
-import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.opal.common.config.ServiceBusConnectionStringParser;
 import uk.gov.hmcts.opal.exception.InterfaceJobQueueException;
 import uk.gov.hmcts.opal.service.messaging.InterfaceJobQueuePublisherImpl;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 /**
  * Verifies interface-job delivery and all-or-none broker rollback against the Azure Service Bus emulator.
@@ -69,7 +70,7 @@ class InterfaceJobQueueTransactionIntegrationTest {
             "auto-payments-process-interface-files");
         String protocol = environmentOrDefault("SERVICEBUS_PROTOCOL", "amqp");
         ServiceBusConnectionStringParser.ConnectionDetails details =
-            new ServiceBusConnectionStringParser().parse(connectionString);
+            new ServiceBusConnectionStringParser(null).parse(connectionString);
 
         connectionFactory = new JmsConnectionFactory("%s://%s".formatted(protocol, details.fullyQualifiedNamespace()));
         connectionFactory.setUsername(details.sharedAccessKeyName());

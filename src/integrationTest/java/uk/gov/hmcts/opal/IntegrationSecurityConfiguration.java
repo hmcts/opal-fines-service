@@ -1,5 +1,9 @@
 package uk.gov.hmcts.opal;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -9,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 
 @TestConfiguration
 @Profile("integration")
@@ -29,6 +34,15 @@ public class IntegrationSecurityConfiguration {
                 .authenticationEntryPoint((request, response, authException) -> writeForbidden(response))
                 .accessDeniedHandler((request, response, accessDeniedException) -> writeForbidden(response)))
             .build();
+    }
+
+    @Bean
+    //Inject dummy bean to prevent errors with SystemUserAuthenticationService
+    public OpalJwtAuthenticationProvider opalJwtAuthenticationProvider() {
+        OpalJwtAuthenticationProvider provider = mock(OpalJwtAuthenticationProvider.class);
+        doThrow(UnsupportedOperationException.class).when(provider).authenticate(any());
+        doThrow(UnsupportedOperationException.class).when(provider).supports(any());
+        return provider;
     }
 
     private static void writeForbidden(HttpServletResponse response) throws IOException {
