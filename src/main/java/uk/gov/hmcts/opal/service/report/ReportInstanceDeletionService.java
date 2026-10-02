@@ -34,7 +34,7 @@ public class ReportInstanceDeletionService {
         log.warn("DESTRUCTIVE OPERATION: Deleting report instances with ids: {}", distinctReportInstanceIds);
         reportInstances.stream()
             .map(ReportInstanceEntity::getLocation)
-            .filter(location -> location != null && !location.isBlank())
+            .filter(Objects::nonNull)
             .distinct()
             .forEach(reportBlobStore::deleteReport);
 

@@ -11,10 +11,14 @@ import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.REA
 
 import jakarta.jms.JMSException;
 import jakarta.jms.TextMessage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -45,6 +49,7 @@ class CashListReportServiceIntegrationTest extends AbstractIntegrationTest {
 
     private static final long REPORT_INSTANCE_ID = 99000000343000L;
     private static final long TILL_ID = 99000000343100L;
+    private static final UUID CASH_LIST_JSON_LOCATION = UUID.fromString("00000000-0000-0000-0000-000000000004");
 
     private final ReportQueueConsumerService reportQueueConsumerService;
 
@@ -77,21 +82,21 @@ class CashListReportServiceIntegrationTest extends AbstractIntegrationTest {
         @JiraStory("PO-3435")
         @JiraEpic("PO-2116")
         @JiraTestKey("PO-7808")
-        void onMessage_generatesCashListReportData() throws JMSException {
-            when(blobStore.storeReport(any(String.class))).thenReturn("cash-list-json");
+        void onMessage_generatesCashListReportData() throws JMSException, IOException {
+            when(blobStore.storeReport(any(InputStream.class))).thenReturn(CASH_LIST_JSON_LOCATION);
 
             reportQueueListener.onMessage(textMessage("{\"instanceId\":" + REPORT_INSTANCE_ID + "}"));
 
             ReportInstanceEntity saved = reportInstanceRepository.findById(REPORT_INSTANCE_ID).orElseThrow();
             assertThat(saved.getGenerationStatus()).isEqualTo(READY);
-            assertThat(saved.getLocation()).isEqualTo("cash-list-json");
+            assertThat(saved.getLocation()).isEqualTo(CASH_LIST_JSON_LOCATION);
             assertThat(saved.getNoOfRecords()).isEqualTo((short) 2);
             assertThat(saved.getCreatedTimestamp()).isEqualTo(LocalDateTime.of(2026, 5, 27, 10, 15, 30));
             assertThat(saved.getErrors()).isNull();
 
-            ArgumentCaptor<String> jsonCaptor = ArgumentCaptor.forClass(String.class);
+            ArgumentCaptor<InputStream> jsonCaptor = ArgumentCaptor.forClass(InputStream.class);
             verify(blobStore).storeReport(jsonCaptor.capture());
-            String reportJson = jsonCaptor.getValue();
+            String reportJson = new String(jsonCaptor.getValue().readAllBytes(), StandardCharsets.UTF_8);
             assertThat(reportJson).contains("\"tillId\":" + TILL_ID);
             assertThat(reportJson).contains("\"entry\":1");
             assertThat(reportJson).contains("\"type\":\"FA\"");

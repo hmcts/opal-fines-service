@@ -17,6 +17,7 @@ import jakarta.persistence.Table;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -95,5 +96,13 @@ public class ReportInstanceEntity {
 
     public String getReportId() {
         return report.getReportId();
+    }
+
+    public void setLocation(UUID uuid) {
+        location = uuid == null ? null : uuid.toString();
+    }
+
+    public UUID getLocation() {
+        return location == null ? null : UUID.fromString(location);
     }
 }
