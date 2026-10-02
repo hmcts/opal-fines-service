@@ -42,7 +42,7 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
 
         CompletableFuture<Response<LegacyCreateDefendantAccountResponse>> future = gatewayService.postToGatewayAsync(
             CREATE_DEFENDANT_ACCOUNT, LegacyCreateDefendantAccountResponse.class,
-            createDefendantAccountRequest(publishEntity, unitUser), null);
+            createDefendantAccountRequest(publishEntity), null);
 
         publishEntity = draftAccountTransactional
             .updateStatus(publishEntity, DraftAccountStatus.LEGACY_PENDING, draftAccountTransactional);
@@ -98,8 +98,7 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
         return publishEntity;
     }
 
-    public static LegacyCreateDefendantAccountRequest createDefendantAccountRequest(DraftAccountEntity entity,
-                                                                                    BusinessUnitUser unitUser) {
+    public static LegacyCreateDefendantAccountRequest createDefendantAccountRequest(DraftAccountEntity entity) {
         String accountJson = entity.getAccount();
         Object account;
         try {
@@ -114,7 +113,7 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
 
         return LegacyCreateDefendantAccountRequest.builder()
             .businessUnitId(entity.getBusinessUnit().getBusinessUnitId())
-            .businessUnitUserId(unitUser.getBusinessUnitUserId())
+            .businessUnitUserId(entity.getSubmittedBy())
             .defendantAccount(account)
             .build();
     }
