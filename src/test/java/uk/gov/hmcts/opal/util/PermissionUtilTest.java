@@ -1,20 +1,39 @@
 package uk.gov.hmcts.opal.util;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.security.access.AccessDeniedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-
-import java.util.Collections;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
+import org.springframework.security.access.AccessDeniedException;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+
 class PermissionUtilTest {
+
+    @Test
+    void findsRequiredBusinessUnitUserInDomain() {
+        BusinessUnitUser user = createBusinessUnitUser(Collections.emptySet());
+        DomainBusinessUnitUsers domainUsers = new DomainBusinessUnitUsers(List.of(user));
+
+        assertSame(user, PermissionUtil.getRequiredBusinessUnitUser(domainUsers, (short) 50));
+    }
+
+    @Test
+    void rejectsBusinessUnitOutsideDomainMembership() {
+        DomainBusinessUnitUsers domainUsers = new DomainBusinessUnitUsers(
+            List.of(createBusinessUnitUser(Collections.emptySet())));
+
+        assertThrows(AccessDeniedException.class,
+            () -> PermissionUtil.getRequiredBusinessUnitUser(domainUsers, (short) 78));
+    }
 
     @Test
     void testViewCreditorBacsPermissionDescriptor() {
