@@ -13,14 +13,18 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
+@ActiveProfiles({"integration", "integration-with-spring-security", "opal"})
 @Slf4j(topic = "opal.DefendantPartyDeleteIntegrationTest")
 class DefendantPartyDeleteIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
+
+    private static final String AUTH_HEADER = "eyJ0eXAiOiJKsomeValue";
 
     @Test
     @DisplayName("OPAL: DELETE Remove DAP - account controls return 422 for blocked account status")
@@ -48,8 +52,8 @@ class DefendantPartyDeleteIntegrationTest extends AbstractOpalDefendantsIntegrat
         // Act
         ResultActions res = mockMvc.perform(
             delete("/defendant-accounts/9077/defendant-account-parties/9077")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
+                .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body)
         );
@@ -57,12 +61,16 @@ class DefendantPartyDeleteIntegrationTest extends AbstractOpalDefendantsIntegrat
         log.info("DELETE DAP account controls response:\n{}", res.andReturn().getResponse().getContentAsString());
 
         // Assert
-        res.andExpect(status().isUnprocessableEntity())
+        res.andExpect(status().isUnprocessableContent())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Unprocessable Content"))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/unprocessable-entity"))
             .andExpect(jsonPath("$.status").value(422))
             .andExpect(jsonPath("$.detail").value(
                 "Defendant account update blocked: Account Status Check failed because account_status is CS."))
+            .andExpect(jsonPath("$.operation_id").exists())
+            .andExpect(jsonPath("$.unprocessableReason")
+                .value("Defendant account update blocked: Account Status Check failed because account_status is CS."))
             .andExpect(jsonPath("$.retriable").value(false));
 
         assertEquals(currentVersion, versionFor(defendantAccountId));
@@ -83,7 +91,7 @@ class DefendantPartyDeleteIntegrationTest extends AbstractOpalDefendantsIntegrat
         Integer currentVersion = versionFor(defendantAccountId);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.setBearerAuth(AUTH_HEADER);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
 
@@ -222,7 +230,7 @@ class DefendantPartyDeleteIntegrationTest extends AbstractOpalDefendantsIntegrat
         Integer currentVersion = versionFor(78L);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.setBearerAuth(AUTH_HEADER);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
 
@@ -259,7 +267,7 @@ class DefendantPartyDeleteIntegrationTest extends AbstractOpalDefendantsIntegrat
         Integer currentVersion = versionFor(2006L);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.setBearerAuth(AUTH_HEADER);
         headers.add("Business-Unit-Id", "99");
         headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
 
@@ -289,7 +297,7 @@ class DefendantPartyDeleteIntegrationTest extends AbstractOpalDefendantsIntegrat
     private ResultActions performDelete(long defendantAccountId, long defendantAccountPartyId, String ifMatch,
                                         String body) throws Exception {
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.setBearerAuth(AUTH_HEADER);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, ifMatch);
 
