@@ -99,6 +99,24 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         return page.getContent();
     }
 
+    @Transactional(readOnly = true)
+    public long countDraftAccounts(
+        Collection<Short> businessUnitIds, Collection<DraftAccountStatus> statuses,
+        Collection<String> submittedBy, Collection<String> notSubmitted,
+        Optional<LocalDate> accountStatusDateFrom, Optional<LocalDate> accountStatusDateTo) {
+
+        return draftAccountRepository.count(
+            specs.findForSummaries(
+                businessUnitIds,
+                statuses,
+                submittedBy,
+                notSubmitted,
+                accountStatusDateFrom,
+                accountStatusDateTo
+            )
+        );
+    }
+
     @Transactional
     public boolean deleteDraftAccount(long draftAccountId, DraftAccountTransactionalProxy proxy) {
         draftAccountRepository.delete(proxy.getDraftAccount(draftAccountId));

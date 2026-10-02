@@ -23,7 +23,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -79,10 +81,15 @@ class DraftAccountControllerTest {
 
         // Act
         ResponseEntity<DraftAccountsResponseDto> response = draftAccountController
-            .getDraftAccountSummaries(Optional.of(List.of(BU_ID)),
-                                      Optional.of(List.of(DraftAccountStatus.PUBLISHING_PENDING)),
-                                      Optional.of(List.of()), Optional.of(List.of()),
-                                      Optional.empty(), Optional.empty());
+            .getDraftAccountSummaries(
+                Optional.of(List.of(BU_ID)),
+                Optional.of(List.of(DraftAccountStatus.PUBLISHING_PENDING)),
+                Optional.of(List.of()),
+                Optional.of(List.of()),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty()
+            );
         DraftAccountsResponseDto dto = response.getBody();
 
         // Assert
@@ -91,6 +98,63 @@ class DraftAccountControllerTest {
         assertEquals(toSummaryDto(entity), dto.getSummaries().get(0));
         verify(draftAccountService, times(1))
             .getDraftAccounts(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void testGetDraftAccounts_countOnly() {
+        // Arrange
+        DraftAccountsResponseDto responseDto = DraftAccountsResponseDto.countOnly(3);
+
+        when(draftAccountService.countDraftAccounts(
+            any(), any(), any(), any(), any(), any()
+        )).thenReturn(responseDto);
+
+        // Act
+        ResponseEntity<DraftAccountsResponseDto> response = draftAccountController
+            .getDraftAccountSummaries(
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of("counts")
+            );
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(3, response.getBody().getCount());
+
+        verify(draftAccountService).countDraftAccounts(
+            any(), any(), any(), any(), any(), any()
+        );
+        verify(draftAccountService, never()).getDraftAccounts(
+            any(), any(), any(), any(), any(), any()
+        );
+    }
+
+    @Test
+    void testGetDraftAccounts_invalidRestriction() {
+        // Act and assert
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> draftAccountController.getDraftAccountSummaries(
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of("invalid")
+            )
+        );
+
+        verify(draftAccountService, never()).countDraftAccounts(
+            any(), any(), any(), any(), any(), any()
+        );
+        verify(draftAccountService, never()).getDraftAccounts(
+            any(), any(), any(), any(), any(), any()
+        );
     }
 
     @Test

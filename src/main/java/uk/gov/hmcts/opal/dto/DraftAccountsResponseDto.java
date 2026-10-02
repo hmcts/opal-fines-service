@@ -18,6 +18,12 @@ public class DraftAccountsResponseDto {
     private Integer count;
     private List<DraftAccountSummaryDto> summaries;
 
+    public static DraftAccountsResponseDto countOnly(int count) {
+        return DraftAccountsResponseDto.builder()
+            .count(count)
+            .build();
+    }
+
     public static class DraftAccountsResponseDtoBuilder {
         public DraftAccountsResponseDto.DraftAccountsResponseDtoBuilder summaries(
             List<DraftAccountSummaryDto> summaries) {
