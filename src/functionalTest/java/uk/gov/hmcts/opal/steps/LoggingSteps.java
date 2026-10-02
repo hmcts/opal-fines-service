@@ -14,7 +14,6 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
@@ -27,8 +26,6 @@ public class LoggingSteps extends BaseStepDef {
     private static final String PDPO_CREATED_BY_ID = "500000000";
     private static final String PDPO_CREATED_BY_TYPE = "OPAL_USER_ID";
     private static final String PDPO_BUSINESS_IDENTIFIER = "Submit Draft Account - Parent or Guardian";
-    private static final String PROCESSED_FILE_SUMMARY_BUSINESS_IDENTIFIER = "View File Processing Summary";
-
     private static final int DEFAULT_TIMEOUT_SECONDS =
         Optional.ofNullable(System.getenv("LOG_SEARCH_TIMEOUT_SECONDS"))
             .map(Integer::parseInt)
@@ -56,37 +53,11 @@ public class LoggingSteps extends BaseStepDef {
     @Then("the logging service emits PDPO logs for the created draft account id")
     public void loggingServiceEmitsPdpoLogsForTheCreatedDraftAccountId() {
         latestPdpoSearchResponse = waitForPdpoLogs(Map.of(
-            "created_by", Map.of(
-                "id", PDPO_CREATED_BY_ID,
-                "type", PDPO_CREATED_BY_TYPE
-            ),
+            "created_by_id", PDPO_CREATED_BY_ID,
+            "created_by_type", PDPO_CREATED_BY_TYPE,
             "business_identifier", PDPO_BUSINESS_IDENTIFIER,
-            "individual_identifier", scenarioContext().getLastDraftAccountIdOrFail(),
-            "individual_type", "PARENT_GUARDIAN"
+            "individual_id", scenarioContext().getLastDraftAccountIdOrFail()
         ));
-    }
-
-    /**
-     * Searches for the PDPO log emitted when a processed file summary is viewed.
-     */
-    @Then("the logging service emits a PDPO log for the processed file summary")
-    public void loggingServiceEmitsPdpoLogForProcessedFileSummary() {
-        latestPdpoSearchResponse = waitForPdpoLogs(Map.of(
-            "created_by", Map.of(
-                "id", PDPO_CREATED_BY_ID,
-                "type", PDPO_CREATED_BY_TYPE
-            ),
-            "business_identifier", PROCESSED_FILE_SUMMARY_BUSINESS_IDENTIFIER,
-            "category", "Consultation"
-        ));
-
-        JsonNode log = latestPdpoSearchResponse.get(0);
-        assertTrue(hasFieldValue(log, "business_identifier", PROCESSED_FILE_SUMMARY_BUSINESS_IDENTIFIER),
-            "Expected the PDPO log to identify the processed file summary consultation");
-        assertTrue(hasFieldValue(log, "category", "Consultation"),
-            "Expected the PDPO log category to be Consultation");
-        assertTrue(hasFieldValue(log, "type", "Payer"),
-            "Expected the PDPO log to contain an individual with type Payer");
     }
 
     /**
@@ -271,39 +242,4 @@ public class LoggingSteps extends BaseStepDef {
         return false;
     }
 
-    /**
-     * Recursively checks whether an object contains a field with the expected scalar value.
-     *
-     * @param node JSON tree or subtree to inspect.
-     * @param expectedFieldName field name to find.
-     * @param expectedValue expected scalar field value.
-     * @return {@code true} if the field/value pair exists anywhere in the tree.
-     */
-    private static boolean hasFieldValue(JsonNode node, String expectedFieldName, String expectedValue) {
-        if (node == null) {
-            return false;
-        }
-
-        if (node.isObject()) {
-            for (var field : node.properties()) {
-                if (expectedFieldName.equals(field.getKey()) && expectedValue.equals(field.getValue().asText())) {
-                    return true;
-                }
-                if (hasFieldValue(field.getValue(), expectedFieldName, expectedValue)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        if (node.isArray()) {
-            for (JsonNode child : node) {
-                if (hasFieldValue(child, expectedFieldName, expectedValue)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
 }

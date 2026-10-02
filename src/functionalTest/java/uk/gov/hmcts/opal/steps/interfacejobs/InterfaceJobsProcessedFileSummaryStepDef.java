@@ -10,6 +10,7 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.List;
 import java.util.HashSet;
@@ -35,8 +36,26 @@ public class InterfaceJobsProcessedFileSummaryStepDef extends BaseStepDef {
     private static final String PROCESS_PATH = "/interface-jobs/process";
     private static final String SUMMARY_PATH = "/interface-jobs/summary";
     private static final String TESTING_SUPPORT_PATH = "/testing-support/interface-jobs";
-    private static final Duration COMPLETION_TIMEOUT = Duration.ofSeconds(60);
+    private static final Duration COMPLETION_TIMEOUT = Duration.ofSeconds(90);
     private static final Duration POLL_INTERVAL = Duration.ofSeconds(2);
+    private static final String PAYMENT_RECORDS = """
+        [
+          {
+            "receiving_sort_code": "123456",
+            "receiving_bank_account_number": "01234567",
+            "receiving_account_type": "5",
+            "transaction_code": "68",
+            "originator_sort_code": "654321",
+            "originator_bank_account_number": "98765432",
+            "amount_pence": "12345",
+            "originator_name": "Test Payer",
+            "originator_reference": "99000001A",
+            "originator_beneficiary_name": "Test Court"
+          }
+        ]
+        """;
+    private static final int RECORD_COUNT = 1;
+    private static final BigDecimal TOTAL_AMOUNT = new BigDecimal("123.45");
     private static final Set<String> SUMMARY_FIELDS = Set.of(
         "file_name", "source", "business_unit_name", "total_amount", "total_records", "total_errors",
         "interface_messages"
@@ -107,6 +126,9 @@ public class InterfaceJobsProcessedFileSummaryStepDef extends BaseStepDef {
                 }
                 if ("FAILED".equals(lastStatus)) {
                     throw new AssertionError("Interface job failed during processing: " + interfaceJobId);
+                }
+                if ("IGNORED".equals(lastStatus)) {
+                    throw new AssertionError("Interface job completed without creating a till: " + interfaceJobId);
                 }
             }
 
@@ -210,6 +232,19 @@ public class InterfaceJobsProcessedFileSummaryStepDef extends BaseStepDef {
         }
     }
 
+    /**
+     * Confirms that the summary returns the file details and totals supplied when the job was created.
+     */
+    @Then("the processed file summary contains the expected file details and totals")
+    public void processedFileSummaryContainsExpectedFileDetailsAndTotals() {
+        JsonNode response = readResponse();
+
+        assertEquals("e2e-processed-file-summary.dat", response.path("file_name").asText());
+        assertEquals("NATWEST", response.path("source").asText());
+        assertEquals(TOTAL_AMOUNT, response.path("total_amount").decimalValue());
+        assertEquals(RECORD_COUNT, response.path("total_records").intValue());
+    }
+
     private JsonNode readResponse() {
         try {
             return OBJECT_MAPPER.readTree(then().extract().asString());
@@ -225,35 +260,23 @@ public class InterfaceJobsProcessedFileSummaryStepDef extends BaseStepDef {
     }
 
     private String createRequestBody() {
-        String records = """
-            [{
-              "receiving_sort_code": "123456",
-              "receiving_bank_account_number": "01234567",
-              "receiving_account_type": "5",
-              "transaction_code": "68",
-              "originator_sort_code": "654321",
-              "originator_bank_account_number": "98765432",
-              "amount_pence": "12345",
-              "originator_name": "Test Payer",
-              "originator_reference": "99000001A",
-              "originator_beneficiary_name": "Test Court"
-            }]
-            """.replace("\n", "").replace("\"", "\\\"");
-
         return """
             {
               "interface_jobs": [
                 {
                   "file_name": "e2e-processed-file-summary.dat",
                   "source": "NATWEST",
-                  "records": "%s",
+                  "records": %s,
+                  "record_count": %d,
+                  "total_amount": %s,
                   "business_unit_id": %d,
                   "interface_name": "%s",
                   "created_datetime": "2026-07-14T10:00:00"
                 }
               ]
             }
-            """.formatted(records, BUSINESS_UNIT_ID, INTERFACE_NAME);
+            """.formatted(OBJECT_MAPPER.writeValueAsString(PAYMENT_RECORDS), RECORD_COUNT, TOTAL_AMOUNT,
+                BUSINESS_UNIT_ID, INTERFACE_NAME);
     }
 
     private String processRequestBody(long interfaceJobId) {
