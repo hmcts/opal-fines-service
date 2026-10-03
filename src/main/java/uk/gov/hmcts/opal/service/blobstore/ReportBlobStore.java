@@ -1,11 +1,14 @@
 package uk.gov.hmcts.opal.service.blobstore;
 
+import java.io.InputStream;
+import java.util.UUID;
+
 public interface ReportBlobStore {
 
-    String storeReport(String jsonReport);
+    UUID storeReport(InputStream jsonReport);
 
-    String getReport(String reportId);
+    byte[] getReport(UUID reportLocation);
 
-    void deleteReport(String reportId);
+    void deleteReport(UUID reportLocation);
 
 }

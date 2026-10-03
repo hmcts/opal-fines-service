@@ -22,6 +22,9 @@ import static uk.gov.hmcts.opal.testdata.ReportInstanceTestData.createDefaultRep
 import static uk.gov.hmcts.opal.testdata.ReportTestData.createDefaultReportEntity;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -66,7 +69,8 @@ import uk.gov.hmcts.opal.service.messaging.ReportQueuePublisher;
 
 @ExtendWith(MockitoExtension.class)
 class GenericReportServiceTest {
-    public static final String LOCATION = "location";
+
+    public static final UUID LOCATION = UUID.fromString("00000000-0000-0000-0000-000000000003");
     private final Map<String, Object> reportParameters = Map.of("foo", "bar");
     private final CreateReportInstanceResponseReports reportInstanceResponse =
         CreateReportInstanceResponseReports.builder().reportInstanceId(123L).build();
@@ -148,7 +152,7 @@ class GenericReportServiceTest {
     }
 
     @Test
-    void generateReportInstanceContent_happyPath() {
+    void generateReportInstanceContent_happyPath() throws IOException {
         when(reportEntity.getReportId()).thenReturn(reportId);
         when(reportInstanceRepository.findById(any())).thenReturn(Optional.of(reportInstance));
         when(mapper.writeValueAsString(any())).thenReturn("{}");
@@ -162,11 +166,13 @@ class GenericReportServiceTest {
         //Act
         genericReportService.generateReportInstanceContent(1L);
         //Assert
-        ArgumentCaptor<String> toSaveInBlobStore = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<InputStream> toSaveInBlobStore = ArgumentCaptor.forClass(InputStream.class);
         verify(reportBlobStore).storeReport(toSaveInBlobStore.capture());
         ArgumentCaptor<ReportInstanceEntity> entities = ArgumentCaptor.forClass(ReportInstanceEntity.class);
         verify(reportInstanceRepository, times(2)).save(entities.capture());
+        String storedReport = new String(toSaveInBlobStore.getValue().readAllBytes(), StandardCharsets.UTF_8);
 
+        assertThat(storedReport).isEqualTo("{}");
         ReportInstanceEntity lastEntity = entities.getAllValues().getLast();
         assertThat(lastEntity.getReport().getReportId()).isEqualTo(reportId);
         assertThat(lastEntity.getGenerationStatus()).isEqualTo(READY);
