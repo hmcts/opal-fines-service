@@ -18,7 +18,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 class InterfaceFileQueueConsumerIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
-    private InterfaceFileQueueConsumerService consumer;
+    private InterfaceFileQueueListener consumer;
 
     @MockitoBean
     private InterfaceFileProcessorService interfaceFileProcessorService;

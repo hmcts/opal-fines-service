@@ -8,6 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.opal.service.InterfaceFileProcessorService;
 
 @Component
 @RequiredArgsConstructor
@@ -18,7 +21,10 @@ import org.springframework.stereotype.Component;
 )
 public class InterfaceFileQueueListener {
 
-    private final InterfaceFileQueueConsumerService consumer;
+    private final ObjectMapper objectMapper;
+
+    // TODO PO-6460 placeholder
+    private final InterfaceFileProcessorService interfaceFileProcessorService;
 
     @JmsListener(
         destination = "${opal.interface-file.service-bus.queue-name}",
@@ -26,11 +32,43 @@ public class InterfaceFileQueueListener {
     )
     public void onMessage(Message message) throws JMSException {
         if (message instanceof TextMessage textMessage) {
-            String payload = textMessage.getText();
-            consumer.consume(payload);
+            consume(textMessage.getText());
         } else {
             throw new IllegalArgumentException(
                 "Message must be of type TextMessage"
+            );
+        }
+    }
+
+    protected void consume(String messagePayload) {
+        InterfaceFileQueueMessage message = parse(messagePayload);
+
+        // TODO PO-6460 placeholder
+        interfaceFileProcessorService.process(message.interfaceFileId());
+
+        log.info(
+            "Interface file queue message received. interfaceFileId={}",
+            message.interfaceFileId()
+        );
+    }
+
+    private InterfaceFileQueueMessage parse(String messagePayload) {
+        if (messagePayload == null || messagePayload.isBlank()) {
+            throw new IllegalArgumentException(
+                "Interface file message payload is blank"
+            );
+        }
+
+        try {
+            return objectMapper.readValue(
+                messagePayload,
+                InterfaceFileQueueMessage.class
+            );
+        } catch (JacksonException ex) {
+            log.error("Interface file queue message parse failed", ex);
+            throw new IllegalArgumentException(
+                "Unable to parse Interface file message payload",
+                ex
             );
         }
     }

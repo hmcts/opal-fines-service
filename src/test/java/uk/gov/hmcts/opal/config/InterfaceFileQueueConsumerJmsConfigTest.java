@@ -4,13 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
+import tools.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.opal.service.InterfaceFileProcessorService;
 import jakarta.jms.ConnectionFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import uk.gov.hmcts.opal.service.messaging.InterfaceFileQueueConsumerService;
 import uk.gov.hmcts.opal.service.messaging.InterfaceFileQueueListener;
 
 @ExtendWith(MockitoExtension.class)
@@ -22,8 +22,14 @@ class InterfaceFileQueueConsumerJmsConfigTest {
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
         .withBean(ServiceBusConnectionStringParser.class,
                   () -> serviceBusConnectionStringParser)
-        .withBean(InterfaceFileQueueConsumerService.class,
-                  () -> mock(InterfaceFileQueueConsumerService.class))
+        .withBean(
+            ObjectMapper.class,
+            () -> mock(ObjectMapper.class)
+        )
+        .withBean(
+            InterfaceFileProcessorService.class,
+            () -> mock(InterfaceFileProcessorService.class)
+        )
         .withUserConfiguration(
             QueueConsumerJmsConfig.class,
             InterfaceFileQueueListener.class
