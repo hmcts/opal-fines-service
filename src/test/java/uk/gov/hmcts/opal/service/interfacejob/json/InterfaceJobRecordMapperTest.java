@@ -5,11 +5,11 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
-import uk.gov.hmcts.opal.service.interfacejob.json.fileHandler.BankDetails;
-import uk.gov.hmcts.opal.service.interfacejob.json.fileHandler.DestinationDetails;
-import uk.gov.hmcts.opal.service.interfacejob.json.fileHandler.InterfaceFileCommonDataExtract;
-import uk.gov.hmcts.opal.service.interfacejob.json.fileHandler.OriginatorDetails;
-import uk.gov.hmcts.opal.service.interfacejob.json.fileHandler.Transaction;
+import uk.gov.hmcts.opal.service.interfacejob.json.filehandler.BankDetails;
+import uk.gov.hmcts.opal.service.interfacejob.json.filehandler.DestinationDetails;
+import uk.gov.hmcts.opal.service.interfacejob.json.filehandler.InterfaceFileCommonDataExtract;
+import uk.gov.hmcts.opal.service.interfacejob.json.filehandler.OriginatorDetails;
+import uk.gov.hmcts.opal.service.interfacejob.json.filehandler.Transaction;
 import uk.gov.hmcts.opal.service.interfacejob.json.records.InterfaceJobRecord;
 
 public class InterfaceJobRecordMapperTest {

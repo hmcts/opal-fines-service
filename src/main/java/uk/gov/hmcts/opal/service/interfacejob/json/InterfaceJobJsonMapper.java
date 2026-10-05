@@ -3,7 +3,7 @@ package uk.gov.hmcts.opal.service.interfacejob.json;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
-import uk.gov.hmcts.opal.service.interfacejob.json.fileHandler.InterfaceFileCommonDataExtract;
+import uk.gov.hmcts.opal.service.interfacejob.json.filehandler.InterfaceFileCommonDataExtract;
 import uk.gov.hmcts.opal.service.interfacejob.json.records.InterfaceJobRecord;
 
 @Component

@@ -10,7 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import tools.jackson.databind.ObjectMapper;
-import uk.gov.hmcts.opal.service.interfacejob.json.fileHandler.InterfaceFileCommonDataExtract;
+import uk.gov.hmcts.opal.service.interfacejob.json.filehandler.InterfaceFileCommonDataExtract;
 import uk.gov.hmcts.opal.service.interfacejob.json.records.InterfaceJobRecord;
 
 @ExtendWith(MockitoExtension.class)

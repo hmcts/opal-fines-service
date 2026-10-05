@@ -2,8 +2,8 @@ package uk.gov.hmcts.opal.service.interfacejob.json;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import uk.gov.hmcts.opal.service.interfacejob.json.fileHandler.InterfaceFileCommonDataExtract;
-import uk.gov.hmcts.opal.service.interfacejob.json.fileHandler.Transaction;
+import uk.gov.hmcts.opal.service.interfacejob.json.filehandler.InterfaceFileCommonDataExtract;
+import uk.gov.hmcts.opal.service.interfacejob.json.filehandler.Transaction;
 import uk.gov.hmcts.opal.service.interfacejob.json.records.InterfaceJobRecord;
 
 @Mapper(componentModel = "spring")

@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.interfacejob.json.fileHandler;
+package uk.gov.hmcts.opal.service.interfacejob.json.filehandler;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
