@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
@@ -32,9 +34,6 @@ import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
 import uk.gov.hmcts.opal.disco.legacy.LegacyTestsBase;
-import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
-import uk.gov.hmcts.opal.generated.model.PartyEmployerDetailsDefendantAccount;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountPartyLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountPartyLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
@@ -52,10 +51,15 @@ import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
+import uk.gov.hmcts.opal.generated.model.PartyEmployerDetailsDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountPartyLegacyResponseMapper;
 import uk.gov.hmcts.opal.mapper.legacy.RemoveDefendantAccountPartyLegacyResponseMapper;
+import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
@@ -65,6 +69,9 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
     @Mock
     private LegacyGatewayProperties gatewayProperties;
+
+    @Mock
+    private AmendmentRepositoryService amendmentRepositoryService;
 
     private GatewayService gatewayService;
 
@@ -81,6 +88,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         gatewayService = spy(new LegacyGatewayService(gatewayProperties, restClient));
         legacyDefendantAccountPartyService = new LegacyDefendantAccountPartyService(
             gatewayService,
+            amendmentRepositoryService,
             mapper,
             removeDAPLegacyResponseMapper
         );
@@ -1310,6 +1318,27 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             Mockito.nullable(String.class)
         );
 
+        InOrder inOrder = Mockito.inOrder(amendmentRepositoryService, gatewayService);
+        inOrder.verify(amendmentRepositoryService).auditInitialiseStoredProc(
+            77L,
+            AssociatedRecordType.DEFENDANT_ACCOUNTS
+        );
+        inOrder.verify(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountPartyService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            any(LegacyReplaceDefendantAccountPartyRequest.class),
+            Mockito.nullable(String.class)
+        );
+        inOrder.verify(amendmentRepositoryService).auditFinaliseStoredProc(
+            77L,
+            AssociatedRecordType.DEFENDANT_ACCOUNTS,
+            (short) 78,
+            "poster",
+            "Poster Name",
+            null,
+            "ACCOUNT_ENQUIRY"
+        );
+
         LegacyReplaceDefendantAccountPartyRequest sentRequest = requestCaptor.getValue();
         assertThat(result.getVersion()).isEqualTo(extractBigInteger("10"));
         assertEquals(77L, sentRequest.getDefendantAccountId());
@@ -1424,6 +1453,15 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         );
         assertEquals("Legacy failure during replaceDefendantAccountParty", ex.getReason());
         assertEquals(HttpStatus.BAD_GATEWAY, ex.getStatusCode());
+        verify(amendmentRepositoryService, never()).auditFinaliseStoredProc(
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any()
+        );
     }
 
     @Test
