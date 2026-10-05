@@ -17,7 +17,6 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import jakarta.jms.JMSException;
@@ -31,7 +30,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import org.apache.qpid.jms.provider.amqp.message.AmqpJmsTextMessageFacade;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -68,8 +66,6 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     // amount_pence = 0 makes p_int_payments_in succeed without returning a till_id, which drives the IGNORED branch.
     private static final String WIREMOCK_STATE__TRIGGER_IGNORED = "Trigger Ignored";
     private static final String WIREMOCK_STATE__TRIGGER_UNMATCHED_ORIGINATOR = "Trigger Unmatched Originator";
-    // amount_pence = "abc" is intentionally invalid so the stored procedure fails with a non-transient database error
-    private static final String WIREMOCK_STATE__TRIGGER_FAILED = "Trigger Failed";
 
     @Autowired
     protected InterfaceJobRepository interfaceJobRepository;
@@ -150,13 +146,6 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
             .willReturn(aResponse()
                 .withStatus(200)
                 .withBodyFile("interface-files/140000_trigger_unmatched_originator.json")));
-
-        fhWireMockServer.stubFor(get(urlEqualTo(interfaceFileContentUrl))
-            .inScenario(WIREMOCK_INTERFACE_JOB_QUEUE_SCENARIO)
-            .whenScenarioStateIs(WIREMOCK_STATE__TRIGGER_FAILED)
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withBodyFile("interface-files/140000_trigger_failed.json")));
     }
 
     @Autowired
@@ -252,13 +241,13 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @Sql(scripts = {"classpath:db/insertData/insert_into_interface_job_queue_processing.sql",
+        "classpath:db/insertData/insert_duplicate_interface_file.sql"}, executionPhase = BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:db/deleteData/delete_from_interface_job_queue_processing.sql", executionPhase = AFTER_TEST_METHOD)
     @DisplayName("PO-2592 INT.06 - Stored procedure failure marks job failed and stores message")
     @JiraStory("PO-2592") // INT.06
     @JiraEpic("PO-2468")
     void int06StoredProcedureFailurePersistsFailedMessageAndMarksJobFailed() {
-        fhWireMockServer.setScenarioState(WIREMOCK_INTERFACE_JOB_QUEUE_SCENARIO, WIREMOCK_STATE__TRIGGER_FAILED);
-//        helper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_FAILED); // TODO delete
-
         assertThatCode(() -> listener.onMessage(validTextMessage))
             .doesNotThrowAnyException();
 
@@ -271,7 +260,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
             .singleElement()
                 .satisfies(message -> {
                     assertThat(message.getMessageType()).isEqualTo("Error");
-                    assertThat(message.getMessageText()).contains("invalid input syntax for type bigint");
+                    assertThat(message.getMessageText()).contains("Interface job must be linked to exactly one interface file.");
                 });
     }
 
@@ -321,6 +310,9 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @Sql(scripts = {"classpath:db/insertData/insert_into_interface_job_queue_processing.sql",
+        "classpath:db/insertData/insert_duplicate_interface_file.sql"}, executionPhase = BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:db/deleteData/delete_from_interface_job_queue_processing.sql", executionPhase = AFTER_TEST_METHOD)
     @DisplayName("PO-2592 INT.10 - Failure only updates documented fields")
     @JiraStory("PO-2592") // INT.10
     @JiraEpic("PO-2468")
@@ -330,9 +322,6 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
         final String interfaceNameBefore = beforeJob.getInterfaceName();
         final LocalDateTime createdDateTimeBefore = beforeJob.getCreatedDateTime();
         final LocalDateTime startedDateTimeBefore = beforeJob.getStartedDateTime();
-
-        fhWireMockServer.setScenarioState(WIREMOCK_INTERFACE_JOB_QUEUE_SCENARIO, WIREMOCK_STATE__TRIGGER_FAILED);
-//        helper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_FAILED); // TODO delete
 
         assertThatCode(() -> listener.onMessage(validTextMessage))
             .doesNotThrowAnyException();
@@ -356,8 +345,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
                 assertThat(message.getInterfaceJobId()).isEqualTo(INTERFACE_JOB_ID);
                 assertThat(message.getInterfaceFileId()).isEqualTo(99000000401001L);
                 assertThat(message.getMessageType()).isEqualTo("Error");
-                assertThat(message.getMessageText()).contains("invalid input syntax for type bigint");
-                assertThat(message.getMessageText()).doesNotContain("p_int_payments_in");
+                assertThat(message.getMessageText()).contains("Interface job must be linked to exactly one interface file.");
                 assertThat(message.getMessageText()).doesNotContain("org.postgresql");
                 assertThat(message.getRecordIndex()).isNull();
                 assertThat(message.getRecordDetail()).isNull();
@@ -408,23 +396,4 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
             executor.shutdownNow();
         }
     }
-
-
-    // TODO delete all this below
-    // amount_pence = "abc" is intentionally invalid so the stored procedure fails
-    // with a non-transient database error and the FAILED-message path is exercised.
-    private static final String RECORD_TO_TRIGGER_FAILED = """
-                [{
-                    "receiving_sort_code":"123456",
-                    "receiving_bank_account_number":"01234567",
-                    "receiving_account_type":"5",
-                    "transaction_code":"68",
-                    "originator_sort_code":"654321",
-                    "originator_bank_account_number":"98765432",
-                    "amount_pence":"abc",
-                    "originator_name":"Test Payer",
-                    "originator_reference":"99000001A",
-                    "originator_beneficiary_name":"Test Court"
-                }]
-                """;
 }

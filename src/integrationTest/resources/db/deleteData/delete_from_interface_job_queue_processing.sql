@@ -21,7 +21,7 @@ DELETE FROM tills
 WHERE interface_file_id = 99000000401001;
 
 DELETE FROM interface_files
-WHERE interface_file_id = 99000000401001;
+WHERE interface_file_id in (99000000401001, 99000000401002);
 
 DELETE FROM interface_jobs
 WHERE interface_job_id = 99000000401000;
