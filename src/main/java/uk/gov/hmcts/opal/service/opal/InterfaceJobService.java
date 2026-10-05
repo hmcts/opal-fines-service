@@ -184,17 +184,18 @@ public class InterfaceJobService {
     private void validateProcessPermissions(List<InterfaceJobsProcessItem> requestedJobs) {
         List<Short> requestedBusinessUnitIds = requestedJobs.stream()
             .map(InterfaceJobsProcessItem::getBusinessUnitId)
+            .filter(Objects::nonNull)
             .distinct()
             .toList();
         List<Short> permittedBusinessUnitIds = userStateService.getPermittedBusinessUnitIds(
             requestedBusinessUnitIds, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
 
-        requestedBusinessUnitIds.stream()
-            .filter(id -> !permittedBusinessUnitIds.contains(id))
-            .findFirst()
-            .ifPresent(id -> {
-                throw new PermissionNotAllowedException(id, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
-            });
+        for (Short requestedBusinessUnitId : requestedBusinessUnitIds) {
+            if (!permittedBusinessUnitIds.contains(requestedBusinessUnitId)) {
+                throw new PermissionNotAllowedException(
+                    requestedBusinessUnitId, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
+            }
+        }
     }
 
     private void validateProcessStatuses(List<Long> requestedIds, Map<Long, InterfaceJobEntity> jobsById) {

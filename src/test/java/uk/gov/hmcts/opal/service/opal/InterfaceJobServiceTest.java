@@ -311,6 +311,17 @@ class InterfaceJobServiceTest {
     }
 
     @Test
+    void process_rejectsMissingRequestedBusinessUnitWithoutPermissionCheck() {
+        InterfaceJobEntity job = processJob(123L, InterfaceJobStatus.CREATED);
+        when(interfaceJobRepository.findAllByInterfaceJobIdIn(List.of(123L))).thenReturn(List.of(job));
+
+        assertThrows(IllegalArgumentException.class,
+            () -> interfaceJobService.process(processRequest(123L, null, true)));
+
+        verifyNoInteractions(interfaceJobQueuePublisher, userStateService);
+    }
+
+    @Test
     void deleteInterfaceJobs_whenJobsExist_deletesJobs() {
         List<Long> interfaceJobIds = List.of(100L, 101L);
         when(interfaceJobRepository.findAllById(interfaceJobIds))
