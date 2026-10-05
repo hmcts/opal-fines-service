@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
@@ -78,9 +79,10 @@ public class DefendantAccountRepositoryService {
      * business unit id.
      */
     public void validateAccountExistsInBusinessUnit(DefendantAccountEntity account, String buId) {
-        if (account.getBusinessUnit() == null
-            || account.getBusinessUnit().getBusinessUnitId() == null
-            || !String.valueOf(account.getBusinessUnit().getBusinessUnitId()).equals(buId)) {
+        BusinessUnitEntity businessUnit = account.getBusinessUnit();
+        Short businessUnitId = businessUnit == null ? null : businessUnit.getBusinessUnitId();
+
+        if (businessUnitId == null || !String.valueOf(businessUnitId).equals(buId)) {
             throw new EntityNotFoundException("Defendant Account not found in business unit " + buId);
         }
     }
