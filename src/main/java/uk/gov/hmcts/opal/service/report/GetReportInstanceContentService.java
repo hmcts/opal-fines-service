@@ -136,6 +136,7 @@ public class GetReportInstanceContentService {
 
         ReportInterface<T> typedReportTemplate = (ReportInterface<T>) reportTemplate;
         T reportData = readStoredReportData(id, instance, storedReport, typedReportTemplate);
+        typedReportTemplate.validateReportDataForFileType(fileType, reportData);
         return switch (fileType) {
             case CSV -> csvService.convertReportDtoToCSV(reportData);
             default -> typedReportTemplate.convertReportDataToFileType(instance, reportData, fileType);

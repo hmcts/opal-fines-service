@@ -8,9 +8,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
 import static uk.gov.hmcts.opal.controllers.shared.util.ReportInstanceContentTestData.cashListStoredReportBytes;
-import static uk.gov.hmcts.opal.controllers.util.ReportInstanceContentTestData.cashTillStoredReportBytes;
+import static uk.gov.hmcts.opal.controllers.shared.util.ReportInstanceContentTestData.cashTillStoredReportBytes;
 import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectEntityNotFoundWithoutType;
 
 import com.azure.storage.blob.BlobContainerClient;
@@ -57,7 +58,8 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
     void setUp() {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions(CASH_TILL_BUSINESS_UNIT_ID, SEARCH_AND_VIEW_ACCOUNTS);
-        userStateStub.addPermissions(CASH_LIST_BUSINESS_UNIT_ID, SEARCH_AND_VIEW_ACCOUNTS);
+        userStateStub.addPermissions(
+            CASH_LIST_BUSINESS_UNIT_ID, SEARCH_AND_VIEW_ACCOUNTS, PROCESS_AND_ALLOCATE_PAYMENTS);
 
         blobContainerClient = blobServiceClient.getBlobContainerClient(containerName);
         if (!blobContainerClient.exists()) {

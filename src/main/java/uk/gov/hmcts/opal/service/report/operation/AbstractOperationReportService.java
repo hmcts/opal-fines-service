@@ -16,6 +16,14 @@ public abstract class AbstractOperationReportService implements ReportInterface<
     }
 
     @Override
+    public void validateReportDataForFileType(FileType fileType, OperationReportDataInterface reportData) {
+        if (fileType == FileType.CSV && !(reportData instanceof OperationSummaryReport)) {
+            throw new UnsupportedContentTypeException(
+                getReportId().getReportId(), "DETAILED CSV", List.of("SUMMARY CSV"));
+        }
+    }
+
+    @Override
     public byte[] convertReportDataToFileType(ReportInstanceEntity reportInstance,
         OperationReportDataInterface reportData, FileType fileType) {
 
@@ -23,10 +31,8 @@ public abstract class AbstractOperationReportService implements ReportInterface<
             throw new UnsupportedContentTypeException(
                 getReportId().getReportId(), fileType.name(), List.of(FileType.CSV.name()));
         }
-        if (!(reportData instanceof OperationSummaryReport summaryReport)) {
-            throw new UnsupportedContentTypeException(
-                getReportId().getReportId(), "DETAILED CSV", List.of("SUMMARY CSV"));
-        }
+        validateReportDataForFileType(fileType, reportData);
+        OperationSummaryReport summaryReport = (OperationSummaryReport) reportData;
         return reportCSVService.convertReportDtoToCSV(summaryReport);
     }
 }

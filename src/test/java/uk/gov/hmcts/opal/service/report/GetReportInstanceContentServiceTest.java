@@ -193,6 +193,7 @@ class GetReportInstanceContentServiceTest {
                 () -> assertArrayEquals(expected, (byte[]) actual),
                 () -> verify(reportBlobStore).getReport(LOCATION),
                 () -> verify(reportInterfaceImplementation, never()).generateReportData(reportInstance),
+                () -> verify(reportInterfaceImplementation).validateReportDataForFileType(CSV, reportData),
                 () -> verify(csvService).convertReportDtoToCSV(reportData),
                 () -> verify(reportInterfaceImplementation, never())
                     .convertReportDataToFileType(reportInstance, reportData, CSV)
