@@ -36,13 +36,10 @@ public class InterfaceJobJsonMapperTest {
         when(jobRecordMapper.mapToRecords(extract)).thenReturn(records);
         when(objectMapper.writeValueAsString(records)).thenReturn(recordsJson);
 
-
         // Act
         String result = mapper.toRecordsJson(extractJson);
 
         // Assert
         assertThat(result).isEqualTo(recordsJson);
     }
-
-
 }
