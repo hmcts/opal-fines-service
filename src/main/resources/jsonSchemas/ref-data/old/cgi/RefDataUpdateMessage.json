@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Ref Data Update Message",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "dataProduct": {
+      "type": "string",
+      "description": "Identifier for the ref data handler that should process this message"
+    },
+    "payload": {
+      "description": "The ref data payload for the current supported message type",
+      "$ref": "resource:/jsonSchemas/ref-data/LocalJusticeAreaUpdateDto.json"
+    }
+  },
+  "required": ["dataProduct", "payload"],
+  "oneOf": [
+    {
+      "properties": {
+        "dataProduct": {
+          "const": "LOCAL_JUSTICE_AREA"
+        },
+        "payload": {
+          "$ref": "resource:/jsonSchemas/ref-data/LocalJusticeAreaUpdateDto.json"
+        }
+      },
+      "required": ["dataProduct", "payload"],
+      "additionalProperties": false
+    }
+  ]
+}

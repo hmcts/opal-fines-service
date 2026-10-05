@@ -1,0 +1,483 @@
+{
+  "type": "object",
+  "properties": {
+    "header": {
+      "type": "object",
+      "properties": {
+        "messageId": {
+          "type": "string",
+          "examples": [
+            "7ded1e14-16a6-415b-bf33-b8269d0e9bcc"
+          ]
+        },
+        "messageType": {
+          "type": "string",
+          "examples": [
+            "ReferenceData"
+          ]
+        },
+        "dataProduct": {
+          "type": "string",
+          "examples": [
+            "Offence"
+          ]
+        },
+        "operation": {
+          "type": "string",
+          "examples": [
+            "PUBLISH"
+          ]
+        },
+        "sourceSystem": {
+          "type": "string",
+          "examples": [
+            "Semarchy"
+          ]
+        },
+        "createdDateTime": {
+          "type": "string",
+          "examples": [
+            "2026-08-12T09:37:40.547119+00:00"
+          ],
+          "format": "date-time"
+        },
+        "ReleasePackageId": {
+          "type": "integer",
+          "examples": [
+            3
+          ]
+        },
+        "recordCount": {
+          "type": "integer",
+          "examples": [
+            1
+          ]
+        }
+      },
+      "required": [
+        "messageId",
+        "messageType",
+        "dataProduct",
+        "operation",
+        "sourceSystem",
+        "createdDateTime",
+        "ReleasePackageId",
+        "recordCount"
+      ]
+    },
+    "payload": {
+      "type": "object",
+      "properties": {
+        "records": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "CJSCode": {
+                "type": "string",
+                "examples": [
+                  "UB1108"
+                ]
+              },
+              "CJSTitle": {
+                "type": "string",
+                "examples": [
+                  "UB1108-Test Offence"
+                ]
+              },
+              "CJSTitleCY": {
+                "type": "string",
+                "examples": [
+                  "UB1108-Test Offence Welsh"
+                ]
+              },
+              "ActsAndSection": {
+                "type": "string",
+                "examples": [
+                  "Acts and Section"
+                ]
+              },
+              "ActAndSectionWelsh": {
+                "type": "null"
+              },
+              "UsedFrom": {
+                "type": "string",
+                "examples": [
+                  "2026-08-12"
+                ],
+                "format": "date"
+              },
+              "UsedTo": {
+                "type": "string",
+                "examples": [
+                  "2026-08-17"
+                ],
+                "format": "date"
+              },
+              "Recordable": {
+                "type": "string",
+                "examples": [
+                  "No"
+                ]
+              },
+              "Reportable": {
+                "type": "string",
+                "examples": [
+                  "No"
+                ]
+              },
+              "Custodianlindicator": {
+                "type": "string",
+                "examples": [
+                  "No"
+                ]
+              },
+              "StandardList": {
+                "type": "string",
+                "examples": [
+                  "No"
+                ]
+              },
+              "TrafficControl": {
+                "type": "boolean",
+                "examples": [
+                  false
+                ]
+              },
+              "DVLACode": {
+                "type": "null"
+              },
+              "OffenceNotes": {
+                "type": "null"
+              },
+              "MaximumPenalty": {
+                "type": "null"
+              },
+              "Description": {
+                "type": "string",
+                "examples": [
+                  "UB1108-Test Offence"
+                ]
+              },
+              "HOClass": {
+                "type": "null"
+              },
+              "HOSubClass": {
+                "type": "null"
+              },
+              "ProceedingsCode": {
+                "type": "null"
+              },
+              "PNLDStandardOffenceWording": {
+                "type": "null"
+              },
+              "PNLDWelshStandardOffenceWording": {
+                "type": "null"
+              },
+              "PNLDDateOfLastUpdate": {
+                "type": "null"
+              },
+              "PNLDProsecutionTimeLimit": {
+                "type": "null"
+              },
+              "PNLDMaxFineTypeMagistratesCourt": {
+                "type": "null"
+              },
+              "PNLDMaxFineTypeMagistratesCourtDescription": {
+                "type": "null"
+              },
+              "PNLDModeOfTrial": {
+                "type": "string",
+                "examples": [
+                  "N/A"
+                ]
+              },
+              "PNLDEndorsableFlag": {
+                "type": "string",
+                "examples": [
+                  "N"
+                ]
+              },
+              "PNLDLocationFlag": {
+                "type": "string",
+                "examples": [
+                  "Y"
+                ]
+              },
+              "PNLDPrincipalOffenceCategory": {
+                "type": "null"
+              },
+              "UserOffenceWording": {
+                "type": "string",
+                "examples": [
+                  "{1} at {2}, {3}"
+                ]
+              },
+              "UserStatementOfFacts": {
+                "type": "null"
+              },
+              "EntryPromptSubstitutionSOW": {
+                "type": "string",
+                "examples": [
+                  "{Specify date} at {Place of Offence}, {Details of Offence}"
+                ]
+              },
+              "EntryPromptSubstitutionSOF": {
+                "type": "null"
+              },
+              "EntryPromptSubstitutionANS": {
+                "type": "null"
+              },
+              "CurrentEditor": {
+                "type": "null"
+              },
+              "Area": {
+                "type": "null"
+              },
+              "Blocked": {
+                "type": "string",
+                "examples": [
+                  "N"
+                ]
+              },
+              "SecondLanguageOffenceStatementOfFactsText": {
+                "type": "null"
+              },
+              "SecondLanguageOffenceWordingText": {
+                "type": "string",
+                "examples": [
+                  "Acts and Section Welsh"
+                ]
+              },
+              "OffenceCode": {
+                "type": "null"
+              },
+              "PNLDOffenceStartDate": {
+                "type": "null"
+              },
+              "PNLDOffenceEndDate": {
+                "type": "null"
+              },
+              "SOWReference": {
+                "type": "string",
+                "examples": [
+                  "MOJ"
+                ]
+              },
+              "PublishingStatus": {
+                "type": "string",
+                "examples": [
+                  "Not Published"
+                ]
+              },
+              "OffenceType": {
+                "type": "string",
+                "examples": [
+                  "CB"
+                ]
+              },
+              "OffenceSource": {
+                "type": "string",
+                "examples": [
+                  "MOJ"
+                ]
+              },
+              "MISClassification": {
+                "type": "null"
+              },
+              "OffenceClass": {
+                "type": "string",
+                "examples": [
+                  "1"
+                ]
+              },
+              "CanBeBulk": {
+                "type": "boolean",
+                "examples": [
+                  false
+                ]
+              },
+              "InitialFeeApplicable": {
+                "type": "boolean",
+                "examples": [
+                  false
+                ]
+              },
+              "ContestedFee": {
+                "type": "boolean",
+                "examples": [
+                  false
+                ]
+              },
+              "ApplicationSynonym": {
+                "type": "null"
+              },
+              "Exparte": {
+                "type": "boolean",
+                "examples": [
+                  false
+                ]
+              },
+              "Jurisdiction": {
+                "type": "null"
+              },
+              "AppealFlag": {
+                "type": "boolean",
+                "examples": [
+                  false
+                ]
+              },
+              "SummonsTemplateType": {
+                "type": "null"
+              },
+              "LinkType": {
+                "type": "null"
+              },
+              "HearingCode": {
+                "type": "null"
+              },
+              "ApplicantAppellantFlag": {
+                "type": "null"
+              },
+              "PleaApplicableFlag": {
+                "type": "boolean",
+                "examples": [
+                  false
+                ]
+              },
+              "ActiveOffenceOrder": {
+                "type": "null"
+              },
+              "CommissionerOfOath": {
+                "type": "boolean",
+                "examples": [
+                  false
+                ]
+              },
+              "BreachType": {
+                "type": "null"
+              },
+              "CourtOfAppealFlag": {
+                "type": "boolean",
+                "examples": [
+                  false
+                ]
+              },
+              "CourtExtractAvailable": {
+                "type": "boolean",
+                "examples": [
+                  false
+                ]
+              },
+              "ListingNotificationTemplate": {
+                "type": "null"
+              },
+              "BoxworkNotificationTemplate": {
+                "type": "null"
+              },
+              "ProsecutorAsThirdPartyFlag": {
+                "type": "boolean",
+                "examples": [
+                  false
+                ]
+              },
+              "ResentencingActivationCode": {
+                "type": "null"
+              },
+              "Prefix": {
+                "type": "null"
+              },
+              "ObsoleteIndicator": {
+                "type": "string",
+                "examples": [
+                  "Y"
+                ]
+              }
+            },
+            "required": [
+              "CJSCode",
+              "CJSTitle",
+              "CJSTitleCY",
+              "ActsAndSection",
+              "ActAndSectionWelsh",
+              "UsedFrom",
+              "UsedTo",
+              "Recordable",
+              "Reportable",
+              "Custodianlindicator",
+              "StandardList",
+              "TrafficControl",
+              "DVLACode",
+              "OffenceNotes",
+              "MaximumPenalty",
+              "Description",
+              "HOClass",
+              "HOSubClass",
+              "ProceedingsCode",
+              "PNLDStandardOffenceWording",
+              "PNLDWelshStandardOffenceWording",
+              "PNLDDateOfLastUpdate",
+              "PNLDProsecutionTimeLimit",
+              "PNLDMaxFineTypeMagistratesCourt",
+              "PNLDMaxFineTypeMagistratesCourtDescription",
+              "PNLDModeOfTrial",
+              "PNLDEndorsableFlag",
+              "PNLDLocationFlag",
+              "PNLDPrincipalOffenceCategory",
+              "UserOffenceWording",
+              "UserStatementOfFacts",
+              "EntryPromptSubstitutionSOW",
+              "EntryPromptSubstitutionSOF",
+              "EntryPromptSubstitutionANS",
+              "CurrentEditor",
+              "Area",
+              "Blocked",
+              "SecondLanguageOffenceStatementOfFactsText",
+              "SecondLanguageOffenceWordingText",
+              "OffenceCode",
+              "PNLDOffenceStartDate",
+              "PNLDOffenceEndDate",
+              "SOWReference",
+              "PublishingStatus",
+              "OffenceType",
+              "OffenceSource",
+              "MISClassification",
+              "OffenceClass",
+              "CanBeBulk",
+              "InitialFeeApplicable",
+              "ContestedFee",
+              "ApplicationSynonym",
+              "Exparte",
+              "Jurisdiction",
+              "AppealFlag",
+              "SummonsTemplateType",
+              "LinkType",
+              "HearingCode",
+              "ApplicantAppellantFlag",
+              "PleaApplicableFlag",
+              "ActiveOffenceOrder",
+              "CommissionerOfOath",
+              "BreachType",
+              "CourtOfAppealFlag",
+              "CourtExtractAvailable",
+              "ListingNotificationTemplate",
+              "BoxworkNotificationTemplate",
+              "ProsecutorAsThirdPartyFlag",
+              "ResentencingActivationCode",
+              "Prefix",
+              "ObsoleteIndicator"
+            ]
+          }
+        }
+      },
+      "required": [
+        "records"
+      ]
+    }
+  },
+  "required": [
+    "header",
+    "payload"
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}
