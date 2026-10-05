@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
@@ -52,10 +53,12 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         String requestBody = validReplaceRequestBody(0L);
         log.info(":testReplaceDraftAccount_success: Request Body:\n{}", ToJsonString.toPrettyJson(requestBody));
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", "0");
+
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
-            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-            .header("authorization", userStateStub.getBearerToken())
-            .header("If-Match", "3")
+            .headers(headers)
             .contentType(MediaType.APPLICATION_JSON)
             .content(requestBody));
 
@@ -94,7 +97,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         );
 
         assertDoesNotThrow(() ->
-            jsonSchemaValidationService.validateOrError(request, SchemaPaths.REPLACE_DRAFT_ACCOUNT_REQUEST));
+            jsonSchemaValidationService.validateOrError(request, SchemaPaths.REPLACE_DRAFT_ACCOUNT_REQUEST))
     }
 
     @Test

@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -7,6 +9,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -14,17 +18,19 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.ResultActions;
+import org.wiremock.spring.InjectWireMock;
 import tools.jackson.core.type.TypeReference;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.generated.model.EnforcementAccountTypeCommon;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementAccountTypes200Response;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
+@ActiveProfiles({"integration", "opal"})
 @Slf4j(topic = "opal.EnforcementAccountTypesTest")
 @DisplayName("Enforcement Account Types Integration Test")
 public class EnforcementAccountTypesTest extends AbstractIntegrationTest {
@@ -38,18 +44,17 @@ public class EnforcementAccountTypesTest extends AbstractIntegrationTest {
     @Nested
     class FeatureOn {
 
+        @InjectWireMock("user-service")
+        private WireMockServer userServiceWireMock;
+
         @Test
         @DisplayName("PO-2434 - INT.01 & INT.06 – Return all enforcement account types")
         @JiraStory("PO-2434")
         @JiraEpic("PO-2433")
         @JiraTestKey("PO-9391")
         void returnsAllEnforcementAccountTypes_200() throws Exception {
-            setupAuthorisedUser();
-            ResultActions result = mockMvc.perform(
-                get(URL)
-                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                    .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken())
-            );
+            ResultActions result = mockMvc.perform(get(URL)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER));
 
             String body = result.andReturn().getResponse().getContentAsString();
             result.andExpect(status().isOk())
@@ -61,7 +66,7 @@ public class EnforcementAccountTypesTest extends AbstractIntegrationTest {
             );
             List<EnforcementAccountTypeCommon.EnforcementAccountTypeEnum> eats = response.getEnforcementAccountTypes()
                 .stream()
-                .map(eat -> eat.getEnforcementAccountType())
+                .map(EnforcementAccountTypeCommon::getEnforcementAccountType)
                 .toList();
             assertAll(
                 () -> assertEquals(8, eats.size()),
@@ -82,12 +87,15 @@ public class EnforcementAccountTypesTest extends AbstractIntegrationTest {
         @JiraEpic("PO-2433")
         @JiraTestKey("PO-9390")
         void forbiddenWithoutAutoEnforcementPermission() throws Exception {
-            userStateStub.setupWithNoPermissions();
-            ResultActions result = mockMvc.perform(
-                get(URL)
-                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                    .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken())
-            );
+            userServiceWireMock.stubFor(WireMock.get(urlPathEqualTo("/v2/users/0/state"))
+                .atPriority(1).willReturn(
+                    aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("UserService/user-state-no-permissions.json")));
+
+            ResultActions result = mockMvc.perform(get(URL)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER));
 
             result.andExpect(status().isForbidden());
         }
@@ -99,7 +107,6 @@ public class EnforcementAccountTypesTest extends AbstractIntegrationTest {
         @JiraEpic("PO-2433")
         @JiraTestKey("PO-9392")
         void deterministicAndIdempotentGET() throws Exception {
-            setupAuthorisedUser();
             String responseBody1 = callGetAndReturnContentAsString();
             String responseBody2 = callGetAndReturnContentAsString();
             String responseBody3 = callGetAndReturnContentAsString();
@@ -111,11 +118,9 @@ public class EnforcementAccountTypesTest extends AbstractIntegrationTest {
         }
 
         private String callGetAndReturnContentAsString() throws Exception {
-            return mockMvc.perform(
-                    get(URL)
-                        .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                        .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken())
-                ).andExpect(status().isOk())
+            return mockMvc.perform(get(URL)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
+                .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         }
     }
@@ -133,19 +138,10 @@ public class EnforcementAccountTypesTest extends AbstractIntegrationTest {
         @JiraEpic("PO-2433")
         @JiraTestKey("PO-9393")
         void getAllEnforcementAccountTypes_FeatureOff_404() throws Exception {
-            setupAuthorisedUser();
-            ResultActions result = mockMvc.perform(
-                get(URL)
-                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                    .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken())
-            );
+            ResultActions result = mockMvc.perform(get(URL)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER));
 
             result.andExpect(status().isNotFound());
         }
-    }
-
-    private void setupAuthorisedUser() {
-        userStateStub.setupWithNoPermissions();
-        userStateStub.addPermissions((short) 1, FinesPermission.AUTO_ENFORCEMENT);
     }
 }

@@ -22,7 +22,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
-@ActiveProfiles({"integration", "integration-with-spring-security", "opal"})
+@ActiveProfiles({"integration"})
 @TestPropertySource(properties = {
     "launchdarkly.default-flag-values.release-1c-payment=true"
 })
@@ -45,7 +45,7 @@ class OutstandingAutoPaymentErrorIntegrationTest extends AbstractIntegrationTest
             DataAccessResourceFailureException.class);
 
         mockMvc.perform(get(URL).accept(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isServiceUnavailable())
             .andExpect(header().exists("operation_id"))
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))

@@ -1,13 +1,15 @@
 package uk.gov.hmcts.opal.controllers.r1c;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import org.wiremock.spring.InjectWireMock;
 import uk.gov.hmcts.opal.controllers.r1b.AbstractOpalDefendantsIntegrationTest;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -17,7 +19,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -25,15 +26,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.databind.JsonNode;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -59,21 +55,12 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
 
     private static final long MASTER_ACCOUNT_ID = 233300L;
     private static final long CHILD_ACCOUNT_ID = 233301L;
-    private static final long OTHER_MASTER_ACCOUNT_ID = 233302L;
     private static final long OTHER_CHILD_ACCOUNT_ID = 233303L;
     private static final long EMPTY_MASTER_ACCOUNT_ID = 233304L;
-    private static final short BUSINESS_UNIT_ID = 78;
-    private static final short DIFFERENT_BUSINESS_UNIT_ID = 77;
     private static final String URL = URL_BASE + "/%d/consolidated-accounts";
 
-    @MockitoBean
-    private UserStateService userStateService;
-
-    @BeforeEach
-    void setupConsolidatedAccountsData() {
-        authorise(BUSINESS_UNIT_ID, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        mockUserWithPermission(BUSINESS_UNIT_ID);
-    }
+    @InjectWireMock("user-service")
+    private WireMockServer userServiceWireMock;
 
     @Test
     @DisplayName("PO-2333: INT.01 returns consolidated child accounts for a valid master account")
@@ -82,8 +69,7 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     @JiraTestKey("PO-9378")
     void getConsolidatedAccounts_whenMasterHasChildren_returnsOkWithPayload() throws Exception {
         mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID))
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(header().string(HttpHeaders.ETAG, "\"12\""))
@@ -104,8 +90,7 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     @JiraTestKey("PO-9380")
     void getConsolidatedAccounts_returnsOnlyDocumentedFields() throws Exception {
         MvcResult result = mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID))
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isOk())
             .andReturn();
 
@@ -127,8 +112,7 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     @JiraTestKey("PO-9382")
     void getConsolidatedAccounts_filtersByMasterAccountId() throws Exception {
         mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID))
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[*].account_id", containsInAnyOrder((int) CHILD_ACCOUNT_ID)))
             .andExpect(jsonPath("$[?(@.account_id == %d)]".formatted(OTHER_CHILD_ACCOUNT_ID))
@@ -142,8 +126,7 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     @JiraTestKey("PO-9383")
     void getConsolidatedAccounts_whenNoChildren_returnsEmptyArray() throws Exception {
         mockMvc.perform(get(URL.formatted(EMPTY_MASTER_ACCOUNT_ID))
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isOk())
             .andExpect(header().string(HttpHeaders.ETAG, "\"6\""))
             .andExpect(jsonPath("$", hasSize(0)));
@@ -156,8 +139,7 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     @JiraTestKey("PO-9379")
     void getConsolidatedAccounts_whenMasterDoesNotExist_returnsNotFound() throws Exception {
         mockMvc.perform(get(URL.formatted(999999999L))
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.status").value(404))
@@ -172,12 +154,8 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-9376")
     void getConsolidatedAccounts_whenPermissionInDifferentBusinessUnit_returnsOk() throws Exception {
-        authorise(DIFFERENT_BUSINESS_UNIT_ID, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        mockUserWithPermission(DIFFERENT_BUSINESS_UNIT_ID);
-
         mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID))
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$", hasSize(1)));
     }
@@ -188,13 +166,15 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-9374")
     void getConsolidatedAccounts_whenMissingPermission_returnsForbidden() throws Exception {
-        userStateStub.setupWithNoPermissions();
-        doReturn(UserStateUtil.noPermissionsUser())
-            .when(userStateService).getUserStateV1FromSecurityContext();
+        userServiceWireMock.stubFor(WireMock.get(urlPathEqualTo("/v2/users/0/state"))
+            .atPriority(1).willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBodyFile("UserService/user-state-no-permissions.json")));
 
         mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID))
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.status").value(403))
@@ -209,14 +189,11 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-9377")
     void getConsolidatedAccounts_whenCredentialsMissing_returnsUnauthorized() throws Exception {
-        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).getUserStateV1FromSecurityContext();
-
         mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID)))
             .andExpect(status().isUnauthorized())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.status").value(401))
-            .andExpect(jsonPath("$.detail").value("Unauthorized"))
+            .andExpect(jsonPath("$.detail").value("Unauthorized request for this resource"))
             .andExpect(jsonPath("$.retriable").value(false));
     }
 
@@ -230,8 +207,7 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     @JiraTestKey("PO-9381")
     void getConsolidatedAccounts_whenManyChildrenExist_returnsFullArray() throws Exception {
         mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID))
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$", hasSize(21)))
             .andExpect(jsonPath("$[0].account_id").value(233301))
@@ -252,22 +228,17 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-9375")
     void getConsolidatedAccounts_whenRepeated_returnsIdenticalBody() throws Exception {
-        MvcResult first = mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID))
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
-            .andExpect(status().isOk())
-            .andReturn();
-        MvcResult second = mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID))
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
-            .andExpect(status().isOk())
-            .andReturn();
-
-        assertEquals(first.getResponse().getContentAsString(), second.getResponse().getContentAsString());
+        String first = performGetConsolidatedAccountsRequest();
+        String second = performGetConsolidatedAccountsRequest();
+        assertEquals(first, second);
     }
 
-    private void mockUserWithPermission(short businessUnitId) {
-        doReturn(UserStateUtil.permissionUser(businessUnitId, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
-            .when(userStateService).getUserStateV1FromSecurityContext();
+    private String performGetConsolidatedAccountsRequest() throws Exception {
+        return mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
     }
 }

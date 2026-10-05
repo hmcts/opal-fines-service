@@ -58,7 +58,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import org.yaml.snakeyaml.Yaml;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
-@ActiveProfiles({"integration", "integration-with-spring-security", "opal"})
+@ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {
     "launchdarkly.enabled=false",
     "launchdarkly.default-flag-values.release-1b=true"
@@ -83,7 +83,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Slf4j(topic = "opal.MajorCreditorAtGlanceIntegrationTest")
 class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
 
-    private static final String AUTH_HEADER = "Bearer eyJ0eXAiOiJKsomeValue";
     private static final String URL = "/major-creditor-accounts/{id}/at-a-glance";
     private static final long MJ_ACCOUNT_ID = 10770000000041L;
     private static final long CF_ACCOUNT_ID = 78L;
@@ -115,7 +114,7 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
 
         ResultActions actions = mockMvc.perform(get(URL, MJ_ACCOUNT_ID)
             .accept(MediaType.APPLICATION_JSON)
-            .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER));
 
         MockHttpServletResponse response = actions.andReturn().getResponse();
         String body = response.getContentAsString();
@@ -159,7 +158,7 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
 
         ResultActions actions = mockMvc.perform(get(URL, CF_ACCOUNT_ID)
             .accept(MediaType.APPLICATION_JSON)
-            .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER));
 
         MockHttpServletResponse response = actions.andReturn().getResponse();
         String body = response.getContentAsString();
@@ -192,8 +191,10 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-7649")
     void getAtAGlance_repeatedGetReturnsSamePayloadAndHeaders() throws Exception {
-        ResultActions first = mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
-        ResultActions second = mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
+        ResultActions first = mockMvc.perform(get(URL, MJ_ACCOUNT_ID)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER));
+        ResultActions second = mockMvc.perform(get(URL, MJ_ACCOUNT_ID)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER));
 
         MockHttpServletResponse firstResponse = first.andReturn().getResponse();
         MockHttpServletResponse secondResponse = second.andReturn().getResponse();
@@ -210,7 +211,8 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-7641")
     void getAtAGlance_sameBusinessUnitPermissionReturns200() throws Exception {
-        mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
+        mockMvc.perform(get(URL, MJ_ACCOUNT_ID)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isOk());
         userServiceWireMock.verify(1, getRequestedFor(urlPathEqualTo("/v2/users/0/state")));
     }
@@ -221,7 +223,8 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-7644")
     void getAtAGlance_differentBusinessUnitPermissionReturns200() throws Exception {
-        mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
+        mockMvc.perform(get(URL, MJ_ACCOUNT_ID)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isOk());
         userServiceWireMock.verify(1, getRequestedFor(urlPathEqualTo("/v2/users/0/state")));
     }
@@ -234,7 +237,7 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     void getAtAGlance_notFoundReturns404() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL, 999999L)
             .accept(MediaType.APPLICATION_JSON)
-            .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER));
 
         actions.andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
@@ -283,7 +286,8 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
                     .withHeader("Content-Type", "application/json")
                     .withBodyFile("UserService/user-state-no-permissions.json")));
 
-        mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
+        mockMvc.perform(get(URL, MJ_ACCOUNT_ID)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(header().doesNotExist(HttpHeaders.ETAG))
@@ -305,7 +309,8 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
             .when(proxy)
             .getAtAGlance(MJ_ACCOUNT_ID);
 
-        mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
+        mockMvc.perform(get(URL, MJ_ACCOUNT_ID)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isRequestTimeout())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(header().doesNotExist(HttpHeaders.ETAG))
@@ -327,7 +332,8 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
         doThrow(new DataAccessResourceFailureException("db unavailable"))
             .when(majorCreditorAccountAtAGlanceRepository).findById(MJ_ACCOUNT_ID);
 
-        mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
+        mockMvc.perform(get(URL, MJ_ACCOUNT_ID)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isServiceUnavailable())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(header().doesNotExist(HttpHeaders.ETAG))
@@ -353,7 +359,7 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
             null
         )).when(majorCreditorAccountAtAGlanceRepository).findById(anyLong());
 
-        mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
+        mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isInternalServerError())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(header().doesNotExist(HttpHeaders.ETAG))

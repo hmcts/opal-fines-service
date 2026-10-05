@@ -13,18 +13,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
-@ActiveProfiles({"integration", "integration-with-spring-security", "opal"})
 @Slf4j(topic = "opal.DefendantPartyDeleteIntegrationTest")
 class DefendantPartyDeleteIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
-
-    private static final String AUTH_HEADER = "eyJ0eXAiOiJKsomeValue";
 
     @Test
     @DisplayName("OPAL: DELETE Remove DAP - account controls return 422 for blocked account status")

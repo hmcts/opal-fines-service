@@ -45,6 +45,7 @@ public abstract class AbstractIntegrationTest {
 
     protected static final String OVER_LONG_VERSION = "9223372036854775808";
     protected static final String OVER_LONG_VERSION_ETAG = "\"" + OVER_LONG_VERSION + "\"";
+    protected static final String AUTH_HEADER = "eyJ0eXAiOiJKsomeValue";
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
