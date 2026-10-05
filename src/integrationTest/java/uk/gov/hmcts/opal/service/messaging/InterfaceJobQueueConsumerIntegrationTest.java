@@ -131,21 +131,21 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
             .whenScenarioStateIs(STARTED)
             .willReturn(aResponse()
                 .withStatus(200)
-                .withBodyFile("interface-files/140000_default.json")));
+                .withBodyFile("interface-files/content/140000_default.json")));
 
         fhWireMockServer.stubFor(get(urlEqualTo(interfaceFileContentUrl))
             .inScenario(WIREMOCK_INTERFACE_JOB_QUEUE_SCENARIO)
             .whenScenarioStateIs(WIREMOCK_STATE__TRIGGER_IGNORED)
             .willReturn(aResponse()
                 .withStatus(200)
-                .withBodyFile("interface-files/140000_trigger_ignored.json")));
+                .withBodyFile("interface-files/content/140000_trigger_ignored.json")));
 
         fhWireMockServer.stubFor(get(urlEqualTo(interfaceFileContentUrl))
             .inScenario(WIREMOCK_INTERFACE_JOB_QUEUE_SCENARIO)
             .whenScenarioStateIs(WIREMOCK_STATE__TRIGGER_UNMATCHED_ORIGINATOR)
             .willReturn(aResponse()
                 .withStatus(200)
-                .withBodyFile("interface-files/140000_trigger_unmatched_originator.json")));
+                .withBodyFile("interface-files/content/140000_trigger_unmatched_originator.json")));
     }
 
     @Autowired
