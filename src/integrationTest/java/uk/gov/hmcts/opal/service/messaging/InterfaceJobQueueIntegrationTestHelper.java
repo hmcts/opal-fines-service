@@ -143,7 +143,7 @@ class InterfaceJobQueueIntegrationTestHelper {
             .singleElement()
             .satisfies(report -> {
                 assertThat(report.getGenerationStatus()).isEqualTo(ReportInstanceGenerationStatus.READY);
-                assertThat(report.getLocation()).isNull();
+                assertThat(report.getLocation()).isNotNull();
                 assertThat(report.getErrors()).isNull();
                 assertThat(reportBlobExists(report.getLocation())).isTrue();
                 assertThat(reportReferencesTill(report,
