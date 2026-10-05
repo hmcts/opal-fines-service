@@ -90,8 +90,6 @@ public class DefendantAccountEnforcementsActions extends BaseStepDef {
     public Response addEnforcementToCreatedDefendantAccount(Map<String, String> data) throws JSONException {
         JSONArray resultResponses = new JSONArray()
             .put(resultResponse("reason", data.get("reason")))
-            .put(resultResponse("collectiontype", data.get("collectiontype")))
-            .put(resultResponse("reserveterms", data.get("reserveterms")))
             .put(resultResponse("hearingdate", data.get("hearingdate")))
             .put(resultResponse("courtcode", data.get("courtcode")));
         JSONObject requestBody = new JSONObject()

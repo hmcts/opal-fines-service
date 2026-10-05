@@ -31,20 +31,18 @@ Feature: Defendant Account Enforcements
       | submitted_by      | DEFENF002                                   |
       | submitted_by_name | Laura Clerk                                 |
     When I add the following enforcement action to the created defendant account
-      | business_unit_id | 77                  |
-      | result_id        | COLLO               |
-      | reason           | a                   |
-      | collectiontype   | Wages               |
-      | reserveterms     | aa                  |
-      | hearingdate      | 2026-10-02T00:00:00 |
-      | courtcode        | 777                 |
+      | business_unit_id | 77         |
+      | result_id        | NAWT       |
+      | reason           | a          |
+      | hearingdate      | 2026-10-02 |
+      | courtcode        | 777        |
     Then the created defendant account enforcement status contains the following data
-      | last_enforcement_action.enforcement_action.result_id        | COLLO               |
-      | last_enforcement_action.result_responses[0].parameter_name  | reason              |
-      | last_enforcement_action.result_responses[0].response        | a                   |
-      | last_enforcement_action.result_responses[1].parameter_name  | collectiontype      |
-      | last_enforcement_action.result_responses[1].response        | Wages               |
-      | last_enforcement_action.result_responses[2].parameter_name  | reserveterms        |
-      | last_enforcement_action.result_responses[2].response        | aa                  |
+      | last_enforcement_action.enforcement_action.result_id       | NAWT       |
+      | last_enforcement_action.result_responses[0].parameter_name | reason     |
+      | last_enforcement_action.result_responses[0].response       | a          |
+      | last_enforcement_action.result_responses[1].parameter_name | hearingdate |
+      | last_enforcement_action.result_responses[1].response       | 2026-10-02 |
+      | last_enforcement_action.result_responses[2].parameter_name | courtcode  |
+      | last_enforcement_action.result_responses[2].response       | 777        |
     When I request defendant account history for the created defendant account with query "itemTypes=enforcement"
-    Then the defendant account history contains enforcement action "COLLO" with hearing court id 770000000001 and hearing date "2026-10-02"
+    Then the defendant account history contains enforcement action "NAWT" with hearing court id 770000000001 and hearing date "2026-10-02"
