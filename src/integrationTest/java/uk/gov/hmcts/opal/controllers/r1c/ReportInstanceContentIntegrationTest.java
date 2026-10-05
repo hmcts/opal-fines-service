@@ -134,6 +134,8 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
+        @JiraStory("PO-10579")
+        @JiraEpic("PO-3516")
         void whenCsvRequestedAndNoRenderedFileExists_generatesStoresAndReturnsReport() throws Exception {
             when(uuidProvider.getUuid()).thenReturn(GENERATED_CSV_LOCATION);
             long blobCountBefore = blobCount();
@@ -156,6 +158,8 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
+        @JiraStory("PO-10579")
+        @JiraEpic("PO-3516")
         void whenCsvRequestedAndRenderedFileAlreadyExists_returnsExistingReportWithoutRegenerating() throws Exception {
             String existingCsvContent = "existing,csv\nfrom,blob\n";
             uploadBlob(EXISTING_CSV_LOCATION, existingCsvContent);
@@ -176,6 +180,8 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
+        @JiraStory("PO-10579")
+        @JiraEpic("PO-3516")
         void whenCsvRequestedAndOnlyPdfFileExists_generatesStoresAndReturnsCsvReport() throws Exception {
             uploadBlob(EXISTING_PDF_LOCATION, "existing pdf content");
             saveReportInstanceFile(SupportedFileType.PDF, EXISTING_PDF_LOCATION);
@@ -201,6 +207,8 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
+        @JiraStory("PO-10579")
+        @JiraEpic("PO-3516")
         void whenJsonRequested_doesNotStoreRenderedFileOrBlob() throws Exception {
             long fileCountBefore = reportInstanceFileRepository.count();
             long blobCountBefore = blobCount();
