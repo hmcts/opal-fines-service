@@ -22,6 +22,9 @@ import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.stereotype.Repository;
 
+// This was necessary because the standard spring @NamedStoredProcedureQuery and @Procedure annotations
+// do not provide a way of passing a custom Postgres type as a parameter, and in this case the stored proc
+// we are calling has a parameter of type "json". If you just pass a string to this param, the stored proc fails.
 @Repository
 @RequiredArgsConstructor
 public class InterfaceJobProcessPaymentsRepositoryImpl implements InterfaceJobProcessPaymentsRepository {
