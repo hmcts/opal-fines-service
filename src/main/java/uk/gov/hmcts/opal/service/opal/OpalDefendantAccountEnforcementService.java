@@ -128,7 +128,7 @@ public class OpalDefendantAccountEnforcementService
                 }
             }
             if (Objects.equals(result.getParameterName(), "hearingdate")) {
-                hearingDate = LocalDateTime.parse(result.getResponse());
+                hearingDate = LocalDate.parse(result.getResponse()).atStartOfDay();
             }
         }
 

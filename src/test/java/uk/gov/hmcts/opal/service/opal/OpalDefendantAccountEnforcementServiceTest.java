@@ -289,7 +289,7 @@ class OpalDefendantAccountEnforcementServiceTest {
                 .response("2026-05-01T00:00:00"),
             new EnforcementResultResponseDefendantAccount().parameterName("courtcode").response("123"),
             new EnforcementResultResponseDefendantAccount().parameterName("hearingdate")
-                .response("2026-06-01T00:00:00")
+                .response("2026-06-01")
         );
 
         AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
@@ -312,7 +312,7 @@ class OpalDefendantAccountEnforcementServiceTest {
             "enforcer_id", "55",
             "earliest_release_date", "2026-05-01T00:00:00",
             "courtcode", "123",
-            "hearingdate", "2026-06-01T00:00:00"
+            "hearingdate", "2026-06-01"
         ));
 
         verify(enforcementRepositoryService).addDefendantAccountEnforcement(
