@@ -45,6 +45,7 @@ import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountSta
 import uk.gov.hmcts.opal.generated.model.EnforcementActionDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverviewDefendantAccount;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServiceTest {
 
@@ -69,6 +70,9 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
         ResponseEntity<String> serverSuccessResponse =
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
         when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
+
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(eq(FeatureFlags.RELEASE_1B_1_1),
+            eq(FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY), eq(false))).thenReturn(true);
 
         // Act
         EnforcementStatus response = legacyDefendantAccountService
@@ -182,6 +186,50 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
         assertNotNull(overview.getEnforcementCourt());
         assertEquals(3, overview.getEnforcementCourt().getCourtId());
         assertEquals((short) 123, overview.getEnforcementCourt().getCourtCode());
+        assertEquals("Bath", overview.getEnforcementCourt().getCourtName());
+
+        AccountStatusReferenceCommon statusRef = response.getAccountStatusReference();
+        assertEquals(AccountStatusCodeEnum.L, statusRef.getAccountStatusCode());
+        assertEquals("Alive", statusRef.getAccountStatusDisplayName());
+    }
+
+    @Test
+    void testGetEnforcementStatus_successWithRelease1b11Disabled() {
+        // Arrange
+        LegacyGetDefendantAccountEnforcementStatusResponse responseBody = createLegacyEnforcementStatusResponse(false);
+
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any())).thenReturn(
+            responseBody);
+
+        ResponseEntity<String> serverSuccessResponse = new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
+        when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
+        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short) 123).build());
+
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(eq(FeatureFlags.RELEASE_1B_1_1),
+            eq(FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY), eq(false))).thenReturn(false);
+
+        // Act
+        EnforcementStatus response = legacyDefendantAccountService.getEnforcementStatus(72L);
+
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.getEmployerFlag());
+        assertEquals(new BigInteger("1234567890123456789012345678901234567890"), response.getVersion());
+        assertFalse(response.getIsHmrcCheckEligible());
+        assertNull(response.getNextEnforcementActionData());
+        assertNull(response.getEnforcementOverride());
+        assertNull(response.getLastEnforcementAction());
+        assertNotNull(response.getEnforcementOverview());
+        assertNotNull(response.getAccountStatusReference());
+
+        EnforcementOverviewDefendantAccount overview = response.getEnforcementOverview();
+        assertEquals(6, overview.getDaysInDefault());
+        assertNotNull(overview.getCollectionOrder());
+        assertEquals(true, overview.getCollectionOrder().getCollectionOrderFlag());
+        assertEquals(LocalDate.of(2024, 3, 4), overview.getCollectionOrder().getCollectionOrderDate());
+        assertNotNull(overview.getEnforcementCourt());
+        assertEquals(3, overview.getEnforcementCourt().getCourtId());
         assertEquals("Bath", overview.getEnforcementCourt().getCourtName());
 
         AccountStatusReferenceCommon statusRef = response.getAccountStatusReference();

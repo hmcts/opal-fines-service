@@ -10,6 +10,7 @@ import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mapstruct.factory.Mappers;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
@@ -47,6 +48,9 @@ abstract class AbstractLegacyDefAccServiceTest extends LegacyTestsBase {
     @Mock
     protected ResultRepository resultRepository;
 
+    @Mock
+    protected FeatureToggleApi featureToggleApi;
+
     protected GatewayService gatewayService;
     protected HistoryItemOrderingService historyItemOrderingService = new HistoryItemOrderingService();
     protected DefendantAccountHistoryLegacyResponseMapper legacyDefendantAccountHistoryResponseMapper =
@@ -75,6 +79,7 @@ abstract class AbstractLegacyDefAccServiceTest extends LegacyTestsBase {
             historyItemOrderingService,
             legacyBusinessUnitCodeResolver,
             resultRepository,
+            featureToggleApi,
             legacyDefendantAccountHistoryResponseMapper,
             legacyConsolidatedAccountMapper,
             updateDefendantAccountRequestMapper,

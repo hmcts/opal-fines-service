@@ -22,6 +22,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
@@ -108,6 +109,7 @@ import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 import uk.gov.hmcts.opal.service.opal.history.HistoryItemOrderingService;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @Service
 @RequiredArgsConstructor
@@ -139,6 +141,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     private final LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
 
     private final ResultRepository resultRepository;
+
+    private final FeatureToggleApi featureToggleApi;
 
     /* ---- Mappers ---- */
     private final DefendantAccountHistoryLegacyResponseMapper legacyDefendantAccountHistoryResponseMapper;
@@ -979,7 +983,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             LegacyGetDefendantAccountEnforcementStatusResponse enforcementStatus = response.responseEntity;
             populateCourtCode(enforcementStatus);
             populateLjaCode(enforcementStatus);
-            String nextPermittedActions = retrieveEnforcementNextPermittedActions(enforcementStatus);
+            String nextPermittedActions = isNextPermittedActionsEnabled()
+                ? retrieveEnforcementNextPermittedActions(enforcementStatus) : null;
 
             return toEnforcementStatusResponse(enforcementStatus, nextPermittedActions);
 
@@ -1012,6 +1017,16 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
     private String toWelshSpeaking(String welshSpeaking) {
         return "true".equalsIgnoreCase(welshSpeaking) || "Y".equalsIgnoreCase(welshSpeaking) ? "Y" : "N";
+    }
+
+    private boolean isNextPermittedActionsEnabled() {
+        boolean enabled = featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false);
+        if (!enabled) {
+            log.debug(":isNextPermittedActionsEnabled: next_permitted_actions is set to null because {} is disabled",
+                FeatureFlags.RELEASE_1B_1_1);
+        }
+        return enabled;
     }
 
     private String retrieveEnforcementNextPermittedActions(LegacyGetDefendantAccountEnforcementStatusResponse status) {
