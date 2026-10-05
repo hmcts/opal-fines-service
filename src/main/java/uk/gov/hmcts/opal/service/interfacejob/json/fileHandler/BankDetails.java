@@ -12,10 +12,9 @@ import lombok.Setter;
 
 @Getter
 @AllArgsConstructor
-public class BankDetails {
-    @NonNull
+public class
+BankDetails {
     private String accountNumber;
-    @NonNull
     private String sortCode;
     private String name;
     private String type;
