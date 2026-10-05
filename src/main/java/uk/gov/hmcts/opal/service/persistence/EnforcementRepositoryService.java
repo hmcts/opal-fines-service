@@ -67,12 +67,17 @@ public class EnforcementRepositoryService {
         Long enforcerId,
         String resultResponses,
         LocalDateTime earliestReleaseDate,
+        Long lastHearingCourtId, //last hearing id
+        LocalDateTime lastHearingCourtDate, //last hearing date
+        Long hearingCourtId, //hearing id
+        LocalDateTime hearingCourtDate, //hearing date
         Long versionNumber
     ) {
 
         String sql = """
             CALL p_add_defendant_account_enforcement(
-                ?, ?, ?, CAST(? AS t_associated_record_type_enum), ?, ?, ?, ?, ?, ?, ?, ?, CAST(? AS timestamp), ?, ?)
+                ?, ?, ?, CAST(? AS t_associated_record_type_enum), ?, ?, ?, ?, ?, ?, ?, ?, CAST(? AS timestamp), ?,
+                CAST(? AS timestamp), ?, CAST(? AS timestamp), ?, ?)
             """;
 
         Connection connection = DataSourceUtils.getConnection(dataSource);
@@ -91,12 +96,18 @@ public class EnforcementRepositoryService {
             setNullableLong(cs, 11, enforcerId);
             cs.setObject(12, toJsonObject(resultResponses), Types.OTHER);
             setNullableTimestamp(cs, 13, earliestReleaseDate);
-            cs.setLong(14, versionNumber);
-            cs.registerOutParameter(15, Types.BIGINT);
+
+            cs.setObject(14, lastHearingCourtId);
+            setNullableTimestamp(cs, 15, lastHearingCourtDate);
+            cs.setObject(16, hearingCourtId);
+            setNullableTimestamp(cs, 17, hearingCourtDate);
+
+            cs.setLong(18, versionNumber);
+            cs.registerOutParameter(19, Types.BIGINT);
 
             cs.execute();
 
-            return cs.getLong(15);
+            return cs.getLong(19);
         } catch (Exception e) {
             throw new InternalServerErrorException("Failed to call stored procedure",
                                                    "p_add_defendant_account_enforcement", e);
