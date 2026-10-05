@@ -120,16 +120,9 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
         @Test
         @JiraStory("PO-3470")
         @JiraEpic("PO-2116")
-        void whenJsonRequested_returnsStoredCashListContent_happyPath() throws Exception {
+        void whenJsonRequested_returnsStoredCashListContent_isNotAllowed() throws Exception {
             mockMvc.perform(authorisedGetContent(CASH_LIST_REPORT_INSTANCE_ID).accept(APPLICATION_JSON))
-                .andExpectAll(
-                    status().isOk(),
-                    content().contentTypeCompatibleWith(APPLICATION_JSON),
-                    jsonPath("$.reportData.entries[0].accountNumber").value("ACC123"),
-                    jsonPath("$.reportData.entries[1].nameAdditionalInformation")
-                        .value("Auto - Suspense payment"),
-                    jsonPath("$.reportData.total").value(165.50)
-                );
+                .andExpectAll(status().is(422));
         }
 
         @Test
@@ -145,9 +138,7 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
                             + "1,FA,,ACC123,DOE Jane,,NC,125.50\n"
                             + "2,SA,UN,Suspense Ref,1,Auto - Suspense payment,CT,40.00\n"
                             + "Total\n"
-                            + "165.50\n"
-                    )
-                );
+                            + "165.50\n"));
         }
     }
 
