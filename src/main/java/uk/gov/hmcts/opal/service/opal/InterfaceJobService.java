@@ -190,8 +190,9 @@ public class InterfaceJobService {
         List<Short> permittedBusinessUnitIds = userStateService.getPermittedBusinessUnitIds(
             requestedBusinessUnitIds, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
 
-        for (Short requestedBusinessUnitId : requestedBusinessUnitIds) {
-            if (!permittedBusinessUnitIds.contains(requestedBusinessUnitId)) {
+        for (InterfaceJobsProcessItem requestedJob : requestedJobs) {
+            Short requestedBusinessUnitId = requestedJob.getBusinessUnitId();
+            if (permittedBusinessUnitIds == null || !permittedBusinessUnitIds.contains(requestedBusinessUnitId)) {
                 throw new PermissionNotAllowedException(
                     requestedBusinessUnitId, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
             }
