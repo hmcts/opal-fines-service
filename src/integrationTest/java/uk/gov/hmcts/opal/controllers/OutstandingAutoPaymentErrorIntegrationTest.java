@@ -17,6 +17,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.repository.OutstandingAutoPaymentRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -29,6 +30,9 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 })
 @DisplayName("Outstanding Auto Payment Error Integration Tests")
 class OutstandingAutoPaymentErrorIntegrationTest extends AbstractIntegrationTest {
+
+    @MockitoBean
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     private static final String URL = "/business-units/outstanding-auto-payment-count";
 

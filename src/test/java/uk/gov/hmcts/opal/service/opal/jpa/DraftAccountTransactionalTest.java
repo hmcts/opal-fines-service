@@ -632,7 +632,7 @@ class DraftAccountTransactionalTest {
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
 
-        UserStateV2 userState = UserStateV2.builder().userName("opal-test@dev.platform.hmcts.net").userId(23L).build();
+        UserStateV2 userState = UserStateV2.builder().username("opal-test@dev.platform.hmcts.net").userId(23L).build();
 
         // Act & Assert
         SubmitterDeniedException ex = assertThrows(SubmitterDeniedException.class, () -> {

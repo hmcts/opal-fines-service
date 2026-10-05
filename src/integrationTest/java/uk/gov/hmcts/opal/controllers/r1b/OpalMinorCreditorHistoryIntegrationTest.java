@@ -12,10 +12,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil.noPermissionsUser;
+import static uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil.noFinesPermissionUserStateV2;
 import static uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil.permissionUser;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionUserStateV2;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
 import jakarta.persistence.QueryTimeoutException;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +31,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -61,6 +60,9 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     private static final long MISSING_CREDITOR_ACCOUNT_ID = 99264299999999L;
     private static final long DEFENDANT_ACCOUNT_ID = 99264200001001L;
     private static final short BUSINESS_UNIT_ID = 32642;
+
+    @MockitoBean
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @MockitoBean
     private UserStateService userStateService;

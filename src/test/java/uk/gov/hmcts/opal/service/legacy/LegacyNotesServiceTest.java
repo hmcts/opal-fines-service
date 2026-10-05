@@ -27,10 +27,9 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RecordType;
@@ -420,7 +419,7 @@ class LegacyNotesServiceTest {
     // ---------- helpers ----------
 
     private void givenBusinessUnitUser(short businessUnitId, String businessUnitUserId) {
-        BusinessUnitUser businessUnitUser = BusinessUnitUser.builder()
+        BusinessUnitUserV2 businessUnitUser = BusinessUnitUserV2.builder()
             .businessUnitUserId(businessUnitUserId)
             .build();
         when(user.getBusinessUnitUserForBusinessUnit(businessUnitId)).thenReturn(Optional.of(businessUnitUser));

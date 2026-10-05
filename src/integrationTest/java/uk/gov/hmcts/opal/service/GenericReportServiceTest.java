@@ -22,6 +22,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus;
@@ -45,6 +46,9 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @DirtiesContext
 @Import(GenericReportServiceTest.TestBeans.class)
 class GenericReportServiceTest extends AbstractIntegrationTest {
+
+    @MockitoBean
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @Autowired
     private GenericReportService service;

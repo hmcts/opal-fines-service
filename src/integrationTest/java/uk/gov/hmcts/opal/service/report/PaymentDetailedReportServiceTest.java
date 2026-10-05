@@ -25,8 +25,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.test.context.TestConstructor;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedAccountReportDto;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedOperationReportAccountRowDto;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedReportTransactionRowDto;
@@ -59,6 +61,9 @@ public class PaymentDetailedReportServiceTest extends AbstractIntegrationTest {
     private final DefendantAccountRepository defendantAccountRepository;
     private final PaymentTermsRepository paymentTermsRepository;
     private final DefendantTransactionRepository defendantTransactionRepository;
+
+    @MockitoBean
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     private @NonNull Map<String, Long> getAccountNoToId() {
         return defendantAccountRepository.findAll().stream()

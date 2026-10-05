@@ -5,6 +5,6 @@ import uk.gov.hmcts.opal.dto.AddNoteRequest;
 
 public interface NotesServiceInterface {
 
-    String addNote(AddNoteRequest request, String ifMatch, UserStateV2 user, AccountNoteContext target);
+    String addNote(AddNoteRequest request, String ifMatch, UserStateV2 user, Short businessUnitId);
 
 }

@@ -36,7 +36,7 @@ public class OpalNotesService implements NotesServiceInterface {
 
     @Override
     @Transactional
-    public String addNote(AddNoteRequest req, String ifMatch, UserState user, Short businessUnitId) {
+    public String addNote(AddNoteRequest req, String ifMatch, UserStateV2 user, Short businessUnitId) {
         AccountNoteContext target = accountNoteContextFactory.from(req.getActivityNote());
         return addNote(req, ifMatch, user, target);
     }

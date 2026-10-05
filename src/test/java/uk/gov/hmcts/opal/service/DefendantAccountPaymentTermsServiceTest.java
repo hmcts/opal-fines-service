@@ -61,7 +61,7 @@ class DefendantAccountPaymentTermsServiceTest {
         // Arrange
         Long defendantAccountId = 77L;
         DefendantAccountPaymentTermsResponse proxyResponse = new DefendantAccountPaymentTermsResponse();
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(defendantAccountPaymentTermsServiceProxy.getPaymentTerms(defendantAccountId)).thenReturn(proxyResponse);
 

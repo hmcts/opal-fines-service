@@ -199,7 +199,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
 
         if (newStatus.isPublishingPending()) {
             LocalDateTime validationTimestamp = LocalDateTime.now(clock);
-            checkValidatorIsNotSubmitter(existingAccount.getSubmittedBy(), dto.getValidatedBy(), draftAccountId,
+            checkValidatorIsNotSubmitter(existingAccount.getSubmittedBy(), validatedBy, draftAccountId,
                 userState, dto.getBusinessUnitId());
             existingAccount.setValidatedDate(validationTimestamp);
             existingAccount.setValidatedBy(validatedBy);
@@ -209,7 +209,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         }
 
         if (newStatus.isDeleted()) {
-            checkDeleterIsNotSubmitter(existingAccount.getSubmittedBy(), userState.getUsername(), draftAccountId,
+            checkDeleterIsNotSubmitter(existingAccount.getSubmittedBy(), validatedBy, draftAccountId,
                 userState, dto.getBusinessUnitId());
             existingAccount.setAccountStatusDate(LocalDateTime.now(clock));
         }

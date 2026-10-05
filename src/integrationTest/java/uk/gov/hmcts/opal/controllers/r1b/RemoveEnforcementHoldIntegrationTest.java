@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import tools.jackson.databind.JsonNode;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.service.opal.ReportEntryService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -28,6 +29,9 @@ class RemoveEnforcementHoldIntegrationTest extends AbstractOpalDefendantsIntegra
 
     private static final long ACCOUNT_WITH_ENFORCEMENT_HOLD = 99000000000002L;
     private static final short BUSINESS_UNIT_ID = 77;
+
+    @MockitoBean
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @MockitoBean
     private ReportEntryService reportEntryService;

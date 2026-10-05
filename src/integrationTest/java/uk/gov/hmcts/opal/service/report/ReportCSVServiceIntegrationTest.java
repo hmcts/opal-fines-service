@@ -12,7 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestConstructor;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedAccountReportDto;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedOperationReportAccountRowDto;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedReportDto;
@@ -27,6 +29,9 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Tag("ExtendedTest")
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class ReportCSVServiceIntegrationTest extends AbstractIntegrationTest {
+
+    @MockitoBean
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     private static final String DETAIL = "DETAIL";
     private static final String TRANSACTION = "TRANSACTION";

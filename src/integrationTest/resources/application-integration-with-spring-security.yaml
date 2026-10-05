@@ -47,3 +47,8 @@ user:
 
 security-it:
   key: ...some random string...
+
+opal:
+  common:
+    system-users:
+      token-url: http://localhost:4455

@@ -18,11 +18,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
 import uk.gov.hmcts.opal.service.report.GenericReportService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -38,6 +40,9 @@ class ReportInstancesTest extends AbstractIntegrationTest {
     private static final String UNCONFIGURED_REPORT_ID = "it_report_noperm";
     private static final long REPORT_INSTANCE_ID_NOPERMS_REPORT = 9004L;
     private static final String URL_BASE = "/report-instances";
+
+    @MockitoBean
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @MockitoSpyBean
     private GenericReportService genericReportService;
@@ -222,6 +227,13 @@ class ReportInstancesTest extends AbstractIntegrationTest {
         @JiraStory("PO-9147")
         @JiraEpic("PO-2248")
         void whenFilteredByUserIdWithoutReportId_matchingInstancesAreReturned_happyPath() throws Exception {
+
+            var result = jdbcTemplate.queryForList("""
+                SELECT report_id, report_title, permission
+                FROM public.reports
+                ORDER BY report_id
+                """);
+
             mockMvc.perform(authorisedGet()
                     .param("user_id", "42"))
                 .andExpectAll(

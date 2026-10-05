@@ -16,7 +16,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -24,13 +23,6 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
-import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.request.RemoveDefendantAccountPartyRequest;
-import uk.gov.hmcts.opal.dto.response.RemoveDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
@@ -52,9 +44,6 @@ class DefendantAccountPartyServiceTest {
 
     @InjectMocks
     private DefendantAccountPartyService defendantAccountPartyService;
-
-    @Captor
-    private ArgumentCaptor<String> stringCaptor;
 
     @Test
     void getDefendantAccountParty_whenUserHasPermission_returnsResponse() {
@@ -160,7 +149,6 @@ class DefendantAccountPartyServiceTest {
     void addDefendantAccountParty_whenUserHasPermission_passesPostedByAndBusinessUnitUserIdToProxy() {
         // Arrange
         Long defendantAccountId = 10L;
-        Long defendantAccountPartyId = 20L;
         String ifMatch = "W/\"1\"";
         String businessUnitId = "5";
         short buId = Short.parseShort(businessUnitId);
@@ -267,7 +255,6 @@ class DefendantAccountPartyServiceTest {
     void addDefendantAccountParty_whenBusinessUnitUserMissing_usesUserNameForPostedByAndEmptyBusinessUnitUserId() {
         // Arrange
         Long defendantAccountId = 11L;
-        Long defendantAccountPartyId = 22L;
         String ifMatch = "W/\"2\"";
         String businessUnitId = "7";
         short buId = Short.parseShort(businessUnitId);
@@ -349,7 +336,6 @@ class DefendantAccountPartyServiceTest {
     void addDefendantAccountParty_whenUserLacksPermission_throwsPermissionNotAllowedException() {
         // Arrange
         Long defendantAccountId = 100L;
-        Long defendantAccountPartyId = 200L;
         String ifMatch = "W/\"X\"";
         Short businessUnitId = 3;
         String stringBusinessUnitId = String.valueOf(businessUnitId);
@@ -486,7 +472,7 @@ class DefendantAccountPartyServiceTest {
             eq(request)
         );
 
-        // When BusinessUnitUser is not provided the helper returns an empty string
+        // When BusinessUnitUser is not provided, the helper returns an empty string
         assertThat(buUserIdCaptor.getValue()).isEmpty();
         assertThat(postedByCaptor.getValue()).isEqualTo("fallback-user");
         assertThat(postedByNameCaptor.getValue()).isEqualTo("fallback-user");

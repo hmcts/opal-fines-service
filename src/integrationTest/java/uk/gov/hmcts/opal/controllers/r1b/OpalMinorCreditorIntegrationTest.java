@@ -18,9 +18,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.CreditorTransactionEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
@@ -45,6 +47,9 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Tag("ExtendedTest")
 @Slf4j(topic = "opal.OpalMinorCreditorIntegrationTest")
 public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerIntegrationTest {
+
+    @MockitoBean
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @MockitoSpyBean
     private ImpositionRepository impositionRepository;

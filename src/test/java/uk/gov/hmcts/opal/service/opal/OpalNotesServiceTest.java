@@ -125,7 +125,7 @@ class OpalNotesServiceTest {
         when(accountNoteContextFactory.from(req.getActivityNote())).thenReturn(target);
         when(defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(77L))
             .thenReturn(managed);
-        when(user.getDisplayName()).thenReturn("Test User");
+        when(user.getUsername()).thenReturn("Test User");
         when(repository.save(any(NoteEntity.class))).thenReturn(saved);
 
         String result = service.addNote(req, "\"12\"", user, (short) 78);

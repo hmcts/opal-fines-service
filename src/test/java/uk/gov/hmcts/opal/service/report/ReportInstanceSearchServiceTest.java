@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -21,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -90,8 +90,17 @@ class ReportInstanceSearchServiceTest {
         when(authToken.hasPermission(anyString())).thenAnswer(invocation -> {
             String permissionName = invocation.getArgument(0);
             return permittedPermissions.stream()
-                .anyMatch(permission -> permission.contains(permissionName));
+                .anyMatch(permission -> comparePermissionNames(permission.getPermissionName(), permissionName));
         });
+    }
+
+    private boolean comparePermissionNames(String permissionName, String permissionCandidate) {
+        boolean isContained = permissionName.contains(permissionCandidate);
+        if (!isContained) {
+            isContained = permissionName.toUpperCase().replace(' ', '_').contains(permissionCandidate);
+        }
+
+        return isContained;
     }
 
     private void setBusinessUnitUsers(BusinessUnitUserV2... businessUnitUsers) {
@@ -113,8 +122,7 @@ class ReportInstanceSearchServiceTest {
         void whenReportsHaveMixedPermissions_returnsOnlyPermittedReports_happyPath() {
             ReportEntity permittedReport = report(REPORT_ID, SEARCH_AND_VIEW_ACCOUNTS);
             ReportEntity unpermittedReport = report("R2", ACCOUNT_MAINTENANCE);
-            when(reportRepository.findAllByPermissionIsNotNull()).thenReturn(
-                List.of(permittedReport, unpermittedReport));
+            doReturn(List.of(permittedReport, unpermittedReport)).when(reportRepository).findAllByPermissionIsNotNull();
             setAuthenticatedUserWithPermissions(SEARCH_AND_VIEW_ACCOUNTS);
 
             List<ReportEntity> result = reportInstanceSearchService.findPermittedReports();

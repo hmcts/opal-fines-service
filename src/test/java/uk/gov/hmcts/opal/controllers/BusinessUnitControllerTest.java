@@ -23,8 +23,6 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2.UserBusines
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
-import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers.UserBusinessUnits;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData.ConfigItemRefData;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceDataResults;

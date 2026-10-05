@@ -176,7 +176,10 @@ public class GenericReportService implements GenericReportServiceInterface {
         permittedReportForBusinessUnits.forEach((reportIdKey, businessUnitIds) -> {
             Specification<ReportInstanceEntity> spec =
                 ReportInstanceSpecs.build(fromDate, toDate, userId, reportIdKey, businessUnitIds);
-            reportInstances.addAll(reportInstanceRepository.findAll(spec));
+            //  TEMP: Restore when fixed.
+            List<ReportInstanceEntity> reports = reportInstanceRepository.findAll(spec);
+            reportInstances.addAll(reports);
+            //reportInstances.addAll(reportInstanceRepository.findAll(spec));
 
         });
 

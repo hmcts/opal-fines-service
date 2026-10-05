@@ -14,8 +14,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.entity.InterfaceJobEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobEntity_;
 import uk.gov.hmcts.opal.entity.InterfaceJobStatus;
@@ -35,6 +37,9 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 class InterfaceJobRepositoryIntegrationTest extends AbstractIntegrationTest {
 
     private final InterfaceJobSpecs specs = new InterfaceJobSpecs();
+
+    @MockitoBean
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @Autowired
     private InterfaceJobRepository interfaceJobRepository;

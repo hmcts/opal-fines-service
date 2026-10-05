@@ -27,6 +27,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -47,6 +48,9 @@ class InterfaceJobsSummaryIT extends AbstractIntegrationTest {
     private static final List<Short> LUTON_AND_CARDIFF = List.of((short) 2574, (short) 2575);
     private static final List<Short> LUTON_ONLY = List.of((short) 2574);
     private static final List<Short> CARDIFF_ONLY = List.of((short) 2575);
+
+    @MockitoBean
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @MockitoBean
     private UserStateService userStateService;

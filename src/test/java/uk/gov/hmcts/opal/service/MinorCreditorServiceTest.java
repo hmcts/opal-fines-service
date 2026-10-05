@@ -66,10 +66,7 @@ class MinorCreditorServiceTest {
             .builder().build();
 
         when(minorCreditorSearchProxy.searchMinorCreditors(any())).thenReturn(minorCreditorAccountsSearchResponse);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
-        when(minorCreditorSearchProxy.searchMinorCreditors(any())).thenReturn(postMinorCreditorAccountsSearchResponse);
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
-        doNothing().when(minorCreditorSearchRequestValidator).validateAndCheckFeature(any(MinorCreditorSearch.class));
 
         // Act
         MinorCreditorAccountsSearchResponse result = minorCreditorService
@@ -533,12 +530,6 @@ class MinorCreditorServiceTest {
     void updateMinorCreditorAccount_blankBusinessUnitUserId_fallsBackToUsername() {
         // Arrange
         UserStateV2 userState = mock(UserStateV2.class);
-        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD))
-            .thenReturn(true);
-        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ACCOUNT_MAINTENANCE))
-            .thenReturn(true);
-        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.VIEW_CREDITOR_BACS))
-        UserState userState = mock(UserState.class);
         when(userState.hasBusinessUnitUserWithPermission((short) 10,
             FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR))
             .thenReturn(true);
@@ -573,8 +564,7 @@ class MinorCreditorServiceTest {
     void updateMinorCreditorAccount_withLegacyPermissionsButWithoutMinorCreditorMaintenance_throwsPermissionNotAllowed(
     ) {
         // Arrange
-        UserStateV2 userState = UserStateUtil.permissionUser((short) 10, FinesPermission.ACCOUNT_MAINTENANCE);
-        UserState userState = UserStateUtil.permissionUser((short) 10,
+        UserStateV2 userState = UserStateUtil.permissionUser((short) 10,
             FinesPermission.ACCOUNT_MAINTENANCE,
             FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
             FinesPermission.VIEW_CREDITOR_BACS);
@@ -601,18 +591,9 @@ class MinorCreditorServiceTest {
     @Test
     void updateMinorCreditorAccount_viewCreditorBacsPermissionNotRequired() {
         // Arrange
-        UserStateV2 userState = mock(UserStateV2.class);
-        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD))
-            .thenReturn(true);
-        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ACCOUNT_MAINTENANCE))
-            .thenReturn(true);
-        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.VIEW_CREDITOR_BACS))
-            .thenReturn(false);
-        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
-
-        UserState userState = UserStateUtil.permissionUser((short) 10,
+        UserStateV2 userState = UserStateUtil.permissionUser((short) 10,
             FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         PatchMinorCreditorAccountRequest request = validPatchRequest();
         when(minorCreditorSearchProxy.updateMinorCreditorAccount(eq(1L), eq(request), eq(BigInteger.ONE), any(),
             any(), eq((short) 10))).thenReturn(new MinorCreditorAccountResponse());
@@ -628,15 +609,13 @@ class MinorCreditorServiceTest {
     @Test
     void updateMinorCreditorAccount_addAndRemovePaymentHoldPermissionNotRequired() {
         // Arrange
-        UserState userState = UserStateUtil.permissionUser((short) 10,
+        UserStateV2 userState = UserStateUtil.permissionUser((short) 10,
             FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR);
-        UserStateV2 userState = UserStateUtil.permissionUser((short) 10, FinesPermission.ACCOUNT_MAINTENANCE);
         PatchMinorCreditorAccountRequest request = validPatchRequest();
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(minorCreditorSearchProxy.updateMinorCreditorAccount(eq(1L), eq(request), eq(BigInteger.ONE), any(),
             any(), eq((short) 10))).thenReturn(new MinorCreditorAccountResponse());
-        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
 
         // Act
         minorCreditorService.updateMinorCreditorAccount(1L, request, BigInteger.ONE, "10");

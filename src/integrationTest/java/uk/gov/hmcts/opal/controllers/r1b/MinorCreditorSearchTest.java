@@ -14,9 +14,11 @@ import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectBadRequest;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditor;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
@@ -34,6 +36,9 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 )
 @DisplayName("Minor Creditor Controller Search Integration Test")
 public class MinorCreditorSearchTest extends AbstractIntegrationTest {
+
+    @MockitoBean
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     private static final String MINOR_CREDITOR_SEARCH_URL = "/minor-creditor-accounts/search";
 

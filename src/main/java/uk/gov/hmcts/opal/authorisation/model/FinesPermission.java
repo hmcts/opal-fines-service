@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 @Getter
 @RequiredArgsConstructor
 public enum FinesPermission implements PermissionDescriptorV2 {
-    CREATE_MANAGE_DRAFT_ACCOUNTS("CREATE_MANAGE_DRAFT_ACCOUNTS", "Create and Manage Draft Accounts"),
+    CREATE_MANAGE_DRAFT_ACCOUNTS("CREATE_MANAGE_DRAFT_ACCOUNTS", "Create Manage Draft Accounts"),
     ACCOUNT_ENQUIRY_NOTES("ACCOUNT_ENQUIRY_NOTES", "Account Enquiry - Account Notes"),
     ACCOUNT_ENQUIRY("ACCOUNT_ENQUIRY", "Account Enquiry"),
     COLLECTION_ORDER("COLLECTION_ORDER", "Collection Order"),
@@ -31,7 +31,7 @@ public enum FinesPermission implements PermissionDescriptorV2 {
     AUTO_ENFORCEMENT("AUTO_ENFORCEMENT", "Auto Enforcement"),
     OPERATIONAL_REPORT_BY_ENFORCEMENT("OPERATIONAL_REPORT_BY_ENFORCEMENT", "Operational report (by enforcement)"),
     OPERATIONAL_REPORT_BY_PAYMENTS("OPERATIONAL_REPORT_BY_PAYMENTS", "Operational report (by payment)"),
-    ACCOUNT_MAINTENANCE_MINOR_CREDITOR("ACCOUNT_MAINTENANCE_MINOR_CREDITOR", "Account Maintenance - Minor Creditor");
+    ACCOUNT_MAINTENANCE_MINOR_CREDITOR("ACCOUNT_MAINTENANCE_MINOR_CREDITOR", "Account Maintenance Minor Creditor");
 
     private final String permissionCode;
     private final String permissionName;

@@ -26,11 +26,11 @@ class FinesPermissionTest {
 
     @Test
     void whenMinorCreditorMaintenancePermissionRequested_returnsMappedPermission_happyPath() {
-        Permission permission = FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR.toCommonPermission();
+        PermissionV2 permission = FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR.toCommonPermission();
 
         assertAll(
-            () -> assertEquals(20L, permission.getPermissionId()),
-            () -> assertEquals("Account Maintenance - Minor Creditor", permission.getPermissionName()));
+            () -> assertEquals("ACCOUNT_MAINTENANCE_MINOR_CREDITOR", permission.getPermissionCode()),
+            () -> assertEquals("Account Maintenance Minor Creditor", permission.getPermissionName()));
     }
 
     @Test
@@ -48,17 +48,19 @@ class FinesPermissionTest {
     void whenOperationalReportPermissionsRequested_returnsConfiguredMetadata_happyPath() {
         assertAll(
             () -> assertAll(
-                () -> assertEquals(18L, FinesPermission.OPERATIONAL_REPORT_BY_ENFORCEMENT.getId()),
+                () -> assertEquals("OPERATIONAL_REPORT_BY_ENFORCEMENT",
+                    FinesPermission.OPERATIONAL_REPORT_BY_ENFORCEMENT.getPermissionCode()),
                 () -> assertEquals(
                     "Operational report (by enforcement)",
-                    FinesPermission.OPERATIONAL_REPORT_BY_ENFORCEMENT.getDescription()
+                    FinesPermission.OPERATIONAL_REPORT_BY_ENFORCEMENT.getPermissionName()
                 )
             ),
             () -> assertAll(
-                () -> assertEquals(19L, FinesPermission.OPERATIONAL_REPORT_BY_PAYMENTS.getId()),
+                () -> assertEquals("OPERATIONAL_REPORT_BY_PAYMENTS",
+                    FinesPermission.OPERATIONAL_REPORT_BY_PAYMENTS.getPermissionCode()),
                 () -> assertEquals(
                     "Operational report (by payment)",
-                    FinesPermission.OPERATIONAL_REPORT_BY_PAYMENTS.getDescription()
+                    FinesPermission.OPERATIONAL_REPORT_BY_PAYMENTS.getPermissionName()
                 )
             )
         );

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers.r1c;
 
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.controllers.r1b.AbstractOpalDefendantsIntegrationTest;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -65,6 +66,9 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     private static final short BUSINESS_UNIT_ID = 78;
     private static final short DIFFERENT_BUSINESS_UNIT_ID = 77;
     private static final String URL = URL_BASE + "/%d/consolidated-accounts";
+
+    @MockitoBean
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @MockitoBean
     private UserStateService userStateService;

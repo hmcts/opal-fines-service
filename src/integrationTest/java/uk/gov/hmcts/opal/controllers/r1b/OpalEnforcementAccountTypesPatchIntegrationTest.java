@@ -11,11 +11,13 @@ import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.entity.LowHighValue;
 import uk.gov.hmcts.opal.entity.enforcement.AccountType;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementAccountType;
@@ -40,6 +42,9 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
     executionPhase = ExecutionPhase.AFTER_TEST_METHOD
 )
 class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegrationWithSecurityTest {
+
+    @MockitoBean
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     protected static final String URL_BASE = "/enforcement-accounts-types";
 

@@ -10,8 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.entity.offence.OffenceEntity;
 import uk.gov.hmcts.opal.entity.offence.OffenceEntity_;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -39,6 +41,9 @@ class OffenceRepositoryIntegrationTest extends AbstractIntegrationTest {
 
     private static final long OFFENCE_ID = 990001L;
     private static final short BUSINESS_UNIT_ID = 951;
+
+    @MockitoBean
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @Autowired
     private OffenceRepository offenceRepository;

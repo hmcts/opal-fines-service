@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -278,17 +279,17 @@ class DraftAccountServiceTest {
             .timelineData(createTimelineDataString())
             .versionNumber(1L)
             .build();
-        when(draftAccountMapper.toResponseDto(updatedAccount)).thenReturn(
+        doReturn(
             DraftAccountResponseDto.builder()
-                .draftAccountId(draftAccountId)
-                .submittedBy("USER01")
-                .submittedByName("Normal User")
-                .account(createAccountString())
-                .accountType(DraftAccountType.FINE)
-                .accountStatus(DraftAccountStatus.RESUBMITTED)
-                .timelineData(createTimelineDataString())
-                .build()
-        );
+            .draftAccountId(draftAccountId)
+            .submittedBy("USER01")
+            .submittedByName("Normal User")
+            .account(createAccountString())
+            .accountType(DraftAccountType.FINE)
+            .accountStatus(DraftAccountStatus.RESUBMITTED)
+            .timelineData(createTimelineDataString())
+            .build()
+        ).when(draftAccountMapper).toResponseDto(updatedAccount);
         when(draftAccountTransactional.replaceDraftAccount(any(), any(), any(), any(), any(), any()))
             .thenReturn(updatedAccount);
         var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
@@ -364,8 +365,6 @@ class DraftAccountServiceTest {
             .build();
         when(draftAccountTransactional.replaceDraftAccount(any(), any(), any(), any(), any(), any()))
             .thenReturn(existingAccount);
-        when(userStateService.getUserStateV1FromSecurityContext())
-        when(draftAccountTransactional.replaceDraftAccount(any(), any(), any(), any())).thenReturn(existingAccount);
         when(userStateService.getUserStateFromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 

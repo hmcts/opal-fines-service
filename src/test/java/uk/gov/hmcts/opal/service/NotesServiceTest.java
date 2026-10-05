@@ -45,7 +45,6 @@ class NotesServiceTest {
     @Test
     void addNote_shouldThrowPermissionNotAllowedException_whenUserLacksPermission() {
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
-        when(accountNoteContextFactory.from(request.getActivityNote())).thenReturn(target);
         when(userState.hasBusinessUnitUserWithPermission(
             BUSINESS_UNIT_ID, FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES)).thenReturn(false);
 
@@ -61,7 +60,6 @@ class NotesServiceTest {
         String expectedResponse = "note-id-456";
 
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
-        when(accountNoteContextFactory.from(request.getActivityNote())).thenReturn(target);
         when(userState.hasBusinessUnitUserWithPermission(
             BUSINESS_UNIT_ID, FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES)).thenReturn(true);
         when(notesProxy.addNote(request, IF_MATCH, userState, BUSINESS_UNIT_ID)).thenReturn(expectedResponse);

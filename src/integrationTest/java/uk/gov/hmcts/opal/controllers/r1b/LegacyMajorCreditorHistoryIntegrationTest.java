@@ -40,6 +40,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse;
@@ -64,6 +65,9 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     private static final String AUTH_HEADER = "Bearer test-token";
     private static final String URL = "/major-creditor-accounts/{id}/history";
     private static final long MAJOR_CREDITOR_ACCOUNT_ID = 99264300000001L;
+
+    @MockitoBean
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @MockitoBean
     private UserStateService userStateService;

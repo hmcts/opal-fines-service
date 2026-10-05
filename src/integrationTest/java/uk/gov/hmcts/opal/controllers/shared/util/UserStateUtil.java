@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers.shared.util;
 
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static uk.gov.hmcts.opal.common.user.authorisation.model.Domain.FINES;
 
@@ -26,12 +27,12 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
 public class UserStateUtil {
 
-    public static final UserState noFinesPermissionUser() {
-        return UserState.builder()
+    public static final UserStateV2 noFinesPermissionUser() {
+        return UserStateV2.builder()
             .userId(999L)
-            .userName("no-permissions@users.com")
+            .username("no-permissions@users.com")
             .name("No Permissions User")
-            .businessUnitUser(emptySet())
+            .domains(emptyMap())
             .build();
     }
 
@@ -47,7 +48,7 @@ public class UserStateUtil {
         return allFinesPermissionsToken().getUserState();
     }
 
-    public static UserState noPermissionsUser() {
+    public static UserStateV2 noPermissionsUser() {
         return noFinesPermissionUser();
     }
 

@@ -20,9 +20,7 @@ public class NotesService {
     public String addNote(AddNoteRequest request, String ifMatch, Short businessUnitId) {
         log.debug(":addNote:");
 
-        AccountNoteContext target = accountNoteContextFactory.from(request.getActivityNote());
         UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (!userState.hasBusinessUnitUserWithPermission(
             businessUnitId, FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES)) {

@@ -27,6 +27,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountGetFixedPenaltyRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountGetFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.legacy.VehicleFixedPenaltyDetails;
@@ -37,6 +38,9 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @DisplayName("Legacy Defendant Account Fixed Penalty Integration Tests")
 @TestPropertySource(properties = {"launchdarkly.enabled=false", "launchdarkly.default-flag-values.release-1b=true"})
 public class LegacyDefAccountFixedPenaltyIntegrationTest extends AbstractIntegrationTest {
+
+    @MockitoBean
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     private static final String BASE_URL = "/defendant-accounts/";
 

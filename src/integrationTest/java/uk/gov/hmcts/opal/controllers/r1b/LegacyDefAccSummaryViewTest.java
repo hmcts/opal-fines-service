@@ -14,8 +14,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -25,6 +27,9 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Tag("ExtendedTest")
 @Slf4j(topic = "opal.LegacyDefAccSummaryViewTest")
 public class LegacyDefAccSummaryViewTest extends AbstractIntegrationWithSecurityTest {
+
+    @MockitoBean
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     private static final String DEFENDANT_ACCOUNTS_SUMMARY_URL = "/defendant-accounts/{id}/header-summary";
 
