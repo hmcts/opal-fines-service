@@ -1,9 +1,9 @@
-package uk.gov.hmcts.opal.repository;
+package uk.gov.hmcts.opal.repository.extensions;
 
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface InterfaceJobProcRepository {
+public interface InterfaceJobProcessPaymentsRepository {
     Long processPaymentsInJob(Long interfaceJobId,
                               Short businessUnitId,
                               String postedBy,

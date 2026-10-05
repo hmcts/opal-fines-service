@@ -8,10 +8,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 import uk.gov.hmcts.opal.entity.InterfaceJobEntity;
+import uk.gov.hmcts.opal.repository.extensions.InterfaceJobProcessPaymentsRepository;
 
 @Repository
 public interface InterfaceJobRepository extends JpaRepository<InterfaceJobEntity, Long>,
-    JpaSpecificationExecutor<InterfaceJobEntity>, InterfaceJobProcRepository {
+    JpaSpecificationExecutor<InterfaceJobEntity>, InterfaceJobProcessPaymentsRepository {
 
     @Override
     @EntityGraph(attributePaths = {"businessUnit", "interfaceFiles"})

@@ -21,11 +21,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.stereotype.Repository;
-import uk.gov.hmcts.opal.repository.InterfaceJobProcRepository;
 
 @Repository
 @RequiredArgsConstructor
-public class InterfaceJobProcRepositoryImpl implements InterfaceJobProcRepository {
+public class InterfaceJobProcessPaymentsRepositoryImpl implements InterfaceJobProcessPaymentsRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
