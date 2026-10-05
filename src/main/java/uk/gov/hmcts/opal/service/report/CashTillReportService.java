@@ -38,6 +38,13 @@ public class CashTillReportService implements ReportInterface<CashTillReportData
 
     private static final String REPORT_NAME = "Cash Till report";
     private static final Sort PAYMENT_DATE_DESC = Sort.by(Sort.Direction.DESC, PaymentInEntity_.PAYMENT_DATE);
+    private static final List<String> HEADINGS = List.of(
+        CashTillField.BUSINESS_UNIT.label(), CashTillField.CASH_TILL_NUMBER.label(),
+        CashTillField.CASHIER.label(), CashTillField.DATE.label(), CashTillField.TYPE.label(),
+        CashTillField.DETAILS.label(), CashTillField.PAYMENT_TYPE.label(), CashTillField.AMOUNT.label(),
+        CashTillField.RECEIPT.label(), CashTillField.BALANCE.label());
+    private static final String AUTO_CASH_INPUT_SUFFIX = " - Auto cash input";
+    private static final String ALLOCATED_PAYMENT_PREFIX = "*";
     private static final String CASH_TILL_REPORT_PARAMETERS_ERROR = "Failed to parse Cash Till report parameters";
 
     private final ObjectMapper objectMapper;
@@ -70,8 +77,9 @@ public class CashTillReportService implements ReportInterface<CashTillReportData
     @Override
     public byte[] convertReportDataToFileType(ReportInstanceEntity reportInstance, CashTillReportData reportData,
         FileType fileType) {
-        throw new IllegalArgumentException("Cash Till report only supports CSV conversion");
-    }
+        if (fileType != CSV) {
+            throw new IllegalArgumentException("Cash Till report only supports CSV conversion");
+        }
 
         validateReportData(reportData);
         StringBuilder csv = new StringBuilder(String.join(COMMA, HEADINGS)).append(NEW_LINE);

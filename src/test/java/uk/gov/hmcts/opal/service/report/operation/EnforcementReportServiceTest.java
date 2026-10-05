@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.report.operation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -296,6 +297,19 @@ class EnforcementReportServiceTest {
     void convertReportDataToFileType_detailedReport_throwsUnsupportedType() {
         assertThatThrownBy(() -> service.convertReportDataToFileType(new ReportInstanceEntity(), mappedDetailedReport,
             FileType.CSV))
+            .isInstanceOf(UnsupportedContentTypeException.class)
+            .hasMessage("Content type DETAILED CSV is not supported for operational_report_enforcement. Supported "
+                + "content types: SUMMARY CSV");
+    }
+
+    @Test
+    void validateReportDataForFileType_summaryCsv_isAllowed() {
+        assertDoesNotThrow(() -> service.validateReportDataForFileType(FileType.CSV, mappedSummaryReport));
+    }
+
+    @Test
+    void validateReportDataForFileType_detailedCsv_throwsUnsupportedType() {
+        assertThatThrownBy(() -> service.validateReportDataForFileType(FileType.CSV, mappedDetailedReport))
             .isInstanceOf(UnsupportedContentTypeException.class)
             .hasMessage("Content type DETAILED CSV is not supported for operational_report_enforcement. Supported "
                 + "content types: SUMMARY CSV");

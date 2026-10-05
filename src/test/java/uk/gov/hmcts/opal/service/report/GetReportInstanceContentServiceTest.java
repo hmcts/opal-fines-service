@@ -240,6 +240,7 @@ class GetReportInstanceContentServiceTest {
                 () -> assertEquals(LocalDateTime.now(clock), fileEntity.getValue().getCreatedTimestamp()),
                 () -> assertEquals(LocalDateTime.now(clock), fileEntity.getValue().getLastAccessedTimestamp()),
                 () -> verify(reportInterfaceImplementation, never()).generateReportData(reportInstance),
+                () -> verify(reportInterfaceImplementation).validateReportDataForFileType(CSV, reportData),
                 () -> verify(csvService).convertReportDtoToCSV(reportData),
                 () -> verify(reportInterfaceImplementation, never())
                     .convertReportDataToFileType(reportInstance, reportData, CSV)
