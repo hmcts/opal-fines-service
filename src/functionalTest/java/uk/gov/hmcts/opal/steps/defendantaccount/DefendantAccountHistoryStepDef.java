@@ -320,6 +320,32 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     }
 
     /**
+     * Asserts an enforcement history item exposes the hearing court and date saved with that enforcement.
+     *
+     * @param enforcementAction expected enforcement result ID.
+     * @param expectedCourtId expected resolved court ID.
+     * @param expectedHearingDate expected hearing date in ISO-8601 date format.
+     * @throws JacksonException if the history response body cannot be parsed.
+     */
+    @Then("the defendant account history contains enforcement action {string} with hearing court id {long} "
+        + "and hearing date {string}")
+    public void defendantAccountHistoryContainsEnforcementWithHearingDetails(
+        String enforcementAction,
+        long expectedCourtId,
+        String expectedHearingDate
+    ) throws JacksonException {
+        JsonNode enforcementDetails = historyItems().stream()
+            .filter(item -> "Enforcement".equals(typeOf(item)))
+            .map(item -> item.path("details"))
+            .filter(details -> enforcementAction.equals(details.path("enforcementAction").asString()))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("Expected enforcement action " + enforcementAction));
+
+        assertEquals(expectedCourtId, enforcementDetails.path("hearingCourt").path("court_id").asLong());
+        assertEquals(expectedHearingDate, enforcementDetails.path("hearingDate").asString());
+    }
+
+    /**
      * Asserts the latest history response contains amendment history.
      *
      * @throws JacksonException if the response body cannot be parsed as JSON.
