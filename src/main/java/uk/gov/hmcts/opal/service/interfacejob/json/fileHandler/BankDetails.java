@@ -12,8 +12,7 @@ import lombok.Setter;
 
 @Getter
 @AllArgsConstructor
-public class
-BankDetails {
+public class BankDetails {
     private String accountNumber;
     private String sortCode;
     private String name;
