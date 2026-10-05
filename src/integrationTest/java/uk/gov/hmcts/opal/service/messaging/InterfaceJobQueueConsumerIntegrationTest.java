@@ -161,9 +161,9 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("PO-2592 INT.01/INT.03 - PO-8943 INT.01 Processing message completes job and creates cash till output")
+    @DisplayName("PO-2592 INT.01/INT.03 - PO-8943 AC1 Processing message completes job and creates cash till output")
     @JiraStory("PO-2592") // INT.01 and INT.03
-    @JiraStory("PO-8943") // INT.01
+    @JiraStory("PO-8943") // AC1
     @JiraEpic("PO-2468")
     void int01ValidProcessingMessageInvokesPaymentsInProcedureOnce() throws JMSException {
         listener.onMessage(validTextMessage);
