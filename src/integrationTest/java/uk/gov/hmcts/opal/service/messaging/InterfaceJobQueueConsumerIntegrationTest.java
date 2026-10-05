@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.messaging;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.notFound;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -17,6 +18,7 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import jakarta.jms.JMSException;
@@ -66,6 +68,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     // amount_pence = 0 makes p_int_payments_in succeed without returning a till_id, which drives the IGNORED branch.
     private static final String WIREMOCK_STATE__TRIGGER_IGNORED = "Trigger Ignored";
     private static final String WIREMOCK_STATE__TRIGGER_UNMATCHED_ORIGINATOR = "Trigger Unmatched Originator";
+    private static final String WIREMOCK_STATE__UNEXPECTED_RESPONSE = "Unexpected Response";
 
     @Autowired
     protected InterfaceJobRepository interfaceJobRepository;
@@ -146,6 +149,11 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
             .willReturn(aResponse()
                 .withStatus(200)
                 .withBodyFile("interface-files/content/140000_trigger_unmatched_originator.json")));
+
+        fhWireMockServer.stubFor(get(urlEqualTo(interfaceFileContentUrl))
+            .inScenario(WIREMOCK_INTERFACE_JOB_QUEUE_SCENARIO)
+            .whenScenarioStateIs(WIREMOCK_STATE__UNEXPECTED_RESPONSE)
+            .willReturn(notFound()));
     }
 
     @Autowired
@@ -360,6 +368,23 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
 
     // INT.12
     // Unable to write this as a local integration test because it uses the real queue directly.
+
+
+    @Test
+    @DisplayName("PO-8943 AC3: Process should fail when the file handling service returns an unexpected response")
+    @JiraStory("PO-8943")
+    @JiraEpic("PO-3497")
+    void processFailsWhenFileHandlerServiceReturnsUnexpectedResponse() {
+        fhWireMockServer.setScenarioState(WIREMOCK_INTERFACE_JOB_QUEUE_SCENARIO, WIREMOCK_STATE__UNEXPECTED_RESPONSE);
+        assertThatCode(() -> listener.onMessage(validTextMessage))
+            .doesNotThrowAnyException();
+
+        InterfaceJobEntity savedJob = interfaceJobRepository.findById(INTERFACE_JOB_ID)
+            .orElseThrow();
+        assertThat(savedJob.getStatus()).isEqualTo(InterfaceJobStatus.FAILED);
+        assertThat(savedJob.getCompletedDateTime()).isNotNull();
+        helper.assertNoSideEffects();
+    }
 
     private void assertCommitBoundary(InterfaceJobStatus expectedStatus, boolean expectReportSideEffects)
         throws Exception {
