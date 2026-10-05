@@ -7,12 +7,10 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class InterfaceFileCommonDataExtract {
-
     private String fileName;
     private DestinationDetails destinationDetails;
     private String paymentType;
     private List<Transaction> transactions;
     private String dwpCourtCode;
-
 }
 
