@@ -98,9 +98,6 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
         "access_token", "token-value"
     );
 
-    @Rule
-    WireMockRule wmClasspathRule = new WireMockRule(options().usingFilesUnderClasspath("wiremock"));
-
     @RegisterExtension
     static WireMockExtension authWireMockServer = WireMockExtension.newInstance()
         .options(wireMockConfig().dynamicPort())
