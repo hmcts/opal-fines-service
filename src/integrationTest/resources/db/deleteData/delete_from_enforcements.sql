@@ -25,7 +25,7 @@ DELETE FROM debtor_detail
 WHERE party_id = 77;
 
 DELETE FROM payment_terms
-WHERE defendant_account_id = 77;
+WHERE defendant_account_id IN (77, 78, 79);
 
 DELETE FROM notes
 WHERE associated_record_type = 'defendant_accounts'

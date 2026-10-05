@@ -1,0 +1,37 @@
+NOTICE:  === Cleanup data before tests ===
+NOTICE:  trigger "p_insert_suspense_item_unit_test_force_unique_violation" for relation "suspense_item_number_index" does not exist, skipping
+NOTICE:  function p_insert_suspense_item_unit_test_force_unique_violation() does not exist, skipping
+NOTICE:  Cleanup completed
+NOTICE:  === Setting up test data ===
+NOTICE:  Test data setup completed
+NOTICE:  === TEST 1: Insert a suspense item without a court fee ===
+NOTICE:  TEST 1 PASSED
+NOTICE:  === TEST 2: Allocate the next item number and populate the court fee ===
+NOTICE:  TEST 2 PASSED
+NOTICE:  === TEST 3: Allocate item numbers independently for each business unit ===
+NOTICE:  TEST 3 PASSED
+NOTICE:  === TEST 4: Reject a NULL suspense item type ===
+NOTICE:  Expected error caught: P3301 - pi_suspense_item_type must be provided
+NOTICE:  TEST 4 PASSED
+NOTICE:  === TEST 5: Reject a NULL business unit ID ===
+NOTICE:  Expected error caught: P3302 - pi_business_unit_id must be provided
+NOTICE:  TEST 5 PASSED
+NOTICE:  === TEST 6: Reject a business unit with no suspense account ===
+NOTICE:  Expected error caught: P3303 - No suspense account found for business_unit_id 9993
+NOTICE:  TEST 6 PASSED
+NOTICE:  === TEST 7: Reject a court fee received ID that does not exist ===
+NOTICE:  Expected error caught: P3304 - court_fees_received record 999900000099 was not found
+NOTICE:  TEST 7 PASSED
+NOTICE:  === TEST 8: Stop retrying after five unique violations ===
+WARNING:  Unique violation inserting suspense_item_number = 100001, business_unit_id = 9992. Error: 23505 - forced unique violation
+WARNING:  Unique violation inserting suspense_item_number = 100001, business_unit_id = 9992. Error: 23505 - forced unique violation
+WARNING:  Unique violation inserting suspense_item_number = 100001, business_unit_id = 9992. Error: 23505 - forced unique violation
+WARNING:  Unique violation inserting suspense_item_number = 100001, business_unit_id = 9992. Error: 23505 - forced unique violation
+WARNING:  Unique violation inserting suspense_item_number = 100001, business_unit_id = 9992. Error: 23505 - forced unique violation
+NOTICE:  Expected error caught: P3305 - Unique violation inserting suspense_item_number = 100001, business_unit_id = 9992. Error: 23505 - forced unique violation
+NOTICE:  TEST 8 PASSED
+NOTICE:  === Cleanup test data ===
+NOTICE:  Test data cleanup completed
+DO
+
+Query returned successfully in 54 msec.
