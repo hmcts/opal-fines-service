@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -13,6 +15,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import java.math.BigInteger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,6 +29,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.client.HttpClientErrorException;
+import org.wiremock.spring.InjectWireMock;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountGetFixedPenaltyRequest;
@@ -43,6 +48,9 @@ public class LegacyDefAccountFixedPenaltyIntegrationTest extends AbstractIntegra
     @MockitoBean
     private GatewayService gatewayService;
 
+    @InjectWireMock("user-service")
+    private WireMockServer userServiceWireMock;
+
     @Test
     @JiraEpic("PO-1676")
     @JiraStory("PO-10338")
@@ -56,8 +64,7 @@ public class LegacyDefAccountFixedPenaltyIntegrationTest extends AbstractIntegra
             .thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse(), null, null));
 
         ResultActions resultActions = mockMvc.perform(get(BASE_URL + 12345L + "/fixed-penalty")
-            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-            .header("authorization", userStateStub.getBearerToken())
+            .header("authorization", "Bearer " + AUTH_HEADER)
             .accept(MediaType.APPLICATION_JSON));
 
         resultActions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -78,9 +85,15 @@ public class LegacyDefAccountFixedPenaltyIntegrationTest extends AbstractIntegra
     @JiraStory("PO-10338")
     @DisplayName("LEGACY: Get Defendant Account Fixed Penalty Returns 403 Response")
     void getDefendantAccountFixedPenalty_returnsForbidden() throws Exception {
+        userServiceWireMock.stubFor(WireMock.get(urlPathEqualTo("/v2/users/0/state"))
+            .atPriority(1).willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBodyFile("UserService/user-state-no-permissions.json")));
+
         ResultActions resultActions = mockMvc.perform(get(BASE_URL + 999999L + "/fixed-penalty")
-            .with(userStateStub.getInvalidAuthenticaitonRequestPostProcessor())
-            .header("authorization", userStateStub.getBearerToken())
+            .header("authorization", "Bearer " + AUTH_HEADER)
             .accept(MediaType.APPLICATION_JSON));
 
         resultActions.andExpect(status().isForbidden())
@@ -101,8 +114,7 @@ public class LegacyDefAccountFixedPenaltyIntegrationTest extends AbstractIntegra
                 null));
 
         ResultActions resultActions = mockMvc.perform(get(BASE_URL + 999999L + "/fixed-penalty")
-            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-            .header("authorization", userStateStub.getBearerToken())
+            .header("authorization", "Bearer " + AUTH_HEADER)
             .accept(MediaType.APPLICATION_JSON));
 
         resultActions.andExpect(status().isNotFound())

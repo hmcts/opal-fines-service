@@ -16,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -26,6 +27,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import org.wiremock.spring.InjectWireMock;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -39,6 +41,9 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
 
     private static final String UPDATE_DEFENDANT_ACCOUNT = "updateDefendantAccount";
 
+    @InjectWireMock("user-service")
+    private WireMockServer userServiceWireMock;
+
     @Test
     @DisplayName("LEGACY: PATCH Update Defendant Account - Update Comment Notes [@PO-1908]")
     @JiraStory("PO-1908")
@@ -48,7 +53,7 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
         Integer currentVersion = versionFor(77L);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.setBearerAuth(AUTH_HEADER);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, String.valueOf(currentVersion));
 
@@ -59,13 +64,10 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
             "patch DefAcc note three legacy test"
         );
 
-        ResultActions resultActions = mockMvc.perform(
-                patch(URL_BASE + "/77")
-                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                    .headers(headers)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(requestJson)
-            )
+        ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/77")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson))
             .andDo(MockMvcResultHandlers.print());
 
         String etag = resultActions.andReturn().getResponse().getHeader("ETag");
@@ -94,7 +96,7 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
         Integer currentVersion = versionFor(77L);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.setBearerAuth(AUTH_HEADER);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, String.valueOf(currentVersion));
 
@@ -105,15 +107,11 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
             "legacy gateway note three"
         );
 
-        mockMvc.perform(
-                patch(URL_BASE + "/77")
-                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                    .headers(headers)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(requestJson)
-            )
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+        mockMvc.perform(patch(URL_BASE + "/77")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson))
+            .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
         WireMock.verify(1, postRequestedFor(urlPathEqualTo("/opal"))
             .withQueryParam("actionType", equalTo(UPDATE_DEFENDANT_ACCOUNT))
@@ -148,13 +146,10 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
             "patch DefAcc note three legacy test"
         );
 
-        ResultActions actions = mockMvc.perform(
-            patch(URL_BASE + "/400")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestJson)
-        );
+        ResultActions actions = mockMvc.perform(patch(URL_BASE + "/400")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(requestJson));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":Legacy_UpdateDefendantAccount_CommentNotes_400Error body:\n{}", ToJsonString.toPrettyJson(body));
@@ -170,7 +165,12 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
     @JiraEpic("PO-812")
     @JiraTestKey("PO-5910")
     void testUpdateDefAcc_CommentNotes_403Forbidden() throws Exception {
-        userStateStub.setupWithNoPermissions();
+        userServiceWireMock.stubFor(WireMock.get(urlPathEqualTo("/v2/users/0/state"))
+            .atPriority(1).willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBodyFile("UserService/user-state-no-permissions.json")));
 
         String requestJson = commentAndNotesPayload(
             "patch DefAcc comment legacy test",
@@ -179,15 +179,11 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
             "patch DefAcc note three legacy test"
         );
 
-        mockMvc.perform(
-                patch(URL_BASE + "/77")
-                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                    .header("authorization", userStateStub.getBearerToken())
-                    .header("Business-Unit-Id", "78")
-                    .header(HttpHeaders.IF_MATCH, "0")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(requestJson)
-            )
+        mockMvc.perform(patch(URL_BASE + "/77")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
+                .header("Business-Unit-Id", "78")
+                .header(HttpHeaders.IF_MATCH, "0")
+                .contentType(MediaType.APPLICATION_JSON).content(requestJson))
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
             .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"))
@@ -212,8 +208,7 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
 
         ResultActions actions = mockMvc.perform(
             patch(URL_BASE + "/77")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
                 .header("Business-Unit-Id", "78")
                 .header(HttpHeaders.IF_MATCH, "0")
                 .contentType(MediaType.APPLICATION_JSON)
