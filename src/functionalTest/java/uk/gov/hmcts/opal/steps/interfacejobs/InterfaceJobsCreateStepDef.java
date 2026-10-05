@@ -131,6 +131,8 @@ public class InterfaceJobsCreateStepDef extends BaseStepDef {
                  "interface_jobs": [
                    {
                      "file_name": "e2e-interface-jobs-ok.dat",
+                     "record_count": 1,
+                     "total_amount": 123.45,
                      "source": "NATWEST",
                      "records": "[{\\"account\\":\\"abc123\\"}]",
                      "business_unit_id": %d,
@@ -148,6 +150,8 @@ public class InterfaceJobsCreateStepDef extends BaseStepDef {
                  "interface_jobs": [
                    {
                      "file_name": "e2e-interface-jobs-1.dat",
+                     "record_count": 1,
+                     "total_amount": 123.45,
                      "source": "NATWEST",
                      "records": "[{\\"account\\":\\"abc123\\"}]",
                      "business_unit_id": 78,
@@ -156,6 +160,8 @@ public class InterfaceJobsCreateStepDef extends BaseStepDef {
                    },
                    {
                      "file_name": "e2e-interface-jobs-2.dat",
+                     "record_count": 1,
+                     "total_amount": 123.45,
                      "source": "NATWEST",
                      "records": "[{\\"account\\":\\"abc123\\"}]",
                      "business_unit_id": 99999,

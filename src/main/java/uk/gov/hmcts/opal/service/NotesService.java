@@ -17,7 +17,7 @@ public class NotesService {
     private final NotesProxy notesProxy;
     private final UserStateService userStateService;
 
-    public String addNote(AddNoteRequest request, String ifMatch, Short businessUnitId) {
+    public String addNote(AddNoteRequestNotes request, String ifMatch, Short businessUnitId) {
         log.debug(":addNote:");
 
         UserStateV2 userState = userStateService.getUserStateFromSecurityContext();

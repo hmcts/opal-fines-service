@@ -10,28 +10,28 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.dto.AddNoteRequest;
+import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
 import uk.gov.hmcts.opal.service.NotesService;
 
 
 @ExtendWith(MockitoExtension.class)
-class NotesControllerTest {
+class NotesApiControllerTest {
 
     @Mock
     private NotesService notesService;
 
     @InjectMocks
-    private NotesController controller;
+    private NotesApiController controller;
 
     @Test
     void addNote_returnsCreatedResponse() {
-        AddNoteRequest request = new AddNoteRequest();
+        AddNoteRequestNotes request = new AddNoteRequestNotes();
         String ifMatch = "etag-123";
         short businessUnitId = 7;
         when(notesService.addNote(request, ifMatch, businessUnitId))
             .thenReturn("note-created");
 
-        ResponseEntity<String> response = controller.addNote(request, ifMatch, businessUnitId);
+        ResponseEntity<String> response = controller.addNote(businessUnitId, ifMatch, request);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals("note-created", response.getBody());

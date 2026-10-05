@@ -38,6 +38,8 @@ public class TestingSupportEndpointToggleIntegrationTest extends AbstractFeature
                 withAuth(get("/testing-support/user-client/0"))),
             args("DELETE /testing-support/defendant-accounts/{defendantAccountId}",
                 withAuth(delete("/testing-support/defendant-accounts/1"))),
+            args("DELETE /testing-support/report-instances",
+                withAuth(delete("/testing-support/report-instances").queryParam("ids", "1"))),
 
             // CreateFineAccountsController
             args("POST /s2s/create-fine-accounts",

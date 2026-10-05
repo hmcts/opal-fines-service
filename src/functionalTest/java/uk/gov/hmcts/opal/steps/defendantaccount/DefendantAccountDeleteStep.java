@@ -53,6 +53,13 @@ public class DefendantAccountDeleteStep extends BaseStepDef {
      * @return defendant-account identifiers linked to the created draft accounts.
      */
     private List<Long> getDefendantAccountIdsFromDraftAccounts() {
+        List<String> defendantAccounts = scenarioContext().getCreatedDefendantAccountIds();
+        if (defendantAccounts != null && !defendantAccounts.isEmpty()) {
+            return defendantAccounts.stream()
+                .map(Long::valueOf)
+                .collect(Collectors.toList());
+        }
+
         List<String> draftAccounts = scenarioContext().getDraftAccountIds();
         if (draftAccounts == null || draftAccounts.isEmpty()) {
             return Collections.emptyList();

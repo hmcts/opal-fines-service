@@ -6,4 +6,6 @@ public interface ReportBlobStore {
 
     String getReport(String reportId);
 
+    void deleteReport(String reportId);
+
 }

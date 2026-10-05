@@ -15,6 +15,7 @@ import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyNote;
+import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
 import uk.gov.hmcts.opal.service.iface.NotesServiceInterface;
 
 @Service
@@ -97,6 +98,19 @@ public class LegacyNotesService implements NotesServiceInterface {
         }
 
         throw new IllegalArgumentException("Legacy gateway error: " + response.code);
+    }
+
+    private LegacyAddNoteRequest createRequest(AddNoteRequestNotes request, String version, UserState user,
+                                               Short businessUnitId) {
+
+        LegacyNote note = LegacyNote.builder().noteText(request.getActivityNote().getNoteText())
+            .noteType(request.getActivityNote().getNoteType().getValue())
+            .recordType(RecordType.valueOf(request.getActivityNote().getRecordType().name()))
+            .recordId(request.getActivityNote().getRecordId()).build();
+
+        return LegacyAddNoteRequest.builder().businessUnitId(businessUnitId.toString())
+            .businessUnitUserId(getBusinessUnitUserId(user, businessUnitId))
+            .version(extractBigInteger(version)).activityNote(note).build();
     }
 
     private String legacyFailureMessage(ErrorResponse errorResponse) {

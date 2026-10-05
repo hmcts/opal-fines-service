@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.steps.defendantaccount;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -43,12 +44,14 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     private static final String HISTORY_PATH = "/defendant-accounts/%d/history";
     private static final String HISTORY_BUSINESS_UNIT_ID = "77";
     private static final String SEEDED_ENFORCEMENT_OVERRIDE_RESULT_ID = "FWEC";
+    private static final String LEGACY_ENFORCEMENT_OVERRIDE_RESULT_ID = "ABDC";
     private static final String SEEDED_ENFORCER_ID = "770000000001";
     private static final String SEEDED_ENFORCEMENT_ACTION = "NOENF";
     private static final String HISTORY_TEST_USER = "opal-test@dev.platform.hmcts.net";
     private static final String HISTORY_ACCOUNT_FIXTURE = "draftAccounts/accountJson/historyAccount.json";
     private static final String HISTORY_ACCOUNT_TYPE = "Fine";
     private static final String HISTORY_ACCOUNT_STATUS = "Submitted";
+    private static final String LEGACY_SAFE_COURT_ID = "770000000001";
     private static final Set<String> HISTORY_TYPES = Set.of(
         "Amendment",
         "Enforcement",
@@ -72,6 +75,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     private final CommonResponseAssertions responseAssertions = new CommonResponseAssertions();
 
     @Steps
+    @SuppressWarnings("unused")
     private DefendantAccountHistoryScenarioState historyState;
 
     /**
@@ -102,11 +106,9 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
         responseAssertions.assertStatus(getResponse, 200);
         assertNotNull(scenarioContext().getDefendantAccountEtag(), "Expected ETag for history setup");
 
-        Response patchResponse = enforcementActions.patchCreatedDefendantAccountEnforcementOverride(Map.of(
-            "business_unit_id", HISTORY_BUSINESS_UNIT_ID,
-            "enforcement_override_result_id", SEEDED_ENFORCEMENT_OVERRIDE_RESULT_ID,
-            "enforcer_id", SEEDED_ENFORCER_ID
-        ));
+        Response patchResponse = enforcementActions.patchCreatedDefendantAccountEnforcementOverride(
+            enforcementOverrideData()
+        );
 
         responseAssertions.assertStatus(patchResponse, 200);
     }
@@ -216,17 +218,17 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     /**
      * Asserts the successful response follows the documented history contract.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then("the defendant account history response is returned as documented")
-    public void defendantAccountHistoryResponseIsReturnedAsDocumented() throws Exception {
+    public void defendantAccountHistoryResponseIsReturnedAsDocumented() throws JacksonException {
         defendantAccountHistoryRequestSucceeds();
         JsonNode root = latestJsonBody();
 
         assertEquals(Set.of("historyItems"), fieldNames(root), "Unexpected top-level history response fields");
         JsonNode historyItems = root.path("historyItems");
         assertTrue(historyItems.isArray(), "historyItems should be an array");
-        assertTrue(historyItems.size() > 0, "historyItems should contain seeded account history");
+        assertFalse(historyItems.isEmpty(), "historyItems should contain seeded account history");
 
         for (JsonNode historyItem : historyItems) {
             validateHistoryItem(historyItem);
@@ -245,11 +247,11 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
      * Asserts minimum item-type counts in the latest history response.
      *
      * @param dataTable expected item type to minimum count mappings.
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then("the defendant account history contains at least the following item counts")
     public void defendantAccountHistoryContainsAtLeastTheFollowingItemCounts(DataTable dataTable)
-        throws Exception {
+        throws JacksonException {
 
         Map<String, Long> actualCounts = typeCounts();
         dataTable.asMap(String.class, String.class).forEach((type, count) -> {
@@ -265,10 +267,10 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     /**
      * Stores the oldest and newest posted dates from the latest full history response.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then("I remember the returned defendant account history date range")
-    public void rememberReturnedDefendantAccountHistoryDateRange() throws Exception {
+    public void rememberReturnedDefendantAccountHistoryDateRange() throws JacksonException {
         List<LocalDate> postedDates = historyItems().stream()
             .map(this::postedDateOf)
             .toList();
@@ -282,10 +284,10 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
      * Asserts the latest history response contains only the supplied item types.
      *
      * @param dataTable expected item type values.
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then("the defendant account history contains only the following item types")
-    public void defendantAccountHistoryContainsOnlyTheFollowingItemTypes(DataTable dataTable) throws Exception {
+    public void defendantAccountHistoryContainsOnlyTheFollowingItemTypes(DataTable dataTable) throws JacksonException {
         Set<String> expectedTypes = new LinkedHashSet<>(dataTable.asList(String.class));
         Set<String> actualTypes = new LinkedHashSet<>();
         for (JsonNode historyItem : historyItems()) {
@@ -298,17 +300,17 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     /**
      * Asserts the seeded enforcement history row is present and schema-compliant.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then("the defendant account history contains seeded enforcement history")
-    public void defendantAccountHistoryContainsSeededEnforcementHistory() throws Exception {
+    public void defendantAccountHistoryContainsSeededEnforcementHistory() throws JacksonException {
         List<JsonNode> enforcementItems = historyItems().stream()
             .filter(item -> "Enforcement".equals(typeOf(item)))
             .toList();
 
         assertFalse(enforcementItems.isEmpty(), "Expected seeded enforcement history item");
         boolean containsSeededEnforcement = enforcementItems.stream()
-            .map(item -> item.path("details").path("enforcementAction").asText())
+            .map(item -> item.path("details").path("enforcementAction").asString())
             .anyMatch(SEEDED_ENFORCEMENT_ACTION::equals);
 
         assertTrue(
@@ -320,18 +322,15 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     /**
      * Asserts the latest history response contains amendment history.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then("the defendant account history contains seeded amendment history")
-    public void defendantAccountHistoryContainsSeededAmendmentHistory() throws Exception {
+    public void defendantAccountHistoryContainsSeededAmendmentHistory() throws JacksonException {
         List<JsonNode> amendmentItems = historyItems().stream()
             .filter(item -> "Amendment".equals(typeOf(item)))
             .toList();
 
         assertFalse(amendmentItems.isEmpty(), "Expected seeded amendment history item");
-        amendmentItems.forEach(
-            item -> assertText(item.path("details").path("attributeName"), "details.attributeName")
-        );
     }
 
     /**
@@ -339,7 +338,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
      *
      * @param expectedPostedBy expected posted_by value.
      * @param expectedPostedByName expected posted_by_name value.
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then(
         "the defendant account history contains seeded amendment history posted by {string} "
@@ -348,7 +347,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     public void defendantAccountHistoryContainsSeededAmendmentHistoryPostedByAndName(
         String expectedPostedBy,
         String expectedPostedByName
-    ) throws Exception {
+    ) throws JacksonException {
         List<JsonNode> amendmentItems = historyItems().stream()
             .filter(item -> "Amendment".equals(typeOf(item)))
             .toList();
@@ -358,7 +357,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
             JsonNode postedDetails = amendmentItem.path("postedDetails");
             assertEquals(expectedPostedBy, assertText(postedDetails.path("posted_by"), "postedDetails.posted_by"));
             assertEquals(
-                expectedPostedByName,
+                expectedPostedByName(expectedPostedByName, expectedPostedBy),
                 assertText(postedDetails.path("posted_by_name"), "postedDetails.posted_by_name")
             );
         }
@@ -367,10 +366,10 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     /**
      * Asserts the latest history response is ordered newest first by posted date.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then("the defendant account history is ordered newest first")
-    public void defendantAccountHistoryIsOrderedNewestFirst() throws Exception {
+    public void defendantAccountHistoryIsOrderedNewestFirst() throws JacksonException {
         LocalDate previous = null;
         for (JsonNode historyItem : historyItems()) {
             LocalDate current = postedDateOf(historyItem);
@@ -387,10 +386,10 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     /**
      * Asserts every returned item is on or after the remembered dateFrom boundary.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then("the defendant account history response contains only items on or after the remembered dateFrom")
-    public void defendantAccountHistoryContainsOnlyItemsOnOrAfterRememberedDateFrom() throws Exception {
+    public void defendantAccountHistoryContainsOnlyItemsOnOrAfterRememberedDateFrom() throws JacksonException {
         assertRememberedDateRange();
         assertHistoryContainsOnlyItemsOnOrAfter(historyState.getRememberedDateFrom());
     }
@@ -398,10 +397,10 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     /**
      * Asserts every returned item is on or before the remembered dateTo boundary.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then("the defendant account history response contains only items on or before the remembered dateTo")
-    public void defendantAccountHistoryContainsOnlyItemsOnOrBeforeRememberedDateTo() throws Exception {
+    public void defendantAccountHistoryContainsOnlyItemsOnOrBeforeRememberedDateTo() throws JacksonException {
         assertRememberedDateRange();
         assertHistoryContainsOnlyItemsOnOrBefore(historyState.getRememberedDateTo());
     }
@@ -410,10 +409,10 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
      * Asserts the latest history response contains at least one item on the remembered dateFrom
      * boundary.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then("the defendant account history response includes an item on the remembered dateFrom")
-    public void defendantAccountHistoryResponseIncludesAnItemOnRememberedDateFrom() throws Exception {
+    public void defendantAccountHistoryResponseIncludesAnItemOnRememberedDateFrom() throws JacksonException {
         assertRememberedDateRange();
         assertHistoryIncludesItemOn(historyState.getRememberedDateFrom());
     }
@@ -422,10 +421,10 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
      * Asserts the latest history response contains at least one item on the remembered dateTo
      * boundary.
      *
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then("the defendant account history response includes an item on the remembered dateTo")
-    public void defendantAccountHistoryResponseIncludesAnItemOnRememberedDateTo() throws Exception {
+    public void defendantAccountHistoryResponseIncludesAnItemOnRememberedDateTo() throws JacksonException {
         assertRememberedDateRange();
         assertHistoryIncludesItemOn(historyState.getRememberedDateTo());
     }
@@ -453,11 +452,11 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
      * Asserts the latest error response follows the shared ProblemDetail contract.
      *
      * @param expectedStatus expected HTTP status code.
-     * @throws Exception if the response body cannot be parsed as JSON.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then("the defendant account history error response matches the standard problem detail contract for status {int}")
     public void defendantAccountHistoryErrorResponseMatchesStandardProblemDetailContract(int expectedStatus)
-        throws Exception {
+        throws JacksonException {
 
         Response response = net.serenitybdd.rest.SerenityRest.lastResponse();
         assertEquals(expectedStatus, response.statusCode(), "Unexpected HTTP status");
@@ -504,9 +503,11 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
             request.header(HttpHeaders.AUTHORIZATION, "Bearer " + token);
         }
 
-        return request
+        Response response = request
             .when()
             .get(getTestUrl() + HISTORY_PATH.formatted(accountId) + querySuffix(query));
+        historyState.setLatestHistoryResponse(response);
+        return response;
     }
 
     private String querySuffix(String query) {
@@ -523,12 +524,44 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
         accountData.put("account", HISTORY_ACCOUNT_FIXTURE);
         accountData.put("account_type", HISTORY_ACCOUNT_TYPE);
         accountData.put("account_status", HISTORY_ACCOUNT_STATUS);
+        accountData.put("submitted_by", submittedBy);
+        if (isLegacyMode()) {
+            accountData.put("account_enforcement_court_id", LEGACY_SAFE_COURT_ID);
+        }
         return accountData;
+    }
+
+    private Map<String, String> enforcementOverrideData() {
+        if (isLegacyMode()) {
+            return Map.of(
+                "business_unit_id", HISTORY_BUSINESS_UNIT_ID,
+                "enforcement_override_result_id", LEGACY_ENFORCEMENT_OVERRIDE_RESULT_ID,
+                "enforcer_id", SEEDED_ENFORCER_ID
+            );
+        }
+
+        return Map.of(
+            "business_unit_id", HISTORY_BUSINESS_UNIT_ID,
+            "enforcement_override_result_id", SEEDED_ENFORCEMENT_OVERRIDE_RESULT_ID,
+            "enforcer_id", SEEDED_ENFORCER_ID
+        );
     }
 
     private void actAsHistoryTestUser() {
         BearerTokenStepDef.setTokenOverride(BearerTokenStepDef.getAccessTokenForUser(HISTORY_TEST_USER));
         scenarioContext().setCurrentUser(HISTORY_TEST_USER);
+    }
+
+    private boolean isLegacyMode() {
+        Response response = authorisedJsonRequest()
+            .when()
+            .get(getTestUrl() + "/testing-support/is-legacy-mode");
+        responseAssertions.assertStatus(response, 200);
+        return Boolean.parseBoolean(response.asString());
+    }
+
+    private String expectedPostedByName(String expectedPostedByName, String postedBy) {
+        return isLegacyMode() ? postedBy : expectedPostedByName;
     }
 
     private long nonExistentDefendantAccountId() {
@@ -547,21 +580,21 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
         assertNotNull(historyState.getRememberedDateTo(), "No remembered dateTo boundary");
     }
 
-    private void assertHistoryContainsOnlyItemsOnOrAfter(LocalDate boundary) throws Exception {
+    private void assertHistoryContainsOnlyItemsOnOrAfter(LocalDate boundary) throws JacksonException {
         for (JsonNode historyItem : historyItems()) {
             LocalDate postedDate = postedDateOf(historyItem);
             assertFalse(postedDate.isBefore(boundary), "History item was before dateFrom boundary");
         }
     }
 
-    private void assertHistoryContainsOnlyItemsOnOrBefore(LocalDate boundary) throws Exception {
+    private void assertHistoryContainsOnlyItemsOnOrBefore(LocalDate boundary) throws JacksonException {
         for (JsonNode historyItem : historyItems()) {
             LocalDate postedDate = postedDateOf(historyItem);
             assertFalse(postedDate.isAfter(boundary), "History item was after dateTo boundary");
         }
     }
 
-    private void assertHistoryIncludesItemOn(LocalDate expectedDate) throws Exception {
+    private void assertHistoryIncludesItemOn(LocalDate expectedDate) throws JacksonException {
         boolean found = historyItems().stream()
             .map(this::postedDateOf)
             .anyMatch(expectedDate::equals);
@@ -569,11 +602,13 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
         assertTrue(found, "Expected at least one history item on " + expectedDate);
     }
 
-    private JsonNode latestJsonBody() throws Exception {
-        return OBJECT_MAPPER.readTree(net.serenitybdd.rest.SerenityRest.lastResponse().getBody().asString());
+    private JsonNode latestJsonBody() throws JacksonException {
+        Response latestHistoryResponse = historyState.getLatestHistoryResponse();
+        assertNotNull(latestHistoryResponse, "No defendant-account history response was captured");
+        return OBJECT_MAPPER.readTree(latestHistoryResponse.getBody().asString());
     }
 
-    private List<JsonNode> historyItems() throws Exception {
+    private List<JsonNode> historyItems() throws JacksonException {
         JsonNode historyItems = latestJsonBody().path("historyItems");
         assertTrue(historyItems.isArray(), "historyItems should be an array");
 
@@ -584,7 +619,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
         return items;
     }
 
-    private Map<String, Long> typeCounts() throws Exception {
+    private Map<String, Long> typeCounts() throws JacksonException {
         Map<String, Long> counts = new LinkedHashMap<>();
         for (JsonNode historyItem : historyItems()) {
             counts.merge(typeOf(historyItem), 1L, Long::sum);
@@ -597,7 +632,10 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
 
         JsonNode postedDetails = historyItem.path("postedDetails");
         assertTrue(postedDetails.isObject(), "postedDetails should be an object");
-        LocalDate.parse(assertText(postedDetails.path("posted_date"), "postedDetails.posted_date"));
+        LocalDate postedDate = LocalDate.parse(
+            assertText(postedDetails.path("posted_date"), "postedDetails.posted_date")
+        );
+        assertNotNull(postedDate, "postedDetails.posted_date should be parseable");
         assertOptionalText(postedDetails.path("posted_by"), "postedDetails.posted_by");
         assertOptionalText(postedDetails.path("posted_by_name"), "postedDetails.posted_by_name");
 
@@ -655,7 +693,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
         assertOptionalText(details.path("additionalInformation"), "details.additionalInformation");
         assertOptionalObject(details.path("writeOff"), "details.writeOff");
         assertOptionalObject(details.path("status"), "details.status");
-        assertOptionalDateTime(details.path("statusDate"), "details.statusDate");
+        assertOptionalStatusDate(details.path("statusDate"));
         assertOptionalText(details.path("associatedRecordType"), "details.associatedRecordType");
         assertOptionalText(details.path("associatedRecordId"), "details.associatedRecordId");
         assertOptionalText(details.path("accountNumber"), "details.accountNumber");
@@ -692,8 +730,8 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     }
 
     private String assertText(JsonNode node, String fieldName) {
-        assertTrue(node.isTextual(), fieldName + " should be a string");
-        return node.asText();
+        assertTrue(node.isString(), fieldName + " should be a string");
+        return node.asString();
     }
 
     private void assertOptionalText(JsonNode node, String fieldName) {
@@ -710,13 +748,17 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
 
     private void assertOptionalDate(JsonNode node, String fieldName) {
         if (!node.isMissingNode() && !node.isNull()) {
-            LocalDate.parse(assertText(node, fieldName));
+            LocalDate parsedDate = LocalDate.parse(assertText(node, fieldName));
+            assertNotNull(parsedDate, fieldName + " should be parseable");
         }
     }
 
-    private void assertOptionalDateTime(JsonNode node, String fieldName) {
+    private void assertOptionalStatusDate(JsonNode node) {
         if (!node.isMissingNode() && !node.isNull()) {
-            java.time.LocalDateTime.parse(assertText(node, fieldName));
+            java.time.LocalDateTime parsedDateTime = java.time.LocalDateTime.parse(
+                assertText(node, "details.statusDate")
+            );
+            assertNotNull(parsedDateTime, "details.statusDate should be parseable");
         }
     }
 

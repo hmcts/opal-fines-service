@@ -12,6 +12,7 @@ public class DefendantAccountHistoryScenarioState {
 
     private Response firstResponse;
     private Response secondResponse;
+    private Response latestHistoryResponse;
     private LocalDate rememberedDateFrom;
     private LocalDate rememberedDateTo;
     private Long lastRequestedAccountId;
@@ -30,6 +31,14 @@ public class DefendantAccountHistoryScenarioState {
 
     public void setSecondResponse(Response secondResponse) {
         this.secondResponse = secondResponse;
+    }
+
+    public Response getLatestHistoryResponse() {
+        return latestHistoryResponse;
+    }
+
+    public void setLatestHistoryResponse(Response latestHistoryResponse) {
+        this.latestHistoryResponse = latestHistoryResponse;
     }
 
     public LocalDate getRememberedDateFrom() {

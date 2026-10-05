@@ -10,6 +10,7 @@ import uk.gov.hmcts.opal.service.iface.NotesServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyNotesService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.OpalNotesService;
+import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
 
 @Service
 @Slf4j(topic = "opal.NotesProxy")

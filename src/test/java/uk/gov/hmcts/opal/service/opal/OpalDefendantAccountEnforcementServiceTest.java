@@ -53,9 +53,12 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
-import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
+import uk.gov.hmcts.opal.generated.model.NoteCommon;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
+import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
@@ -75,8 +78,6 @@ import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsTypeCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementResultIdCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementResultResponseDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.mapper.EnforcementPaymentTermsMapper;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.UserStateService;
@@ -691,7 +692,8 @@ class OpalDefendantAccountEnforcementServiceTest {
 
         UserStateV2 userState = allPermissionsUser();
         LocalDate expectedLastMovementDate = LocalDate.of(2026, 4, 22);
-        ArgumentCaptor<AddNoteRequest> addNoteRequestCaptor = ArgumentCaptor.forClass(AddNoteRequest.class);
+        ArgumentCaptor<AddNoteRequestNotes> addNoteRequestCaptor =
+            ArgumentCaptor.forClass(AddNoteRequestNotes.class);
         ArgumentCaptor<AccountNoteContext> accountNoteContextCaptor = ArgumentCaptor.forClass(AccountNoteContext.class);
 
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
@@ -749,12 +751,12 @@ class OpalDefendantAccountEnforcementServiceTest {
             );
 
             assertNotNull(addNoteRequestCaptor.getValue());
-            Note capturedNote = addNoteRequestCaptor.getValue().getActivityNote();
+            NoteCommon capturedNote = addNoteRequestCaptor.getValue().getActivityNote();
             assertNotNull(capturedNote);
-            assertEquals(uk.gov.hmcts.opal.dto.RecordType.DEFENDANT_ACCOUNTS, capturedNote.getRecordType());
+            assertEquals(NoteCommon.RecordTypeEnum.DEFENDANT_ACCOUNTS, capturedNote.getRecordType());
             assertEquals(String.valueOf(defendantAccountId), capturedNote.getRecordId());
             assertEquals("remove hold reason", capturedNote.getNoteText());
-            assertEquals("AA", capturedNote.getNoteType());
+            assertEquals(NoteCommon.NoteTypeEnum.AA, capturedNote.getNoteType());
 
             AccountNoteContext capturedTarget = accountNoteContextCaptor.getValue();
             assertEquals(DefendantAccountEntity.class, capturedTarget.accountClass());

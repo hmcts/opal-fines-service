@@ -35,7 +35,7 @@ class NotesServiceTest {
     @InjectMocks
     private NotesService notesService;
 
-    private AddNoteRequest request;
+    private AddNoteRequestNotes request;
 
     @BeforeEach
     void setUp() {
@@ -70,13 +70,13 @@ class NotesServiceTest {
         verify(notesProxy).addNote(request, IF_MATCH, userState, BUSINESS_UNIT_ID);
     }
 
-    private static AddNoteRequest addNoteRequest() {
-        Note note = Note.builder()
-            .recordType(RecordType.DEFENDANT_ACCOUNTS)
+    private static AddNoteRequestNotes addNoteRequest() {
+        NoteCommon note = NoteCommon.builder()
+            .recordType(NoteCommon.RecordTypeEnum.DEFENDANT_ACCOUNTS)
             .recordId(DEFENDANT_ACCOUNT_ID.toString())
             .noteText("test")
-            .noteType("AA")
+            .noteType(NoteCommon.NoteTypeEnum.AA)
             .build();
-        return new AddNoteRequest(note);
+        return AddNoteRequestNotes.builder().activityNote(note).build();
     }
 }
