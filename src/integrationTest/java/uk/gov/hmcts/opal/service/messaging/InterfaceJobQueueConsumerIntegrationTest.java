@@ -181,7 +181,8 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-10531")
     @JiraEpic("PO-2468")
     void unmatchedOriginatorSuspensePaymentCompletesJob() throws JMSException {
-        fhWireMockServer.setScenarioState(WIREMOCK_INTERFACE_JOB_QUEUE_SCENARIO, WIREMOCK_STATE__TRIGGER_UNMATCHED_ORIGINATOR);
+        fhWireMockServer
+            .setScenarioState(WIREMOCK_INTERFACE_JOB_QUEUE_SCENARIO, WIREMOCK_STATE__TRIGGER_UNMATCHED_ORIGINATOR);
 
         listener.onMessage(validTextMessage);
 
@@ -250,7 +251,8 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     @Test
     @Sql(scripts = {"classpath:db/insertData/insert_into_interface_job_queue_processing.sql",
         "classpath:db/insertData/insert_duplicate_interface_file.sql"}, executionPhase = BEFORE_TEST_METHOD)
-    @Sql(scripts = "classpath:db/deleteData/delete_from_interface_job_queue_processing.sql", executionPhase = AFTER_TEST_METHOD)
+    @Sql(scripts = "classpath:db/deleteData/delete_from_interface_job_queue_processing.sql",
+        executionPhase = AFTER_TEST_METHOD)
     @DisplayName("PO-2592 INT.06 - Stored procedure failure marks job failed and stores message")
     @JiraStory("PO-2592") // INT.06
     @JiraEpic("PO-2468")
@@ -267,7 +269,8 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
             .singleElement()
                 .satisfies(message -> {
                     assertThat(message.getMessageType()).isEqualTo("Error");
-                    assertThat(message.getMessageText()).contains("Interface job must be linked to exactly one interface file.");
+                    assertThat(message.getMessageText())
+                        .contains("Interface job must be linked to exactly one interface file.");
                 });
     }
 
@@ -319,7 +322,8 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     @Test
     @Sql(scripts = {"classpath:db/insertData/insert_into_interface_job_queue_processing.sql",
         "classpath:db/insertData/insert_duplicate_interface_file.sql"}, executionPhase = BEFORE_TEST_METHOD)
-    @Sql(scripts = "classpath:db/deleteData/delete_from_interface_job_queue_processing.sql", executionPhase = AFTER_TEST_METHOD)
+    @Sql(scripts = "classpath:db/deleteData/delete_from_interface_job_queue_processing.sql",
+        executionPhase = AFTER_TEST_METHOD)
     @DisplayName("PO-2592 INT.10 - Failure only updates documented fields")
     @JiraStory("PO-2592") // INT.10
     @JiraEpic("PO-2468")
@@ -352,7 +356,8 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
                 assertThat(message.getInterfaceJobId()).isEqualTo(INTERFACE_JOB_ID);
                 assertThat(message.getInterfaceFileId()).isEqualTo(99000000401001L);
                 assertThat(message.getMessageType()).isEqualTo("Error");
-                assertThat(message.getMessageText()).contains("Interface job must be linked to exactly one interface file.");
+                assertThat(message.getMessageText())
+                    .contains("Interface job must be linked to exactly one interface file.");
                 assertThat(message.getMessageText()).doesNotContain("org.postgresql");
                 assertThat(message.getRecordIndex()).isNull();
                 assertThat(message.getRecordDetail()).isNull();

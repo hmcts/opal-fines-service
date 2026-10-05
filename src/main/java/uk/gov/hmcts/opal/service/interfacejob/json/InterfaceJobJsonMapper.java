@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.interfacejob.json;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
@@ -19,7 +18,8 @@ public class InterfaceJobJsonMapper {
     }
 
     public String toRecordsJson(String extractJson) {
-        InterfaceFileCommonDataExtract extract = objectMapper.readValue(extractJson, InterfaceFileCommonDataExtract.class);
+        InterfaceFileCommonDataExtract extract = objectMapper
+            .readValue(extractJson, InterfaceFileCommonDataExtract.class);
         InterfaceJobRecord[] records = recordMapper.mapToRecords(extract);
         return objectMapper.writeValueAsString(records);
     }

@@ -1,14 +1,5 @@
 package uk.gov.hmcts.opal.entity;
 
-import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.BUSINESS_UNIT_ID;
-import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.DB_PROC_NAME;
-import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.INTERFACE_JOB_ID;
-import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.JPA_PROC_NAME;
-import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.POSTED_BY;
-import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.POSTED_BY_NAME;
-import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.RECORDS_JSON;
-import static uk.gov.hmcts.opal.entity.interfacejob.InterfaceJobStoredProcedureNames.TILL_ID;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -21,11 +12,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.NamedStoredProcedureQuery;
-import jakarta.persistence.ParameterMode;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
-import jakarta.persistence.StoredProcedureParameter;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.ArrayList;

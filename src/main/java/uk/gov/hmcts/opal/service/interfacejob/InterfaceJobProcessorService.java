@@ -13,7 +13,6 @@ import uk.gov.hmcts.opal.entity.InterfaceJobEntity;
 import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
 import uk.gov.hmcts.opal.service.filehandler.FileHandlerInterfaceFiles;
 import uk.gov.hmcts.opal.service.interfacejob.json.InterfaceJobJsonMapper;
-import uk.gov.hmcts.opal.service.interfacejob.json.records.InterfaceJobRecord;
 
 @Service
 @RequiredArgsConstructor
@@ -52,7 +51,7 @@ public class InterfaceJobProcessorService {
         Long transformedJsonId = interfaceJob.getInterfaceFiles()
             .getFirst() // Note - this should really be a one-to-one (the model might change)
             .getTransformedJsonId();
-        if(transformedJsonId == null) {
+        if (transformedJsonId == null) {
             String errorMsg = format(
                 "Interface job %s does not have associated transformedJsonId", interfaceJob.getInterfaceJobId());
             throw new IllegalStateException(errorMsg);

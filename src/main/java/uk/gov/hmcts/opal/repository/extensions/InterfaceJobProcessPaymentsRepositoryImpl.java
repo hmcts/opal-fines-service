@@ -63,7 +63,7 @@ public class InterfaceJobProcessPaymentsRepositoryImpl implements InterfaceJobPr
 
             return (Long) resultMap.get(TILL_ID);
 
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             throw new DataAccessException("Error setting " + RECORDS_JSON + " parameter", e){};
         }
     }
