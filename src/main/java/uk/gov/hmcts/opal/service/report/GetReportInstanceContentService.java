@@ -97,11 +97,6 @@ public class GetReportInstanceContentService {
         } catch (MissingStoredReportContentException missingStoredReportContentException) {
             throw new MissingStoredReportContentException(id, location);
         }
-
-        if (storedReport == null) {
-            throw new EntityNotFoundException("Report instance content not found for id: " + id);
-        }
-
         return storedReport;
     }
 
