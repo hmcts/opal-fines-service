@@ -114,7 +114,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @BeforeEach
-    void setUpReportStorage() throws JMSException {
+    void setUpReportStorageAndWireMock() throws JMSException {
         BlobContainerClient blobContainerClient = blobServiceClient.getBlobContainerClient(reportContainerName);
         if (!blobContainerClient.exists()) {
             blobContainerClient.create();
@@ -165,8 +165,9 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("PO-2592 INT.01/INT.03 - Processing message completes job and creates cash till output")
+    @DisplayName("PO-2592 INT.01/INT.03 - PO-8943 INT.01 Processing message completes job and creates cash till output")
     @JiraStory("PO-2592") // INT.01 and INT.03
+    @JiraStory("PO-8943") // INT.01
     @JiraEpic("PO-2468")
     void int01ValidProcessingMessageInvokesPaymentsInProcedureOnce() throws JMSException {
         listener.onMessage(validTextMessage);

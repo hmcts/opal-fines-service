@@ -49,12 +49,12 @@ public class InterfaceJobProcRepositoryImpl implements InterfaceJobProcRepositor
             Map<String, Object> resultMap = jdbcTemplate.call(con -> {
                 String sql = format("call %s(?, ?, ?, ?, ?, ?)", DB_PROC_NAME);
                 CallableStatement callableStatement = con.prepareCall(sql);
-                callableStatement.registerOutParameter(6, Types.BIGINT);
                 callableStatement.setLong(1, interfaceJobId);
                 callableStatement.setShort(2, businessUnitId);
                 callableStatement.setString(3, postedBy);
                 callableStatement.setString(4, postedByName);
                 callableStatement.setObject(5, recordsJsonPgObject);
+                callableStatement.registerOutParameter(6, Types.BIGINT);
 
                 return callableStatement;
             }, params);
