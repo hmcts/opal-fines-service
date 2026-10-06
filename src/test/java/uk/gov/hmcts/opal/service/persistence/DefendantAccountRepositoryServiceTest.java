@@ -83,6 +83,17 @@ class DefendantAccountRepositoryServiceTest {
     }
 
     @Test
+    void incrementVersionNumber_whenExpectedVersionIsNull_throwsResourceConflictException() {
+        ResourceConflictException exception = assertThrows(ResourceConflictException.class,
+            () -> service.incrementVersionNumber(77L, null));
+
+        assertThat(exception.getResourceId()).isEqualTo("77");
+        assertThat(exception.getConflictReason()).isEqualTo("Version has changed since it was last read");
+        verify(entityManager).flush();
+        verifyNoInteractions(defendantAccountRepository);
+    }
+
+    @Test
     void findById_whenAccountExists_returnsAccount() {
         // arrange
         long defendantAccountId = 1L;
