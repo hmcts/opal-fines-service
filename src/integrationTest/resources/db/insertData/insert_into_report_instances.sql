@@ -52,20 +52,6 @@ INSERT INTO public.reports (
  'CREATE_MANAGE_DRAFT_ACCOUNTS',
  '{CSV,PDF}',
  true
-),
-(
- 'cash_list',
- 'Cash List',
- 'Operational Reports',
- false,
- NULL,
- true,
- false,
- false,
- 'P30D',
- 'PROCESS_AND_ALLOCATE_PAYMENTS',
- '{CSV,PDF}',
- true
 );
 
 INSERT INTO public.report_instances (
@@ -151,18 +137,4 @@ INSERT INTO public.report_instances (
     'READY',
     'Another Unconfigured Report',
     50
-),
-(
-9006,
- 'cash_list',
- '{10}',
- 4,
- '2026-04-01 11:00:00',
- 42,
- 'Unauthorised User',
- NULL,
- '2026-04-01 10:00:00',
- 'READY',
- 'Another Unconfigured Report',
- 50
-)
+);

@@ -12,8 +12,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.controllers.r1b.AbstractOpalDefendantsIntegrationTest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -38,6 +40,9 @@ public class MasterDefendantAccountsApiIntegrationTest extends AbstractOpalDefen
     private static final long DEFENDANT_ACCOUNT_ID = 990002L;
     private static final long MISSING_ACCOUNT_ID = 999999999L;
     private static final String URL = URL_BASE + "/%d/master";
+
+    @MockitoBean
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @Test
     @JiraStory("PO-3633")

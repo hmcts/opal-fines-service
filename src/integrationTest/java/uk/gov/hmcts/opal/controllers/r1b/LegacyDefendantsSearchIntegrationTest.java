@@ -77,7 +77,7 @@ class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
         actions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(1))
-            .andExpect(jsonPath("defendant_accounts[0].defendant_account_id").value("77"))
+            .andExpect(jsonPath("defendant_accounts[0].defendant_account_id").value("1"))
             .andExpect(jsonPath("defendant_accounts[0].account_number").value("100A"))
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
     }

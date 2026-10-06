@@ -28,6 +28,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.service.UserStateService;
@@ -48,6 +49,9 @@ class LegacyMinorCreditorAtAGlanceErrorIntegrationTest extends AbstractIntegrati
     private static final long MINOR_CREDITOR_ACCOUNT_ID = 99_000_000_000_802L;
 
     @MockitoBean
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
+
+    @MockitoBean
     private UserStateService userStateService;
 
     @MockitoBean
@@ -55,7 +59,7 @@ class LegacyMinorCreditorAtAGlanceErrorIntegrationTest extends AbstractIntegrati
 
     @BeforeEach
     void setUp() {
-        when(userStateService.getUserStateV1FromSecurityContext())
+        when(userStateService.getUserStateFromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 77,
                 SEARCH_AND_VIEW_ACCOUNTS, VIEW_CREDITOR_BACS));
     }

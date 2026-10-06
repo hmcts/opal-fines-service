@@ -18,9 +18,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
-import uk.gov.hmcts.opal.dto.AddNoteRequest;
-import uk.gov.hmcts.opal.dto.Note;
-import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.NoteType;
@@ -128,7 +125,6 @@ class OpalNotesServiceTest {
         when(accountNoteContextFactory.from(req.getActivityNote())).thenReturn(target);
         when(defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(77L))
             .thenReturn(managed);
-        when(user.getUsername()).thenReturn("Test User");
         when(repository.save(any(NoteEntity.class))).thenReturn(saved);
 
         String result = service.addNote(req, "\"12\"", user, (short) 78);

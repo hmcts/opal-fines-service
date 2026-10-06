@@ -78,9 +78,6 @@ opal:
       client-secret: test-hmrc-client-secret
       scope: test-scope1+test-scope2
       grant-type: client_credentials
-  common:
-    system-users:
-      token-url: http://localhost:4455
 user:
   service:
     url: http://localhost:4553/opal

@@ -10,8 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
-import uk.gov.hmcts.opal.dto.AddNoteRequest;
-import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.NoteType;
@@ -38,13 +36,13 @@ public class OpalNotesService implements NotesServiceInterface {
 
     @Override
     @Transactional
-    public String addNote(AddNoteRequest req, String ifMatch, UserStateV2 user, Short businessUnitId) {
+    public String addNote(AddNoteRequestNotes req, String ifMatch, UserStateV2 user, Short businessUnitId) {
         AccountNoteContext target = accountNoteContextFactory.from(req.getActivityNote());
         return addNote(req, ifMatch, user, target);
     }
 
     @Transactional
-    public String addNote(AddNoteRequest req, String ifMatch, UserStateV2 user, AccountNoteContext target) {
+    public String addNote(AddNoteRequestNotes req, String ifMatch, UserStateV2 user, AccountNoteContext target) {
         log.info(":OpalAddNote");
 
         final Versioned account = getAccountAndVerifyVersion(target, ifMatch);

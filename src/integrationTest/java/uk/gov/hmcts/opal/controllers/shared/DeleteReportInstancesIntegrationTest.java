@@ -19,6 +19,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.repository.ReportInstanceRepository;
 import uk.gov.hmcts.opal.service.blobstore.ReportBlobStore;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -37,6 +38,9 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 public class DeleteReportInstancesIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL = "/testing-support/report-instances";
+
+    @MockitoBean
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @Autowired
     private ReportInstanceRepository reportInstanceRepository;

@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
-import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.iface.NotesServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyNotesService;
@@ -25,12 +24,12 @@ public class NotesProxy implements NotesServiceInterface, ProxyInterface {
         return isLegacyMode(dynamicConfigService) ? legacyNotesService : notesService;
     }
 
-    public String addNote(AddNoteRequest request, String ifMatch, UserStateV2 user, AccountNoteContext target) {
+    public String addNote(AddNoteRequestNotes request, String ifMatch, UserStateV2 user, AccountNoteContext target) {
         return notesService.addNote(request, ifMatch, user, target);
     }
 
     @Override
-    public String addNote(AddNoteRequest request, String ifMatch, UserStateV2 user, Short businessUnitId) {
+    public String addNote(AddNoteRequestNotes request, String ifMatch, UserStateV2 user, Short businessUnitId) {
         return getCurrentModeService().addNote(request, ifMatch, user, businessUnitId);
     }
 
