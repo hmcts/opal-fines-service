@@ -249,19 +249,22 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         Long defendantAccountId,
         DefendantAccountHistoryFilter filter
     ) {
+        List<HistoryItemType> itemTypes =
+            (filter == null || filter.getItemTypes() == null || filter.getItemTypes().isEmpty())
+                ? List.of(HistoryItemType.values()) : filter.getItemTypes();
+
         return GetDefendantAccountHistoryLegacyRequest.builder()
             .defendantAccountId(String.valueOf(defendantAccountId))
             .fromDate(filter != null ? filter.getDateFrom() : null)
             .toDate(filter != null ? filter.getDateTo() : null)
-            .itemTypes(filter == null || filter.getItemTypes() == null || filter.getItemTypes().isEmpty() ? null
-                : filter.getItemTypes().stream()
-                    .map(LegacyDefendantAccountService::toLegacyHistoryItemType)
-                    .toList())
+            .itemTypes(itemTypes.stream()
+                .map(LegacyDefendantAccountService::toLegacyHistoryItemType)
+                .toList())
             .build();
     }
 
     private static String toLegacyHistoryItemType(HistoryItemType itemType) {
-        return itemType == HistoryItemType.PAYMENT_TERMS ? "Payment terms" : itemType.getResponseValue();
+        return itemType.getResponseValue();
     }
 
     DefendantAccountHeaderSummary toHeaderSumaryDto(
