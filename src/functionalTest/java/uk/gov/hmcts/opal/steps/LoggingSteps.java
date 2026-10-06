@@ -26,7 +26,6 @@ public class LoggingSteps extends BaseStepDef {
     private static final String PDPO_CREATED_BY_ID = "500000000";
     private static final String PDPO_CREATED_BY_TYPE = "OPAL_USER_ID";
     private static final String PDPO_BUSINESS_IDENTIFIER = "Submit Draft Account - Parent or Guardian";
-
     private static final int DEFAULT_TIMEOUT_SECONDS =
         Optional.ofNullable(System.getenv("LOG_SEARCH_TIMEOUT_SECONDS"))
             .map(Integer::parseInt)
@@ -100,7 +99,7 @@ public class LoggingSteps extends BaseStepDef {
      * @param criteria search criteria to submit to the logging-service test-support API.
      * @return the first non-empty PDPO log search response.
      */
-    private JsonNode waitForPdpoLogs(Map<String, String> criteria) {
+    private JsonNode waitForPdpoLogs(Map<String, Object> criteria) {
         long timeoutNanos = TimeUnit.SECONDS.toNanos(DEFAULT_TIMEOUT_SECONDS);
         long deadline = System.nanoTime() + timeoutNanos;
         Response lastResponse = null;
@@ -242,4 +241,5 @@ public class LoggingSteps extends BaseStepDef {
 
         return false;
     }
+
 }
