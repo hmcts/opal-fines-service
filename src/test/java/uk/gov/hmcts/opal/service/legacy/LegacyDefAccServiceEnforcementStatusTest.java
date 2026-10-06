@@ -10,13 +10,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyShort;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -64,15 +64,15 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
         when(ljaService.getLocalJusticeAreaById(anyShort())).thenReturn(
             LocalJusticeAreaEntity.builder().ljaCode("6-7").build());
 
-        when(resultRepository.findById(eq("FEE"))).thenReturn(Optional.of(ResultEntity.builder()
+        when(resultRepository.findById("FEE")).thenReturn(Optional.of(ResultEntity.builder()
             .enfNextPermittedActions("All").build()));
 
         ResponseEntity<String> serverSuccessResponse =
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
         when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
 
-        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(eq(FeatureFlags.RELEASE_1B_1_1),
-            eq(FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY), eq(false))).thenReturn(true);
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(true);
 
         // Act
         EnforcementStatus response = legacyDefendantAccountService
@@ -182,7 +182,7 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
         assertEquals(6, overview.getDaysInDefault());
         assertNotNull(overview.getCollectionOrder());
         assertEquals(true, overview.getCollectionOrder().getCollectionOrderFlag());
-        assertEquals(LocalDate.of(2024, 3, 4), overview.getCollectionOrder().getCollectionOrderDate());
+        assertEquals(LocalDate.of(2024, Month.MARCH, 4), overview.getCollectionOrder().getCollectionOrderDate());
         assertNotNull(overview.getEnforcementCourt());
         assertEquals(3, overview.getEnforcementCourt().getCourtId());
         assertEquals((short) 123, overview.getEnforcementCourt().getCourtCode());
@@ -206,8 +206,8 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
         when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
         when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short) 123).build());
 
-        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(eq(FeatureFlags.RELEASE_1B_1_1),
-            eq(FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY), eq(false))).thenReturn(false);
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(false);
 
         // Act
         EnforcementStatus response = legacyDefendantAccountService.getEnforcementStatus(72L);
@@ -227,7 +227,7 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
         assertEquals(6, overview.getDaysInDefault());
         assertNotNull(overview.getCollectionOrder());
         assertEquals(true, overview.getCollectionOrder().getCollectionOrderFlag());
-        assertEquals(LocalDate.of(2024, 3, 4), overview.getCollectionOrder().getCollectionOrderDate());
+        assertEquals(LocalDate.of(2024, Month.MARCH, 4), overview.getCollectionOrder().getCollectionOrderDate());
         assertNotNull(overview.getEnforcementCourt());
         assertEquals(3, overview.getEnforcementCourt().getCourtId());
         assertEquals("Bath", overview.getEnforcementCourt().getCourtName());
