@@ -56,6 +56,9 @@ public class MessageBuilder {
         recordNode.put("end_date", endDate);
         recordNode.put("lja_type", "CRWCRT");
         recordNode.put("start_date", "2027-03-01");
+        recordNode.put("publishing_status", "Active");
+        recordNode.put("cja_code", "41");
+
 
         ArrayNode addressesNode = recordNode.putArray("addresses");
         ObjectNode addressNode = addressesNode.addObject();

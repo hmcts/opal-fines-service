@@ -5,58 +5,35 @@
     "data_product": "LJA",
     "operation": "PUBLISH",
     "source_system": "Semarchy",
-    "created_date_time": "2026-09-24T10:30:00Z",
+    "created_date_time": "2026-09-02T08:28:56.935738+00:00",
     "release_package_id": 202,
     "record_count": 1
   },
   "payload": {
     "records": [
       {
-        "lja_location_code": "LJA001",
-        "common_platform_uuid": "1234567890ABCDEF",
-        "lja_welsh_name": "Ardal Cyfiawnder Leol Prawf",
-        "lja_code": "124",
+        "lja_code": "401",
+        "lja_name": "Updated LJA",
+        "end_date": "2027-03-04",
         "lja_type": "CRWCRT",
-        "notes": "Sample LJA reference data message",
-        "lja_name": "Sample Local Justice Area",
-        "cja_code": "41",
         "start_date": "2027-03-01",
-        "default_duration": "30",
-        "default_start_time": "09:30",
-        "end_date": "2027-12-31",
-        "division_code": "4",
-        "cluster_information_code": 123,
-        "enforcement_area_code": 456,
-        "region_code": 7,
+        "publishing_status": "Active",
         "addresses": [
           {
-            "address_type": "Primary Address",
-            "address_line_1": "1 Justice Street",
-            "address_line_2": "Civic Quarter",
-            "address_line_3": "Sampletown",
-            "address_line_4": "Countyshire",
-            "address_line_5": "England",
-            "post_code": "SW1A1AA"
+            "address_type": "Court Address",
+            "address_line_1": "New address line 171",
+            "address_line_2": "New address line 2",
+            "address_line_3": "New address line 3",
+            "address_line_4": "New address line 4",
+            "post_code": "NE1 2BB"
           },
           {
-            "address_type": "Postal Address",
-            "address_line_1": "PO Box 124",
-            "address_line_2": "Sampletown",
-            "post_code": "SW1A2BB"
+            "address_type": "Financial Office Address",
+            "address_line_1": "Secondary address line 1",
+            "post_code": "NE1 2BB"
           }
         ],
-        "contact_information": [
-          {
-            "contact_type": "Telephone",
-            "contact_sub_type": "Magistrates Court Contact",
-            "contact_value": "03001234567"
-          },
-          {
-            "contact_type": "Email Address",
-            "contact_sub_type": "Contact",
-            "contact_value": "lja.sample@example.gov.uk"
-          }
-        ]
+        "contact_information": []
       }
     ]
   }
