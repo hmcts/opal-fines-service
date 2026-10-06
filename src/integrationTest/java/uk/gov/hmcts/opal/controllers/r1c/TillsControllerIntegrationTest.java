@@ -61,7 +61,7 @@ class TillsControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.tills", hasSize(2)))
             .andExpect(jsonPath("$.tills[*].till_number", containsInAnyOrder(501, 502)))
             .andExpect(jsonPath("$.tills[*].business_unit_name", containsInAnyOrder("Luton", "Luton")))
-            .andExpect(jsonPath("$.tills[*].processed_by", containsInAnyOrder("L25750", "L25750")));
+            .andExpect(jsonPath("$.tills[*].processed_by", containsInAnyOrder("Luton User", "Luton User")));
     }
 
     @Test
@@ -82,7 +82,7 @@ class TillsControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.tills[0].source").value("NATWEST"))
             .andExpect(jsonPath("$.tills[0].amount").value(1234.56))
             .andExpect(jsonPath("$.tills[0].business_unit_name").value("Luton"))
-            .andExpect(jsonPath("$.tills[0].processed_by").value("L25750"))
+            .andExpect(jsonPath("$.tills[0].processed_by").value("Luton User"))
             .andExpect(jsonPath("$.tills[0].date_processed").value("2026-08-27"));
     }
 
