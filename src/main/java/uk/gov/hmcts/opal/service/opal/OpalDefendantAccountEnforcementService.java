@@ -2,6 +2,8 @@ package uk.gov.hmcts.opal.service.opal;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
@@ -34,6 +37,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.repository.CourtRepository;
+import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.FeatureFlagService;
 import uk.gov.hmcts.opal.service.UserStateService;
@@ -90,6 +94,8 @@ public class OpalDefendantAccountEnforcementService
 
     private final CourtRepository courtRepository;
 
+    private final EnforcerRepository enforcerRepository;
+
     private final FeatureFlagService featureFlagService;
 
     @Override
@@ -110,22 +116,46 @@ public class OpalDefendantAccountEnforcementService
         List<EnforcementResultResponseDefendantAccount> enforcementResultResponses = request != null
             && request.getEnforcementResultResponses() != null ? request.getEnforcementResultResponses() : List.of();
 
+        Set<String> resultParameterNames = enforcementResultResponses != null ?
+            enforcementResultResponses.stream().map(EnforcementResultResponseDefendantAccount::getParameterName)
+                .collect(Collectors.toSet()) :  Set.of();
         for (EnforcementResultResponseDefendantAccount result : enforcementResultResponses) {
             if (featureFlagService.isFlagEnabled(RELEASE_1B_1_1)) {
-                switch (result.getParameterName()) {
-                    case "reason" -> reason = result.getResponse();
-                    case "jail_days", "daysindefault" -> jailDays = Integer.valueOf(result.getResponse());
-                    case "enforcer_id", "enforcer" -> enforcerId = Long.valueOf(result.getResponse());
-                    case "earliest_release_date", "earliestreleasedate" ->
-                        earliestReleaseDate = LocalDateTime.parse(result.getResponse());
-                    case "courtcode" -> {
-                        Optional<CourtEntity> court = courtRepository
-                            .findByCourtCodeAndBusinessUnitId(Short.valueOf(result.getResponse()), businessUnitId);
-                        if (court.isPresent()) {
-                            hearingCourtId = court.get().getCourtId();
+                if (result.getParameterName().equals("jail_days") && resultParameterNames.contains("daysindefault") ||
+                    result.getParameterName().equals("enforcer_id") && resultParameterNames.contains("enforcer") ||
+                    result.getParameterName().equals("earliest_release_date") && resultParameterNames
+                        .contains("earliestreleasedate")) {
+                    log.info("Skipping {} result response parameter, multiple params found", result.getParameterName());
+                } else {
+                    switch (result.getParameterName()) {
+                        case "reason" -> reason = result.getResponse();
+                        case "jail_days", "daysindefault" -> jailDays = Integer.valueOf(result.getResponse());
+                        case "enforcer_id" -> enforcerId = Long.valueOf(result.getResponse());
+                        case "enforcer" -> {
+                            Optional<EnforcerEntity> enforcer = enforcerRepository
+                                .findByEnforcerCodeAndBusinessUnit_businessUnitId(Short.valueOf(
+                                    result.getResponse()), businessUnitId);
+                            if (enforcer.isPresent()) {
+                                enforcerId = enforcer.get().getEnforcerId();
+                            } else {
+                                log.warn("Enforcer code {} doesn't exist for business unit {}",
+                                    result.getResponse(), businessUnitId);
+                            }
                         }
+                            case "earliest_release_date", "earliestreleasedate" ->
+                            earliestReleaseDate = LocalDateTime.parse(result.getResponse());
+                        case "courtcode" -> {
+                            Optional<CourtEntity> court = courtRepository
+                                .findByCourtCodeAndBusinessUnitId(Short.valueOf(result.getResponse()), businessUnitId);
+                            if (court.isPresent()) {
+                                hearingCourtId = court.get().getCourtId();
+                            } else {
+                                log.warn("Court code {} doesn't exist for business unit {}",
+                                    result.getResponse(), businessUnitId);
+                            }
+                        }
+                        case "hearingdate" -> hearingDate = LocalDate.parse(result.getResponse()).atStartOfDay();
                     }
-                    case "hearingdate" -> hearingDate = LocalDate.parse(result.getResponse()).atStartOfDay();
                 }
             } else {
                 if (Objects.equals(result.getParameterName(), "reason")) {

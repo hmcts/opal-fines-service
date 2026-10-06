@@ -81,6 +81,7 @@ import uk.gov.hmcts.opal.generated.model.EnforcementResultIdCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementResultResponseDefendantAccount;
 import uk.gov.hmcts.opal.mapper.EnforcementPaymentTermsMapper;
 import uk.gov.hmcts.opal.repository.CourtRepository;
+import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.FeatureFlagService;
 import uk.gov.hmcts.opal.service.UserStateService;
@@ -137,6 +138,9 @@ class OpalDefendantAccountEnforcementServiceTest {
 
     @Mock
     private CourtRepository courtRepository;
+
+    @Mock
+    private EnforcerRepository enforcerRepository;
 
     @Mock
     private OpalDefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
@@ -578,10 +582,13 @@ class OpalDefendantAccountEnforcementServiceTest {
         mockDefendantAccount();
         mockCreatedEnforcement();
         when(featureFlagService.isFlagEnabled(RELEASE_1B_1_1)).thenReturn(true);
+        when(enforcerRepository.findByEnforcerCodeAndBusinessUnitId((short) 21, BUSINESS_UNIT_ID))
+            .thenReturn(Optional.of(EnforcerEntity.builder().enforcerId(55L).build()));
 
         List<EnforcementResultResponseDefendantAccount> responses = List.of(
+            EnforcementResultResponseDefendantAccount.builder().parameterName("jail_days").response("7").build(),
             EnforcementResultResponseDefendantAccount.builder().parameterName("daysindefault").response("14").build(),
-            EnforcementResultResponseDefendantAccount.builder().parameterName("enforcer").response("55").build(),
+            EnforcementResultResponseDefendantAccount.builder().parameterName("enforcer").response("21").build(),
             EnforcementResultResponseDefendantAccount.builder().parameterName("earliestreleasedate")
                 .response("2026-10-01T00:00:00").build()
         );
@@ -601,8 +608,9 @@ class OpalDefendantAccountEnforcementServiceTest {
         );
 
         String responsesJson = objectMapper.writeValueAsString(resultResponsesMap(
+            "jail_days", "7",
             "daysindefault", "14",
-            "enforcer", "55",
+            "enforcer", "21",
             "earliestreleasedate", "2026-10-01T00:00:00"
         ));
 
@@ -626,6 +634,7 @@ class OpalDefendantAccountEnforcementServiceTest {
             VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
 
+        verify(enforcerRepository).findByEnforcerCodeAndBusinessUnitId((short) 21, BUSINESS_UNIT_ID);
         assertCommonResponse(response);
     }
 

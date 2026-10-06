@@ -74,8 +74,9 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
 
     protected static final List<EnforcementResultResponseDefendantAccount> release1b11Responses = List.of(
         new EnforcementResultResponseDefendantAccount().parameterName("reason").response("another test reason"),
+        new EnforcementResultResponseDefendantAccount().parameterName("jail_days").response("7"),
         new EnforcementResultResponseDefendantAccount().parameterName("daysindefault").response("14"),
-        new EnforcementResultResponseDefendantAccount().parameterName("enforcer").response("780000000021"),
+        new EnforcementResultResponseDefendantAccount().parameterName("enforcer").response("21"),
         new EnforcementResultResponseDefendantAccount().parameterName("earliestreleasedate")
             .response("2026-10-01T00:00:00"),
         new EnforcementResultResponseDefendantAccount().parameterName("courtcode").response(HEARING_COURT_CODE),
@@ -219,8 +220,9 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
 
         JsonNode resultResponses = objectMapper.readTree(enforcement.getResultResponses());
         assertEquals("another test reason", resultResponses.get("reason").asString());
+        assertEquals("7", resultResponses.get("jail_days").asString());
         assertEquals("14", resultResponses.get("daysindefault").asString());
-        assertEquals("780000000021", resultResponses.get("enforcer").asString());
+        assertEquals("21", resultResponses.get("enforcer").asString());
         assertEquals("2026-10-01T00:00:00", resultResponses.get("earliestreleasedate").asString());
         assertEquals(HEARING_COURT_CODE, resultResponses.get("courtcode").asString());
         assertEquals(HEARING_DATE.toString(), resultResponses.get("hearingdate").asString());
