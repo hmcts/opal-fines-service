@@ -116,15 +116,16 @@ public class OpalDefendantAccountEnforcementService
         List<EnforcementResultResponseDefendantAccount> enforcementResultResponses = request != null
             && request.getEnforcementResultResponses() != null ? request.getEnforcementResultResponses() : List.of();
 
-        Set<String> resultParameterNames = enforcementResultResponses != null ?
-            enforcementResultResponses.stream().map(EnforcementResultResponseDefendantAccount::getParameterName)
-                .collect(Collectors.toSet()) :  Set.of();
+        Set<String> resultParameterNames = enforcementResultResponses != null
+            ? enforcementResultResponses.stream().map(EnforcementResultResponseDefendantAccount::getParameterName)
+                .collect(Collectors.toSet())
+            : Set.of();
         for (EnforcementResultResponseDefendantAccount result : enforcementResultResponses) {
             if (featureFlagService.isFlagEnabled(RELEASE_1B_1_1)) {
-                if (result.getParameterName().equals("jail_days") && resultParameterNames.contains("daysindefault") ||
-                    result.getParameterName().equals("enforcer_id") && resultParameterNames.contains("enforcer") ||
-                    result.getParameterName().equals("earliest_release_date") && resultParameterNames
-                        .contains("earliestreleasedate")) {
+                if ((result.getParameterName().equals("jail_days") && resultParameterNames.contains("daysindefault"))
+                    || (result.getParameterName().equals("enforcer_id") && resultParameterNames.contains("enforcer"))
+                    || (result.getParameterName().equals("earliest_release_date") && resultParameterNames
+                    .contains("earliestreleasedate"))) {
                     log.info("Skipping {} result response parameter, multiple params found", result.getParameterName());
                 } else {
                     switch (result.getParameterName()) {
@@ -142,7 +143,7 @@ public class OpalDefendantAccountEnforcementService
                                     result.getResponse(), businessUnitId);
                             }
                         }
-                            case "earliest_release_date", "earliestreleasedate" ->
+                        case "earliest_release_date", "earliestreleasedate" ->
                             earliestReleaseDate = LocalDateTime.parse(result.getResponse());
                         case "courtcode" -> {
                             Optional<CourtEntity> court = courtRepository

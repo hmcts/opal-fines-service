@@ -577,24 +577,23 @@ class OpalDefendantAccountEnforcementServiceTest {
     }
 
     @Test
-    void testAddEnforcement_whenGivenDaysInDefaultAndEnforcer_createsEnforcement() throws JacksonException {
+    void testAddEnforcement_whenScMapsNewResultResponseNames() throws JacksonException {
         mockAuthorisedUser();
         mockDefendantAccount();
         mockCreatedEnforcement();
         when(featureFlagService.isFlagEnabled(RELEASE_1B_1_1)).thenReturn(true);
-        when(enforcerRepository.findByEnforcerCodeAndBusinessUnitId((short) 21, BUSINESS_UNIT_ID))
+        when(enforcerRepository.findByEnforcerCodeAndBusinessUnit_businessUnitId((short) 21, BUSINESS_UNIT_ID))
             .thenReturn(Optional.of(EnforcerEntity.builder().enforcerId(55L).build()));
 
         List<EnforcementResultResponseDefendantAccount> responses = List.of(
+            EnforcementResultResponseDefendantAccount.builder().parameterName("reason").response("test reason").build(),
             EnforcementResultResponseDefendantAccount.builder().parameterName("jail_days").response("7").build(),
             EnforcementResultResponseDefendantAccount.builder().parameterName("daysindefault").response("14").build(),
-            EnforcementResultResponseDefendantAccount.builder().parameterName("enforcer").response("21").build(),
-            EnforcementResultResponseDefendantAccount.builder().parameterName("earliestreleasedate")
-                .response("2026-10-01T00:00:00").build()
+            EnforcementResultResponseDefendantAccount.builder().parameterName("enforcer").response("21").build()
         );
 
         AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
-            .resultId(EnforcementResultIdCommonStrict.ABDC)
+            .resultId(EnforcementResultIdCommonStrict.SC)
             .enforcementResultResponses(responses)
             .paymentTerms((EnforcementPaymentTermsCommonStrict) null)
             .build();
@@ -608,14 +607,14 @@ class OpalDefendantAccountEnforcementServiceTest {
         );
 
         String responsesJson = objectMapper.writeValueAsString(resultResponsesMap(
+            "reason", "test reason",
             "jail_days", "7",
             "daysindefault", "14",
-            "enforcer", "21",
-            "earliestreleasedate", "2026-10-01T00:00:00"
+            "enforcer", "21"
         ));
 
         verify(enforcementRepositoryService).addDefendantAccountEnforcement(
-            RESULT_ID_AS_STRING,
+            "SC",
             DEFENDANT_ACCOUNT_ID,
             BUSINESS_UNIT_ID,
             PROSECUTOR_CASE_REFERENCE,
@@ -623,10 +622,10 @@ class OpalDefendantAccountEnforcementServiceTest {
             14,
             BUSINESS_UNIT_USER_ID,
             USER_NAME,
-            null,
+            "test reason",
             55L,
             responsesJson,
-            LocalDateTime.of(2026, 10, 1, 0, 0, 0),
+            null,
             null,
             null,
             null,
@@ -634,12 +633,12 @@ class OpalDefendantAccountEnforcementServiceTest {
             VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
 
-        verify(enforcerRepository).findByEnforcerCodeAndBusinessUnitId((short) 21, BUSINESS_UNIT_ID);
+        verify(enforcerRepository).findByEnforcerCodeAndBusinessUnit_businessUnitId((short) 21, BUSINESS_UNIT_ID);
         assertCommonResponse(response);
     }
 
     @Test
-    void testAddEnforcement_whenOnlyGivenReleaseDate_createsEnforcement() throws JacksonException {
+    void testAddEnforcement_whenPrisMapsEarliestReleaseDate_createsEnforcement() throws JacksonException {
         UserState userState = mock(UserState.class);
         when(userState.getUserName()).thenReturn(USER_NAME);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
@@ -667,15 +666,15 @@ class OpalDefendantAccountEnforcementServiceTest {
             nullable(LocalDateTime.class),
             anyLong()
         )).thenReturn(ENFORCEMENT_ID);
-        when(featureFlagService.isFlagEnabled(RELEASE_1B_1_1)).thenReturn(false);
+        when(featureFlagService.isFlagEnabled(RELEASE_1B_1_1)).thenReturn(true);
 
         List<EnforcementResultResponseDefendantAccount> responses = List.of(
-            new EnforcementResultResponseDefendantAccount().parameterName("earliest_release_date")
+            new EnforcementResultResponseDefendantAccount().parameterName("earliestreleasedate")
                 .response("2026-05-01T00:00:00")
         );
 
         AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
-            .resultId(EnforcementResultIdCommonStrict.ABDC)
+            .resultId(EnforcementResultIdCommonStrict.PRIS)
             .enforcementResultResponses(responses)
             .paymentTerms((EnforcementPaymentTermsCommonStrict) null)
             .build();
@@ -689,11 +688,11 @@ class OpalDefendantAccountEnforcementServiceTest {
         );
 
         String responsesJson = objectMapper.writeValueAsString(resultResponsesMap(
-            "earliest_release_date", "2026-05-01T00:00:00"
+            "earliestreleasedate", "2026-05-01T00:00:00"
         ));
 
         verify(enforcementRepositoryService).addDefendantAccountEnforcement(
-            RESULT_ID_AS_STRING,
+            "PRIS",
             DEFENDANT_ACCOUNT_ID,
             BUSINESS_UNIT_ID,
             PROSECUTOR_CASE_REFERENCE,
