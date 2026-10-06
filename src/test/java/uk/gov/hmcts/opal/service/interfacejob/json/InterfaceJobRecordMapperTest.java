@@ -47,7 +47,7 @@ public class InterfaceJobRecordMapperTest {
         assertThat(records[1].getOriginatorName()).isEqualTo("Penny Originator");
         assertThat(records[1].getOriginatorReference()).isEqualTo("orig2");
         assertThat(records[1].getOriginatorSortCode()).isEqualTo("22-22-22");
-        assertThat(records[1].getOriginatorBankAccountNumber()).isEqualTo("22222221");
+        assertThat(records[1].getOriginatorBankAccountNumber()).isEqualTo("22222222");
     }
 
     private InterfaceFileCommonDataExtract createExtract() {
@@ -72,7 +72,7 @@ public class InterfaceJobRecordMapperTest {
         OriginatorDetails orig1Details = new OriginatorDetails("Sarah Originator", "orig1", orig1BankDetails);
 
         // Transaction 2 originator details
-        BankDetails orig2BankDetails = new BankDetails("22222221",
+        BankDetails orig2BankDetails = new BankDetails("22222222",
             "22-22-22",
             "P Originator",
             "CURRENT");
