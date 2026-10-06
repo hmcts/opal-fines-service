@@ -725,6 +725,15 @@ class JsonSchemaValidationServiceTest {
         ));
     }
 
+    @ParameterizedTest(name = "valid without {0}")
+    @MethodSource("legacyOffenceOptionalFieldScenarios")
+    void whenOptionalFieldIsOmitted_validatesLegacyOffenceReferenceSchema(String field, String offenceJson) {
+        assertTrue(jsonSchemaValidationService.isValid(
+            offenceJson,
+            "legacy/common-objects/offenceReferenceLegacy.json"
+        ));
+    }
+
     private static Stream<Arguments> legacyImpositionCreditorScenarios() {
         return Stream.of(
             Arguments.of("major creditor", """
@@ -784,6 +793,23 @@ class JsonSchemaValidationServiceTest {
                   "major_creditor_name": "HM Courts & Tribunals Service"
                 }
                 """, false)
+        );
+    }
+
+    private static Stream<Arguments> legacyOffenceOptionalFieldScenarios() {
+        return Stream.of(
+            Arguments.of("offence_id", """
+                {
+                  "cjs_code": "HY35014",
+                  "offence_title": "Riding a bicycle on a footpath"
+                }
+                """),
+            Arguments.of("cjs_code", """
+                {
+                  "offence_id": 33369,
+                  "offence_title": "Riding a bicycle on a footpath"
+                }
+                """)
         );
     }
 
