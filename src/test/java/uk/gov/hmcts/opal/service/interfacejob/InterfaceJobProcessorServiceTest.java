@@ -12,7 +12,6 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Optional;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -164,7 +163,7 @@ class InterfaceJobProcessorServiceTest {
             .interfaceFileId(INTERFACE_FILE_ID)
             .build();
 
-        if(withTransformedJsonId) {
+        if (withTransformedJsonId) {
             interfaceFile.setTransformedJsonId(TRANSFORMED_JSON_ID);
         }
 

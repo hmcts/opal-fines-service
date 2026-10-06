@@ -31,7 +31,7 @@ public class InterfaceJobRecordMapperTest {
         assertThat(records[0].getDestinationBankAccountNumber()).isEqualTo("123098765");
         assertThat(records[0].getDestinationBeneficiaryName()).isEqualTo("John Beneficiary");
         assertThat(records[0].getDestinationSortCode()).isEqualTo("20-40-22");
-        assertThat(records[0].getAmountPence()).isEqualTo(15000l);
+        assertThat(records[0].getAmountPence()).isEqualTo(15000L);
         assertThat(records[0].getTransactionCode()).isEqualTo("01");
         assertThat(records[0].getOriginatorName()).isEqualTo("Sarah Originator");
         assertThat(records[0].getOriginatorReference()).isEqualTo("orig1");
@@ -42,7 +42,7 @@ public class InterfaceJobRecordMapperTest {
         assertThat(records[1].getDestinationBankAccountNumber()).isEqualTo("123098765");
         assertThat(records[1].getDestinationBeneficiaryName()).isEqualTo("John Beneficiary");
         assertThat(records[1].getDestinationSortCode()).isEqualTo("20-40-22");
-        assertThat(records[1].getAmountPence()).isEqualTo(2500l);
+        assertThat(records[1].getAmountPence()).isEqualTo(2500L);
         assertThat(records[1].getTransactionCode()).isEqualTo("01");
         assertThat(records[1].getOriginatorName()).isEqualTo("Penny Originator");
         assertThat(records[1].getOriginatorReference()).isEqualTo("orig2");
@@ -79,8 +79,8 @@ public class InterfaceJobRecordMapperTest {
         OriginatorDetails orig2Details = new OriginatorDetails("Penny Originator", "orig2", orig2BankDetails);
 
         return List.of(
-            new Transaction("01", orig1Details, 15000l, "20260101"),
-            new Transaction("01", orig2Details, 2500l, "20260202")
+            new Transaction("01", orig1Details, 15000L, "20260101"),
+            new Transaction("01", orig2Details, 2500L, "20260202")
         );
     }
 }
