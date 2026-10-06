@@ -8,5 +8,6 @@ public interface InterfaceJobStoredProcedureNames {
     String BUSINESS_UNIT_ID = "pi_business_unit_id";
     String POSTED_BY = "pi_posted_by";
     String POSTED_BY_NAME = "pi_posted_by_name";
+    String RECORDS_JSON = "pi_records_json";
     String TILL_ID = "po_till_id";
 }
