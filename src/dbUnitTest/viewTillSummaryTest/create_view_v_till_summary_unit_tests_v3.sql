@@ -9,9 +9,10 @@
 * VERSION HISTORY:
 *
 * Date          Author      Version     Nature of Change
-* ----------    -------     --------    ------------------------------------------------------------------------
+* ----------    -------     --------    --------------------------------------------------------------------------------------------
 * 17/08/2026    C Cho       1.0         PO-2594 Unit tests for v_till_summary view
 * 29/09/2026    C Cho       2.0         PO-10703 Test processed_by and payments_count changes
+* 06/10/2026    TMc         3.0         PO-5784 Alter INTERFACE_FILES table for EI2. interface_files.records column is being dropped
 *
 **/
 \timing
@@ -105,7 +106,6 @@ BEGIN
         interface_job_id,
         file_name,
         created_datetime,
-        records,
         source,
         record_count,
         total_amount
@@ -115,7 +115,6 @@ BEGIN
         315001,
         'v1-315-natwest.dat',
         '2026-08-02 09:01:00',
-        '[]',
         'ALLPAY'::t_interface_file_source_enum,
         99,
         9999.99
@@ -125,7 +124,6 @@ BEGIN
         315001,
         'v1-315-allpay-dd.dat',
         '2026-08-02 09:02:00',
-        '[]',
         'ALLPAY_DD'::t_interface_file_source_enum,
         4,
         44.44
@@ -135,7 +133,6 @@ BEGIN
         315002,
         'v1-315-orphan-file.dat',
         '2026-08-02 10:01:00',
-        '[]',
         'DWP'::t_interface_file_source_enum,
         8,
         88.88
@@ -145,7 +142,6 @@ BEGIN
         315003,
         'v1-315-failed-till.dat',
         '2026-08-02 11:01:00',
-        '[]',
         'BARCLAYCARD'::t_interface_file_source_enum,
         3,
         33.33
