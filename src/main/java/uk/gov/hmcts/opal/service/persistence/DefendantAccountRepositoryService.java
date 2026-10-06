@@ -54,10 +54,8 @@ public class DefendantAccountRepositoryService {
     public BigInteger incrementVersionNumber(long defendantAccountId, BigInteger expectedVersion) {
         entityManager.flush();
 
-        int rowsUpdated = defendantAccountRepository.incrementVersionNumber(
-            defendantAccountId,
-            expectedVersion.longValueExact()
-        );
+        int rowsUpdated = expectedVersion == null ? 0 : defendantAccountRepository.incrementVersionNumber(
+            defendantAccountId, expectedVersion.longValueExact());
 
         if (rowsUpdated == 0) {
             throw new ResourceConflictException(
