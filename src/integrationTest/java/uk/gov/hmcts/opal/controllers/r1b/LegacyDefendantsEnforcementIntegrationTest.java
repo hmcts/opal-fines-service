@@ -292,7 +292,7 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
     @JiraStory("PO-10829")
     @DisplayName("LEGACY: Next enforcement action data not included in response when in R1B mode")
     void testGetEnforcementStatus_hasNoLastEnforcementActionWhenR1bIsEnabled() throws Exception {
-        ResultActions result = mockMvc.perform(get("/defendant-accounts/77/enforcement-status")
+        ResultActions result = mockMvc.perform(get("/defendant-accounts/1234/enforcement-status")
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())
             .header("Authorization", userStateStub.getBearerToken()));
 
