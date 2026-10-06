@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import java.util.Objects;
 import java.util.Optional;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
@@ -34,6 +35,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
+import uk.gov.hmcts.opal.service.FeatureFlagService;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountEnforcementServiceInterface;
@@ -50,6 +52,7 @@ import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildE
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementOverrideResult;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementStatus;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.filterDefendantParty;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_1_1;
 
 @Service
 @Slf4j(topic = "opal.OpalDefendantAccountService")
@@ -87,6 +90,8 @@ public class OpalDefendantAccountEnforcementService
 
     private final CourtRepository courtRepository;
 
+    private final FeatureFlagService featureFlagService;
+
     @Override
     @Transactional
     public AddEnforcementResponseDefendantAccount addEnforcement(
@@ -106,23 +111,45 @@ public class OpalDefendantAccountEnforcementService
             && request.getEnforcementResultResponses() != null ? request.getEnforcementResultResponses() : List.of();
 
         for (EnforcementResultResponseDefendantAccount result : enforcementResultResponses) {
-            switch (result.getParameterName()) {
-                case "reason" -> reason = result.getResponse();
-                case "jail_days", "daysindefault" -> jailDays = Integer.valueOf(result.getResponse());
-                case "enforcer_id", "enforcer" -> enforcerId = Long.valueOf(result.getResponse());
-                case "earliest_release_date", "earliestreleasedate" ->
-                    earliestReleaseDate = LocalDateTime.parse(result.getResponse());
-            }
-
-            if (Objects.equals(result.getParameterName(), "courtcode")) {
-                Optional<CourtEntity> court = courtRepository
-                    .findByCourtCodeAndBusinessUnitId(Short.valueOf(result.getResponse()), businessUnitId);
-                if (court.isPresent()) {
-                    hearingCourtId = court.get().getCourtId();
+            if (featureFlagService.isFlagEnabled(RELEASE_1B_1_1)) {
+                switch (result.getParameterName()) {
+                    case "reason" -> reason = result.getResponse();
+                    case "jail_days", "daysindefault" -> jailDays = Integer.valueOf(result.getResponse());
+                    case "enforcer_id", "enforcer" -> enforcerId = Long.valueOf(result.getResponse());
+                    case "earliest_release_date", "earliestreleasedate" ->
+                        earliestReleaseDate = LocalDateTime.parse(result.getResponse());
+                    case "courtcode" -> {
+                        Optional<CourtEntity> court = courtRepository
+                            .findByCourtCodeAndBusinessUnitId(Short.valueOf(result.getResponse()), businessUnitId);
+                        if (court.isPresent()) {
+                            hearingCourtId = court.get().getCourtId();
+                        }
+                    }
+                    case "hearingdate" -> hearingDate = LocalDate.parse(result.getResponse()).atStartOfDay();
                 }
-            }
-            if (Objects.equals(result.getParameterName(), "hearingdate")) {
-                hearingDate = LocalDate.parse(result.getResponse()).atStartOfDay();
+            } else {
+                if (Objects.equals(result.getParameterName(), "reason")) {
+                    reason = result.getResponse();
+                }
+                if (Objects.equals(result.getParameterName(), "jail_days")) {
+                    jailDays = Integer.valueOf(result.getResponse());
+                }
+                if (Objects.equals(result.getParameterName(), "enforcer_id")) {
+                    enforcerId = Long.valueOf(result.getResponse());
+                }
+                if (Objects.equals(result.getParameterName(), "earliest_release_date")) {
+                    earliestReleaseDate = LocalDateTime.parse(result.getResponse());
+                }
+                if (Objects.equals(result.getParameterName(), "courtcode")) {
+                    Optional<CourtEntity> court = courtRepository
+                        .findByCourtCodeAndBusinessUnitId(Short.valueOf(result.getResponse()), businessUnitId);
+                    if (court.isPresent()) {
+                        hearingCourtId = court.get().getCourtId();
+                    }
+                }
+                if (Objects.equals(result.getParameterName(), "hearingdate")) {
+                    hearingDate = LocalDate.parse(result.getResponse()).atStartOfDay();
+                }
             }
         }
 
