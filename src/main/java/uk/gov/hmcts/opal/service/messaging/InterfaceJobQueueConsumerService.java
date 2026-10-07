@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
-import uk.gov.hmcts.opal.service.interfacejob.InterfaceJobProcessingException;
 import uk.gov.hmcts.opal.service.interfacejob.InterfaceJobStatusService;
 
 @Service
@@ -29,8 +28,7 @@ public class InterfaceJobQueueConsumerService implements QueueConsumerInterface 
         try {
             interfaceJobQueueProcessingService.processProcessingJob(interfaceJobId);
         } catch (RuntimeException ex) {
-            if (ex instanceof InterfaceJobProcessingException || transientFailureHelper.isTransientFailure(ex)) {
-                log.error("Interface job {} processing failed, propagating to queue listener", interfaceJobId, ex);
+            if (transientFailureHelper.isTransientFailure(ex)) {
                 throw ex;
             }
             log.error("Interface job {} failed non-transiently, marking failed", interfaceJobId, ex);

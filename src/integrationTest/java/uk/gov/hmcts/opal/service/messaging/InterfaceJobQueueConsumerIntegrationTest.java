@@ -47,8 +47,6 @@ import uk.gov.hmcts.opal.entity.InterfaceJobEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobStatus;
 import uk.gov.hmcts.opal.exception.ReportGenerationException;
 import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
-import uk.gov.hmcts.opal.repository.InterfaceFileRepository;
-import uk.gov.hmcts.opal.service.interfacejob.InterfaceJobProcessingException;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -78,9 +76,6 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     protected InterfaceJobQueueIntegrationTestHelper helper;
 
     @Autowired
-    private InterfaceFileRepository interfaceFileRepository;
-
-    @Autowired
     private BlobServiceClient blobServiceClient;
 
     @Value("${opal.report.storage.container}")
@@ -108,13 +103,12 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
 
     @RegisterExtension
     static WireMockExtension fhWireMockServer = WireMockExtension.newInstance()
-        .options(options().usingFilesUnderClasspath("wiremock").dynamicPort())
+        .options(options().usingFilesUnderClasspath("wiremock").port(4075))
         .build();
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
         registry.add("opal.common.system-users.token-url", authWireMockServer::baseUrl);
-        registry.add("file-handler.service.url", fhWireMockServer::baseUrl);
     }
 
     @BeforeEach
@@ -386,35 +380,14 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-3497")
     void processFailsWhenFileHandlerServiceReturnsUnexpectedResponse() {
         fhWireMockServer.setScenarioState(WIREMOCK_INTERFACE_JOB_QUEUE_SCENARIO, WIREMOCK_STATE__UNEXPECTED_RESPONSE);
-        assertThatThrownBy(() -> listener.onMessage(validTextMessage))
-            .isInstanceOf(InterfaceJobProcessingException.class);
+        assertThatCode(() -> listener.onMessage(validTextMessage))
+            .doesNotThrowAnyException();
 
-        helper.assertJobStatus(InterfaceJobStatus.PROCESSING, false);
+        InterfaceJobEntity savedJob = interfaceJobRepository.findById(INTERFACE_JOB_ID)
+            .orElseThrow();
+        assertThat(savedJob.getStatus()).isEqualTo(InterfaceJobStatus.FAILED);
+        assertThat(savedJob.getCompletedDateTime()).isNotNull();
         helper.assertNoSideEffects();
-        assertThat(helper.findFailedInterfaceMessagesForJob()).isEmpty();
-    }
-
-    @Test
-    @DisplayName("PO-8943 AC2: Missing transformed JSON id rejects each attempt without side effects")
-    @JiraStory("PO-8943")
-    @JiraEpic("PO-3497")
-    void missingTransformedIdRemainsRetryable() {
-        var interfaceFile = interfaceFileRepository.findById(99000000401001L).orElseThrow();
-        interfaceFile.setTransformedJsonId(null);
-        interfaceFileRepository.saveAndFlush(interfaceFile);
-        fhWireMockServer.resetRequests();
-
-        for (int attempt = 0; attempt < 2; attempt++) {
-            assertThatThrownBy(() -> listener.onMessage(validTextMessage))
-                .isInstanceOf(InterfaceJobProcessingException.class)
-                .hasRootCauseMessage("Interface job " + INTERFACE_JOB_ID
-                    + " does not have associated transformedJsonId");
-            helper.assertJobStatus(InterfaceJobStatus.PROCESSING, false);
-        }
-
-        assertThat(fhWireMockServer.getAllServeEvents()).isEmpty();
-        helper.assertNoSideEffects();
-        assertThat(helper.findFailedInterfaceMessagesForJob()).isEmpty();
     }
 
     private void assertCommitBoundary(InterfaceJobStatus expectedStatus, boolean expectReportSideEffects)
