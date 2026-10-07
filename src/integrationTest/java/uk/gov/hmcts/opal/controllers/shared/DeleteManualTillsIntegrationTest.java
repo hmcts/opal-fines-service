@@ -16,6 +16,7 @@ import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.repository.PaymentInRepository;
 import uk.gov.hmcts.opal.repository.TillRepository;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles("integration")
@@ -28,6 +29,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
     scripts = "classpath:db/deleteData/delete_from_manual_tills_for_deletion_test.sql",
     executionPhase = AFTER_TEST_METHOD
 )
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 class DeleteManualTillsIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL = "/testing-support/tills";
@@ -43,7 +45,8 @@ class DeleteManualTillsIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Deletes requested manual tills and linked payments")
-    @JiraStory("PO-3630")
+    @JiraStory("PO-10810")
+    @JiraEpic("PO-2468")
     void shouldDeleteRequestedManualTillsAndPayments() throws Exception {
         assertThat(tillRepository.findAllById(List.of(
             FIRST_TILL_ID, SECOND_TILL_ID, UNRELATED_TILL_ID
@@ -79,7 +82,8 @@ class DeleteManualTillsIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("Rejects a request without till IDs")
-    @JiraStory("PO-3630")
+    @JiraStory("PO-10810")
+    @JiraEpic("PO-2468")
     void shouldRejectRequestWithoutTillIds() throws Exception {
         mockMvc.perform(delete(URL))
             .andExpect(status().isBadRequest());
