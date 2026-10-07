@@ -210,6 +210,7 @@ public class GenericReportService implements GenericReportServiceInterface {
                 .report(reportEntity)
                 .businessUnit(request.getBusinessUnitIds())
                 .requestedBy(requestedBy)
+                .templateName(reportEntity.getTemplateName())
                 .requestedByName(requestedByName)
                 .reportParameters(mapper.writeValueAsString(request.getReportParameters()))
                 .requestedAt(LocalDateTime.now())

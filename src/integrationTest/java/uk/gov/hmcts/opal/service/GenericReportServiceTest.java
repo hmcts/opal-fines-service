@@ -106,6 +106,7 @@ class GenericReportServiceTest extends AbstractIntegrationTest {
         assertThat(saved.getScheduledDeletionTimestamp())
             .isEqualTo(LocalDateTime.of(2026, 4, 8, 10, 15, 30));
         assertThat(saved.getNoOfRecords()).isEqualTo((short) 42);
+        assertThat(saved.getTemplateName()).isEqualTo("test-template-name.doc");
         assertThat(saved.getErrors()).isNull();
     }
 
@@ -133,14 +134,17 @@ class GenericReportServiceTest extends AbstractIntegrationTest {
         ReportEntity report = new ReportEntity();
         report.setReportId(id);
         report.setRetentionPeriod(Duration.ofDays(1));
+        report.setTemplateName("test-template-name.doc");
         return report;
     }
 
     private ReportInstanceEntity buildReportInstanceEntity(ReportEntity report) {
         ReportInstanceEntity instance = new ReportInstanceEntity();
         instance.setReport(report);
+        instance.setTemplateName(report.getTemplateName());
         instance.setErrors(new ReportError("Error", "Existing error"));
         instance.setGenerationStatus(ReportInstanceGenerationStatus.ERROR);
+
         return instance;
     }
 
