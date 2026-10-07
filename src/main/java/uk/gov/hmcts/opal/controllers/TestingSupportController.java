@@ -165,7 +165,7 @@ public class TestingSupportController {
     @DeleteMapping("/testing-support/tills")
     @Operation(summary = "Deletes a list of manual tills and their payments. FOR TESTING ONLY!")
     public ResponseEntity<Void> deleteManualTills(
-        @RequestParam(value = "ids") List<Long> tillIds) {
+        @RequestParam(value = "ids", required = false) List<Long> tillIds) {
         log.warn("TEST ENDPOINT: Request to delete manual tills with ids: {}", tillIds);
 
         testingSupportTillService.deleteManualTills(tillIds);
