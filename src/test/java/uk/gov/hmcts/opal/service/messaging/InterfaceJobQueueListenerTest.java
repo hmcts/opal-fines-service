@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.service.messaging;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.service.interfacejob.InterfaceJobProcessingException;
 
 @ExtendWith(MockitoExtension.class)
 class InterfaceJobQueueListenerTest {
@@ -41,6 +44,17 @@ class InterfaceJobQueueListenerTest {
 
         // Assert
         verify(consumer).consume(MESSAGE_PAYLOAD);
+    }
+
+    @Test
+    void onMessage_propagatesPaymentFailure() throws JMSException {
+        InterfaceJobProcessingException failure = new InterfaceJobProcessingException(123L,
+            new IllegalStateException("Missing transformed JSON id"));
+        when(textMessage.getText()).thenReturn(MESSAGE_PAYLOAD);
+        doThrow(failure).when(consumer).consume(MESSAGE_PAYLOAD);
+
+        assertThatThrownBy(() -> listener.onMessage(textMessage))
+            .isSameAs(failure);
     }
 
     @Test

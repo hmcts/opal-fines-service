@@ -130,7 +130,7 @@ class InterfaceJobProcessorServiceTest {
 
         // Act / Assert
         assertThatThrownBy(() -> interfaceJobProcessorService.processPaymentsInJob(INTERFACE_JOB_ID))
-            .isInstanceOf(IllegalStateException.class)
+            .isInstanceOf(InterfaceJobProcessingException.class)
             .hasMessage("Failed to process interface job 123")
             .hasCauseInstanceOf(IllegalStateException.class)
             .hasRootCauseMessage("Interface job 123 does not have associated transformedJsonId");
@@ -151,7 +151,8 @@ class InterfaceJobProcessorServiceTest {
             .isInstanceOf(IllegalStateException.class)
             .hasMessage("Failed to process interface job 123")
             .hasCauseInstanceOf(RuntimeException.class)
-            .hasRootCauseMessage("db down");
+            .hasRootCauseMessage("db down")
+            .isNotInstanceOf(InterfaceJobProcessingException.class);
     }
 
     private static InterfaceJobEntity interfaceJob() {

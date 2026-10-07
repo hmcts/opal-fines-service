@@ -30,11 +30,7 @@ public class InterfaceJobProcessorService {
         try {
             InterfaceJobEntity interfaceJob = interfaceJobRepository.findById(interfaceJobId)
                 .orElseThrow(() -> new IllegalStateException("Interface job not found with id: " + interfaceJobId));
-            Long transformedJsonId = getTransformedJsonId(interfaceJob);
-            Resource fileContent = fileHandlerInterfaceFiles
-                .getInterfaceFileContent(SystemUserEnum.OPAL_SYSTEM_USER, transformedJsonId);
-            String json = fileContent.getContentAsString(Charset.defaultCharset());
-            String recordsJson = jsonMapper.toRecordsJson(json);
+            String recordsJson = getRecordsJson(interfaceJob);
 
             return Optional.ofNullable(interfaceJobRepository.processPaymentsInJob(
                 interfaceJob.getInterfaceJobId(),
@@ -42,8 +38,22 @@ public class InterfaceJobProcessorService {
                 SYSTEM_POSTED_BY,
                 SYSTEM_POSTED_BY_NAME,
                 recordsJson));
+        } catch (InterfaceJobProcessingException e) {
+            throw e;
         } catch (Exception e) {
             throw new IllegalStateException("Failed to process interface job " + interfaceJobId, e);
+        }
+    }
+
+    private String getRecordsJson(InterfaceJobEntity interfaceJob) {
+        try {
+            Long transformedJsonId = getTransformedJsonId(interfaceJob);
+            Resource fileContent = fileHandlerInterfaceFiles
+                .getInterfaceFileContent(SystemUserEnum.OPAL_SYSTEM_USER, transformedJsonId);
+            String json = fileContent.getContentAsString(Charset.defaultCharset());
+            return jsonMapper.toRecordsJson(json);
+        } catch (Exception e) {
+            throw new InterfaceJobProcessingException(interfaceJob.getInterfaceJobId(), e);
         }
     }
 

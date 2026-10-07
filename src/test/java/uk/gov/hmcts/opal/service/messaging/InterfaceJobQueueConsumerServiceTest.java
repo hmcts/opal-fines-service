@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -17,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessResourceFailureException;
 import tools.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.opal.service.interfacejob.InterfaceJobProcessingException;
 import uk.gov.hmcts.opal.service.interfacejob.InterfaceJobStatusService;
 
 @ExtendWith(MockitoExtension.class)
@@ -98,6 +100,22 @@ class InterfaceJobQueueConsumerServiceTest {
         verify(interfaceJobStatusService, never()).markFailed(anyLong());
         verify(interfaceJobQueueProcessingService, never()).handleProcessingFailure(anyLong(),
             any(RuntimeException.class));
+    }
+
+    @Test
+    void consume_rethrowsPaymentFailureOnEveryAttempt() {
+        InterfaceJobProcessingException failure = new InterfaceJobProcessingException(123L,
+            new IllegalStateException("Missing transformed JSON id"));
+        when(interfaceJobStatusService.isProcessing(123L)).thenReturn(true);
+        doThrow(failure).when(interfaceJobQueueProcessingService).processProcessingJob(123L);
+
+        InterfaceJobQueueConsumerService consumer = service();
+        assertThatThrownBy(() -> consumer.consume("{\"interface_job_id\":123}")).isSameAs(failure);
+        assertThatThrownBy(() -> consumer.consume("{\"interface_job_id\":123}")).isSameAs(failure);
+
+        verify(interfaceJobQueueProcessingService, times(2)).processProcessingJob(123L);
+        verify(interfaceJobQueueProcessingService, never()).handleProcessingFailure(anyLong(), any());
+        verify(interfaceJobStatusService, never()).markFailed(anyLong());
     }
 
     private InterfaceJobQueueConsumerService service() {
