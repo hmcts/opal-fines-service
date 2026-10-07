@@ -825,11 +825,13 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-8248")
     void testReplaceDraftAccount_whenEnforcementCourtDoesNotExist_returns400AndLeavesDataUnchanged() throws Exception {
         DraftAccountEntity before = getDraftAccount(5L);
-        long countBefore = draftAccountRepository.count();
+
         String ifMatch = getIfMatchForDraftAccount(5L);
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(AUTH_HEADER);
         headers.add("If-Match", ifMatch);
+
+        long countBefore = draftAccountRepository.count();
 
         mockMvc.perform(put(URL_BASE + "/5")
                 .headers(headers)

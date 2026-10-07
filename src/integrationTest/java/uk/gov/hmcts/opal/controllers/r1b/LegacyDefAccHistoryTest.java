@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -12,6 +14,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService.GET_DEFENDANT_ACCOUNT_HISTORY;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -23,6 +27,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
+import org.wiremock.spring.InjectWireMock;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -48,19 +53,18 @@ class LegacyDefAccHistoryTest extends AbstractLegacyDefendantsIntegrationTest {
     @MockitoSpyBean
     private GatewayService gatewayService;
 
+    @InjectWireMock("user-service")
+    private WireMockServer userServiceWireMock;
+
     @Test
     @DisplayName("PO-2647 legacy history returns mixed items and maps them")
     @JiraStory("PO-2647")
     @JiraEpic("PO-2621")
     @JiraTestKey("PO-8619")
     void getDefendantAccountHistory_successReturnsMappedResponse() throws Exception {
-        userStateStub.setupWithNoPermissions();
-        userStateStub.addPermissions((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-
         ResultActions resultActions = mockMvc.perform(get(HISTORY_URL, DEFENDANT_ACCOUNT_ID)
-            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-            .accept(MediaType.APPLICATION_JSON)
-            .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()));
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
+            .accept(MediaType.APPLICATION_JSON));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":getDefendantAccountHistory_successReturnsMappedResponse: Response body:\n{}",
@@ -102,16 +106,12 @@ class LegacyDefAccHistoryTest extends AbstractLegacyDefendantsIntegrationTest {
     @JiraEpic("PO-2621")
     @JiraTestKey("PO-8618")
     void getDefendantAccountHistory_filtersAreForwardedToLegacyRequest() throws Exception {
-        userStateStub.setupWithNoPermissions();
-        userStateStub.addPermissions((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-
         mockMvc.perform(get(HISTORY_URL, DEFENDANT_ACCOUNT_ID)
-                .queryParam("dateFrom", "2026-05-11")
-                .queryParam("dateTo", "2026-05-12")
-                .queryParam("itemTypes", "enforcement,note")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .accept(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
+                    .queryParam("dateFrom", "2026-05-11")
+                    .queryParam("dateTo", "2026-05-12")
+                    .queryParam("itemTypes", "enforcement,note")
+                    .accept(MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.historyItems[0].type").value("Note"))
             .andExpect(jsonPath("$.historyItems[1].type").value("Financial"));
@@ -139,9 +139,8 @@ class LegacyDefAccHistoryTest extends AbstractLegacyDefendantsIntegrationTest {
         userStateStub.addPermissions((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
 
         mockMvc.perform(get(HISTORY_URL, 99999999999999L)
-                .accept(MediaType.APPLICATION_JSON)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
+                    .accept(MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
     }
@@ -152,11 +151,16 @@ class LegacyDefAccHistoryTest extends AbstractLegacyDefendantsIntegrationTest {
     @JiraEpic("PO-2621")
     @JiraTestKey("PO-8621")
     void getDefendantAccountHistory_withoutPermissionReturns403() throws Exception {
-        userStateStub.setupWithNoPermissions();
+        userServiceWireMock.stubFor(WireMock.get(urlPathEqualTo("/v2/users/0/state"))
+            .atPriority(1).willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBodyFile("UserService/user-state-no-permissions.json")));
 
         mockMvc.perform(get(HISTORY_URL, DEFENDANT_ACCOUNT_ID)
                 .accept(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
 
