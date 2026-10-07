@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.service.report.mapper.csv;
 
 import static uk.gov.hmcts.opal.service.report.CommonReportHelper.formatMoney;
-import static uk.gov.hmcts.opal.service.report.CommonReportHelper.getDataValue;
 import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.NEW_LINE;
 
 import java.util.List;

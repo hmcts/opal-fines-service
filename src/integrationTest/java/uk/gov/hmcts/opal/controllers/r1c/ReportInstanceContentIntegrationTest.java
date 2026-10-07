@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -244,6 +245,7 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
         @JiraEpic("PO-2116")
         void whenJsonRequested_returnsStoredCashListContent_isNotAllowed() throws Exception {
             mockMvc.perform(authorisedGetContent(CASH_LIST_REPORT_INSTANCE_ID).accept(APPLICATION_JSON))
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpectAll(status().is(422));
         }
 
