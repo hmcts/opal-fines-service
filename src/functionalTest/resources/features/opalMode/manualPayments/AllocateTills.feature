@@ -1,28 +1,28 @@
 @Opal @R1CPayment @JIRA-LABEL:auto-payments @JIRA-EPIC:PO-2116
 Feature: Allocate tills
 
-  # All scenarios are ignored until the test can obtain till_id from GET /tills and the agreed
-  # Testing Support till cleanup route is available. See PO-10713 and the PO-3630 manual-till tests.
+  # Till-creating scenarios remain ignored until GET /tills exposes till_id and the agreed Testing
+  # Support cleanup route is available. See PO-10713 and the PO-3630 manual-till tests.
   # Exact status transitions are verified in integration tests, where database state is controlled;
   # an external queue consumer could advance Processing before a functional test can observe it.
 
-  @Ignore @JIRA-STORY:PO-3423
+  @JIRA-STORY:PO-3423
   Scenario: Till allocation rejects a missing access token
     When I call POST "/tills/allocate" without a token
     Then the request is rejected as unauthorized
 
-  @Ignore @JIRA-STORY:PO-3423
+  @JIRA-STORY:PO-3423
   Scenario: Till allocation rejects an invalid access token
     When I call POST "/tills/allocate" with an invalid token
     Then the request is rejected as unauthorized
 
-  @Ignore @JIRA-STORY:PO-3423
+  @JIRA-STORY:PO-3423
   Scenario: Till allocation requires Process and Allocate Payments permission
     Given I am testing as the "opal-test-2@dev.platform.hmcts.net" user
     When I submit a till allocation request as a user without permission
     Then the request is rejected as forbidden
 
-  @Ignore @JIRA-STORY:PO-3423
+  @JIRA-STORY:PO-3423
   Scenario Outline: Till allocation rejects a request outside the API schema
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I submit an invalid till allocation request "<request>"
@@ -36,7 +36,7 @@ Feature: Allocate tills
       | with a till missing its business unit |
       | with a null till entry                |
 
-  @Ignore @JIRA-STORY:PO-3423
+  @JIRA-STORY:PO-3423
   Scenario: Till allocation returns not found for an unknown till
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I submit an allocation request for a till that does not exist
@@ -75,7 +75,8 @@ Feature: Allocate tills
   # The Failed-to-Processing transition is covered by PO-3423 integration tests until a stable
   # functional fixture for a Failed till is agreed.
 
-  @Ignore @R1CPaymentOff @JIRA-STORY:PO-3423
+  # @R1CPaymentOff selects this scenario only; run it against a service configured with the payment flag off.
+  @R1CPaymentOff @JIRA-STORY:PO-3423
   Scenario: Till allocation is unavailable when Release 1C payments are disabled
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I submit a till allocation request while Release 1C payments are disabled
