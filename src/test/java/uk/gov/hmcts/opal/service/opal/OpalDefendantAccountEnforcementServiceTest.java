@@ -715,6 +715,225 @@ class OpalDefendantAccountEnforcementServiceTest {
     }
 
     @Test
+    void addEnforcement_whenRelease1b11Enabled_prefersNewResponseNamesAndMapsHearingDetails()
+        throws JacksonException {
+        mockAuthorisedUser();
+        mockDefendantAccount();
+        mockCreatedEnforcement();
+        when(featureFlagService.isFlagEnabled(RELEASE_1B_1_1)).thenReturn(true);
+        when(enforcerRepository.findByEnforcerCodeAndBusinessUnit_businessUnitId((short) 21, BUSINESS_UNIT_ID))
+            .thenReturn(Optional.of(EnforcerEntity.builder().enforcerId(55L).build()));
+        when(courtRepository.findByCourtCodeAndBusinessUnitId((short) 123, BUSINESS_UNIT_ID))
+            .thenReturn(Optional.of(CourtEntity.builder().courtId(654L).build()));
+
+        List<EnforcementResultResponseDefendantAccount> responses = List.of(
+            new EnforcementResultResponseDefendantAccount().parameterName("enforcer_id").response("999"),
+            new EnforcementResultResponseDefendantAccount().parameterName("enforcer").response("21"),
+            new EnforcementResultResponseDefendantAccount().parameterName("earliest_release_date")
+                .response("2026-05-01T00:00:00"),
+            new EnforcementResultResponseDefendantAccount().parameterName("earliestreleasedate")
+                .response("2026-05-02T00:00:00"),
+            new EnforcementResultResponseDefendantAccount().parameterName("courtcode").response("123"),
+            new EnforcementResultResponseDefendantAccount().parameterName("hearingdate").response("2026-06-01")
+        );
+
+        AddEnforcementResponseDefendantAccount response = service.addEnforcement(
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            BUSINESS_UNIT_USER_ID,
+            IF_MATCH,
+            AddEnforcementRequestDefendantAccount.builder()
+                .resultId(EnforcementResultIdCommonStrict.ABDC)
+                .enforcementResultResponses(responses)
+                .paymentTerms((EnforcementPaymentTermsCommonStrict) null)
+                .build()
+        );
+
+        verify(enforcementRepositoryService).addDefendantAccountEnforcement(
+            RESULT_ID_AS_STRING,
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            PROSECUTOR_CASE_REFERENCE,
+            "ACCOUNT_ENQUIRY",
+            null,
+            BUSINESS_UNIT_USER_ID,
+            USER_NAME,
+            null,
+            55L,
+            objectMapper.writeValueAsString(resultResponsesMap(
+                "enforcer_id", "999",
+                "enforcer", "21",
+                "earliest_release_date", "2026-05-01T00:00:00",
+                "earliestreleasedate", "2026-05-02T00:00:00",
+                "courtcode", "123",
+                "hearingdate", "2026-06-01"
+            )),
+            LocalDateTime.of(2026, 5, 2, 0, 0),
+            654L,
+            LocalDateTime.of(2026, 6, 1, 0, 0),
+            654L,
+            LocalDateTime.of(2026, 6, 1, 0, 0),
+            VersionUtils.extractBigInteger(IF_MATCH).longValue()
+        );
+
+        assertCommonResponse(response);
+    }
+
+    @Test
+    void addEnforcement_whenRelease1b11Enabled_andLookupsFail_persistsResponsesWithoutMappedValues()
+        throws JacksonException {
+        mockAuthorisedUser();
+        mockDefendantAccount();
+        mockCreatedEnforcement();
+        when(featureFlagService.isFlagEnabled(RELEASE_1B_1_1)).thenReturn(true);
+        when(enforcerRepository.findByEnforcerCodeAndBusinessUnit_businessUnitId((short) 21, BUSINESS_UNIT_ID))
+            .thenReturn(Optional.empty());
+        when(courtRepository.findByCourtCodeAndBusinessUnitId((short) 123, BUSINESS_UNIT_ID))
+            .thenReturn(Optional.empty());
+
+        List<EnforcementResultResponseDefendantAccount> responses = List.of(
+            new EnforcementResultResponseDefendantAccount().parameterName("enforcer").response("21"),
+            new EnforcementResultResponseDefendantAccount().parameterName("courtcode").response("123"),
+            new EnforcementResultResponseDefendantAccount().parameterName("unrecognised").response("value")
+        );
+
+        service.addEnforcement(
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            BUSINESS_UNIT_USER_ID,
+            IF_MATCH,
+            AddEnforcementRequestDefendantAccount.builder()
+                .resultId(EnforcementResultIdCommonStrict.ABDC)
+                .enforcementResultResponses(responses)
+                .paymentTerms((EnforcementPaymentTermsCommonStrict) null)
+                .build()
+        );
+
+        verify(enforcementRepositoryService).addDefendantAccountEnforcement(
+            RESULT_ID_AS_STRING,
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            PROSECUTOR_CASE_REFERENCE,
+            "ACCOUNT_ENQUIRY",
+            null,
+            BUSINESS_UNIT_USER_ID,
+            USER_NAME,
+            null,
+            null,
+            objectMapper.writeValueAsString(resultResponsesMap(
+                "enforcer", "21",
+                "courtcode", "123",
+                "unrecognised", "value"
+            )),
+            null,
+            null,
+            null,
+            null,
+            null,
+            VersionUtils.extractBigInteger(IF_MATCH).longValue()
+        );
+    }
+
+    @Test
+    void addEnforcement_whenRelease1b11Enabled_mapsLegacyResponseNamesWhenNewNamesAreAbsent()
+        throws JacksonException {
+        mockAuthorisedUser();
+        mockDefendantAccount();
+        mockCreatedEnforcement();
+        when(featureFlagService.isFlagEnabled(RELEASE_1B_1_1)).thenReturn(true);
+
+        List<EnforcementResultResponseDefendantAccount> responses = List.of(
+            new EnforcementResultResponseDefendantAccount().parameterName("reason").response("test reason"),
+            new EnforcementResultResponseDefendantAccount().parameterName("jail_days").response("14"),
+            new EnforcementResultResponseDefendantAccount().parameterName("enforcer_id").response("55"),
+            new EnforcementResultResponseDefendantAccount().parameterName("earliest_release_date")
+                .response("2026-05-01T00:00:00")
+        );
+
+        service.addEnforcement(
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            BUSINESS_UNIT_USER_ID,
+            IF_MATCH,
+            AddEnforcementRequestDefendantAccount.builder()
+                .resultId(EnforcementResultIdCommonStrict.ABDC)
+                .enforcementResultResponses(responses)
+                .paymentTerms((EnforcementPaymentTermsCommonStrict) null)
+                .build()
+        );
+
+        verify(enforcementRepositoryService).addDefendantAccountEnforcement(
+            RESULT_ID_AS_STRING,
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            PROSECUTOR_CASE_REFERENCE,
+            "ACCOUNT_ENQUIRY",
+            14,
+            BUSINESS_UNIT_USER_ID,
+            USER_NAME,
+            "test reason",
+            55L,
+            objectMapper.writeValueAsString(resultResponsesMap(
+                "reason", "test reason",
+                "jail_days", "14",
+                "enforcer_id", "55",
+                "earliest_release_date", "2026-05-01T00:00:00"
+            )),
+            LocalDateTime.of(2026, 5, 1, 0, 0),
+            null,
+            null,
+            null,
+            null,
+            VersionUtils.extractBigInteger(IF_MATCH).longValue()
+        );
+    }
+
+    @Test
+    void addEnforcement_whenRelease1b11Disabled_andCourtDoesNotResolve_persistsResponsesWithoutCourt()
+        throws JacksonException {
+        mockAuthorisedUser();
+        mockDefendantAccount();
+        mockCreatedEnforcement();
+        when(featureFlagService.isFlagEnabled(RELEASE_1B_1_1)).thenReturn(false);
+        when(courtRepository.findByCourtCodeAndBusinessUnitId((short) 123, BUSINESS_UNIT_ID))
+            .thenReturn(Optional.empty());
+
+        service.addEnforcement(
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            BUSINESS_UNIT_USER_ID,
+            IF_MATCH,
+            AddEnforcementRequestDefendantAccount.builder()
+                .resultId(EnforcementResultIdCommonStrict.ABDC)
+                .enforcementResultResponses(List.of(
+                    new EnforcementResultResponseDefendantAccount().parameterName("courtcode").response("123")
+                ))
+                .paymentTerms((EnforcementPaymentTermsCommonStrict) null)
+                .build()
+        );
+
+        verify(enforcementRepositoryService).addDefendantAccountEnforcement(
+            RESULT_ID_AS_STRING,
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            PROSECUTOR_CASE_REFERENCE,
+            "ACCOUNT_ENQUIRY",
+            null,
+            BUSINESS_UNIT_USER_ID,
+            USER_NAME,
+            null,
+            null,
+            objectMapper.writeValueAsString(resultResponsesMap("courtcode", "123")),
+            null,
+            null,
+            null,
+            null,
+            null,
+            VersionUtils.extractBigInteger(IF_MATCH).longValue()
+        );
+    }
+
+    @Test
     void testAddEnforcement_whenGivenPaymentTerms_callsPaymentTermsService() throws JacksonException {
         UserState userState = mock(UserState.class);
         when(userState.getUserName()).thenReturn(USER_NAME);
