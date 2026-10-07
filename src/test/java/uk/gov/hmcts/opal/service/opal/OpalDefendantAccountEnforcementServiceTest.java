@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_1_1;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.lang.reflect.Method;
@@ -51,6 +52,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
@@ -83,7 +85,6 @@ import uk.gov.hmcts.opal.mapper.EnforcementPaymentTermsMapper;
 import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
-import uk.gov.hmcts.opal.service.FeatureFlagService;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
@@ -149,7 +150,7 @@ class OpalDefendantAccountEnforcementServiceTest {
     private DefendantAccountControlValidator defendantAccountControlValidator;
 
     @Mock
-    private FeatureFlagService featureFlagService;
+    private FeatureToggleApi featureToggleApi;
 
     @Spy
     private EnforcementPaymentTermsMapper enforcementPaymentTermsMapper =
@@ -289,7 +290,7 @@ class OpalDefendantAccountEnforcementServiceTest {
         when(courtRepository.findByCourtCodeAndBusinessUnitId((short) 123, BUSINESS_UNIT_ID))
             .thenReturn(Optional.of(CourtEntity.builder().courtId(654L).build()));
         mockCreatedEnforcement();
-        when(featureFlagService.isFlagEnabled(RELEASE_1B_1_1)).thenReturn(false);
+        whenFeatureIsEnabled(false);
 
         List<EnforcementResultResponseDefendantAccount> responses = List.of(
             new EnforcementResultResponseDefendantAccount().parameterName("reason").response("test reason"),
@@ -377,7 +378,7 @@ class OpalDefendantAccountEnforcementServiceTest {
             nullable(LocalDateTime.class),
             anyLong()
         )).thenReturn(ENFORCEMENT_ID);
-        when(featureFlagService.isFlagEnabled(RELEASE_1B_1_1)).thenReturn(false);
+        whenFeatureIsEnabled(false);
 
         List<EnforcementResultResponseDefendantAccount> responses = List.of(
             new EnforcementResultResponseDefendantAccount().parameterName("reason").response("test reason")
@@ -453,7 +454,7 @@ class OpalDefendantAccountEnforcementServiceTest {
             nullable(LocalDateTime.class),
             anyLong()
         )).thenReturn(ENFORCEMENT_ID);
-        when(featureFlagService.isFlagEnabled(RELEASE_1B_1_1)).thenReturn(false);
+        whenFeatureIsEnabled(false);
 
         List<EnforcementResultResponseDefendantAccount> responses = List.of(
             new EnforcementResultResponseDefendantAccount().parameterName("jail_days").response("14")
@@ -529,7 +530,7 @@ class OpalDefendantAccountEnforcementServiceTest {
             nullable(LocalDateTime.class),
             anyLong()
         )).thenReturn(ENFORCEMENT_ID);
-        when(featureFlagService.isFlagEnabled(RELEASE_1B_1_1)).thenReturn(false);
+        whenFeatureIsEnabled(false);
 
         List<EnforcementResultResponseDefendantAccount> responses = List.of(
             new EnforcementResultResponseDefendantAccount().parameterName("enforcer_id").response("55")
@@ -581,7 +582,7 @@ class OpalDefendantAccountEnforcementServiceTest {
         mockAuthorisedUser();
         mockDefendantAccount();
         mockCreatedEnforcement();
-        when(featureFlagService.isFlagEnabled(RELEASE_1B_1_1)).thenReturn(true);
+        whenFeatureIsEnabled(true);
         when(enforcerRepository.findByEnforcerCodeAndBusinessUnit_businessUnitId((short) 21, BUSINESS_UNIT_ID))
             .thenReturn(Optional.of(EnforcerEntity.builder().enforcerId(55L).build()));
 
@@ -666,7 +667,7 @@ class OpalDefendantAccountEnforcementServiceTest {
             nullable(LocalDateTime.class),
             anyLong()
         )).thenReturn(ENFORCEMENT_ID);
-        when(featureFlagService.isFlagEnabled(RELEASE_1B_1_1)).thenReturn(true);
+        whenFeatureIsEnabled(true);
 
         List<EnforcementResultResponseDefendantAccount> responses = List.of(
             new EnforcementResultResponseDefendantAccount().parameterName("earliestreleasedate")
@@ -720,7 +721,7 @@ class OpalDefendantAccountEnforcementServiceTest {
         mockAuthorisedUser();
         mockDefendantAccount();
         mockCreatedEnforcement();
-        when(featureFlagService.isFlagEnabled(RELEASE_1B_1_1)).thenReturn(true);
+        whenFeatureIsEnabled(true);
         when(enforcerRepository.findByEnforcerCodeAndBusinessUnit_businessUnitId((short) 21, BUSINESS_UNIT_ID))
             .thenReturn(Optional.of(EnforcerEntity.builder().enforcerId(55L).build()));
         when(courtRepository.findByCourtCodeAndBusinessUnitId((short) 123, BUSINESS_UNIT_ID))
@@ -785,7 +786,7 @@ class OpalDefendantAccountEnforcementServiceTest {
         mockAuthorisedUser();
         mockDefendantAccount();
         mockCreatedEnforcement();
-        when(featureFlagService.isFlagEnabled(RELEASE_1B_1_1)).thenReturn(true);
+        whenFeatureIsEnabled(true);
         when(enforcerRepository.findByEnforcerCodeAndBusinessUnit_businessUnitId((short) 21, BUSINESS_UNIT_ID))
             .thenReturn(Optional.empty());
         when(courtRepository.findByCourtCodeAndBusinessUnitId((short) 123, BUSINESS_UNIT_ID))
@@ -840,7 +841,7 @@ class OpalDefendantAccountEnforcementServiceTest {
         mockAuthorisedUser();
         mockDefendantAccount();
         mockCreatedEnforcement();
-        when(featureFlagService.isFlagEnabled(RELEASE_1B_1_1)).thenReturn(true);
+        whenFeatureIsEnabled(true);
 
         List<EnforcementResultResponseDefendantAccount> responses = List.of(
             new EnforcementResultResponseDefendantAccount().parameterName("reason").response("test reason"),
@@ -894,7 +895,7 @@ class OpalDefendantAccountEnforcementServiceTest {
         mockAuthorisedUser();
         mockDefendantAccount();
         mockCreatedEnforcement();
-        when(featureFlagService.isFlagEnabled(RELEASE_1B_1_1)).thenReturn(false);
+        whenFeatureIsEnabled(false);
         when(courtRepository.findByCourtCodeAndBusinessUnitId((short) 123, BUSINESS_UNIT_ID))
             .thenReturn(Optional.empty());
 
@@ -1419,6 +1420,14 @@ class OpalDefendantAccountEnforcementServiceTest {
             nullable(LocalDateTime.class),
             anyLong()
         )).thenReturn(ENFORCEMENT_ID);
+    }
+
+    private void whenFeatureIsEnabled(boolean enabled) {
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
+            RELEASE_1B_1_1,
+            RELEASE_1B_1_1_ENABLED_PROPERTY,
+            false
+        )).thenReturn(enabled);
     }
 
     private Map<String, String> resultResponsesMap(String... keyValues) {

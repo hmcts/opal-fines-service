@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
@@ -39,7 +40,6 @@ import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
-import uk.gov.hmcts.opal.service.FeatureFlagService;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountEnforcementServiceInterface;
@@ -57,6 +57,7 @@ import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildE
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementStatus;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.filterDefendantParty;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_1_1;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY;
 
 @Service
 @Slf4j(topic = "opal.OpalDefendantAccountService")
@@ -105,7 +106,7 @@ public class OpalDefendantAccountEnforcementService
 
     private final EnforcerRepository enforcerRepository;
 
-    private final FeatureFlagService featureFlagService;
+    private final FeatureToggleApi featureToggleApi;
 
     @Override
     @Transactional
@@ -129,7 +130,8 @@ public class OpalDefendantAccountEnforcementService
             .map(EnforcementResultResponseDefendantAccount::getParameterName)
             .collect(Collectors.toSet());
         for (EnforcementResultResponseDefendantAccount result : enforcementResultResponses) {
-            if (featureFlagService.isFlagEnabled(RELEASE_1B_1_1)) {
+            if (featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
+                RELEASE_1B_1_1, RELEASE_1B_1_1_ENABLED_PROPERTY, false)) {
                 if ((result.getParameterName().equals(JAIL_DAYS) && resultParameterNames.contains(DAYS_IN_DEFAULT))
                     || (result.getParameterName().equals(ENFORCER_ID) && resultParameterNames.contains(ENFORCER))
                     || (result.getParameterName().equals(EARLIEST_RELEASE_DATE)
