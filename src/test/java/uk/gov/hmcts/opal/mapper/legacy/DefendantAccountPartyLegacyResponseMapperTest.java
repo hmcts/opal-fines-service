@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.mapper.legacy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.math.BigInteger;
 import org.junit.jupiter.api.Test;
@@ -34,8 +35,7 @@ class DefendantAccountPartyLegacyResponseMapperTest {
                     .partyId("20010")
                     .organisationFlag(false)
                     .individualDetails(IndividualDetailsLegacy.builder()
-                        .forenames("Alex")
-                        .surname("Smith")
+                        .surname("Alex Smith")
                         .build())
                     .build())
                 .address(AddressDetailsLegacy.builder()
@@ -64,7 +64,8 @@ class DefendantAccountPartyLegacyResponseMapperTest {
             () -> assertNotNull(party),
             () -> assertEquals(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT,
                 party.getDefendantAccountPartyType()),
-            () -> assertEquals("Alex", party.getPartyDetails().getIndividualDetails().get().getForenames().get()),
+            () -> assertNull(party.getPartyDetails().getIndividualDetails().get().getForenames().get()),
+            () -> assertEquals("Alex Smith", party.getPartyDetails().getIndividualDetails().get().getSurname()),
             () -> assertEquals("1 High Street", party.getAddress().getAddressLine1()),
             () -> assertEquals("alex@example.com",
                 party.getContactDetails().get().getPrimaryEmailAddress().get()),

@@ -300,12 +300,37 @@ class InterfaceJobServiceTest {
     }
 
     @Test
+    void process_rejectsNullPermissionResultWithoutPublishing() {
+        InterfaceJobEntity job = processJob(123L, InterfaceJobStatus.CREATED);
+        when(interfaceJobRepository.findAllByInterfaceJobIdIn(List.of(123L))).thenReturn(List.of(job));
+        when(userStateService.getPermittedBusinessUnitIds(
+            List.of(BUSINESS_UNIT_ID), FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(null);
+
+        assertThrows(PermissionNotAllowedException.class,
+            () -> interfaceJobService.process(processRequest(123L, BUSINESS_UNIT_ID, true)));
+
+        assertEquals(InterfaceJobStatus.CREATED, job.getStatus());
+        verifyNoInteractions(interfaceJobQueuePublisher);
+    }
+
+    @Test
     void process_rejectsBusinessUnitMismatchWithoutPublishing() {
         InterfaceJobEntity job = processJob(123L, InterfaceJobStatus.CREATED);
         when(interfaceJobRepository.findAllByInterfaceJobIdIn(List.of(123L))).thenReturn(List.of(job));
 
         assertThrows(IllegalArgumentException.class,
             () -> interfaceJobService.process(processRequest(123L, (short) 72, true)));
+
+        verifyNoInteractions(interfaceJobQueuePublisher, userStateService);
+    }
+
+    @Test
+    void process_rejectsMissingRequestedBusinessUnitWithoutPermissionCheck() {
+        InterfaceJobEntity job = processJob(123L, InterfaceJobStatus.CREATED);
+        when(interfaceJobRepository.findAllByInterfaceJobIdIn(List.of(123L))).thenReturn(List.of(job));
+
+        assertThrows(IllegalArgumentException.class,
+            () -> interfaceJobService.process(processRequest(123L, null, true)));
 
         verifyNoInteractions(interfaceJobQueuePublisher, userStateService);
     }
