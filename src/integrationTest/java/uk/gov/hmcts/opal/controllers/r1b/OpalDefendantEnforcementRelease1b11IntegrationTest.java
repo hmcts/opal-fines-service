@@ -24,4 +24,11 @@ class OpalDefendantEnforcementRelease1b11IntegrationTest extends DefendantEnforc
     void addEnforcement_whenRelease1b11Enabled_persistsNewResponseNames() throws Exception {
         super.postEnforcementImpl_release1b11WithNewResponseNames_persistsEnforcementDetails(log);
     }
+
+    @Test
+    @JiraStory("PO-10788")
+    @JiraEpic("PO-978")
+    void addEnforcement_whenRelease1b11EnabledAndPris_mapsEarliestReleaseDate() throws Exception {
+        super.postEnforcementImpl_release1b11WithPris_persistsEarliestReleaseDate(log);
+    }
 }
