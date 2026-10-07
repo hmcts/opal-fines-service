@@ -390,7 +390,12 @@ BEGIN
                 pi_associated_record_type := CASE WHEN v_msg_text IS NULL THEN k_tbl_defendant_accounts::t_associated_record_type_enum ELSE NULL::t_associated_record_type_enum END,
                 pi_associated_record_id := (CASE WHEN v_msg_text IS NULL THEN r_master_account.defendant_account_id::text ELSE NULL::text END)::varchar,
                 pi_third_party_payer_name := NULL,
-                pi_additional_information := json_build_object('interface_name', v_interface_name),
+                pi_additional_information := json_build_object(
+                    'interface_name', v_interface_name,
+                    'additional_information', json_build_object(
+                        'originator_reference', r_payment.originator_reference
+                    )
+                )::TEXT,
                 pi_receipt := false,
                 pi_auto_payment := true);
 
