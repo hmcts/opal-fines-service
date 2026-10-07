@@ -31,6 +31,7 @@ import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse.LegacyDefendantAccountHistoryDetails;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse.LegacyDefendantAccountHistoryItem;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse.LegacyDefendantAccountNoteDetails;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse.LegacyHistoryTypeReference;
 import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
@@ -58,6 +59,37 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
         assertEquals(LocalDate.of(2026, Month.MAY, 11), request.getFromDate());
         assertEquals(LocalDate.of(2026, Month.MAY, 12), request.getToDate());
         assertEquals(List.of("Enforcement", "Payment terms", "Note"), request.getItemTypes());
+    }
+
+    @Test
+    void createGetDefendantAccountHistoryRequest_nullFilter_defaultsToAllLegacyItemTypes() {
+        // Act
+        GetDefendantAccountHistoryLegacyRequest request =
+            LegacyDefendantAccountService.createGetDefendantAccountHistoryRequest(99000000000001L, null);
+
+        // Assert
+        assertEquals(
+            List.of("Amendment", "Enforcement", "Financial", "Note", "Payment terms"),
+            request.getItemTypes()
+        );
+    }
+
+    @Test
+    void createGetDefendantAccountHistoryRequest_emptyItemTypes_defaultsToAllLegacyItemTypes() {
+        // Arrange
+        DefendantAccountHistoryFilter filter = DefendantAccountHistoryFilter.builder()
+            .itemTypes(List.of())
+            .build();
+
+        // Act
+        GetDefendantAccountHistoryLegacyRequest request =
+            LegacyDefendantAccountService.createGetDefendantAccountHistoryRequest(99000000000001L, filter);
+
+        // Assert
+        assertEquals(
+            List.of("Amendment", "Enforcement", "Financial", "Note", "Payment terms"),
+            request.getItemTypes()
+        );
     }
 
     @Test
@@ -197,7 +229,9 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
             .postedDetails(postedDetails(2026, 5, 11, 12, 0, "note-user", "Note User"))
             .type("Note")
             .details(LegacyDefendantAccountHistoryDetails.builder()
-                .noteText("Account note text")
+                .noteDetails(LegacyDefendantAccountNoteDetails.builder()
+                    .noteText("Account note text")
+                    .build())
                 .build())
             .build();
     }

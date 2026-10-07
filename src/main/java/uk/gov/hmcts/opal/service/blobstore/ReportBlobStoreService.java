@@ -60,4 +60,12 @@ public class ReportBlobStoreService implements ReportBlobStore {
             throw new UncheckedIOException("Failed to read report from blob store at: " + location, e);
         }
     }
+
+    public void deleteReport(String location) {
+        BlobContainerClient container = blobServiceClient.getBlobContainerClient(containerName);
+        BlobClient blob = container.getBlobClient(location);
+
+        log.info("Deleting report from location: {}", location);
+        blob.deleteIfExists();
+    }
 }

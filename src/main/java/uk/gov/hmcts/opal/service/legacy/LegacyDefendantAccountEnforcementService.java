@@ -278,7 +278,7 @@ public class LegacyDefendantAccountEnforcementService implements DefendantAccoun
 
             LegacyGetDefendantAccountEnforcementStatusResponse enforcementStatus = response.responseEntity;
             populateCourtCode(enforcementStatus);
-            return toEnforcementStatusResponse(enforcementStatus);
+            return toEnforcementStatusResponse(enforcementStatus, null);
 
         } catch (RuntimeException e) {
             log.error(":getEnforcementStatus: problem with call to Legacy: {}", e.getClass().getName());
