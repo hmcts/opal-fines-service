@@ -15,5 +15,5 @@ public class InterfaceJobRecord {
     private String originatorBankAccountNumber;
     private String originatorName;
     private String originatorReference;
-    private int amountPence;
+    private long amountPence;
 }
