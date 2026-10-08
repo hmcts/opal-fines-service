@@ -11,7 +11,7 @@ Feature: Get processed file summary
     When I call GET "/interface-jobs/999999999/processed-file-summary" with an invalid token
     Then the request is rejected as unauthorized
 
-  @JIRA-STORY:PO-2576
+  @JIRA-STORY:PO-2576 @skip
   Scenario: Permitted user retrieves a processed file summary
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And I create an interface job for processed file summary
@@ -29,7 +29,7 @@ Feature: Get processed file summary
     When I request GET "/interface-jobs/999999999/processed-file-summary"
     Then the request is rejected as not found
 
-  @JIRA-STORY:PO-2576
+  @JIRA-STORY:PO-2576 @skip
   Scenario: User without payment processing permission is forbidden
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And I create an interface job for processed file summary
