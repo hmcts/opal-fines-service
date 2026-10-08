@@ -93,7 +93,35 @@ class LegacyDefAccHistoryTest extends AbstractLegacyDefendantsIntegrationTest {
         assertThat(requestCaptor.getValue().getDefendantAccountId()).isEqualTo("99000000000001");
         assertThat(requestCaptor.getValue().getFromDate()).isNull();
         assertThat(requestCaptor.getValue().getToDate()).isNull();
-        assertThat(requestCaptor.getValue().getItemTypes()).isNull();
+        assertThat(requestCaptor.getValue().getItemTypes())
+            .containsExactly("Amendment", "Enforcement", "Financial", "Note", "Payment terms");
+    }
+
+    @Test
+    @JiraStory("PO-10874")
+    @JiraEpic("PO-2621")
+    @DisplayName("PO-10874 legacy history with empty item types sends all types to Legacy")
+    void getDefendantAccountHistory_emptyItemTypes_defaultsToAllLegacyItemTypes() throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+
+        mockMvc.perform(get(HISTORY_URL, DEFENDANT_ACCOUNT_ID)
+                .queryParam("itemTypes", "")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
+            .andExpect(status().isOk());
+
+        ArgumentCaptor<GetDefendantAccountHistoryLegacyRequest> requestCaptor =
+            ArgumentCaptor.forClass(GetDefendantAccountHistoryLegacyRequest.class);
+        verify(gatewayService).postToGateway(
+            eq(GET_DEFENDANT_ACCOUNT_HISTORY),
+            eq(GetDefendantAccountHistoryLegacyResponse.class),
+            requestCaptor.capture(),
+            isNull()
+        );
+        assertThat(requestCaptor.getValue().getItemTypes())
+            .containsExactly("Amendment", "Enforcement", "Financial", "Note", "Payment terms");
     }
 
     @Test

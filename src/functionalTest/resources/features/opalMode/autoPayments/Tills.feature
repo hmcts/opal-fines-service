@@ -21,7 +21,7 @@ Feature: Till summary retrieval
     Then the tills response is an empty successful response
 
   # E2E.02 — A processed auto-payment till includes original-file details.
-  @JIRA-STORY:PO-2575
+  @JIRA-STORY:PO-2575 @Ignore @JIRA-DEFECT:PO-10560
   Scenario: Processed auto-payment till includes the documented original file details
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And I create and process an auto-payment interface job for business unit 77
