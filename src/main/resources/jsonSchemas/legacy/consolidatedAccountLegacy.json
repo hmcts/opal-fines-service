@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Consolidated Account",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "defendant_account_id": {
+      "$ref": "../types/bigint_value.json"
+    },
+    "defendant_account_number": {
+      "type": "string",
+      "maxLength": 20
+    },
+    "consolidated_account_organisation_flag": {
+      "type": "boolean"
+    },
+    "individual_name": {
+      "$ref": "./common-objects/individualNameLegacy.json"
+    },
+    "company_name": {
+      "$ref": "./common-objects/companyNameLegacy.json"
+    },
+    "date_imposed": {
+      "type": "string",
+      "format": "date"
+    },
+    "imposed_by": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "reference": {
+      "type": "string",
+      "maxLength": 40
+    }
+  },
+  "required": [
+    "defendant_account_id",
+    "defendant_account_number",
+    "consolidated_account_organisation_flag"
+  ],
+  "oneOf": [
+    {
+      "properties": {
+        "consolidated_account_organisation_flag": {
+          "const": true
+        }
+      },
+      "required": [
+        "company_name"
+      ],
+      "not": {
+        "required": [
+          "individual_name"
+        ]
+      }
+    },
+    {
+      "properties": {
+        "consolidated_account_organisation_flag": {
+          "const": false
+        }
+      },
+      "required": [
+        "individual_name"
+      ],
+      "not": {
+        "required": [
+          "company_name"
+        ]
+      }
+    }
+  ]
+}
