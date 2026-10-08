@@ -10,46 +10,7 @@
     "consolidated_accounts": {
       "type": "array",
       "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "defendant_account_id": {
-            "$ref": "../types/bigint_value.json"
-          },
-          "defendant_account_number": {
-            "type": "string",
-            "maxLength": 20
-          },
-          "first_name": {
-            "type": "string",
-            "maxLength": 50
-          },
-          "last_name": {
-            "type": "string",
-            "maxLength": 50
-          },
-          "date_imposed": {
-            "type": "string",
-            "format": "date"
-          },
-          "imposed_by": {
-            "type": "string",
-            "maxLength": 100
-          },
-          "reference": {
-            "type": "string",
-            "maxLength": 40
-          }
-        },
-        "required": [
-          "defendant_account_id",
-          "defendant_account_number",
-          "first_name",
-          "last_name",
-          "date_imposed",
-          "imposed_by",
-          "reference"
-        ]
+        "$ref": "./consolidatedAccountLegacy.json"
       }
     }
   },
