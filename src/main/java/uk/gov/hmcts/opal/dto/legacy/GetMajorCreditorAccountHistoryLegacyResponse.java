@@ -9,14 +9,14 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.ToXmlString;
-import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
+import uk.gov.hmcts.opal.util.LocalDateAdapter;
 
 @Data
 @Builder
@@ -79,8 +79,8 @@ public class GetMajorCreditorAccountHistoryLegacyResponse implements ToXmlString
 
         @JsonProperty("status_date")
         @XmlElement(name = "status_date")
-        @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
-        private LocalDateTime statusDate;
+        @XmlJavaTypeAdapter(LocalDateAdapter.class)
+        private LocalDate statusDate;
 
         @JsonProperty("associated_record_type")
         @XmlElement(name = "associated_record_type")

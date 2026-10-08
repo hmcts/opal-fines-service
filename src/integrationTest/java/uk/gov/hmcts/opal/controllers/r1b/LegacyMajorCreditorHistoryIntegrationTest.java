@@ -1,16 +1,19 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.github.tomakehurst.wiremock.client.WireMock.absent;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.hamcrest.Matchers.aMapWithSize;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -20,34 +23,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
 import static uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService.GET_MAJOR_CREDITOR_ACCOUNT_HISTORY;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.time.LocalDateTime;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyRequest;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyCreditorTransactionStatusReference;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyCreditorTransactionTypeReference;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyMajorCreditorHistoryDetails;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyMajorCreditorHistoryItem;
-import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -68,9 +54,6 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @MockitoBean
     private UserStateService userStateService;
 
-    @MockitoBean
-    private GatewayService gatewayService;
-
     @BeforeEach
     void setUp() {
         when(userStateService.getUserStateV1FromSecurityContext())
@@ -83,8 +66,6 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @JiraEpic("PO-2655")
     @JiraTestKey("PO-10093")
     void getHistory_returnsLegacyTransactions() throws Exception {
-        stubLegacyResponse();
-
         ResultActions result = getHistory();
 
         result.andExpect(status().isOk())
@@ -103,7 +84,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             .andExpect(jsonPath("$.historyItems[0].details.status.creditorTransactionStatus").value("R"))
             .andExpect(jsonPath("$.historyItems[0].details.status.creditorTransactionStatusDisplayName")
                 .value("Reversed"))
-            .andExpect(jsonPath("$.historyItems[0].details.statusDate").value("2026-01-31T10:30:00"))
+            .andExpect(jsonPath("$.historyItems[0].details.statusDate").value("2026-01-31T00:00:00"))
             .andExpect(jsonPath("$.historyItems[0].details.associatedRecordType").value("creditor_accounts"))
             .andExpect(jsonPath("$.historyItems[0].details.associatedRecordId").value("99264300000001"))
             .andExpect(jsonPath("$.historyItems[0].details.accountNumber").value("87654321"))
@@ -111,11 +92,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             .andExpect(jsonPath("$.historyItems[0].details.defendantAccountId").value(99000000000001L))
             .andExpect(jsonPath("$.historyItems[1].details.transactionType.transactionType").value("MADJ"));
 
-        GetMajorCreditorAccountHistoryLegacyRequest request = captureLegacyRequest();
-        assertThat(request.getCreditorAccountId()).isEqualTo(String.valueOf(MAJOR_CREDITOR_ACCOUNT_ID));
-        assertThat(request.getFromDate()).isNull();
-        assertThat(request.getToDate()).isNull();
-        assertThat(request.getItemTypes()).containsExactly("Financial");
+        verifyLegacyRequest(null, null);
     }
 
     @Test
@@ -124,16 +101,11 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @JiraEpic("PO-2655")
     @JiraTestKey("PO-10090")
     void getHistory_forwardsDateFiltersAndForcesFinancialItemType() throws Exception {
-        stubLegacyResponse();
-
         getHistory("dateFrom", "2026-01-25", "dateTo", "2026-01-31", "itemTypes", "note")
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.historyItems", hasSize(3)));
 
-        GetMajorCreditorAccountHistoryLegacyRequest request = captureLegacyRequest();
-        assertThat(request.getFromDate()).hasToString("2026-01-25");
-        assertThat(request.getToDate()).hasToString("2026-01-31");
-        assertThat(request.getItemTypes()).containsExactly("Financial");
+        verifyLegacyRequest("2026-01-25", "2026-01-31");
     }
 
     @Test
@@ -146,7 +118,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
 
-        verifyNoInteractions(gatewayService);
+        verifyNoLegacyRequest();
     }
 
     @Test
@@ -161,7 +133,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
 
-        verifyNoInteractions(gatewayService);
+        verifyNoLegacyRequest();
     }
 
     @Test
@@ -170,8 +142,6 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @JiraEpic("PO-2655")
     @JiraTestKey("PO-10092")
     void getHistory_returnsOnlyDocumentedFields() throws Exception {
-        stubLegacyResponse();
-
         getHistory().andExpect(status().isOk())
             .andExpect(jsonPath("$", allOf(aMapWithSize(1), hasKey("historyItems"))))
             .andExpect(jsonPath("$.historyItems", hasSize(3)))
@@ -201,8 +171,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @JiraEpic("PO-2655")
     @JiraTestKey("PO-10087")
     void getHistory_whenLegacyGatewayReturnsNotFoundReturns404() throws Exception {
-        stubGatewayException(HttpClientErrorException.create(
-            HttpStatus.NOT_FOUND, "Not Found", HttpHeaders.EMPTY, null, null));
+        stubLegacyError(404, "Not Found");
 
         getHistory()
             .andExpect(status().isNotFound())
@@ -215,8 +184,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @JiraEpic("PO-2655")
     @JiraTestKey("PO-10085")
     void getHistory_whenLegacyGatewayTimesOutReturns408() throws Exception {
-        stubGatewayException(HttpClientErrorException.create(
-            HttpStatusCode.valueOf(408), "Request Timeout", HttpHeaders.EMPTY, null, null));
+        stubLegacyError(408, "Request Timeout");
 
         getHistory()
             .andExpect(status().isRequestTimeout())
@@ -229,8 +197,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @JiraEpic("PO-2655")
     @JiraTestKey("PO-10091")
     void getHistory_whenLegacyGatewayUnavailableReturns500() throws Exception {
-        stubGatewayException(HttpServerErrorException.create(
-            HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable", HttpHeaders.EMPTY, null, null));
+        stubLegacyError(503, "Service Unavailable");
 
         getHistory()
             .andExpect(status().isInternalServerError())
@@ -243,8 +210,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @JiraEpic("PO-2655")
     @JiraTestKey("PO-10086")
     void getHistory_whenLegacyGatewayReturnsServerErrorReturns500() throws Exception {
-        stubGatewayException(HttpServerErrorException.create(
-            HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", HttpHeaders.EMPTY, null, null));
+        stubLegacyError(500, "Internal Server Error");
 
         getHistory()
             .andExpect(status().isInternalServerError())
@@ -257,8 +223,6 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @JiraEpic("PO-2655")
     @JiraTestKey("PO-10088")
     void getHistory_isDeterministicForStableLegacyData() throws Exception {
-        stubLegacyResponse();
-
         String firstResponse = getHistory()
             .andExpect(status().isOk())
             .andReturn()
@@ -270,34 +234,43 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             .andExpect(content().json(firstResponse));
     }
 
-    private void stubLegacyResponse() {
-        when(gatewayService.postToGateway(
-            eq(GET_MAJOR_CREDITOR_ACCOUNT_HISTORY),
-            eq(GetMajorCreditorAccountHistoryLegacyResponse.class),
-            any(),
-            isNull()
-        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse(), null, null));
+    private void stubLegacyError(int status, String message) {
+        stubFor(post(urlPathEqualTo("/opal"))
+            .atPriority(1)
+            .withQueryParam("actionType", equalTo(GET_MAJOR_CREDITOR_ACCOUNT_HISTORY))
+            .withRequestBody(matchingJsonPath(
+                "$.creditor_account_id", equalTo(String.valueOf(MAJOR_CREDITOR_ACCOUNT_ID))))
+            .willReturn(aResponse()
+                .withStatus(status)
+                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML_VALUE)
+                .withBody("<error><message>" + message + "</message></error>")));
     }
 
-    private void stubGatewayException(RuntimeException exception) {
-        when(gatewayService.postToGateway(
-            eq(GET_MAJOR_CREDITOR_ACCOUNT_HISTORY),
-            eq(GetMajorCreditorAccountHistoryLegacyResponse.class),
-            any(),
-            isNull()
-        )).thenThrow(exception);
+    private void verifyLegacyRequest(String expectedFromDate, String expectedToDate) {
+        var request = postRequestedFor(urlPathEqualTo("/opal"))
+            .withQueryParam("actionType", equalTo(GET_MAJOR_CREDITOR_ACCOUNT_HISTORY))
+            .withRequestBody(matchingJsonPath(
+                "$.creditor_account_id", equalTo(String.valueOf(MAJOR_CREDITOR_ACCOUNT_ID))))
+            .withRequestBody(matchingJsonPath("$.item_types[0]", equalTo("Financial")));
+
+        if (expectedFromDate == null) {
+            request.withRequestBody(matchingJsonPath("$.from_date", absent()));
+        } else {
+            request.withRequestBody(matchingJsonPath("$.from_date", equalTo(expectedFromDate)));
+        }
+
+        if (expectedToDate == null) {
+            request.withRequestBody(matchingJsonPath("$.to_date", absent()));
+        } else {
+            request.withRequestBody(matchingJsonPath("$.to_date", equalTo(expectedToDate)));
+        }
+
+        verify(1, request);
     }
 
-    private GetMajorCreditorAccountHistoryLegacyRequest captureLegacyRequest() {
-        ArgumentCaptor<GetMajorCreditorAccountHistoryLegacyRequest> requestCaptor =
-            ArgumentCaptor.forClass(GetMajorCreditorAccountHistoryLegacyRequest.class);
-        verify(gatewayService).postToGateway(
-            eq(GET_MAJOR_CREDITOR_ACCOUNT_HISTORY),
-            eq(GetMajorCreditorAccountHistoryLegacyResponse.class),
-            requestCaptor.capture(),
-            isNull()
-        );
-        return requestCaptor.getValue();
+    private void verifyNoLegacyRequest() {
+        verify(0, postRequestedFor(urlPathEqualTo("/opal"))
+            .withQueryParam("actionType", equalTo(GET_MAJOR_CREDITOR_ACCOUNT_HISTORY)));
     }
 
     private ResultActions getHistory(String... queryParams) throws Exception {
@@ -310,52 +283,5 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
         }
 
         return mockMvc.perform(request);
-    }
-
-    private GetMajorCreditorAccountHistoryLegacyResponse legacyResponse() {
-        return GetMajorCreditorAccountHistoryLegacyResponse.builder()
-            .version(BigInteger.valueOf(7L))
-            .historyItems(List.of(
-                historyItem("MJUSR3", "Major User Three", "MJF003", "MADJ", "Manual Adjustment",
-                            LocalDateTime.of(2026, 1, 31, 10, 30), new BigDecimal("-31.00")),
-                historyItem("MJUSR4", "Major User Four", "MJF004", "MADJ", "Manual Adjustment",
-                            LocalDateTime.of(2026, 1, 31, 10, 30), new BigDecimal("31.00")),
-                historyItem("MJUSR2", "Major User Two", "MJF002", "PAYMNT", "Payment",
-                            LocalDateTime.of(2026, 1, 25, 9, 15), new BigDecimal("-25.50"))
-            ))
-            .build();
-    }
-
-    private LegacyMajorCreditorHistoryItem historyItem(
-        String postedBy,
-        String postedByName,
-        String paymentReference,
-        String transactionType,
-        String transactionTypeDisplayName,
-        LocalDateTime postedDate,
-        BigDecimal amount
-    ) {
-        return LegacyMajorCreditorHistoryItem.builder()
-            .postedDetails(new LegacyPostedDetails(postedDate, postedBy, postedByName))
-            .type("Financial")
-            .amount(amount)
-            .details(LegacyMajorCreditorHistoryDetails.builder()
-                .transactionType(LegacyCreditorTransactionTypeReference.builder()
-                    .transactionType(transactionType)
-                    .transactionTypeDisplayName(transactionTypeDisplayName)
-                    .build())
-                .paymentReference(paymentReference)
-                .status(LegacyCreditorTransactionStatusReference.builder()
-                    .creditorTransactionStatus("R")
-                    .creditorTransactionStatusDisplayName("Reversed")
-                    .build())
-                .statusDate(postedDate)
-                .associatedRecordType("creditor_accounts")
-                .associatedRecordId(String.valueOf(MAJOR_CREDITOR_ACCOUNT_ID))
-                .accountNumber("87654321")
-                .defendantAccountNumber("12345678")
-                .defendantAccountId(99000000000001L)
-                .build())
-            .build();
     }
 }
