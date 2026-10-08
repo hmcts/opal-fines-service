@@ -21,10 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
 import uk.gov.hmcts.opal.repository.jpa.MajorCreditorSpecs;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -46,9 +44,6 @@ class MajorCreditorRepositoryIntegrationTest extends AbstractIntegrationTest {
     private static final short BUSINESS_UNIT_ID = 951;
     private static final long MAJOR_CREDITOR_ID = 950001L;
     private static final long CREDITOR_ACCOUNT_ID = 950010L;
-
-    @MockitoBean
-    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @Autowired
     private MajorCreditorRepository majorCreditorRepository;

@@ -11,10 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.repository.jpa.CourtSpecs;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -45,9 +43,6 @@ class CourtRepositoryIntegrationTest extends AbstractIntegrationTest {
     private static final long PARENT_COURT_ID = 951001L;
     private static final short BUSINESS_UNIT_ID = 951;
     private static final short LOCAL_JUSTICE_AREA_ID = 951;
-
-    @MockitoBean
-    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @Autowired
     private CourtRepository courtRepository;

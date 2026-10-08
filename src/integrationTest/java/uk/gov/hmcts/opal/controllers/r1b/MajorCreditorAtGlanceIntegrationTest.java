@@ -45,7 +45,6 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
@@ -87,9 +86,6 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     private static final String URL = "/major-creditor-accounts/{id}/at-a-glance";
     private static final long MJ_ACCOUNT_ID = 10770000000041L;
     private static final long CF_ACCOUNT_ID = 78L;
-
-    @MockitoBean
-    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @MockitoBean
     private UserStateService userStateService;

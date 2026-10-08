@@ -9,10 +9,8 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.entity.alternatepaymentreference.AlternatePaymentReferenceEntity;
 import uk.gov.hmcts.opal.entity.alternatepaymentreference.Category;
 import uk.gov.hmcts.opal.entity.alternatepaymentreference.Relationship;
@@ -25,9 +23,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 public class AlternatePaymentReferenceRepositoryIntegrationTest extends AbstractIntegrationTest {
 
     private static final long TYPICAL_ID = 920001L;
-
-    @MockitoBean
-    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @Autowired
     private EntityManager entityManager;

@@ -20,10 +20,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountType;
 import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
@@ -53,9 +51,6 @@ class ImpositionRepositoryIntegrationTest extends AbstractIntegrationTest {
     private static final long UNKNOWN_DEFENDANT_ACCOUNT_ID = 559999L;
     private static final long COURT_ID = 551001L;
     private static final long CREDITOR_ACCOUNT_ID = 551004L;
-
-    @MockitoBean
-    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @Autowired
     private ImpositionRepository impositionRepository;

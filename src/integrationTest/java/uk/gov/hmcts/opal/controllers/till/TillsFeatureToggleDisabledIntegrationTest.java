@@ -10,9 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -20,9 +18,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @TestPropertySource(properties = "launchdarkly.default-flag-values.release-1c-payment=false")
 @DisplayName("Tills Feature Toggle Integration Tests")
 class TillsFeatureToggleDisabledIntegrationTest extends AbstractIntegrationTest {
-
-    @MockitoBean
-    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @Test
     @DisplayName("PO-8362 INT.04 - Returns not found when Release 1C Payment is disabled")

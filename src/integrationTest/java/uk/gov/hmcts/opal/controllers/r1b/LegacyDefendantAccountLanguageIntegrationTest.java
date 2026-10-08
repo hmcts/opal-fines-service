@@ -18,10 +18,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -33,9 +31,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 })
 @DisplayName("Legacy Defendant Account Language Integration Tests")
 class LegacyDefendantAccountLanguageIntegrationTest extends AbstractIntegrationTest {
-
-    @MockitoBean
-    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     private static final String URL_BASE = "/defendant-accounts";
     private static final long DEFENDANT_ACCOUNT_ID = 1060000002355L;

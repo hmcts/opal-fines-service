@@ -28,10 +28,10 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Slf4j(topic = "opal.LegacyDefAccSummaryViewTest")
 public class LegacyDefAccSummaryViewTest extends AbstractIntegrationWithSecurityTest {
 
+    private static final String DEFENDANT_ACCOUNTS_SUMMARY_URL = "/defendant-accounts/{id}/header-summary";
+
     @MockitoBean
     private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
-
-    private static final String DEFENDANT_ACCOUNTS_SUMMARY_URL = "/defendant-accounts/{id}/header-summary";
 
     @Test
     @JiraEpic("PO-2332")

@@ -23,7 +23,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -42,9 +41,6 @@ class LegacyMajorCreditorAtAGlanceTest extends AbstractIntegrationTest {
     private static final String AUTH_HEADER = "Bearer some_value";
     private static final long MAJOR_CREDITOR_ACCOUNT_ID = 99000000000801L;
     private static final String URL = "/major-creditor-accounts/{id}/at-a-glance";
-
-    @MockitoBean
-    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @MockitoBean
     private UserStateService userStateService;

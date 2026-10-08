@@ -11,9 +11,7 @@ import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectEntityNotFoun
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
-import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -23,9 +21,6 @@ class DefendantAccountAtAGlanceIntegrationTest extends AbstractOpalDefendantsInt
 
     private static final long ACCOUNT_MULTI_TERMS_ONE_ACTIVE = 262901L;
     private static final long ACCOUNT_NO_ACTIVE_TERMS = 262902L;
-
-    @MockitoBean
-    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @Test
     @DisplayName("PO-2629 INT.01 - At a glance returns the active payment terms summary")

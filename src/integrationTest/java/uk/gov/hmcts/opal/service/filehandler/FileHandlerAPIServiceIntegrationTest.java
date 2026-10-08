@@ -31,10 +31,8 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
-import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserEnum;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.GetInterfaceFiles200Response;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.InterfaceFileEnum;
@@ -52,9 +50,6 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
     private static final String WIREMOCK_SCENARIO = "GET FileHandler service test";
     private static final String WIREMOCK_STATE_ERROR = "Downstream error";
     private static final String WIREMOCK_STATE_NOT_FOUND = "Not found";
-
-    @MockitoBean
-    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @Autowired
     private FileHandlerAPIService fileHandlerAPIService;

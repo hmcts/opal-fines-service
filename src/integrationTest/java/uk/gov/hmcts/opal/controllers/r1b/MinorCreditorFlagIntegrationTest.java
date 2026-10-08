@@ -21,7 +21,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
@@ -47,9 +46,6 @@ class MinorCreditorFlagIntegrationTest extends AbstractIntegrationTest {
 
     private static final long MINOR_CREDITOR_ACCOUNT_ID = 607L;
     private static final short BUSINESS_UNIT_ID = 10;
-
-    @MockitoBean
-    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @MockitoBean
     private MinorCreditorService minorCreditorService;

@@ -29,7 +29,6 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
-import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
@@ -52,9 +51,6 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     private static final String DEFENDANTS_SEARCH_URL = "/defendant-accounts/search";
     private static final String DEFENDANTS_SEARCH_RESP_SCHEMA = SchemaPaths.DEFENDANT_ACCOUNT
         + "/postDefendantAccountsSearchResponse.json";
-
-    @MockitoBean
-    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @MockitoSpyBean
     JsonSchemaValidationService jsonSchemaValidationService;

@@ -25,7 +25,6 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -42,9 +41,6 @@ import tools.jackson.databind.JsonNode;
 @Sql(scripts = "classpath:db/deleteData/delete_from_outstanding_auto_payment_count.sql",
      executionPhase = AFTER_TEST_METHOD)
 class OutstandingAutoPaymentIntegrationTest extends AbstractIntegrationTest {
-
-    @MockitoBean
-    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     private static final String URL = "/business-units/outstanding-auto-payment-count";
     private static final List<Short> LUTON_AND_CARDIFF = List.of((short) 2470, (short) 2471);

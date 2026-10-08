@@ -18,10 +18,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemEntity;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -52,9 +50,6 @@ class ConfigurationItemRepositoryIntegrationTest extends AbstractIntegrationTest
     private static final long ARRAY_CONFIGURATION_ITEM_ID = 95003L;
     private static final long OBJECT_CONFIGURATION_ITEM_ID = 95004L;
     private static final short BUSINESS_UNIT_ID = 501;
-
-    @MockitoBean
-    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @Autowired
     private ConfigurationItemRepository configurationItemRepository;

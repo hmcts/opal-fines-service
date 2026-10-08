@@ -37,7 +37,6 @@ import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
-import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse.LegacyCreditorTransactionStatusReference;
@@ -59,9 +58,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Tag("ExtendedTest")
 @Slf4j(topic = "opal.LegacyMinorCreditorHistoryIntegrationTest")
 class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
-
-    @MockitoBean
-    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     private static final String HISTORY_URL = "/minor-creditor-accounts/{accountId}/history";
     private static final String LEGACY_ACTION = "LIBRA.get_minor_creditor_account_history";

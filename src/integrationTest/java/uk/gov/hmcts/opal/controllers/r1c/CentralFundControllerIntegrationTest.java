@@ -25,12 +25,10 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.repository.CentralFundProjection;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
@@ -51,9 +49,6 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/central-funds";
     private static final String AUTH_HEADER = "Bearer test-token";
-
-    @MockitoBean
-    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @Autowired
     private CreditorAccountRepository creditorAccountRepository;

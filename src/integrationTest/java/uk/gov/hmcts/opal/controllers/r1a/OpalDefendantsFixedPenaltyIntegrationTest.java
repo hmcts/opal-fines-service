@@ -1,7 +1,5 @@
 package uk.gov.hmcts.opal.controllers.r1a;
 
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.controllers.r1b.AbstractOpalDefendantsIntegrationTest;
 
 import static org.hamcrest.Matchers.matchesPattern;
@@ -25,9 +23,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Slf4j(topic = "opal.OpalDefendantsFixedPenaltyIntegrationTest")
 class OpalDefendantsFixedPenaltyIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
-
-    @MockitoBean
-    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @Test
     @DisplayName("OPAL: Get Defendant Account Fixed Penalty [@PO-1819]")

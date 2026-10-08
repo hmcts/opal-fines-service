@@ -18,10 +18,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestConstructor;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.dto.report.operation.SummaryOperationReportRowDto;
 import uk.gov.hmcts.opal.dto.report.operation.SummaryReportTotalsRowDto;
 import uk.gov.hmcts.opal.service.report.operation.OperationSummaryReport;
@@ -40,9 +38,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 class PaymentSummaryReportServiceTest extends AbstractIntegrationTest {
 
     private final PaymentReportService service;
-
-    @MockitoBean
-    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @Nested
     @DisplayName("GenerateReportData")

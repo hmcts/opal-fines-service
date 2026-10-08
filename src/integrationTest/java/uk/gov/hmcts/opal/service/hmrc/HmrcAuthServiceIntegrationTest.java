@@ -23,9 +23,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.config.cache.CacheNames;
 import uk.gov.hmcts.opal.service.hmrc.clients.HmrcAuthCreds;
 import uk.gov.hmcts.opal.service.hmrc.clients.response.HmrcAuthToken;
@@ -36,9 +34,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @DisplayName("HMRC Auth Service Integration Test")
 @WireMockTest(httpPort = 4455)
 public class HmrcAuthServiceIntegrationTest extends AbstractIntegrationTest {
-
-    @MockitoBean
-    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @Autowired
     private CacheManager cacheManager;

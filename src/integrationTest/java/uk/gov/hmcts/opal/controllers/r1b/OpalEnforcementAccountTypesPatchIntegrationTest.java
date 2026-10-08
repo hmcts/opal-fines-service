@@ -43,10 +43,10 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 )
 class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
+    protected static final String URL_BASE = "/enforcement-accounts-types";
+
     @MockitoBean
     private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
-
-    protected static final String URL_BASE = "/enforcement-accounts-types";
 
     protected void authorizeWithPermission() {
         userStateStub.setupWithNoPermissions();

@@ -22,7 +22,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.server.ResponseStatusException;
-import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -53,9 +52,6 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     private static final int REPORT_INSTANCE_ID_NO_SUPPORTED_TYPES = 567;
     private static final short BU_ID_1 = 1;
     private static final short BU_ID_2_WELSH_LANGUAGE = 2;
-
-    @MockitoBean
-    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @MockitoBean
     UserStateService userStateService;

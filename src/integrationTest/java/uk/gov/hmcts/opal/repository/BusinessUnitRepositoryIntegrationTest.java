@@ -12,10 +12,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -43,9 +41,6 @@ class BusinessUnitRepositoryIntegrationTest extends AbstractIntegrationTest {
 
     private static final short BUSINESS_UNIT_ID = 501;
     private static final short PARENT_BUSINESS_UNIT_ID = 599;
-
-    @MockitoBean
-    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @Autowired
     private BusinessUnitRepository businessUnitRepository;

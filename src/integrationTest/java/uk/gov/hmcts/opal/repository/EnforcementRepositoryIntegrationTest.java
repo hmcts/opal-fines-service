@@ -14,10 +14,8 @@ import jakarta.persistence.PersistenceUnitUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -38,9 +36,6 @@ class EnforcementRepositoryIntegrationTest extends AbstractIntegrationTest {
     private static final long DEFENDANT_ACCOUNT_ID = 910002L;
     private static final long ENFORCER_ID = 910003L;
     private static final long HEARING_COURT_ID = 910004L;
-
-    @MockitoBean
-    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @Autowired
     private EnforcementRepository enforcementRepository;
