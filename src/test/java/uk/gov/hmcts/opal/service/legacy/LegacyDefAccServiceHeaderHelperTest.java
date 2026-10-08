@@ -3,22 +3,26 @@ package uk.gov.hmcts.opal.service.legacy;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
+import jakarta.xml.bind.JAXBException;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
+import uk.gov.hmcts.opal.common.xml.XmlUtil;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails;
+import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 
 class LegacyDefAccServiceHeaderHelperTest extends AbstractLegacyDefAccServiceTest {
 
@@ -47,20 +51,48 @@ class LegacyDefAccServiceHeaderHelperTest extends AbstractLegacyDefAccServiceTes
     }
 
     @Test
-    void getHeaderSummary_errorAndSuccessBranches_triggerLogging() {
+    void getHeaderSummary_gatewayFailureReturns500() {
         LegacyGetDefendantAccountHeaderSummaryResponse legacyEntity =
             LegacyGetDefendantAccountHeaderSummaryResponse.builder().build();
 
         GatewayService.Response<LegacyGetDefendantAccountHeaderSummaryResponse> respError =
             new GatewayService.Response<>(HttpStatus.INTERNAL_SERVER_ERROR, legacyEntity, "body", null);
-        GatewayService.Response<LegacyGetDefendantAccountHeaderSummaryResponse> respSuccess =
-            new GatewayService.Response<>(HttpStatus.OK, legacyEntity, null, null);
-
-        doReturn(respError, respSuccess).when(gatewayService)
-            .postToGateway(any(), any(), any(), any());
+        doReturn(respError).when(gatewayService).postToGateway(any(), any(), any(), any());
 
         assertThatThrownBy(() -> legacyDefendantAccountService.getHeaderSummary(1L))
             .isInstanceOf(HttpServerErrorException.class).hasMessage("500 Legacy gateway returned failure");
+    }
+
+    @Test
+    void getHeaderSummary_accountNotFoundReturns404() throws JAXBException {
+        String xml = "<response><error_response><error_code>-20013</error_code>"
+            + "<error_message>Account not found</error_message></error_response></response>";
+        LegacyGetDefendantAccountHeaderSummaryResponse legacyEntity = XmlUtil.unmarshalXmlString(
+            xml, LegacyGetDefendantAccountHeaderSummaryResponse.class);
+        GatewayService.Response<LegacyGetDefendantAccountHeaderSummaryResponse> response =
+            new GatewayService.Response<>(HttpStatus.OK, legacyEntity);
+        doReturn(response).when(gatewayService).postToGateway(any(), any(), any(), any());
+
+        DefendantAccountNotFoundException exception = assertThrows(DefendantAccountNotFoundException.class,
+            () -> legacyDefendantAccountService.getHeaderSummary(900000000000L));
+
+        assertEquals(900000000000L, exception.getDefendantAccountId());
+    }
+
+    @Test
+    void getHeaderSummary_precisionErrorRemains500() throws JAXBException {
+        String xml = "<response><error_response><error_code>-6502</error_code>"
+            + "<error_message>number precision too large</error_message></error_response></response>";
+        LegacyGetDefendantAccountHeaderSummaryResponse legacyEntity = XmlUtil.unmarshalXmlString(
+            xml, LegacyGetDefendantAccountHeaderSummaryResponse.class);
+        GatewayService.Response<LegacyGetDefendantAccountHeaderSummaryResponse> response =
+            new GatewayService.Response<>(HttpStatus.OK, legacyEntity);
+        doReturn(response).when(gatewayService).postToGateway(any(), any(), any(), any());
+
+        HttpServerErrorException exception = assertThrows(HttpServerErrorException.class,
+            () -> legacyDefendantAccountService.getHeaderSummary(90000000000000L));
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
     }
 
     @Test
