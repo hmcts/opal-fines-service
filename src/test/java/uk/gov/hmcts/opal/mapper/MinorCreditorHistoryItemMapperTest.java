@@ -49,7 +49,7 @@ class MinorCreditorHistoryItemMapperTest {
         assertThat(mapped.postedDate()).isEqualTo(postedDate);
         assertThat(mapped.responseItem().getType()).isEqualTo(AMENDMENT.responseType());
         assertThat(mapped.responseItem().getAmount()).isNull();
-        assertThat(mapped.responseItem().getPostedDetails().getPostedDate()).isEqualTo(postedDate.toLocalDate());
+        assertThat(mapped.responseItem().getPostedDetails().getPostedDate()).isEqualTo(postedDate);
         assertThat(mapped.responseItem().getPostedDetails().getPostedBy()).isEqualTo("AMENDUSR");
         assertThat(mapped.responseItem().getPostedDetails().getPostedByName()).isEqualTo("Amend User");
 
@@ -79,7 +79,7 @@ class MinorCreditorHistoryItemMapperTest {
         assertThat(mapped.postedDate()).isEqualTo(postedDate);
         assertThat(mapped.responseItem().getType()).isEqualTo(NOTE.responseType());
         assertThat(mapped.responseItem().getAmount()).isNull();
-        assertThat(mapped.responseItem().getPostedDetails().getPostedDate()).isEqualTo(postedDate.toLocalDate());
+        assertThat(mapped.responseItem().getPostedDetails().getPostedDate()).isEqualTo(postedDate);
 
         NoteDetailsHistory details = (NoteDetailsHistory) mapped.responseItem().getDetails();
         assertThat(details.getNoteText()).isEqualTo("Review creditor");
@@ -179,7 +179,7 @@ class MinorCreditorHistoryItemMapperTest {
     }
 
     @Test
-    void toPostedDetails_mapsDateComponentAndPostedUser() {
+    void toPostedDetails_mapsPostedDateTimeAndPostedUser() {
         // Arrange
         LocalDateTime postedDate = LocalDateTime.of(2026, Month.JANUARY, 31, 23, 59);
 
@@ -187,7 +187,7 @@ class MinorCreditorHistoryItemMapperTest {
         PostedDetailsCommon postedDetails = mapper.toPostedDetails(postedDate, "POSTUSR", "Post User");
 
         // Assert
-        assertThat(postedDetails.getPostedDate()).isEqualTo(postedDate.toLocalDate());
+        assertThat(postedDetails.getPostedDate()).isEqualTo(postedDate);
         assertThat(postedDetails.getPostedBy()).isEqualTo("POSTUSR");
         assertThat(postedDetails.getPostedByName()).isEqualTo("Post User");
     }
