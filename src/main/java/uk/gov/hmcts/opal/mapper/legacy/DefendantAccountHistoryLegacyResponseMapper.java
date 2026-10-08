@@ -67,6 +67,7 @@ public interface DefendantAccountHistoryLegacyResponseMapper {
         }
 
         HistoryItemType type = HistoryItemType.fromValue(typeValue);
+        details = unwrapDetails(type, details);
 
         return switch (type) {
             case AMENDMENT -> AmendmentDetails.builder()
@@ -115,6 +116,22 @@ public interface DefendantAccountHistoryLegacyResponseMapper {
                 .impositionCode(details.getImpositionCode())
                 .amountImposed(details.getAmountImposed())
                 .build();
+        };
+    }
+
+    default GetDefendantAccountHistoryLegacyResponse.LegacyDefendantAccountHistoryDetails unwrapDetails(
+        HistoryItemType type, GetDefendantAccountHistoryLegacyResponse.LegacyDefendantAccountHistoryDetails details) {
+        if (details == null) {
+            return null;
+        }
+        return switch (type) {
+            case AMENDMENT -> Optional.ofNullable(details.getAmendmentDetails()).orElse(details);
+            case ENFORCEMENT -> Optional.ofNullable(details.getEnforcementDetails()).orElse(details);
+            case FINANCIAL -> Optional.ofNullable(details.getFinancialDetails())
+                .or(() -> Optional.ofNullable(details.getDefendantTransactionDetails())).orElse(details);
+            case NOTE -> Optional.ofNullable(details.getNoteDetails()).orElse(details);
+            case PAYMENT_TERMS -> Optional.ofNullable(details.getPaymentTermsDetails())
+                .or(() -> Optional.ofNullable(details.getPaymentTerms())).orElse(details);
         };
     }
 
