@@ -10,6 +10,7 @@
 * Date          Author         Version     Nature of Change
 * ----------    -----------    --------    ------------------------------------------------------------------------------------
 * 30/09/2026    P Brumby       1.0         PO-10783 Test data for PO-10571 impositions creditor-name display scenarios
+* 08/10/2026    P Brumby       1.1         PO-10783 Test data Add payment_terms record
 *
 **/
 
@@ -34,6 +35,9 @@
 -- ---------------------------------------------------------------------------
 
 -- Clear any existing PO-10783 / PO-10571 synthetic data for repeatable Dev builds.
+
+DELETE FROM public.payment_terms
+ WHERE payment_terms_id = 99105710000601;
 
 DELETE FROM public.impositions
  WHERE imposition_id BETWEEN 99105710000301 AND 99105710000306;
@@ -144,8 +148,7 @@ INSERT INTO public.major_creditors (
 ) VALUES (
     99105710000401, 65, 'P571', 'PO10571 Major Creditor',
     '6 PO-10571 Major Creditor Street', 'Camden', NULL, 'N1 6AA',
-    'PO10571 Contact', NULL, NULL
-);
+    'PO10571 Contact', NULL, NULL);
 
 INSERT INTO public.creditor_accounts (
     creditor_account_id, business_unit_id, account_number, creditor_account_type,
@@ -235,3 +238,11 @@ INSERT INTO public.impositions (
      NULL, 'FO', 50000000001, '2026-09-21 00:00:00',
      -106.00, 0.00, NULL, 'PO10571 missing company name fallback', 'P57106',
      99105710000204, NULL, NULL, false, NULL);
+
+-- ---------------------------------------------------------------------------
+--  payment terms
+-- ---------------------------------------------------------------------------
+
+-- By date 2026-10-22, the defendant account will have a balance of -621.00, which is the sum of the impositions above.
+INSERT INTO public.payment_terms (payment_terms_id,defendant_account_id,posted_date,posted_by,terms_type_code,effective_date,extension,account_balance,posted_by_name,active) VALUES 
+     (99105710000601,99105710000001,'2026-09-22 09:06:00.000','L065JG', 'B', '2026-10-22', false, -621.00, 'opal-test', true);
