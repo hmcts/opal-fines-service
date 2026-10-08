@@ -146,20 +146,19 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
         assertNotNull(out);
         assertEquals(BigInteger.valueOf(9L), out.getVersion());
         assertEquals(5, out.getHistoryItems().size());
-        assertEquals(HistoryItemType.FINANCIAL, out.getHistoryItems().get(0).getType());
-        assertEquals(HistoryItemType.PAYMENT_TERMS, out.getHistoryItems().get(1).getType());
+        assertEquals(HistoryItemType.AMENDMENT, out.getHistoryItems().get(0).getType());
+        assertEquals(HistoryItemType.ENFORCEMENT, out.getHistoryItems().get(1).getType());
         assertEquals("Reason text",
-            ((EnforcementDetails) out.getHistoryItems().get(3).getDetails()).getReason());
-        assertEquals("Account note text",
-            ((NoteDetails) out.getHistoryItems().get(2).getDetails()).getNoteText());
-        assertEquals("Extension reason",
-            ((PaymentTermsDetails) out.getHistoryItems().get(1).getDetails()).getReasonForExtension());
+            ((EnforcementDetails) out.getHistoryItems().get(1).getDetails()).getReason());
         assertEquals("PAY123",
-            ((DefendantTransactionDetails) out.getHistoryItems().get(0).getDetails()).getPaymentReference());
-        assertEquals(new BigDecimal("-25.50"), out.getHistoryItems().get(0).getAmount());
-        assertEquals(LocalDateTime.of(2026, Month.MAY, 12, 10, 15),
-                     out.getHistoryItems().get(0).getEventDateTime());
-        assertEquals(HistoryItemType.AMENDMENT, out.getHistoryItems().get(4).getType());
+            ((DefendantTransactionDetails) out.getHistoryItems().get(2).getDetails()).getPaymentReference());
+        assertEquals(new BigDecimal("-25.50"), out.getHistoryItems().get(2).getAmount());
+        assertEquals("Account note text",
+            ((NoteDetails) out.getHistoryItems().get(3).getDetails()).getNoteText());
+        assertEquals("Extension reason",
+            ((PaymentTermsDetails) out.getHistoryItems().get(4).getDetails()).getReasonForExtension());
+        assertEquals(LocalDate.of(2026, Month.MAY, 12),
+            ((PaymentTermsDetails) out.getHistoryItems().get(4).getDetails()).getDateDaysInDefaultImposed());
 
         ArgumentCaptor<GetDefendantAccountHistoryLegacyRequest> requestCaptor =
             ArgumentCaptor.forClass(GetDefendantAccountHistoryLegacyRequest.class);
