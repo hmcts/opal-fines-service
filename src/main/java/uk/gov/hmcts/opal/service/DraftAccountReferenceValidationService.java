@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaType;
 import uk.gov.hmcts.opal.entity.ProsecutorEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
@@ -26,10 +27,12 @@ import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.CourtLiteRepository;
+import uk.gov.hmcts.opal.repository.LegacyJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
 import uk.gov.hmcts.opal.repository.ProsecutorRepository;
 import uk.gov.hmcts.opal.repository.ResultRepository;
+import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.util.JsonPathUtil;
 
 @Service
@@ -56,6 +59,8 @@ public class DraftAccountReferenceValidationService {
     private final CreditorAccountRepository creditorAccountRepository;
     private final LocalJusticeAreaRepository localJusticeAreaRepository;
     private final ProsecutorRepository prosecutorRepository;
+    private final LegacyJusticeAreaRepository legacyJusticeAreaRepository;
+    private final DynamicConfigService dynamicConfigService;
 
     @Transactional(readOnly = true)
     public void validateReferences(Short businessUnitId, String accountJson) {
@@ -316,28 +321,46 @@ public class DraftAccountReferenceValidationService {
         validateProsecutorOriginator(originatorId, originatorName, failures);
     }
 
-    private void validateLocalJusticeAreaOriginator(Long originatorId, String originatorName, List<String> failures) {
+     private void validateLocalJusticeAreaOriginator(Long originatorId, String originatorName, List<String> failures) {
         Short localJusticeAreaId = toShort(originatorId);
         if (localJusticeAreaId == null) {
             failures.add(ORIGINATOR_ID_PATH + ": local justice area id " + originatorId + DOES_NOT_EXIST);
             return;
         }
 
-        LocalJusticeAreaEntity localJusticeArea = localJusticeAreaRepository.findById(localJusticeAreaId)
-            .filter(entity -> VALID_ORIGINATOR_LJA_TYPES.contains(entity.getLjaType()))
-            .orElse(null);
+        String localJusticeAreaName;
 
-        if (localJusticeArea == null) {
-            failures.add(ORIGINATOR_ID_PATH + ": local justice area id " + originatorId + DOES_NOT_EXIST);
-            return;
+        if (dynamicConfigService.isLegacyMode()) {
+            LocalJusticeAreaLegacyEntity localJusticeArea = legacyJusticeAreaRepository.findById(localJusticeAreaId)
+                    .filter(entity -> VALID_ORIGINATOR_LJA_TYPES.contains(entity.getLjaType()))
+                    .orElse(null);
+
+            if (localJusticeArea == null) {
+                failures.add(ORIGINATOR_ID_PATH + ": local justice area id " + originatorId + DOES_NOT_EXIST);
+                return;
+            }
+
+            localJusticeAreaName = localJusticeArea.getName();
+
+        } else {
+            LocalJusticeAreaEntity localJusticeArea = localJusticeAreaRepository.findById(localJusticeAreaId)
+                    .filter(entity -> VALID_ORIGINATOR_LJA_TYPES.contains(entity.getLjaType()))
+                    .orElse(null);
+
+            if (localJusticeArea == null) {
+                failures.add(ORIGINATOR_ID_PATH + ": local justice area id " + originatorId + DOES_NOT_EXIST);
+                return;
+            }
+
+            localJusticeAreaName = localJusticeArea.getName();
         }
 
-        if (!originatorName.equals(localJusticeArea.getName())) {
+        if (!originatorName.equals(localJusticeAreaName)) {
             failures.add(ORIGINATOR_NAME_PATH + ": originator name '" + originatorName
-                + "' does not match local justice area name '" + localJusticeArea.getName()
-                + "' for id " + originatorId);
+                + "' does not match local justice area name '" + localJusticeAreaName + "' for id " + originatorId);
         }
     }
+
 
     private void validateProsecutorOriginator(Long originatorId, String originatorName, List<String> failures) {
         ProsecutorEntity prosecutor = prosecutorRepository.findById(originatorId).orElse(null);
