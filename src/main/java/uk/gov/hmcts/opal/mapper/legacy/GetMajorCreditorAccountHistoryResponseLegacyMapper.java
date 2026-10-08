@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.mapper.legacy;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -95,6 +96,14 @@ public interface GetMajorCreditorAccountHistoryResponseLegacyMapper {
         String status) {
         return status == null ? null
             : CreditorTransactionStatusReferenceCommon.CreditorTransactionStatusEnum.fromValue(status);
+    }
+
+    default LocalDate toLocalDate(LocalDateTime dateTime) {
+        return dateTime == null ? null : dateTime.toLocalDate();
+    }
+
+    default LocalDateTime toLocalDateTime(LocalDate date) {
+        return date == null ? null : date.atStartOfDay();
     }
 
     default Comparator<LegacyMajorCreditorHistoryItem> legacyHistoryItemComparator() {

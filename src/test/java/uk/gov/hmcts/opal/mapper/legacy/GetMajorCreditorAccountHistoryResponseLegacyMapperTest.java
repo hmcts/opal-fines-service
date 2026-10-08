@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -51,7 +52,7 @@ class GetMajorCreditorAccountHistoryResponseLegacyMapperTest extends AbstractMap
                             .creditorTransactionStatus("R")
                             .creditorTransactionStatusDisplayName("Reversed")
                             .build())
-                        .statusDate(LocalDateTime.of(2026, 1, 31, 10, 30))
+                        .statusDate(LocalDate.of(2026, 1, 31))
                         .associatedRecordType("creditor_accounts")
                         .associatedRecordId("99264300000001")
                         .accountNumber("87654321")
@@ -86,7 +87,7 @@ class GetMajorCreditorAccountHistoryResponseLegacyMapperTest extends AbstractMap
             details.getStatus().getCreditorTransactionStatus()
         );
         assertEquals("Reversed", details.getStatus().getCreditorTransactionStatusDisplayName());
-        assertEquals(LocalDateTime.of(2026, 1, 31, 10, 30), details.getStatusDate());
+        assertEquals(LocalDateTime.of(2026, 1, 31, 0, 0), details.getStatusDate());
         assertEquals("creditor_accounts", details.getAssociatedRecordType());
         assertEquals("99264300000001", details.getAssociatedRecordId());
         assertEquals("87654321", details.getAccountNumber());
