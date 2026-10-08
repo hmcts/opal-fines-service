@@ -21,7 +21,6 @@ import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
 import uk.gov.hmcts.opal.repository.jpa.EnforcementReportSpecs;
 import uk.gov.hmcts.opal.repository.jpa.OperationReportSpecs;
-import uk.gov.hmcts.opal.service.report.ReportCSVService;
 import uk.gov.hmcts.opal.service.report.ReportEnforcementMode;
 import uk.gov.hmcts.opal.service.report.ReportId;
 import uk.gov.hmcts.opal.service.report.operation.mapper.DetailedResultMapper;
@@ -39,10 +38,8 @@ public class EnforcementReportService extends AbstractOperationReportService {
 
     public EnforcementReportService(DefendantAccountRepository defendantAccountRepository,
         EnforcementRepository enforcementRepository, SummaryResultMapper summaryResultMapper,
-        DetailedResultMapper detailedResultMapper, ObjectMapper objectMapper, EnforcementReportValidator validator,
-        ReportCSVService reportCSVService) {
+        DetailedResultMapper detailedResultMapper, ObjectMapper objectMapper, EnforcementReportValidator validator) {
 
-        super(reportCSVService);
         this.defendantAccountRepository = defendantAccountRepository;
         this.enforcementRepository = enforcementRepository;
         this.summaryResultMapper = summaryResultMapper;
