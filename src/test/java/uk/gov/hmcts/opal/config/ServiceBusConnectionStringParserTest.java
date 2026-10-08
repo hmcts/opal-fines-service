@@ -11,7 +11,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
-import uk.gov.hmcts.opal.config.ServiceBusConnectionStringParser.ConnectionDetails;
+import uk.gov.hmcts.opal.common.config.ServiceBusConnectionStringParser;
+import uk.gov.hmcts.opal.common.config.ServiceBusConnectionStringParser.ConnectionDetails;
 
 public class ServiceBusConnectionStringParserTest {
 

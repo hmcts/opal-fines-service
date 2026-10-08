@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
 import uk.gov.hmcts.opal.service.proxy.NotesProxy;
 
@@ -20,7 +20,7 @@ public class NotesService {
     public String addNote(AddNoteRequestNotes request, String ifMatch, Short businessUnitId) {
         log.debug(":addNote:");
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
 
         if (!userState.hasBusinessUnitUserWithPermission(
             businessUnitId, FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES)) {

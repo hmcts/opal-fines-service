@@ -14,9 +14,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.generated.model.NoteCommon;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
+import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.service.proxy.NotesProxy;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,7 +28,8 @@ class NotesServiceTest {
 
     @Mock private NotesProxy notesProxy;
     @Mock private UserStateService userStateService;
-    @Mock private UserState userState;
+    @Mock private AccountNoteContextFactory accountNoteContextFactory;
+    @Mock private UserStateV2 userState;
 
     @InjectMocks
     private NotesService notesService;
@@ -42,7 +43,7 @@ class NotesServiceTest {
 
     @Test
     void addNote_shouldThrowPermissionNotAllowedException_whenUserLacksPermission() {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.hasBusinessUnitUserWithPermission(
             BUSINESS_UNIT_ID, FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES)).thenReturn(false);
 
@@ -57,7 +58,7 @@ class NotesServiceTest {
     void addNote_shouldDelegateToNotesProxy_whenUserHasPermission() {
         String expectedResponse = "note-id-456";
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.hasBusinessUnitUserWithPermission(
             BUSINESS_UNIT_ID, FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES)).thenReturn(true);
         when(notesProxy.addNote(request, IF_MATCH, userState, BUSINESS_UNIT_ID)).thenReturn(expectedResponse);

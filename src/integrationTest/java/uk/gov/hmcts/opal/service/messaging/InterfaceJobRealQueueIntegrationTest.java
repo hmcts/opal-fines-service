@@ -23,10 +23,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.config.ServiceBusConnectionStringParser;
-import uk.gov.hmcts.opal.config.ServiceBusConnectionStringParser.ConnectionDetails;
+import uk.gov.hmcts.opal.common.config.ServiceBusConnectionStringParser;
+import uk.gov.hmcts.opal.common.config.ServiceBusConnectionStringParser.ConnectionDetails;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.entity.InterfaceJobStatus;
 import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -61,6 +63,9 @@ class InterfaceJobRealQueueIntegrationTest extends AbstractIntegrationTest {
         "Endpoint=sb://localhost/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=local;"
             + "UseDevelopmentEmulator=true";
     private static final String QUEUE_NAME = "auto-payments-process-interface-files";
+
+    @MockitoBean
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @Autowired
     private InterfaceJobQueueConsumerService interfaceJobQueueConsumerService;

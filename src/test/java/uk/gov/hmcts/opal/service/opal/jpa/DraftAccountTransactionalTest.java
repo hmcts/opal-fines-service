@@ -41,7 +41,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
@@ -444,7 +444,7 @@ class DraftAccountTransactionalTest {
             .build();
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
-        UserState userState = UserState.builder().userName("USER_NAME_1").build();
+        UserStateV2 userState = UserStateV2.builder().username("USER_NAME_1").userId(0L).build();
 
         // Act & Assert
         assertThrows(ResourceConflictException.class, () ->
@@ -474,7 +474,7 @@ class DraftAccountTransactionalTest {
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
         when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        UserState userState = UserState.builder().userName("USER_NAME_1").build();
+        UserStateV2 userState = UserStateV2.builder().username("USER_NAME_1").userId(0L).build();
 
         // Act
         DraftAccountEntity result = draftAccountTransactional
@@ -522,7 +522,7 @@ class DraftAccountTransactionalTest {
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
 
-        UserState userState = UserState.builder().userName("USER_NAME_1").build();
+        UserStateV2 userState = UserStateV2.builder().username("USER_NAME_1").userId(0L).build();
 
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
             draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional,
@@ -554,7 +554,7 @@ class DraftAccountTransactionalTest {
         when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenAnswer(invocation -> invocation
             .getArgument(0));
 
-        UserState userState = UserState.builder().userName("USER_NAME_1").build();
+        UserStateV2 userState = UserStateV2.builder().username("USER_NAME_1").userId(0L).build();
 
         DraftAccountEntity result = draftAccountTransactional
             .updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional, BigInteger.ZERO, userState,
@@ -587,7 +587,7 @@ class DraftAccountTransactionalTest {
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
 
-        UserState userState = UserState.builder().userName("USER_NAME_1").userId(23L).build();
+        UserStateV2 userState = UserStateV2.builder().username("USER_NAME_1").userId(23L).build();
 
         // Act & Assert
         SubmitterDeniedException ex = assertThrows(SubmitterDeniedException.class, () -> {
@@ -632,7 +632,7 @@ class DraftAccountTransactionalTest {
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
 
-        UserState userState = UserState.builder().userName("opal-test@dev.platform.hmcts.net").userId(23L).build();
+        UserStateV2 userState = UserStateV2.builder().username("opal-test@dev.platform.hmcts.net").userId(23L).build();
 
         // Act & Assert
         SubmitterDeniedException ex = assertThrows(SubmitterDeniedException.class, () -> {
@@ -677,7 +677,7 @@ class DraftAccountTransactionalTest {
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
         when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        UserState userState = UserState.builder().userName("DifferentUser").build();
+        UserStateV2 userState = UserStateV2.builder().username("DifferentUser").userId(0L).build();
 
         DraftAccountEntity result = draftAccountTransactional.updateDraftAccount(
             draftAccountId, updateDto, draftAccountTransactional, BigInteger.ZERO, userState, "Validator",
@@ -707,7 +707,7 @@ class DraftAccountTransactionalTest {
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
 
-        UserState userState = UserState.builder().userName("BUUID1").build();
+        UserStateV2 userState = UserStateV2.builder().username("BUUID1").userId(0L).build();
 
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->

@@ -26,7 +26,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.AbstractIntegrationTestForSecurity;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.generated.model.NoteCommon;
@@ -35,7 +35,7 @@ import uk.gov.hmcts.opal.generated.model.NoteCommon.RecordTypeEnum;
 import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
-abstract class NotesIntegrationTest extends AbstractIntegrationTest {
+abstract class NotesIntegrationTest extends AbstractIntegrationTestForSecurity {
 
     protected static final String URL_BASE = "/notes";
 

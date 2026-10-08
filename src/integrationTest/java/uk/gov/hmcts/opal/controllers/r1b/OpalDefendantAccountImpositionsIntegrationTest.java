@@ -40,7 +40,6 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
 
     private static final String URL_BASE = "/defendant-accounts";
 
-
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
 

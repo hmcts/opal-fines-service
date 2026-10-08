@@ -10,27 +10,27 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 
 class FinesPermissionTest {
 
     @Test
     void whenCommonPermissionRequested_returnsMappedPermission_happyPath() {
-        Permission permission = FinesPermission.VIEW_CREDITOR_BACS.toCommonPermission();
+        PermissionV2 permission = FinesPermission.VIEW_CREDITOR_BACS.toCommonPermission();
 
         assertAll(
-            () -> assertEquals(11L, permission.getPermissionId()),
-            () -> assertEquals("View Creditor BACS", permission.getPermissionName())
+            () -> assertEquals("VIEW_CREDITOR_BACS", permission.getPermissionCode()),
+            () -> assertEquals("View creditor BACS", permission.getPermissionName())
         );
     }
 
     @Test
     void whenMinorCreditorMaintenancePermissionRequested_returnsMappedPermission_happyPath() {
-        Permission permission = FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR.toCommonPermission();
+        PermissionV2 permission = FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR.toCommonPermission();
 
         assertAll(
-            () -> assertEquals(20L, permission.getPermissionId()),
-            () -> assertEquals("Account Maintenance - Minor Creditor", permission.getPermissionName()));
+            () -> assertEquals("ACCOUNT_MAINTENANCE_MINOR_CREDITOR", permission.getPermissionCode()),
+            () -> assertEquals("Account Maintenance Minor Creditor", permission.getPermissionName()));
     }
 
     @Test
@@ -40,7 +40,7 @@ class FinesPermissionTest {
                 FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
                 FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS
             },
-            FinesPermission.DRAFT_ACCOUNT_PERMISSIONS
+            FinesPermission.draftAccountPermissions()
         );
     }
 
@@ -48,17 +48,19 @@ class FinesPermissionTest {
     void whenOperationalReportPermissionsRequested_returnsConfiguredMetadata_happyPath() {
         assertAll(
             () -> assertAll(
-                () -> assertEquals(18L, FinesPermission.OPERATIONAL_REPORT_BY_ENFORCEMENT.getId()),
+                () -> assertEquals("OPERATIONAL_REPORT_BY_ENFORCEMENT",
+                    FinesPermission.OPERATIONAL_REPORT_BY_ENFORCEMENT.getPermissionCode()),
                 () -> assertEquals(
                     "Operational report (by enforcement)",
-                    FinesPermission.OPERATIONAL_REPORT_BY_ENFORCEMENT.getDescription()
+                    FinesPermission.OPERATIONAL_REPORT_BY_ENFORCEMENT.getPermissionName()
                 )
             ),
             () -> assertAll(
-                () -> assertEquals(19L, FinesPermission.OPERATIONAL_REPORT_BY_PAYMENTS.getId()),
+                () -> assertEquals("OPERATIONAL_REPORT_BY_PAYMENTS",
+                    FinesPermission.OPERATIONAL_REPORT_BY_PAYMENTS.getPermissionCode()),
                 () -> assertEquals(
                     "Operational report (by payment)",
-                    FinesPermission.OPERATIONAL_REPORT_BY_PAYMENTS.getDescription()
+                    FinesPermission.OPERATIONAL_REPORT_BY_PAYMENTS.getPermissionName()
                 )
             )
         );

@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.dto.ToJsonString;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountResponse;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
@@ -37,7 +37,7 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
     private final DraftAccountTransactional draftAccountTransactional;
 
     @Override
-    public DraftAccountEntity publishDefendantAccount(DraftAccountEntity publishEntity, BusinessUnitUser unitUser) {
+    public DraftAccountEntity publishDefendantAccount(DraftAccountEntity publishEntity, BusinessUnitUserV2 unitUser) {
         log.info(PUBLISH_DEFENDANT_ACCOUNT_LOG_PREFIX + " ");
 
         CompletableFuture<Response<LegacyCreateDefendantAccountResponse>> future = gatewayService.postToGatewayAsync(
@@ -99,7 +99,7 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
     }
 
     public static LegacyCreateDefendantAccountRequest createDefendantAccountRequest(DraftAccountEntity entity,
-                                                                                    BusinessUnitUser unitUser) {
+                                                                                    BusinessUnitUserV2 unitUser) {
         String accountJson = entity.getAccount();
         Object account;
         try {

@@ -82,7 +82,8 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void setupUserState() {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allPermissionsUser());
+        when(userStateService.getUserStateFromSecurityContext())
+            .thenReturn(UserStateUtil.allFinesPermissionUserStateV2());
     }
 
     @Test
@@ -144,7 +145,8 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
     @JiraEpic("PO-979")
     @JiraTestKey("PO-8266")
     void getImpositions_whenUserLacksPermission_returnsForbidden() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.noPermissionsUser());
+        when(userStateService.getUserStateFromSecurityContext())
+            .thenReturn(UserStateUtil.noFinesPermissionUserStateV2());
 
         performGetImpositions(12345L)
             .andExpect(status().isForbidden())

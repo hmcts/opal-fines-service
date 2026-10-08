@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.entity.ReportEntity;
@@ -47,7 +47,7 @@ public class ReportInstanceSearchService {
 
     public List<Short> validateBusinessUnitIds(List<Short> requestedBusinessUnitIds) {
         List<Short> permittedBusinessUnitIds = getBusinessUnitUsers().stream()
-            .map(BusinessUnitUser::getBusinessUnitId)
+            .map(BusinessUnitUserV2::getBusinessUnitId)
             .distinct()
             .toList();
 
@@ -78,7 +78,7 @@ public class ReportInstanceSearchService {
             return Map.of();
         }
 
-        List<BusinessUnitUser> businessUnitUsers = getBusinessUnitUsers().stream()
+        List<BusinessUnitUserV2> businessUnitUsers = getBusinessUnitUsers().stream()
             .filter(buUser -> businessUnitIds.contains(buUser.getBusinessUnitId()))
             .toList();
 
@@ -86,7 +86,8 @@ public class ReportInstanceSearchService {
             .flatMap(buUser ->
                 reports.stream()
                     .filter(report -> buUser.getPermissions().stream()
-                        .anyMatch(permission -> permission.getPermissionId() == report.getPermission().getId()))
+                        .anyMatch(permission -> Objects.equals(permission.getPermissionCode(),
+                            report.getPermission().getPermissionCode())))
                     .map(report -> Map.entry(report.getReportId(), buUser.getBusinessUnitId())))
             .collect(Collectors.groupingBy(
                 Map.Entry::getKey,
@@ -94,7 +95,7 @@ public class ReportInstanceSearchService {
             ));
     }
 
-    private List<BusinessUnitUser> getBusinessUnitUsers() {
+    private List<BusinessUnitUserV2> getBusinessUnitUsers() {
         DomainBusinessUnitUsers domainBusinessUnitUsers = userStateService.getUserStateFromSecurityContext()
             .getDomainBusinessUnitUsers(Domain.FINES);
 

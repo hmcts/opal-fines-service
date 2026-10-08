@@ -55,7 +55,7 @@ class LegacyMinorCreditorAtAGlanceErrorIntegrationTest extends AbstractIntegrati
 
     @BeforeEach
     void setUp() {
-        when(userStateService.getUserStateV1FromSecurityContext())
+        when(userStateService.getUserStateFromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 77,
                 SEARCH_AND_VIEW_ACCOUNTS, VIEW_CREDITOR_BACS));
     }

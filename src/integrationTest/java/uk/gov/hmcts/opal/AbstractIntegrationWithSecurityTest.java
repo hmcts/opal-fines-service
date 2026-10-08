@@ -27,7 +27,7 @@ import uk.gov.hmcts.opal.support.UserStateStub;
 
 @ActiveProfiles(profiles = {"integration-with-spring-security"}, inheritProfiles = false)
 @DisplayName("JWT Controller Integration Tests")
-public class AbstractIntegrationWithSecurityTest extends AbstractIntegrationTest {
+public class AbstractIntegrationWithSecurityTest extends AbstractIntegrationTestForSecurity {
 
     protected static String validToken;
     protected static String expiredToken;

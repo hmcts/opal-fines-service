@@ -73,7 +73,7 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
 
     @BeforeEach
     void setUpAuthorisedUser() {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(permissionUser(
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(permissionUser(
             BUSINESS_UNIT_ID,
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS
         ));
@@ -183,7 +183,7 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @DisplayName("PO-2645 legacy history without permission returns 403")
     @JiraTestKey("PO-8693")
     void getMinorCreditorHistory_whenUserLacksPermission_returnsForbidden() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(noPermissionsUser());
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(noPermissionsUser());
 
         getHistory(MINOR_CREDITOR_ACCOUNT_ID)
             .andExpect(status().isForbidden())

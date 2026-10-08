@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
@@ -31,7 +31,7 @@ public class DraftAccountPdplLoggingService extends AbstractPdplLoggingService {
         super(loggingService, clock);
     }
 
-    public void pdplForDraftAccount(DraftAccountEntity entity, Action action, UserState userState) {
+    public void pdplForDraftAccount(DraftAccountEntity entity, Action action, UserStateV2 userState) {
         JsonPathUtil.DocContext docContext = createDocContext(entity.getAccount(), "");
 
         Object dtRaw = docContext.read(JSON_DEFENDANT_TYPE);
@@ -55,7 +55,8 @@ public class DraftAccountPdplLoggingService extends AbstractPdplLoggingService {
         }
     }
 
-    public void logForMultipleGets(List<DraftAccountEntity> draftAccountEntities, Action action, UserState userState) {
+    public void logForMultipleGets(List<DraftAccountEntity> draftAccountEntities, Action action,
+                                    UserStateV2 userState) {
         if (draftAccountEntities == null || draftAccountEntities.isEmpty()) {
             return;
         }
@@ -125,7 +126,7 @@ public class DraftAccountPdplLoggingService extends AbstractPdplLoggingService {
         }
     }
 
-    private void logForRole(DraftAccountEntity entity, Action action, Role role, UserState userState) {
+    private void logForRole(DraftAccountEntity entity, Action action, Role role, UserStateV2 userState) {
         String businessIdentifier = action.formatFor(role);
 
         ParticipantIdentifier individuals = ParticipantIdentifier.builder()

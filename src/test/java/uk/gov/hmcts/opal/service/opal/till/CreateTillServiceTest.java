@@ -246,7 +246,8 @@ class CreateTillServiceTest {
 
     private void givenPermission() {
         securityUtil.when(SecurityUtil::getOpalJwtAuthenticationTokenForCurrentUser).thenReturn(authToken);
-        when(authToken.hasPermissionInBusinessUnit(FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS, BUSINESS_UNIT_ID))
+        when(authToken.hasPermissionInBusinessUnit(FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS.toCommonPermission(),
+            BUSINESS_UNIT_ID))
             .thenReturn(true);
     }
 

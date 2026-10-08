@@ -27,9 +27,9 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteRequest;
@@ -45,7 +45,7 @@ class LegacyNotesServiceTest {
     private static final String LEGACY_VERSION = "835509468493002959816526022013198014020000027379";
 
     @Mock private GatewayService gatewayService;
-    @Mock private UserState user;
+    @Mock private UserStateV2 user;
 
     @InjectMocks private LegacyNotesService service;
 
@@ -419,7 +419,7 @@ class LegacyNotesServiceTest {
     // ---------- helpers ----------
 
     private void givenBusinessUnitUser(short businessUnitId, String businessUnitUserId) {
-        BusinessUnitUser businessUnitUser = BusinessUnitUser.builder()
+        BusinessUnitUserV2 businessUnitUser = BusinessUnitUserV2.builder()
             .businessUnitUserId(businessUnitUserId)
             .build();
         when(user.getBusinessUnitUserForBusinessUnit(businessUnitId)).thenReturn(Optional.of(businessUnitUser));

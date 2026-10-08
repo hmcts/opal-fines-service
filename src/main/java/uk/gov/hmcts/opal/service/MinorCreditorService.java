@@ -4,6 +4,7 @@ import static org.springframework.util.StringUtils.hasText;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
@@ -36,7 +39,7 @@ public class MinorCreditorService {
     public MinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearchRequest entity) {
         log.debug(":searchMinorCreditor:");
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             validateMinorCreditorSearch(entity);
@@ -49,7 +52,7 @@ public class MinorCreditorService {
     public MinorCreditorAccountResponse getMinorCreditorAccount(Long minorCreditorAccountId) {
         log.debug(":getMinorCreditorAccount: id={}", minorCreditorAccountId);
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
 
         if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
@@ -67,7 +70,7 @@ public class MinorCreditorService {
         List<String> itemTypes) {
         log.debug(":getMinorCreditorHistory: id={}", minorCreditorAccountId);
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(dateFrom, dateTo, itemTypes);
@@ -82,7 +85,7 @@ public class MinorCreditorService {
 
         log.debug(":getMinorCreditorAccountAtAGlance: id= {}", minorCreditorId);
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
 
         if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
@@ -99,7 +102,7 @@ public class MinorCreditorService {
 
         log.debug(":getMinorCreditorAccountHeaderSummary: id={}", minorCreditorId);
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             return minorCreditorSearchProxy.getHeaderSummary(minorCreditorId);
@@ -128,7 +131,7 @@ public class MinorCreditorService {
             throw new IllegalArgumentException("Payment, party_details and address groups must be provided");
         }
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
         if (businessUnitId == null) {
             throw new PermissionNotAllowedException(
                 (Short) null,
@@ -143,18 +146,18 @@ public class MinorCreditorService {
         }
 
         String postedBy = userState.getBusinessUnitUserForBusinessUnit(businessUnitIdShort)
-            .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
+            .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2::getBusinessUnitUserId)
             .filter(id -> !id.isBlank())
-            .orElse(userState.getUserName());
+            .orElse(userState.getUsername());
 
         return minorCreditorSearchProxy.updateMinorCreditorAccount(minorCreditorId, request, ifMatch, postedBy,
-            userState.getUserName(), businessUnitIdShort);
+            userState.getUsername(), businessUnitIdShort);
     }
 
     private MinorCreditorAccountResponse redactBacsDetailsWhenNotPermitted(
         Long minorCreditorAccountId,
         MinorCreditorAccountResponse response,
-        UserState userState
+        UserStateV2 userState
     ) {
         if (response == null || response.getPayment() == null) {
             return response;
@@ -186,12 +189,19 @@ public class MinorCreditorService {
         return response;
     }
 
-    private String summariseBusinessUnits(UserState userState) {
-        if (userState.getBusinessUnitUser() == null || userState.getBusinessUnitUser().isEmpty()) {
+    private String summariseBusinessUnits(UserStateV2 userState) {
+        if (userState.getDomains() == null || userState.getDomains().isEmpty()) {
             return "[]";
         }
 
-        return userState.getBusinessUnitUser().stream()
+        List<BusinessUnitUserV2> allBus = new ArrayList<>();
+
+        for (DomainBusinessUnitUsers domainBusinessUnitUsers: userState.getDomains().values()) {
+            List<BusinessUnitUserV2> businessUnitUsers = domainBusinessUnitUsers.getBusinessUnitUsers();
+            allBus.addAll(businessUnitUsers);
+        }
+
+        return allBus.stream()
             .map(businessUnitUser -> String.valueOf(businessUnitUser.getBusinessUnitId()))
             .sorted()
             .collect(Collectors.joining(",", "[", "]"));

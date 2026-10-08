@@ -19,10 +19,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
-import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.support.UserStateStub;
 import uk.hmcts.zephyr.automation.junit5.extension.ZephyrAutomationExtension;
@@ -34,15 +32,12 @@ import uk.hmcts.zephyr.automation.junit5.extension.ZephyrAutomationExtension;
 @Import(IntegrationSecurityConfiguration.class)
 @ExtendWith(ZephyrAutomationExtension.class)
 @SuppressWarnings({"java:S6813", "SpringJavaInjectionPointsAutowiringInspection"})
-public abstract class AbstractIntegrationTest {
+public abstract class AbstractIntegrationTestForSecurity {
 
     protected static final String OVER_LONG_VERSION = "9223372036854775808";
     protected static final String OVER_LONG_VERSION_ETAG = "\"" + OVER_LONG_VERSION + "\"";
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
-
-    @MockitoBean
-    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @Autowired
     protected MockMvc mockMvc;

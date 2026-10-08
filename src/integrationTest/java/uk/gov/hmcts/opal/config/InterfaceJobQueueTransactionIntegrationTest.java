@@ -33,6 +33,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import uk.gov.hmcts.opal.common.config.ServiceBusConnectionStringParser;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import tools.jackson.databind.ObjectMapper;
@@ -48,6 +51,10 @@ import uk.gov.hmcts.opal.service.messaging.InterfaceJobQueuePublisherImpl;
 @EnabledIfEnvironmentVariable(named = "INTERFACE_JOBS_QUEUE_ASB_TEST_ENABLED", matches = "true")
 @DisplayName("Interface Job Queue Transaction Integration Tests")
 class InterfaceJobQueueTransactionIntegrationTest {
+
+    @MockitoBean
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
+
 
     private static final int MAX_PEEK_MESSAGES = 100;
     private static final int QUEUE_PEEK_ATTEMPTS = 10;

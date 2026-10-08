@@ -18,7 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.CentralFundResponse;
 import uk.gov.hmcts.opal.mapper.CentralFundMapper;
 import uk.gov.hmcts.opal.repository.CentralFundProjection;
@@ -37,7 +37,7 @@ class CentralFundServiceTest {
     private CentralFundMapper centralFundMapper;
 
     @Mock
-    private UserState userState;
+    private UserStateV2 userState;
 
     @InjectMocks
     private CentralFundService centralFundService;
@@ -49,7 +49,7 @@ class CentralFundServiceTest {
             .version(BigInteger.valueOf(7))
             .build();
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(creditorAccountRepository.findCentralFundByBusinessUnitId((short) 70))
             .thenReturn(Optional.of(centralFund));
@@ -58,14 +58,14 @@ class CentralFundServiceTest {
         CentralFundResponse response = centralFundService.getCentralFundByBusinessUnit((short) 70);
 
         assertSame(mappedResponse, response);
-        verify(userStateService).getUserStateV1FromSecurityContext();
+        verify(userStateService).getUserStateFromSecurityContext();
         verify(creditorAccountRepository).findCentralFundByBusinessUnitId((short) 70);
         verify(centralFundMapper).toCentralFundResponse(centralFund);
     }
 
     @Test
     void getCentralFundByBusinessUnit_whenUserLacksPermission_throwsPermissionNotAllowedException() {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
 
         PermissionNotAllowedException exception = assertThrows(
@@ -79,7 +79,7 @@ class CentralFundServiceTest {
 
     @Test
     void getCentralFundByBusinessUnit_whenCentralFundDoesNotExist_throwsEntityNotFoundException() {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(creditorAccountRepository.findCentralFundByBusinessUnitId((short) 70)).thenReturn(Optional.empty());
 

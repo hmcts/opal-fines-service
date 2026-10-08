@@ -17,7 +17,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.NoteType;
@@ -41,7 +41,7 @@ class OpalNotesServiceTest {
     @Mock private CreditorAccountRepository creditorAccountRepository;
     @Mock private AccountNoteContextFactory accountNoteContextFactory;
     @Mock private Clock clock;
-    @Mock private UserState user;
+    @Mock private UserStateV2 user;
 
     @InjectMocks
     private OpalNotesService service;
@@ -60,7 +60,7 @@ class OpalNotesServiceTest {
         saved.setNoteId(999L);
         when(defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(77L))
             .thenReturn(managed);
-        when(user.getDisplayName()).thenReturn("Test User");
+        when(user.getUsername()).thenReturn("Test User");
         when(repository.save(any(NoteEntity.class))).thenReturn(saved);
         AddNoteRequestNotes req = buildRequest("77", NoteCommon.RecordTypeEnum.DEFENDANT_ACCOUNTS);
 
@@ -92,7 +92,7 @@ class OpalNotesServiceTest {
         NoteEntity saved = new NoteEntity();
         saved.setNoteId(1001L);
         when(creditorAccountRepository.findByCreditorAccountIdForUpdate(104L)).thenReturn(Optional.of(managed));
-        when(user.getDisplayName()).thenReturn("Creditor User");
+        when(user.getUsername()).thenReturn("Creditor User");
         when(repository.save(any(NoteEntity.class))).thenReturn(saved);
         AddNoteRequestNotes req = buildRequest("104", NoteCommon.RecordTypeEnum.CREDITOR_ACCOUNTS);
 
@@ -125,7 +125,6 @@ class OpalNotesServiceTest {
         when(accountNoteContextFactory.from(req.getActivityNote())).thenReturn(target);
         when(defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(77L))
             .thenReturn(managed);
-        when(user.getDisplayName()).thenReturn("Test User");
         when(repository.save(any(NoteEntity.class))).thenReturn(saved);
 
         String result = service.addNote(req, "\"12\"", user, (short) 78);

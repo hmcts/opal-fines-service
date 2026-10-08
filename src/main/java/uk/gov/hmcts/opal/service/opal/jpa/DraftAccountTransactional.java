@@ -35,7 +35,7 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ObjectNode;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
@@ -173,7 +173,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
     @Transactional
     public DraftAccountEntity updateDraftAccount(Long draftAccountId, UpdateDraftAccountRequestDto dto,
                                                  DraftAccountTransactionalProxy proxy, BigInteger updateVersion,
-                                                 UserState userState, String validatedBy, String validatedByName) {
+                                                 UserStateV2 userState, String validatedBy, String validatedByName) {
         DraftAccountEntity existingAccount = proxy.getDraftAccount(draftAccountId);
         verifyIfMatch(existingAccount, updateVersion, draftAccountId, "updateDraftAccount");
 
@@ -400,7 +400,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
     }
 
     private void checkValidatorIsNotSubmitter(String submitterUsername, String updaterUserName, Long draftAccountId,
-        UserState userState, Short businessUnitId) {
+        UserStateV2 userState, Short businessUnitId) {
         if (submitterUsername != null && submitterUsername.equals(updaterUserName)) {
             Map<String, Object> data = getSecurityLogDataMap(userState.getUserId(), draftAccountId, submitterUsername);
             securityEventLoggingService.logEvent(EVENT_ACCOUNT_APPROVAL, "Failure", businessUnitId,
@@ -410,7 +410,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
     }
 
     private void checkDeleterIsNotSubmitter(String submitterUsername, String updaterUserName, Long draftAccountId,
-        UserState userState, Short businessUnitId) {
+        UserStateV2 userState, Short businessUnitId) {
         if (submitterUsername != null && submitterUsername.equals(updaterUserName)) {
             Map<String, Object> data = getSecurityLogDataMap(userState.getUserId(), draftAccountId, submitterUsername);
             securityEventLoggingService.logEvent(EVENT_NAME_DELETION,
