@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.controllers.r1c;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -7,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -16,6 +19,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -30,6 +34,14 @@ class DefendantSearchPaymentFeatureDisabledIntegrationTest extends AbstractInteg
 
     @MockitoBean
     private AccessTokenService accessTokenService;
+
+    @MockitoBean
+    private LoggingService loggingService;
+
+    @BeforeEach
+    void setUpLogging() {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+    }
 
     @Test
     @DisplayName("PO-3631: collection_order is omitted when release-1c-payment is disabled")

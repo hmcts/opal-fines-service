@@ -49,6 +49,7 @@ import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.mapper.request.DefendantAccountSearchRequestMapper;
 import uk.gov.hmcts.opal.mapper.response.DefendantAccountSearchResponseMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountSearchPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
@@ -84,6 +85,9 @@ class DefendantAccountServiceTest {
 
     @Mock
     private DefendantAccountSearchRequestValidator defendantAccountSearchRequestValidator;
+
+    @Mock
+    private DefendantAccountSearchPdplLoggingService defendantAccountSearchPdplLoggingService;
 
     @InjectMocks
     private DefendantAccountService defendantAccountService;
@@ -220,6 +224,7 @@ class DefendantAccountServiceTest {
 
         assertNotNull(result);
         verify(defendantAccountServiceProxy).searchDefendantAccounts(dto);
+        verify(defendantAccountSearchPdplLoggingService).logSearchResults(userWithPerm, expected);
     }
 
     @Test
@@ -253,6 +258,7 @@ class DefendantAccountServiceTest {
         verify(defendantAccountSearchRequestValidator).validateAndCheckFeature(request);
         verify(defendantAccountSearchRequestMapper).toAccountSearchDto(request);
         verify(defendantAccountServiceProxy).searchDefendantAccounts(mappedRequest);
+        verify(defendantAccountSearchPdplLoggingService).logSearchResults(userState, proxyResults);
         verify(defendantAccountSearchResponseMapper).toResponse(proxyResults);
     }
 
