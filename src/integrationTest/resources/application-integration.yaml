@@ -65,8 +65,11 @@ opal:
           scope: api://client-id/.default
           grant-type: client_credentials
   report:
-    consumer:
-      enabled: false
+    service-bus:
+      consumer-enabled: false
+  interface-jobs:
+    service-bus:
+      consumer-enabled: false
   redis:
     enabled: true
     ttl-duration: 8H
