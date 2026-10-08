@@ -157,8 +157,9 @@ class GlobalExceptionHandlerTest {
         );
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("Defendant Account Not Found", response.getBody().getTitle());
-        assertEquals("Defendant account not found with id: 999999999", response.getBody().getDetail());
+        assertEquals("Entity Not Found", response.getBody().getTitle());
+        assertEquals("The requested entity could not be found", response.getBody().getDetail());
+        assertEquals(URI.create("https://hmcts.gov.uk/problems/entity-not-found"), response.getBody().getType());
         assertEquals(false, response.getBody().getProperties().get("retriable"));
     }
 
