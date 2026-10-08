@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static uk.gov.hmcts.opal.config.Constants.MAPPINGS_URI;
 
+import io.cucumber.java.PendingException;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import uk.gov.hmcts.opal.steps.CommonMethods;
@@ -51,5 +52,24 @@ public class MappingsStepDef {
                 "TFO to NI/Scotland to be acknowledged",
                 "Account written off"
             ));
+    }
+
+    @Then("the status mappings are returned with code, display name and mime type")
+    public void theStatusMappingsAreReturnedWithCodeDisplayNameAndMimeType() {
+        then()
+            .statusCode(200)
+            .body("$", hasSize(4))
+            .body("code", contains("CSV", "PDF", "JSON", "XML"))
+            .body("display_name", contains(
+                "CSV",
+                "PDF",
+                "JSON",
+                "XML"
+            ))
+            .body("mime_type", contains(
+                "text/csv",
+                "application/pdf",
+                "application/json",
+                "application/xml"));
     }
 }
