@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
+import uk.gov.hmcts.opal.dto.LocalJusticeAreaDto;
 import uk.gov.hmcts.opal.dto.reference.LjaReferenceData;
 import uk.gov.hmcts.opal.dto.reference.LjaReferenceDataResults;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 import uk.gov.hmcts.opal.util.FeatureFlags;
 
@@ -37,15 +37,14 @@ public class LocalJusticeAreaController {
     @Operation(summary = "Returns the LocalJusticeArea for the given localJusticeAreaId.")
     @FeatureToggle(feature = FeatureFlags.RELEASE_1A,
         defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
-    public ResponseEntity<LocalJusticeAreaEntity> getLocalJusticeAreaById(@PathVariable Short localJusticeAreaId) {
+    public ResponseEntity<LocalJusticeAreaDto> getLocalJusticeAreaById(@PathVariable Short localJusticeAreaId) {
 
         log.debug(":GET:getLocalJusticeAreaById: localJusticeAreaId: {}", localJusticeAreaId);
 
-        LocalJusticeAreaEntity response = opalLocalJusticeAreaService.getLocalJusticeAreaById(localJusticeAreaId);
+        LocalJusticeAreaDto response = opalLocalJusticeAreaService.getLocalJusticeAreaById(localJusticeAreaId);
 
         return buildResponse(response);
     }
-
 
 
     @GetMapping

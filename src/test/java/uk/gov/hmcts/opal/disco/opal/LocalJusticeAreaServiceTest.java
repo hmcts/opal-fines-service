@@ -17,6 +17,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
+import uk.gov.hmcts.opal.dto.LocalJusticeAreaDto;
 import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.dto.reference.LjaReferenceData;
@@ -49,7 +50,7 @@ class LocalJusticeAreaServiceTest {
         when(localJusticeAreaRepository.findById(any())).thenReturn(Optional.of(localJusticeAreaEntity));
 
         // Act
-        LocalJusticeAreaEntity result = localJusticeAreaService.getLocalJusticeAreaById((short)1);
+        LocalJusticeAreaDto result = localJusticeAreaService.getLocalJusticeAreaById((short)1);
 
         // Assert
         assertNotNull(result);

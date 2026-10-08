@@ -13,10 +13,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.dto.LocalJusticeAreaDto;
 import uk.gov.hmcts.opal.dto.reference.LjaReferenceData;
 import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity_;
+import uk.gov.hmcts.opal.mapper.LocalJusticeAreaMapper;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.jpa.LocalJusticeAreaSpecs;
 
@@ -26,14 +28,17 @@ import uk.gov.hmcts.opal.repository.jpa.LocalJusticeAreaSpecs;
 public class LocalJusticeAreaService {
 
     private final LocalJusticeAreaRepository localJusticeAreaRepository;
-
+    private final LocalJusticeAreaMapper localJusticeAreaMapper;
     private final Clock clock;
 
     private final LocalJusticeAreaSpecs specs = new LocalJusticeAreaSpecs();
 
-    public LocalJusticeAreaEntity getLocalJusticeAreaById(short ljaId) {
-        return localJusticeAreaRepository.findById(ljaId)
-            .orElseThrow(() -> new EntityNotFoundException("Local Justice Area not found with id: " + ljaId));
+    public LocalJusticeAreaDto getLocalJusticeAreaById(short ljaId) {
+        LocalJusticeAreaEntity entity = localJusticeAreaRepository.findById(ljaId)
+            .orElseThrow(() ->
+                new EntityNotFoundException(
+                    "Local Justice Area not found with id: " + ljaId));
+        return localJusticeAreaMapper.toDto(entity);
     }
 
     public List<LocalJusticeAreaEntity> searchLocalJusticeAreas(LocalJusticeAreaSearchDto criteria) {
