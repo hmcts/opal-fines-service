@@ -21,6 +21,7 @@ import uk.gov.hmcts.opal.workflows.defendantaccount.DefendantAccountEnforcementW
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -658,7 +659,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
 
         JsonNode postedDetails = historyItem.path("postedDetails");
         assertTrue(postedDetails.isObject(), "postedDetails should be an object");
-        LocalDate postedDate = LocalDate.parse(
+        LocalDateTime postedDate = LocalDateTime.parse(
             assertText(postedDetails.path("posted_date"), "postedDetails.posted_date")
         );
         assertNotNull(postedDate, "postedDetails.posted_date should be parseable");
@@ -750,9 +751,9 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     }
 
     private LocalDate postedDateOf(JsonNode historyItem) {
-        return LocalDate.parse(
+        return LocalDateTime.parse(
             assertText(historyItem.path("postedDetails").path("posted_date"), "postedDetails.posted_date")
-        );
+        ).toLocalDate();
     }
 
     private String assertText(JsonNode node, String fieldName) {

@@ -18,6 +18,7 @@ import uk.gov.hmcts.opal.steps.BaseStepDef;
 import uk.gov.hmcts.opal.steps.BearerTokenStepDef;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -511,7 +512,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
 
         JsonNode postedDetails = historyItem.path("postedDetails");
         assertTrue(postedDetails.isObject(), "postedDetails should be an object");
-        LocalDate.parse(assertText(postedDetails.path("posted_date"), "postedDetails.posted_date"));
+        LocalDateTime.parse(assertText(postedDetails.path("posted_date"), "postedDetails.posted_date"));
         assertOptionalText(postedDetails.path("posted_by"), "postedDetails.posted_by");
         assertOptionalText(postedDetails.path("posted_by_name"), "postedDetails.posted_by_name");
 
@@ -532,9 +533,9 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     }
 
     private LocalDate postedDateOf(JsonNode historyItem) {
-        return LocalDate.parse(
+        return LocalDateTime.parse(
             assertText(historyItem.path("postedDetails").path("posted_date"), "postedDetails.posted_date")
-        );
+        ).toLocalDate();
     }
 
     private void assertRememberedDateRange() {

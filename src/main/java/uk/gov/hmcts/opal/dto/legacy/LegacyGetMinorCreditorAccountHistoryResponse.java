@@ -8,7 +8,6 @@ import jakarta.xml.bind.annotation.XmlElementWrapper;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -16,7 +15,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.ToXmlString;
-import uk.gov.hmcts.opal.util.LocalDateAdapter;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 @Data
@@ -65,8 +63,8 @@ public class LegacyGetMinorCreditorAccountHistoryResponse implements ToXmlString
 
         @JsonProperty("posted_date")
         @XmlElement(name = "posted_date")
-        @XmlJavaTypeAdapter(LocalDateAdapter.class)
-        private LocalDate postedDate;
+        @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
+        private LocalDateTime postedDate;
 
         @JsonProperty("posted_by")
         @XmlElement(name = "posted_by")
