@@ -9,7 +9,7 @@
 *
 * Date          Author      Version     Nature of Change
 * ----------    -------     --------    -----------------------------------------------------------------------------------------------------------------
-* 04/10/2026    I Chandio     1.0        DB - Fines - Add indexes to support suspense item search
+* 04/10/2026    I Chandio     1.0        PO-10189 DB - Fines - Add indexes to support suspense item search
 **/
 
 
