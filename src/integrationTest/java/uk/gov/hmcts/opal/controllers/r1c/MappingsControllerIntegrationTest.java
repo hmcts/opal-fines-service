@@ -48,6 +48,33 @@ class MappingsControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("GET /mappings/{type} returns file type mappings")
+    @JiraStory("PO-10576")
+    @JiraEpic("PO-3516")
+    void getMappings_returnsSupportedFileTypeMappings() throws Exception {
+        mockMvc.perform(get("/mappings/file-type"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$", hasSize(4)))
+
+            .andExpect(jsonPath("$[0].code").value("CSV"))
+            .andExpect(jsonPath("$[0].display_name").value("CSV"))
+            .andExpect(jsonPath("$[0].mime_type").value("text/csv"))
+
+            .andExpect(jsonPath("$[1].code").value("PDF"))
+            .andExpect(jsonPath("$[1].display_name").value("PDF"))
+            .andExpect(jsonPath("$[1].mime_type").value("application/pdf"))
+
+            .andExpect(jsonPath("$[2].code").value("JSON"))
+            .andExpect(jsonPath("$[2].display_name").value("JSON"))
+            .andExpect(jsonPath("$[2].mime_type").value("application/json"))
+
+            .andExpect(jsonPath("$[3].code").value("XML"))
+            .andExpect(jsonPath("$[3].display_name").value("XML"))
+            .andExpect(jsonPath("$[3].mime_type").value("application/xml"));
+    }
+
+    @Test
     @DisplayName("GET /mappings/{type} returns 400 with supported types for unsupported mapping type")
     @JiraStory("PO-3871")
     @JiraEpic("PO-3372")
@@ -59,11 +86,11 @@ class MappingsControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.title").value("Unsupported Mapping Type"))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/unsupported-mapping-type"))
             .andExpect(jsonPath("$.detail").value(
-                "Unsupported mapping type: unsupported-type. Supported types: defendant-account-status"
+                "Unsupported mapping type: unsupported-type. Supported types: defendant-account-status, file-type"
             ))
             .andExpect(jsonPath("$.mapping_type").value("unsupported-type"))
-            .andExpect(jsonPath("$.supported_types", hasSize(1)))
-            .andExpect(jsonPath("$.supported_types[0]").value("defendant-account-status"));
+            .andExpect(jsonPath("$.supported_types", hasSize(2)))
+            .andExpect(jsonPath("$.supported_types", contains("defendant-account-status", "file-type")));
     }
 
     @Test
@@ -78,9 +105,9 @@ class MappingsControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.title").value("Missing Mapping Type"))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/missing-mapping-type"))
             .andExpect(jsonPath("$.detail").value(
-                "Required mapping type is missing. Supported types: defendant-account-status"
+                "Required mapping type is missing. Supported types: defendant-account-status, file-type"
             ))
-            .andExpect(jsonPath("$.supported_types", hasSize(1)))
-            .andExpect(jsonPath("$.supported_types[0]").value("defendant-account-status"));
+            .andExpect(jsonPath("$.supported_types", hasSize(2)))
+            .andExpect(jsonPath("$.supported_types", contains("defendant-account-status", "file-type")));
     }
 }
