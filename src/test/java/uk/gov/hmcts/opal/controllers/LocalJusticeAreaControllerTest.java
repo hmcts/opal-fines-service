@@ -16,9 +16,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.dto.LocalJusticeAreaDto;
 import uk.gov.hmcts.opal.dto.reference.LjaReferenceData;
 import uk.gov.hmcts.opal.dto.reference.LjaReferenceDataResults;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,17 +33,20 @@ class LocalJusticeAreaControllerTest {
     @Test
     void testGetLocalJusticeArea_Success() {
         // Arrange
-        LocalJusticeAreaEntity entity = LocalJusticeAreaEntity.builder().build();
+        LocalJusticeAreaDto dto = LocalJusticeAreaDto.builder().build();
 
-        when(localJusticeAreaService.getLocalJusticeAreaById(anyShort())).thenReturn(entity);
+        when(localJusticeAreaService.getLocalJusticeAreaById(anyShort()))
+            .thenReturn(dto);
 
         // Act
-        ResponseEntity<LocalJusticeAreaEntity> response = localJusticeAreaController.getLocalJusticeAreaById((short) 1);
+        ResponseEntity<LocalJusticeAreaDto> response =
+            localJusticeAreaController.getLocalJusticeAreaById((short) 1);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(entity, response.getBody());
-        verify(localJusticeAreaService, times(1)).getLocalJusticeAreaById(anyShort());
+        assertEquals(dto, response.getBody());
+        verify(localJusticeAreaService, times(1))
+            .getLocalJusticeAreaById(anyShort());
     }
 
     @Test

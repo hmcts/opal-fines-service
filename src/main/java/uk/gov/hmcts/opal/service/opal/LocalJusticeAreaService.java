@@ -13,11 +13,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.dto.LocalJusticeAreaDto;
 import uk.gov.hmcts.opal.dto.reference.LjaReferenceData;
 import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity_;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
+import uk.gov.hmcts.opal.mapper.LocalJusticeAreaMapper;
+import uk.gov.hmcts.opal.repository.LegacyJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
+import uk.gov.hmcts.opal.repository.jpa.LocalJusticeAreaLegacySpecs;
 import uk.gov.hmcts.opal.repository.jpa.LocalJusticeAreaSpecs;
 
 @Service
@@ -26,14 +31,37 @@ import uk.gov.hmcts.opal.repository.jpa.LocalJusticeAreaSpecs;
 public class LocalJusticeAreaService {
 
     private final LocalJusticeAreaRepository localJusticeAreaRepository;
-
+    private final LegacyJusticeAreaRepository legacyJusticeAreaRepository;
+    private final LocalJusticeAreaMapper localJusticeAreaMapper;
+    private final DynamicConfigService dynamicConfigService;
     private final Clock clock;
 
     private final LocalJusticeAreaSpecs specs = new LocalJusticeAreaSpecs();
+    private final LocalJusticeAreaLegacySpecs legacySpecs = new LocalJusticeAreaLegacySpecs();
 
-    public LocalJusticeAreaEntity getLocalJusticeAreaById(short ljaId) {
+
+    public LocalJusticeAreaDto getLocalJusticeAreaById(short ljaId) {
+        return dynamicConfigService.isLegacyMode()
+            ? getLegacyLocalJusticeAreaById(ljaId)
+            : getOpalLocalJusticeAreaById(ljaId);
+    }
+
+    private LocalJusticeAreaDto getLegacyLocalJusticeAreaById(short ljaId) {
+
+        return legacyJusticeAreaRepository.findById(ljaId)
+            .map(localJusticeAreaMapper::toDto)
+            .orElseThrow(() ->
+                new EntityNotFoundException(
+                    "Legacy Justice Area not found with id: " + ljaId));
+    }
+
+    private LocalJusticeAreaDto getOpalLocalJusticeAreaById(short ljaId) {
+
         return localJusticeAreaRepository.findById(ljaId)
-            .orElseThrow(() -> new EntityNotFoundException("Local Justice Area not found with id: " + ljaId));
+            .map(localJusticeAreaMapper::toDto)
+            .orElseThrow(() ->
+                new EntityNotFoundException(
+                    "Local Justice Area not found with id: " + ljaId));
     }
 
     public List<LocalJusticeAreaEntity> searchLocalJusticeAreas(LocalJusticeAreaSearchDto criteria) {
@@ -52,18 +80,47 @@ public class LocalJusticeAreaService {
     @Cacheable(cacheNames = "ljaReferenceDataCache", keyGenerator = "KeyGeneratorForOptionalList")
     public List<LjaReferenceData> getReferenceData(Optional<String> filter, Optional<List<String>> ljaType) {
 
-        Sort nameSort = Sort.by(Sort.Direction.ASC, LocalJusticeAreaEntity_.NAME);
+        return dynamicConfigService.isLegacyMode()
+            ? getLegacyReferenceData(filter, ljaType)
+            : getOpalReferenceData(filter, ljaType);
+    }
 
-        Page<LocalJusticeAreaEntity> page = localJusticeAreaRepository
-            .findBy(specs.referenceDataFilter(filter, ljaType, LocalDateTime.now(clock)),
-                ffq -> ffq
-                    .sortBy(nameSort)
-                    .page(Pageable.unpaged()));
+    private List<LjaReferenceData> getOpalReferenceData(Optional<String> filter, Optional<List<String>> ljaType) {
+
+        Sort nameSort = Sort.by(Sort.Direction.ASC, LocalJusticeAreaEntity_.NAME);
+        Page<LocalJusticeAreaEntity> page = localJusticeAreaRepository.findBy(
+            specs.referenceDataFilter(filter, ljaType, LocalDateTime.now(clock)),
+            ffq -> ffq.sortBy(nameSort).page(Pageable.unpaged()));
 
         return page.getContent().stream().map(this::toReferenceData).toList();
     }
 
+    private List<LjaReferenceData> getLegacyReferenceData(Optional<String> filter, Optional<List<String>> ljaType) {
+        Sort nameSort = Sort.by(Sort.Direction.ASC,"name");
+        Page<LocalJusticeAreaLegacyEntity> page = legacyJusticeAreaRepository.findBy(
+                legacySpecs.referenceDataFilter(filter, ljaType, LocalDateTime.now(clock)),
+                ffq -> ffq
+                    .sortBy(nameSort).page(Pageable.unpaged()));
+
+        return page.getContent()
+            .stream()
+            .map(this::toReferenceData)
+            .toList();
+    }
+
+
     private LjaReferenceData toReferenceData(LocalJusticeAreaEntity entity) {
+        return new LjaReferenceData(
+            entity.getLocalJusticeAreaId(),
+            entity.getLjaCode(),
+            Optional.ofNullable(entity.getLjaType()).map(Enum::name).orElse(null),
+            entity.getName(),
+            entity.getAddressLine1(),
+            entity.getPostcode()
+        );
+    }
+
+    private LjaReferenceData toReferenceData(LocalJusticeAreaLegacyEntity entity) {
         return new LjaReferenceData(
             entity.getLocalJusticeAreaId(),
             entity.getLjaCode(),
