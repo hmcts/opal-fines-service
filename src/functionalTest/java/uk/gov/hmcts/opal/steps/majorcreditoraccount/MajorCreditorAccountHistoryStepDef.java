@@ -14,6 +14,7 @@ import uk.gov.hmcts.opal.steps.BaseStepDef;
 import uk.gov.hmcts.opal.steps.BearerTokenStepDef;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -165,7 +166,7 @@ public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
      */
     @Then("I remember the returned major creditor account history date range")
     public void rememberReturnedMajorCreditorAccountHistoryDateRange() {
-        List<LocalDate> dates = postedDates();
+        List<LocalDateTime> dates = postedDateTimes();
 
         if (dates.isEmpty()) {
             rememberedDateFrom = null;
@@ -173,8 +174,8 @@ public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
             return;
         }
 
-        rememberedDateFrom = dates.stream().min(LocalDate::compareTo).orElseThrow();
-        rememberedDateTo = dates.stream().max(LocalDate::compareTo).orElseThrow();
+        rememberedDateFrom = dates.stream().min(LocalDateTime::compareTo).orElseThrow().toLocalDate();
+        rememberedDateTo = dates.stream().max(LocalDateTime::compareTo).orElseThrow().toLocalDate();
     }
 
     /**
@@ -185,7 +186,7 @@ public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
         if (rememberedDateFrom != null) {
             for (JsonNode historyItem : historyItems()) {
                 assertFalse(
-                    postedDateOf(historyItem).isBefore(rememberedDateFrom),
+                    postedDateOf(historyItem).toLocalDate().isBefore(rememberedDateFrom),
                     "History item was before dateFrom boundary"
                 );
             }
@@ -200,7 +201,7 @@ public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
         if (rememberedDateTo != null) {
             for (JsonNode historyItem : historyItems()) {
                 assertFalse(
-                    postedDateOf(historyItem).isAfter(rememberedDateTo),
+                    postedDateOf(historyItem).toLocalDate().isAfter(rememberedDateTo),
                     "History item was after dateTo boundary"
                 );
             }
@@ -295,7 +296,7 @@ public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
         return items;
     }
 
-    private List<LocalDate> postedDates() {
+    private List<LocalDateTime> postedDateTimes() {
         return historyItems().stream()
             .map(this::postedDateOf)
             .toList();
@@ -306,7 +307,7 @@ public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
 
         JsonNode postedDetails = historyItem.path("postedDetails");
         assertTrue(postedDetails.isObject(), "postedDetails should be an object");
-        LocalDate.parse(assertText(postedDetails.path("posted_date"), "postedDetails.posted_date"));
+        LocalDateTime.parse(assertText(postedDetails.path("posted_date"), "postedDetails.posted_date"));
         assertOptionalText(postedDetails.path("posted_by"), "postedDetails.posted_by");
         assertOptionalText(postedDetails.path("posted_by_name"), "postedDetails.posted_by_name");
 
@@ -326,8 +327,8 @@ public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
         return assertText(historyItem.path("type"), "type");
     }
 
-    private LocalDate postedDateOf(JsonNode historyItem) {
-        return LocalDate.parse(
+    private LocalDateTime postedDateOf(JsonNode historyItem) {
+        return LocalDateTime.parse(
             assertText(historyItem.path("postedDetails").path("posted_date"), "postedDetails.posted_date")
         );
     }

@@ -123,7 +123,8 @@ class MinorCreditorHistoryLegacyMapperTest {
         List<MinorCreditorHistoryItemHistory> historyItems = result.getPayload().getHistoryItems();
         assertEquals(3, historyItems.size());
         assertEquals(MinorCreditorHistoryItemHistory.TypeEnum.FINANCIAL, historyItems.get(0).getType());
-        assertEquals(LocalDate.of(2026, 1, 13), historyItems.get(0).getPostedDetails().getPostedDate());
+        assertEquals(LocalDate.of(2026, 1, 13).atStartOfDay(),
+                     historyItems.get(0).getPostedDetails().getPostedDate());
         assertEquals(MinorCreditorHistoryItemHistory.TypeEnum.AMENDMENT, historyItems.get(1).getType());
         assertEquals(MinorCreditorHistoryItemHistory.TypeEnum.NOTE, historyItems.get(2).getType());
     }
@@ -354,7 +355,7 @@ class MinorCreditorHistoryLegacyMapperTest {
 
     private LegacyMinorCreditorHistoryPostedDetails postedDetails(LocalDate postedDate) {
         return LegacyMinorCreditorHistoryPostedDetails.builder()
-            .postedDate(postedDate)
+            .postedDate(postedDate.atStartOfDay())
             .postedBy("user1")
             .postedByName("User One")
             .build();

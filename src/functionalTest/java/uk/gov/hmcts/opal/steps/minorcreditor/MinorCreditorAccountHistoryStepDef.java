@@ -18,6 +18,7 @@ import uk.gov.hmcts.opal.steps.BaseStepDef;
 import uk.gov.hmcts.opal.steps.BearerTokenStepDef;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -268,9 +269,9 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
      */
     @Then("the minor creditor account history is ordered newest first")
     public void minorCreditorHistoryIsOrderedNewestFirst() {
-        LocalDate previous = null;
+        LocalDateTime previous = null;
         for (JsonNode historyItem : historyItems()) {
-            LocalDate current = postedDateOf(historyItem);
+            LocalDateTime current = postedDateOf(historyItem);
             if (previous != null) {
                 assertFalse(
                     current.isAfter(previous),
@@ -290,7 +291,8 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
         assertExcludedDate();
 
         assertTrue(
-            historyItems().stream().map(this::postedDateOf).anyMatch(excludedDate::equals),
+            historyItems().stream().map(this::postedDateOf).map(LocalDateTime::toLocalDate)
+                .anyMatch(excludedDate::equals),
             "Expected unfiltered history to contain records outside the remembered date range"
         );
     }
@@ -304,7 +306,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
         assertExcludedDate();
 
         for (JsonNode historyItem : historyItems()) {
-            assertNotEquals(excludedDate, postedDateOf(historyItem),
+            assertNotEquals(excludedDate, postedDateOf(historyItem).toLocalDate(),
                 "History item outside the requested date range was returned");
         }
     }
@@ -350,7 +352,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
         assertRememberedDateRange();
         for (JsonNode historyItem : historyItems()) {
             assertFalse(
-                postedDateOf(historyItem).isBefore(rememberedDateFrom),
+                postedDateOf(historyItem).toLocalDate().isBefore(rememberedDateFrom),
                 "History item was before dateFrom boundary"
             );
         }
@@ -365,7 +367,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
         assertRememberedDateRange();
         for (JsonNode historyItem : historyItems()) {
             assertFalse(
-                postedDateOf(historyItem).isAfter(rememberedDateTo),
+                postedDateOf(historyItem).toLocalDate().isAfter(rememberedDateTo),
                 "History item was after dateTo boundary"
             );
         }
@@ -380,7 +382,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     public void minorCreditorHistoryContainsOnlyItemsOnOrAfter(String dateFrom) {
         LocalDate boundary = LocalDate.parse(dateFrom);
         for (JsonNode historyItem : historyItems()) {
-            assertFalse(postedDateOf(historyItem).isBefore(boundary),
+            assertFalse(postedDateOf(historyItem).toLocalDate().isBefore(boundary),
                 "History item was before dateFrom boundary " + boundary);
         }
     }
@@ -394,7 +396,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     public void minorCreditorHistoryContainsOnlyItemsOnOrBefore(String dateTo) {
         LocalDate boundary = LocalDate.parse(dateTo);
         for (JsonNode historyItem : historyItems()) {
-            assertFalse(postedDateOf(historyItem).isAfter(boundary),
+            assertFalse(postedDateOf(historyItem).toLocalDate().isAfter(boundary),
                 "History item was after dateTo boundary " + boundary);
         }
     }
@@ -511,7 +513,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
 
         JsonNode postedDetails = historyItem.path("postedDetails");
         assertTrue(postedDetails.isObject(), "postedDetails should be an object");
-        LocalDate.parse(assertText(postedDetails.path("posted_date"), "postedDetails.posted_date"));
+        LocalDateTime.parse(assertText(postedDetails.path("posted_date"), "postedDetails.posted_date"));
         assertOptionalText(postedDetails.path("posted_by"), "postedDetails.posted_by");
         assertOptionalText(postedDetails.path("posted_by_name"), "postedDetails.posted_by_name");
 
@@ -531,8 +533,8 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
         return assertText(historyItem.path("type"), "type");
     }
 
-    private LocalDate postedDateOf(JsonNode historyItem) {
-        return LocalDate.parse(
+    private LocalDateTime postedDateOf(JsonNode historyItem) {
+        return LocalDateTime.parse(
             assertText(historyItem.path("postedDetails").path("posted_date"), "postedDetails.posted_date")
         );
     }

@@ -69,7 +69,7 @@ class OpalMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(header().string(HttpHeaders.ETAG, "\"4\""))
             .andExpect(jsonPath("$.historyItems", hasSize(4)))
-            .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_date").value("2026-01-31"))
+            .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_date").value("2026-01-31T10:00:00"))
             .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_by").value("MJUSR3"))
             .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_by_name").value("Major User Three"))
             .andExpect(jsonPath("$.historyItems[0].type").value("Financial"))
@@ -82,12 +82,12 @@ class OpalMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.historyItems[0].details.statusDate").value("2026-01-31T10:30:00"))
             .andExpect(jsonPath("$.historyItems[0].details.associatedRecordType").value("creditor_accounts"))
             .andExpect(jsonPath("$.historyItems[0].details.associatedRecordId").value("99264300000001"))
-            .andExpect(jsonPath("$.historyItems[1].postedDetails.posted_date").value("2026-01-31"))
+            .andExpect(jsonPath("$.historyItems[1].postedDetails.posted_date").value("2026-01-31T10:00:00"))
             .andExpect(jsonPath("$.historyItems[1].details.transactionType.transactionType").value("MADJ"))
             .andExpect(jsonPath("$.historyItems[1].details.paymentReference").value("MJF004"))
-            .andExpect(jsonPath("$.historyItems[2].postedDetails.posted_date").value("2026-01-25"))
+            .andExpect(jsonPath("$.historyItems[2].postedDetails.posted_date").value("2026-01-25T12:00:00"))
             .andExpect(jsonPath("$.historyItems[2].details.paymentReference").value("MJF002"))
-            .andExpect(jsonPath("$.historyItems[3].postedDetails.posted_date").value("2026-01-05"))
+            .andExpect(jsonPath("$.historyItems[3].postedDetails.posted_date").value("2026-01-05T08:00:00"))
             .andExpect(jsonPath("$.historyItems[3].details.paymentReference").value("MJF001"));
     }
 
