@@ -6,6 +6,10 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -14,6 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -31,6 +36,8 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -57,6 +64,14 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     @MockitoBean
     private AccessTokenService accessTokenService;
+
+    @MockitoBean
+    private LoggingService loggingService;
+
+    @BeforeEach
+    void setUpLogging() {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+    }
 
     @ParameterizedTest(name = "consolidated={0}")
     @ValueSource(booleans = {false, true})
@@ -94,6 +109,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         } else {
             actions.andExpect(jsonPath("$.defendant_accounts[0].collection_order").doesNotExist());
         }
+        verify(loggingService).personalDataAccessLogAsync(any(PersonalDataProcessingLogDetails.class));
         jsonSchemaValidationService.validateOrError(body, DEFENDANTS_SEARCH_RESP_SCHEMA);
     }
 
@@ -138,6 +154,50 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
         actions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(0));
+        verify(loggingService, never()).personalDataAccessLogAsync(any());
+    }
+
+    @Test
+    @DisplayName("PO-10749: Search does not return individual results when PDPO queueing fails")
+    @JiraStory("PO-10749")
+    @JiraEpic("PO-10729")
+    void whenPdpoQueueingFails_searchReturnsServiceUnavailable() throws Exception {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(false);
+
+        mockMvc.perform(post(DEFENDANTS_SEARCH_URL)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(searchCriteria2(false)))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type")
+                .value("https://hmcts.gov.uk/problems/pdpl-logging-unavailable"))
+            .andExpect(jsonPath("$.retriable").value(true));
+
+        verify(loggingService).personalDataAccessLogAsync(any(PersonalDataProcessingLogDetails.class));
+    }
+
+    @Test
+    @DisplayName("PO-10749: Search does not return individual results when PDPO queueing raises an error")
+    @JiraStory("PO-10749")
+    @JiraEpic("PO-10729")
+    void whenPdpoQueueingRaisesError_searchReturnsServiceUnavailable() throws Exception {
+        when(loggingService.personalDataAccessLogAsync(any()))
+            .thenThrow(new RuntimeException("logging unavailable"));
+
+        mockMvc.perform(post(DEFENDANTS_SEARCH_URL)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(searchCriteria2(false)))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type")
+                .value("https://hmcts.gov.uk/problems/pdpl-logging-unavailable"))
+            .andExpect(jsonPath("$.retriable").value(true));
+
+        verify(loggingService).personalDataAccessLogAsync(any(PersonalDataProcessingLogDetails.class));
     }
 
     @ParameterizedTest(name = "consolidated={0}")
@@ -815,7 +875,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_title").doesNotExist())
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_firstnames").doesNotExist())
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_surname").doesNotExist());
-
+        verify(loggingService, never()).personalDataAccessLogAsync(any());
     }
 
     @ParameterizedTest(name = "consolidated={0}")
