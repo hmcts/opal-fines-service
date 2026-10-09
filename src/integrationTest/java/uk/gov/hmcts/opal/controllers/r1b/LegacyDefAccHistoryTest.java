@@ -171,7 +171,9 @@ class LegacyDefAccHistoryTest extends AbstractLegacyDefendantsIntegrationTest {
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
             .andExpect(status().isNotFound())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").isString())
+            .andExpect(jsonPath("$.detail").isString());
     }
 
     @Test
