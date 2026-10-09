@@ -213,7 +213,7 @@ class OpalMinorCreditorServiceGetTest {
         List<MinorCreditorHistoryItemHistory> historyItems = result.getPayload().getHistoryItems();
         assertEquals(3, historyItems.size());
         assertEquals(MinorCreditorHistoryItemHistory.TypeEnum.AMENDMENT, historyItems.get(0).getType());
-        assertEquals("2026-01-31", historyItems.get(0).getPostedDetails().getPostedDate().toString());
+        assertEquals("2026-01-31T10:00", historyItems.get(0).getPostedDetails().getPostedDate().toString());
         assertEquals("Hold Pay Out", ((AmendmentTypeCommon) historyItems.get(0).getDetails()).getAttributeName());
         assertEquals(MinorCreditorHistoryItemHistory.TypeEnum.NOTE, historyItems.get(1).getType());
         assertEquals("Review creditor", ((NoteDetailsHistory) historyItems.get(1).getDetails()).getNoteText());

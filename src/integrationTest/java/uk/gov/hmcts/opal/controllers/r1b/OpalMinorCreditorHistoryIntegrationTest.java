@@ -80,9 +80,9 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
         ResultActions result = getHistory("itemTypes", "amendment");
 
         expectSuccessfulHistoryResponse(result, 3);
-        expectAmendment(result, 0, "2026-01-31", "tie-1-old", "tie-1-new");
-        expectAmendment(result, 1, "2026-01-31", "tie-2-old", "tie-2-new");
-        expectAmendment(result, 2, "2026-01-15", "baseline-old", "baseline-new");
+        expectAmendment(result, 0, "2026-01-31T10:00:00", "tie-1-old", "tie-1-new");
+        expectAmendment(result, 1, "2026-01-31T10:00:00", "tie-2-old", "tie-2-new");
+        expectAmendment(result, 2, "2026-01-15T10:00:00", "baseline-old", "baseline-new");
     }
 
     @Test
@@ -94,8 +94,8 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
         ResultActions result = getHistory("itemTypes", "note");
 
         expectSuccessfulHistoryResponse(result, 2);
-        expectNote(result, 0, "2026-01-31", "Same timestamp PO-2642 note");
-        expectNote(result, 1, "2026-01-10", "Older PO-2642 note");
+        expectNote(result, 0, "2026-01-31T10:00:00", "Same timestamp PO-2642 note");
+        expectNote(result, 1, "2026-01-10T09:00:00", "Older PO-2642 note");
     }
 
     @Test
@@ -107,9 +107,9 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
         ResultActions result = getHistory("itemTypes", "financial");
 
         expectSuccessfulHistoryResponse(result, 3);
-        expectFinancial(result, 0, "2026-01-31", "FIN003", 31.00);
-        expectFinancial(result, 1, "2026-01-25", "FIN002", 25.00);
-        expectFinancial(result, 2, "2026-01-05", "FIN001", 10.00);
+        expectFinancial(result, 0, "2026-01-31T10:00:00", "FIN003", 31.00);
+        expectFinancial(result, 1, "2026-01-25T12:00:00", "FIN002", 25.00);
+        expectFinancial(result, 2, "2026-01-05T08:00:00", "FIN001", 10.00);
     }
 
     @Test
@@ -121,14 +121,14 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
         ResultActions result = getHistory();
 
         expectSuccessfulHistoryResponse(result, 8);
-        expectAmendment(result, 0, "2026-01-31", "tie-1-old", "tie-1-new");
-        expectAmendment(result, 1, "2026-01-31", "tie-2-old", "tie-2-new");
-        expectFinancial(result, 2, "2026-01-31", "FIN003", 31.00);
-        expectNote(result, 3, "2026-01-31", "Same timestamp PO-2642 note");
-        expectFinancial(result, 4, "2026-01-25", "FIN002", 25.00);
-        expectAmendment(result, 5, "2026-01-15", "baseline-old", "baseline-new");
-        expectNote(result, 6, "2026-01-10", "Older PO-2642 note");
-        expectFinancial(result, 7, "2026-01-05", "FIN001", 10.00);
+        expectAmendment(result, 0, "2026-01-31T10:00:00", "tie-1-old", "tie-1-new");
+        expectAmendment(result, 1, "2026-01-31T10:00:00", "tie-2-old", "tie-2-new");
+        expectFinancial(result, 2, "2026-01-31T10:00:00", "FIN003", 31.00);
+        expectNote(result, 3, "2026-01-31T10:00:00", "Same timestamp PO-2642 note");
+        expectFinancial(result, 4, "2026-01-25T12:00:00", "FIN002", 25.00);
+        expectAmendment(result, 5, "2026-01-15T10:00:00", "baseline-old", "baseline-new");
+        expectNote(result, 6, "2026-01-10T09:00:00", "Older PO-2642 note");
+        expectFinancial(result, 7, "2026-01-05T08:00:00", "FIN001", 10.00);
     }
 
     @Test
@@ -140,8 +140,8 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
         ResultActions result = getHistory("dateFrom", "2026-01-15");
 
         expectSuccessfulHistoryResponse(result, 6);
-        expectAmendment(result, 0, "2026-01-31", "tie-1-old", "tie-1-new");
-        expectAmendment(result, 5, "2026-01-15", "baseline-old", "baseline-new");
+        expectAmendment(result, 0, "2026-01-31T10:00:00", "tie-1-old", "tie-1-new");
+        expectAmendment(result, 5, "2026-01-15T10:00:00", "baseline-old", "baseline-new");
     }
 
     @Test
@@ -153,8 +153,8 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
         ResultActions result = getHistory("dateTo", "2026-01-10");
 
         expectSuccessfulHistoryResponse(result, 2);
-        expectNote(result, 0, "2026-01-10", "Older PO-2642 note");
-        expectFinancial(result, 1, "2026-01-05", "FIN001", 10.00);
+        expectNote(result, 0, "2026-01-10T09:00:00", "Older PO-2642 note");
+        expectFinancial(result, 1, "2026-01-05T08:00:00", "FIN001", 10.00);
     }
 
     @Test
@@ -166,9 +166,9 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
         ResultActions result = getHistory("dateFrom", "2026-01-10", "dateTo", "2026-01-25");
 
         expectSuccessfulHistoryResponse(result, 3);
-        expectFinancial(result, 0, "2026-01-25", "FIN002", 25.00);
-        expectAmendment(result, 1, "2026-01-15", "baseline-old", "baseline-new");
-        expectNote(result, 2, "2026-01-10", "Older PO-2642 note");
+        expectFinancial(result, 0, "2026-01-25T12:00:00", "FIN002", 25.00);
+        expectAmendment(result, 1, "2026-01-15T10:00:00", "baseline-old", "baseline-new");
+        expectNote(result, 2, "2026-01-10T09:00:00", "Older PO-2642 note");
     }
 
     @Test
@@ -184,8 +184,8 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
         );
 
         expectSuccessfulHistoryResponse(result, 2);
-        expectFinancial(result, 0, "2026-01-31", "FIN003", 31.00);
-        expectFinancial(result, 1, "2026-01-25", "FIN002", 25.00);
+        expectFinancial(result, 0, "2026-01-31T10:00:00", "FIN003", 31.00);
+        expectFinancial(result, 1, "2026-01-25T12:00:00", "FIN002", 25.00);
     }
 
     @Test
@@ -197,10 +197,10 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
         ResultActions result = getHistory("dateFrom", "2026-01-31", "dateTo", "2026-01-31");
 
         expectSuccessfulHistoryResponse(result, 4);
-        expectAmendment(result, 0, "2026-01-31", "tie-1-old", "tie-1-new");
-        expectAmendment(result, 1, "2026-01-31", "tie-2-old", "tie-2-new");
-        expectFinancial(result, 2, "2026-01-31", "FIN003", 31.00);
-        expectNote(result, 3, "2026-01-31", "Same timestamp PO-2642 note");
+        expectAmendment(result, 0, "2026-01-31T10:00:00", "tie-1-old", "tie-1-new");
+        expectAmendment(result, 1, "2026-01-31T10:00:00", "tie-2-old", "tie-2-new");
+        expectFinancial(result, 2, "2026-01-31T10:00:00", "FIN003", 31.00);
+        expectNote(result, 3, "2026-01-31T10:00:00", "Same timestamp PO-2642 note");
     }
 
     @Test
@@ -213,7 +213,7 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
 
         expectSuccessfulHistoryResponse(result, 4);
         result.andExpect(jsonPath("$.historyItems[0].type").value("Amendment"))
-            .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_date").value("2026-01-31"))
+            .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_date").value("2026-01-31T10:00:00"))
             .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_by").value("AMEND2"))
             .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_by_name").value("Amend User Two"))
             .andExpect(jsonPath("$.historyItems[0].details.attributeName").value("Hold Pay Out"))

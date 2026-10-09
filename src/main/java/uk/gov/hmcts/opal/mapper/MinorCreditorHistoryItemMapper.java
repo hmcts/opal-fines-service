@@ -70,7 +70,7 @@ public class MinorCreditorHistoryItemMapper {
 
     public PostedDetailsCommon toPostedDetails(LocalDateTime postedDate, String postedBy, String postedByName) {
         return new PostedDetailsCommon()
-            .postedDate(postedDate.toLocalDate())
+            .postedDate(postedDate)
             .postedBy(postedBy)
             .postedByName(postedByName);
     }
