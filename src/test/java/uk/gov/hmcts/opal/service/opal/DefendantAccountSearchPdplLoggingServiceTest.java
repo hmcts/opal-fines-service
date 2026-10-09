@@ -96,9 +96,11 @@ class DefendantAccountSearchPdplLoggingServiceTest {
         @Test
         void whenQueueReturnsFalse_throwsPdplLoggingException_sadPath() {
             when(loggingService.personalDataAccessLogAsync(any())).thenReturn(false);
+            DefendantAccountSearchPdplLoggingService pdplLoggingService = service();
+            DefendantAccountSearchResultsDto searchResults = results(individual("1001"));
 
             assertThrows(PdplLoggingException.class,
-                () -> service().logSearchResults(USER_STATE, results(individual("1001"))));
+                () -> pdplLoggingService.logSearchResults(USER_STATE, searchResults));
 
             verify(loggingService).personalDataAccessLogAsync(any());
         }
@@ -107,9 +109,11 @@ class DefendantAccountSearchPdplLoggingServiceTest {
         void whenQueueRaisesError_wrapsAsPdplLoggingException_sadPath() {
             RuntimeException queueFailure = new RuntimeException("logging unavailable");
             when(loggingService.personalDataAccessLogAsync(any())).thenThrow(queueFailure);
+            DefendantAccountSearchPdplLoggingService pdplLoggingService = service();
+            DefendantAccountSearchResultsDto searchResults = results(individual("1001"));
 
             PdplLoggingException exception = assertThrows(PdplLoggingException.class,
-                () -> service().logSearchResults(USER_STATE, results(individual("1001"))));
+                () -> pdplLoggingService.logSearchResults(USER_STATE, searchResults));
 
             assertAll(
                 () -> assertSame(queueFailure, exception.getCause()),
