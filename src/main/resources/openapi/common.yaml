@@ -666,6 +666,7 @@ components:
       properties:
         forenames:
           type: string
+          nullable: true
           description: DB Mapping - parties.forenames
         surname:
           type: string
