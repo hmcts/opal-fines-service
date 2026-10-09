@@ -436,7 +436,7 @@ tasks.withType(Test).configureEach {
   testLogging {
     exceptionFormat = 'full'
   }
-  maxHeapSize = "2g"
+  maxHeapSize = "4g" // THIS IS A TEMP FIX, AND SHOULD BE REMOVED AS SOON AS PO-8964 IS COMPLETE
   failFast = false
 }
 
