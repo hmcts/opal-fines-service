@@ -34,7 +34,7 @@ public class DefendantAccountSearchPdplLoggingService extends AbstractPdplLoggin
         boolean queued;
         try {
             queued = logPdpl(BUSINESS_IDENTIFIER, PersonalDataProcessingCategory.CONSULTATION,
-                individuals, null, userState.getUserId());
+                individuals, null, userState);
         } catch (RuntimeException ex) {
             log.error(QUEUE_FAILURE_MESSAGE, ex);
             throw new PdplLoggingException(QUEUE_FAILURE_MESSAGE, ex);
