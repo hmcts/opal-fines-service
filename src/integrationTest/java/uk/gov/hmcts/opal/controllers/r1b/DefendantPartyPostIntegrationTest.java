@@ -4,21 +4,31 @@ package uk.gov.hmcts.opal.controllers.r1b;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.debtordetail.Language;
+import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -31,6 +41,8 @@ class DefendantPartyPostIntegrationTest extends AbstractOpalDefendantsIntegratio
     private static final String URI_DEFENDANT_ACCOUNT_PARTIES
         = URL_BASE + "/" + ACCOUNT_ID + "/defendant-account-parties";
 
+    @MockitoBean
+    private LoggingService loggingService;
 
     private String validCommonFields() {
         return """
@@ -64,6 +76,19 @@ class DefendantPartyPostIntegrationTest extends AbstractOpalDefendantsIntegratio
                 }
             }
             """.formatted(surname);
+    }
+
+    private String nonPayingParentGuardianBody(String surname) {
+        return """
+            {
+                "defendant_account_party": {
+                    "defendant_account_party_type": "Parent/Guardian",
+                    "is_debtor": false,
+                    %s,
+                    %s
+                }
+            }
+            """.formatted(validIndividualDetails(surname), validCommonFields());
     }
 
     @Test
@@ -200,6 +225,144 @@ class DefendantPartyPostIntegrationTest extends AbstractOpalDefendantsIntegratio
 
         Integer updatedVersion = versionFor(ACCOUNT_ID);
         assertEquals(currentVersion + 1, updatedVersion);
+    }
+
+    @Test
+    @DisplayName("Successful add sends the new Parent/Guardian ID to PDPO logging")
+    @JiraStory("PO-10745")
+    @JiraEpic("PO-10729")
+    void post_nonPayingParentGuardian_callsPdpoLoggingForAddedParty() throws Exception {
+        Integer currentVersion = versionFor(ACCOUNT_ID);
+        final int associationsBefore = partyAssociationCountFor(ACCOUNT_ID, AssociationType.PARENT_GUARDIAN);
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
+        ResultActions call = mockMvc.perform(post(URI_DEFENDANT_ACCOUNT_PARTIES)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .headers(buildHttpHeaders(BU_ID, "\"" + currentVersion + "\""))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(nonPayingParentGuardianBody("LoggedGuardian")));
+
+        call.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Parent/Guardian"))
+            .andExpect(jsonPath("$.defendant_account_party.is_debtor").value(false));
+
+        String partyId = JsonPath.read(call.andReturn().getResponse().getContentAsString(),
+            "$.defendant_account_party.party_details.party_id");
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+        verify(loggingService).personalDataAccessLogAsync(captor.capture());
+        assertEquals(partyId, captor.getValue().getIndividuals().getFirst().getIdentifier());
+        assertEquals(associationsBefore + 1, partyAssociationCountFor(ACCOUNT_ID, AssociationType.PARENT_GUARDIAN));
+    }
+
+    @Test
+    @DisplayName("Validation failure (400) does not log PDPO")
+    @JiraStory("PO-10745")
+    @JiraEpic("PO-10729")
+    void post_nonPayingParentGuardian_validationFailureDoesNotLogPdpo() throws Exception {
+        Integer currentVersion = versionFor(ACCOUNT_ID);
+        final int associationsBefore = partyAssociationCountFor(ACCOUNT_ID, AssociationType.PARENT_GUARDIAN);
+
+        String bodyMissingOrganisationFlag = """
+            {
+                "defendant_account_party": {
+                    "defendant_account_party_type": "Parent/Guardian",
+                    "is_debtor": false,
+                    "party_details": {
+                        "individual_details": {
+                            "title": "Mr",
+                            "forenames": "John",
+                            "surname": "InvalidGuardian",
+                            "date_of_birth": null,
+                            "age": null,
+                            "national_insurance_number": null,
+                            "individual_aliases": null
+                        }
+                    },
+                    %s
+                }
+            }
+            """.formatted(validCommonFields());
+
+        mockMvc.perform(post(URI_DEFENDANT_ACCOUNT_PARTIES)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .headers(buildHttpHeaders(BU_ID, "\"" + currentVersion + "\""))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(bodyMissingOrganisationFlag))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+
+        verifyNoInteractions(loggingService);
+        assertEquals(currentVersion, versionFor(ACCOUNT_ID));
+        assertEquals(associationsBefore, partyAssociationCountFor(ACCOUNT_ID, AssociationType.PARENT_GUARDIAN));
+    }
+
+    @Test
+    @DisplayName("Permission failure (403) does not log PDPO")
+    @JiraStory("PO-10745")
+    @JiraEpic("PO-10729")
+    void post_nonPayingParentGuardian_permissionFailureDoesNotLogPdpo() throws Exception {
+        Integer currentVersion = versionFor(ACCOUNT_ID);
+        final int associationsBefore = partyAssociationCountFor(ACCOUNT_ID, AssociationType.PARENT_GUARDIAN);
+        authorise((short) 78, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+
+        mockMvc.perform(post(URI_DEFENDANT_ACCOUNT_PARTIES)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .headers(buildHttpHeaders(BU_ID, "\"" + currentVersion + "\""))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(nonPayingParentGuardianBody("ForbiddenGuardian")))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+
+        verifyNoInteractions(loggingService);
+        assertEquals(currentVersion, versionFor(ACCOUNT_ID));
+        assertEquals(associationsBefore, partyAssociationCountFor(ACCOUNT_ID, AssociationType.PARENT_GUARDIAN));
+    }
+
+    @Test
+    @DisplayName("Account not found in business unit (404) does not log PDPO")
+    @JiraStory("PO-10745")
+    @JiraEpic("PO-10729")
+    void post_nonPayingParentGuardian_notFoundInBusinessUnitDoesNotLogPdpo() throws Exception {
+        Integer currentVersion = versionFor(ACCOUNT_ID);
+        final int associationsBefore = partyAssociationCountFor(ACCOUNT_ID, AssociationType.PARENT_GUARDIAN);
+        short otherBusinessUnitId = 99;
+        userStateStub.addPermissions(otherBusinessUnitId, FinesPermission.ACCOUNT_MAINTENANCE);
+
+        mockMvc.perform(post(URI_DEFENDANT_ACCOUNT_PARTIES)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .headers(buildHttpHeaders(Short.toString(otherBusinessUnitId), "\"" + currentVersion + "\""))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(nonPayingParentGuardianBody("OutsideBusinessUnitGuardian")))
+            .andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+
+        verifyNoInteractions(loggingService);
+        assertEquals(currentVersion, versionFor(ACCOUNT_ID));
+        assertEquals(associationsBefore, partyAssociationCountFor(ACCOUNT_ID, AssociationType.PARENT_GUARDIAN));
+    }
+
+    @Test
+    @DisplayName("Concurrency conflict (409) does not log PDPO")
+    @JiraStory("PO-10745")
+    @JiraEpic("PO-10729")
+    void post_nonPayingParentGuardian_concurrencyConflictDoesNotLogPdpo() throws Exception {
+        Integer currentVersion = versionFor(ACCOUNT_ID);
+        final int associationsBefore = partyAssociationCountFor(ACCOUNT_ID, AssociationType.PARENT_GUARDIAN);
+        String nonMatchingIfMatch = "\"9999999\"";
+
+        mockMvc.perform(post(URI_DEFENDANT_ACCOUNT_PARTIES)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .headers(buildHttpHeaders(BU_ID, nonMatchingIfMatch))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(nonPayingParentGuardianBody("VersionConflictGuardian")))
+            .andExpect(status().isConflict())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+
+        verifyNoInteractions(loggingService);
+        assertEquals(currentVersion, versionFor(ACCOUNT_ID));
+        assertEquals(associationsBefore, partyAssociationCountFor(ACCOUNT_ID, AssociationType.PARENT_GUARDIAN));
     }
 
     @Test
