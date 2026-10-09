@@ -2,10 +2,12 @@ package uk.gov.hmcts.opal.service.legacy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -193,6 +195,27 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
         assertEquals(BigInteger.ONE, out.getVersion());
         assertNotNull(out.getHistoryItems());
         assertEquals(0, out.getHistoryItems().size());
+    }
+
+    @Test
+    void getHistory_whenLegacyReturnsAccountNotFoundError_throwsNotFoundException() {
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>("""
+                <response>
+                  <error_response>
+                    <error_code>-6502</error_code>
+                    <error_message>ORA-06502: PL/SQL: numeric or value error: number precision too large</error_message>
+                  </error_response>
+                </response>
+                """, HttpStatus.OK));
+
+        EntityNotFoundException exception = assertThrows(
+            EntityNotFoundException.class,
+            () -> legacyDefendantAccountService.getHistory(90006695475541L,
+                DefendantAccountHistoryFilter.builder().build())
+        );
+
+        assertEquals("Defendant account history not found", exception.getMessage());
     }
 
     private LegacyDefendantAccountHistoryItem amendmentItem() {
