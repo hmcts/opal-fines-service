@@ -10,6 +10,7 @@ import static uk.gov.hmcts.opal.controllers.shared.util.OpenApiContractAssertion
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +69,17 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
 
     protected static final List<EnforcementResultResponseDefendantAccount> nawtResponses = List.of(
         new EnforcementResultResponseDefendantAccount().parameterName("reason").response("test reason"),
+        new EnforcementResultResponseDefendantAccount().parameterName("courtcode").response(HEARING_COURT_CODE),
+        new EnforcementResultResponseDefendantAccount().parameterName("hearingdate").response(HEARING_DATE.toString())
+    );
+
+    protected static final List<EnforcementResultResponseDefendantAccount> release1b11Responses = List.of(
+        new EnforcementResultResponseDefendantAccount().parameterName("reason").response("another test reason"),
+        new EnforcementResultResponseDefendantAccount().parameterName("jail_days").response("7"),
+        new EnforcementResultResponseDefendantAccount().parameterName("daysindefault").response("14"),
+        new EnforcementResultResponseDefendantAccount().parameterName("enforcer").response("21"),
+        new EnforcementResultResponseDefendantAccount().parameterName("earliestreleasedate")
+            .response("2026-10-01T00:00:00"),
         new EnforcementResultResponseDefendantAccount().parameterName("courtcode").response(HEARING_COURT_CODE),
         new EnforcementResultResponseDefendantAccount().parameterName("hearingdate").response(HEARING_DATE.toString())
     );
@@ -168,6 +180,95 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
         JsonNode resultResponses = objectMapper.readTree(enforcement.getResultResponses());
         assertEquals(HEARING_COURT_CODE, resultResponses.get("courtcode").asText());
         assertEquals(HEARING_DATE.toString(), resultResponses.get("hearingdate").asText());
+    }
+
+    void postEnforcementImpl_release1b11WithNewResponseNames_persistsEnforcementDetails(Logger log)
+        throws Exception {
+        AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
+            .resultId(EnforcementResultIdCommonStrict.ABDC)
+            .enforcementResultResponses(release1b11Responses)
+            .paymentTerms((EnforcementPaymentTermsCommonStrict) null)
+            .build();
+
+        String version = getCurrentDefendantAccountVersion(HEARING_DEFENDANT_ACCOUNT_ID).toString();
+
+        ResultActions resultActions = mockMvc.perform(
+            post(URL_BASE + "/" + HEARING_DEFENDANT_ACCOUNT_ID + "/enforcements")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("Authorization", userStateStub.getBearerToken())
+                .header("Business-Unit-ID", HEARING_BUSINESS_UNIT_ID.toString())
+                .header("IF-MATCH", version)
+                .content(objectMapper.writeValueAsString(request))
+                .contentType(MediaType.APPLICATION_JSON));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":postEnforcementImpl_release1b11WithNewResponseNames_persistsEnforcementDetails: "
+                + "response body: \n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("defendant_account_id").value(String.valueOf(HEARING_DEFENDANT_ACCOUNT_ID)))
+            .andExpect(jsonPath("enforcement_id").exists());
+
+        EnforcementEntity enforcement = enforcementRepository.findById(
+            objectMapper.readTree(body).get("enforcement_id").asLong()
+        ).orElseThrow();
+
+        assertEquals(14, enforcement.getJailDays());
+        assertEquals(780000000021L, enforcement.getEnforcerId());
+        assertEquals(HEARING_COURT_ID, enforcement.getHearingCourtId());
+        assertEquals(HEARING_DATE.atStartOfDay(), enforcement.getHearingDate());
+
+        JsonNode resultResponses = objectMapper.readTree(enforcement.getResultResponses());
+        assertEquals("another test reason", resultResponses.get("reason").asString());
+        assertEquals("7", resultResponses.get("jail_days").asString());
+        assertEquals("14", resultResponses.get("daysindefault").asString());
+        assertEquals("21", resultResponses.get("enforcer").asString());
+        assertEquals("2026-10-01T00:00:00", resultResponses.get("earliestreleasedate").asString());
+        assertEquals(HEARING_COURT_CODE, resultResponses.get("courtcode").asString());
+        assertEquals(HEARING_DATE.toString(), resultResponses.get("hearingdate").asString());
+    }
+
+    void postEnforcementImpl_release1b11WithPris_persistsEarliestReleaseDate(Logger log) throws Exception {
+        LocalDateTime earliestReleaseDate = LocalDateTime.of(2026, 10, 1, 0, 0);
+        List<EnforcementResultResponseDefendantAccount> responses = List.of(
+            new EnforcementResultResponseDefendantAccount().parameterName("earliestreleasedate")
+                .response(earliestReleaseDate.toString())
+        );
+        AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
+            .resultId(EnforcementResultIdCommonStrict.PRIS)
+            .enforcementResultResponses(responses)
+            .paymentTerms((EnforcementPaymentTermsCommonStrict) null)
+            .build();
+
+        String version = getCurrentDefendantAccountVersion(HEARING_DEFENDANT_ACCOUNT_ID).toString();
+        ResultActions resultActions = mockMvc.perform(
+            post(URL_BASE + "/" + HEARING_DEFENDANT_ACCOUNT_ID + "/enforcements")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("Authorization", userStateStub.getBearerToken())
+                .header("Business-Unit-ID", HEARING_BUSINESS_UNIT_ID.toString())
+                .header("IF-MATCH", version)
+                .content(objectMapper.writeValueAsString(request))
+                .contentType(MediaType.APPLICATION_JSON));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":postEnforcementImpl_release1b11WithPris_persistsEarliestReleaseDate: response body: \n{}",
+            ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("defendant_account_id").value(String.valueOf(HEARING_DEFENDANT_ACCOUNT_ID)))
+            .andExpect(jsonPath("enforcement_id").exists());
+
+        EnforcementEntity enforcement = enforcementRepository.findById(
+            objectMapper.readTree(body).get("enforcement_id").asLong()
+        ).orElseThrow();
+
+        assertEquals("PRIS", enforcement.getResultId());
+        assertEquals(earliestReleaseDate, enforcement.getEarliestReleaseDate());
+
+        JsonNode resultResponses = objectMapper.readTree(enforcement.getResultResponses());
+        assertEquals(earliestReleaseDate.toString(), resultResponses.get("earliestreleasedate").asString());
     }
 
     void postEnforcementImpl_fullRequest_blockedByAccountControls(Logger log) throws Exception {
