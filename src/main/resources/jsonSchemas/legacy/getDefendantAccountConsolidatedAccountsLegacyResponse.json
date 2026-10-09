@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Get Defendant Account Consolidated Accounts Legacy Response",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "description": "Account Version: version of the master account provided in the request."
+    },
+    "consolidated_accounts": {
+      "type": "array",
+      "description": "Consolidated Accounts: each item represents an account consolidated into the selected master account.",
+      "items": {
+        "$ref": "./consolidatedAccountLegacy.json"
+      }
+    }
+  },
+  "required": [
+    "version",
+    "consolidated_accounts"
+  ]
+}

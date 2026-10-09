@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Consolidated Account",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "defendant_account_id": {
+      "$ref": "../types/bigint_value.json",
+      "description": "Account ID. DB Mapping: defendant_accounts.defendant_account_id (from v_consolidated_accounts.child_account_id)."
+    },
+    "defendant_account_number": {
+      "type": "string",
+      "maxLength": 20,
+      "description": "Account Number. DB Mapping: defendant_accounts.defendant_account_number (from v_consolidated_accounts.child_account_number)."
+    },
+    "consolidated_account_organisation_flag": {
+      "type": "boolean",
+      "description": "Consolidated Account Organisation Flag. DB Mapping: parties.organisation."
+    },
+    "individual_name": {
+      "$ref": "./common-objects/individualNameLegacy.json",
+      "description": "Individual Name, returned when parties.organisation is false. DB Mapping: parties.forenames and parties.surname."
+    },
+    "company_name": {
+      "$ref": "./common-objects/companyNameLegacy.json",
+      "description": "Company Name, returned when parties.organisation is true. DB Mapping: parties.organisation_name."
+    },
+    "date_imposed": {
+      "type": "string",
+      "format": "date",
+      "description": "Date Imposed. DB Mapping: defendant_accounts.imposed_hearing_date (from v_consolidated_accounts.child_date_imposed)."
+    },
+    "imposed_by": {
+      "type": "string",
+      "maxLength": 100,
+      "description": "Imposed By. DB Mapping: defendant_accounts.imposed_by_name (from v_consolidated_accounts.child_imposed_by)."
+    },
+    "reference": {
+      "type": "string",
+      "maxLength": 40,
+      "description": "Reference. DB Mapping: defendant_accounts.prosecutor_case_reference (from v_consolidated_accounts.child_reference)."
+    }
+  },
+  "required": [
+    "defendant_account_id",
+    "defendant_account_number",
+    "consolidated_account_organisation_flag"
+  ],
+  "oneOf": [
+    {
+      "properties": {
+        "consolidated_account_organisation_flag": {
+          "const": true
+        }
+      },
+      "required": [
+        "company_name"
+      ],
+      "not": {
+        "required": [
+          "individual_name"
+        ]
+      }
+    },
+    {
+      "properties": {
+        "consolidated_account_organisation_flag": {
+          "const": false
+        }
+      },
+      "required": [
+        "individual_name"
+      ],
+      "not": {
+        "required": [
+          "company_name"
+        ]
+      }
+    }
+  ]
+}
