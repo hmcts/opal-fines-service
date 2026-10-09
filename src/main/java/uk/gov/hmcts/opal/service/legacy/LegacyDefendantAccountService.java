@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.legacy;
 
 import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountBuilders.toEnforcementStatusResponse;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -133,6 +134,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
     public static final String ADD_PAYMENT_CARD_REQUEST = "LIBRA.of_add_defendant_account_pcr";
 
+    private static final String LEGACY_HISTORY_ACCOUNT_NOT_FOUND_ERROR_CODE = "-6502";
+
     private final GatewayService gatewayService;
     private final LegacyGatewayProperties legacyGatewayProperties;
     private final CourtService courtService;
@@ -208,6 +211,10 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             createGetDefendantAccountHistoryRequest(defendantAccountId, filter),
             null
         );
+
+        if (isLegacyHistoryAccountNotFound(response)) {
+            throw new EntityNotFoundException("Defendant account history not found");
+        }
 
         checkResponseForError(response, "getHistory");
 
@@ -1061,6 +1068,15 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         } else if (response.isSuccessful()) {
             log.info(":{}: legacy success.", method);
         }
+    }
+
+    private static boolean isLegacyHistoryAccountNotFound(
+        Response<GetDefendantAccountHistoryLegacyResponse> response
+    ) {
+        return response.responseEntity != null
+            && response.responseEntity.getErrorResponse() != null
+            && LEGACY_HISTORY_ACCOUNT_NOT_FOUND_ERROR_CODE.equals(
+                response.responseEntity.getErrorResponse().getErrorCode());
     }
 
     private static RuntimeException createGatewayException(HttpStatusCode status, String fallbackStatusText,
