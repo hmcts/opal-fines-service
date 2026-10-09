@@ -1,7 +1,8 @@
+import groovy.io.FileType
 import org.flywaydb.gradle.task.FlywayMigrateTask
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
 import java.util.concurrent.TimeUnit
-import groovy.io.FileType
 
 buildscript {
   ext {
@@ -1173,8 +1174,8 @@ dependencies {
 
   implementation 'uk.gov.hmcts:opal-common-lib:0.3.30'
 
-  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.2.2'
-  testImplementation 'uk.gov.hmcts:zephyr-automation:1.2.2'
+  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:2.0.1'
+  testImplementation 'uk.gov.hmcts:zephyr-automation:2.0.1'
   testImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.17.2'
 
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.48"
