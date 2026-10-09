@@ -54,6 +54,9 @@ public class ReportInstanceEntity {
     @Column(name = "audit_sequence", nullable = false)
     private Long auditSequence;
 
+    @Column(name = "template_name")
+    private String templateName;
+
     @Column(name = "created_timestamp")
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime createdTimestamp;
