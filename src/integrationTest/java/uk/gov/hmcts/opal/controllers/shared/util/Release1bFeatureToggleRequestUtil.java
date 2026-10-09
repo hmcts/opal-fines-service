@@ -11,13 +11,13 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.RequestBuilder;
 
+@SuppressWarnings("unused")
 public final class Release1bFeatureToggleRequestUtil {
 
     private static final String AUTHORIZATION = "Bearer some_value";
     private static final String BUSINESS_UNIT_ID = "77";
-    private static final String BUSINESS_UNIT_USER_ID = "FEATURE_TOGGLE_TEST";
     private static final String IF_MATCH = "\"0\"";
-    private static final String DEFENDANT_ACCOUNT_ID = "999999";
+    private static final String DEFENDANT_ACCOUNT_ID = "990000999999";
     private static final String DEFENDANT_ACCOUNT_PARTY_ID = "999999";
     private static final String MAJOR_CREDITOR_ACCOUNT_ID = "10770000000041";
     private static final String MINOR_CREDITOR_ACCOUNT_ID = "999999";
@@ -96,10 +96,15 @@ public final class Release1bFeatureToggleRequestUtil {
             ),
             Arguments.of(
                 "Replace Defendant Account Party",
-                putJsonWithBusinessHeaders(
+                put(
                     "/defendant-accounts/" + DEFENDANT_ACCOUNT_ID
-                        + "/defendant-account-parties/" + DEFENDANT_ACCOUNT_PARTY_ID,
-                    """
+                        + "/defendant-account-parties/" + DEFENDANT_ACCOUNT_PARTY_ID
+                )
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", AUTHORIZATION)
+                    .header("Business-Unit-Id", BUSINESS_UNIT_ID)
+                    .header("If-Match", IF_MATCH)
+                    .content("""
                     {
                       "defendant_account_party_type": "Defendant",
                       "is_debtor": true,
@@ -123,8 +128,7 @@ public final class Release1bFeatureToggleRequestUtil {
                       "employer_details": null,
                       "language_preferences": null
                     }
-                    """
-                )
+                    """)
             ),
             Arguments.of(
                 "Add Defendant Account Party",
@@ -160,17 +164,21 @@ public final class Release1bFeatureToggleRequestUtil {
             ),
             Arguments.of(
                 "Remove Defendant Account Party",
-                deleteJsonWithBusinessHeaders(
+                delete(
                     "/defendant-accounts/" + DEFENDANT_ACCOUNT_ID
-                        + "/defendant-account-parties/" + DEFENDANT_ACCOUNT_PARTY_ID,
-                    """
+                        + "/defendant-account-parties/" + DEFENDANT_ACCOUNT_PARTY_ID
+                )
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", AUTHORIZATION)
+                    .header("Business-Unit-Id", BUSINESS_UNIT_ID)
+                    .header("If-Match", IF_MATCH)
+                    .content("""
                     {
                       "party_details": {
                         "party_id": "206"
                       }
                     }
-                    """
-                )
+                    """)
             ),
             Arguments.of(
                 "Get Defendant Account Enforcement Status",
@@ -374,21 +382,4 @@ public final class Release1bFeatureToggleRequestUtil {
             .content(body);
     }
 
-    private static RequestBuilder putJsonWithBusinessHeaders(String path, String body) {
-        return put(path)
-            .contentType(MediaType.APPLICATION_JSON)
-            .header("Authorization", AUTHORIZATION)
-            .header("Business-Unit-Id", BUSINESS_UNIT_ID)
-            .header("If-Match", IF_MATCH)
-            .content(body);
-    }
-
-    private static RequestBuilder deleteJsonWithBusinessHeaders(String path, String body) {
-        return delete(path)
-            .contentType(MediaType.APPLICATION_JSON)
-            .header("Authorization", AUTHORIZATION)
-            .header("Business-Unit-Id", BUSINESS_UNIT_ID)
-            .header("If-Match", IF_MATCH)
-            .content(body);
-    }
 }
