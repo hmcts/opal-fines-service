@@ -35,6 +35,7 @@ public class GetReportInstanceContentService {
     private final ReportRegistry reportRegistry;
     private final ReportBlobStore blobStore;
     private final ObjectMapper mapper;
+    private final ReportCSVService csvService;
 
     @Transactional(readOnly = true)
     public Object getReportInstanceContent(Long id, FileType fileType) {
@@ -135,7 +136,11 @@ public class GetReportInstanceContentService {
 
         ReportInterface<T> typedReportTemplate = (ReportInterface<T>) reportTemplate;
         T reportData = readStoredReportData(id, instance, storedReport, typedReportTemplate);
-        return typedReportTemplate.convertReportDataToFileType(instance, reportData, fileType);
+        typedReportTemplate.validateReportDataForFileType(fileType, reportData);
+        return switch (fileType) {
+            case CSV -> csvService.convertReportDtoToCSV(reportData);
+            default -> typedReportTemplate.convertReportDataToFileType(instance, reportData, fileType);
+        };
     }
 
     private <T extends ReportDataInterface> T readStoredReportData(

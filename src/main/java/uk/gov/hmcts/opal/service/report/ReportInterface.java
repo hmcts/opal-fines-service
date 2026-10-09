@@ -10,5 +10,9 @@ public interface ReportInterface<T extends ReportDataInterface> {
 
     Class<? extends T> getStoredReportDataClass(ReportInstanceEntity reportInstance);
 
+    default void validateReportDataForFileType(FileType fileType, T reportData) {
+        // Report implementations may restrict which report data variants support a file type.
+    }
+
     byte[] convertReportDataToFileType(ReportInstanceEntity reportInstance, T reportData, FileType fileType);
 }

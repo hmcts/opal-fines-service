@@ -69,6 +69,9 @@ class GetReportInstanceContentServiceTest {
     private ReportInterface<ReportDataInterface> reportInterfaceImplementation;
 
     @Mock
+    private ReportCSVService csvService;
+
+    @Mock
     private OpalJwtAuthenticationToken authToken;
 
     @InjectMocks
@@ -80,6 +83,13 @@ class GetReportInstanceContentServiceTest {
 
     @BeforeEach
     void setUp() {
+        getReportInstanceContentService = new GetReportInstanceContentService(
+            reportInstanceRepository,
+            reportRegistry,
+            reportBlobStore,
+            mapper,
+            csvService
+        );
         mock_authenticationContext();
         reportInstance = createReportInstanceEntity(
             REPORT_ID,
@@ -175,8 +185,7 @@ class GetReportInstanceContentServiceTest {
             when(mapper.convertValue(Map.of("rows", 2), GetReportInstanceContentTestData.TestReportData.class))
                 .thenReturn(reportData);
             byte[] expected = "a,b".getBytes();
-            when(reportInterfaceImplementation.convertReportDataToFileType(reportInstance, reportData, CSV))
-                .thenReturn(expected);
+            when(csvService.convertReportDtoToCSV(reportData)).thenReturn(expected);
 
             Object actual = getReportInstanceContentService.getReportInstanceContent(1L, CSV);
 
@@ -184,7 +193,9 @@ class GetReportInstanceContentServiceTest {
                 () -> assertArrayEquals(expected, (byte[]) actual),
                 () -> verify(reportBlobStore).getReport(LOCATION),
                 () -> verify(reportInterfaceImplementation, never()).generateReportData(reportInstance),
-                () -> verify(reportInterfaceImplementation)
+                () -> verify(reportInterfaceImplementation).validateReportDataForFileType(CSV, reportData),
+                () -> verify(csvService).convertReportDtoToCSV(reportData),
+                () -> verify(reportInterfaceImplementation, never())
                     .convertReportDataToFileType(reportInstance, reportData, CSV)
             );
         }

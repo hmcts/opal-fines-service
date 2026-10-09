@@ -8,9 +8,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectEntityNotFoundWithoutType;
+import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
-import static uk.gov.hmcts.opal.controllers.shared.util.ReportInstanceContentTestData.storedReportBytes;
+import static uk.gov.hmcts.opal.controllers.shared.util.ReportInstanceContentTestData.cashListStoredReportBytes;
+import static uk.gov.hmcts.opal.controllers.shared.util.ReportInstanceContentTestData.cashTillStoredReportBytes;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectEntityNotFoundWithoutType;
 
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
@@ -21,6 +23,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -37,9 +40,12 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/report-instances";
-    private static final Long REPORT_INSTANCE_ID = 99000000353000L;
-    private static final short BUSINESS_UNIT_ID = 1778;
-    private static final String LOCATION = "stored-cash-till-report-location";
+    private static final Long CASH_TILL_REPORT_INSTANCE_ID = 99000000353000L;
+    private static final Long CASH_LIST_REPORT_INSTANCE_ID = 99000000343000L;
+    private static final short CASH_TILL_BUSINESS_UNIT_ID = 1778;
+    private static final short CASH_LIST_BUSINESS_UNIT_ID = 1777;
+    private static final String CASH_TILL_LOCATION = "stored-cash-till-report-location";
+    private static final String CASH_LIST_LOCATION = "stored-cash-list-report-location";
 
     @Autowired
     private BlobServiceClient blobServiceClient;
@@ -52,20 +58,25 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
     @BeforeEach
     void setUp() {
         userStateStub.setupWithNoPermissions();
-        userStateStub.addPermissions(BUSINESS_UNIT_ID, SEARCH_AND_VIEW_ACCOUNTS);
+        userStateStub.addPermissions(CASH_TILL_BUSINESS_UNIT_ID, SEARCH_AND_VIEW_ACCOUNTS);
+        userStateStub.addPermissions(
+            CASH_LIST_BUSINESS_UNIT_ID, SEARCH_AND_VIEW_ACCOUNTS, PROCESS_AND_ALLOCATE_PAYMENTS);
 
         blobContainerClient = blobServiceClient.getBlobContainerClient(containerName);
         if (!blobContainerClient.exists()) {
             blobContainerClient.create();
         }
-        blobContainerClient.getBlobClient(LOCATION)
-            .upload(new ByteArrayInputStream(storedReportBytes), storedReportBytes.length, true);
+        blobContainerClient.getBlobClient(CASH_TILL_LOCATION)
+            .upload(new ByteArrayInputStream(cashTillStoredReportBytes), cashTillStoredReportBytes.length, true);
+        blobContainerClient.getBlobClient(CASH_LIST_LOCATION)
+            .upload(new ByteArrayInputStream(cashListStoredReportBytes), cashListStoredReportBytes.length, true);
     }
 
     @AfterEach
     void tearDown() {
         if (blobContainerClient != null && blobContainerClient.exists()) {
-            blobContainerClient.getBlobClient(LOCATION).deleteIfExists();
+            blobContainerClient.getBlobClient(CASH_TILL_LOCATION).deleteIfExists();
+            blobContainerClient.getBlobClient(CASH_LIST_LOCATION).deleteIfExists();
         }
     }
 
@@ -77,7 +88,7 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
         @JiraEpic("PO-2248")
         @JiraTestKey("PO-9503")
         void whenJsonRequested_returnsStoredReportContent_happyPath() throws Exception {
-            mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept(APPLICATION_JSON))
+            mockMvc.perform(authorisedGetContent(CASH_TILL_REPORT_INSTANCE_ID).accept(APPLICATION_JSON))
                 .andExpectAll(
                     status().isOk(),
                     content().contentTypeCompatibleWith(APPLICATION_JSON),
@@ -91,7 +102,7 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
         @JiraEpic("PO-2248")
         @JiraTestKey("PO-9504")
         void whenCsvRequested_returnsBinaryContent_happyPath() throws Exception {
-            mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept("application/csv"))
+            mockMvc.perform(authorisedGetContent(CASH_TILL_REPORT_INSTANCE_ID).accept("application/csv"))
                 .andExpectAll(
                     status().isOk(),
                     content().contentType("application/csv"),
@@ -105,6 +116,35 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Nested
+    class GetCashListReportInstanceContentHappyPath {
+
+        @Test
+        @JiraStory("PO-3470")
+        @JiraEpic("PO-2116")
+        void whenJsonRequested_returnsStoredCashListContent_isNotAllowed() throws Exception {
+            mockMvc.perform(authorisedGetContent(CASH_LIST_REPORT_INSTANCE_ID).accept(APPLICATION_JSON))
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpectAll(status().is(422));
+        }
+
+        @Test
+        @JiraStory("PO-3470")
+        @JiraEpic("PO-2116")
+        void whenCsvRequested_returnsCashListCsv_happyPath() throws Exception {
+            mockMvc.perform(authorisedGetContent(CASH_LIST_REPORT_INSTANCE_ID).accept("application/csv"))
+                .andExpectAll(
+                    status().isOk(),
+                    content().contentType("application/csv"),
+                    content().string(
+                        "Entry,Type,Susp.,Account no,Name,Name (Additional Information),Payment,Amount\n"
+                            + "1,FA,,ACC123,DOE Jane,,NC,125.50\n"
+                            + "2,SA,UN,Suspense Ref,1,Auto - Suspense payment,CT,40.00\n"
+                            + "Total\n"
+                            + "165.50\n"));
+        }
+    }
+
+    @Nested
     class GetReportInstanceContentSadPath {
 
         @Test
@@ -113,7 +153,8 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
         @JiraTestKey("PO-9499")
         void whenNoTokenPresent_unauthorizedIsReturned_sadPath() {
             org.assertj.core.api.Assertions.assertThatCode(
-                () -> mockMvc.perform(get(URL_BASE + "/" + REPORT_INSTANCE_ID + "/content").accept(APPLICATION_JSON))
+                () -> mockMvc.perform(get(URL_BASE + "/" + CASH_TILL_REPORT_INSTANCE_ID + "/content")
+                        .accept(APPLICATION_JSON))
                     .andExpectAll(
                         status().isUnauthorized(),
                         content().contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON),
@@ -130,7 +171,7 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
         @JiraEpic("PO-2248")
         @JiraTestKey("PO-9500")
         void whenRequestNotAcceptable_notAcceptableIsReturned_sadPath() throws Exception {
-            mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept("text/plain"))
+            mockMvc.perform(authorisedGetContent(CASH_TILL_REPORT_INSTANCE_ID).accept("text/plain"))
                 .andExpect(status().isNotAcceptable());
         }
 
@@ -141,7 +182,7 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
         void whenUserLacksPermission_forbiddenIsReturned_sadPath() throws Exception {
             userStateStub.setupWithNoPermissions();
 
-            mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept(APPLICATION_JSON))
+            mockMvc.perform(authorisedGetContent(CASH_TILL_REPORT_INSTANCE_ID).accept(APPLICATION_JSON))
                 .andExpectAll(
                     status().isForbidden(),
                     jsonPath("$.title").value("Forbidden"),
@@ -160,7 +201,7 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
             userStateStub.setupWithNoPermissions();
             userStateStub.addPermissions((short) 99, SEARCH_AND_VIEW_ACCOUNTS);
 
-            mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept(APPLICATION_JSON))
+            mockMvc.perform(authorisedGetContent(CASH_TILL_REPORT_INSTANCE_ID).accept(APPLICATION_JSON))
                 .andExpectAll(
                     status().isForbidden(),
                     jsonPath("$.title").value("Forbidden"),
@@ -178,7 +219,7 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
         @JiraEpic("PO-2248")
         @JiraTestKey("PO-9497")
         void whenRequestedContentTypeUnsupported_unprocessableContentIsReturned_sadPath() throws Exception {
-            mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept(APPLICATION_JSON))
+            mockMvc.perform(authorisedGetContent(CASH_TILL_REPORT_INSTANCE_ID).accept(APPLICATION_JSON))
                 .andExpectAll(
                     status().isUnprocessableContent(),
                     content().contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON),
@@ -197,9 +238,9 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
         @JiraEpic("PO-2248")
         @JiraTestKey("PO-9498")
         void whenStoredContentMissing_internalServerErrorIsReturned_sadPath() throws Exception {
-            blobContainerClient.getBlobClient(LOCATION).deleteIfExists();
+            blobContainerClient.getBlobClient(CASH_TILL_LOCATION).deleteIfExists();
 
-            mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept(APPLICATION_JSON))
+            mockMvc.perform(authorisedGetContent(CASH_TILL_REPORT_INSTANCE_ID).accept(APPLICATION_JSON))
                 .andExpectAll(
                     status().isInternalServerError(),
                     content().contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON),
@@ -236,7 +277,7 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
         @JiraEpic("PO-2248")
         @JiraTestKey("PO-9495")
         void whenReportServiceMissing_internalServerErrorIsReturned_sadPath() throws Exception {
-            mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept("application/csv"))
+            mockMvc.perform(authorisedGetContent(CASH_TILL_REPORT_INSTANCE_ID).accept("application/csv"))
                 .andExpectAll(
                     status().isInternalServerError(),
                     content().contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON),
