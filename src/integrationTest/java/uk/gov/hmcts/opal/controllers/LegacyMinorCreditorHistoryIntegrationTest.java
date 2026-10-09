@@ -239,7 +239,7 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     }
 
     private LegacyGetMinorCreditorAccountHistoryResponse legacyResponse() {
-        LocalDate postedDate = LocalDate.of(2026, 4, 1);
+        LocalDateTime postedDate = LocalDateTime.of(2026, 4, 1, 9, 0);
 
         return LegacyGetMinorCreditorAccountHistoryResponse.builder()
             .historyItems(List.of(
@@ -253,7 +253,7 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     }
 
     private LegacyGetMinorCreditorAccountHistoryResponse filteredLegacyResponse() {
-        LocalDate postedDate = LocalDate.of(2026, 4, 15);
+        LocalDateTime postedDate = LocalDateTime.of(2026, 4, 15, 9, 0);
 
         return LegacyGetMinorCreditorAccountHistoryResponse.builder()
             .historyItems(List.of(
@@ -264,7 +264,7 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     }
 
     private LegacyMinorCreditorAccountHistoryItem amendmentItem(
-        LocalDate postedDate,
+        LocalDateTime postedDate,
         String oldValue,
         String newValue) {
 
@@ -279,7 +279,7 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             .build();
     }
 
-    private LegacyMinorCreditorAccountHistoryItem noteItem(LocalDate postedDate, String noteText) {
+    private LegacyMinorCreditorAccountHistoryItem noteItem(LocalDateTime postedDate, String noteText) {
         return LegacyMinorCreditorAccountHistoryItem.builder()
             .postedDetails(postedDetails(postedDate))
             .type("Note")
@@ -290,7 +290,7 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     }
 
     private LegacyMinorCreditorAccountHistoryItem financialItem(
-        LocalDate postedDate,
+        LocalDateTime postedDate,
         String paymentReference,
         BigDecimal amount) {
 
@@ -318,7 +318,7 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             .build();
     }
 
-    private LegacyMinorCreditorHistoryPostedDetails postedDetails(LocalDate postedDate) {
+    private LegacyMinorCreditorHistoryPostedDetails postedDetails(LocalDateTime postedDate) {
         return LegacyMinorCreditorHistoryPostedDetails.builder()
             .postedDate(postedDate)
             .postedBy("LEGUSR")
