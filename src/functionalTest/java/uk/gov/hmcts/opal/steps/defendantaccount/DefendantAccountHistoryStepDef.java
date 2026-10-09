@@ -272,13 +272,15 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
      */
     @Then("I remember the returned defendant account history date range")
     public void rememberReturnedDefendantAccountHistoryDateRange() throws JacksonException {
-        List<LocalDate> postedDates = historyItems().stream()
+        List<LocalDateTime> postedDates = historyItems().stream()
             .map(this::postedDateOf)
             .toList();
 
         assertFalse(postedDates.isEmpty(), "History response should contain dates to remember");
-        historyState.setRememberedDateFrom(postedDates.stream().min(LocalDate::compareTo).orElseThrow());
-        historyState.setRememberedDateTo(postedDates.stream().max(LocalDate::compareTo).orElseThrow());
+        historyState.setRememberedDateFrom(postedDates.stream().min(LocalDateTime::compareTo).orElseThrow()
+                                               .toLocalDate());
+        historyState.setRememberedDateTo(postedDates.stream().max(LocalDateTime::compareTo).orElseThrow()
+                                             .toLocalDate());
     }
 
     /**
@@ -397,9 +399,9 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
      */
     @Then("the defendant account history is ordered newest first")
     public void defendantAccountHistoryIsOrderedNewestFirst() throws JacksonException {
-        LocalDate previous = null;
+        LocalDateTime previous = null;
         for (JsonNode historyItem : historyItems()) {
-            LocalDate current = postedDateOf(historyItem);
+            LocalDateTime current = postedDateOf(historyItem);
             if (previous != null) {
                 assertFalse(
                     current.isAfter(previous),
@@ -609,14 +611,14 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
 
     private void assertHistoryContainsOnlyItemsOnOrAfter(LocalDate boundary) throws JacksonException {
         for (JsonNode historyItem : historyItems()) {
-            LocalDate postedDate = postedDateOf(historyItem);
+            LocalDate postedDate = postedDateOf(historyItem).toLocalDate();
             assertFalse(postedDate.isBefore(boundary), "History item was before dateFrom boundary");
         }
     }
 
     private void assertHistoryContainsOnlyItemsOnOrBefore(LocalDate boundary) throws JacksonException {
         for (JsonNode historyItem : historyItems()) {
-            LocalDate postedDate = postedDateOf(historyItem);
+            LocalDate postedDate = postedDateOf(historyItem).toLocalDate();
             assertFalse(postedDate.isAfter(boundary), "History item was after dateTo boundary");
         }
     }
@@ -624,6 +626,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     private void assertHistoryIncludesItemOn(LocalDate expectedDate) throws JacksonException {
         boolean found = historyItems().stream()
             .map(this::postedDateOf)
+            .map(LocalDateTime::toLocalDate)
             .anyMatch(expectedDate::equals);
 
         assertTrue(found, "Expected at least one history item on " + expectedDate);
@@ -750,10 +753,10 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
         return assertText(historyItem.path("type"), "type");
     }
 
-    private LocalDate postedDateOf(JsonNode historyItem) {
+    private LocalDateTime postedDateOf(JsonNode historyItem) {
         return LocalDateTime.parse(
             assertText(historyItem.path("postedDetails").path("posted_date"), "postedDetails.posted_date")
-        ).toLocalDate();
+        );
     }
 
     private String assertText(JsonNode node, String fieldName) {
