@@ -10,7 +10,7 @@ Feature: Delete report instances for test support
     Then the request succeeds
 
   # AC2 & AC6 — Deletes a Cash Till report instance and its stored report content.
-  @R1CPayment
+  @R1CPayment @Ignore @JIRA-DEFECT:PO-10560
   Scenario: E2E.02 Deleting a generated Cash Till report instance removes its content
     Given I create and process an auto-payment interface job for business unit 77
     When I request the generated auto-payment till
@@ -21,7 +21,7 @@ Feature: Delete report instances for test support
     And the generated Cash Till report instance content is no longer available
 
   # AC3 — Deletes only the explicitly supplied report-instance ID.
-  @R1CPayment
+  @R1CPayment @Ignore @JIRA-DEFECT:PO-10560
   Scenario: E2E.03 Deleting one generated Cash Till report instance preserves another
     Given I create and process an auto-payment interface job for business unit 77
     When I request the generated auto-payment till
@@ -33,7 +33,7 @@ Feature: Delete report instances for test support
     And the unrelated Cash Till report instance remains available with its content
 
   # AC4 — Supports multiple, repeated, and absent report-instance IDs.
-  @R1CPayment
+  @R1CPayment @Ignore @JIRA-DEFECT:PO-10560
   Scenario: E2E.04 Deleting multiple Cash Till report instances tolerates repeated and absent IDs
     Given I create and process an auto-payment interface job for business unit 77
     When I request the generated auto-payment till

@@ -1,0 +1,37 @@
+Timing is on.
+psql:create_view_v_interface_jobs_processed_file_summary_unit_tests_v2.sql:44: NOTICE:  === Cleanup data before tests ===
+psql:create_view_v_interface_jobs_processed_file_summary_unit_tests_v2.sql:44: NOTICE:  Cleanup completed
+DO
+Time: 8.488 ms
+psql:create_view_v_interface_jobs_processed_file_summary_unit_tests_v2.sql:324: NOTICE:  === Setting up test data for v_interface_jobs_processed_file_summary tests ===
+psql:create_view_v_interface_jobs_processed_file_summary_unit_tests_v2.sql:324: NOTICE:  Test data setup completed
+DO
+Time: 6.261 ms
+psql:create_view_v_interface_jobs_processed_file_summary_unit_tests_v2.sql:350: NOTICE:  === TEST 1: Completed file with till and mixed message types returns expected values ===
+psql:create_view_v_interface_jobs_processed_file_summary_unit_tests_v2.sql:350: NOTICE:  TEST 1 PASSED
+DO
+Time: 2.203 ms
+psql:create_view_v_interface_jobs_processed_file_summary_unit_tests_v2.sql:374: NOTICE:  === TEST 2: Completed file with only Info messages returns zero total errors ===
+psql:create_view_v_interface_jobs_processed_file_summary_unit_tests_v2.sql:374: NOTICE:  TEST 2 PASSED
+DO
+Time: 0.628 ms
+psql:create_view_v_interface_jobs_processed_file_summary_unit_tests_v2.sql:399: NOTICE:  === TEST 3: Completed file with no messages and no till returns summary with null join columns ===
+psql:create_view_v_interface_jobs_processed_file_summary_unit_tests_v2.sql:399: NOTICE:  TEST 3 PASSED
+DO
+Time: 0.730 ms
+psql:create_view_v_interface_jobs_processed_file_summary_unit_tests_v2.sql:424: NOTICE:  === TEST 4: Completed manual interface file is included and populated from its till ===
+psql:create_view_v_interface_jobs_processed_file_summary_unit_tests_v2.sql:424: NOTICE:  TEST 4 PASSED
+DO
+Time: 0.558 ms
+psql:create_view_v_interface_jobs_processed_file_summary_unit_tests_v2.sql:440: NOTICE:  === TEST 5: Negative test - non-completed jobs are excluded from the view ===
+psql:create_view_v_interface_jobs_processed_file_summary_unit_tests_v2.sql:440: NOTICE:  TEST 5 PASSED
+DO
+Time: 0.501 ms
+psql:create_view_v_interface_jobs_processed_file_summary_unit_tests_v2.sql:456: NOTICE:  === TEST 6: Completed jobs return one row per interface file ===
+psql:create_view_v_interface_jobs_processed_file_summary_unit_tests_v2.sql:456: NOTICE:  TEST 6 PASSED
+DO
+Time: 0.369 ms
+psql:create_view_v_interface_jobs_processed_file_summary_unit_tests_v2.sql:483: NOTICE:  === Cleanup data after tests ===
+psql:create_view_v_interface_jobs_processed_file_summary_unit_tests_v2.sql:483: NOTICE:  Cleanup completed
+DO
+Time: 8.839 ms

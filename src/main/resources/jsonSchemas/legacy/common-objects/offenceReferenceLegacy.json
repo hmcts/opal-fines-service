@@ -3,8 +3,6 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "offence_id",
-    "cjs_code",
     "offence_title"
   ],
   "properties": {

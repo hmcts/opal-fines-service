@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Company Name",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "organisation_name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "organisation_name"
+  ]
+}

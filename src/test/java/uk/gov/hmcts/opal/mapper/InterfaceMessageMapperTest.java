@@ -7,13 +7,13 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import uk.gov.hmcts.opal.config.JacksonCompatibilityConfiguration;
+import uk.gov.hmcts.opal.config.ObjectMapperConfiguration;
 import uk.gov.hmcts.opal.entity.InterfaceMessageEntity;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsMessage;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsMessageType;
 import uk.gov.hmcts.opal.mapper.helper.JsonMapperHelper;
 
-@SpringJUnitConfig(classes = {JacksonCompatibilityConfiguration.class, InterfaceMessageMapperImpl.class,
+@SpringJUnitConfig(classes = {ObjectMapperConfiguration.class, InterfaceMessageMapperImpl.class,
     JsonMapperHelper.class})
 class InterfaceMessageMapperTest {
 
