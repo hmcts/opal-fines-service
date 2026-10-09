@@ -35,7 +35,7 @@ plugins {
   id 'uk.gov.hmcts.java' version '0.12.70'
   id 'org.flywaydb.flyway' version '13.9.0'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '5.3.9'
-  id "org.openapi.generator" version "7.25.0"
+  id "org.openapi.generator" version "7.26.0"
 }
 
 ext {
@@ -1220,7 +1220,7 @@ dependencies {
   implementation 'com.networknt:json-schema-validator:1.5.9'
   implementation 'com.jayway.jsonpath:json-path:3.0.0'
 
-  implementation 'org.openapitools:jackson-databind-nullable:0.2.11'
+  implementation 'org.openapitools:jackson-databind-nullable:0.2.12'
   implementation 'org.flywaydb:flyway-core:13.9.0'
   runtimeOnly 'org.flywaydb:flyway-database-postgresql:13.9.0', {
     exclude group: 'org.flywaydb', module: 'flyway-core'
