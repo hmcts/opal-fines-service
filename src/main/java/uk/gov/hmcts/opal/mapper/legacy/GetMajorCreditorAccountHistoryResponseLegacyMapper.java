@@ -102,6 +102,10 @@ public interface GetMajorCreditorAccountHistoryResponseLegacyMapper {
         return dateTime == null ? null : dateTime.toLocalDate();
     }
 
+    default LocalDateTime toLocalDateTime(LocalDate date) {
+        return date == null ? null : date.atStartOfDay();
+    }
+
     default Comparator<LegacyMajorCreditorHistoryItem> legacyHistoryItemComparator() {
         return Comparator.comparing(
                 GetMajorCreditorAccountHistoryResponseLegacyMapper::postedDate,
