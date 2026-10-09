@@ -445,6 +445,8 @@ tasks.register('integration', Test) {
   group = "Verification"
   testClassesDirs = sourceSets.integrationTest.output.classesDirs
   classpath = sourceSets.integrationTest.runtimeClasspath
+  // Recycle the worker before accumulated Spring/Hibernate test contexts exhaust its heap.
+  forkEvery = 100
   exclude '**/ReportQueueConnectivityIntegrationTest.class'
   doFirst {
     pullLatestLegacyStubImageIfLocal()
