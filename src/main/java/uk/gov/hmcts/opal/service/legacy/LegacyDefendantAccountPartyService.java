@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
@@ -16,6 +17,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyResponse;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
@@ -24,6 +26,7 @@ import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefe
 import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountPartyLegacyResponseMapper;
 import uk.gov.hmcts.opal.mapper.legacy.RemoveDefendantAccountPartyLegacyResponseMapper;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPartyServiceInterface;
+import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
 @Service
@@ -36,9 +39,11 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
     public static final String ADD_DEFENDANT_ACCOUNT_PARTY = "addDefendantAccountParty";
     public static final String REMOVE_DEFENDANT_ACCOUNT_PARTY = "removeDefendantAccountParty";
     private static final String LEGACY_REPLACE_FAILURE = "Legacy failure during replaceDefendantAccountParty";
+    private static final String FUNCTION_CODE_ACCOUNT_ENQUIRY = "ACCOUNT_ENQUIRY";
 
     /* ---- Services ---- */
     private final GatewayService gatewayService;
+    private final AmendmentRepositoryService amendmentRepositoryService;
 
     /* ---- Mappers ---- */
     private final DefendantAccountPartyLegacyResponseMapper defendantAccountPartyLegacyResponseMapper;
@@ -83,10 +88,16 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
     }
 
     @Override
+    @Transactional
     public PartyResponseDefendantAccount replaceDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId,
         DefendantAccountParty defendantAccountParty, String ifMatch, String businessUnitId, String postedBy,
         String postedByName, String businessUnitUserId) {
+
+        amendmentRepositoryService.auditInitialiseStoredProc(
+            defendantAccountId,
+            AssociatedRecordType.DEFENDANT_ACCOUNTS
+        );
 
         LegacyReplaceDefendantAccountPartyRequest req = LegacyReplaceDefendantAccountPartyRequest.builder()
             .version(VersionUtils.extractBigInteger(ifMatch))
@@ -142,6 +153,15 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
             );
         } else if (response.isSuccessful()) {
             log.info(":replaceDefendantAccountParty: Legacy success.");
+            amendmentRepositoryService.auditFinaliseStoredProc(
+                defendantAccountId,
+                AssociatedRecordType.DEFENDANT_ACCOUNTS,
+                Short.parseShort(businessUnitId),
+                postedBy,
+                postedByName,
+                null,
+                FUNCTION_CODE_ACCOUNT_ENQUIRY
+            );
         }
 
         return defendantAccountPartyLegacyResponseMapper.toGeneratedResponse(response.responseEntity);
