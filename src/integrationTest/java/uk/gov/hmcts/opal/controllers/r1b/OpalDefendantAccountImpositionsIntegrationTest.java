@@ -117,6 +117,46 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
     }
 
     @Test
+    @DisplayName("OPAL: Get Defendant Account Impositions returns the UI creditor-name scenarios")
+    @JiraStory("PO-10570")
+    void getImpositions_returnsUiCreditorNameScenarios() throws Exception {
+        MvcResult result = performGetImpositions(99105710000001L)
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string("ETag", "\"1\""))
+            .andExpect(jsonPath("$.impositions", hasSize(6)))
+            .andExpect(jsonPath("$.impositions[0].imposition_id").value(99105710000301L))
+            .andExpect(jsonPath("$.impositions[0].creditor.minor_creditor_organisation_flag").value(true))
+            .andExpect(jsonPath("$.impositions[0].creditor.company_name.organisation_name")
+                .value("PO10571 Company Ltd"))
+            .andExpect(jsonPath("$.impositions[1].imposition_id").value(99105710000302L))
+            .andExpect(jsonPath("$.impositions[1].creditor.minor_creditor_organisation_flag").value(false))
+            .andExpect(jsonPath("$.impositions[1].creditor.individual_name.forenames").value("Alex James"))
+            .andExpect(jsonPath("$.impositions[1].creditor.individual_name.surname").value("Example"))
+            .andExpect(jsonPath("$.impositions[2].imposition_id").value(99105710000303L))
+            .andExpect(jsonPath("$.impositions[2].creditor.minor_creditor_organisation_flag").value(false))
+            .andExpect(jsonPath("$.impositions[2].creditor.individual_name.forenames").value(is(nullValue())))
+            .andExpect(jsonPath("$.impositions[2].creditor.individual_name.surname").value("SurnameOnly"))
+            .andExpect(jsonPath("$.impositions[3].imposition_id").value(99105710000304L))
+            .andExpect(jsonPath("$.impositions[3].creditor.major_creditor_name")
+                .value("PO10571 Major Creditor"))
+            .andExpect(jsonPath("$.impositions[4].imposition_id").value(99105710000305L))
+            .andExpect(jsonPath("$.impositions[4].creditor.creditor_account_type_reference"
+                + ".creditor_account_type").value("CF"))
+            .andExpect(jsonPath("$.impositions[4].creditor.creditor_account_type_reference"
+                + ".creditor_account_display_name").value("Central Fund"))
+            .andExpect(jsonPath("$.impositions[5].imposition_id").value(99105710000306L))
+            .andExpect(jsonPath("$.impositions[5].creditor.minor_creditor_organisation_flag").value(true))
+            .andExpect(jsonPath("$.impositions[5].creditor.company_name").value(is(nullValue())))
+            .andReturn();
+
+        assertGet200JsonResponseMatchesBundledSpec(
+            ToJsonString.toJsonNode(result.getResponse().getContentAsString()),
+            "/defendant-accounts/{id}/impositions"
+        );
+    }
+
+    @Test
     @DisplayName("OPAL: Get Defendant Account Impositions returns empty list for account without impositions")
     @JiraStory("PO-2077")
     @JiraEpic("PO-979")
