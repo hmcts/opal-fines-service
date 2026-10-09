@@ -1,0 +1,65 @@
+NOTICE:  === Cleanup data before tests ===
+NOTICE:  Cleanup completed
+NOTICE:  === Setting up test data ===
+NOTICE:  Test data setup completed
+NOTICE:  === TEST 1: Allocate a manual suspense payment with full payer details and a note ===
+NOTICE:  TEST 1 PASSED
+NOTICE:  === TEST 2: Use the full auto-payment originator reference and omit manual notes ===
+NOTICE:  TEST 2 PASSED
+NOTICE:  === TEST 3: Allocate only the fines overpayment amount ===
+NOTICE:  TEST 3 PASSED
+NOTICE:  === TEST 4: Allocate a fines payment in advance ===
+NOTICE:  TEST 4 PASSED
+NOTICE:  === TEST 5: Allocate the court fee using a non-overpayment Court Fee Received record ===
+NOTICE:  TEST 5 PASSED
+NOTICE:  === TEST 6: Allocate the court fee excess to the same suspense item ===
+NOTICE:  TEST 6 PASSED
+NOTICE:  === TEST 7: Allocate a court fee without an overpayment ===
+NOTICE:  TEST 7 PASSED
+NOTICE:  === TEST 8: Include the organisation name in the transaction text ===
+NOTICE:  TEST 8 PASSED
+NOTICE:  === TEST 9: Reject a NULL business unit ID ===
+NOTICE:  Expected error caught: P3461 - pi_business_unit_id must be provided
+NOTICE:  TEST 9 PASSED
+NOTICE:  === TEST 10: Reject a NULL allocation amount ===
+NOTICE:  Expected error caught: P3462 - pi_suspense_amount must be greater than zero
+NOTICE:  TEST 10 PASSED
+NOTICE:  === TEST 11: Reject a zero allocation amount ===
+NOTICE:  Expected error caught: P3462 - pi_suspense_amount must be greater than zero
+NOTICE:  TEST 11 PASSED
+NOTICE:  === TEST 12: Reject a negative allocation amount ===
+NOTICE:  Expected error caught: P3462 - pi_suspense_amount must be greater than zero
+NOTICE:  TEST 12 PASSED
+NOTICE:  === TEST 13: Reject a NULL destination type ===
+NOTICE:  Expected error caught: P3463 - pi_destination_type must be C, S or F
+NOTICE:  TEST 13 PASSED
+NOTICE:  === TEST 14: Reject a NULL payment in ID ===
+NOTICE:  Expected error caught: P3464 - payments_in record <NULL> was not found
+NOTICE:  TEST 14 PASSED
+NOTICE:  === TEST 15: Reject an unknown payment in ID ===
+NOTICE:  Expected error caught: P3464 - payments_in record -1 was not found
+NOTICE:  TEST 15 PASSED
+NOTICE:  === TEST 16: Reject a Court Fee Received ID for a suspense destination ===
+NOTICE:  Expected error caught: P3465 - pi_court_fee_received_id is only applicable to Court Fee allocations
+NOTICE:  TEST 16 PASSED
+NOTICE:  === TEST 17: Reject a missing Court Fee Received ID for a court fee ===
+NOTICE:  Expected error caught: P3468 - pi_court_fee_received_id must be provided for Court Fee allocations
+NOTICE:  TEST 17 PASSED
+NOTICE:  === TEST 18: Reject an OC item type without a Court Fee Received ID ===
+NOTICE:  Expected error caught: P3468 - pi_court_fee_received_id must be provided for Court Fee allocations
+NOTICE:  TEST 18 PASSED
+NOTICE:  === TEST 19: Reject an unknown Court Fee Received ID ===
+NOTICE:  Expected error caught: P3466 - court_fees_received record -1 was not found
+NOTICE:  TEST 19 PASSED
+NOTICE:  === TEST 20: Reject a Court Fee Received record from another business unit ===
+NOTICE:  Expected error caught: P3467 - court_fees_received record 999900000467 belongs to a different business unit
+NOTICE:  TEST 20 PASSED
+NOTICE:  === TEST 21: Reject a business unit without a suspense account ===
+NOTICE:  Expected error caught: P3303 - No suspense account found for business_unit_id 9986
+NOTICE:  TEST 21 PASSED
+NOTICE:  === Cleanup test data ===
+NOTICE:  Test data cleanup completed
+NOTICE:  All 21 p_allocate_suspense_payment unit tests passed
+DO
+
+Query returned successfully in 108 msec.
