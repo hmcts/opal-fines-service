@@ -103,12 +103,13 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
 
     @RegisterExtension
     static WireMockExtension fhWireMockServer = WireMockExtension.newInstance()
-        .options(options().usingFilesUnderClasspath("wiremock").port(4075))
+        .options(options().usingFilesUnderClasspath("wiremock").dynamicPort())
         .build();
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
         registry.add("opal.common.system-users.token-url", authWireMockServer::baseUrl);
+        registry.add("file-handler.service.url", fhWireMockServer::baseUrl);
     }
 
     @BeforeEach
