@@ -59,8 +59,10 @@ public class TillsStepDef extends BaseStepDef {
         "date_processed",
         "errors",
         "file_name",
+        "payments_count",
         "processed_by",
         "source",
+        "till_id",
         "till_number");
 
     private Long createdInterfaceJobId;
@@ -247,6 +249,16 @@ public class TillsStepDef extends BaseStepDef {
     }
 
     /**
+     * Retrieves tills using the authenticated user's permitted business units.
+     */
+    @When("I request tills without a business unit filter")
+    public void requestTillsWithoutBusinessUnitFilter() {
+        authorisedJsonRequest()
+            .when()
+            .get(getTestUrl() + TILLS_PATH);
+    }
+
+    /**
      * Creates and submits a payment-in file whose bank details match the PO-10529 configuration.
      *
      * @param businessUnitId business unit in which to create the auto-payment till
@@ -322,23 +334,8 @@ public class TillsStepDef extends BaseStepDef {
     }
 
     /**
-     * Retrieves a combination of filters that cannot match a till in the deployed environment.
-     *
-     * @param businessUnitId a valid int16 business unit ID reserved here as unmatched test input
-     */
-    @When("I request allocated auto-payment tills for unmatched business unit {int}")
-    public void requestUnmatchedAllocatedAutoPaymentTills(int businessUnitId) {
-        authorisedJsonRequest()
-            .queryParam("business_unit_ids", businessUnitId)
-            .queryParam("statuses", "ALLOCATED")
-            .queryParam("auto_payments", true)
-            .when()
-            .get(getTestUrl() + TILLS_PATH);
-    }
-
-    /**
-     * Confirms row-level permission filtering or unmatched criteria return the documented empty
-     * success contract rather than a permission failure.
+     * Confirms that omitting the BU filter with no qualifying permissions returns the empty
+     * success contract.
      */
     @Then("the tills response is an empty successful response")
     public void tillsResponseIsEmptyAndSuccessful() {
@@ -364,6 +361,8 @@ public class TillsStepDef extends BaseStepDef {
         assertEquals(DOCUMENTED_TILL_FIELDS, generatedTill.keySet().stream().sorted().toList(),
             "The generated till must contain only documented fields");
         assertInstanceOf(Number.class, generatedTill.get("till_number"));
+        assertInstanceOf(Number.class, generatedTill.get("till_id"));
+        assertInstanceOf(Number.class, generatedTill.get("payments_count"));
         assertInstanceOf(Number.class, generatedTill.get("errors"));
         assertInstanceOf(Number.class, generatedTill.get("amount"));
         assertInstanceOf(String.class, generatedTill.get("business_unit_name"));
