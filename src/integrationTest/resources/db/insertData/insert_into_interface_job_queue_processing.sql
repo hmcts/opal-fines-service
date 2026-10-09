@@ -56,22 +56,11 @@ INSERT INTO interface_files (
     interface_job_id,
     file_name,
     source,
-    records
+    transformed_json_id
 ) VALUES (
     99000000401001,
     99000000401000,
     'payments-in-int-01.json',
     'NATWEST',
-    '[{
-        "receiving_sort_code": "123456",
-        "receiving_bank_account_number": "01234567",
-        "receiving_account_type": "5",
-        "transaction_code": "68",
-        "originator_sort_code": "654321",
-        "originator_bank_account_number": "98765432",
-        "amount_pence": "12345",
-        "originator_name": "Test Payer",
-        "originator_reference": "99000001A",
-        "originator_beneficiary_name": "Test Court"
-    }]'::json
+    140000
 );
