@@ -16,6 +16,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.TillStatusEnum;
 import uk.gov.hmcts.opal.entity.TillSummaryEntity;
@@ -81,8 +82,23 @@ public class TillSearchService {
         private Boolean autoPayments;
 
         public List<Short> getPermittedBusinessUnitIds(UserStateService userStateService) {
+            if (businessUnitIds == null) {
+                permittedBusinessUnitIds = userStateService.getBusinessUnitIdsFor(
+                    FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
+                return permittedBusinessUnitIds;
+            }
+
             permittedBusinessUnitIds = userStateService.getPermittedBusinessUnitIds(
                 businessUnitIds, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
+
+            businessUnitIds.stream()
+                .filter(businessUnitId -> !permittedBusinessUnitIds.contains(businessUnitId))
+                .findFirst()
+                .ifPresent(businessUnitId -> {
+                    throw new PermissionNotAllowedException(
+                        businessUnitId, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
+                });
+
             return permittedBusinessUnitIds;
         }
 
