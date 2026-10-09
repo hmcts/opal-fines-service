@@ -3,6 +3,8 @@ package uk.gov.hmcts.opal.steps;
 import static net.serenitybdd.rest.SerenityRest.lastResponse;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
 
 import io.cucumber.java.en.Then;
@@ -83,6 +85,18 @@ public class Release1aFeatureToggleStepDef extends BaseStepDef {
             .body("retriable", equalTo(false))
             .body("instance", notNullValue())
             .body("operation_id", notNullValue());
+    }
+
+    /**
+     * Asserts that the latest response was not rejected by the feature-toggle layer.
+     */
+    @Then("the response does not report that the feature is disabled")
+    public void theResponseDoesNotReportThatTheFeatureIsDisabled() {
+        assertNotEquals(405, lastResponse().statusCode(), "Response should not be rejected as method not allowed");
+        assertFalse(
+            lastResponse().asString().contains("https://hmcts.gov.uk/problems/feature-disabled"),
+            "Response should not report feature disabled"
+        );
     }
 
     /**
