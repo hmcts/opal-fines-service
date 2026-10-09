@@ -8,21 +8,31 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
+import uk.gov.hmcts.opal.entity.ReportInstanceFileEntity;
+import uk.gov.hmcts.opal.entity.report.SupportedFileType;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
+import uk.gov.hmcts.opal.repository.ReportInstanceFileRepository;
 import uk.gov.hmcts.opal.repository.ReportInstanceRepository;
 import uk.gov.hmcts.opal.service.blobstore.ReportBlobStore;
 
 @ExtendWith(MockitoExtension.class)
 class ReportInstanceDeletionServiceTest {
 
+    private static final UUID LOCATION_1 = UUID.fromString("00000000-0000-0000-0000-000000000011");
+    private static final UUID LOCATION_2 = UUID.fromString("00000000-0000-0000-0000-000000000012");
+
     @Mock
     private ReportInstanceRepository reportInstanceRepository;
+
+    @Mock
+    private ReportInstanceFileRepository reportInstanceFileEntityRepository;
 
     @Mock
     private ReportBlobStore reportBlobStore;
@@ -32,39 +42,46 @@ class ReportInstanceDeletionServiceTest {
 
     @Test
     void deleteReportInstances_deletesFoundReportInstancesAndStoredContent() {
-        ReportInstanceEntity reportInstance1 = reportInstance(1L, "location-1");
-        ReportInstanceEntity reportInstance2 = reportInstance(2L, "location-2");
+        ReportInstanceEntity reportInstance1 = reportInstance(1L, LOCATION_1);
+        ReportInstanceEntity reportInstance2 = reportInstance(2L, LOCATION_2);
+        ReportInstanceFileEntity reportInstanceFile1 = reportInstanceFile(1L, SupportedFileType.PDF);
+        ReportInstanceFileEntity reportInstanceFile2 = reportInstanceFile(2L, SupportedFileType.CSV);
+        reportInstance1.getReportInstanceFiles().add(reportInstanceFile1);
+        reportInstance2.getReportInstanceFiles().add(reportInstanceFile2);
         when(reportInstanceRepository.findAllById(List.of(1L, 2L)))
             .thenReturn(List.of(reportInstance1, reportInstance2));
 
         reportInstanceDeletionService.deleteReportInstances(List.of(1L, 2L));
 
-        verify(reportBlobStore).deleteReport("location-1");
-        verify(reportBlobStore).deleteReport("location-2");
+        verify(reportBlobStore).deleteReport(LOCATION_1);
+        verify(reportBlobStore).deleteReport(LOCATION_2);
+        verify(reportInstanceFileEntityRepository).deleteAll(List.of(reportInstanceFile1, reportInstanceFile2));
         verify(reportInstanceRepository).deleteAll(List.of(reportInstance1, reportInstance2));
     }
 
     @Test
     void deleteReportInstances_deduplicatesRepeatedIdsAndLocations() {
-        ReportInstanceEntity reportInstance1 = reportInstance(1L, "location-1");
-        ReportInstanceEntity reportInstance2 = reportInstance(2L, "location-1");
+        ReportInstanceEntity reportInstance1 = reportInstance(1L, LOCATION_1);
+        ReportInstanceEntity reportInstance2 = reportInstance(2L, LOCATION_1);
         when(reportInstanceRepository.findAllById(List.of(1L, 2L)))
             .thenReturn(List.of(reportInstance1, reportInstance2));
 
         reportInstanceDeletionService.deleteReportInstances(List.of(1L, 1L, 2L));
 
-        verify(reportBlobStore).deleteReport("location-1");
+        verify(reportBlobStore).deleteReport(LOCATION_1);
+        verify(reportInstanceFileEntityRepository).deleteAll(List.of());
         verify(reportInstanceRepository).deleteAll(List.of(reportInstance1, reportInstance2));
     }
 
     @Test
     void deleteReportInstances_ignoresMissingIds() {
-        ReportInstanceEntity reportInstance = reportInstance(1L, "location-1");
+        ReportInstanceEntity reportInstance = reportInstance(1L, LOCATION_1);
         when(reportInstanceRepository.findAllById(List.of(1L, 99L))).thenReturn(List.of(reportInstance));
 
         reportInstanceDeletionService.deleteReportInstances(List.of(1L, 99L));
 
-        verify(reportBlobStore).deleteReport("location-1");
+        verify(reportBlobStore).deleteReport(LOCATION_1);
+        verify(reportInstanceFileEntityRepository).deleteAll(List.of());
         verify(reportInstanceRepository).deleteAll(List.of(reportInstance));
     }
 
@@ -75,20 +92,21 @@ class ReportInstanceDeletionServiceTest {
         reportInstanceDeletionService.deleteReportInstances(List.of(99L));
 
         verifyNoInteractions(reportBlobStore);
+        verify(reportInstanceFileEntityRepository).deleteAll(List.of());
         verify(reportInstanceRepository).deleteAll(List.of());
     }
 
     @Test
-    void deleteReportInstances_skipsBlankAndNullLocations() {
+    void deleteReportInstances_skipsNullLocations() {
         ReportInstanceEntity reportInstance1 = reportInstance(1L, null);
-        ReportInstanceEntity reportInstance2 = reportInstance(2L, " ");
-        when(reportInstanceRepository.findAllById(List.of(1L, 2L)))
-            .thenReturn(List.of(reportInstance1, reportInstance2));
+        when(reportInstanceRepository.findAllById(List.of(1L)))
+            .thenReturn(List.of(reportInstance1));
 
-        reportInstanceDeletionService.deleteReportInstances(List.of(1L, 2L));
+        reportInstanceDeletionService.deleteReportInstances(List.of(1L));
 
         verify(reportBlobStore, never()).deleteReport(any());
-        verify(reportInstanceRepository).deleteAll(List.of(reportInstance1, reportInstance2));
+        verify(reportInstanceFileEntityRepository).deleteAll(List.of());
+        verify(reportInstanceRepository).deleteAll(List.of(reportInstance1));
     }
 
     @Test
@@ -96,7 +114,7 @@ class ReportInstanceDeletionServiceTest {
         assertThrows(InvalidReferenceValidationException.class,
             () -> reportInstanceDeletionService.deleteReportInstances(List.of()));
 
-        verifyNoInteractions(reportInstanceRepository, reportBlobStore);
+        verifyNoInteractions(reportInstanceRepository, reportInstanceFileEntityRepository, reportBlobStore);
     }
 
     @Test
@@ -107,13 +125,20 @@ class ReportInstanceDeletionServiceTest {
         assertThrows(InvalidReferenceValidationException.class,
             () -> reportInstanceDeletionService.deleteReportInstances(reportInstanceIds));
 
-        verifyNoInteractions(reportInstanceRepository, reportBlobStore);
+        verifyNoInteractions(reportInstanceRepository, reportInstanceFileEntityRepository, reportBlobStore);
     }
 
-    private ReportInstanceEntity reportInstance(Long id, String location) {
+    private ReportInstanceEntity reportInstance(Long id, UUID location) {
         ReportInstanceEntity reportInstance = new ReportInstanceEntity();
         reportInstance.setReportInstanceId(id);
         reportInstance.setLocation(location);
         return reportInstance;
+    }
+
+    private ReportInstanceFileEntity reportInstanceFile(Long reportInstanceId, SupportedFileType fileType) {
+        return ReportInstanceFileEntity.builder()
+            .reportInstanceId(reportInstanceId)
+            .fileType(fileType)
+            .build();
     }
 }

@@ -3,24 +3,31 @@ package uk.gov.hmcts.opal.entity;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators.PropertyGenerator;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus;
@@ -93,7 +100,21 @@ public class ReportInstanceEntity {
     @Column(name = "errors", columnDefinition = "json")
     private ReportError errors;
 
+    @Builder.Default
+    @OneToMany(mappedBy = "reportInstance", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<ReportInstanceFileEntity> reportInstanceFiles = new ArrayList<>();
+
     public String getReportId() {
         return report.getReportId();
+    }
+
+    public void setLocation(UUID uuid) {
+        location = uuid == null ? null : uuid.toString();
+    }
+
+    public UUID getLocation() {
+        return location == null ? null : UUID.fromString(location);
     }
 }

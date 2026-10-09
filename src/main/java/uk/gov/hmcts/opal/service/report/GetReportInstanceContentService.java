@@ -3,8 +3,14 @@ package uk.gov.hmcts.opal.service.report;
 import static uk.gov.hmcts.opal.common.util.SecurityUtil.getOpalJwtAuthenticationTokenForCurrentUser;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,9 +23,11 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
+import uk.gov.hmcts.opal.entity.ReportInstanceFileEntity;
 import uk.gov.hmcts.opal.entity.report.SupportedFileType;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
 import uk.gov.hmcts.opal.exception.UnsupportedContentTypeException;
+import uk.gov.hmcts.opal.repository.ReportInstanceFileRepository;
 import uk.gov.hmcts.opal.repository.ReportInstanceRepository;
 import uk.gov.hmcts.opal.service.blobstore.ReportBlobStore;
 
@@ -32,11 +40,13 @@ public class GetReportInstanceContentService {
     };
 
     private final ReportInstanceRepository reportInstanceRepository;
+    private final ReportInstanceFileRepository reportInstanceFileRepository;
+    private final Clock clock;
     private final ReportRegistry reportRegistry;
     private final ReportBlobStore blobStore;
     private final ObjectMapper mapper;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public Object getReportInstanceContent(Long id, FileType fileType) {
         log.debug("Getting report instance content for id={}, fileType={}", id, fileType);
 
@@ -76,22 +86,17 @@ public class GetReportInstanceContentService {
     }
 
     private String loadRequiredStoredReport(Long id, ReportInstanceEntity instance) {
-        String location = instance.getLocation();
-        if (location == null || location.isBlank()) {
+        UUID location = instance.getLocation();
+        if (location == null) {
             throw new EntityNotFoundException("Report instance content not found for id: " + id);
         }
 
         String storedReport;
         try {
-            storedReport = blobStore.getReport(location);
+            storedReport = new String(blobStore.getReport(location), StandardCharsets.UTF_8);
         } catch (MissingStoredReportContentException missingStoredReportContentException) {
             throw new MissingStoredReportContentException(id, location);
         }
-
-        if (storedReport == null) {
-            throw new EntityNotFoundException("Report instance content not found for id: " + id);
-        }
-
         return storedReport;
     }
 
@@ -120,22 +125,61 @@ public class GetReportInstanceContentService {
         }
     }
 
-    private byte[] loadReportAsFile(Long id, ReportInstanceEntity instance, String storedReport, FileType fileType) {
+    private byte[] loadReportAsFile(Long id, ReportInstanceEntity instance, String storedReport,
+        FileType fileType) {
         ReportInterface<?> reportTemplate = reportRegistry.get(instance.getReport().getReportId());
-        return convertReportToFile(id, instance, storedReport, reportTemplate, fileType);
+        return retrieveOrGenerateReportContent(id, instance, storedReport, reportTemplate, fileType);
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends ReportDataInterface> byte[] convertReportToFile(
+    final <T extends ReportDataInterface> byte[] retrieveOrGenerateReportContent(
         Long id,
         ReportInstanceEntity instance,
         String storedReport,
         ReportInterface<?> reportTemplate,
         FileType fileType) {
 
+        Optional<byte[]> existingReportContent = retrieveReportContent(instance, fileType);
+        if (existingReportContent.isPresent()) {
+            return existingReportContent.get();
+        }
+
         ReportInterface<T> typedReportTemplate = (ReportInterface<T>) reportTemplate;
         T reportData = readStoredReportData(id, instance, storedReport, typedReportTemplate);
-        return typedReportTemplate.convertReportDataToFileType(instance, reportData, fileType);
+        byte[] data = typedReportTemplate.convertReportDataToFileType(instance, reportData, fileType);
+
+        UUID location = blobStore.storeReport(new ByteArrayInputStream(data));
+
+        ReportInstanceFileEntity reportInstanceFileEntity =
+            ReportInstanceFileEntity.builder()
+                .reportInstanceId(instance.getReportInstanceId())
+                .fileType(SupportedFileType.valueOf(fileType.name()))
+                .locationUuid(location)
+                .createdTimestamp(LocalDateTime.now(clock))
+                .lastAccessedTimestamp(LocalDateTime.now(clock))
+                .build();
+
+        reportInstanceFileRepository.save(reportInstanceFileEntity);
+
+        return data;
+    }
+
+    Optional<byte[]> retrieveReportContent(
+        ReportInstanceEntity instance,
+        FileType fileType) {
+
+        Optional<ReportInstanceFileEntity> reportInstanceFileOpt = reportInstanceFileRepository
+            .findByReportInstanceIdAndFileType(instance.getReportInstanceId(),
+                SupportedFileType.valueOf(fileType.name()));
+
+        if (reportInstanceFileOpt.isPresent()) {
+            ReportInstanceFileEntity reportInstanceFile = reportInstanceFileOpt.get();
+            byte[] data = blobStore.getReport(reportInstanceFile.getLocationUuid());
+            reportInstanceFile.setLastAccessedTimestamp(LocalDateTime.now(clock));
+            reportInstanceFileRepository.save(reportInstanceFile);
+            return Optional.of(data);
+        }
+        return Optional.empty();
     }
 
     private <T extends ReportDataInterface> T readStoredReportData(

@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -15,6 +14,7 @@ import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
@@ -58,47 +58,47 @@ class ReportBlobStoreServiceTest {
     }
 
     @Test
-    void storeReport() {
+    void storeReport() throws IOException {
         //Arrange
         when(container.getBlobClient(anyString())).thenReturn(blob);
         when(uuidProvider.getUuid()).thenReturn(uuid);
         when(container.exists()).thenReturn(true);
         //Act
-        String savedAt = reportBlobStoreService.storeReport(message);
+        UUID savedAt = reportBlobStoreService.storeReport(inputStream(message));
         //Assert
-        ArgumentCaptor<ByteArrayInputStream> argument = ArgumentCaptor.forClass(ByteArrayInputStream.class);
-        verify(blob).upload(argument.capture(), eq(13L));
+        ArgumentCaptor<InputStream> argument = ArgumentCaptor.forClass(InputStream.class);
+        verify(blob).upload(argument.capture());
         String saved = new String(argument.getValue().readAllBytes(), StandardCharsets.UTF_8);
         assertEquals(message, saved);
-        assertEquals(savedAt, uuid.toString());
+        assertEquals(uuid, savedAt);
     }
 
     @Test
     void storeReport_containerDoesNotExist_throwError() {
         when(container.exists()).thenReturn(false);
-        assertThrows(IllegalArgumentException.class, () -> reportBlobStoreService.storeReport(message));
+        assertThrows(IllegalArgumentException.class, () -> reportBlobStoreService.storeReport(inputStream(message)));
     }
 
     @Nested
     class GetReport {
 
-        private static final String LOCATION = "report-location";
+        private static final UUID LOCATION = UUID.fromString("00000000-0000-0000-0000-000000000005");
 
         @Test
         void whenBlobExists_returnsContent_happyPath() {
             byte[] reportBytes = message.getBytes(StandardCharsets.UTF_8);
-            when(container.getBlobClient(LOCATION)).thenReturn(blob);
+            when(container.getBlobClient(LOCATION.toString())).thenReturn(blob);
             doAnswer(invocation -> {
                 OutputStream outputStream = invocation.getArgument(0);
                 outputStream.write(reportBytes);
                 return null;
             }).when(blob).downloadStream(any(OutputStream.class));
 
-            String result = reportBlobStoreService.getReport(LOCATION);
+            byte[] result = reportBlobStoreService.getReport(LOCATION);
 
             assertAll(
-                () -> assertEquals(message, result),
-                () -> verify(container).getBlobClient(LOCATION),
+                () -> assertEquals(message, new String(result, StandardCharsets.UTF_8)),
+                () -> verify(container).getBlobClient(LOCATION.toString()),
                 () -> verify(blob).downloadStream(any(OutputStream.class))
             );
         }
@@ -106,7 +106,7 @@ class ReportBlobStoreServiceTest {
         @Test
         void whenBlobDownloadFails_throwsUncheckedIoException_sadPath() {
             IOException cause = new IOException("download failed");
-            when(container.getBlobClient(LOCATION)).thenReturn(blob);
+            when(container.getBlobClient(LOCATION.toString())).thenReturn(blob);
             doAnswer(invocation -> {
                 throw cause;
             }).when(blob).downloadStream(any(OutputStream.class));
@@ -123,19 +123,23 @@ class ReportBlobStoreServiceTest {
         }
     }
 
+    private static InputStream inputStream(String content) {
+        return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+    }
+
     @Nested
     class DeleteReport {
 
-        private static final String LOCATION = "report-location";
+        private static final UUID LOCATION = UUID.fromString("00000000-0000-0000-0000-000000000006");
 
         @Test
         void whenBlobExists_deletesBlob_happyPath() {
-            when(container.getBlobClient(LOCATION)).thenReturn(blob);
+            when(container.getBlobClient(LOCATION.toString())).thenReturn(blob);
 
             reportBlobStoreService.deleteReport(LOCATION);
 
             assertAll(
-                () -> verify(container).getBlobClient(LOCATION),
+                () -> verify(container).getBlobClient(LOCATION.toString()),
                 () -> verify(blob).deleteIfExists()
             );
         }
