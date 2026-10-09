@@ -15,11 +15,10 @@ INSERT INTO interface_files (
     interface_job_id,
     file_name,
     created_datetime,
-    records,
     override_inhibits
 )
 VALUES
-    (991001, 990001, 'po2593-created-1.csv', CURRENT_TIMESTAMP, '[]', false),
-    (991002, 990001, 'po2593-created-2.csv', CURRENT_TIMESTAMP, '[]', false),
-    (991003, 990002, 'po2593-failed.csv', CURRENT_TIMESTAMP, '[]', false),
-    (991004, 990003, 'po2593-completed.csv', CURRENT_TIMESTAMP, '[]', false);
+    (991001, 990001, 'po2593-created-1.csv', CURRENT_TIMESTAMP, false),
+    (991002, 990001, 'po2593-created-2.csv', CURRENT_TIMESTAMP, false),
+    (991003, 990002, 'po2593-failed.csv', CURRENT_TIMESTAMP, false),
+    (991004, 990003, 'po2593-completed.csv', CURRENT_TIMESTAMP, false);
