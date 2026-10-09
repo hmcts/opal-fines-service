@@ -32,8 +32,8 @@ public interface GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper {
     @Mapping(target = "businessUnitId", source = "businessUnitId", qualifiedByName = "toBusinessUnitId")
     BusinessUnitSummaryCommon toOpal(BusinessUnitSummary legacy);
 
-    @Mapping(target = "creditorAccountType", source = "accountType", qualifiedByName = "toAccountType")
-    @Mapping(target = "creditorAccountDisplayName", source = "accountType", qualifiedByName = "toDisplayName")
+    @Mapping(target = "creditorAccountType", source = "creditorAccountType", qualifiedByName = "toAccountType")
+    @Mapping(target = "creditorAccountDisplayName", source = "creditorAccountType", qualifiedByName = "toDisplayName")
     CreditorAccountTypeReferenceCommon toOpal(CreditorAccountTypeReference legacy);
 
     @Named("toVersion")
