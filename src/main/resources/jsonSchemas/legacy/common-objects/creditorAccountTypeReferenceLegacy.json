@@ -4,7 +4,7 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "account_type": {
+    "creditor_account_type": {
       "type": "string",
       "enum": [
         "MN",
@@ -14,6 +14,6 @@
     }
   },
   "required": [
-    "account_type"
+    "creditor_account_type"
   ]
 }

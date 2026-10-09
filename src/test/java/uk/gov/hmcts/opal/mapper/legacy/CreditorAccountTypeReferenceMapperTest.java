@@ -18,7 +18,7 @@ class CreditorAccountTypeReferenceMapperTest extends AbstractMapperTest {
         // Arrange
         uk.gov.hmcts.opal.dto.legacy.common.CreditorAccountTypeReference legacy =
             uk.gov.hmcts.opal.dto.legacy.common.CreditorAccountTypeReference.builder()
-                .accountType("MN")
+                .creditorAccountType("MN")
                 .build();
 
         // Act
@@ -35,7 +35,7 @@ class CreditorAccountTypeReferenceMapperTest extends AbstractMapperTest {
         // Arrange
         uk.gov.hmcts.opal.dto.legacy.common.CreditorAccountTypeReference legacy =
             uk.gov.hmcts.opal.dto.legacy.common.CreditorAccountTypeReference.builder()
-                .accountType("UNKNOWN")
+                .creditorAccountType("UNKNOWN")
                 .build();
 
         // Act
