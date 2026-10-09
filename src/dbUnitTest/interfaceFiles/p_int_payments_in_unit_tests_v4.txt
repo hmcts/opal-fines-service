@@ -1,0 +1,54 @@
+SET
+Timing is on.
+BEGIN
+Time: 0.274 ms
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  P3205 no-file test: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  P3205 multiple-file test: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 1: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 2: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 3: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 4: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 5: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 6: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 7: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 8: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 9: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 10: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 11: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 12: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 13: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 14: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 15: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 16: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 17: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 18: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 19: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 20: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 21: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 22: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 23: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 24: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 25: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 26: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 27: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 28: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 29: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 30: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 31: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 32: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 33: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 34: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 35: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 36: Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 37 (P3201 missing job): Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 38 (P3202 job without BU): Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 39 (P3203 NULL BU parameter): Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 40 (P3204 mismatched BU): Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 41 (NULL JSON): Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 42 (non-array JSON): Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 43 (invalid amount_pence): Passed
+psql:p_int_payments_in_unit_tests_v4.sql:731: NOTICE:  Test 44 (missing amount_pence): Passed
+DO
+Time: 49.359 ms
+ROLLBACK
+Time: 0.237 ms

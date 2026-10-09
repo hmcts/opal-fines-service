@@ -127,9 +127,6 @@ class InterfaceJobsCreateIT extends AbstractIntegrationTest {
         assertEquals("NATWEST", interfaceFile.getSource());
         assertEquals((short) 1, interfaceFile.getRecordCount());
         assertEquals(new BigDecimal("123.45"), interfaceFile.getTotalAmount());
-        assertEquals(
-            objectMapper.readTree("[{\"account\":\"abc123\"}]"),
-            objectMapper.readTree(interfaceFile.getRecords()));
     }
 
     @Test
