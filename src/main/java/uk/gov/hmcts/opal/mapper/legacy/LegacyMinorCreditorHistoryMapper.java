@@ -88,7 +88,7 @@ public class LegacyMinorCreditorHistoryMapper {
         }
 
         return new PostedDetailsCommon()
-            .postedDate(postedDetails.getPostedDate() == null ? null : postedDetails.getPostedDate().atStartOfDay())
+            .postedDate(postedDetails.getPostedDate())
             .postedBy(postedDetails.getPostedBy())
             .postedByName(postedDetails.getPostedByName());
     }
