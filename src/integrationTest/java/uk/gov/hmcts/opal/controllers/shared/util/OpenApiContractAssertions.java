@@ -12,7 +12,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -178,7 +181,31 @@ public final class OpenApiContractAssertions {
         if (components != null) {
             standalone.put("components", components);
         }
-        return OBJECT_MAPPER.writeValueAsString(standalone);
+        return OBJECT_MAPPER.writeValueAsString(toJsonSchemaNullable(standalone));
+    }
+
+    private static Object toJsonSchemaNullable(Object schemaNode) {
+        if (schemaNode instanceof Map<?, ?> map) {
+            Map<String, Object> converted = new LinkedHashMap<>();
+            map.forEach((key, value) -> converted.put(String.valueOf(key), toJsonSchemaNullable(value)));
+
+            if (Boolean.TRUE.equals(converted.remove("nullable"))) {
+                return Map.of(
+                    "anyOf", List.of(
+                        converted,
+                        Map.of("type", "null")
+                    )
+                );
+            }
+            return converted;
+        }
+
+        if (schemaNode instanceof List<?> list) {
+            List<Object> converted = new ArrayList<>(list.size());
+            list.forEach(item -> converted.add(toJsonSchemaNullable(item)));
+            return converted;
+        }
+        return schemaNode;
     }
 
     /**

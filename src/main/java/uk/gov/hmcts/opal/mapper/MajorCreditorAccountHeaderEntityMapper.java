@@ -44,9 +44,10 @@ public class MajorCreditorAccountHeaderEntityMapper {
     private CreditorAccountTypeReferenceCommon toAccountReference(CreditorAccountType type) {
         CreditorAccountTypeReferenceCommon accountReference = new CreditorAccountTypeReferenceCommon();
         if (type != null) {
-            accountReference.setAccountType(CreditorAccountTypeReferenceCommon.AccountTypeEnum.fromValue(type.name()));
-            accountReference.setDisplayName(
-                CreditorAccountTypeReferenceCommon.DisplayNameEnum.fromValue(type.getLabel()));
+            accountReference.setCreditorAccountType(
+                CreditorAccountTypeReferenceCommon.CreditorAccountTypeEnum.fromValue(type.name()));
+            accountReference.setCreditorAccountDisplayName(
+                CreditorAccountTypeReferenceCommon.CreditorAccountDisplayNameEnum.fromValue(type.getLabel()));
         }
         return accountReference;
     }
