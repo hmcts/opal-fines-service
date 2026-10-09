@@ -31,7 +31,7 @@ public class DefendantAccountHeaderSummaryStepDef extends BaseStepDef {
     private static final String LEGACY_SAFE_COURT_ID = "770000000001";
     private static final String SUBMITTED_BY_NAME = "Laura Clerk";
     private static final String HEADER_SUMMARY_PATH = "/defendant-accounts/%d/header-summary";
-    private static final long NON_EXISTENT_ACCOUNT_ID = 90_000_000_000_000L;
+    private static final long NON_EXISTENT_ACCOUNT_ID = 900_000_000_000L;
     private static final List<String> INTERNAL_ERROR_TERMS = List.of(
         "stackTrace",
         "\"trace\"",
