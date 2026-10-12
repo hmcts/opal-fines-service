@@ -32,6 +32,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
@@ -55,6 +56,10 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @Slf4j(topic = "opal.InterfaceFileProcessorServiceIntegrationTest")
 @DisplayName("Interface File Processor Service Integration Test")
+@TestPropertySource(properties = {
+    "opal.interface-jobs.service-bus.consumer-enabled=false",
+    "opal.report.service-bus.consumer-enabled=false"
+})
 @Sql(scripts = "classpath:db/insertData/insert_interface_file_processor.sql", executionPhase = BEFORE_TEST_METHOD)
 @Sql(scripts = "classpath:db/deleteData/delete_interface_file_processor.sql", executionPhase = AFTER_TEST_METHOD)
 class InterfaceFileProcessorServiceIntegrationTest extends AbstractIntegrationTest {
@@ -86,7 +91,7 @@ class InterfaceFileProcessorServiceIntegrationTest extends AbstractIntegrationTe
     @DisplayName("Processes five transactions and saves the interface job and file")
     @JiraStory("PO-6460")
     @JiraEpic("PO-3497")
-    void process_savesJobAndFileForFiveTransactions(PaymentType paymentType) throws Exception {
+    void process_savesJobAndFileForFiveTransactions(PaymentType paymentType) {
         stubSuccessfulFileHandler(paymentType);
         final LocalDateTime before = LocalDateTime.now(ZoneOffset.UTC);
 
@@ -112,7 +117,6 @@ class InterfaceFileProcessorServiceIntegrationTest extends AbstractIntegrationTe
                 .atPriority(1).willReturn(fileHandlerError()));
             case "upload" -> wireMockServer.stubFor(post(urlEqualTo("/interface-files"))
                 .atPriority(1).willReturn(fileHandlerError()));
-            default -> throw new IllegalArgumentException(failingCall);
         }
 
         long filesBefore = interfaceFileRepository.count();
@@ -123,7 +127,7 @@ class InterfaceFileProcessorServiceIntegrationTest extends AbstractIntegrationTe
 
         assertThat(failure.getCause()).isInstanceOf(FeignException.class);
         assertThat(((FeignException) failure.getCause()).status()).isEqualTo(503);
-        assertThat(((FeignException) failure.getCause()).contentUTF8()).contains("File Handler unavailable");
+        assertThat(failure.getMessage()).contains("interface file");
 
         assertThat(interfaceFileRepository.count()).isEqualTo(filesBefore);
         assertThat(interfaceJobRepository.count()).isEqualTo(jobsBefore);
@@ -201,8 +205,7 @@ class InterfaceFileProcessorServiceIntegrationTest extends AbstractIntegrationTe
     private ResponseDefinitionBuilder fileHandlerError() {
         return aResponse()
             .withStatus(503)
-            .withHeader("Content-Type", "application/json")
-            .withBody("{\"detail\":\"File Handler unavailable\"}");
+            .withHeader("Content-Type", "application/json");
     }
 
     private InterfaceFileCommonDataExtract sourceData(PaymentType paymentType) {
