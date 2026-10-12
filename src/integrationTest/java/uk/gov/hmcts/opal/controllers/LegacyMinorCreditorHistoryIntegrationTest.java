@@ -17,7 +17,6 @@ import static uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil.permission
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -106,6 +105,7 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             .andExpect(jsonPath("$.historyItems[2].details.transactionType.transactionType").value("PAYMNT"))
             .andExpect(jsonPath("$.historyItems[2].details.paymentReference").value("PAY-1"))
             .andExpect(jsonPath("$.historyItems[2].details.status.creditorTransactionStatus").value("C"))
+            .andExpect(jsonPath("$.historyItems[2].details.statusDate").value("2026-04-01T00:00:00"))
             .andExpect(jsonPath("$.historyItems[3].type").value("Financial"))
             .andExpect(jsonPath("$.historyItems[3].details.paymentReference").value("PAY-2"))
             .andExpect(jsonPath("$.historyItems[4].type").value("Note"))
@@ -307,7 +307,7 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
                     .creditorTransactionStatus("C")
                     .creditorTransactionStatusDisplayName("Completed")
                     .build())
-                .statusDate(LocalDateTime.of(2026, 4, 1, 9, 30))
+                .statusDate(LocalDate.of(2026, 4, 1))
                 .associatedRecordType("defendant_accounts")
                 .associatedRecordId("99264500001001")
                 .accountNumber("MC2645")
