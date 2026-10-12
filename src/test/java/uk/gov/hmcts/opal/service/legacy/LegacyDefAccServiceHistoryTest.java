@@ -3,7 +3,10 @@ package uk.gov.hmcts.opal.service.legacy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -21,6 +24,8 @@ import org.mockito.Mockito;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
+import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
@@ -197,15 +202,21 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
 
     @Test
     void getHistory_whenLegacyReturnsAccountNotFoundError_throwsNotFoundException() {
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>("""
-                <response>
-                  <error_response>
-                    <error_code>-6502</error_code>
-                    <error_message>ORA-06502: PL/SQL: numeric or value error: number precision too large</error_message>
-                  </error_response>
-                </response>
-                """, HttpStatus.OK));
+        GetDefendantAccountHistoryLegacyResponse responseBody = GetDefendantAccountHistoryLegacyResponse.builder()
+            .errorResponse(ErrorResponse.builder()
+                .errorCode("-6502")
+                .errorMessage("ORA-06502: PL/SQL: numeric or value error: number precision too large")
+                .build())
+            .build();
+        GatewayService.Response<GetDefendantAccountHistoryLegacyResponse> response =
+            new GatewayService.Response<>(HttpStatus.OK, responseBody, null, null);
+
+        doReturn(response).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.GET_DEFENDANT_ACCOUNT_HISTORY),
+            eq(GetDefendantAccountHistoryLegacyResponse.class),
+            any(GetDefendantAccountHistoryLegacyRequest.class),
+            isNull(String.class)
+        );
 
         EntityNotFoundException exception = assertThrows(
             EntityNotFoundException.class,

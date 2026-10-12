@@ -1073,8 +1073,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     private static boolean isLegacyHistoryAccountNotFound(
         Response<GetDefendantAccountHistoryLegacyResponse> response
     ) {
-        return response.responseEntity != null
-            && response.responseEntity.getErrorResponse() != null
+        return response.hasErrorResponse()
             && LEGACY_HISTORY_ACCOUNT_NOT_FOUND_ERROR_CODE.equals(
                 response.responseEntity.getErrorResponse().getErrorCode());
     }
