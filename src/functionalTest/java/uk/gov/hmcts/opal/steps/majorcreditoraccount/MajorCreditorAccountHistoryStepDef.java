@@ -184,9 +184,11 @@ public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
     @Then("the major creditor account history response contains only items on or after the remembered dateFrom")
     public void majorCreditorAccountHistoryResponseContainsOnlyItemsOnOrAfterRememberedDateFrom() {
         if (rememberedDateFrom != null) {
+            LocalDateTime inclusiveBoundary = rememberedDateFrom.atStartOfDay();
             for (JsonNode historyItem : historyItems()) {
+                LocalDateTime postedDate = postedDateOf(historyItem);
                 assertFalse(
-                    postedDateOf(historyItem).toLocalDate().isBefore(rememberedDateFrom),
+                    postedDate.isBefore(inclusiveBoundary),
                     "History item was before dateFrom boundary"
                 );
             }
@@ -199,9 +201,11 @@ public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
     @Then("the major creditor account history response contains only items on or before the remembered dateTo")
     public void majorCreditorAccountHistoryResponseContainsOnlyItemsOnOrBeforeRememberedDateTo() {
         if (rememberedDateTo != null) {
+            LocalDateTime exclusiveBoundary = rememberedDateTo.plusDays(1).atStartOfDay();
             for (JsonNode historyItem : historyItems()) {
-                assertFalse(
-                    postedDateOf(historyItem).toLocalDate().isAfter(rememberedDateTo),
+                LocalDateTime postedDate = postedDateOf(historyItem);
+                assertTrue(
+                    postedDate.isBefore(exclusiveBoundary),
                     "History item was after dateTo boundary"
                 );
             }

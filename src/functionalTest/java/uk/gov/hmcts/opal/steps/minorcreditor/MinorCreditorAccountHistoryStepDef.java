@@ -28,7 +28,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -291,8 +290,8 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
         assertExcludedDate();
 
         assertTrue(
-            historyItems().stream().map(this::postedDateOf).map(LocalDateTime::toLocalDate)
-                .anyMatch(excludedDate::equals),
+            historyItems().stream().map(this::postedDateOf)
+                .anyMatch(postedDate -> isOnDate(postedDate, excludedDate)),
             "Expected unfiltered history to contain records outside the remembered date range"
         );
     }
@@ -306,7 +305,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
         assertExcludedDate();
 
         for (JsonNode historyItem : historyItems()) {
-            assertNotEquals(excludedDate, postedDateOf(historyItem).toLocalDate(),
+            assertFalse(isOnDate(postedDateOf(historyItem), excludedDate),
                 "History item outside the requested date range was returned");
         }
     }
@@ -350,9 +349,11 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     @Then("the minor creditor account history response contains only items on or after the remembered dateFrom")
     public void minorCreditorHistoryContainsOnlyItemsOnOrAfterRememberedDateFrom() {
         assertRememberedDateRange();
+        LocalDateTime inclusiveBoundary = rememberedDateFrom.atStartOfDay();
         for (JsonNode historyItem : historyItems()) {
+            LocalDateTime postedDate = postedDateOf(historyItem);
             assertFalse(
-                postedDateOf(historyItem).toLocalDate().isBefore(rememberedDateFrom),
+                postedDate.isBefore(inclusiveBoundary),
                 "History item was before dateFrom boundary"
             );
         }
@@ -365,9 +366,11 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     @Then("the minor creditor account history response contains only items on or before the remembered dateTo")
     public void minorCreditorHistoryContainsOnlyItemsOnOrBeforeRememberedDateTo() {
         assertRememberedDateRange();
+        LocalDateTime exclusiveBoundary = rememberedDateTo.plusDays(1).atStartOfDay();
         for (JsonNode historyItem : historyItems()) {
-            assertFalse(
-                postedDateOf(historyItem).toLocalDate().isAfter(rememberedDateTo),
+            LocalDateTime postedDate = postedDateOf(historyItem);
+            assertTrue(
+                postedDate.isBefore(exclusiveBoundary),
                 "History item was after dateTo boundary"
             );
         }
@@ -380,10 +383,11 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
      */
     @Then("the minor creditor account history response contains only items on or after {string}")
     public void minorCreditorHistoryContainsOnlyItemsOnOrAfter(String dateFrom) {
-        LocalDate boundary = LocalDate.parse(dateFrom);
+        LocalDateTime inclusiveBoundary = LocalDate.parse(dateFrom).atStartOfDay();
         for (JsonNode historyItem : historyItems()) {
-            assertFalse(postedDateOf(historyItem).toLocalDate().isBefore(boundary),
-                "History item was before dateFrom boundary " + boundary);
+            LocalDateTime postedDate = postedDateOf(historyItem);
+            assertFalse(postedDate.isBefore(inclusiveBoundary),
+                "History item was before dateFrom boundary " + inclusiveBoundary);
         }
     }
 
@@ -394,10 +398,11 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
      */
     @Then("the minor creditor account history response contains only items on or before {string}")
     public void minorCreditorHistoryContainsOnlyItemsOnOrBefore(String dateTo) {
-        LocalDate boundary = LocalDate.parse(dateTo);
+        LocalDateTime exclusiveBoundary = LocalDate.parse(dateTo).plusDays(1).atStartOfDay();
         for (JsonNode historyItem : historyItems()) {
-            assertFalse(postedDateOf(historyItem).toLocalDate().isAfter(boundary),
-                "History item was after dateTo boundary " + boundary);
+            LocalDateTime postedDate = postedDateOf(historyItem);
+            assertTrue(postedDate.isBefore(exclusiveBoundary),
+                "History item was after dateTo boundary " + exclusiveBoundary);
         }
     }
 
@@ -546,6 +551,12 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
 
     private void assertExcludedDate() {
         assertNotNull(excludedDate, "No excluded history fixture date found");
+    }
+
+    private boolean isOnDate(LocalDateTime postedDate, LocalDate expectedDate) {
+        LocalDateTime inclusiveBoundary = expectedDate.atStartOfDay();
+        LocalDateTime exclusiveBoundary = expectedDate.plusDays(1).atStartOfDay();
+        return !postedDate.isBefore(inclusiveBoundary) && postedDate.isBefore(exclusiveBoundary);
     }
 
     private String assertText(JsonNode node, String fieldName) {

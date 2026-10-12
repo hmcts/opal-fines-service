@@ -610,24 +610,27 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     }
 
     private void assertHistoryContainsOnlyItemsOnOrAfter(LocalDate boundary) throws JacksonException {
+        LocalDateTime inclusiveBoundary = boundary.atStartOfDay();
         for (JsonNode historyItem : historyItems()) {
-            LocalDate postedDate = postedDateOf(historyItem).toLocalDate();
-            assertFalse(postedDate.isBefore(boundary), "History item was before dateFrom boundary");
+            LocalDateTime postedDate = postedDateOf(historyItem);
+            assertFalse(postedDate.isBefore(inclusiveBoundary), "History item was before dateFrom boundary");
         }
     }
 
     private void assertHistoryContainsOnlyItemsOnOrBefore(LocalDate boundary) throws JacksonException {
+        LocalDateTime exclusiveBoundary = boundary.plusDays(1).atStartOfDay();
         for (JsonNode historyItem : historyItems()) {
-            LocalDate postedDate = postedDateOf(historyItem).toLocalDate();
-            assertFalse(postedDate.isAfter(boundary), "History item was after dateTo boundary");
+            LocalDateTime postedDate = postedDateOf(historyItem);
+            assertTrue(postedDate.isBefore(exclusiveBoundary), "History item was after dateTo boundary");
         }
     }
 
     private void assertHistoryIncludesItemOn(LocalDate expectedDate) throws JacksonException {
+        LocalDateTime inclusiveBoundary = expectedDate.atStartOfDay();
+        LocalDateTime exclusiveBoundary = expectedDate.plusDays(1).atStartOfDay();
         boolean found = historyItems().stream()
             .map(this::postedDateOf)
-            .map(LocalDateTime::toLocalDate)
-            .anyMatch(expectedDate::equals);
+            .anyMatch(postedDate -> !postedDate.isBefore(inclusiveBoundary) && postedDate.isBefore(exclusiveBoundary));
 
         assertTrue(found, "Expected at least one history item on " + expectedDate);
     }
