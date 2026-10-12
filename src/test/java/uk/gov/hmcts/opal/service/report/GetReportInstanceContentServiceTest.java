@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
@@ -18,9 +19,16 @@ import static uk.gov.hmcts.opal.service.report.GetReportInstanceContentTestData.
 import static uk.gov.hmcts.opal.service.report.GetReportInstanceContentTestData.createTestReportData;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +38,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.context.SecurityContext;
@@ -42,6 +50,10 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
+import uk.gov.hmcts.opal.entity.ReportInstanceFileEntity;
+import uk.gov.hmcts.opal.entity.report.SupportedFileType;
+import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
+import uk.gov.hmcts.opal.repository.ReportInstanceFileRepository;
 import uk.gov.hmcts.opal.repository.ReportInstanceRepository;
 import uk.gov.hmcts.opal.service.blobstore.ReportBlobStore;
 import uk.gov.hmcts.opal.service.report.GetReportInstanceContentTestData.TestReportData;
@@ -49,12 +61,19 @@ import uk.gov.hmcts.opal.service.report.GetReportInstanceContentTestData.TestRep
 @ExtendWith(MockitoExtension.class)
 class GetReportInstanceContentServiceTest {
 
-    private static final String LOCATION = "location";
+    private static final UUID LOCATION = UUID.fromString("00000000-0000-0000-0000-000000000001");
+    private static final UUID GENERATED_FILE_LOCATION = UUID.fromString("00000000-0000-0000-0000-000000000002");
+    private static final UUID EXISTING_FILE_LOCATION = UUID.fromString("00000000-0000-0000-0000-000000000003");
     private static final String REPORT_ID = "report-id";
     private static final String REPORT_JSON = "{\"report_data\":{\"rows\":2}}";
 
     @Mock
     private ReportInstanceRepository reportInstanceRepository;
+
+    @Mock
+    private ReportInstanceFileRepository reportInstanceFileRepository;
+
+    private final Clock clock = Clock.fixed(Instant.parse("2026-10-03T10:15:30Z"), ZoneOffset.UTC);
 
     @Mock
     private ReportRegistry reportRegistry;
@@ -71,7 +90,6 @@ class GetReportInstanceContentServiceTest {
     @Mock
     private OpalJwtAuthenticationToken authToken;
 
-    @InjectMocks
     private GetReportInstanceContentService getReportInstanceContentService;
 
     private ReportInstanceEntity reportInstance;
@@ -86,8 +104,17 @@ class GetReportInstanceContentServiceTest {
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
             List.of((short) 77)
         );
+        reportInstance.setReportInstanceId(1L);
         reportData = createTestReportData();
         storedReportContent = createStoredReportContent(Map.of("rows", 2));
+        getReportInstanceContentService = new GetReportInstanceContentService(
+            reportInstanceRepository,
+            reportInstanceFileRepository,
+            clock,
+            reportRegistry,
+            reportBlobStore,
+            mapper
+        );
     }
 
     @AfterEach
@@ -129,19 +156,24 @@ class GetReportInstanceContentServiceTest {
 
         @Test
         void whenJsonRequestedAndLocationIsMissing_throwsEntityNotFound_sadPath() {
-            mock_reportInstanceAtLocation(" ");
+            mock_reportInstanceAtLocation(null);
             mock_hasPermissionForReportAndBusinessUnit();
 
             assert_reportInstanceContentNotFound(JSON);
         }
 
         @Test
-        void whenJsonRequestedAndBlobContentIsMissing_throwsEntityNotFound_sadPath() {
+        void whenJsonRequestedAndBlobContentIsMissing_throwsMissingStoredReportContentException_sadPath() {
             mock_reportInstanceAtLocation(LOCATION);
             mock_hasPermissionForReportAndBusinessUnit();
+            when(reportBlobStore.getReport(LOCATION))
+                .thenThrow(new MissingStoredReportContentException(LOCATION));
 
             assertAll(
-                () -> assert_reportInstanceContentNotFound(JSON),
+                () -> assertThatThrownBy(() -> getReportInstanceContentService.getReportInstanceContent(1L, JSON))
+                    .isInstanceOf(MissingStoredReportContentException.class)
+                    .hasMessage("Stored report content file '" + LOCATION
+                        + "' was not found for report instance id: 1"),
                 () -> verify(reportBlobStore).getReport(LOCATION)
             );
         }
@@ -163,7 +195,7 @@ class GetReportInstanceContentServiceTest {
         }
 
         @Test
-        void whenCsvRequested_generatesFileContent_happyPath() {
+        void whenCsvRequested_generatesFileContent_happyPath() throws Exception {
             mock_reportInstanceAtLocation(LOCATION);
             mock_reportTemplateLookup();
             mock_storedReportContent(REPORT_JSON);
@@ -175,17 +207,176 @@ class GetReportInstanceContentServiceTest {
             when(mapper.convertValue(Map.of("rows", 2), GetReportInstanceContentTestData.TestReportData.class))
                 .thenReturn(reportData);
             byte[] expected = "a,b".getBytes();
+            when(reportInstanceFileRepository.findByReportInstanceIdAndFileType(1L, SupportedFileType.CSV))
+                .thenReturn(Optional.empty());
             when(reportInterfaceImplementation.convertReportDataToFileType(reportInstance, reportData, CSV))
                 .thenReturn(expected);
+            when(reportBlobStore.storeReport(any())).thenReturn(GENERATED_FILE_LOCATION);
+
+            Object actual = getReportInstanceContentService.getReportInstanceContent(1L, CSV);
+
+            ArgumentCaptor<InputStream> storedFile = ArgumentCaptor.forClass(InputStream.class);
+            ArgumentCaptor<ReportInstanceFileEntity> fileEntity =
+                ArgumentCaptor.forClass(ReportInstanceFileEntity.class);
+
+            assertAll(
+                () -> assertArrayEquals(expected, (byte[]) actual),
+                () -> verify(reportBlobStore).getReport(LOCATION),
+                () -> verify(reportBlobStore).storeReport(storedFile.capture()),
+                () -> assertArrayEquals(expected, storedFile.getValue().readAllBytes()),
+                () -> verify(reportInstanceFileRepository).save(fileEntity.capture()),
+                () -> assertEquals(1L, fileEntity.getValue().getReportInstanceId()),
+                () -> assertEquals(SupportedFileType.CSV, fileEntity.getValue().getFileType()),
+                () -> assertEquals(GENERATED_FILE_LOCATION, fileEntity.getValue().getLocationUuid()),
+                () -> assertEquals(LocalDateTime.now(clock), fileEntity.getValue().getCreatedTimestamp()),
+                () -> assertEquals(LocalDateTime.now(clock), fileEntity.getValue().getLastAccessedTimestamp()),
+                () -> verify(reportInterfaceImplementation, never()).generateReportData(reportInstance),
+                () -> verify(reportInterfaceImplementation)
+                    .convertReportDataToFileType(reportInstance, reportData, CSV)
+            );
+        }
+
+        @Test
+        void whenCsvRequestedAndFileContentAlreadyExists_returnsStoredFileAndUpdatesLastAccessed() {
+            final byte[] expected = "already rendered".getBytes(StandardCharsets.UTF_8);
+            final ReportInstanceFileEntity existingFile = ReportInstanceFileEntity.builder()
+                .reportInstanceId(1L)
+                .fileType(SupportedFileType.CSV)
+                .locationUuid(EXISTING_FILE_LOCATION)
+                .createdTimestamp(LocalDateTime.parse("2026-10-02T10:15:30"))
+                .lastAccessedTimestamp(LocalDateTime.parse("2026-10-02T10:15:30"))
+                .build();
+
+            mock_reportInstanceAtLocation(LOCATION);
+            mock_reportTemplateLookup();
+            mock_storedReportContent(REPORT_JSON);
+            mock_hasPermissionForReportAndBusinessUnit();
+            when(reportInstanceFileRepository.findByReportInstanceIdAndFileType(1L, SupportedFileType.CSV))
+                .thenReturn(Optional.of(existingFile));
+            when(reportBlobStore.getReport(EXISTING_FILE_LOCATION)).thenReturn(expected);
 
             Object actual = getReportInstanceContentService.getReportInstanceContent(1L, CSV);
 
             assertAll(
                 () -> assertArrayEquals(expected, (byte[]) actual),
-                () -> verify(reportBlobStore).getReport(LOCATION),
-                () -> verify(reportInterfaceImplementation, never()).generateReportData(reportInstance),
-                () -> verify(reportInterfaceImplementation)
-                    .convertReportDataToFileType(reportInstance, reportData, CSV)
+                () -> verify(reportBlobStore).getReport(EXISTING_FILE_LOCATION),
+                () -> assertEquals(LocalDateTime.now(clock), existingFile.getLastAccessedTimestamp()),
+                () -> verify(reportInstanceFileRepository).save(existingFile),
+                () -> verify(mapper, never()).readValue(anyString(), eq(StoredReportContent.class)),
+                () -> verify(reportInterfaceImplementation, never()).convertReportDataToFileType(any(), any(), any()),
+                () -> verify(reportBlobStore, never()).storeReport(any())
+            );
+        }
+
+        @Test
+        void retrieveReportContent_whenNoStoredFileExists_returnsEmpty() {
+            when(reportInstanceFileRepository.findByReportInstanceIdAndFileType(1L, SupportedFileType.CSV))
+                .thenReturn(Optional.empty());
+
+            Optional<byte[]> actual = getReportInstanceContentService.retrieveReportContent(reportInstance, CSV);
+
+            assertAll(
+                () -> assertEquals(Optional.empty(), actual),
+                () -> verify(reportBlobStore, never()).getReport(any()),
+                () -> verify(reportInstanceFileRepository, never()).save(any())
+            );
+        }
+
+        @Test
+        void retrieveReportContent_whenStoredFileExists_returnsContentAndUpdatesLastAccessed() {
+            byte[] expected = "cached content".getBytes(StandardCharsets.UTF_8);
+            ReportInstanceFileEntity existingFile = ReportInstanceFileEntity.builder()
+                .reportInstanceId(1L)
+                .fileType(SupportedFileType.CSV)
+                .locationUuid(EXISTING_FILE_LOCATION)
+                .createdTimestamp(LocalDateTime.parse("2026-10-02T10:15:30"))
+                .lastAccessedTimestamp(LocalDateTime.parse("2026-10-02T10:15:30"))
+                .build();
+            when(reportInstanceFileRepository.findByReportInstanceIdAndFileType(1L, SupportedFileType.CSV))
+                .thenReturn(Optional.of(existingFile));
+            when(reportBlobStore.getReport(EXISTING_FILE_LOCATION)).thenReturn(expected);
+
+            Optional<byte[]> actual = getReportInstanceContentService.retrieveReportContent(reportInstance, CSV);
+
+            assertAll(
+                () -> assertArrayEquals(expected, actual.orElseThrow()),
+                () -> verify(reportBlobStore).getReport(EXISTING_FILE_LOCATION),
+                () -> assertEquals(LocalDateTime.now(clock), existingFile.getLastAccessedTimestamp()),
+                () -> verify(reportInstanceFileRepository).save(existingFile)
+            );
+        }
+
+        @Test
+        void retrieveOrGenerateReportContent_whenExistingReportContentIsPresent_returnsExistingContent() {
+            byte[] expected = "cached content".getBytes(StandardCharsets.UTF_8);
+            ReportInstanceFileEntity existingFile = ReportInstanceFileEntity.builder()
+                .reportInstanceId(1L)
+                .fileType(SupportedFileType.CSV)
+                .locationUuid(EXISTING_FILE_LOCATION)
+                .createdTimestamp(LocalDateTime.parse("2026-10-02T10:15:30"))
+                .lastAccessedTimestamp(LocalDateTime.parse("2026-10-02T10:15:30"))
+                .build();
+            when(reportInstanceFileRepository.findByReportInstanceIdAndFileType(1L, SupportedFileType.CSV))
+                .thenReturn(Optional.of(existingFile));
+            when(reportBlobStore.getReport(EXISTING_FILE_LOCATION)).thenReturn(expected);
+
+            byte[] actual = getReportInstanceContentService.retrieveOrGenerateReportContent(
+                1L,
+                reportInstance,
+                REPORT_JSON,
+                reportInterfaceImplementation,
+                CSV
+            );
+
+            assertAll(
+                () -> assertArrayEquals(expected, actual),
+                () -> assertEquals(LocalDateTime.now(clock), existingFile.getLastAccessedTimestamp()),
+                () -> verify(reportInstanceFileRepository).save(existingFile),
+                () -> verify(mapper, never()).readValue(anyString(), eq(StoredReportContent.class)),
+                () -> verify(reportInterfaceImplementation, never()).convertReportDataToFileType(any(), any(), any()),
+                () -> verify(reportBlobStore, never()).storeReport(any())
+            );
+        }
+
+        @Test
+        void retrieveOrGenerateReportContent_whenExistingReportContentIsNotPresent_generatesAndStoresContent()
+            throws Exception {
+            byte[] expected = "generated content".getBytes(StandardCharsets.UTF_8);
+            when(reportInstanceFileRepository.findByReportInstanceIdAndFileType(1L, SupportedFileType.CSV))
+                .thenReturn(Optional.empty());
+            when(mapper.readValue(REPORT_JSON, StoredReportContent.class)).thenReturn(storedReportContent);
+            doReturn(GetReportInstanceContentTestData.TestReportData.class)
+                .when(reportInterfaceImplementation).getStoredReportDataClass(reportInstance);
+            when(mapper.convertValue(Map.of("rows", 2), GetReportInstanceContentTestData.TestReportData.class))
+                .thenReturn(reportData);
+            when(reportInterfaceImplementation.convertReportDataToFileType(reportInstance, reportData, CSV))
+                .thenReturn(expected);
+            when(reportBlobStore.storeReport(any())).thenReturn(GENERATED_FILE_LOCATION);
+
+            byte[] actual = getReportInstanceContentService.retrieveOrGenerateReportContent(
+                1L,
+                reportInstance,
+                REPORT_JSON,
+                reportInterfaceImplementation,
+                CSV
+            );
+
+            ArgumentCaptor<InputStream> storedFile = ArgumentCaptor.forClass(InputStream.class);
+            ArgumentCaptor<ReportInstanceFileEntity> fileEntity =
+                ArgumentCaptor.forClass(ReportInstanceFileEntity.class);
+
+            assertAll(
+                () -> assertArrayEquals(expected, actual),
+                () -> verify(reportInterfaceImplementation).convertReportDataToFileType(reportInstance, reportData,
+                    CSV),
+                () -> verify(reportBlobStore).storeReport(storedFile.capture()),
+                () -> assertArrayEquals(expected, storedFile.getValue().readAllBytes()),
+                () -> verify(reportInstanceFileRepository).save(fileEntity.capture()),
+                () -> assertEquals(1L, fileEntity.getValue().getReportInstanceId()),
+                () -> assertEquals(SupportedFileType.CSV, fileEntity.getValue().getFileType()),
+                () -> assertEquals(GENERATED_FILE_LOCATION, fileEntity.getValue().getLocationUuid()),
+                () -> assertEquals(LocalDateTime.now(clock), fileEntity.getValue().getCreatedTimestamp()),
+                () -> assertEquals(LocalDateTime.now(clock), fileEntity.getValue().getLastAccessedTimestamp())
             );
         }
 
@@ -218,6 +409,8 @@ class GetReportInstanceContentServiceTest {
             reportInstance.setLocation(LOCATION);
             mock_storedReportContent("not-json");
             mock_hasPermissionForReportAndBusinessUnit();
+            when(reportInstanceFileRepository.findByReportInstanceIdAndFileType(1L, SupportedFileType.CSV))
+                .thenReturn(Optional.empty());
             JacksonException parseException = new JacksonException("bad json") {
             };
             when(mapper.readValue("not-json", StoredReportContent.class)).thenThrow(parseException);
@@ -267,7 +460,7 @@ class GetReportInstanceContentServiceTest {
 
     }
 
-    private void mock_reportInstanceAtLocation(String location) {
+    private void mock_reportInstanceAtLocation(UUID location) {
         reportInstance.setLocation(location);
         when(reportInstanceRepository.findById(1L)).thenReturn(Optional.of(reportInstance));
     }
@@ -279,7 +472,7 @@ class GetReportInstanceContentServiceTest {
     }
 
     private void mock_storedReportContent(String reportContent) {
-        when(reportBlobStore.getReport(LOCATION)).thenReturn(reportContent);
+        when(reportBlobStore.getReport(LOCATION)).thenReturn(reportContent.getBytes(StandardCharsets.UTF_8));
     }
 
     private void mock_reportTemplateLookup() {

@@ -108,7 +108,6 @@ class InterfaceJobServiceTest {
         InterfaceFileEntity unsavedFile = InterfaceFileEntity.builder()
             .interfaceJob(savedJob)
             .fileName("auto-payments-in.dat")
-            .records("[{\"account\":\"123\"}]")
             .build();
         InterfaceJobsCreateResponseItem createResponse = InterfaceJobsCreateResponseItem.builder()
             .interfaceJobId(123L)

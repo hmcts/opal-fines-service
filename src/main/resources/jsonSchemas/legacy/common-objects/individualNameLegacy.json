@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Individual Name",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "forenames": {
+      "type": "string"
+    },
+    "surname": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "surname"
+  ]
+}
