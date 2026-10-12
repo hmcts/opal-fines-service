@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
+import uk.gov.hmcts.opal.common.config.ServiceBusConnectionStringParser;
 
 @EnableJms
 @Configuration
