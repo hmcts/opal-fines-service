@@ -68,6 +68,38 @@ public class GetDefendantAccountHistoryLegacyResponse implements ToXmlString {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class LegacyDefendantAccountHistoryDetails {
 
+        @JsonProperty("amendment_details")
+        @XmlElement(name = "amendment_details")
+        private LegacyDefendantAccountHistoryDetails amendmentDetails;
+
+        @JsonProperty("enforcement_details")
+        @XmlElement(name = "enforcement_details")
+        private LegacyDefendantAccountHistoryDetails enforcementDetails;
+
+        @JsonProperty("financial_details")
+        @XmlElement(name = "financial_details")
+        private LegacyDefendantAccountHistoryDetails financialDetails;
+
+        @JsonProperty("transaction_details")
+        @XmlElement(name = "transaction_details")
+        private LegacyDefendantAccountHistoryDetails transactionDetails;
+
+        @JsonProperty("note_details")
+        @XmlElement(name = "note_details")
+        private LegacyDefendantAccountHistoryDetails noteDetails;
+
+        @JsonProperty("payment_terms_details")
+        @XmlElement(name = "payment_terms_details")
+        private LegacyDefendantAccountHistoryDetails paymentTermsDetails;
+
+        @JsonProperty("defendant_transaction_details")
+        @XmlElement(name = "defendant_transaction_details")
+        private LegacyDefendantAccountHistoryDetails defendantTransactionDetails;
+
+        @JsonProperty("payment_terms")
+        @XmlElement(name = "payment_terms")
+        private LegacyDefendantAccountHistoryDetails paymentTerms;
+
         @JsonProperty("attribute_name")
         @XmlElement(name = "attribute_name")
         private String attributeName;
@@ -117,10 +149,6 @@ public class GetDefendantAccountHistoryLegacyResponse implements ToXmlString {
         @JsonProperty("note_text")
         @XmlElement(name = "note_text")
         private String noteText;
-
-        @JsonProperty("note_details")
-        @XmlElement(name = "note_details")
-        private LegacyDefendantAccountNoteDetails noteDetails;
 
         @JsonProperty("transaction_type")
         @XmlElement(name = "transaction_type")
