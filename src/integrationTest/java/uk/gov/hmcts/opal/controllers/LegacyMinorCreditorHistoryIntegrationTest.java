@@ -94,7 +94,6 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             .andExpect(jsonPath("$.historyItems", hasSize(5)))
             .andExpect(jsonPath("$.historyItems[0].type").value("Amendment"))
             .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_date").value("2026-04-01T09:00:00"))
-            .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_date").value("2026-04-01T09:00:00"))
             .andExpect(jsonPath("$.historyItems[0].details.attributeName").value("BACS Account Number"))
             .andExpect(jsonPath("$.historyItems[0].details.oldValue").value("******78"))
             .andExpect(jsonPath("$.historyItems[0].details.newValue").value("******21"))
