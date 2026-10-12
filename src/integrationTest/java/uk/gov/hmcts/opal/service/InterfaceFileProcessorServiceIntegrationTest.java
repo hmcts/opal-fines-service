@@ -150,7 +150,7 @@ class InterfaceFileProcessorServiceIntegrationTest extends AbstractIntegrationTe
 
         assertThat(finesFile.getInterfaceFileId()).isPositive();
         assertThat(finesFile.getFileName()).isEqualTo("test_123");
-        assertThat(finesFile.getSource()).isEqualTo("CAPS_REPORT");
+        assertThat(finesFile.getSource()).isEqualTo("BTECKOH");
         assertThat(finesFile.getSourceJsonId()).isEqualTo(SOURCE_ID);
         assertThat(finesFile.getTransformedJsonId()).isEqualTo(988L);
         assertThat(finesFile.getRecordCount()).isEqualTo((short) 5);
@@ -180,7 +180,7 @@ class InterfaceFileProcessorServiceIntegrationTest extends AbstractIntegrationTe
             .fileName("test_123")
             .checksum("CS123")
             .filestoreUuid(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"))
-            .source(InterfaceFileEnum.CAPS_REPORT)
+            .source(InterfaceFileEnum.BTECKOH)
             .target(InterfaceFileEnum.OPAL)
             .type(InterfaceFileTypeEnum.SOURCE_JSON)
             .domain(InterfaceFileObject.DomainEnum.FINES)
