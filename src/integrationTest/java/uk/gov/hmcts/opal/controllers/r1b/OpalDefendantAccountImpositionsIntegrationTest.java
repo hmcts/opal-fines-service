@@ -119,6 +119,7 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
     @Test
     @DisplayName("OPAL: Get Defendant Account Impositions returns the UI creditor-name scenarios")
     @JiraStory("PO-10570")
+    @JiraEpic("PO-979")
     void getImpositions_returnsUiCreditorNameScenarios() throws Exception {
         MvcResult result = performGetImpositions(99105710000001L)
             .andExpect(status().isOk())
