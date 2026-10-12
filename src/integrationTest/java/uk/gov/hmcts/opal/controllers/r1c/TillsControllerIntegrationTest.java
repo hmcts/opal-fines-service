@@ -54,7 +54,7 @@ class TillsControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2532")
     void getTills_returnsPermittedTills() throws Exception {
         mockMvc.perform(get(URL_BASE)
-                .param("business_unit_ids", "25750", "25751")
+                .param("business_unit_ids", "25750")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -76,8 +76,10 @@ class TillsControllerIntegrationTest extends AbstractIntegrationTest {
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.tills", hasSize(1)))
+            .andExpect(jsonPath("$.tills[0].till_id").value(257501))
             .andExpect(jsonPath("$.tills[0].till_number").value(501))
             .andExpect(jsonPath("$.tills[0].errors").value(2))
+            .andExpect(jsonPath("$.tills[0].payments_count").value(10))
             .andExpect(jsonPath("$.tills[0].file_name").value("luton-allocated.dat"))
             .andExpect(jsonPath("$.tills[0].source").value("NATWEST"))
             .andExpect(jsonPath("$.tills[0].amount").value(1234.56))
@@ -105,14 +107,52 @@ class TillsControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("PO-2575 INT.04 - Returns empty array when no requested BU is permitted")
-    @JiraStory("PO-2575")
+    @DisplayName("PO-10713 INT.01 - Returns forbidden when requested BU is not permitted")
+    @JiraStory("PO-10713")
     @JiraEpic("PO-2532")
-    void getTills_returnsEmptyArrayWhenNoRequestedBusinessUnitIsPermitted() throws Exception {
+    void getTills_whenRequestedBusinessUnitIsNotPermitted_returnsForbidden() throws Exception {
         mockMvc.perform(get(URL_BASE)
                 .param("business_unit_ids", "25751")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Forbidden"))
+            .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.businessUnitId").value(25751));
+    }
+
+    @Test
+    @DisplayName("PO-10713 INT.02 - Uses all permitted BUs when business unit filter is omitted")
+    @JiraStory("PO-10713")
+    @JiraEpic("PO-2532")
+    void getTills_whenBusinessUnitIdsOmitted_returnsTillsForAllPermittedBusinessUnits() throws Exception {
+        userStateStub.addPermissions(
+            (short) 25751,
+            FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS
+        );
+
+        mockMvc.perform(get(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
             .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.tills", hasSize(3)))
+            .andExpect(jsonPath(
+                "$.tills[*].till_number",
+                containsInAnyOrder(501, 502, 503)
+            ));
+    }
+
+    @Test
+    @DisplayName("PO-10713 INT.03 - Returns empty array when filter is omitted and user has no permitted BUs")
+    @JiraStory("PO-10713")
+    @JiraEpic("PO-2532")
+    void getTills_whenBusinessUnitIdsOmittedAndNoPermissions_returnsEmptyArray() throws Exception {
+        userStateStub.setupWithNoPermissions();
+
+        mockMvc.perform(get(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.tills").isArray())
             .andExpect(jsonPath("$.tills").isEmpty());
     }
@@ -135,8 +175,10 @@ class TillsControllerIntegrationTest extends AbstractIntegrationTest {
 
         actions.andExpect(status().isOk());
         assertEquals(Set.of(
+            "till_id",
             "till_number",
             "errors",
+            "payments_count",
             "file_name",
             "source",
             "amount",

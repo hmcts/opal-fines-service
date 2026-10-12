@@ -30,7 +30,7 @@ class GetMajorCreditorAccountHeaderSummaryResponseLegacyMapperTest extends Abstr
                                    .accountNumber("87654321")
                                    .name("Major Creditor Ltd")
                                    .accountReference(CreditorAccountTypeReference.builder()
-                                                         .accountType("MJ")
+                                                         .creditorAccountType("MJ")
                                                          .build())
                                    .build())
                 .businessUnitDetails(BusinessUnitSummary.builder()
