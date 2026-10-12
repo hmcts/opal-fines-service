@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -82,6 +83,75 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
             .originatorName("Originator Name")
             .collectionOrder(Boolean.TRUE)
             .build();
+
+        assertNotNull(actual, "Expected non-null header summary");
+        assertEquals(expected.getDefendantAccountId(), actual.getResponse().getDefendantAccountId());
+        assertEquals(expected.getDebtorType(), actual.getResponse().getDebtorType());
+        assertEquals(expected.getIsYouth(), actual.getResponse().getIsYouth());
+        assertEquals(expected.getAccountNumber(), actual.getResponse().getAccountNumber());
+        assertEquals(expected.getAccountStatusReference().getAccountStatusCode(),
+            actual.getResponse().getAccountStatusReference().getAccountStatusCode());
+        assertEquals(expected.getBusinessUnitSummary().getBusinessUnitName(),
+            actual.getResponse().getBusinessUnitSummary().getBusinessUnitName());
+        assertEquals(expected.getBusinessUnitSummary().getBusinessUnitCode(),
+            actual.getResponse().getBusinessUnitSummary().getBusinessUnitCode());
+        assertEquals(expected.getPaymentStateSummary().getImposedAmount(),
+            actual.getResponse().getPaymentStateSummary().getImposedAmount());
+        assertEquals(expected.getOriginatorType(), actual.getResponse().getOriginatorType());
+        assertEquals(expected.getOriginatorName(), actual.getResponse().getOriginatorName());
+        assertEquals(expected.getCollectionOrder(), actual.getResponse().getCollectionOrder());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetHeaderSummary_withNestedDefendantAccountData_success() {
+        LegacyGetDefendantAccountHeaderSummaryResponse element = createHeaderSummaryResponse();
+        LegacyGetDefendantAccountHeaderSummaryResponse responseBody =
+            LegacyGetDefendantAccountHeaderSummaryResponse.builder().build();
+        responseBody.setDefendantAccounts(List.of(element));
+
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any())).thenReturn(
+            responseBody);
+
+        when(restClient.responseSpec.toEntity(String.class)).thenReturn(
+            new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
+
+        DefendantAccountHeaderSummary actual = legacyDefendantAccountService.getHeaderSummary(1L);
+
+        final GetDefendantAccountHeaderSummary200Response expected =
+            GetDefendantAccountHeaderSummary200Response.builder()
+                .defendantAccountId("1")
+                .debtorType(DebtorTypeEnum.DEFENDANT)
+                .isYouth(false)
+                .accountNumber("SAMPLE")
+                .accountType(AccountTypeEnum.FINE)
+                .accountStatusReference(AccountStatusReferenceCommon.builder()
+                    .accountStatusCode(AccountStatusCodeEnum.L)
+                    .accountStatusDisplayName(null)
+                    .build())
+                .businessUnitSummary(BusinessUnitSummaryCommon.builder()
+                    .businessUnitId((short) 1)
+                    .businessUnitName("Test BU")
+                    .businessUnitCode("0046")
+                    .welshSpeaking("N")
+                    .build())
+                .paymentStateSummary(PaymentStateSummaryCommon.builder()
+                    .imposedAmount(BigDecimal.ZERO)
+                    .arrearsAmount(BigDecimal.ZERO)
+                    .paidAmount(BigDecimal.ZERO)
+                    .accountBalance(BigDecimal.ZERO)
+                    .build())
+                .partyDetails(PartyDetailsCommon.builder()
+                    .partyId("1")
+                    .organisationFlag(false)
+                    .organisationDetails(null)
+                    .individualDetails(null)
+                    .build())
+                .originatorType(OriginatorTypeEnum.NEW)
+                .originatorName("Originator Name")
+                .collectionOrder(Boolean.TRUE)
+                .build();
 
         assertNotNull(actual, "Expected non-null header summary");
         assertEquals(expected.getDefendantAccountId(), actual.getResponse().getDefendantAccountId());

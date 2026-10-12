@@ -84,5 +84,5 @@ public class LegacyGetDefendantAccountHeaderSummaryResponse implements ToXmlStri
 
     @XmlElementWrapper(name = "defendant_accounts")
     @XmlElement(name = "defendant_accounts_element")
-    private List<LegacyGetDefendantAccountHeaderSummaryResponse> defendantAccounts
+    private List<LegacyGetDefendantAccountHeaderSummaryResponse> defendantAccounts;
 }
