@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers.r1b;
 
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -15,14 +16,20 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
+@TestPropertySource(properties = {
+    "launchdarkly.enabled=false",
+    "launchdarkly.default-flag-values.release-1b=true"
+})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.LegacyDefendantsEnforcementIntegrationTest")
@@ -246,7 +253,7 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
         headers.add("Business-Unit-Id", BUSINESS_UNIT_ID);
 
         mockMvc.perform(
-                org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                MockMvcRequestBuilders
                     .patch("/defendant-accounts/72/remove-enf-hold")
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .headers(headers)
@@ -269,7 +276,7 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
         headers.add(HttpHeaders.IF_MATCH, "not-a-version");
 
         mockMvc.perform(
-                org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                MockMvcRequestBuilders
                     .patch("/defendant-accounts/72/remove-enf-hold")
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .headers(headers)
@@ -278,5 +285,35 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
             )
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+    }
+
+    @Test
+    @JiraEpic("PO-978")
+    @JiraStory("PO-10829")
+    @DisplayName("LEGACY: Next enforcement action data not included in response when in R1B mode")
+    void testGetEnforcementStatus_hasNoLastEnforcementActionWhenR1bIsEnabled() throws Exception {
+        ResultActions result = mockMvc.perform(get("/defendant-accounts/1234/enforcement-status")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("Authorization", userStateStub.getBearerToken()));
+
+        result.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.last_enforcement_action.enforcement_action.result_id").value("MPSO"))
+            .andExpect(jsonPath("$.next_enforcement_action_data").doesNotExist());
+    }
+
+    @Test
+    @JiraEpic("PO-978")
+    @JiraStory("PO-10829")
+    @DisplayName("LEGACY: Get enforcement status has no last enforcement action")
+    void testGetEnforcementStatus_hasNoLastEnforcementAction() throws Exception {
+        ResultActions result = mockMvc.perform(get("/defendant-accounts/2009/enforcement-status")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("Authorization", userStateStub.getBearerToken()));
+
+        result.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.last_enforcement_action").doesNotExist())
+            .andExpect(jsonPath("$.next_enforcement_action_data").doesNotExist());
     }
 }

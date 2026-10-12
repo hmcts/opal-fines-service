@@ -2,12 +2,15 @@ package uk.gov.hmcts.opal.dto.legacy;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jakarta.xml.bind.JAXBException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Creditor;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Imposition;
@@ -52,6 +55,31 @@ class GetDefendantAccountImpositionsLegacyResponseTest {
                         </offence>
                         <imposition_id>770000027211</imposition_id>
                     </impositions_element>
+                    <impositions_element>
+                        <creditor>
+                            <creditor_account_type>
+                                <creditor_account_type>MN</creditor_account_type>
+                            </creditor_account_type>
+                            <creditor_account_id>78</creditor_account_id>
+                            <minor_creditor_organisation_flag>true</minor_creditor_organisation_flag>
+                            <company_name>
+                                <organisation_name>Metropolitan Traffic Unit</organisation_name>
+                            </company_name>
+                        </creditor>
+                    </impositions_element>
+                    <impositions_element>
+                        <creditor>
+                            <creditor_account_type>
+                                <creditor_account_type>MN</creditor_account_type>
+                            </creditor_account_type>
+                            <creditor_account_id>79</creditor_account_id>
+                            <minor_creditor_organisation_flag>false</minor_creditor_organisation_flag>
+                            <individual_name>
+                                <forenames>Jane Anne</forenames>
+                                <surname>Smith</surname>
+                            </individual_name>
+                        </creditor>
+                    </impositions_element>
                 </impositions>
             </response>
             """, GetDefendantAccountImpositionsLegacyResponse.class);
@@ -61,10 +89,11 @@ class GetDefendantAccountImpositionsLegacyResponseTest {
         assertAll(
             () -> assertEquals(new BigInteger("18338687664539878704807506660830801130000030349"),
                                response.getVersion()),
-            () -> assertEquals(1, response.getImpositions().size()),
+            () -> assertEquals(3, response.getImpositions().size()),
             () -> assertPostedDetails(imposition.getPostedDetails()),
             () -> assertResult(imposition.getResult()),
             () -> assertCreditor(imposition.getCreditor()),
+            () -> assertMinorCreditors(response.getImpositions()),
             () -> assertEquals(new BigDecimal("-250.00"), imposition.getImposedAmount()),
             () -> assertEquals(new BigDecimal("300.00"), imposition.getPaidAmount()),
             () -> assertEquals(new BigDecimal("50.00"), imposition.getBalance()),
@@ -94,6 +123,23 @@ class GetDefendantAccountImpositionsLegacyResponseTest {
             () -> assertEquals("CF", creditor.getCreditorAccountType().getCreditorAccountType()),
             () -> assertEquals(77L, creditor.getCreditorAccountId()),
             () -> assertEquals("HM Courts & Tribunals Service", creditor.getMajorCreditorName())
+        );
+    }
+
+    private void assertMinorCreditors(List<Imposition> impositions) {
+        Creditor company = impositions.get(1).getCreditor();
+        Creditor individual = impositions.get(2).getCreditor();
+
+        assertAll(
+            () -> assertEquals("MN", company.getCreditorAccountType().getCreditorAccountType()),
+            () -> assertEquals(78L, company.getCreditorAccountId()),
+            () -> assertTrue(company.getMinorCreditorOrganisationFlag()),
+            () -> assertEquals("Metropolitan Traffic Unit", company.getCompanyName().getOrganisationName()),
+            () -> assertEquals("MN", individual.getCreditorAccountType().getCreditorAccountType()),
+            () -> assertEquals(79L, individual.getCreditorAccountId()),
+            () -> assertFalse(individual.getMinorCreditorOrganisationFlag()),
+            () -> assertEquals("Jane Anne", individual.getIndividualName().getForenames()),
+            () -> assertEquals("Smith", individual.getIndividualName().getSurname())
         );
     }
 

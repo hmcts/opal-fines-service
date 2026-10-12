@@ -37,7 +37,7 @@ public class LegacyDefendantAccountBuilders {
     }
 
     static EnforcementStatus toEnforcementStatusResponse(
-        LegacyGetDefendantAccountEnforcementStatusResponse legacy) {
+        LegacyGetDefendantAccountEnforcementStatusResponse legacy, String nextPermittedActions) {
 
         if (legacy == null) {
             return null;
@@ -51,7 +51,7 @@ public class LegacyDefendantAccountBuilders {
             .enforcementOverview(buildEnforcementOverviewDefendantAccount(legacy.getEnforcementOverview()))
             .isHmrcCheckEligible(false)  // Always 'false' for Legacy responses
             .lastEnforcementAction(buildEnforcementActionDefendantAccount(legacy.getLastEnforcementAction()))
-            .nextEnforcementActionData(null) // Not returned from Legacy
+            .nextEnforcementActionData(nextPermittedActions)
             .version(legacy.getVersion())
             .build();
     }

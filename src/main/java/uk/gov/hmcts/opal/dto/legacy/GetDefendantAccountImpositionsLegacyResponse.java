@@ -116,6 +116,15 @@ public class GetDefendantAccountImpositionsLegacyResponse {
 
         @XmlElement(name = "major_creditor_name")
         private String majorCreditorName;
+
+        @XmlElement(name = "minor_creditor_organisation_flag")
+        private Boolean minorCreditorOrganisationFlag;
+
+        @XmlElement(name = "individual_name")
+        private IndividualName individualName;
+
+        @XmlElement(name = "company_name")
+        private CompanyName companyName;
     }
 
     @Data
@@ -127,6 +136,31 @@ public class GetDefendantAccountImpositionsLegacyResponse {
 
         @XmlElement(name = "creditor_account_type")
         private String creditorAccountType;
+    }
+
+    @Data
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class IndividualName {
+
+        @XmlElement(name = "forenames")
+        private String forenames;
+
+        @XmlElement(name = "surname")
+        private String surname;
+    }
+
+    @Data
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class CompanyName {
+
+        @XmlElement(name = "organisation_name")
+        private String organisationName;
     }
 
     @Data

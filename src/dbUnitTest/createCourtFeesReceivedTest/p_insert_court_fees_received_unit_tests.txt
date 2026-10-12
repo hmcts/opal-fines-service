@@ -1,0 +1,44 @@
+Timing is on.
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/createCourtFeesReceivedTest/p_insert_court_fees_received_unit_tests.sql:37: NOTICE:  === Cleanup data before p_insert_court_fees_received tests ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/createCourtFeesReceivedTest/p_insert_court_fees_received_unit_tests.sql:37: NOTICE:  Cleanup completed
+DO
+Time: 25.204 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/createCourtFeesReceivedTest/p_insert_court_fees_received_unit_tests.sql:79: NOTICE:  === Setting up test data for p_insert_court_fees_received tests ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/createCourtFeesReceivedTest/p_insert_court_fees_received_unit_tests.sql:79: NOTICE:  Test data setup completed
+DO
+Time: 4.690 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/createCourtFeesReceivedTest/p_insert_court_fees_received_unit_tests.sql:116: NOTICE:  === TEST 1: Test successful non-overpayment court_fees_received insert ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/createCourtFeesReceivedTest/p_insert_court_fees_received_unit_tests.sql:116: NOTICE:  TEST 1 PASSED
+DO
+Time: 5.536 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/createCourtFeesReceivedTest/p_insert_court_fees_received_unit_tests.sql:151: NOTICE:  === TEST 2: Test successful overpayment court_fees_received insert ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/createCourtFeesReceivedTest/p_insert_court_fees_received_unit_tests.sql:151: NOTICE:  TEST 2 PASSED
+DO
+Time: 0.658 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/createCourtFeesReceivedTest/p_insert_court_fees_received_unit_tests.sql:196: NOTICE:  === TEST 3: Test NULL business_unit_id raises P3205 ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/createCourtFeesReceivedTest/p_insert_court_fees_received_unit_tests.sql:196: NOTICE:  Error in p_insert_court_fees_received: P3205 - Business unit ID cannot be null
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/createCourtFeesReceivedTest/p_insert_court_fees_received_unit_tests.sql:196: NOTICE:  Expected error caught: P3205 - Business unit ID cannot be null
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/createCourtFeesReceivedTest/p_insert_court_fees_received_unit_tests.sql:196: NOTICE:  TEST 3 PASSED
+DO
+Time: 4.981 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/createCourtFeesReceivedTest/p_insert_court_fees_received_unit_tests.sql:242: NOTICE:  === TEST 4: Test NULL overpayment raises P3206 ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/createCourtFeesReceivedTest/p_insert_court_fees_received_unit_tests.sql:242: NOTICE:  Error in p_insert_court_fees_received: P3206 - Overpayment cannot be null
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/createCourtFeesReceivedTest/p_insert_court_fees_received_unit_tests.sql:242: NOTICE:  Expected error caught: P3206 - Overpayment cannot be null
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/createCourtFeesReceivedTest/p_insert_court_fees_received_unit_tests.sql:242: NOTICE:  TEST 4 PASSED
+DO
+Time: 11.444 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/createCourtFeesReceivedTest/p_insert_court_fees_received_unit_tests.sql:289: NOTICE:  === TEST 5: Test NULL number_of_items for non-overpayment raises P3207 ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/createCourtFeesReceivedTest/p_insert_court_fees_received_unit_tests.sql:289: NOTICE:  Error in p_insert_court_fees_received: P3207 - Number of items cannot be null
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/createCourtFeesReceivedTest/p_insert_court_fees_received_unit_tests.sql:289: NOTICE:  Expected error caught: P3207 - Number of items cannot be null
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/createCourtFeesReceivedTest/p_insert_court_fees_received_unit_tests.sql:289: NOTICE:  TEST 5 PASSED
+DO
+Time: 11.330 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/createCourtFeesReceivedTest/p_insert_court_fees_received_unit_tests.sql:324: NOTICE:  === TEST 6: Test NULL number_of_items is allowed for overpayment ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/createCourtFeesReceivedTest/p_insert_court_fees_received_unit_tests.sql:324: NOTICE:  TEST 6 PASSED
+DO
+Time: 1.047 ms
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/createCourtFeesReceivedTest/p_insert_court_fees_received_unit_tests.sql:345: NOTICE:  === Cleanup data after p_insert_court_fees_received tests ===
+psql:/Users/piersbrumby/gob2/repos/opal-fines-service/src/dbUnitTest/createCourtFeesReceivedTest/p_insert_court_fees_received_unit_tests.sql:345: NOTICE:  Cleanup completed
+DO
+Time: 14.630 ms
+Timing is off.

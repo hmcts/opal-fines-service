@@ -62,6 +62,37 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
     }
 
     @Test
+    void createGetDefendantAccountHistoryRequest_nullFilter_defaultsToAllLegacyItemTypes() {
+        // Act
+        GetDefendantAccountHistoryLegacyRequest request =
+            LegacyDefendantAccountService.createGetDefendantAccountHistoryRequest(99000000000001L, null);
+
+        // Assert
+        assertEquals(
+            List.of("Amendment", "Enforcement", "Financial", "Note", "Payment terms"),
+            request.getItemTypes()
+        );
+    }
+
+    @Test
+    void createGetDefendantAccountHistoryRequest_emptyItemTypes_defaultsToAllLegacyItemTypes() {
+        // Arrange
+        DefendantAccountHistoryFilter filter = DefendantAccountHistoryFilter.builder()
+            .itemTypes(List.of())
+            .build();
+
+        // Act
+        GetDefendantAccountHistoryLegacyRequest request =
+            LegacyDefendantAccountService.createGetDefendantAccountHistoryRequest(99000000000001L, filter);
+
+        // Assert
+        assertEquals(
+            List.of("Amendment", "Enforcement", "Financial", "Note", "Payment terms"),
+            request.getItemTypes()
+        );
+    }
+
+    @Test
     void createGetDefendantAccountHistoryRequest_buildsLegacySchemaCompliantJson() {
         // Arrange
         DefendantAccountHistoryFilter filter = DefendantAccountHistoryFilter.builder()
