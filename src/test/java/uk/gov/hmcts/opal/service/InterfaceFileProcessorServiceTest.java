@@ -36,6 +36,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserEnum;
+import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
 import uk.gov.hmcts.opal.entity.InterfaceFileEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobStatus;
@@ -168,6 +169,33 @@ class InterfaceFileProcessorServiceTest {
         assertThatThrownBy(() -> service.process(SOURCE_ID)).isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("transformed interface file ID");
 
+        verifyNoInteractions(interfaceJobRepository, transactionTemplate);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"metadata", "content", "upload"})
+    @DisplayName("Propagates the File Handler exception when processing fails")
+    @JiraStory("PO-6460")
+    @JiraEpic("PO-3497")
+    void process_propagatesFileHandlerFailure(String failingCall) {
+        DownstreamServiceUnavailableException failure = new DownstreamServiceUnavailableException(
+            "File Handler returned HTTP 503", new IllegalStateException("Unexpected response"));
+
+        switch (failingCall) {
+            case "metadata" -> when(fileHandlerAPIService.getInterfaceFile(SYSTEM_USER, SOURCE_ID))
+                .thenThrow(failure);
+            case "content" -> {
+                when(fileHandlerAPIService.getInterfaceFile(SYSTEM_USER, SOURCE_ID)).thenReturn(sourceFile().build());
+                when(fileHandlerAPIService.getInterfaceFileContent(SYSTEM_USER, SOURCE_ID)).thenThrow(failure);
+            }
+            case "upload" -> {
+                stubSuccessfulProcessing(PaymentType.CASH);
+                when(fileHandlerAPIService.addInterfaceFile(eq(SYSTEM_USER), any(), any())).thenThrow(failure);
+            }
+            default -> throw new IllegalArgumentException(failingCall);
+        }
+
+        assertThatThrownBy(() -> service.process(SOURCE_ID)).isSameAs(failure);
         verifyNoInteractions(interfaceJobRepository, transactionTemplate);
     }
 
