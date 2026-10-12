@@ -181,7 +181,7 @@ class InterfaceFileProcessorServiceTest {
         AddInterfaceFileRequestMetadata metadata = metadataCaptor.getValue();
 
         assertThat(metadata.getRelatedInterfaceFileId()).isEqualTo(SOURCE_ID);
-        assertThat(metadata.getSource()).isEqualTo(InterfaceFileEnum.CAPS_REPORT);
+        assertThat(metadata.getSource()).isEqualTo(InterfaceFileEnum.BTECKOH);
         assertThat(metadata.getTarget()).isEqualTo(InterfaceFileEnum.OPAL);
         assertThat(metadata.getType()).isEqualTo(InterfaceFileTypeEnum.TRANSFORMED_JSON);
         assertThat(metadata.getDomain().toString()).isEqualTo("FINES");
@@ -212,7 +212,7 @@ class InterfaceFileProcessorServiceTest {
         assertThat(job.getCompletedDateTime()).isNull();
         assertThat(finesFile.getInterfaceJob()).isSameAs(job);
         assertThat(finesFile.getFileName()).isEqualTo("test_123");
-        assertThat(finesFile.getSource()).isEqualTo("CAPS_REPORT");
+        assertThat(finesFile.getSource()).isEqualTo("BTECKOH");
         assertThat(finesFile.getCreatedDateTime()).isEqualTo(NOW);
         assertThat(finesFile.getSourceJsonId()).isEqualTo(SOURCE_ID);
         assertThat(finesFile.getTransformedJsonId()).isEqualTo(988L);
@@ -239,7 +239,7 @@ class InterfaceFileProcessorServiceTest {
             .fileName("test_123")
             .checksum("CS123")
             .filestoreUuid(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"))
-            .source(InterfaceFileEnum.CAPS_REPORT)
+            .source(InterfaceFileEnum.BTECKOH)
             .target(InterfaceFileEnum.OPAL)
             .type(InterfaceFileTypeEnum.SOURCE_JSON)
             .domain(InterfaceFileObject.DomainEnum.FINES)
