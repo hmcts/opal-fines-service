@@ -267,8 +267,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         return itemType.getResponseValue();
     }
 
-    DefendantAccountHeaderSummary toHeaderSumaryDto(
-        LegacyGetDefendantAccountHeaderSummaryResponse response) {
+    DefendantAccountHeaderSummary toHeaderSumaryDto(LegacyGetDefendantAccountHeaderSummaryResponse response) {
+        response = Optional.ofNullable(response.getDefendantAccounts()).map(List::getFirst).orElse(response)
 
         var legacyParty = response.getPartyDetails();
         PartyDetailsCommon opalPartyDetails = null;

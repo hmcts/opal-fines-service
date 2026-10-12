@@ -1,12 +1,14 @@
 package uk.gov.hmcts.opal.dto.legacy;
 
 
+import jakarta.xml.bind.annotation.XmlElementWrapper;
 import java.math.BigInteger;
 
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -79,4 +81,8 @@ public class LegacyGetDefendantAccountHeaderSummaryResponse implements ToXmlStri
 
     @XmlElement(name = "collection_order")
     private Boolean collectionOrder;
+
+    @XmlElementWrapper(name = "defendant_accounts")
+    @XmlElement(name = "defendant_accounts_element")
+    private List<LegacyGetDefendantAccountHeaderSummaryResponse> defendantAccounts
 }
