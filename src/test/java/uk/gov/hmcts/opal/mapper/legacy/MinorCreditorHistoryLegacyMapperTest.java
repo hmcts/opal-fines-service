@@ -278,7 +278,7 @@ class MinorCreditorHistoryLegacyMapperTest {
             details.getStatus().getCreditorTransactionStatus()
         );
         assertEquals("P", details.getStatus().getCreditorTransactionStatusDisplayName());
-        assertEquals(LocalDateTime.of(2026, 2, 3, 12, 30), details.getStatusDate());
+        assertEquals(LocalDateTime.of(2026, 2, 3, 0, 0), details.getStatusDate());
         assertEquals("Minor creditor", details.getAssociatedRecordType());
         assertEquals("777", details.getAssociatedRecordId());
         assertEquals("MC-1", details.getAccountNumber());
@@ -343,7 +343,7 @@ class MinorCreditorHistoryLegacyMapperTest {
                     .creditorTransactionStatus(status)
                     .creditorTransactionStatusDisplayName("Ignored status")
                     .build())
-                .statusDate(LocalDateTime.of(2026, 2, 3, 12, 30))
+                .statusDate(LocalDate.of(2026, 2, 3))
                 .associatedRecordType("Minor creditor")
                 .associatedRecordId("777")
                 .accountNumber("MC-1")
