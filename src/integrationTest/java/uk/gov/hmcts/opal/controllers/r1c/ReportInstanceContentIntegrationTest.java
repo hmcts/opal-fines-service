@@ -58,6 +58,7 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
     private static final short CASH_TILL_BUSINESS_UNIT_ID = 1778;
     private static final short CASH_LIST_BUSINESS_UNIT_ID = 1777;
     private static final String CASH_TILL_LOCATION = "00000000-0000-0000-0000-000000353000";
+    private static final String CASH_LIST_LOCATION = "00000000-0000-0000-0000-990000343000";
     private static final UUID GENERATED_CSV_LOCATION =
         UUID.fromString("00000000-0000-0000-0000-000000353001");
     private static final UUID EXISTING_CSV_LOCATION =
@@ -68,7 +69,6 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
         "Business Unit,Cash Till Number,Cashier,Date,Type,Details,Payment Type,Amount,Receipt,"
             + "Balance\n"
             + "Cash Till Business Unit,9011,opal-test,26/05/2026,FA,ACC456,NC,125.50,R,124.50\n";
-    private static final String CASH_LIST_LOCATION = "stored-cash-list-report-location";
 
     @Autowired
     private BlobServiceClient blobServiceClient;
@@ -136,7 +136,7 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
         void whenCsvRequested_returnsBinaryContent_happyPath() throws Exception {
             when(uuidProvider.getUuid()).thenReturn(GENERATED_CSV_LOCATION);
 
-            mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept("application/csv"))
+            mockMvc.perform(authorisedGetContent(CASH_TILL_REPORT_INSTANCE_ID).accept("application/csv"))
                 .andExpectAll(
                     status().isOk(),
                     content().contentType("application/csv"),
@@ -159,7 +159,7 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
                 );
 
             Optional<ReportInstanceFileEntity> savedFile = reportInstanceFileRepository
-                .findByReportInstanceIdAndFileType(REPORT_INSTANCE_ID, SupportedFileType.CSV);
+                .findByReportInstanceIdAndFileType(CASH_TILL_REPORT_INSTANCE_ID, SupportedFileType.CSV);
 
             assertThat(savedFile).isPresent();
             assertThat(savedFile.orElseThrow().getLocationUuid()).isEqualTo(GENERATED_CSV_LOCATION);
@@ -178,7 +178,7 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
             long fileCountBefore = reportInstanceFileRepository.count();
             long blobCountBefore = blobCount();
 
-            mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept("application/csv"))
+            mockMvc.perform(authorisedGetContent(CASH_TILL_REPORT_INSTANCE_ID).accept("application/csv"))
                 .andExpectAll(
                     status().isOk(),
                     content().contentType("application/csv"),
@@ -199,7 +199,7 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
             when(uuidProvider.getUuid()).thenReturn(GENERATED_CSV_LOCATION);
             long blobCountBefore = blobCount();
 
-            mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept("application/csv"))
+            mockMvc.perform(authorisedGetContent(CASH_TILL_REPORT_INSTANCE_ID).accept("application/csv"))
                 .andExpectAll(
                     status().isOk(),
                     content().contentType("application/csv"),
@@ -207,12 +207,12 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
                 );
 
             Optional<ReportInstanceFileEntity> savedCsvFile = reportInstanceFileRepository
-                .findByReportInstanceIdAndFileType(REPORT_INSTANCE_ID, SupportedFileType.CSV);
+                .findByReportInstanceIdAndFileType(CASH_TILL_REPORT_INSTANCE_ID, SupportedFileType.CSV);
 
             assertThat(savedCsvFile).isPresent();
             assertThat(savedCsvFile.orElseThrow().getLocationUuid()).isEqualTo(GENERATED_CSV_LOCATION);
             assertThat(reportInstanceFileRepository
-                .findByReportInstanceIdAndFileType(REPORT_INSTANCE_ID, SupportedFileType.PDF)).isPresent();
+                .findByReportInstanceIdAndFileType(CASH_TILL_REPORT_INSTANCE_ID, SupportedFileType.PDF)).isPresent();
             assertThat(readBlob(GENERATED_CSV_LOCATION)).isEqualTo(EXPECTED_CSV_CONTENT);
             assertThat(blobCount()).isEqualTo(blobCountBefore + 1);
         }
@@ -224,7 +224,7 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
             long fileCountBefore = reportInstanceFileRepository.count();
             long blobCountBefore = blobCount();
 
-            mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept(APPLICATION_JSON))
+            mockMvc.perform(authorisedGetContent(CASH_TILL_REPORT_INSTANCE_ID).accept(APPLICATION_JSON))
                 .andExpectAll(
                     status().isOk(),
                     content().contentTypeCompatibleWith(APPLICATION_JSON),
@@ -253,6 +253,7 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
         @JiraStory("PO-3470")
         @JiraEpic("PO-2116")
         void whenCsvRequested_returnsCashListCsv_happyPath() throws Exception {
+            when(uuidProvider.getUuid()).thenReturn(GENERATED_CSV_LOCATION);
             mockMvc.perform(authorisedGetContent(CASH_LIST_REPORT_INSTANCE_ID).accept("application/csv"))
                 .andExpectAll(
                     status().isOk(),
@@ -421,7 +422,7 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
 
     private void saveReportInstanceFile(SupportedFileType fileType, UUID locationUuid) {
         reportInstanceFileRepository.save(ReportInstanceFileEntity.builder()
-            .reportInstanceId(REPORT_INSTANCE_ID)
+            .reportInstanceId(CASH_TILL_REPORT_INSTANCE_ID)
             .fileType(fileType)
             .locationUuid(locationUuid)
             .createdTimestamp(LocalDateTime.parse("2026-05-27T09:30:00"))

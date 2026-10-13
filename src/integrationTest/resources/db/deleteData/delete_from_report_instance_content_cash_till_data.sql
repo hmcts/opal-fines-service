@@ -1,5 +1,5 @@
 DELETE FROM report_instance_files
-WHERE report_instance_id = 99000000353000;
+WHERE report_instance_id IN (99000000353000, 99000000343000);
 
 DELETE FROM payments_in
 WHERE payment_in_id = 99000000353300;

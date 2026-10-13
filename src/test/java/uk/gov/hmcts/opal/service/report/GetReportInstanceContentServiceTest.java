@@ -101,13 +101,6 @@ class GetReportInstanceContentServiceTest {
 
     @BeforeEach
     void setUp() {
-        getReportInstanceContentService = new GetReportInstanceContentService(
-            reportInstanceRepository,
-            reportRegistry,
-            reportBlobStore,
-            mapper,
-            csvService
-        );
         mock_authenticationContext();
         reportInstance = createReportInstanceEntity(
             REPORT_ID,
@@ -123,7 +116,8 @@ class GetReportInstanceContentServiceTest {
             clock,
             reportRegistry,
             reportBlobStore,
-            mapper
+            mapper,
+            csvService
         );
     }
 
@@ -360,8 +354,7 @@ class GetReportInstanceContentServiceTest {
                 .when(reportInterfaceImplementation).getStoredReportDataClass(reportInstance);
             when(mapper.convertValue(Map.of("rows", 2), GetReportInstanceContentTestData.TestReportData.class))
                 .thenReturn(reportData);
-            when(reportInterfaceImplementation.convertReportDataToFileType(reportInstance, reportData, CSV))
-                .thenReturn(expected);
+            when(csvService.convertReportDtoToCSV(reportData)).thenReturn(expected);
             when(reportBlobStore.storeReport(any())).thenReturn(GENERATED_FILE_LOCATION);
 
             byte[] actual = getReportInstanceContentService.retrieveOrGenerateReportContent(
@@ -378,8 +371,10 @@ class GetReportInstanceContentServiceTest {
 
             assertAll(
                 () -> assertArrayEquals(expected, actual),
-                () -> verify(reportInterfaceImplementation).convertReportDataToFileType(reportInstance, reportData,
-                    CSV),
+                () -> verify(reportInterfaceImplementation).validateReportDataForFileType(CSV, reportData),
+                () -> verify(csvService).convertReportDtoToCSV(reportData),
+                () -> verify(reportInterfaceImplementation, never())
+                    .convertReportDataToFileType(reportInstance, reportData, CSV),
                 () -> verify(reportBlobStore).storeReport(storedFile.capture()),
                 () -> assertArrayEquals(expected, storedFile.getValue().readAllBytes()),
                 () -> verify(reportInstanceFileRepository).save(fileEntity.capture()),

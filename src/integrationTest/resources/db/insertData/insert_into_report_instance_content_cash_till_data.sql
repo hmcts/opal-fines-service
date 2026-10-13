@@ -190,7 +190,7 @@ INSERT INTO report_instances (
     1,
     12345678,
     '{"till_id":99000000343100}'::json,
-    'stored-cash-list-report-location',
+    '00000000-0000-0000-0000-990000343000',
     '2026-05-27 09:00:00',
     CAST('READY' AS ri_generation_status_enum),
     'opal-test'
