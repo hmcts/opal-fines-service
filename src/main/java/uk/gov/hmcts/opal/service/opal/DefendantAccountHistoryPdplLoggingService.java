@@ -1,20 +1,20 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import static uk.gov.hmcts.opal.dto.PdplIdentifierType.OPAL_USER_ID;
+import static uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory.CONSULTATION;
+
 import java.time.Clock;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.dto.PdplIdentifierType;
+import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryItem;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
-import uk.gov.hmcts.opal.exception.PdplLoggingException;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
-import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 
 @Service
-@Slf4j(topic = "opal.pdplLoggingService")
 public class DefendantAccountHistoryPdplLoggingService extends AbstractPdplLoggingService {
 
     private static final String BUSINESS_IDENTIFIER = "View Defendant Account History Item";
@@ -30,19 +30,8 @@ public class DefendantAccountHistoryPdplLoggingService extends AbstractPdplLoggi
             return;
         }
 
-        boolean queued;
-        try {
-            queued = logPdpl(BUSINESS_IDENTIFIER, PersonalDataProcessingCategory.CONSULTATION,
-                individuals, null, userState);
-        } catch (RuntimeException ex) {
-            log.error(QUEUE_FAILURE_MESSAGE, ex);
-            throw new PdplLoggingException(QUEUE_FAILURE_MESSAGE, ex);
-        }
-
-        if (!queued) {
-            log.error(QUEUE_FAILURE_MESSAGE);
-            throw new PdplLoggingException(QUEUE_FAILURE_MESSAGE);
-        }
+        logPdplOrThrow(BUSINESS_IDENTIFIER, CONSULTATION, individuals, null, userState.getUserId(),
+            QUEUE_FAILURE_MESSAGE);
     }
 
     private List<ParticipantIdentifier> getUniquePostedUsers(DefendantAccountHistoryResponse response) {
@@ -53,13 +42,10 @@ public class DefendantAccountHistoryPdplLoggingService extends AbstractPdplLoggi
         return response.getHistoryItems().stream()
             .filter(item -> item != null && item.getPostedDetails() != null)
             .map(DefendantAccountHistoryItem::getPostedDetails)
-            .map(postedDetails -> postedDetails.getPostedBy())
-            .filter(identifier -> identifier != null && !identifier.isBlank())
+            .map(PostedDetails::getPostedBy)
+            .filter(StringUtils::isNotBlank)
             .distinct()
-            .map(identifier -> ParticipantIdentifier.builder()
-                .identifier(identifier)
-                .type(PdplIdentifierType.OPAL_USER_ID)
-                .build())
+            .map(identifier -> participant(identifier, OPAL_USER_ID))
             .toList();
     }
 }

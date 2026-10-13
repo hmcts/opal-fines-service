@@ -102,10 +102,14 @@ class DefendantAccountHistoryPdplLoggingServiceTest {
             DefendantAccountHistoryPdplLoggingService pdplLoggingService = service();
             DefendantAccountHistoryResponse response = response(historyItem("user-1001"));
 
-            assertThrows(PdplLoggingException.class,
+            PdplLoggingException exception = assertThrows(PdplLoggingException.class,
                 () -> pdplLoggingService.logHistoryItems(USER_STATE, response));
 
-            verify(loggingService).personalDataAccessLogAsync(any());
+            assertAll(
+                () -> assertEquals("Unable to queue PDPO log for defendant account history", exception.getMessage()),
+                () -> assertNull(exception.getCause()),
+                () -> verify(loggingService).personalDataAccessLogAsync(any())
+            );
         }
 
         @Test
@@ -119,6 +123,7 @@ class DefendantAccountHistoryPdplLoggingServiceTest {
                 () -> pdplLoggingService.logHistoryItems(USER_STATE, response));
 
             assertAll(
+                () -> assertEquals("Unable to queue PDPO log for defendant account history", exception.getMessage()),
                 () -> assertSame(queueFailure, exception.getCause()),
                 () -> verify(loggingService).personalDataAccessLogAsync(any())
             );
