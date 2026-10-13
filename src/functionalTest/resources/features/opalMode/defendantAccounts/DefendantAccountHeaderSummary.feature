@@ -45,7 +45,7 @@ Feature: Defendant Account Header Summary
     And the defendant account header summary error title contains "Forbidden"
     And the defendant account header summary error is non-retriable
 
-  @cleanUpData @JIRA-STORY:PO-2969 @JIRA-EPIC:PO-2630
+  @cleanUpData @JIRA-STORY:PO-2969 @JIRA-EPIC:PO-2630 @ExcludeFromDemoNightlyAsNotLegacy
   Scenario: E2E.05 Non-existent defendant account returns not found
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I request defendant account header summary for a non-existent defendant account
