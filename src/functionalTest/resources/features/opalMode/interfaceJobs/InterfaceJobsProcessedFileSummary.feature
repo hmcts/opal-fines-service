@@ -30,7 +30,7 @@ Feature: Get processed file summary
     Then the request is rejected as not found
 
   @JIRA-STORY:PO-2576 @Ignore @JIRA-DEFECT:PO-10560
-  Scenario: User without payment processing permission is forbidden
+  Scenario: User without payment processing permission is forbidden from viewing processed file summary
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And I create an interface job for processed file summary
     And I submit the interface job for processing

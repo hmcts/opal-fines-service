@@ -1,7 +1,8 @@
+import groovy.io.FileType
 import org.flywaydb.gradle.task.FlywayMigrateTask
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
 import java.util.concurrent.TimeUnit
-import groovy.io.FileType
 
 buildscript {
   ext {
@@ -1141,7 +1142,7 @@ dependencyManagement {
   }
 
   dependencies {
-    dependency group: 'com.google.guava', name: 'guava', version: '33.7.1-jre'
+    dependency group: 'com.google.guava', name: 'guava', version: '33.7.2-jre'
   }
 }
 
@@ -1171,10 +1172,10 @@ ext['postgresql.version'] = '42.7.13'
 
 dependencies {
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.3.30'
+  implementation 'uk.gov.hmcts:opal-common-lib:0.3.35'
 
-  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.2.2'
-  testImplementation 'uk.gov.hmcts:zephyr-automation:1.2.2'
+  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:2.0.1'
+  testImplementation 'uk.gov.hmcts:zephyr-automation:2.0.1'
   testImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.17.2'
 
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.48"
@@ -1215,7 +1216,7 @@ dependencies {
   implementation "org.apache.logging.log4j:log4j-api:${log4JVersion}"
   implementation "org.apache.logging.log4j:log4j-to-slf4j:${log4JVersion}"
   implementation 'org.apache.qpid:qpid-jms-client:2.11.0'
-  implementation 'com.google.guava:guava:33.7.1-jre'
+  implementation 'com.google.guava:guava:33.7.2-jre'
 
   implementation 'com.networknt:json-schema-validator:1.5.9'
   implementation 'com.jayway.jsonpath:json-path:3.0.0'
@@ -1263,7 +1264,7 @@ dependencies {
     }
   }
 
-  testImplementation 'org.wiremock.integrations:wiremock-spring-boot:4.2.3'
+  testImplementation 'org.wiremock.integrations:wiremock-spring-boot:4.4.3'
 
   testImplementation 'org.springframework.boot:spring-boot-devtools'
   testImplementation 'org.springframework.boot:spring-boot-test'

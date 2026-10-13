@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,6 +38,8 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 public class DeleteReportInstancesIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL = "/testing-support/report-instances";
+    private static final UUID LOCATION_9001 = UUID.fromString("00000000-0000-0000-0000-000000009001");
+    private static final UUID LOCATION_9002 = UUID.fromString("00000000-0000-0000-0000-000000009002");
 
     @Autowired
     private ReportInstanceRepository reportInstanceRepository;
@@ -49,6 +52,7 @@ public class DeleteReportInstancesIntegrationTest extends AbstractIntegrationTes
     @JiraStory("PO-10660")
     @JiraEpic("PO-2532")
     void shouldDeleteReportInstancesAndStoredContent() throws Exception {
+
         assertThat(reportInstanceRepository.findAllById(List.of(9001L, 9002L, 9003L))).hasSize(3);
 
         ResultActions actions = mockMvc.perform(delete(URL)
@@ -59,8 +63,8 @@ public class DeleteReportInstancesIntegrationTest extends AbstractIntegrationTes
 
         assertThat(reportInstanceRepository.findAllById(List.of(9001L, 9002L))).isEmpty();
         assertThat(reportInstanceRepository.findById(9003L)).isPresent();
-        verify(reportBlobStore).deleteReport("location-9001");
-        verify(reportBlobStore).deleteReport("location-9002");
+        verify(reportBlobStore).deleteReport(LOCATION_9001);
+        verify(reportBlobStore).deleteReport(LOCATION_9002);
     }
 
     @Test
