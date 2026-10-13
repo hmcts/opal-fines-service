@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.service.AlternatePaymentReferenceService;
 
 @RestController
-@RequestMapping("/defendant-account")
+@RequestMapping("/defendant-accounts")
 @RequiredArgsConstructor
 @Slf4j(topic = "opal.AlternatePaymentReferenceController")
 @Tag(name = "Alternate Payment Reference Controller")
