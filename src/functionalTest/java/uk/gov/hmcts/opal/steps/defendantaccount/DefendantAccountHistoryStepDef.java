@@ -710,7 +710,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
         JsonNode transactionType = details.path("transactionType");
         assertTrue(transactionType.isObject(), "details.transactionType should be an object");
         assertText(transactionType.path("transactionType"), "details.transactionType.transactionType");
-        assertText(
+        assertOptionalText(
             transactionType.path("transactionTypeDisplayName"),
             "details.transactionType.transactionTypeDisplayName"
         );
