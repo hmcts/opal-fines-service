@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j(topic = "opal.AlternatePaymentReferenceController")
 public class AlternatePaymentReferenceService {
 
 }
