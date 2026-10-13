@@ -54,6 +54,9 @@ testcontainers:
 legacy-gateway:
   url: http://localhost:4553/opal
 opal:
+  ref-data:
+    service-bus:
+      connection-string: ${SERVICEBUS_REF_DATA_CONNECTION_STRING:Endpoint=sb://localhost/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=local;UseDevelopmentEmulator=true}
   report:
     consumer:
       enabled: false

@@ -9,4 +9,6 @@ public class RefDataServiceBusProperties {
     private String topicName;
     private String subscriptionName;
     private boolean consumerEnabled;
+    private String connectionString;
+    private String fullyQualifiedNamespace;
 }

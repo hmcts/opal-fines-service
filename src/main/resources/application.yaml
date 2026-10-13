@@ -168,6 +168,7 @@ opal:
       publisher-enabled: ${REPORT_PUBLISHER_ENABLED:true}
   ref-data:
     service-bus:
+      fully-qualified-namespace: ${SERVICEBUS_REF_DATA_FULLY_QUALIFIED_NAMESPACE:${SERVICEBUS_FULLY_QUALIFIED_NAMESPACE:}}
       topic-name: ${SERVICEBUS_REF_DATA_TOPIC_NAME:ref-data}
       subscription-name: ${SERVICEBUS_REF_DATA_SUBSCRIPTION_NAME:ref-data}
       consumer-enabled: ${REF_DATA_CONSUMER_ENABLED:true}

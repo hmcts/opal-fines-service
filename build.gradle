@@ -940,6 +940,7 @@ dependencies {
   openapiImplementation "tools.jackson.dataformat:jackson-dataformat-yaml"
 
   implementation 'com.microsoft.azure:applicationinsights-web:3.7.9'
+  implementation 'com.azure:azure-identity:1.17.0'
   implementation 'com.azure:azure-storage-blob:12.35.0'
   implementation 'com.azure:azure-messaging-servicebus:7.17.19'
   implementation 'org.springframework.boot:spring-boot-flyway'

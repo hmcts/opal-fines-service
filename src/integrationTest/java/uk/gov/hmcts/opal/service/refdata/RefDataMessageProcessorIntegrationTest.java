@@ -37,7 +37,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
 
     private static final String REF_DATA_MESSAGE_SCHEMA = "ref-data/ref_data_schema.json";
 
-    private final RefDataMessageProcessor consumer;
+    private final RefDataMessageProcessor messageProcessor;
     private final LocalJusticeAreaRepository localJusticeAreaRepository;
     private final PlatformTransactionManager transactionManager;
 
@@ -68,7 +68,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
         entityManager.flush();
         entityManager.clear();
 
-        consumer.processMessage(buildRefDataLjaMessage("LJA", 1, true, String.valueOf(localJusticeAreaId),
+        messageProcessor.processMessage(buildRefDataLjaMessage("LJA", 1, true, String.valueOf(localJusticeAreaId),
             "Updated LJA", "2027-03-04",
             "New address line 1", "New address line 2", "New address line 3", "New address line 4",
             "NE1 2BB"));
@@ -96,7 +96,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
         String ljaCode = "124";
         final long beforeCount = localJusticeAreaRepository.count();
 
-        consumer.processMessage(buildRefDataLjaMessage("LJA", 1, true, ljaCode, "Created LJA", "2027-03-04",
+        messageProcessor.processMessage(buildRefDataLjaMessage("LJA", 1, true, ljaCode, "Created LJA", "2027-03-04",
             "New address line 1", "New address line 2", "New address line 3", "New address line 4",
             "NE1 2BB"));
 
@@ -138,7 +138,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
         entityManager.flush();
         entityManager.clear();
 
-        consumer.processMessage(buildRefDataLjaMessage("LJA", 1, true, ljaCode, "Ignored LJA", "2027-03-04",
+        messageProcessor.processMessage(buildRefDataLjaMessage("LJA", 1, true, ljaCode, "Ignored LJA", "2027-03-04",
             "New address line 1", "New address line 2", "New address line 3", "New address line 4",
             "NE1 2BB"));
 
@@ -191,7 +191,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
 
         try {
             assertThatThrownBy(() -> requiresNewTransaction.execute(status -> {
-                consumer.processMessage(message);
+                messageProcessor.processMessage(message);
                 return null;
             }))
                 .isInstanceOf(RuntimeException.class);
@@ -225,7 +225,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
         final String ljaCode = original.getLjaCode() == null ? "Z125" : original.getLjaCode();
         final long beforeCount = localJusticeAreaRepository.count();
 
-        assertThatThrownBy(() -> consumer.processMessage(buildRefDataLjaMessage("LJA", 1, false, ljaCode,
+        assertThatThrownBy(() -> messageProcessor.processMessage(buildRefDataLjaMessage("LJA", 1, false, ljaCode,
             "Updated LJA", "2027-03-04", "New address line 1", "New address line 2",
             "New address line 3", "New address line 4", "NE1 2BB")))
             .isInstanceOf(JsonSchemaValidationException.class)
@@ -259,7 +259,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
             entityManager.clear();
         }
 
-        assertThatThrownBy(() -> consumer.processMessage(buildRefDataLjaMessage("LJA", 0, true, ljaCode,
+        assertThatThrownBy(() -> messageProcessor.processMessage(buildRefDataLjaMessage("LJA", 0, true, ljaCode,
             "Updated LJA", "2027-03-04", "New address line 1", "New address line 2", "New address line 3",
             "New address line 4", "NE1 2BB")))
             .isInstanceOf(JsonSchemaValidationException.class)
@@ -280,7 +280,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
     void processMessage_throwsSchemaValidationExceptionWhenUnknownRefDataTypeIsSupplied() {
         final long beforeCount = localJusticeAreaRepository.count();
 
-        assertThatThrownBy(() -> consumer.processMessage(buildRefDataLjaMessage("UNKNOWN_REF_DATA_TYPE", 1, true,
+        assertThatThrownBy(() -> messageProcessor.processMessage(buildRefDataLjaMessage("UNKNOWN_REF_DATA_TYPE", 1, true,
             "Z127", "Unknown", "2027-03-04", "New address line 1", "New address line 2",
             "New address line 3", "New address line 4", "NE1 2BB")))
             .isInstanceOf(JsonSchemaValidationException.class)
@@ -294,7 +294,7 @@ class RefDataMessageProcessorIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void processMessage_throwsIllegalArgumentExceptionWhenPayloadIsNotJson() {
-        assertThatThrownBy(() -> consumer.processMessage("not-json"))
+        assertThatThrownBy(() -> messageProcessor.processMessage("not-json"))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Unable to parse ref data message");
     }

@@ -1,27 +1,36 @@
 package uk.gov.hmcts.opal.service.refdata;
 
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import com.azure.messaging.servicebus.ServiceBusClientBuilder;
 import com.azure.messaging.servicebus.ServiceBusMessage;
 import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
 import com.azure.messaging.servicebus.ServiceBusReceiverClient;
 import com.azure.messaging.servicebus.ServiceBusSenderClient;
-import com.azure.messaging.servicebus.models.ServiceBusReceiveMode;
-import java.time.Duration;
+import com.azure.messaging.servicebus.models.SubQueue;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+//we need to be care receiving messages here while the main receiver is running.
+//So don't think we can use a receiver to see if queue is empty.
+//also consider this ui  image: ghcr.io/veselovandrey/servicebusviewer:latest
 
 @Slf4j(topic = "opal.JsonFileTopicMessagePublisher")
 @Service
 public class EmulatorUtil implements AutoCloseable {
 
     private final ServiceBusSenderClient senderClient;
-    private final ServiceBusReceiverClient receiverClient;
+    private final ServiceBusReceiverClient queueReceiver;
+    private final ServiceBusReceiverClient dlqReceiver;
 
     public static String CONNECTION_STRING =
-        "Endpoint=sb://localhost:5672;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true;";
-    public static String TOPIC = "topic.sr2";
-    public static String SUBSCRIPTION = "subscription.1";
+        "Endpoint=sb://localhost;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true;";
+    public static String TOPIC = "topic.refdata";
+    public static String SUBSCRIPTION = "subscription.refdata";
 
     EmulatorUtil() {
         senderClient = new ServiceBusClientBuilder()
@@ -29,15 +38,18 @@ public class EmulatorUtil implements AutoCloseable {
             .sender()
             .topicName(TOPIC)
             .buildClient();
-
-        //ServiceBusAdministrationClient doesn;t work with Java/Spring
-        //The fact that getTotalMessageCount() is throwing an exception is because the local Azure Service Bus emulator does not implement the underlying metrics payload expected by the administration client. Under the hood, the emulator returns a simplified XML/JSON response to the management HTTP port, missing the nested data blocks the Java SDK looks for.
-        receiverClient = new ServiceBusClientBuilder()
+        queueReceiver = new ServiceBusClientBuilder()
             .connectionString(CONNECTION_STRING)
             .receiver()
             .topicName(TOPIC)
             .subscriptionName(SUBSCRIPTION)
-            .receiveMode(ServiceBusReceiveMode.RECEIVE_AND_DELETE)
+            .buildClient();
+        dlqReceiver = new ServiceBusClientBuilder()
+            .connectionString(CONNECTION_STRING)
+            .receiver()
+            .topicName(TOPIC)
+            .subscriptionName(SUBSCRIPTION)
+            .subQueue(SubQueue.DEAD_LETTER_QUEUE)
             .buildClient();
     }
 
@@ -53,13 +65,26 @@ public class EmulatorUtil implements AutoCloseable {
         }
     }
 
-    public List<ServiceBusReceivedMessage> getMessagesLeftOnTopicSubscription() {
-        return receiverClient.receiveMessages(10, Duration.ofMillis(500)).stream().toList();
+    public List<String> peekQueueMessages() {
+        List<String> messages = new ArrayList<>();
+        queueReceiver.peekMessages(10).forEach(message -> {
+            messages.add(message.getBody().toString());
+        });
+        return messages;
+    }
+
+    public List<String> peekDlqMessages() {
+        List<String> messages = new ArrayList<>();
+        dlqReceiver.peekMessages(10).forEach(message -> {
+            messages.add(message.getBody().toString());
+        });
+        return messages;
     }
 
     @Override
     public void close() {
         senderClient.close();
-        receiverClient.close();
+        queueReceiver.close();
+        dlqReceiver.close();
     }
 }

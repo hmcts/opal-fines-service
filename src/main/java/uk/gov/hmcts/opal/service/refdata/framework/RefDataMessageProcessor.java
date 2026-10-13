@@ -38,6 +38,8 @@ public class RefDataMessageProcessor {
 
     @Transactional
     public void processMessage(String messagePayload) {
+
+        System.out.println("Starting processing of message payload: " + messagePayload);
         if (!featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
             FeatureFlags.REF_DATA_MESSAGE_PROCESSING,
             FeatureFlags.REF_DATA_MESSAGE_PROCESSING_ENABLED_PROPERTY,
@@ -74,6 +76,7 @@ public class RefDataMessageProcessor {
         associatedCaches.forEach(
             this::clearCache
         );
+        System.out.println("Finished processing of message payload: " + messagePayload);
     }
 
     private JsonNode readMessageNode(String messagePayload) {
