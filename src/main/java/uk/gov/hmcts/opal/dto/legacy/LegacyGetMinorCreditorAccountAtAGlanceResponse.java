@@ -38,6 +38,9 @@ import uk.gov.hmcts.opal.dto.legacy.common.LegacyPayment;
 @Builder
 public class LegacyGetMinorCreditorAccountAtAGlanceResponse implements ToXmlString, HasErrorResponse {
 
+    @XmlElement(name = "error_response")
+    private ErrorResponse errorResponse;
+
     @XmlElement(name = "party_details", required = true)
     private LegacyPartyDetails party;
 
@@ -55,9 +58,6 @@ public class LegacyGetMinorCreditorAccountAtAGlanceResponse implements ToXmlStri
 
     @XmlElement(name = "payment")
     private LegacyPayment payment;
-
-    @XmlElement(name = "error_response")
-    private ErrorResponse errorResponse;
 
     @Data
     @NoArgsConstructor

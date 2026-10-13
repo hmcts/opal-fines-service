@@ -9,6 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
+import uk.gov.hmcts.opal.common.legacy.model.HasErrorResponse;
 import uk.gov.hmcts.opal.dto.ToXmlString;
 import uk.gov.hmcts.opal.dto.legacy.common.CommentsAndNotes;
 import uk.gov.hmcts.opal.dto.legacy.common.EnforcementStatusSummary;
@@ -22,7 +24,10 @@ import uk.gov.hmcts.opal.dto.legacy.common.PaymentTermsSummary;
 @AllArgsConstructor
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "response")
-public class LegacyGetDefendantAccountAtAGlanceResponse implements ToXmlString {
+public class LegacyGetDefendantAccountAtAGlanceResponse implements ToXmlString, HasErrorResponse {
+
+    @XmlElement(name = "error_response")
+    private ErrorResponse errorResponse;
 
     @XmlElement(name = "version", required = true)
     private BigInteger version;
