@@ -4,6 +4,10 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
+    "count": {
+      "type": "integer",
+      "description": "Number of consolidated accounts returned in consolidated_accounts."
+    },
     "version": {
       "type": "integer",
       "description": "Account Version: version of the master account provided in the request."
@@ -17,6 +21,7 @@
     }
   },
   "required": [
+    "count",
     "version",
     "consolidated_accounts"
   ]
