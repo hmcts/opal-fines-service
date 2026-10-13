@@ -8,8 +8,7 @@ Feature: Process interface jobs
     When I submit the eligible interface jobs for processing
     Then the process response is 200 with an empty body
 
-  # Ignored because the endpoint used to seed interface-job data was broken by EICC work. See PO-10961.
-  @JIRA-STORY:PO-2593 @Ignore @JIRA-DEFECT:PO-10961
+  @JIRA-STORY:PO-2593
   Scenario: Mixed interface-job statuses return conflict without partial processing
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And I create an interface job that has already begun processing and an unprocessed interface job
