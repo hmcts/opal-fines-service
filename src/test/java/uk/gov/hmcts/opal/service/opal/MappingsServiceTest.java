@@ -32,9 +32,21 @@ class MappingsServiceTest {
             () -> mappingsService.getMappings("unsupported-type"));
 
         assertEquals(
-            "Unsupported mapping type: unsupported-type. Supported types: defendant-account-status",
+            "Unsupported mapping type: unsupported-type. Supported types: defendant-account-status, file-type",
             exception.getMessage()
         );
-        assertEquals(List.of("defendant-account-status"), exception.getSupportedTypes());
+        assertEquals(List.of("defendant-account-status", "file-type"), exception.getSupportedTypes());
+    }
+
+    @Test
+    void getMappings_returnsSupportedFileTypeMappings() {
+        List<MappingItemMappings> mappings = mappingsService.getMappings("file-type");
+
+        assertEquals(List.of(
+            MappingItemMappings.builder().code("CSV").displayName("CSV").mimeType("text/csv").build(),
+            MappingItemMappings.builder().code("PDF").displayName("PDF").mimeType("application/pdf").build(),
+            MappingItemMappings.builder().code("JSON").displayName("JSON").mimeType("application/json").build(),
+            MappingItemMappings.builder().code("XML").displayName("XML").mimeType("application/xml").build()
+        ), mappings);
     }
 }
