@@ -2,23 +2,25 @@
 Feature: Defendant Account Impositions API In Legacy Mode
 
   Scenario: Existing defendant account impositions are returned from the legacy stub
-    When I request legacy defendant account impositions for defendant account "99000000000006"
+    When I request legacy defendant account impositions for defendant account "730000004745"
 
     Then the request succeeds
-    And the legacy defendant account impositions response has ETag "\"18338687664539878704807506660830801130000030354\""
+    And the legacy defendant account impositions response has ETag "\"1914683492368317065449543989290119028490000013512\""
     And the legacy defendant account impositions response contains
-      | impositions[0].date_added                   | 2026-08-19                         |
-      | impositions[0].date_imposed                 | 2025-05-15                         |
-      | impositions[0].imposition.result_id         | FO                                 |
-      | impositions[0].imposition.result_title      | FINE                               |
-      | impositions[0].creditor.creditor_account_id | 77                                 |
-      | impositions[0].creditor.account_type        | CF                                 |
-      | impositions[0].creditor.display_name        | Central Fund                       |
-      | impositions[0].creditor.name                | HM Courts & Tribunals Service      |
-      | impositions[0].imposed_amount               | 250.0                              |
-      | impositions[0].paid_amount                  | 300.0                              |
-      | impositions[0].balance                      | 50.0                               |
-      | impositions[0].offence.id                   | 33369                              |
-      | impositions[0].offence.code                 | HY35014                            |
-      | impositions[0].offence.title                | Riding a bicycle on a footpath     |
-      | impositions[0].imposition_id                | 770000027211                       |
+      | impositions[0].date_added                                                         | 2026-06-05                         |
+      | impositions[0].date_imposed                                                       | 2026-01-01                         |
+      | impositions[0].imposition.result_id                                               | FCOMP                              |
+      | impositions[0].imposition.result_title                                            | COMPENSATION                       |
+      | impositions[0].creditor.creditor_account_id                                       | 20730000001166                     |
+      | impositions[0].creditor.creditor_account_type_reference.creditor_account_type      | MN                                 |
+      | impositions[0].creditor.creditor_account_type_reference.creditor_account_display_name | Minor Creditor                  |
+      | impositions[0].creditor.minor_creditor_organisation_flag                          | false                              |
+      | impositions[0].creditor.individual_name.forenames                                 | Davey                              |
+      | impositions[0].creditor.individual_name.surname                                   | Davidson                           |
+      | impositions[0].imposed_amount                                                     | 10.0                               |
+      | impositions[0].paid_amount                                                        | 0.0                                |
+      | impositions[0].balance                                                            | -10.0                              |
+      | impositions[0].offence.offence_id                                                 | 38158                              |
+      | impositions[0].offence.cjs_code                                                   | CJ94017                            |
+      | impositions[0].offence.offence_title                                              | Aggravated trespass - fail to leave land |
+      | impositions[0].imposition_id                                                      | 730000013514                       |
