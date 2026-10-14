@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import jakarta.xml.bind.JAXBException;
 import java.math.BigDecimal;
@@ -17,6 +18,7 @@ import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Offence;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.PostedDetails;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Result;
+import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
 import uk.gov.hmcts.opal.util.XmlUtil;
 
 class GetDefendantAccountImpositionsLegacyResponseTest {
@@ -53,6 +55,10 @@ class GetDefendantAccountImpositionsLegacyResponseTest {
                             <cjs_code>HY35014</cjs_code>
                             <offence_title>Riding a bicycle on a footpath</offence_title>
                         </offence>
+                        <imposing_court>
+                            <court_id>101</court_id>
+                            <court_name>Legacy Court</court_name>
+                        </imposing_court>
                         <imposition_id>770000027211</imposition_id>
                     </impositions_element>
                     <impositions_element>
@@ -99,6 +105,7 @@ class GetDefendantAccountImpositionsLegacyResponseTest {
             () -> assertEquals(new BigDecimal("50.00"), imposition.getBalance()),
             () -> assertEquals(LocalDate.parse("2025-05-15"), imposition.getDateImposed()),
             () -> assertOffence(imposition.getOffence()),
+            () -> assertImposingCourt(imposition.getImposingCourt()),
             () -> assertEquals(770000027211L, imposition.getImpositionId())
         );
     }
@@ -148,6 +155,14 @@ class GetDefendantAccountImpositionsLegacyResponseTest {
             () -> assertEquals(33369L, offence.getOffenceId()),
             () -> assertEquals("HY35014", offence.getCjsCode()),
             () -> assertEquals("Riding a bicycle on a footpath", offence.getOffenceTitle())
+        );
+    }
+
+    private void assertImposingCourt(CourtReference imposingCourt) {
+        assertAll(
+            () -> assertEquals(101L, imposingCourt.getCourtId()),
+            () -> assertNull(imposingCourt.getCourtCode()),
+            () -> assertEquals("Legacy Court", imposingCourt.getCourtName())
         );
     }
 }
