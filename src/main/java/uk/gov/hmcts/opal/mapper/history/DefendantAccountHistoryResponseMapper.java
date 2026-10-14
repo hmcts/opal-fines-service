@@ -72,12 +72,22 @@ public interface DefendantAccountHistoryResponseMapper {
 
     InstalmentPeriodCommon toGeneratedInstalmentPeriod(InstalmentPeriod instalmentPeriod);
 
+    @Mapping(target = "transactionType", source = ".", qualifiedByName = "normalizeTransactionType")
     DefendantTransactionTypeReferenceCommon toGeneratedTransactionType(
         DefendantTransactionTypeReference transactionType);
 
     PaymentMethodReferenceCommon toGeneratedPaymentMethod(PaymentMethodReference paymentMethod);
 
     WriteOffTypeReferenceCommon toGeneratedWriteOffType(WriteOffTypeReference writeOffType);
+
+    @Named("normalizeTransactionType")
+    default String normalizeTransactionType(DefendantTransactionTypeReference transactionType) {
+        if (transactionType == null) {
+            return null;
+        }
+        String value = transactionType.getTransactionType();
+        return value == null ? null : value.replace(" ", "");
+    }
 
     default DefendantTransactionStatusReferenceCommon toGeneratedTransactionStatus(
         DefendantTransactionStatusReference status) {

@@ -1,7 +1,8 @@
+import groovy.io.FileType
 import org.flywaydb.gradle.task.FlywayMigrateTask
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
 import java.util.concurrent.TimeUnit
-import groovy.io.FileType
 
 buildscript {
   ext {
@@ -17,7 +18,7 @@ buildscript {
   }
 
   dependencies {
-    classpath("org.flywaydb:flyway-database-postgresql:13.9.0")
+    classpath("org.flywaydb:flyway-database-postgresql:13.10.0")
     // Pin transitive Cucumber artifacts used by the Serenity Gradle plugin to avoid
     // Maven metadata range lookups on CI when Maven Central is rate limiting.
     classpath("io.cucumber:query:${cucumberQueryVersion}")
@@ -33,9 +34,9 @@ plugins {
   id 'io.github.ben-manes.versions' version '0.64.0'
   id 'org.sonarqube' version '7.5.0.8588'
   id 'uk.gov.hmcts.java' version '0.12.70'
-  id 'org.flywaydb.flyway' version '13.9.0'
+  id 'org.flywaydb.flyway' version '13.10.0'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '5.3.9'
-  id "org.openapi.generator" version "7.25.0"
+  id "org.openapi.generator" version "7.26.0"
 }
 
 ext {
@@ -436,7 +437,7 @@ tasks.withType(Test).configureEach {
   testLogging {
     exceptionFormat = 'full'
   }
-  maxHeapSize = "2g"
+  maxHeapSize = "4g" // THIS IS A TEMP FIX, AND SHOULD BE REMOVED AS SOON AS PO-8964 IS COMPLETE
   failFast = false
 }
 
@@ -1141,7 +1142,7 @@ dependencyManagement {
   }
 
   dependencies {
-    dependency group: 'com.google.guava', name: 'guava', version: '33.7.1-jre'
+    dependency group: 'com.google.guava', name: 'guava', version: '33.7.2-jre'
   }
 }
 
@@ -1171,10 +1172,10 @@ ext['postgresql.version'] = '42.7.13'
 
 dependencies {
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.3.30'
+  implementation 'uk.gov.hmcts:opal-common-lib:0.3.35'
 
-  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:1.2.2'
-  testImplementation 'uk.gov.hmcts:zephyr-automation:1.2.2'
+  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:2.0.1'
+  testImplementation 'uk.gov.hmcts:zephyr-automation:2.0.1'
   testImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.17.2'
 
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.48"
@@ -1215,14 +1216,14 @@ dependencies {
   implementation "org.apache.logging.log4j:log4j-api:${log4JVersion}"
   implementation "org.apache.logging.log4j:log4j-to-slf4j:${log4JVersion}"
   implementation 'org.apache.qpid:qpid-jms-client:2.11.0'
-  implementation 'com.google.guava:guava:33.7.1-jre'
+  implementation 'com.google.guava:guava:33.7.2-jre'
 
   implementation 'com.networknt:json-schema-validator:1.5.9'
   implementation 'com.jayway.jsonpath:json-path:3.0.0'
 
-  implementation 'org.openapitools:jackson-databind-nullable:0.2.11'
-  implementation 'org.flywaydb:flyway-core:13.9.0'
-  runtimeOnly 'org.flywaydb:flyway-database-postgresql:13.9.0', {
+  implementation 'org.openapitools:jackson-databind-nullable:0.2.12'
+  implementation 'org.flywaydb:flyway-core:13.10.0'
+  runtimeOnly 'org.flywaydb:flyway-database-postgresql:13.10.0', {
     exclude group: 'org.flywaydb', module: 'flyway-core'
   }
   implementation 'org.postgresql:postgresql'
@@ -1263,7 +1264,7 @@ dependencies {
     }
   }
 
-  testImplementation 'org.wiremock.integrations:wiremock-spring-boot:4.2.3'
+  testImplementation 'org.wiremock.integrations:wiremock-spring-boot:4.4.3'
 
   testImplementation 'org.springframework.boot:spring-boot-devtools'
   testImplementation 'org.springframework.boot:spring-boot-test'
@@ -1303,7 +1304,7 @@ dependencies {
   //Added to override dependency version to resolve vulnerability
   implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.26'
   implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.26'
-  implementation 'org.apache.commons:commons-lang3:3.20.0'
+  implementation 'org.apache.commons:commons-lang3:3.21.0'
 
 
 }
