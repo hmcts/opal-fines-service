@@ -22,11 +22,11 @@ import uk.gov.hmcts.opal.dto.ToXmlString;
 @Builder
 public class GetMajorCreditorAccountAtAGlanceLegacyResponse implements ToXmlString, HasErrorResponse {
 
-    @XmlElement(name = "major_creditor")
-    private MajorCreditorLegacy majorCreditor;
-
     @XmlElement(name = "error_response")
     private ErrorResponse errorResponse;
+
+    @XmlElement(name = "major_creditor")
+    private MajorCreditorLegacy majorCreditor;
 
     @Data
     @NoArgsConstructor

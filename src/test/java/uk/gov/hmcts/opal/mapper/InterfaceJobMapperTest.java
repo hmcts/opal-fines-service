@@ -57,7 +57,6 @@ class InterfaceJobMapperTest {
         assertEquals(interfaceJob, entity.getInterfaceJob());
         assertEquals("auto-payments-in.dat", entity.getFileName());
         assertEquals("NATWEST", entity.getSource());
-        assertEquals("[{\"account\":\"123\"}]", entity.getRecords());
         assertEquals((short) 1, entity.getRecordCount());
         assertEquals(new BigDecimal("123.45"), entity.getTotalAmount());
         assertEquals(createdDateTime, entity.getCreatedDateTime());

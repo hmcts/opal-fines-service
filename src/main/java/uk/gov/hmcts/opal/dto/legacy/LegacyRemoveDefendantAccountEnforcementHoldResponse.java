@@ -11,7 +11,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
+import uk.gov.hmcts.opal.common.legacy.model.HasErrorResponse;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.dto.ToXmlString;
 
 @Data
 @Builder
@@ -20,7 +23,11 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @XmlRootElement(name = "response")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class LegacyRemoveDefendantAccountEnforcementHoldResponse implements ToJsonString {
+public class LegacyRemoveDefendantAccountEnforcementHoldResponse
+    implements ToJsonString, ToXmlString, HasErrorResponse {
+
+    @XmlElement(name = "error_response")
+    private ErrorResponse errorResponse;
 
     @JsonProperty("defendant_account_id")
     @XmlElement(name = "defendant_account_id")

@@ -1,5 +1,14 @@
 package uk.gov.hmcts.opal.service.messaging;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.notFound;
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -9,11 +18,14 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import jakarta.jms.JMSException;
 import jakarta.jms.TextMessage;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -22,8 +34,11 @@ import org.apache.qpid.jms.provider.amqp.message.AmqpJmsTextMessageFacade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -40,10 +55,19 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @Sql(scripts = "classpath:db/deleteData/delete_from_interface_job_queue_processing.sql",
     executionPhase = AFTER_TEST_METHOD)
 @DisplayName("Interface Job Queue Consumer Integration Tests")
+@WireMockTest
 class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
 
     private static final Long INTERFACE_JOB_ID = 99000000401000L;
+    private static final Long TRANSFORMED_JSON_INTERFACE_FILE_ID = 140000L;
     private static final BigDecimal EXPECTED_PAYMENT_AMOUNT = new BigDecimal("123.45");
+
+    private static final String WIREMOCK_INTERFACE_JOB_QUEUE_SCENARIO = "Interface-Job-Queue-Test";
+
+    // amount_pence = 0 makes p_int_payments_in succeed without returning a till_id, which drives the IGNORED branch.
+    private static final String WIREMOCK_STATE__TRIGGER_IGNORED = "Trigger Ignored";
+    private static final String WIREMOCK_STATE__TRIGGER_UNMATCHED_ORIGINATOR = "Trigger Unmatched Originator";
+    private static final String WIREMOCK_STATE__UNEXPECTED_RESPONSE = "Unexpected Response";
 
     @Autowired
     protected InterfaceJobRepository interfaceJobRepository;
@@ -67,14 +91,69 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
 
     private TextMessage validTextMessage;
 
+    private final Map<String, String> userAuthToken = Map.of(
+        "token_type", "Bearer",
+        "access_token", "token-value"
+    );
+
+    @RegisterExtension
+    static WireMockExtension authWireMockServer = WireMockExtension.newInstance()
+        .options(wireMockConfig().dynamicPort())
+        .build();
+
+    @RegisterExtension
+    static WireMockExtension fhWireMockServer = WireMockExtension.newInstance()
+        .options(options().usingFilesUnderClasspath("wiremock").dynamicPort())
+        .build();
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("opal.common.system-users.token-url", authWireMockServer::baseUrl);
+        registry.add("file-handler.service.url", fhWireMockServer::baseUrl);
+    }
+
     @BeforeEach
-    void setUpReportStorage() throws JMSException {
+    void setUpReportStorageAndWireMock() throws JMSException {
         BlobContainerClient blobContainerClient = blobServiceClient.getBlobContainerClient(reportContainerName);
         if (!blobContainerClient.exists()) {
             blobContainerClient.create();
         }
         validTextMessage = new AmqpJmsTextMessageFacade().asJmsMessage();
         validTextMessage.setText("{\"interface_job_id\":" + INTERFACE_JOB_ID + "}");
+
+        // System user auth
+        authWireMockServer.stubFor(post(urlEqualTo("/"))
+            .inScenario(WIREMOCK_INTERFACE_JOB_QUEUE_SCENARIO)
+            .willReturn(okJson(objectMapper.writeValueAsString(userAuthToken))));
+
+        // File Handler API - GET Content
+        String interfaceFileContentUrl = "/interface-files/" + TRANSFORMED_JSON_INTERFACE_FILE_ID + "/content";
+
+        fhWireMockServer.stubFor(get(urlEqualTo(interfaceFileContentUrl))
+            .inScenario(WIREMOCK_INTERFACE_JOB_QUEUE_SCENARIO)
+            .whenScenarioStateIs(STARTED)
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBodyFile("interface-files/content/140000_default.json")));
+
+        fhWireMockServer.stubFor(get(urlEqualTo(interfaceFileContentUrl))
+            .inScenario(WIREMOCK_INTERFACE_JOB_QUEUE_SCENARIO)
+            .whenScenarioStateIs(WIREMOCK_STATE__TRIGGER_IGNORED)
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBodyFile("interface-files/content/140000_trigger_ignored.json")));
+
+        fhWireMockServer.stubFor(get(urlEqualTo(interfaceFileContentUrl))
+            .inScenario(WIREMOCK_INTERFACE_JOB_QUEUE_SCENARIO)
+            .whenScenarioStateIs(WIREMOCK_STATE__TRIGGER_UNMATCHED_ORIGINATOR)
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBodyFile("interface-files/content/140000_trigger_unmatched_originator.json")));
+
+        fhWireMockServer.stubFor(get(urlEqualTo(interfaceFileContentUrl))
+            .inScenario(WIREMOCK_INTERFACE_JOB_QUEUE_SCENARIO)
+            .whenScenarioStateIs(WIREMOCK_STATE__UNEXPECTED_RESPONSE)
+            .willReturn(notFound()));
     }
 
     @Autowired
@@ -83,8 +162,9 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("PO-2592 INT.01/INT.03 - Processing message completes job and creates cash till output")
+    @DisplayName("PO-2592 INT.01/INT.03 - PO-8943 AC1 Processing message completes job and creates cash till output")
     @JiraStory("PO-2592") // INT.01 and INT.03
+    @JiraStory("PO-8943") // AC1
     @JiraEpic("PO-2468")
     void int01ValidProcessingMessageInvokesPaymentsInProcedureOnce() throws JMSException {
         listener.onMessage(validTextMessage);
@@ -102,7 +182,8 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-10531")
     @JiraEpic("PO-2468")
     void unmatchedOriginatorSuspensePaymentCompletesJob() throws JMSException {
-        helper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_UNMATCHED_ORIGINATOR);
+        fhWireMockServer
+            .setScenarioState(WIREMOCK_INTERFACE_JOB_QUEUE_SCENARIO, WIREMOCK_STATE__TRIGGER_UNMATCHED_ORIGINATOR);
 
         listener.onMessage(validTextMessage);
 
@@ -157,7 +238,7 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-2592") // INT.05
     @JiraEpic("PO-2468")
     void int05TillReturnedNullMarksJobIgnoredAndCommits() throws JMSException {
-        helper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_IGNORED);
+        fhWireMockServer.setScenarioState(WIREMOCK_INTERFACE_JOB_QUEUE_SCENARIO, WIREMOCK_STATE__TRIGGER_IGNORED);
 
         listener.onMessage(validTextMessage);
 
@@ -169,12 +250,14 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @Sql(scripts = {"classpath:db/insertData/insert_into_interface_job_queue_processing.sql",
+        "classpath:db/insertData/insert_duplicate_interface_file.sql"}, executionPhase = BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:db/deleteData/delete_from_interface_job_queue_processing.sql",
+        executionPhase = AFTER_TEST_METHOD)
     @DisplayName("PO-2592 INT.06 - Stored procedure failure marks job failed and stores message")
     @JiraStory("PO-2592") // INT.06
     @JiraEpic("PO-2468")
     void int06StoredProcedureFailurePersistsFailedMessageAndMarksJobFailed() {
-        helper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_FAILED);
-
         assertThatCode(() -> listener.onMessage(validTextMessage))
             .doesNotThrowAnyException();
 
@@ -187,7 +270,8 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
             .singleElement()
                 .satisfies(message -> {
                     assertThat(message.getMessageType()).isEqualTo("Error");
-                    assertThat(message.getMessageText()).contains("invalid input syntax for type bigint");
+                    assertThat(message.getMessageText())
+                        .contains("Interface job must be linked to exactly one interface file.");
                 });
     }
 
@@ -231,12 +315,16 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-2592") // INT.08
     @JiraEpic("PO-2468")
     void int08Scenario2CommitWaitsForIgnoredOutcome() throws Exception {
-        helper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_IGNORED);
+        fhWireMockServer.setScenarioState(WIREMOCK_INTERFACE_JOB_QUEUE_SCENARIO, WIREMOCK_STATE__TRIGGER_IGNORED);
 
         assertCommitBoundary(InterfaceJobStatus.IGNORED, false);
     }
 
     @Test
+    @Sql(scripts = {"classpath:db/insertData/insert_into_interface_job_queue_processing.sql",
+        "classpath:db/insertData/insert_duplicate_interface_file.sql"}, executionPhase = BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:db/deleteData/delete_from_interface_job_queue_processing.sql",
+        executionPhase = AFTER_TEST_METHOD)
     @DisplayName("PO-2592 INT.10 - Failure only updates documented fields")
     @JiraStory("PO-2592") // INT.10
     @JiraEpic("PO-2468")
@@ -246,8 +334,6 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
         final String interfaceNameBefore = beforeJob.getInterfaceName();
         final LocalDateTime createdDateTimeBefore = beforeJob.getCreatedDateTime();
         final LocalDateTime startedDateTimeBefore = beforeJob.getStartedDateTime();
-
-        helper.replaceInterfaceFileRecords(99000000401001L, RECORD_TO_TRIGGER_FAILED);
 
         assertThatCode(() -> listener.onMessage(validTextMessage))
             .doesNotThrowAnyException();
@@ -271,8 +357,8 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
                 assertThat(message.getInterfaceJobId()).isEqualTo(INTERFACE_JOB_ID);
                 assertThat(message.getInterfaceFileId()).isEqualTo(99000000401001L);
                 assertThat(message.getMessageType()).isEqualTo("Error");
-                assertThat(message.getMessageText()).contains("invalid input syntax for type bigint");
-                assertThat(message.getMessageText()).doesNotContain("p_int_payments_in");
+                assertThat(message.getMessageText())
+                    .contains("Interface job must be linked to exactly one interface file.");
                 assertThat(message.getMessageText()).doesNotContain("org.postgresql");
                 assertThat(message.getRecordIndex()).isNull();
                 assertThat(message.getRecordDetail()).isNull();
@@ -287,6 +373,23 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
 
     // INT.12
     // Unable to write this as a local integration test because it uses the real queue directly.
+
+
+    @Test
+    @DisplayName("PO-8943 AC3: Process should fail when the file handling service returns an unexpected response")
+    @JiraStory("PO-8943")
+    @JiraEpic("PO-3497")
+    void processFailsWhenFileHandlerServiceReturnsUnexpectedResponse() {
+        fhWireMockServer.setScenarioState(WIREMOCK_INTERFACE_JOB_QUEUE_SCENARIO, WIREMOCK_STATE__UNEXPECTED_RESPONSE);
+        assertThatCode(() -> listener.onMessage(validTextMessage))
+            .doesNotThrowAnyException();
+
+        InterfaceJobEntity savedJob = interfaceJobRepository.findById(INTERFACE_JOB_ID)
+            .orElseThrow();
+        assertThat(savedJob.getStatus()).isEqualTo(InterfaceJobStatus.FAILED);
+        assertThat(savedJob.getCompletedDateTime()).isNotNull();
+        helper.assertNoSideEffects();
+    }
 
     private void assertCommitBoundary(InterfaceJobStatus expectedStatus, boolean expectReportSideEffects)
         throws Exception {
@@ -323,53 +426,4 @@ class InterfaceJobQueueConsumerIntegrationTest extends AbstractIntegrationTest {
             executor.shutdownNow();
         }
     }
-
-    // amount_pence = 0 makes p_int_payments_in succeed without returning a till_id,
-    // which drives the IGNORED branch.
-    private static final String RECORD_TO_TRIGGER_IGNORED = """
-                [{
-                    "receiving_sort_code":"123456",
-                    "receiving_bank_account_number":"01234567",
-                    "receiving_account_type":"5",
-                    "transaction_code":"68",
-                    "originator_sort_code":"654321",
-                    "originator_bank_account_number":"98765432",
-                    "amount_pence":0,
-                    "originator_name":"Test Payer",
-                    "originator_reference":"99000001A",
-                    "originator_beneficiary_name":"Test Court"
-                }]
-                """;
-
-    private static final String RECORD_TO_TRIGGER_UNMATCHED_ORIGINATOR = """
-                [{
-                    "receiving_sort_code":"123456",
-                    "receiving_bank_account_number":"01234567",
-                    "receiving_account_type":"5",
-                    "transaction_code":"68",
-                    "originator_sort_code":"654321",
-                    "originator_bank_account_number":"98765432",
-                    "amount_pence":12345,
-                    "originator_name":"Test Payer",
-                    "originator_reference":"UNKNOWN-ORIGINATOR",
-                    "originator_beneficiary_name":"Test Court"
-                }]
-                """;
-
-    // amount_pence = "abc" is intentionally invalid so the stored procedure fails
-    // with a non-transient database error and the FAILED-message path is exercised.
-    private static final String RECORD_TO_TRIGGER_FAILED = """
-                [{
-                    "receiving_sort_code":"123456",
-                    "receiving_bank_account_number":"01234567",
-                    "receiving_account_type":"5",
-                    "transaction_code":"68",
-                    "originator_sort_code":"654321",
-                    "originator_bank_account_number":"98765432",
-                    "amount_pence":"abc",
-                    "originator_name":"Test Payer",
-                    "originator_reference":"99000001A",
-                    "originator_beneficiary_name":"Test Court"
-                }]
-                """;
 }

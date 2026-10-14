@@ -28,3 +28,9 @@ Feature: Mappings Reference Data
   Scenario: A mappings request without a type is rejected as bad request
     When I make a request to the mappings api without a type
     Then the request is rejected as bad request
+
+  @JIRA-STORY:PO-10576 @JIRA-EPIC:PO-3516
+  Scenario: All the mappings are returned for file-type
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+    When I make a request to the mappings api for type "file-type"
+    Then the status mappings are returned with code, display name and mime type
