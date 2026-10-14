@@ -106,7 +106,7 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
             .andExpect(jsonPath("$.impositions[0].imposed_amount").value(80.00))
             .andExpect(jsonPath("$.impositions[0].paid_amount").value(30.00))
             .andExpect(jsonPath("$.impositions[0].balance").value(50.00))
-            .andExpect(jsonPath("$.impositions[0].imposed_by").value(is(nullValue())))
+            .andExpect(jsonPath("$.impositions[0].imposed_by").doesNotExist())
             .andExpect(jsonPath("$.impositions[0].imposition_id").value(551009))
             .andReturn();
 

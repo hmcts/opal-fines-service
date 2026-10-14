@@ -1,0 +1,18 @@
+NOTICE:  === Cleanup data before tests ===
+NOTICE:  Cleanup completed
+NOTICE:  === TEST 1: Insert a note ===
+NOTICE:  TEST 1 PASSED
+NOTICE:  === TEST 2: Reject a NULL associated record type ===
+NOTICE:  Expected error caught: P3306 - pi_associated_record_type must be provided
+NOTICE:  TEST 2 PASSED
+NOTICE:  === TEST 3: Reject a NULL associated record ID ===
+NOTICE:  Expected error caught: P3307 - pi_associated_record_id must be provided
+NOTICE:  TEST 3 PASSED
+NOTICE:  === TEST 4: Reject empty note text ===
+NOTICE:  Expected error caught: P3308 - pi_note_text must be provided
+NOTICE:  TEST 4 PASSED
+NOTICE:  === Cleanup test data ===
+NOTICE:  Test data cleanup completed
+DO
+
+Query returned successfully in 48 msec.

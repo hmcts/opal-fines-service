@@ -133,6 +133,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public static final String GET_ENFORCEMENT_STATUS = "getDefendantAccountEnforcementStatus";
 
     public static final String ADD_PAYMENT_CARD_REQUEST = "LIBRA.of_add_defendant_account_pcr";
+    private static final String ACCOUNT_NOT_FOUND_ERROR_CODE = "-20013";
 
     private static final String LEGACY_HISTORY_ACCOUNT_NOT_FOUND_ERROR_CODE = "-6502";
 
@@ -163,6 +164,10 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 createGetDefendantAccountRequest(defendantAccountId.toString()), null
             );
 
+            if (response.hasErrorResponse() && ACCOUNT_NOT_FOUND_ERROR_CODE.equals(
+                response.responseEntity.getErrorResponse().getErrorCode())) {
+                throw new DefendantAccountNotFoundException(defendantAccountId);
+            }
             checkResponseForError(response, "getHeaderSummary");
             // TODO: Add XSD validation of the XML response
 
