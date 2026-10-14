@@ -7,11 +7,11 @@ import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.util.XmlUtil;
 
-class LegacyGetMinorCreditorAccountHistoryResponseTest {
+class MinorCreditorHistoryLegacyResponseTest {
 
     @Test
     void unmarshalXmlString_whenStatusDateIsDate_populatesLocalDate() throws JAXBException {
-        LegacyGetMinorCreditorAccountHistoryResponse response = XmlUtil.unmarshalXmlString("""
+        MinorCreditorHistoryLegacyResponse response = XmlUtil.unmarshalXmlString("""
             <response>
               <history_items>
                 <history_items_element>
@@ -22,7 +22,7 @@ class LegacyGetMinorCreditorAccountHistoryResponseTest {
                 </history_items_element>
               </history_items>
             </response>
-            """, LegacyGetMinorCreditorAccountHistoryResponse.class);
+            """, MinorCreditorHistoryLegacyResponse.class);
 
         assertEquals(LocalDate.of(2026, 5, 20),
             response.getHistoryItems().getFirst().getDetails().getStatusDate());

@@ -17,6 +17,7 @@ import static uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil.permission
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,12 +38,12 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryRequest;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse.LegacyCreditorTransactionStatusReference;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse.LegacyCreditorTransactionTypeReference;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse.LegacyMinorCreditorAccountHistoryItem;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse.LegacyMinorCreditorHistoryDetails;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse.LegacyMinorCreditorHistoryPostedDetails;
+import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse.LegacyCreditorTransactionStatusReference;
+import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse.LegacyCreditorTransactionTypeReference;
+import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse.LegacyMinorCreditorAccountHistoryItem;
+import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse.LegacyMinorCreditorHistoryDetails;
+import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse.LegacyMinorCreditorHistoryPostedDetails;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -115,7 +116,7 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             ArgumentCaptor.forClass(LegacyGetMinorCreditorAccountHistoryRequest.class);
         verify(gatewayService).postToGateway(
             eq(LEGACY_ACTION),
-            eq(LegacyGetMinorCreditorAccountHistoryResponse.class),
+            eq(MinorCreditorHistoryLegacyResponse.class),
             requestCaptor.capture(),
             isNull()
         );
@@ -148,7 +149,7 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             ArgumentCaptor.forClass(LegacyGetMinorCreditorAccountHistoryRequest.class);
         verify(gatewayService).postToGateway(
             eq(LEGACY_ACTION),
-            eq(LegacyGetMinorCreditorAccountHistoryResponse.class),
+            eq(MinorCreditorHistoryLegacyResponse.class),
             requestCaptor.capture(),
             isNull()
         );
@@ -200,7 +201,7 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     void getMinorCreditorHistory_whenGatewayFails_returnsProblemResponse() throws Exception {
         when(gatewayService.postToGateway(
             eq(LEGACY_ACTION),
-            eq(LegacyGetMinorCreditorAccountHistoryResponse.class),
+            eq(MinorCreditorHistoryLegacyResponse.class),
             any(LegacyGetMinorCreditorAccountHistoryRequest.class),
             isNull()
         )).thenThrow(HttpServerErrorException.create(
@@ -229,19 +230,19 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
         return mockMvc.perform(request);
     }
 
-    private void mockLegacyResponse(LegacyGetMinorCreditorAccountHistoryResponse legacyResponse) {
+    private void mockLegacyResponse(MinorCreditorHistoryLegacyResponse legacyResponse) {
         when(gatewayService.postToGateway(
             eq(LEGACY_ACTION),
-            eq(LegacyGetMinorCreditorAccountHistoryResponse.class),
+            eq(MinorCreditorHistoryLegacyResponse.class),
             any(LegacyGetMinorCreditorAccountHistoryRequest.class),
             isNull()
         )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null));
     }
 
-    private LegacyGetMinorCreditorAccountHistoryResponse legacyResponse() {
+    private MinorCreditorHistoryLegacyResponse legacyResponse() {
         LocalDateTime postedDate = LocalDateTime.of(2026, 4, 1, 9, 0);
 
-        return LegacyGetMinorCreditorAccountHistoryResponse.builder()
+        return MinorCreditorHistoryLegacyResponse.builder()
             .historyItems(List.of(
                 financialItem(postedDate, "PAY-1", BigDecimal.valueOf(10L)),
                 amendmentItem(postedDate, "12345678", "87654321"),
@@ -252,10 +253,10 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             .build();
     }
 
-    private LegacyGetMinorCreditorAccountHistoryResponse filteredLegacyResponse() {
+    private MinorCreditorHistoryLegacyResponse filteredLegacyResponse() {
         LocalDateTime postedDate = LocalDateTime.of(2026, 4, 15, 9, 0);
 
-        return LegacyGetMinorCreditorAccountHistoryResponse.builder()
+        return MinorCreditorHistoryLegacyResponse.builder()
             .historyItems(List.of(
                 noteItem(postedDate, "Filtered legacy note"),
                 financialItem(postedDate, "PAY-FILTERED", BigDecimal.valueOf(15L))
