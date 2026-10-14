@@ -3,24 +3,36 @@ package uk.gov.hmcts.opal.service.report;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.service.report.FileType.CSV;
+import static uk.gov.hmcts.opal.service.report.FileType.PDF;
+import static uk.gov.hmcts.opal.service.report.FileType.XML;
 import static uk.gov.hmcts.opal.service.report.ReportId.CASH_TILL;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.cfg.DateTimeFeature;
 import tools.jackson.databind.json.JsonMapper;
+import uk.gov.hmcts.opal.common.docmosis.PDFGenerationService;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.DestinationType;
@@ -39,6 +51,7 @@ import uk.gov.hmcts.opal.repository.TillRepository;
 
 class CashTillReportServiceTest {
 
+    private static final ReportInstanceEntity REPORT_INSTANCE = new ReportInstanceEntity();
     private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder()
         .findAndAddModules()
         .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
@@ -52,10 +65,12 @@ class CashTillReportServiceTest {
     private final CashTillReportDataMapper reportDataMapper = new CashTillReportDataMapper(
         defendantAccountRepository,
         miscellaneousAccountRepository);
+    private final PDFGenerationService pdfGenerationService = mock(PDFGenerationService.class);
     private final CashTillReportService service = new CashTillReportService(OBJECT_MAPPER,
         tillRepository,
         paymentInRepository,
-        reportDataMapper);
+        reportDataMapper,
+        pdfGenerationService);
 
     @Test
     void getReportId_returnsCashTill() {
@@ -64,7 +79,7 @@ class CashTillReportServiceTest {
 
     @Test
     void getNumberOfRecords_returnsRowCount() {
-        CashTillReportData reportData = reportDataWithRows(List.of(new CashTillReportRow(), new CashTillReportRow()));
+        CashTillReportData reportData = reportDataWithRows(List.of(validRow(), validRow()));
 
         assertThat(reportData.getNumberOfRecords()).isEqualTo(2);
     }
@@ -294,6 +309,100 @@ class CashTillReportServiceTest {
     }
 
     @Test
+    void convertReportDataToFileType_whenValidData_callsPdfService() {
+        CashTillReportData reportData = allocatedReportData(List.of(olderRow(), newerRow()));
+
+        byte[] pdf = {37, 80, 68, 70};
+        when(pdfGenerationService.generatePdf("", reportData)).thenReturn(pdf);
+
+        byte[] result = service.convertReportDataToFileType(REPORT_INSTANCE, reportData, PDF);
+
+        assertThat(result).isEqualTo(pdf);
+        verify(pdfGenerationService, times(1)).generatePdf(eq(""), eq(reportData));
+    }
+
+    @Test
+    void convertReportDataToFileType_doesNotMutateInputRows() {
+        CashTillReportRow olderRow = olderRow();
+        CashTillReportRow newerRow = newerRow();
+        List<CashTillReportRow> rows = new ArrayList<>(List.of(olderRow, newerRow));
+        CashTillReportData reportData = allocatedReportData(rows);
+
+        convert(reportData);
+
+        assertThat(reportData.getRows()).containsExactly(olderRow, newerRow);
+    }
+
+    @Test
+    void convertReportDataToFileType_whenFileTypeIsUnsupported_throwsException() {
+        CashTillReportData reportData = reportData(validRow());
+
+        assertThatThrownBy(() -> service.convertReportDataToFileType(REPORT_INSTANCE, reportData, XML))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Cash Till report only supports CSV or PDF conversion");
+    }
+
+    @Test
+    void convertReportDataToFileType_whenCsvRequested_defersToReportCsvService() {
+        CashTillReportData reportData = reportData(validRow());
+
+        assertThatThrownBy(() -> service.convertReportDataToFileType(REPORT_INSTANCE, reportData, CSV))
+            .isInstanceOf(UnsupportedOperationException.class)
+            .hasMessage("CSV conversion is handled by ReportCSVService");
+    }
+
+    @Test
+    void convertReportDataToFileType_whenReportDataIsNull_throwsException() {
+        assertThatThrownBy(() -> service.convertReportDataToFileType(REPORT_INSTANCE, null, PDF))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Cash Till report data is required");
+    }
+
+    @Test
+    void convertReportDataToFileType_whenRowsAreNull_throwsException() {
+        CashTillReportData reportData = reportDataWithRows(null);
+
+        assertThatThrownBy(() -> convert(reportData))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Cash Till report rows are required");
+    }
+
+    @Test
+    void convertReportDataToFileType_whenRowIsNull_throwsException() {
+        List<CashTillReportRow> rows = new ArrayList<>();
+        rows.add(null);
+        CashTillReportData reportData = reportDataWithRows(rows);
+
+        assertThatThrownBy(() -> convert(reportData))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Cash Till report row 1 is required");
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("missingFieldCases")
+    void convertReportDataToFileType_whenMandatoryFieldIsMissing_throwsException(String description,
+        Consumer<CashTillReportRow> change, String expectedMessage) {
+        CashTillReportRow row = validRow();
+        change.accept(row);
+
+        assertThatThrownBy(() -> convert(reportData(row)))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage(expectedMessage);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("invalidMoneyCases")
+    void convertReportDataToFileType_moneyScaleTooHigh_throwsException(String description,
+        Consumer<CashTillReportRow> change, String expectedMessage) {
+        CashTillReportRow row = validRow();
+        change.accept(row);
+
+        assertThatThrownBy(() -> convert(reportData(row)))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage(expectedMessage);
+    }
+
+    @Test
     void cashTillReportData_mapsSnakeCaseJson() throws Exception {
         ObjectMapper mapper = JsonMapper.builder()
             .findAndAddModules()
@@ -329,10 +438,48 @@ class CashTillReportServiceTest {
         assertThat(reportData.getRows().getFirst().getPaymentMethod()).isEqualTo(CashTillPaymentMethod.CQ);
     }
 
+    private static Stream<Arguments> missingFieldCases() {
+        return Stream.of(
+            missingFieldCase("business unit", row -> row.setBusinessUnit(null), "Business Unit"),
+            missingFieldCase("cash till number", row -> row.setCashTillNumber(""), "Cash Till Number"),
+            missingFieldCase("cashier", row -> row.setCashier(" "), "Cashier"),
+            missingFieldCase("date", row -> row.setPaymentDateTime(null), "Date"),
+            missingFieldCase("details", row -> row.setDetails(null), "Details"),
+            missingFieldCase("auto payment", row -> row.setAutoPayment(null), "auto_payment"),
+            missingFieldCase("receipt", row -> row.setReceipt(null), "Receipt"),
+            missingFieldCase("amount", row -> row.setAmount(null), "Amount"),
+            missingFieldCase("balance", row -> row.setBalance(null), "Balance"));
+    }
+
+    private static Stream<Arguments> invalidMoneyCases() {
+        return Stream.of(
+            invalidMoneyCase("amount", row -> row.setAmount(money("1.234")), "Amount"),
+            invalidMoneyCase("balance", row -> row.setBalance(money("2.345")), "Balance"));
+    }
+
+    private static Arguments missingFieldCase(String description, Consumer<CashTillReportRow> change,
+        String fieldName) {
+        return Arguments.of(description, change, fieldName + " is required at Cash Till report row 1");
+    }
+
+    private static Arguments invalidMoneyCase(String description, Consumer<CashTillReportRow> change,
+        String fieldName) {
+        String message = fieldName + " must not have more than two decimal places at Cash Till report row 1";
+        return Arguments.of(description, change, message);
+    }
+
+    private byte[] convert(CashTillReportData reportData) {
+        return service.convertReportDataToFileType(REPORT_INSTANCE, reportData, PDF);
+    }
+
     private static ReportInstanceEntity reportInstance(String reportParameters) {
         ReportInstanceEntity reportInstance = new ReportInstanceEntity();
         reportInstance.setReportParameters(reportParameters);
         return reportInstance;
+    }
+
+    private static CashTillReportData reportData(CashTillReportRow row) {
+        return reportDataWithRows(List.of(row));
     }
 
     private static CashTillReportData reportDataWithRows(List<CashTillReportRow> rows) {
