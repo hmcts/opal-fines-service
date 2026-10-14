@@ -25,15 +25,13 @@ class Release1bFeatureToggleAnnotationTest {
             CreateFineAccountsController.class,
             DebtorProfileSearchController.class,
             DefendantAccountApiController.class,
-            DefendantAccountController.class,
             DraftAccountController.class,
             EnforcerController.class,
             LocalJusticeAreaController.class,
             MajorCreditorApiController.class,
             MajorCreditorController.class,
             MinorCreditorApiController.class,
-            MinorCreditorController.class,
-            NotesController.class,
+            NotesApiController.class,
             OffenceController.class,
             PrintRequestController.class,
             ProscutorController.class,
@@ -57,19 +55,18 @@ class Release1bFeatureToggleAnnotationTest {
             "DefendantAccountApiController#addPaymentCardRequest",
             "DefendantAccountApiController#getConsolidatedAccounts",
             "DefendantAccountApiController#removeDefendantAccountParty",
+            "DefendantAccountApiController#getEnforcementStatus",
             "DefendantAccountApiController#getDefendantAccountAtAGlance",
             "DefendantAccountApiController#getDefendantAccountFixedPenalty",
             "DefendantAccountApiController#getDefendantAccountHeaderSummary",
             "DefendantAccountApiController#getDefendantAccountParty",
-            "DefendantAccountApiController#getEnforcementStatus",
             "DefendantAccountApiController#getImpositions",
             "DefendantAccountApiController#postDefendantAccountSearch",
             "DefendantAccountApiController#removeEnforcementHold",
+            "NotesApiController#addNote",
             "DefendantAccountApiController#replaceDefendantAccountParty",
             "DefendantAccountApiController#updateDefendantAccount",
-
-            // Defendant Account controller
-            "DefendantAccountController#defendantAccountPaymentTerms",
+            "DefendantAccountApiController#defendantAccountPaymentTerms",
 
             // Major Creditor API controller
             "MajorCreditorApiController#getCentralFundByBusinessUnit",
@@ -83,12 +80,7 @@ class Release1bFeatureToggleAnnotationTest {
             "MinorCreditorApiController#getMinorCreditorHistory",
             "MinorCreditorApiController#patchMinorCreditorAccount",
             "MinorCreditorApiController#postMinorCreditorSearch",
-
-            // Minor Creditor controller
-            "MinorCreditorController#getMinorCreditorAccountHeaderSummary",
-
-            // Notes controller
-            "NotesController#addNote",
+            "MinorCreditorApiController#getMinorCreditorAccountHeaderSummary",
 
             // Results API controller
             "ResultsApiController#getResultById"

@@ -45,6 +45,7 @@ import uk.gov.hmcts.opal.service.opal.InterfaceJobService;
 import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
 import uk.gov.hmcts.opal.service.opal.OpalCreditorAccountService;
+import uk.gov.hmcts.opal.service.report.ReportInstanceDeletionService;
 
 /**
  * Endpoints used for testing purposes. I've moved single endpoints from other controller here (and kept all paths the
@@ -72,6 +73,7 @@ public class TestingSupportController {
     private final OpalCreditorAccountService opalCreditorAccountService;
     private final DraftAccountService draftAccountService;
     private final LocalJusticeAreaService opalLocalJusticeAreaService;
+    private final ReportInstanceDeletionService reportInstanceDeletionService;
 
     @GetMapping("/testing-support/is-legacy-mode")
     @Operation(summary = "Retrieves whether legacy mode is enabled.")
@@ -133,6 +135,30 @@ public class TestingSupportController {
         return ResponseEntity.ok().build();
     }
 
+    @Hidden
+    @FeatureToggle(
+        feature = RELEASE_1C_PAYMENT,
+        defaultValueProperty = RELEASE_1C_PAYMENT_ENABLED_PROPERTY
+    )
+    @PostMapping("/testing-support/interface-jobs/{interfaceJobId}/processing")
+    @Operation(summary = "Marks an interface job as processing without queueing it. FOR TESTING ONLY!")
+    public ResponseEntity<Void> markInterfaceJobProcessing(@PathVariable Long interfaceJobId) {
+        interfaceJobService.markProcessingForTesting(interfaceJobId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Hidden
+    @DeleteMapping("/testing-support/report-instances")
+    @Operation(summary = "Deletes a list of report instances and their stored report content. FOR TESTING ONLY!")
+    public ResponseEntity<Void> deleteReportInstances(
+            @RequestParam(value = "ids") List<Long> reportInstanceIds) {
+        log.warn("TEST ENDPOINT: Request to delete report instances with ids: {}", reportInstanceIds);
+
+        reportInstanceDeletionService.deleteReportInstances(reportInstanceIds);
+
+        return ResponseEntity.ok().build();
+    }
+
     /**
      * From {@link MajorCreditorController}.
      * @param criteria search criteria
@@ -166,7 +192,7 @@ public class TestingSupportController {
     }
 
     /**
-     * From {@link MinorCreditorController}.
+     * From {@link MinorCreditorApiController}.
      * @param minorCreditorId path param
      * @param ifMatch header
      * @param ignoreMissing query param

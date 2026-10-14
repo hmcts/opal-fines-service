@@ -13,6 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,8 +23,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnTransformer;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "interface_files")
@@ -59,12 +58,11 @@ public class InterfaceFileEntity {
     @Column(name = "source", columnDefinition = "t_interface_file_source_enum")
     private String source;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "records", columnDefinition = "json")
-    private String records;
-
     @Column(name = "record_count")
     private Short recordCount;
+
+    @Column(name = "total_amount", precision = 18, scale = 2)
+    private BigDecimal totalAmount;
 
     @Builder.Default
     @OneToMany(mappedBy = "interfaceFile", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
@@ -73,4 +71,10 @@ public class InterfaceFileEntity {
     @Builder.Default
     @OneToMany(mappedBy = "interfaceFile", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private List<TillEntity> tillEntities = new ArrayList<>();
+
+    @Column
+    private Long transformedJsonId;
+
+    @Column
+    private Long sourceJsonId;
 }

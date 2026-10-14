@@ -9,6 +9,7 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,18 +52,20 @@ public class InterfaceJobsProcessStepDef extends BaseStepDef {
     }
 
     /**
-     * Creates one already-processing interface job and one unprocessed job for mixed-status processing.
+     * Creates one processing interface job and one unprocessed job for mixed-status processing.
      *
-     * @throws JSONException if an interface-job or process request body cannot be created.
+     * @throws JSONException if an interface-job request body cannot be created.
      */
     @Given("I create an interface job that has already begun processing and an unprocessed interface job")
     public void createMixedStatusInterfaceJobs() throws JSONException {
         alreadyProcessingJob = createInterfaceJob();
         unprocessedJob = createInterfaceJob();
-        submitProcessRequest(buildProcessRequest(alreadyProcessingJob), authorisedJsonRequest());
+        authorisedJsonRequest()
+            .post(getTestUrl() + TESTING_SUPPORT_PATH + "/" + alreadyProcessingJob.id() + "/processing");
         then()
             .log().ifValidationFails()
-            .statusCode(200);
+            .statusCode(204);
+        assertJobStatus(alreadyProcessingJob, "PROCESSING");
     }
 
     /**
@@ -182,6 +185,8 @@ public class InterfaceJobsProcessStepDef extends BaseStepDef {
             .put("interface_jobs", new JSONArray().put(new JSONObject()
                 .put("file_name", "e2e-process-" + UUID.randomUUID() + ".dat")
                 .put("source", "NATWEST")
+                .put("record_count", 1)
+                .put("total_amount", new BigDecimal("123.45"))
                 .put("records", "[{\"account\":\"abc123\"}]")
                 .put("business_unit_id", BUSINESS_UNIT_ID)
                 .put("interface_name", INTERFACE_NAME)

@@ -1850,8 +1850,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
                             .individualDetails(
                                 IndividualDetailsLegacy.builder()
                                     .title("Mr")
-                                    .forenames("John")
-                                    .surname("Smith")
+                                    .surname("John Smith")
                                     .dateOfBirth("1990-01-01")
                                     .age("36")
                                     .nationalInsuranceNumber("QQ123456C")
@@ -1920,8 +1919,8 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
         assertEquals("777", out.getDefendantAccountParty().getPartyDetails().getPartyId());
         var individualDetails = out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().get();
         assertEquals("Mr", individualDetails.getTitle().get());
-        assertEquals("John", individualDetails.getForenames().get());
-        assertEquals("Smith", individualDetails.getSurname());
+        assertNull(individualDetails.getForenames().get());
+        assertEquals("John Smith", individualDetails.getSurname());
         assertEquals("AB1 2CD", out.getDefendantAccountParty().getAddress().getPostcode().get());
         assertNull(out.getDefendantAccountParty().getContactDetails().get());
         assertNull(out.getDefendantAccountParty().getVehicleDetails().get());

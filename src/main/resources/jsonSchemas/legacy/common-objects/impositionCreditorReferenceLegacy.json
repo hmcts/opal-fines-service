@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Imposition Creditor Reference Legacy",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "creditor_account_type": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "creditor_account_type": {
+          "type": "string",
+          "enum": [
+            "MN",
+            "MJ",
+            "CF"
+          ]
+        }
+      },
+      "required": [
+        "creditor_account_type"
+      ]
+    },
+    "creditor_account_id": {
+      "$ref": "./bigInt.json"
+    },
+    "major_creditor_name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "creditor_account_type",
+    "creditor_account_id",
+    "major_creditor_name"
+  ]
+}

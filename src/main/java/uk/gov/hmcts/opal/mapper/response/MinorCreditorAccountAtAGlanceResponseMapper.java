@@ -73,6 +73,8 @@ public interface MinorCreditorAccountAtAGlanceResponseMapper {
 
     @Mapping(target = "version", source = "creditorAccountVersion")
     @Mapping(target = "payment.isBacs", source = "payment.bacs")
+    @Mapping(target = "defendant.organisation", source = "defendant.organisationFlag")
+    @Mapping(target = "defendant.organisationName", source = "defendant.organisationName")
     MinorCreditorAccountAtAGlanceResponse toDto(LegacyGetMinorCreditorAccountAtAGlanceResponse legacy);
 
     @Mappings({
@@ -91,6 +93,8 @@ public interface MinorCreditorAccountAtAGlanceResponseMapper {
         @Mapping(target = "defendant.title", source = "entity.defendantTitle"),
         @Mapping(target = "defendant.forenames", source = "entity.defendantForenames"),
         @Mapping(target = "defendant.surname", source = "entity.defendantSurname"),
+        @Mapping(target = "defendant.organisation", source = "entity.creditorOrganisation"),
+        @Mapping(target = "defendant.organisationName", source = "entity.organisationName"),
 
         @Mapping(target = "payment.isBacs", source = "entity.payByBacs"),
         @Mapping(target = "payment.holdPayment", source = "entity.holdPayout")

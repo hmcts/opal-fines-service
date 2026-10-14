@@ -16,7 +16,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse.DefendantAccountTypeEnum;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
@@ -29,8 +28,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrationTest {
 
     static final String URL_BASE = "/defendant-accounts";
-    static final String DEFENDANT_PAYMENT_TERMS_RESPONSE_SCHEMA = SchemaPaths.DEFENDANT_ACCOUNT
-        + "/getDefendantAccountPaymentTermsResponse.json";
 
 
     @MockitoSpyBean
@@ -161,6 +158,7 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
             .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_code").value("B"))
             .andExpect(jsonPath("$.payment_terms.effective_date").value("2025-10-12"))
             .andExpect(jsonPath("$.payment_terms.instalment_period.instalment_period_code").value("W"))
+            .andExpect(jsonPath("$.payment_terms.instalment_period.instalment_period_display_name").value("Weekly"))
             .andExpect(jsonPath("$.payment_terms.lump_sum_amount").isEmpty())
             .andExpect(jsonPath("$.payment_terms.instalment_amount").isEmpty())
 
@@ -171,8 +169,6 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
             .andExpect(jsonPath("$.payment_card_last_requested").value("2024-01-01"))
             .andExpect(jsonPath("$.payment_terms.extension").value(false))
             .andExpect(jsonPath("$.last_enforcement").value("10"));
-
-        jsonSchemaValidationService.validateOrError(body, DEFENDANT_PAYMENT_TERMS_RESPONSE_SCHEMA);
     }
 
     void testGetPaymentTermsLatest_NoPaymentTermFoundForId(Logger log) throws Exception {

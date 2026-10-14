@@ -37,6 +37,8 @@ class InterfaceJobsCreateSecurityIT extends AbstractIntegrationWithSecurityTest 
                              {
                                "file_name": "missing-token.dat",
                                "source": "NATWEST",
+                               "record_count": 1,
+                               "total_amount": 123.45,
                                "records": "[{\\"account\\":\\"abc123\\"}]",
                                "business_unit_id": 2577,
                                "interface_name": "Missing Token Interface Jobs",

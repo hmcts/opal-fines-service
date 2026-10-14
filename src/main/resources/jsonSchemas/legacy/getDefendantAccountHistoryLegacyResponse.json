@@ -83,13 +83,32 @@
       }
     },
     "noteDetails": {
-      "type": "object",
-      "required": ["note_text"],
-      "properties": {
-        "note_text": {
-          "type": "string"
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["note_text"],
+          "properties": {
+            "note_text": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["note_details"],
+          "properties": {
+            "note_details": {
+              "type": "object",
+              "required": ["note_text"],
+              "properties": {
+                "note_text": {
+                  "type": "string"
+                }
+              }
+            }
+          }
         }
-      }
+      ]
     },
     "defendantTransactionDetails": {
       "title": "transactionDetails",

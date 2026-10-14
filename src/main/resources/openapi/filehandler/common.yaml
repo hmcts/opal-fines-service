@@ -1,0 +1,52 @@
+openapi: 3.1.1
+info:
+  description: Opal File Handler Service - Common components
+  license:
+    name: MIT
+    url: 'https://opensource.org/licenses/MIT'
+  title: Opal File Handler Service
+  version: v0.0.1
+components:
+  headers:
+    ETag:
+      description: Version of the record.
+      schema:
+        $ref: "./types.yaml#/components/schemas/BigInt"
+      required: true
+  schemas:
+    ProblemDetail:
+      type: object
+      required:
+        - title
+        - status
+        - detail
+      properties:
+        type:
+          type: string
+          format: uri
+          example: 'https://example.com/problem'
+        title:
+          type: string
+          maxLength: 100
+          example: Not Found
+        status:
+          type: integer
+          format: int32
+          example: 404
+        detail:
+          type: string
+          example: The requested resource was not found.
+        instance:
+          type: string
+          format: uri
+          example: 'https://example.com/problem/12345'
+        operation_id:
+          type: string
+          description: A unique operation id that links logs of the same operation together
+          format: uuid
+        retriable:
+          type: boolean
+        properties:
+          type: object
+          additionalProperties:
+            type: string

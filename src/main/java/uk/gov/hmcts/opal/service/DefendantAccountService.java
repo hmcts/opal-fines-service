@@ -1,5 +1,9 @@
 package uk.gov.hmcts.opal.service;
 
+import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
+import static uk.gov.hmcts.opal.common.user.authorisation.model.Domain.FINES;
+
+import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
@@ -9,6 +13,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
@@ -22,11 +27,13 @@ import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.generated.model.MasterAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.mapper.request.DefendantAccountSearchRequestMapper;
 import uk.gov.hmcts.opal.mapper.response.DefendantAccountSearchResponseMapper;
+import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
@@ -45,13 +52,15 @@ public class DefendantAccountService {
 
     private final DefendantAccountSearchRequestValidator defendantAccountSearchRequestValidator;
 
+    private final DefendantAccountRepository defendantAccountRepository;
+
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
         log.debug(":getHeaderSummary:");
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
-        if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
-            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        if (!userState.anyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)) {
+            throw new PermissionNotAllowedException(SEARCH_AND_VIEW_ACCOUNTS);
         }
 
         return defendantAccountServiceProxy.getHeaderSummary(defendantAccountId);
@@ -62,8 +71,8 @@ public class DefendantAccountService {
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
-        if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
-            throw new RequiredPermissionException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        if (!userState.anyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)) {
+            throw new RequiredPermissionException(SEARCH_AND_VIEW_ACCOUNTS);
         }
 
         return defendantAccountServiceProxy.getConsolidatedAccounts(defendantAccountId);
@@ -77,8 +86,8 @@ public class DefendantAccountService {
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
-        if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
-            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        if (!userState.anyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)) {
+            throw new PermissionNotAllowedException(SEARCH_AND_VIEW_ACCOUNTS);
         }
 
         DefendantAccountHistoryFilter filter = DefendantAccountHistoryFilter.builder()
@@ -106,11 +115,11 @@ public class DefendantAccountService {
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
-        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
+        if (userState.anyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)) {
 
             return defendantAccountServiceProxy.searchDefendantAccounts(accountSearchDto);
         } else {
-            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+            throw new PermissionNotAllowedException(SEARCH_AND_VIEW_ACCOUNTS);
         }
     }
 
@@ -128,10 +137,10 @@ public class DefendantAccountService {
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
-        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
+        if (userState.anyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)) {
             return defendantAccountServiceProxy.getAtAGlance(defendantAccountId);
         } else {
-            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+            throw new PermissionNotAllowedException(SEARCH_AND_VIEW_ACCOUNTS);
         }
     }
 
@@ -196,11 +205,29 @@ public class DefendantAccountService {
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
-        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
+        if (userState.anyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)) {
             return defendantAccountServiceProxy.getEnforcementStatus(defendantAccountId);
         } else {
-            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+            throw new PermissionNotAllowedException(SEARCH_AND_VIEW_ACCOUNTS);
         }
     }
 
+    public MasterAccountDefendantAccount getMasterDefendantAccount(Long defendantAccountId) {
+        log.debug(":getMasterDefendantAccount:");
+
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
+        if (!userState.getDomainBusinessUnitUsers(FINES).anyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)) {
+            throw new PermissionNotAllowedException(SEARCH_AND_VIEW_ACCOUNTS);
+        }
+
+        Long masterDefendantAccountId = defendantAccountRepository.findMasterDefendantAccountId(defendantAccountId);
+        if (masterDefendantAccountId == null) {
+            throw new EntityNotFoundException(
+                "Defendant Account not found for id: " + defendantAccountId);
+        }
+
+        return MasterAccountDefendantAccount.builder()
+            .defendantAccountId(masterDefendantAccountId)
+            .build();
+    }
 }

@@ -616,6 +616,18 @@ public class OpalDefendantAccountBuilders {
         }
     }
 
+    static AtAGlanceResponseDefendantAccount.AccountStatusCodeEnum safeAccountStatusCode(
+        DefendantAccountStatus status) {
+        if (status == null) {
+            return null;
+        }
+        try {
+            return AtAGlanceResponseDefendantAccount.AccountStatusCodeEnum.fromValue(status.getCode());
+        } catch (RuntimeException ex) {
+            return null;
+        }
+    }
+
     /**
      * Split a full name into forenames + surname (surname = last token).
      */
@@ -935,6 +947,9 @@ public class OpalDefendantAccountBuilders {
 
     static AtAGlanceResponseDefendantAccount buildAtAGlancePayload(
         DefendantAccountSummaryViewEntity entity) {
+        if (entity == null) {
+            return null;
+        }
 
         return AtAGlanceResponseDefendantAccount.builder()
             .defendantAccountId(entity.getDefendantAccountId().toString())
@@ -948,6 +963,8 @@ public class OpalDefendantAccountBuilders {
             .paymentTerms(toStrictPaymentTerms(buildPaymentTerms(entity)))
             .enforcementStatus(toStrictEnforcementStatus(buildEnforcementStatusSummary(entity)))
             .commentsAndNotes(toStrictCommentsAndNotes(buildCommentsAndNotes(entity)))
+            .accountBalance(entity.getAccountBalance())
+            .accountStatusCode(safeAccountStatusCode(entity.getAccountStatus()))
             .build();
     }
 

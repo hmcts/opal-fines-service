@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -45,6 +46,7 @@ import uk.gov.hmcts.opal.exception.JsonSchemaValidationException.JsonSchemaValid
 import uk.gov.hmcts.opal.exception.MissingMappingTypeException;
 import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
+import uk.gov.hmcts.opal.exception.ReportGenerationException;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
@@ -175,14 +177,15 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleMissingStoredReportContent_returnsInternalServerErrorProblem() {
-        MissingStoredReportContentException ex = new MissingStoredReportContentException(12L, "blob/path");
+        UUID location = UUID.fromString("00000000-0000-0000-0000-000000000013");
+        MissingStoredReportContentException ex = new MissingStoredReportContentException(12L, location);
 
         ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleMissingStoredReportContentException(ex);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertEquals("Missing Data In Storage Account", response.getBody().getTitle());
         assertEquals(
-            "Stored report content file 'blob/path' was not found for report instance id: 12",
+            "Stored report content file '" + location + "' was not found for report instance id: 12",
             response.getBody().getDetail()
         );
         assertEquals(false, response.getBody().getProperties().get("retriable"));
@@ -200,6 +203,18 @@ class GlobalExceptionHandlerTest {
             "No report service implementation found for reportId: REPORT_1",
             response.getBody().getDetail()
         );
+    }
+
+    @Test
+    void handleReportGeneration_returnsRetriableInternalServerErrorProblem() {
+        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleReportGenerationException(
+            new ReportGenerationException("Storage connection refused", new RuntimeException()));
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals(MediaType.APPLICATION_PROBLEM_JSON, response.getHeaders().getContentType());
+        assertEquals("Report Generation Failed", response.getBody().getTitle());
+        assertEquals("Unable to generate the requested report", response.getBody().getDetail());
+        assertEquals(true, response.getBody().getProperties().get("retriable"));
     }
 
     @Test

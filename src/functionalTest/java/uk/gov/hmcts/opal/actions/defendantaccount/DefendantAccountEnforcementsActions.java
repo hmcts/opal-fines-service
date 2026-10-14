@@ -1,9 +1,10 @@
 package uk.gov.hmcts.opal.actions.defendantaccount;
 
 import io.restassured.response.Response;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import uk.gov.hmcts.opal.actions.draftaccount.DraftAccountActions;
+import uk.gov.hmcts.opal.assertions.CommonResponseAssertions;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 
 import java.util.Map;
@@ -17,7 +18,7 @@ import static uk.gov.hmcts.opal.utils.JsonObjectUtils.addLongObjectIfPresent;
  * scenarios.
  */
 public class DefendantAccountEnforcementsActions extends BaseStepDef {
-    private final DraftAccountActions draftAccountActions = new DraftAccountActions();
+    private final CommonResponseAssertions responseAssertions = new CommonResponseAssertions();
 
     /**
      * Extracts the created defendant-account ID from the supplied response and stores it in the
@@ -26,13 +27,14 @@ public class DefendantAccountEnforcementsActions extends BaseStepDef {
      * @param response response expected to contain the published defendant-account identifier.
      */
     public void storeCreatedDefendantAccountId(Response response) {
-        Object accountId = response.jsonPath().get("account_id");
-        if (accountId == null) {
-            Response refreshedDraftAccount = draftAccountActions.getSingleCreatedDraftAccount();
-            accountId = refreshedDraftAccount.jsonPath().get("account_id");
-        }
+        Object accountId = publishedAccountIdFrom(response);
         assertNotNull(accountId, "Expected published draft account response to contain account_id");
-        scenarioContext().setCreatedDefendantAccountId(String.valueOf(accountId));
+
+        String defendantAccountId = String.valueOf(accountId);
+        scenarioContext().setCreatedDefendantAccountId(defendantAccountId);
+        if (!isLegacyMode()) {
+            scenarioContext().addCreatedDefendantAccountId(defendantAccountId);
+        }
     }
 
     /**
@@ -79,6 +81,36 @@ public class DefendantAccountEnforcementsActions extends BaseStepDef {
     }
 
     /**
+     * Adds an enforcement action to the defendant account created during the current scenario.
+     *
+     * @param data table-driven values used to build the enforcement request.
+     * @return response returned by the add-enforcement endpoint.
+     * @throws JSONException if the JSON request body cannot be assembled.
+     */
+    public Response addEnforcementToCreatedDefendantAccount(Map<String, String> data) throws JSONException {
+        JSONArray resultResponses = new JSONArray()
+            .put(resultResponse("reason", data.get("reason")))
+            .put(resultResponse("hearingdate", data.get("hearingdate")))
+            .put(resultResponse("courtcode", data.get("courtcode")));
+        JSONObject requestBody = new JSONObject()
+            .put("result_id", data.get("result_id"))
+            .put("enforcement_result_responses", resultResponses);
+
+        return authorisedJsonRequest()
+            .header("Business-Unit-Id", data.get("business_unit_id"))
+            .header("If-Match", scenarioContext().getDefendantAccountEtag())
+            .body(requestBody.toString())
+            .when()
+            .post(getTestUrl() + "/defendant-accounts/" + createdDefendantAccountIdOrFail() + "/enforcements");
+    }
+
+    private JSONObject resultResponse(String parameterName, String response) throws JSONException {
+        return new JSONObject()
+            .put("parameter_name", parameterName)
+            .put("response", response);
+    }
+
+    /**
      * Returns the created defendant-account ID stored for the current scenario, failing when it
      * has not yet been captured.
      *
@@ -86,5 +118,18 @@ public class DefendantAccountEnforcementsActions extends BaseStepDef {
      */
     private String createdDefendantAccountIdOrFail() {
         return scenarioContext().getCreatedDefendantAccountIdOrFail();
+    }
+
+    private Object publishedAccountIdFrom(Response response) {
+        Object accountId = response.jsonPath().get("account_id");
+        return accountId != null ? accountId : response.jsonPath().get("defendant_account_id");
+    }
+
+    private boolean isLegacyMode() {
+        Response response = authorisedJsonRequest()
+            .when()
+            .get(getTestUrl() + "/testing-support/is-legacy-mode");
+        responseAssertions.assertStatus(response, 200);
+        return Boolean.parseBoolean(response.asString());
     }
 }

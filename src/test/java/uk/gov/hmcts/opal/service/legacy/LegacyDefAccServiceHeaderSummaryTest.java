@@ -30,6 +30,7 @@ import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.AccountTypeEnum;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.DebtorTypeEnum;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.OriginatorTypeEnum;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PaymentStateSummaryCommon;
 
@@ -77,6 +78,9 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
                               .organisationDetails(null)
                               .individualDetails(null)
                               .build())
+            .originatorType(OriginatorTypeEnum.NEW)
+            .originatorName("Originator Name")
+            .collectionOrder(Boolean.TRUE)
             .build();
 
         assertNotNull(actual, "Expected non-null header summary");
@@ -92,6 +96,9 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
             actual.getResponse().getBusinessUnitSummary().getBusinessUnitCode());
         assertEquals(expected.getPaymentStateSummary().getImposedAmount(),
             actual.getResponse().getPaymentStateSummary().getImposedAmount());
+        assertEquals(expected.getOriginatorType(), actual.getResponse().getOriginatorType());
+        assertEquals(expected.getOriginatorName(), actual.getResponse().getOriginatorName());
+        assertEquals(expected.getCollectionOrder(), actual.getResponse().getCollectionOrder());
     }
 
     @Test
@@ -572,6 +579,9 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
                     .build()
             )
             .partyDetails(uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder().build())
+            .originatorType("NEW")
+            .originatorName("Originator Name")
+            .collectionOrder(Boolean.TRUE)
             .build();
     }
 }

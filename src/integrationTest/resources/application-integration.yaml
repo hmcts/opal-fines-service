@@ -55,6 +55,15 @@ testcontainers:
 legacy-gateway:
   url: http://localhost:4553/opal
 opal:
+  common:
+    system-users:
+      token-url: http://localhost
+      users:
+        opal-system-user:
+          client-id: client-id
+          client-secret: client-secret
+          scope: api://client-id/.default
+          grant-type: client_credentials
   report:
     consumer:
       enabled: false
@@ -72,3 +81,7 @@ opal:
 user:
   service:
     url: http://localhost:4553/opal
+
+file-handler:
+  service:
+    url: http://localhost:4075
