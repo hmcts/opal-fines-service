@@ -25,6 +25,18 @@
       },
       "offVariation": 1
     },
+    "release-1b-1-1": {
+      "key": "release-1b-1-1",
+      "on": true,
+      "variations": [
+        true,
+        false
+      ],
+      "fallthrough": {
+        "variation": 1
+      },
+      "offVariation": 1
+    },
     "release-1c": {
       "key": "release-1c",
       "on": true,

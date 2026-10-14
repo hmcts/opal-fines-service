@@ -29,7 +29,7 @@ class CreditorHeaderLegacyMapperTest {
         // Arrange
         uk.gov.hmcts.opal.dto.legacy.common.CreditorAccountTypeReference accountType =
             uk.gov.hmcts.opal.dto.legacy.common.CreditorAccountTypeReference.builder()
-                .accountType("MN")
+                .creditorAccountType("MN")
                 .build();
         CreditorHeaderLegacy legacy = CreditorHeaderLegacy.builder()
             .accountVersion(BigInteger.valueOf(3))

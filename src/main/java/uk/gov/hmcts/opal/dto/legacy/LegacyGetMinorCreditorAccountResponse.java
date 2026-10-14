@@ -32,6 +32,9 @@ import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 @Builder
 public class LegacyGetMinorCreditorAccountResponse implements ToXmlString, HasErrorResponse {
 
+    @XmlElement(name = "error_response")
+    private ErrorResponse errorResponse;
+
     @XmlElement(name = "account_version", required = true)
     private BigInteger accountVersion;
 
@@ -47,6 +50,4 @@ public class LegacyGetMinorCreditorAccountResponse implements ToXmlString, HasEr
     @XmlElement(name = "payment", required = true)
     private LegacyCreditorAccountPaymentDetails payment;
 
-    @XmlElement(name = "error_response")
-    private ErrorResponse errorResponse;
 }

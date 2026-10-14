@@ -70,17 +70,17 @@ class LegacyDefAccHistoryTest extends AbstractLegacyDefendantsIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(header().string(HttpHeaders.ETAG, OVER_LONG_VERSION_ETAG))
-            .andExpect(jsonPath("$.historyItems[0].type").value("Note"))
-            .andExpect(jsonPath("$.historyItems[0].details.noteText").value("Legacy account note"))
-            .andExpect(jsonPath("$.historyItems[1].type").value("Financial"))
-            .andExpect(jsonPath("$.historyItems[1].amount").value(-25.50))
-            .andExpect(jsonPath("$.historyItems[1].details.transactionType.transactionType").value("PAYMNT"))
-            .andExpect(jsonPath("$.historyItems[2].type").value("Payment terms"))
-            .andExpect(jsonPath("$.historyItems[2].details.payment_terms_type.payment_terms_type_code").value("I"))
-            .andExpect(jsonPath("$.historyItems[3].type").value("Enforcement"))
-            .andExpect(jsonPath("$.historyItems[3].details.enforcementAction").value("FSN"))
-            .andExpect(jsonPath("$.historyItems[4].type").value("Amendment"))
-            .andExpect(jsonPath("$.historyItems[4].details.attributeName").value("Account status"));
+            .andExpect(jsonPath("$.historyItems[0].type").value("Amendment"))
+            .andExpect(jsonPath("$.historyItems[0].details.attributeName").value("Account status"))
+            .andExpect(jsonPath("$.historyItems[1].type").value("Enforcement"))
+            .andExpect(jsonPath("$.historyItems[1].details.enforcementAction").value("FSN"))
+            .andExpect(jsonPath("$.historyItems[2].type").value("Financial"))
+            .andExpect(jsonPath("$.historyItems[2].amount").value(-25.50))
+            .andExpect(jsonPath("$.historyItems[2].details.transactionType.transactionType").value("PAYMNT"))
+            .andExpect(jsonPath("$.historyItems[3].type").value("Note"))
+            .andExpect(jsonPath("$.historyItems[3].details.noteText").value("Legacy account note"))
+            .andExpect(jsonPath("$.historyItems[4].type").value("Payment terms"))
+            .andExpect(jsonPath("$.historyItems[4].details.payment_terms_type.payment_terms_type_code").value("I"));
 
         ArgumentCaptor<GetDefendantAccountHistoryLegacyRequest> requestCaptor =
             ArgumentCaptor.forClass(GetDefendantAccountHistoryLegacyRequest.class);
@@ -93,7 +93,35 @@ class LegacyDefAccHistoryTest extends AbstractLegacyDefendantsIntegrationTest {
         assertThat(requestCaptor.getValue().getDefendantAccountId()).isEqualTo("99000000000001");
         assertThat(requestCaptor.getValue().getFromDate()).isNull();
         assertThat(requestCaptor.getValue().getToDate()).isNull();
-        assertThat(requestCaptor.getValue().getItemTypes()).isNull();
+        assertThat(requestCaptor.getValue().getItemTypes())
+            .containsExactly("Amendment", "Enforcement", "Financial", "Note", "Payment terms");
+    }
+
+    @Test
+    @JiraStory("PO-10874")
+    @JiraEpic("PO-2621")
+    @DisplayName("PO-10874 legacy history with empty item types sends all types to Legacy")
+    void getDefendantAccountHistory_emptyItemTypes_defaultsToAllLegacyItemTypes() throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+
+        mockMvc.perform(get(HISTORY_URL, DEFENDANT_ACCOUNT_ID)
+                .queryParam("itemTypes", "")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
+            .andExpect(status().isOk());
+
+        ArgumentCaptor<GetDefendantAccountHistoryLegacyRequest> requestCaptor =
+            ArgumentCaptor.forClass(GetDefendantAccountHistoryLegacyRequest.class);
+        verify(gatewayService).postToGateway(
+            eq(GET_DEFENDANT_ACCOUNT_HISTORY),
+            eq(GetDefendantAccountHistoryLegacyResponse.class),
+            requestCaptor.capture(),
+            isNull()
+        );
+        assertThat(requestCaptor.getValue().getItemTypes())
+            .containsExactly("Amendment", "Enforcement", "Financial", "Note", "Payment terms");
     }
 
     @Test
@@ -113,8 +141,8 @@ class LegacyDefAccHistoryTest extends AbstractLegacyDefendantsIntegrationTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.historyItems[0].type").value("Note"))
-            .andExpect(jsonPath("$.historyItems[1].type").value("Financial"));
+            .andExpect(jsonPath("$.historyItems[0].type").value("Amendment"))
+            .andExpect(jsonPath("$.historyItems[1].type").value("Enforcement"));
 
         ArgumentCaptor<GetDefendantAccountHistoryLegacyRequest> requestCaptor =
             ArgumentCaptor.forClass(GetDefendantAccountHistoryLegacyRequest.class);
@@ -143,7 +171,9 @@ class LegacyDefAccHistoryTest extends AbstractLegacyDefendantsIntegrationTest {
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
             .andExpect(status().isNotFound())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").isString())
+            .andExpect(jsonPath("$.detail").isString());
     }
 
     @Test

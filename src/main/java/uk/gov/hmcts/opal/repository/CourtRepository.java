@@ -24,4 +24,6 @@ public interface CourtRepository extends JpaRepository<CourtEntity, Long>,
         Specification<CourtEntity> spec,
         Function<? super JpaSpecificationExecutor.SpecificationFluentQuery<S>, R> queryFunction
     );
+
+    Optional<CourtEntity> findByCourtCodeAndBusinessUnitId(Short courtCode, Short businessUnitId);
 }

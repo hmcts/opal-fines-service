@@ -1,0 +1,27 @@
+{
+  "file_name": "a121_00350005_300000.dat",
+  "destination_details": {
+    "bank_details": {
+      "account_number": "01234567",
+      "sort_code": "123456",
+      "name": "Test Court",
+      "type": "5"
+    }
+  },
+  "payment_type": "CASH",
+  "transactions": [
+    {
+      "transaction_code": "68",
+      "originator_details": {
+        "name": "Test Payer",
+        "account_reference": "99000001A",
+        "bank_details": {
+          "account_number": "98765432",
+          "sort_code": "654321"
+        }
+      },
+      "amount": 12345,
+      "date_entry_applied": "01/06/2026"
+    }
+  ]
+}

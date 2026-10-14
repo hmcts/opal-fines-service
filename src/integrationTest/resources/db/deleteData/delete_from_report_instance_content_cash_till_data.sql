@@ -1,3 +1,6 @@
+DELETE FROM report_instance_files
+WHERE report_instance_id = 99000000353000;
+
 DELETE FROM payments_in
 WHERE payment_in_id = 99000000353300;
 

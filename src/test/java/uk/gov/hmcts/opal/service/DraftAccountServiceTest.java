@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -147,6 +148,80 @@ class DraftAccountServiceTest {
         // Assert
         assertNotNull(result);
         verify(pdplLoggingService).logForMultipleGets(List.of(draftAccountEntity), Action.GET, userState);
+    }
+
+    @Test
+    void testCountDraftAccounts() {
+        // Arrange
+        short permittedBusinessUnitId = 77;
+        List<DraftAccountStatus> statuses = List.of(DraftAccountStatus.REJECTED);
+        var userState = UserStateUtil.permissionUser(
+            permittedBusinessUnitId,
+            FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS
+        );
+
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(draftAccountTransactional.countDraftAccounts(
+            eq(List.of(permittedBusinessUnitId)),
+            eq(statuses),
+            eq(List.of()),
+            eq(List.of()),
+            eq(Optional.empty()),
+            eq(Optional.empty())
+        )).thenReturn(7L);
+
+        // Act
+        DraftAccountsResponseDto result = draftAccountService.countDraftAccounts(
+            Optional.of(List.of(permittedBusinessUnitId, (short) 78)),
+            Optional.of(statuses),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty()
+        );
+
+        // Assert
+        assertEquals(7, result.getCount());
+        assertNull(result.getSummaries());
+
+        verify(draftAccountTransactional).countDraftAccounts(
+            eq(List.of(permittedBusinessUnitId)),
+            eq(statuses),
+            eq(List.of()),
+            eq(List.of()),
+            eq(Optional.empty()),
+            eq(Optional.empty())
+        );
+        verify(pdplLoggingService, never()).logForMultipleGets(any(), any(), any());
+    }
+
+    @Test
+    void testCountDraftAccounts_noPermittedRequestedBusinessUnits_returnsZero() {
+        // Arrange
+        var userState = UserStateUtil.permissionUser(
+            (short) 77,
+            FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS
+        );
+
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+
+        // Act
+        DraftAccountsResponseDto result = draftAccountService.countDraftAccounts(
+            Optional.of(List.of((short) 78)),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty()
+        );
+
+        // Assert
+        assertEquals(0, result.getCount());
+        assertNull(result.getSummaries());
+
+        verify(draftAccountTransactional, never())
+            .countDraftAccounts(any(), any(), any(), any(), any(), any());
+        verify(pdplLoggingService, never()).logForMultipleGets(any(), any(), any());
     }
 
     @SuppressWarnings("unchecked")
