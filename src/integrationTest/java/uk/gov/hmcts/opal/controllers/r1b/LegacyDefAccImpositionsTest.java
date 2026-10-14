@@ -128,7 +128,7 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.impositions[0].offence.cjs_code").value("HY35014"))
             .andExpect(jsonPath("$.impositions[0].offence.offence_title").value("Riding a bicycle on a footpath"))
             .andExpect(jsonPath("$.impositions[0].imposed_by.court_id").value(101L))
-            .andExpect(jsonPath("$.impositions[0].imposed_by.court_code").value(nullValue()))
+            .andExpect(jsonPath("$.impositions[0].imposed_by.court_code").doesNotExist())
             .andExpect(jsonPath("$.impositions[0].imposed_by.court_name").value("Legacy Court"))
             .andExpect(jsonPath("$.impositions[0].imposition_id").value(770000027211L))
             .andReturn();
