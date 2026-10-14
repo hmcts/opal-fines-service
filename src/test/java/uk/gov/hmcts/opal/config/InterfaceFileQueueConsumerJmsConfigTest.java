@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import tools.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.opal.common.config.ServiceBusConnectionStringParser;
 import uk.gov.hmcts.opal.service.InterfaceFileProcessorService;
 import jakarta.jms.ConnectionFactory;
 import org.junit.jupiter.api.Test;
