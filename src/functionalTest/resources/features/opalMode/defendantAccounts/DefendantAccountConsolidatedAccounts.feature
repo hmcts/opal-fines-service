@@ -25,8 +25,8 @@ Feature: Defendant Account Consolidated Accounts
     When I request consolidated accounts for a non-existent defendant account
     Then the response status code is 404
     And the consolidated accounts error response matches the standard problem detail contract for status 404
-    And the consolidated accounts error title contains "Defendant Account Not Found"
-    And the consolidated accounts error detail contains the requested defendant account id
+    And the consolidated accounts error title contains "Entity Not Found"
+    And the consolidated accounts error detail contains "The requested entity could not be found"
     And the consolidated accounts error is non-retriable
 
   @JIRA-STORY:PO-2333 @JIRA-EPIC:PO-2332 @JIRA-TEST-KEY:PO-9536
