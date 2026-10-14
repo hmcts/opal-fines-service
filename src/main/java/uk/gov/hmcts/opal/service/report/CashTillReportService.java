@@ -2,14 +2,13 @@ package uk.gov.hmcts.opal.service.report;
 
 import static uk.gov.hmcts.opal.service.report.CommonReportHelper.escapeCsv;
 import static uk.gov.hmcts.opal.service.report.CommonReportHelper.formatMoney;
-import static uk.gov.hmcts.opal.service.report.CommonReportHelper.formatReportDate;
 import static uk.gov.hmcts.opal.service.report.CommonReportHelper.formatReceiptValue;
+import static uk.gov.hmcts.opal.service.report.CommonReportHelper.formatReportDate;
 import static uk.gov.hmcts.opal.service.report.CommonReportHelper.validateMoney;
 import static uk.gov.hmcts.opal.service.report.CommonReportHelper.validateRequired;
 import static uk.gov.hmcts.opal.service.report.CommonReportHelper.validateText;
 import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.COMMA;
 import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.NEW_LINE;
-import static uk.gov.hmcts.opal.service.report.FileType.CSV;
 import static uk.gov.hmcts.opal.service.report.ReportId.CASH_TILL;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -24,6 +23,7 @@ import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
+import uk.gov.hmcts.opal.common.docmosis.PDFGenerationService;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.entity.PaymentInEntity_;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
@@ -51,6 +51,7 @@ public class CashTillReportService implements ReportInterface<CashTillReportData
     private final TillRepository tillRepository;
     private final PaymentInRepository paymentInRepository;
     private final CashTillReportDataMapper reportDataMapper;
+    private final PDFGenerationService pdfGenerationService;
 
     @Override
     public ReportId getReportId() {
@@ -77,10 +78,14 @@ public class CashTillReportService implements ReportInterface<CashTillReportData
     @Override
     public byte[] convertReportDataToFileType(ReportInstanceEntity reportInstance, CashTillReportData reportData,
         FileType fileType) {
-        if (fileType != CSV) {
-            throw new IllegalArgumentException("Cash Till report only supports CSV conversion");
-        }
+        return switch (fileType) {
+            case CSV -> convertReportDataToCsv(reportData);
+            case PDF -> convertReportDataToPdf(reportInstance, reportData);
+            default -> throw new IllegalArgumentException("Cash Till report only supports CSV or PDF conversion");
+        };
+    }
 
+    private byte[] convertReportDataToCsv(CashTillReportData reportData) {
         validateReportData(reportData);
         StringBuilder csv = new StringBuilder(String.join(COMMA, HEADINGS)).append(NEW_LINE);
         reportData.getRows().stream()
@@ -89,6 +94,11 @@ public class CashTillReportService implements ReportInterface<CashTillReportData
             .forEach(row -> csv.append(row).append(NEW_LINE));
 
         return csv.toString().getBytes(StandardCharsets.UTF_8);
+    }
+
+    private byte[] convertReportDataToPdf(ReportInstanceEntity reportInstance, CashTillReportData reportData) {
+        validateReportData(reportData);
+        return pdfGenerationService.generatePdf("", reportData);
     }
 
     private static String toCsvRow(CashTillReportData reportData, CashTillReportRow row) {
