@@ -12,6 +12,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.model.HasErrorResponse;
+import uk.gov.hmcts.opal.dto.ToXmlString;
 
 @Data
 @Builder
@@ -20,15 +21,15 @@ import uk.gov.hmcts.opal.common.legacy.model.HasErrorResponse;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "response")
 @XmlType(propOrder = {"version", "defendantAccountParty", "errorResponse"})
-public class LegacyReplaceDefendantAccountPartyResponse implements HasErrorResponse {
+public class LegacyReplaceDefendantAccountPartyResponse implements ToXmlString, HasErrorResponse {
+
+    @XmlElement(name = "error_response")
+    private ErrorResponse errorResponse;
 
     @XmlElement(name = "version")
     private BigInteger version;
 
     @XmlElement(name = "defendant_account_party")
     private DefendantAccountPartyLegacy defendantAccountParty;
-
-    @XmlElement(name = "error_response")
-    private ErrorResponse errorResponse;
 
 }
