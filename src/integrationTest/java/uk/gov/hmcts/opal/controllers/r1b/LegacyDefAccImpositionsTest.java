@@ -48,6 +48,7 @@ import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.PostedDetails;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Result;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetImpositionsRequest;
+import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.legacy.LegacyImpositionService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -126,6 +127,9 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.impositions[0].offence.offence_id").value(33369L))
             .andExpect(jsonPath("$.impositions[0].offence.cjs_code").value("HY35014"))
             .andExpect(jsonPath("$.impositions[0].offence.offence_title").value("Riding a bicycle on a footpath"))
+            .andExpect(jsonPath("$.impositions[0].imposed_by.court_id").value(101L))
+            .andExpect(jsonPath("$.impositions[0].imposed_by.court_code").doesNotExist())
+            .andExpect(jsonPath("$.impositions[0].imposed_by.court_name").value("Legacy Court"))
             .andExpect(jsonPath("$.impositions[0].imposition_id").value(770000027211L))
             .andReturn();
 
@@ -212,6 +216,10 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
                     .offenceId(33369L)
                     .cjsCode("HY35014")
                     .offenceTitle("Riding a bicycle on a footpath")
+                    .build())
+                .imposingCourt(CourtReference.builder()
+                    .courtId(101L)
+                    .courtName("Legacy Court")
                     .build())
                 .impositionId(770000027211L)
                 .build()))
