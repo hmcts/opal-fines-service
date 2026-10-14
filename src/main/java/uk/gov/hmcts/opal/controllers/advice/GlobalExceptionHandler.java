@@ -106,19 +106,19 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleEntityNotFoundException(EntityNotFoundException ex) {
-        ProblemDetail problemDetail = createProblemDetail(HttpStatus.NOT_FOUND, "Entity Not Found",
-            "The requested entity could not be found",
-            "entity-not-found", false, ex);
-
-        return responseWithProblemDetail(HttpStatus.NOT_FOUND, problemDetail);
+        return entityNotFoundResponse(ex);
     }
 
     @ExceptionHandler(DefendantAccountNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleDefendantAccountNotFoundException(
         DefendantAccountNotFoundException ex) {
 
-        ProblemDetail problemDetail = createProblemDetail(HttpStatus.NOT_FOUND, "Defendant Account Not Found",
-            "Defendant account not found with id: " + ex.getDefendantAccountId(),
+        return entityNotFoundResponse(ex);
+    }
+
+    private ResponseEntity<ProblemDetail> entityNotFoundResponse(RuntimeException ex) {
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.NOT_FOUND, "Entity Not Found",
+            "The requested entity could not be found",
             "entity-not-found", false, ex);
 
         return responseWithProblemDetail(HttpStatus.NOT_FOUND, problemDetail);
