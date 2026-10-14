@@ -41,6 +41,8 @@ import uk.gov.hmcts.opal.util.FeatureFlags;
 @Tag(name = "DraftAccount Controller")
 public class DraftAccountController {
 
+    private static final String COUNTS_RESTRICTION = "counts";
+
     private final DraftAccountService draftAccountService;
 
     public DraftAccountController(DraftAccountService draftAccountService) {
@@ -71,13 +73,34 @@ public class DraftAccountController {
         @RequestParam(value = "submitted_by") Optional<List<String>> optionalSubmittedBys,
         @RequestParam(value = "not_submitted_by") Optional<List<String>> optionalNotSubmittedBys,
         @RequestParam(value = "account_status_date_from") Optional<LocalDate> accountStatusDateFrom,
-        @RequestParam(value = "account_status_date_to") Optional<LocalDate> accountStatusDateTo) {
+        @RequestParam(value = "account_status_date_to") Optional<LocalDate> accountStatusDateTo,
+        @RequestParam(value = "restrict") Optional<String> restrict) {
 
         log.debug(":GET:getDraftAccountSummaries:");
 
+        if (isCountOnlyRestriction(restrict)) {
+            return buildResponse(
+                draftAccountService.countDraftAccounts(
+                    optionalBusinessUnitIds,
+                    optionalStatus,
+                    optionalSubmittedBys,
+                    optionalNotSubmittedBys,
+                    accountStatusDateFrom,
+                    accountStatusDateTo
+                )
+            );
+        }
+
         return buildResponse(
-            draftAccountService.getDraftAccounts(optionalBusinessUnitIds, optionalStatus, optionalSubmittedBys,
-                optionalNotSubmittedBys, accountStatusDateFrom, accountStatusDateTo));
+            draftAccountService.getDraftAccounts(
+                optionalBusinessUnitIds,
+                optionalStatus,
+                optionalSubmittedBys,
+                optionalNotSubmittedBys,
+                accountStatusDateFrom,
+                accountStatusDateTo
+            )
+        );
     }
 
 
@@ -129,6 +152,19 @@ public class DraftAccountController {
         log.info(":PATCH:patchDraftAccount: updating draft account entity: {}", draftAccountId);
 
         return buildResponse(draftAccountService.updateDraftAccount(draftAccountId, dto, ifMatch));
+    }
+
+    private static boolean isCountOnlyRestriction(Optional<String> restrict) {
+        if (restrict.isEmpty()) {
+            return false;
+        }
+
+        if (!COUNTS_RESTRICTION.equals(restrict.get())) {
+            throw new IllegalArgumentException(
+                "The 'restrict' parameter must have the value 'counts'.");
+        }
+
+        return true;
     }
 
     private static void rejectTimelineDataIfSupplied(Object timelineData) {
