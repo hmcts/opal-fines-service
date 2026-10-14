@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
@@ -108,7 +109,6 @@ class InterfaceJobServiceTest {
         InterfaceFileEntity unsavedFile = InterfaceFileEntity.builder()
             .interfaceJob(savedJob)
             .fileName("auto-payments-in.dat")
-            .records("[{\"account\":\"123\"}]")
             .build();
         InterfaceJobsCreateResponseItem createResponse = InterfaceJobsCreateResponseItem.builder()
             .interfaceJobId(123L)
@@ -369,6 +369,26 @@ class InterfaceJobServiceTest {
         assertEquals("Interface job ids supplied for deletion not found", exception.getMessage());
         verify(interfaceJobRepository).findAllById(interfaceJobIds);
         verify(interfaceJobRepository, never()).deleteAllById(interfaceJobIds);
+    }
+
+    @Test
+    void markProcessingForTesting_setsStatusWithoutPublishing() {
+        InterfaceJobEntity job = processJob(123L, InterfaceJobStatus.CREATED);
+        when(interfaceJobRepository.findById(123L)).thenReturn(Optional.of(job));
+
+        interfaceJobService.markProcessingForTesting(123L);
+
+        assertEquals(InterfaceJobStatus.PROCESSING, job.getStatus());
+        assertEquals(LocalDateTime.of(2026, 7, 21, 9, 15), job.getStartedDateTime());
+        verifyNoInteractions(interfaceJobQueuePublisher);
+    }
+
+    @Test
+    void markProcessingForTesting_rejectsMissingJob() {
+        when(interfaceJobRepository.findById(123L)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> interfaceJobService.markProcessingForTesting(123L));
+        verifyNoInteractions(interfaceJobQueuePublisher);
     }
 
     private InterfaceJobsSummaryItem summaryResponse(

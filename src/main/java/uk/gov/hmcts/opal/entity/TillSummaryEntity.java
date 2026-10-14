@@ -27,6 +27,9 @@ public class TillSummaryEntity {
     @Column(name = "till_id")
     private Long tillId;
 
+    @Column(name = "payments_count")
+    private Short paymentsCount;
+
     @Column(name = "till_number")
     private Short tillNumber;
 

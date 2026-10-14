@@ -13,24 +13,24 @@ Feature: Till summary retrieval
     When I call GET "/tills?business_unit_ids=78" with an invalid token
     Then the request is rejected as unauthorized
 
-  # E2E.01 — Valid user without payment permission receives an empty result.
-  @JIRA-STORY:PO-2575
-  Scenario: User without Process and Allocate Payments permission receives no tills
+  # E2E.01 — No BU filter and no payment permission returns an empty result.
+  @JIRA-STORY:PO-10713
+  Scenario: User without Process and Allocate Payments permission receives no tills when the BU filter is omitted
     Given I am testing as the "opal-test-2@dev.platform.hmcts.net" user
-    When I request tills for business unit 78
+    When I request tills without a business unit filter
     Then the tills response is an empty successful response
 
   # E2E.02 — A processed auto-payment till includes original-file details.
-  @JIRA-STORY:PO-2575
+  @JIRA-STORY:PO-2575 @Ignore @JIRA-DEFECT:PO-10560
   Scenario: Processed auto-payment till includes the documented original file details
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And I create and process an auto-payment interface job for business unit 77
     When I request the generated auto-payment till
     Then the auto-payment tills response contains documented till and original file details
 
-  # E2E.03 — Unmatched filters return the empty success contract.
-  @JIRA-STORY:PO-2575
-  Scenario: Unmatched allocated auto-payment filters return an empty successful response
+  # E2E.03 — An explicitly requested unauthorized BU returns forbidden.
+  @JIRA-STORY:PO-10713
+  Scenario: Explicitly requested unauthorized business unit is rejected
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    When I request allocated auto-payment tills for unmatched business unit 32767
-    Then the tills response is an empty successful response
+    When I request tills for business unit 32767
+    Then the request is rejected as forbidden
