@@ -83,14 +83,14 @@ public class InterfaceFileProcessorService {
             case CHEQUE -> PRESENTED_CHEQUES;
         };
 
-        InterfaceJobEntity job = interfaceJobRepository.save(InterfaceJobEntity.builder()
+        InterfaceJobEntity job = InterfaceJobEntity.builder()
             .businessUnit(businessUnit)
             .interfaceName(interfaceName)
             .status(InterfaceJobStatus.CREATED)
             .createdDateTime(LocalDateTime.now(clock))
-            .build());
+            .build();
 
-        interfaceFileRepository.save(InterfaceFileEntity.builder()
+        InterfaceFileEntity file = InterfaceFileEntity.builder()
             .interfaceJob(job)
             .fileName(sourceJson.getFileName())
             .createdDateTime(LocalDateTime.now(clock))
@@ -99,7 +99,10 @@ public class InterfaceFileProcessorService {
             .totalAmount(BigDecimal.valueOf(transformedData.getTotalAmount(), 2))
             .sourceJsonId(sourceJson.getInterfaceFileId())
             .transformedJsonId(transformedJson.getInterfaceFileId())
-            .build());
+            .build();
+
+        job.getInterfaceFiles().add(file);
+        interfaceJobRepository.save(job);
     }
 
     private InterfaceFileObject getSourceJson(Long sourceJsonId) {
