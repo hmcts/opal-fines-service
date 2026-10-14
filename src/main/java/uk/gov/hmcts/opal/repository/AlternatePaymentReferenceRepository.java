@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.repository;
 
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -11,4 +12,5 @@ public interface AlternatePaymentReferenceRepository extends JpaRepository<Alter
         JpaSpecificationExecutor<AlternatePaymentReferenceEntity> {
 
     Optional<AlternatePaymentReferenceEntity> findByAprTextAndBusinessUnitCode(String aprText, String businessUnitCode);
+    List<AlternatePaymentReferenceEntity> findByDefendantAccountId(Long defendantAccountId);
 }
