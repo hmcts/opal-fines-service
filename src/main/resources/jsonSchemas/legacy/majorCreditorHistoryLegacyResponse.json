@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.com/opal-fines-service.history-items.schema.json",
-  "title": "Get Major Creditor Account History Legacy Response",
+  "title": "Major Creditor History Legacy Response",
   "type": "object",
   "properties": {
     "history_items": {

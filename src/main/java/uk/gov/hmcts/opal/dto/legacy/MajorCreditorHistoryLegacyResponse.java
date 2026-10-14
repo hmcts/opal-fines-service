@@ -26,7 +26,7 @@ import uk.gov.hmcts.opal.util.LocalDateAdapter;
 @AllArgsConstructor
 @XmlRootElement(name = "response")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class GetMajorCreditorAccountHistoryLegacyResponse implements ToXmlString, HasErrorResponse {
+public class MajorCreditorHistoryLegacyResponse implements ToXmlString, HasErrorResponse {
 
     @XmlElement(name = "error_response")
     private ErrorResponse errorResponse;
