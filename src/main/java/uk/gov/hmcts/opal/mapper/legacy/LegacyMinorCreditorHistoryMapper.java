@@ -162,8 +162,8 @@ public class LegacyMinorCreditorHistoryMapper {
     }
 
     private List<String> toLegacyItemTypes(MinorCreditorHistoryFilters filters, boolean release1b11Enabled) {
-        if (filters == null || filters.itemTypes() == null ||
-            filters.itemTypes().size() == MinorCreditorHistoryItemType.values().length) {
+        if (filters == null || filters.itemTypes() == null
+            || filters.itemTypes().size() == MinorCreditorHistoryItemType.values().length) {
             if (!release1b11Enabled) {
                 return null;
             }
