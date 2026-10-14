@@ -19,6 +19,7 @@ import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.model.HasErrorResponse;
 import uk.gov.hmcts.opal.dto.ToXmlString;
+import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 
 @Data
@@ -70,6 +71,9 @@ public class GetDefendantAccountImpositionsLegacyResponse implements ToXmlString
 
         @XmlElement(name = "offence")
         private Offence offence;
+
+        @XmlElement(name = "imposing_court")
+        private CourtReference imposingCourt;
 
         @XmlElement(name = "imposition_id")
         private Long impositionId;

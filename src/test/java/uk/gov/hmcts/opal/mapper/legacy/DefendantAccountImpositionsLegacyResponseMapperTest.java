@@ -23,6 +23,7 @@ import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Offence;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.PostedDetails;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Result;
+import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.CreditorAccountDisplayNameEnum;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.CreditorAccountTypeEnum;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionCommon;
@@ -57,7 +58,7 @@ class DefendantAccountImpositionsLegacyResponseMapperTest extends AbstractMapper
                 () -> assertResult(imposition),
                 () -> assertCreditor(imposition),
                 () -> assertOffence(imposition),
-                () -> assertNull(imposition.getImposedBy())
+                () -> assertImposingCourt(imposition)
             );
         }
 
@@ -162,6 +163,15 @@ class DefendantAccountImpositionsLegacyResponseMapperTest extends AbstractMapper
         );
     }
 
+    private void assertImposingCourt(DefendantAccountImpositionCommon imposition) {
+        assertAll(
+            () -> assertNotNull(imposition.getImposedBy()),
+            () -> assertEquals(101L, imposition.getImposedBy().getCourtId()),
+            () -> assertNull(imposition.getImposedBy().getCourtCode()),
+            () -> assertEquals("Legacy Court", imposition.getImposedBy().getCourtName())
+        );
+    }
+
     private GetDefendantAccountImpositionsLegacyResponse legacyResponse() {
         return GetDefendantAccountImpositionsLegacyResponse.builder()
             .version(VERSION)
@@ -185,6 +195,10 @@ class DefendantAccountImpositionsLegacyResponseMapperTest extends AbstractMapper
                     .offenceId(33369L)
                     .cjsCode("HY35014")
                     .offenceTitle("Riding a bicycle on a footpath")
+                    .build())
+                .imposingCourt(CourtReference.builder()
+                    .courtId(101L)
+                    .courtName("Legacy Court")
                     .build())
                 .impositionId(770000027211L)
                 .build()))
