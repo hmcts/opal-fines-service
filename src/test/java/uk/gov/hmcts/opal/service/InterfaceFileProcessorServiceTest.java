@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -223,13 +224,13 @@ class InterfaceFileProcessorServiceTest {
 
     private void assertLinkedRowsSaved(PaymentType paymentType) {
         ArgumentCaptor<InterfaceJobEntity> jobCaptor = ArgumentCaptor.forClass(InterfaceJobEntity.class);
-        ArgumentCaptor<InterfaceFileEntity> finesFileCaptor = ArgumentCaptor.forClass(InterfaceFileEntity.class);
 
         verify(interfaceJobRepository).save(jobCaptor.capture());
-        verify(interfaceFileRepository).save(finesFileCaptor.capture());
+        verify(interfaceFileRepository, never()).save(any());
 
         InterfaceJobEntity job = jobCaptor.getValue();
-        InterfaceFileEntity finesFile = finesFileCaptor.getValue();
+        assertThat(job.getInterfaceFiles()).hasSize(1);
+        InterfaceFileEntity finesFile = job.getInterfaceFiles().getFirst();
 
         assertThat(job.getBusinessUnit().getBusinessUnitCode()).isEqualTo("BC12");
         assertThat(job.getInterfaceName()).isEqualTo(paymentType == PaymentType.CASH
