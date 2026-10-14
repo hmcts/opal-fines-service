@@ -321,7 +321,7 @@ public class DraftAccountReferenceValidationService {
         validateProsecutorOriginator(originatorId, originatorName, failures);
     }
 
-     private void validateLocalJusticeAreaOriginator(Long originatorId, String originatorName, List<String> failures) {
+    private void validateLocalJusticeAreaOriginator(Long originatorId, String originatorName, List<String> failures) {
         Short localJusticeAreaId = toShort(originatorId);
         if (localJusticeAreaId == null) {
             failures.add(ORIGINATOR_ID_PATH + ": local justice area id " + originatorId + DOES_NOT_EXIST);
@@ -332,8 +332,8 @@ public class DraftAccountReferenceValidationService {
 
         if (dynamicConfigService.isLegacyMode()) {
             LocalJusticeAreaLegacyEntity localJusticeArea = legacyJusticeAreaRepository.findById(localJusticeAreaId)
-                    .filter(entity -> VALID_ORIGINATOR_LJA_TYPES.contains(entity.getLjaType()))
-                    .orElse(null);
+                   .filter(entity -> VALID_ORIGINATOR_LJA_TYPES.contains(entity.getLjaType()))
+                   .orElse(null);
 
             if (localJusticeArea == null) {
                 failures.add(ORIGINATOR_ID_PATH + ": local justice area id " + originatorId + DOES_NOT_EXIST);
