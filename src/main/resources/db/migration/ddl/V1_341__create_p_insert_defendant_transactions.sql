@@ -112,7 +112,7 @@ BEGIN
         , pi_payment_method
         , pi_payment_reference
         , pi_third_party_payer_name
-        , 'C'::t_defendant_transaction_status_enum
+        , NULL
         , CLOCK_TIMESTAMP()
         , 'payments_in'::t_associated_record_type_enum
         , pi_associated_record_id
