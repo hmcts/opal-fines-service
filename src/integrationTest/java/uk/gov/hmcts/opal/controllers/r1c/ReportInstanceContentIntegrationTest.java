@@ -62,7 +62,7 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
     private static final String EXPECTED_CSV_CONTENT =
         "HEADER1,report_type,till_number,source,report_amount,cashier,report_created,time_created,business_unit,"
             + "no_of_records,created_by\n"
-            + "REPORT,Unallocated,9011,BARCLAYCARD,125.00,opal-test,,,Cash Till Business Unit,1,opal-test\n"
+            + "REPORT,Pre-allocated,9011,BARCLAYCARD,125.00,opal-test,,,Cash Till Business Unit,1,opal-test\n"
             + "\n"
             + "HEADER2,date,transaction_type,details,method_of_payment,transaction_amount\n"
             + "DETAIL,26/05/2026,Fines Account,ACC456,Notes and coins,125.50\n"

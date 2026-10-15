@@ -59,6 +59,8 @@ public class CashTillReportService implements ReportInterface<CashTillReportData
     private static final String ALLOCATED_PAYMENT_PREFIX = "*";
     private static final String CASH_TILL_REPORT_PARAMETERS_ERROR = "Failed to parse Cash Till report parameters";
     private static final DateTimeFormatter REPORT_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+    private static final String REPORT_TYPE_ALLOCATED = "Allocated";
+    private static final String REPORT_TYPE_PREALLOCATED = "Pre-allocated";
 
     private final ObjectMapper objectMapper;
     private final TillRepository tillRepository;
@@ -129,7 +131,7 @@ public class CashTillReportService implements ReportInterface<CashTillReportData
     private static String toReportCsvRow(ReportInstanceEntity reportInstance, CashTillReportData reportData) {
         return String.join(COMMA, List.of(
             "REPORT",
-            escapeCsv(reportData.getAllocatedReport() ? "Allocated" : "Unallocated"), //TODO Check this
+            escapeCsv(reportData.getAllocatedReport() ? REPORT_TYPE_ALLOCATED : REPORT_TYPE_PREALLOCATED),
             escapeCsv(reportData.getCashTillNumber()),
             escapeCsv(reportData.getSource().name()),
             escapeCsv(formatMoney(reportData.getTotalAmount())),
