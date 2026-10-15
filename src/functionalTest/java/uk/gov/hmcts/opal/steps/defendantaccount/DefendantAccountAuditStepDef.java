@@ -33,6 +33,7 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String TEST_USER = "opal-test@dev.platform.hmcts.net";
     private static final String BUSINESS_UNIT_ID = "77";
+    private static final String LEGACY_SAFE_COURT_ID = "770000000001";
     private static final String EXPECTED_BUSINESS_USER_ID = "L077JG";
     private static final String ACCOUNT_FIXTURE = "draftAccounts/accountJson/auditableAccount.json";
     private static final String POSITIVE_BALANCE_ACCOUNT_FIXTURE = "draftAccounts/accountJson/adultAccount.json";
@@ -315,7 +316,19 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
         accountData.put("account", accountFixture);
         accountData.put("account_type", "Fine");
         accountData.put("account_status", "Submitted");
+        if (isLegacyMode()) {
+            accountData.put("account_enforcement_court_id", LEGACY_SAFE_COURT_ID);
+        }
         return accountData;
+    }
+
+    private boolean isLegacyMode() {
+        Response response = given()
+            .accept("*/*")
+            .when()
+            .get(getTestUrl() + "/testing-support/is-legacy-mode");
+        assertEquals(200, response.statusCode(), "Unexpected legacy-mode status");
+        return Boolean.parseBoolean(response.asString());
     }
 
     private String addPaymentTermsRequestBody() {
