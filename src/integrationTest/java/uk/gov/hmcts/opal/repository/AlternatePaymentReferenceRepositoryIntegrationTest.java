@@ -32,9 +32,6 @@ public class AlternatePaymentReferenceRepositoryIntegrationTest extends Abstract
     @Autowired
     private AlternatePaymentReferenceRepository repository;
 
-    @Autowired
-    private BusinessUnitRepository businessUnitRepository;
-
     void saveAndFlushEntity(AlternatePaymentReferenceEntity entity) {
         repository.saveAndFlush(entity);
     }
@@ -43,7 +40,7 @@ public class AlternatePaymentReferenceRepositoryIntegrationTest extends Abstract
         DefendantAccountEntity t = entityManager.getReference(
             DefendantAccountEntity.builder().defendantAccountId(77L).build()
         );
-        BusinessUnitEntity bu = businessUnitRepository.findById(NE_REGION_BU_ID).get();
+        BusinessUnitEntity bu = entityManager.getReference(BusinessUnitEntity.class, NE_REGION_BU_ID);
 
         return AlternatePaymentReferenceEntity.builder()
             .alternatePaymentReferenceId(TYPICAL_ID)
