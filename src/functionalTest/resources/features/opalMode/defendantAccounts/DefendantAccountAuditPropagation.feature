@@ -11,7 +11,7 @@ Feature: Defendant Account Audit Propagation
     When I patch the created defendant account with an enforcement override
     Then the defendant account patch response matches the documented contract
     And the created defendant account amendment history is recorded for business user "L077JG" and username "opal-test@dev.platform.hmcts.net"
-    And the created defendant account amendment history contains new value "FWEC"
+    And the created defendant account amendment history contains the patched enforcement override result
 
   @cleanUpData @JIRA-STORY:PO-2623 @JIRA-EPIC:PO-2621 @JIRA-TEST-KEY:PO-9533
   Scenario: E2E.02 POST payment terms requesting a payment card propagates authentication into audit
