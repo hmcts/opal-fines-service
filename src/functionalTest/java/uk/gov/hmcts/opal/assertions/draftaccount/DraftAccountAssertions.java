@@ -122,8 +122,9 @@ public class DraftAccountAssertions {
 
         List<Map<String, Object>> summaries = response.jsonPath().getList("summaries");
         for (Map.Entry<String, String> entry : expectedData.entrySet()) {
+            String[] fieldPath = entry.getKey().split("\\.");
             for (Map<String, Object> summary : summaries) {
-                String actual = Objects.toString(summary.get(entry.getKey()), null);
+                String actual = summaryFieldValue(summary, fieldPath);
                 if (caseSensitive) {
                     assertEquals(entry.getValue(), actual, "Values are not equal : ");
                 } else {
@@ -168,13 +169,32 @@ public class DraftAccountAssertions {
     public void assertLatestSummaryFieldDoesNotContainAny(String fieldName, Collection<String> unexpectedValues) {
         Response response = SerenityRest.lastResponse();
         List<Map<String, Object>> summaries = response.jsonPath().getList("summaries");
+        String[] fieldPath = fieldName.split("\\.");
 
         for (Map<String, Object> summary : summaries) {
-            String actual = Objects.toString(summary.get(fieldName), null);
+            String actual = summaryFieldValue(summary, fieldPath);
             for (String unexpectedValue : unexpectedValues) {
                 assertNotEquals(unexpectedValue, actual, "should not contain " + unexpectedValue);
             }
         }
+    }
+
+    /**
+     * Resolves a field path through an already parsed summary, including nested snapshot fields.
+     *
+     * @param summary parsed draft-account summary.
+     * @param fieldPath field names identifying the value within the summary.
+     * @return string representation of the value, or null when the path has no value.
+     */
+    private static String summaryFieldValue(Map<String, Object> summary, String[] fieldPath) {
+        Object value = summary;
+        for (String field : fieldPath) {
+            if (!(value instanceof Map<?, ?> fields)) {
+                return null;
+            }
+            value = fields.get(field);
+        }
+        return Objects.toString(value, null);
     }
 
     /**
