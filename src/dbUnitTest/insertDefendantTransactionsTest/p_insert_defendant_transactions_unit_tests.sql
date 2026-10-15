@@ -101,7 +101,7 @@ BEGIN
     ASSERT v_transaction.payment_method = v_payment_method, 'payment_method must match';
     ASSERT v_transaction.payment_reference IS NOT DISTINCT FROM v_payment_reference, 'payment_reference must match, including NULL';
     ASSERT v_transaction.text IS NOT DISTINCT FROM v_payer_name, 'Payer name must be stored as text, including NULL';
-    ASSERT v_transaction.status::TEXT = 'C', 'New transaction status must be C';
+    ASSERT v_transaction.status IS NULL, 'New transaction status must be NULL';
     ASSERT v_transaction.associated_record_type::TEXT = 'payments_in', 'Associated record type must be payments_in';
     ASSERT v_transaction.associated_record_id = v_associated_id, 'Associated record ID must match';
     ASSERT v_transaction.source = v_source, 'Source must match';
@@ -171,7 +171,7 @@ BEGIN
     ASSERT v_transaction.payment_method = v_payment_method, 'payment_method must match';
     ASSERT v_transaction.payment_reference IS NOT DISTINCT FROM v_payment_reference, 'payment_reference must match, including NULL';
     ASSERT v_transaction.text IS NOT DISTINCT FROM v_payer_name, 'Payer name must be stored as text, including NULL';
-    ASSERT v_transaction.status::TEXT = 'C', 'New transaction status must be C';
+    ASSERT v_transaction.status IS NULL, 'New transaction status must be NULL';
     ASSERT v_transaction.associated_record_type::TEXT = 'payments_in', 'Associated record type must be payments_in';
     ASSERT v_transaction.associated_record_id = v_associated_id, 'Associated record ID must match';
     ASSERT v_transaction.source = v_source, 'Source must match';
