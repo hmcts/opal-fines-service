@@ -14,6 +14,7 @@ import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.TillEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.exception.UnsupportedContentTypeException;
 import uk.gov.hmcts.opal.repository.PaymentInRepository;
 import uk.gov.hmcts.opal.repository.TillRepository;
 
@@ -55,7 +56,11 @@ public class CashListReportService implements ReportInterface<CashListReportData
     @Override
     public byte[] convertReportDataToFileType(ReportInstanceEntity reportInstance, CashListReportData reportData,
         FileType fileType) {
-        return new byte[0];
+        if (fileType != FileType.CSV) {
+            throw new UnsupportedContentTypeException(getReportId().getReportId(), fileType.name(),
+                List.of(FileType.CSV.name()));
+        }
+        throw new UnsupportedOperationException("CSV conversion is handled by ReportCSVService");
     }
 
     private static long extractTillId(String tillIdParameter) {

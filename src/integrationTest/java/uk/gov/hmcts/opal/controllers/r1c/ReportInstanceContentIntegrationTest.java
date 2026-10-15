@@ -265,6 +265,39 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
                             + "Total\n"
                             + "165.50\n"));
         }
+
+        @Test
+        @JiraStory("PO-3470")
+        @JiraEpic("PO-2116")
+        void whenPdfRequested_returnsUnsupportedContentType() throws Exception {
+            mockMvc.perform(authorisedGetContent(CASH_LIST_REPORT_INSTANCE_ID).accept(MediaType.APPLICATION_PDF))
+                .andExpectAll(
+                    status().isUnprocessableContent(),
+                    content().contentTypeCompatibleWith(APPLICATION_PROBLEM_JSON),
+                    jsonPath("$.title").value("Report Content Type Not Supported"),
+                    jsonPath("$.detail").value(
+                        "Content type PDF is not supported for cash_list. Supported content types: CSV"),
+                    jsonPath("$.status").value(422),
+                    jsonPath("$.retriable").value(false));
+        }
+
+        @Test
+        @JiraStory("PO-3470")
+        @JiraEpic("PO-2116")
+        void whenCsvRequestedWithInvalidCashListData_failsWithoutStoringRenderedContent() throws Exception {
+            byte[] invalidReportData = "{\"reportData\":{\"entries\":null,\"total\":0.00}}"
+                .getBytes(StandardCharsets.UTF_8);
+            blobContainerClient.getBlobClient(CASH_LIST_LOCATION)
+                .upload(new ByteArrayInputStream(invalidReportData), invalidReportData.length, true);
+            long blobCountBefore = blobCount();
+
+            mockMvc.perform(authorisedGetContent(CASH_LIST_REPORT_INSTANCE_ID).accept("application/csv"))
+                .andExpect(status().isBadRequest());
+
+            assertThat(reportInstanceFileRepository
+                .findByReportInstanceIdAndFileType(CASH_LIST_REPORT_INSTANCE_ID, SupportedFileType.CSV)).isEmpty();
+            assertThat(blobCount()).isEqualTo(blobCountBefore);
+        }
     }
 
     @Nested
