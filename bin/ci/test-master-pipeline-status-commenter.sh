@@ -229,22 +229,22 @@ if [[ "\$1 \$2" == "api graphql" ]]; then
   cat "$rollup"
   exit 0
 fi
-if [[ "\$*" == "api repos/hmcts/opal-file-handler-service/pulls --method GET --paginate -f state=open -f base=master --jq .[].number" ]]; then
+if [[ "\$*" == "api repos/hmcts/opal-fines-service/pulls --method GET --paginate -f state=open -f base=master --jq .[].number" ]]; then
   printf "11\n12\n"
   exit 0
 fi
-if [[ "\$*" == "api repos/hmcts/opal-file-handler-service/issues/11/comments --paginate" ]]; then
+if [[ "\$*" == "api repos/hmcts/opal-fines-service/issues/11/comments --paginate" ]]; then
   cat "$work/comments-11.json"
   exit 0
 fi
-if [[ "\$*" == "api repos/hmcts/opal-file-handler-service/issues/12/comments --paginate" ]]; then
+if [[ "\$*" == "api repos/hmcts/opal-fines-service/issues/12/comments --paginate" ]]; then
   cat "$work/comments-12.json"
   exit 0
 fi
-if [[ "\$*" == api\ repos/hmcts/opal-file-handler-service/issues/comments/202* ]]; then
+if [[ "\$*" == api\ repos/hmcts/opal-fines-service/issues/comments/202* ]]; then
   exit 0
 fi
-if [[ "\$*" == api\ repos/hmcts/opal-file-handler-service/issues/12/comments* ]]; then
+if [[ "\$*" == api\ repos/hmcts/opal-fines-service/issues/12/comments* ]]; then
   exit 0
 fi
 echo "unexpected gh call: \$*" >&2
@@ -252,7 +252,7 @@ exit 1
 GH
   chmod +x "$work/bin/gh"
 
-  PATH="$work/bin:$PATH" GH_TOKEN=test-token "$SCRIPT_UNDER_TEST" --run hmcts/opal-file-handler-service
+  PATH="$work/bin:$PATH" GH_TOKEN=test-token "$SCRIPT_UNDER_TEST" --run hmcts/opal-fines-service
 
   grep -Fq -- "issues/comments/202" "$log" || fail "Expected existing PR comment to be updated"
   grep -Fq -- "-X PATCH" "$log" || fail "Expected existing PR comment to use PATCH"
