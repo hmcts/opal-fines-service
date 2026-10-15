@@ -72,7 +72,7 @@ public class LegacyMinorCreditorHistoryR1B11IntegrationTest extends AbstractInte
     @Test
     @JiraEpic("PO-2653")
     @JiraStory("PO-10875")
-    @DisplayName("LEGACY: Returns only note history items when FINANCIAL item type is specified")
+    @DisplayName("LEGACY: Returns only financial history items when FINANCIAL item type is specified")
     void getHistory_whenFinancialItemTypeSpecified_returnsOnlyFinancialItems() throws Exception {
         ResultActions result = mockMvc.perform(get(HISTORY_URL, MINOR_CREDITOR_ID)
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())
