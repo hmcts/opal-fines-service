@@ -34,7 +34,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
-// TODO: Update this test
 @Transactional
 @DisplayName("Cash Till Report Generation Integration Tests")
 @RequiredArgsConstructor
