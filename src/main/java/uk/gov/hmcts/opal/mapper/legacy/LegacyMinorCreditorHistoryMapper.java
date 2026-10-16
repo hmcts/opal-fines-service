@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.mapper.legacy;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -66,14 +66,14 @@ public class LegacyMinorCreditorHistoryMapper {
 
     private MinorCreditorHistoryItem toHistoryItem(LegacyMinorCreditorAccountHistoryItem item, Long sequence) {
         MinorCreditorHistoryItemType sourceType = toHistoryItemType(item.getType());
-        LocalDate postedDate = Optional.ofNullable(item.getPostedDetails())
+        LocalDateTime postedDate = Optional.ofNullable(item.getPostedDetails())
             .map(LegacyMinorCreditorHistoryPostedDetails::getPostedDate)
             .orElse(null);
 
         return new MinorCreditorHistoryItem(
             sourceType,
             sequence,
-            postedDate == null ? null : postedDate.atStartOfDay(),
+            postedDate,
             new MinorCreditorHistoryItemHistory()
                 .postedDetails(toPostedDetails(item.getPostedDetails()))
                 .type(sourceType.responseType())
