@@ -181,6 +181,11 @@ opal:
       queue-name: ${SERVICEBUS_INTERFACE_JOBS_QUEUE_NAME:auto-payments-process-interface-files}
       consumer-enabled: ${INTERFACE_JOBS_CONSUMER_ENABLED:true}
 
+  interface-file:
+    service-bus:
+      queue-name: ${SERVICEBUS_INTERFACE_FILE_QUEUE_NAME:banking-interfaces-preprocess-interface-file-fines}
+      consumer-enabled: ${INTERFACE_FILE_CONSUMER_ENABLED:true}
+
   hmrc:
     url: ${OPAL_HMRC_URL:http://localhost:4455}
     auth:

@@ -45,7 +45,10 @@ class QueueConsumerJmsConfigTest {
             .run(context -> {
                 assertThat(context).hasSingleBean(QueueConsumerJmsConfig.class);
                 assertThat(context).hasSingleBean(ConnectionFactory.class);
-                assertThat(context).hasSingleBean(DefaultJmsListenerContainerFactory.class);
+                //assertThat(context).hasSingleBean(DefaultJmsListenerContainerFactory.class);
+                assertThat(context)
+                    .hasBean("reportListenerContainerFactory")
+                    .hasBean("interfaceFileListenerContainerFactory");
                 assertThat(context).hasSingleBean(ReportQueueListener.class);
             });
     }
