@@ -3,11 +3,14 @@ package uk.gov.hmcts.opal.service.report;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.service.report.FileType.CSV;
 import static uk.gov.hmcts.opal.service.report.FileType.PDF;
+import static uk.gov.hmcts.opal.service.report.FileType.XML;
 import static uk.gov.hmcts.opal.service.report.ReportId.CASH_TILL;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -30,6 +33,7 @@ import org.springframework.data.jpa.domain.Specification;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.cfg.DateTimeFeature;
 import tools.jackson.databind.json.JsonMapper;
+import uk.gov.hmcts.opal.common.docmosis.PDFGenerationService;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.DestinationType;
@@ -68,10 +72,12 @@ class CashTillReportServiceTest {
     private final CashTillReportDataMapper reportDataMapper = new CashTillReportDataMapper(
         defendantAccountRepository,
         miscellaneousAccountRepository);
+    private final PDFGenerationService pdfGenerationService = mock(PDFGenerationService.class);
     private final CashTillReportService service = new CashTillReportService(OBJECT_MAPPER,
         tillRepository,
         paymentInRepository,
-        reportDataMapper);
+        reportDataMapper,
+        pdfGenerationService);
 
     @Test
     void getReportId_returnsCashTill() {
@@ -328,6 +334,15 @@ class CashTillReportServiceTest {
     }
 
     @Test
+    void convertReportDataToFileType_whenValidData_callsPdfService() {
+        CashTillReportData reportData = allocatedReportData(List.of(olderRow(), newerRow()));
+
+        service.convertReportDataToFileType(REPORT_INSTANCE, reportData, PDF);
+
+        verify(pdfGenerationService, times(1)).generatePdf(eq(""), eq(reportData));
+    }
+
+    @Test
     void convertReportDataToFileType_doesNotMutateInputRows() {
         CashTillReportRow olderRow = olderRow();
         CashTillReportRow newerRow = newerRow();
@@ -343,9 +358,9 @@ class CashTillReportServiceTest {
     void convertReportDataToFileType_whenFileTypeIsUnsupported_throwsException() {
         CashTillReportData reportData = reportData(validRow());
 
-        assertThatThrownBy(() -> service.convertReportDataToFileType(REPORT_INSTANCE, reportData, PDF))
+        assertThatThrownBy(() -> service.convertReportDataToFileType(REPORT_INSTANCE, reportData, XML))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Cash Till report only supports CSV conversion");
+            .hasMessage("Cash Till report only supports CSV or PDF conversion");
     }
 
     @Test
