@@ -176,6 +176,10 @@ opal:
       consumer-enabled: ${REPORT_CONSUMER_ENABLED:true}
       publisher-enabled: ${REPORT_PUBLISHER_ENABLED:true}
 
+  tills:
+    service-bus:
+      queue-name: ${SERVICEBUS_ALLOCATE_TILLS_QUEUE_NAME:allocate-tills}
+
   interface-jobs:
     service-bus:
       queue-name: ${SERVICEBUS_INTERFACE_JOBS_QUEUE_NAME:auto-payments-process-interface-files}
