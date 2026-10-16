@@ -52,10 +52,15 @@ public class DefendantAccountPartyService {
         DefendantAccountParty party = response.getDefendantAccountParty();
         DefendantAccountPartyTypeEnum partyType = party.getDefendantAccountPartyType();
 
-        switch (partyType) {
+        boolean queued = switch (partyType) {
             case DEFENDANT -> pdplLoggingService.logViewedDefendant(requirePartyId(response, "Defendant"), userState);
             case PARENT_GUARDIAN -> pdplLoggingService.logViewedParentGuardian(
                 requirePartyId(response, "Parent/Guardian"), userState);
+        };
+
+        if (!queued) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                "Unable to queue " + partyType.getValue() + " PDPO log");
         }
     }
 
