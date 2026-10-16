@@ -68,7 +68,7 @@ class DefendantAccountHistoryResponseMapperTest {
 
         DefendantAccountHistoryItemHistory amendment = generated.getHistoryItems().get(0);
         assertEquals(DefendantAccountHistoryItemHistory.TypeEnum.AMENDMENT, amendment.getType());
-        assertEquals(LocalDate.of(2026, 1, 1), amendment.getPostedDetails().getPostedDate());
+        assertEquals(LocalDateTime.of(2026, 1, 1, 8, 0), amendment.getPostedDetails().getPostedDate());
         assertEquals("hist-amend", amendment.getPostedDetails().getPostedBy());
         assertEquals("hist-user-1", amendment.getPostedDetails().getPostedByName());
         uk.gov.hmcts.opal.generated.model.AmendmentTypeCommon amendmentDetails =

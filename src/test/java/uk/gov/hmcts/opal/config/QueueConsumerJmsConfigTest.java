@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
+import uk.gov.hmcts.opal.common.config.ServiceBusConnectionStringParser;
 import uk.gov.hmcts.opal.service.messaging.ReportQueueConsumerService;
 import uk.gov.hmcts.opal.service.messaging.ReportQueueListener;
 

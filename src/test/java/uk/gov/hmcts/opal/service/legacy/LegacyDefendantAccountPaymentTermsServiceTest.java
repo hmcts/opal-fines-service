@@ -112,7 +112,10 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
 
         // Given
         AddPaymentCardLegacyResponse legacyResp =
-            new AddPaymentCardLegacyResponse("123", BigInteger.valueOf(4));
+            AddPaymentCardLegacyResponse.builder()
+                .defendantAccountId("123")
+                .version(BigInteger.valueOf(4))
+                .build();
 
         GatewayService.Response<AddPaymentCardLegacyResponse> gwResp =
             new GatewayService.Response<>(HttpStatus.OK, legacyResp, null, null);
@@ -140,7 +143,7 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
         // Given
         GatewayService.Response<AddPaymentCardLegacyResponse> gwResp =
             new GatewayService.Response<>(HttpStatus.OK,
-                new AddPaymentCardLegacyResponse("123", BigInteger.valueOf(4)),
+                AddPaymentCardLegacyResponse.builder().defendantAccountId("123").version(BigInteger.valueOf(4)).build(),
                 null, null);
 
         ArgumentCaptor<AddPaymentCardLegacyRequest> captor =

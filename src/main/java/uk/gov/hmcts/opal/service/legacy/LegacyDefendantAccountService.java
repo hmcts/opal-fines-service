@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.legacy;
 
 import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountBuilders.toEnforcementStatusResponse;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -22,6 +23,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
@@ -48,6 +50,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountConsolidatedAccountsResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse.EnforcementAction;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountRequest;
@@ -61,8 +64,10 @@ import uk.gov.hmcts.opal.dto.legacy.ResultResponsesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LjaReference;
+import uk.gov.hmcts.opal.dto.legacy.common.ResultReference;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
@@ -99,11 +104,13 @@ import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountHistoryLegacyResponseMapp
 import uk.gov.hmcts.opal.mapper.legacy.LegacyConsolidatedAccountMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
+import uk.gov.hmcts.opal.repository.ResultRepository;
 import uk.gov.hmcts.opal.repository.jpa.SpecificationUtils;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 import uk.gov.hmcts.opal.service.opal.history.HistoryItemOrderingService;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @Service
 @RequiredArgsConstructor
@@ -126,6 +133,9 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public static final String GET_ENFORCEMENT_STATUS = "getDefendantAccountEnforcementStatus";
 
     public static final String ADD_PAYMENT_CARD_REQUEST = "LIBRA.of_add_defendant_account_pcr";
+    private static final String ACCOUNT_NOT_FOUND_ERROR_CODE = "-20013";
+
+    private static final String LEGACY_HISTORY_ACCOUNT_NOT_FOUND_ERROR_CODE = "-6502";
 
     private final GatewayService gatewayService;
     private final LegacyGatewayProperties legacyGatewayProperties;
@@ -133,6 +143,10 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     private final LocalJusticeAreaService ljaService;
     private final HistoryItemOrderingService historyItemOrderingService;
     private final LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
+
+    private final ResultRepository resultRepository;
+
+    private final FeatureToggleApi featureToggleApi;
 
     /* ---- Mappers ---- */
     private final DefendantAccountHistoryLegacyResponseMapper legacyDefendantAccountHistoryResponseMapper;
@@ -150,6 +164,10 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 createGetDefendantAccountRequest(defendantAccountId.toString()), null
             );
 
+            if (response.hasErrorResponse() && ACCOUNT_NOT_FOUND_ERROR_CODE.equals(
+                response.responseEntity.getErrorResponse().getErrorCode())) {
+                throw new DefendantAccountNotFoundException(defendantAccountId);
+            }
             checkResponseForError(response, "getHeaderSummary");
             // TODO: Add XSD validation of the XML response
 
@@ -199,6 +217,10 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             null
         );
 
+        if (isLegacyHistoryAccountNotFound(response)) {
+            throw new EntityNotFoundException("Defendant account history not found");
+        }
+
         checkResponseForError(response, "getHistory");
 
         DefendantAccountHistoryResponse mappedResponse =
@@ -239,19 +261,22 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         Long defendantAccountId,
         DefendantAccountHistoryFilter filter
     ) {
+        List<HistoryItemType> itemTypes =
+            (filter == null || filter.getItemTypes() == null || filter.getItemTypes().isEmpty())
+                ? List.of(HistoryItemType.values()) : filter.getItemTypes();
+
         return GetDefendantAccountHistoryLegacyRequest.builder()
             .defendantAccountId(String.valueOf(defendantAccountId))
             .fromDate(filter != null ? filter.getDateFrom() : null)
             .toDate(filter != null ? filter.getDateTo() : null)
-            .itemTypes(filter == null || filter.getItemTypes() == null || filter.getItemTypes().isEmpty() ? null
-                : filter.getItemTypes().stream()
-                    .map(LegacyDefendantAccountService::toLegacyHistoryItemType)
-                    .toList())
+            .itemTypes(itemTypes.stream()
+                .map(LegacyDefendantAccountService::toLegacyHistoryItemType)
+                .toList())
             .build();
     }
 
     private static String toLegacyHistoryItemType(HistoryItemType itemType) {
-        return itemType == HistoryItemType.PAYMENT_TERMS ? "Payment terms" : itemType.getResponseValue();
+        return itemType.getResponseValue();
     }
 
     DefendantAccountHeaderSummary toHeaderSumaryDto(
@@ -973,7 +998,10 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             LegacyGetDefendantAccountEnforcementStatusResponse enforcementStatus = response.responseEntity;
             populateCourtCode(enforcementStatus);
             populateLjaCode(enforcementStatus);
-            return toEnforcementStatusResponse(enforcementStatus);
+            String nextPermittedActions = isNextPermittedActionsEnabled()
+                ? retrieveEnforcementNextPermittedActions(enforcementStatus) : null;
+
+            return toEnforcementStatusResponse(enforcementStatus, nextPermittedActions);
 
         } catch (RuntimeException e) {
             log.error(":getEnforcementStatus: problem with call to Legacy: {}", e.getClass().getName());
@@ -1006,6 +1034,30 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         return "true".equalsIgnoreCase(welshSpeaking) || "Y".equalsIgnoreCase(welshSpeaking) ? "Y" : "N";
     }
 
+    private boolean isNextPermittedActionsEnabled() {
+        boolean enabled = featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false);
+        if (!enabled) {
+            log.debug(":isNextPermittedActionsEnabled: next_permitted_actions is set to null because {} is disabled",
+                FeatureFlags.RELEASE_1B_1_1);
+        }
+        return enabled;
+    }
+
+    private String retrieveEnforcementNextPermittedActions(LegacyGetDefendantAccountEnforcementStatusResponse status) {
+        return getEnforcementActionResultId(status)
+            .flatMap(resultRepository::findById)
+            .map(ResultEntity::getEnfNextPermittedActions)
+            .orElse(null);
+    }
+
+    private Optional<String> getEnforcementActionResultId(LegacyGetDefendantAccountEnforcementStatusResponse status) {
+        return Optional.ofNullable(status)
+            .map(LegacyGetDefendantAccountEnforcementStatusResponse::getLastEnforcementAction)
+            .map(EnforcementAction::getResultReference)
+            .map(ResultReference::getResultId);
+    }
+
     private static <T> void checkResponseForError(Response<T> response, String method) {
         if (response.isError()) {
             log.error(":{}: legacy error HTTP {}", method, response.code);
@@ -1021,6 +1073,14 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         } else if (response.isSuccessful()) {
             log.info(":{}: legacy success.", method);
         }
+    }
+
+    private static boolean isLegacyHistoryAccountNotFound(
+        Response<GetDefendantAccountHistoryLegacyResponse> response
+    ) {
+        return response.hasErrorResponse()
+            && LEGACY_HISTORY_ACCOUNT_NOT_FOUND_ERROR_CODE.equals(
+                response.responseEntity.getErrorResponse().getErrorCode());
     }
 
     private static RuntimeException createGatewayException(HttpStatusCode status, String fallbackStatusText,

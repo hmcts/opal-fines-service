@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:account-enquiry
+@Opal @JIRA-LABEL:account-enquiry @R1BDrop1
 Feature: Defendant Account Payment Card Request
 
   @JIRA-STORY:PO-6449 @JIRA-EPIC:PO-977 @JIRA-TEST-KEY:PO-6449

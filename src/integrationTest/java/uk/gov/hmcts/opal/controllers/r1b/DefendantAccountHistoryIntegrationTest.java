@@ -74,6 +74,8 @@ class DefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsInteg
             .andExpect(header().string("ETag", matchesPattern("\"\\d+\"")))
             .andExpect(jsonPath("$.historyItems", hasSize(5)))
             .andExpect(jsonPath("$.historyItems[0].type").value("Note"))
+            .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_date")
+                           .value("2026-01-05T09:00:00"))
             .andExpect(jsonPath("$.historyItems[0].details.noteText").value("History account note"))
             .andExpect(jsonPath("$.historyItems[1].type").value("Financial"))
             .andExpect(jsonPath("$.historyItems[1].amount").value(-50.00))

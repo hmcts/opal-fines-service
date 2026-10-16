@@ -5,6 +5,7 @@ import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import java.io.InputStream;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -89,10 +90,10 @@ class GenericReportServiceTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-6319")
     void generateReportInstanceContent_persistsReadyInstance_happyPath() {
         //Arrange
-        String location = String.valueOf(UUID.randomUUID());
+        UUID location = UUID.randomUUID();
         ReportEntity report = reportRepository.save(buildReportEntity("fp_register"));
         ReportInstanceEntity instance = reportInstanceRepository.save(buildReportInstanceEntity(report));
-        when(blobStore.storeReport(any(String.class))).thenReturn(location);
+        when(blobStore.storeReport(any(InputStream.class))).thenReturn(location);
 
         //Act
         service.generateReportInstanceContent(instance.getReportInstanceId());
@@ -117,7 +118,7 @@ class GenericReportServiceTest extends AbstractIntegrationTest {
         //Arrange
         ReportEntity report = reportRepository.save(buildReportEntity("fp_register"));
         ReportInstanceEntity instance = reportInstanceRepository.save(buildReportInstanceEntity(report));
-        when(blobStore.storeReport(any(String.class))).thenThrow(new RuntimeException());
+        when(blobStore.storeReport(any(InputStream.class))).thenThrow(new RuntimeException());
 
         //Act
         assertThrows(ReportGenerationException.class,
