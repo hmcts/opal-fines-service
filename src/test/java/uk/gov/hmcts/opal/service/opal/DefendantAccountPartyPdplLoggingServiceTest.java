@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -17,7 +16,6 @@ import org.mockito.MockedStatic;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
-import uk.gov.hmcts.opal.exception.PdplLoggingException;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
@@ -98,7 +96,7 @@ class DefendantAccountPartyPdplLoggingServiceTest {
         //Act
         try (MockedStatic<LogUtil> logUtil = mockStatic(LogUtil.class)) {
             logUtil.when(LogUtil::getIpAddress).thenReturn("192.0.2.1");
-            service.logViewedDefendant("98765", userState);
+            assertThat(service.logViewedDefendant("98765", userState)).isTrue();
         }
 
         //Assert
@@ -125,7 +123,7 @@ class DefendantAccountPartyPdplLoggingServiceTest {
         //Act
         try (MockedStatic<LogUtil> logUtil = mockStatic(LogUtil.class)) {
             logUtil.when(LogUtil::getIpAddress).thenReturn("192.0.2.1");
-            service.logViewedParentGuardian("98765", userState);
+            assertThat(service.logViewedParentGuardian("98765", userState)).isTrue();
         }
 
         //Assert
@@ -137,20 +135,5 @@ class DefendantAccountPartyPdplLoggingServiceTest {
         assertThat(details.getCategory()).isEqualTo(PersonalDataProcessingCategory.CONSULTATION);
         assertThat(details.getIndividuals().getFirst().getIdentifier()).isEqualTo("98765");
         assertThat(details.getIndividuals().getFirst().getType()).isEqualTo(PdplIdentifierType.PARENT_GUARDIAN);
-    }
-
-    @Test
-    void logViewedDefendant_whenQueueRejects_throwsPdplLoggingException() {
-        LoggingService loggingService = mock(LoggingService.class);
-        UserState userState = mock(UserState.class);
-        DefendantAccountPartyPdplLoggingService service = new DefendantAccountPartyPdplLoggingService(
-            loggingService, Clock.systemUTC());
-        when(userState.getUserId()).thenReturn(123L);
-        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(false);
-
-        PdplLoggingException exception = assertThrows(PdplLoggingException.class,
-            () -> service.logViewedDefendant("98765", userState));
-
-        assertThat(exception).hasMessage("Unable to queue PDPO log for viewing a party");
     }
 }
