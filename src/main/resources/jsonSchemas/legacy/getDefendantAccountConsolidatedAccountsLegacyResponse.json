@@ -22,7 +22,6 @@
   },
   "required": [
     "count",
-    "version",
-    "consolidated_accounts"
+    "version"
   ]
 }
