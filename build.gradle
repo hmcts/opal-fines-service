@@ -1302,8 +1302,8 @@ dependencies {
 
 
   //Added to override dependency version to resolve vulnerability
-  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.26'
-  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.26'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.27'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.27'
   implementation 'org.apache.commons:commons-lang3:3.21.0'
 
 
