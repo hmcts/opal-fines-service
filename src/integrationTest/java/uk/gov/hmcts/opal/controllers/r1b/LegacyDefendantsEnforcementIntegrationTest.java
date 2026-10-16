@@ -41,7 +41,8 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
     "launchdarkly.enabled=false",
     "launchdarkly.default-flag-values.release-1b=true"
 })
-@Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
+@Sql(scripts = {"classpath:db/insertData/insert_into_defendant_accounts.sql",
+    "classpath:db/insertData/insert_into_local_justice_areas_legacy.sql" }, executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.LegacyDefendantsEnforcementIntegrationTest")
 class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendantsIntegrationTest {
@@ -366,7 +367,8 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
 
         result.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.last_enforcement_action").doesNotExist())
+            .andExpect(jsonPath("$.last_enforcement_action.enforcement_action.result_id")
+                .value("MPSO"))
             .andExpect(jsonPath("$.next_enforcement_action_data").doesNotExist());
     }
 }

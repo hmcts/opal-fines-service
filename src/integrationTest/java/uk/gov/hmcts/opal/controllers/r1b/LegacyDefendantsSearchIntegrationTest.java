@@ -25,7 +25,8 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
 @TestPropertySource(properties = "launchdarkly.default-flag-values.release-1b=true")
-@Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
+@Sql(scripts = {"classpath:db/insertData/insert_into_defendant_accounts.sql",
+    "classpath:db/insertData/insert_into_local_justice_areas_legacy.sql" }, executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.LegacyDefendantsIntegrationTest01")
 class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
@@ -75,7 +76,7 @@ class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
         actions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(1))
-            .andExpect(jsonPath("defendant_accounts[0].defendant_account_id").value("77"))
+            .andExpect(jsonPath("defendant_accounts[0].defendant_account_id").value("1"))
             .andExpect(jsonPath("defendant_accounts[0].account_number").value("100A"))
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
     }

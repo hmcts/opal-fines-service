@@ -28,10 +28,12 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.CourtLiteRepository;
+import uk.gov.hmcts.opal.repository.LegacyJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
 import uk.gov.hmcts.opal.repository.ProsecutorRepository;
 import uk.gov.hmcts.opal.repository.ResultRepository;
+import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 
 @ExtendWith(MockitoExtension.class)
 class DraftAccountReferenceValidationServiceTest {
@@ -57,6 +59,11 @@ class DraftAccountReferenceValidationServiceTest {
 
     @Mock
     private ProsecutorRepository prosecutorRepository;
+    @Mock
+    private LegacyJusticeAreaRepository legacyJusticeAreaRepository;
+
+    @Mock
+    private DynamicConfigService dynamicConfigService;
 
     @InjectMocks
     private DraftAccountReferenceValidationService service;
@@ -66,6 +73,7 @@ class DraftAccountReferenceValidationServiceTest {
         lenient().when(courtLiteRepository.existsById(anyLong())).thenReturn(true);
         lenient().when(offenceRepository.existsByOffenceIdAvailableToBusinessUnit(anyLong(), eq(BUSINESS_UNIT_ID)))
             .thenReturn(true);
+        lenient().when(dynamicConfigService.isLegacyMode()).thenReturn(false);
     }
 
     @Test
