@@ -38,12 +38,40 @@ public class DefendantAccountPartyService {
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
-
-            return defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId,
+            PartyResponseDefendantAccount response = defendantAccountPartyServiceProxy.getDefendantAccountParty(
+                defendantAccountId,
                 defendantAccountPartyId);
+            queuePdpoForViewedParty(response, userState);
+            return response;
         } else {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }
+    }
+
+    private void queuePdpoForViewedParty(PartyResponseDefendantAccount response, UserState userState) {
+        DefendantAccountParty party = response.getDefendantAccountParty();
+        DefendantAccountPartyTypeEnum partyType = party.getDefendantAccountPartyType();
+
+        boolean queued = switch (partyType) {
+            case DEFENDANT -> pdplLoggingService.logViewedDefendant(requirePartyId(response, "Defendant"), userState);
+            case PARENT_GUARDIAN -> pdplLoggingService.logViewedParentGuardian(
+                requirePartyId(response, "Parent/Guardian"), userState);
+        };
+
+        if (!queued) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                "Unable to queue " + partyType.getValue() + " PDPO log");
+        }
+    }
+
+    private String requirePartyId(PartyResponseDefendantAccount response, String partyType) {
+        String partyId = response.getDefendantAccountParty().getPartyDetails().getPartyId();
+        if (partyId == null || partyId.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Unable to record required " + partyType + " PDPO log");
+        }
+
+        return partyId;
     }
 
     public PartyResponseDefendantAccount addDefendantAccountParty(
@@ -99,13 +127,7 @@ public class DefendantAccountPartyService {
     }
 
     private String requireAddedPartyId(PartyResponseDefendantAccount response) {
-        String partyId = response.getDefendantAccountParty().getPartyDetails().getPartyId();
-        if (partyId == null || partyId.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                "Unable to record required Parent/Guardian PDPO log");
-        }
-
-        return partyId;
+        return requirePartyId(response, "Parent/Guardian");
     }
 
 
