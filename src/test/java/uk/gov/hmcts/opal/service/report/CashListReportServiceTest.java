@@ -27,6 +27,7 @@ import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.TillEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.exception.UnsupportedContentTypeException;
 import uk.gov.hmcts.opal.entity.PaymentMethod;
 import uk.gov.hmcts.opal.repository.PaymentInRepository;
 import uk.gov.hmcts.opal.repository.TillRepository;
@@ -120,11 +121,19 @@ class CashListReportServiceTest {
     }
 
     @Test
-    void convertReportDataToFileType_returnsTemporaryStub() {
-        byte[] result = service.convertReportDataToFileType(new ReportInstanceEntity(), new CashListReportData(),
-            FileType.CSV);
+    void convertReportDataToFileType_csvIsHandledByReportCsvService() {
+        assertThatThrownBy(() -> service.convertReportDataToFileType(
+            new ReportInstanceEntity(), new CashListReportData(), FileType.CSV))
+            .isInstanceOf(UnsupportedOperationException.class)
+            .hasMessage("CSV conversion is handled by ReportCSVService");
+    }
 
-        assertThat(result).isEmpty();
+    @Test
+    void convertReportDataToFileType_nonCsvIsRejected() {
+        assertThatThrownBy(() -> service.convertReportDataToFileType(
+            new ReportInstanceEntity(), new CashListReportData(), FileType.PDF))
+            .isInstanceOf(UnsupportedContentTypeException.class)
+            .hasMessage("Content type PDF is not supported for cash_list. Supported content types: CSV");
     }
 
     private static ReportInstanceEntity reportInstance(String reportParameters) {

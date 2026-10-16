@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.report.operation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -36,7 +37,6 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.exception.UnsupportedContentTypeException;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.service.report.FileType;
-import uk.gov.hmcts.opal.service.report.ReportCSVService;
 import uk.gov.hmcts.opal.service.report.ReportDataInterface;
 import uk.gov.hmcts.opal.service.report.ReportId;
 import uk.gov.hmcts.opal.service.report.operation.mapper.DetailedResultMapper;
@@ -68,9 +68,6 @@ class PaymentReportServiceTest {
 
     @Mock
     private DefendantAccountEntity account;
-
-    @Mock
-    private ReportCSVService reportCSVService;
 
     @InjectMocks
     private PaymentReportService service;
@@ -214,30 +211,13 @@ class PaymentReportServiceTest {
     }
 
     @Test
-    void convertReportDataToFileType_summaryCsv_returnsBytes() {
-        byte[] expected = "csv".getBytes();
-        when(reportCSVService.convertReportDtoToCSV(mappedSummaryReport)).thenReturn(expected);
-
-        byte[] result = service.convertReportDataToFileType(new ReportInstanceEntity(), mappedSummaryReport,
-            FileType.CSV);
-
-        assertThat(result).isSameAs(expected);
-        verify(reportCSVService).convertReportDtoToCSV(mappedSummaryReport);
+    void validateReportDataForFileType_summaryCsv_isAllowed() {
+        assertDoesNotThrow(() -> service.validateReportDataForFileType(FileType.CSV, mappedSummaryReport));
     }
 
     @Test
-    void convertReportDataToFileType_nonCsv_throwsUnsupportedContentType() {
-        assertThatThrownBy(() -> service.convertReportDataToFileType(new ReportInstanceEntity(), mappedSummaryReport,
-            FileType.PDF))
-            .isInstanceOf(UnsupportedContentTypeException.class)
-            .hasMessage(
-                "Content type PDF is not supported for operational_report_payment. Supported content types: CSV");
-    }
-
-    @Test
-    void convertReportDataToFileType_detailedReport_throwsUnsupportedType() {
-        assertThatThrownBy(() -> service.convertReportDataToFileType(new ReportInstanceEntity(), mappedDetailedReport,
-            FileType.CSV))
+    void validateReportDataForFileType_detailedCsv_throwsUnsupportedType() {
+        assertThatThrownBy(() -> service.validateReportDataForFileType(FileType.CSV, mappedDetailedReport))
             .isInstanceOf(UnsupportedContentTypeException.class)
             .hasMessage("Content type DETAILED CSV is not supported for operational_report_payment. Supported "
                 + "content types: SUMMARY CSV");
