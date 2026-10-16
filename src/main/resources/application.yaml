@@ -145,7 +145,7 @@ opal:
     password: ${OPAL_TEST_USER_PASSWORD}
   common:
     docmosis:
-      url: ${DOCMOSIS_ENDPOINT:http://localhost:3455}
+      url: ${DOCMOSIS_ENDPOINT:http://localhost:4553}
       api-key: ${DOCMOSIS_API_KEY:}
     domain: fines
     service-bus:
