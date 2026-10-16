@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
@@ -70,17 +71,18 @@ class LegacyDefAccHistoryTest extends AbstractLegacyDefendantsIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(header().string(HttpHeaders.ETAG, OVER_LONG_VERSION_ETAG))
-            .andExpect(jsonPath("$.historyItems[0].type").value("Amendment"))
-            .andExpect(jsonPath("$.historyItems[0].details.attributeName").value("Account status"))
-            .andExpect(jsonPath("$.historyItems[1].type").value("Enforcement"))
-            .andExpect(jsonPath("$.historyItems[1].details.enforcementAction").value("FSN"))
-            .andExpect(jsonPath("$.historyItems[2].type").value("Financial"))
-            .andExpect(jsonPath("$.historyItems[2].amount").value(-25.50))
-            .andExpect(jsonPath("$.historyItems[2].details.transactionType.transactionType").value("PAYMNT"))
-            .andExpect(jsonPath("$.historyItems[3].type").value("Note"))
-            .andExpect(jsonPath("$.historyItems[3].details.noteText").value("Legacy account note"))
-            .andExpect(jsonPath("$.historyItems[4].type").value("Payment terms"))
-            .andExpect(jsonPath("$.historyItems[4].details.payment_terms_type.payment_terms_type_code").value("I"));
+            .andExpect(jsonPath("$.historyItems[*].type")
+                .value(contains("Note", "Financial", "Payment terms", "Enforcement", "Amendment")))
+            .andExpect(jsonPath("$.historyItems[*].postedDetails.posted_date")
+                .value(contains("2026-05-12T13:00:00", "2026-05-12T12:00:00", "2026-05-12T09:30:00",
+                    "2026-05-11T15:00:00", "2026-05-10T11:00:00")))
+            .andExpect(jsonPath("$.historyItems[0].details.noteText").value("Legacy account note"))
+            .andExpect(jsonPath("$.historyItems[1].amount").value(-25.50))
+            .andExpect(jsonPath("$.historyItems[1].details.transactionType.transactionType").value("PAYMNT"))
+            .andExpect(jsonPath("$.historyItems[1].details.statusDate").value("2026-05-12T12:05:00"))
+            .andExpect(jsonPath("$.historyItems[2].details.payment_terms_type.payment_terms_type_code").value("I"))
+            .andExpect(jsonPath("$.historyItems[3].details.enforcementAction").value("FSN"))
+            .andExpect(jsonPath("$.historyItems[4].details.attributeName").value("Account status"));
 
         ArgumentCaptor<GetDefendantAccountHistoryLegacyRequest> requestCaptor =
             ArgumentCaptor.forClass(GetDefendantAccountHistoryLegacyRequest.class);
@@ -141,8 +143,8 @@ class LegacyDefAccHistoryTest extends AbstractLegacyDefendantsIntegrationTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.historyItems[0].type").value("Amendment"))
-            .andExpect(jsonPath("$.historyItems[1].type").value("Enforcement"));
+            .andExpect(jsonPath("$.historyItems[0].type").value("Note"))
+            .andExpect(jsonPath("$.historyItems[1].type").value("Financial"));
 
         ArgumentCaptor<GetDefendantAccountHistoryLegacyRequest> requestCaptor =
             ArgumentCaptor.forClass(GetDefendantAccountHistoryLegacyRequest.class);

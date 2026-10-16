@@ -28,6 +28,7 @@ import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
+import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryItem;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.history.DefendantTransactionDetails;
 import uk.gov.hmcts.opal.dto.history.EnforcementDetails;
@@ -152,20 +153,22 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
         // Assert
         assertNotNull(out);
         assertEquals(BigInteger.valueOf(9L), out.getVersion());
-        assertEquals(5, out.getHistoryItems().size());
-        assertEquals(HistoryItemType.AMENDMENT, out.getHistoryItems().get(0).getType());
-        assertEquals(HistoryItemType.ENFORCEMENT, out.getHistoryItems().get(1).getType());
-        assertEquals("Reason text",
-            ((EnforcementDetails) out.getHistoryItems().get(1).getDetails()).getReason());
+        assertEquals(List.of(HistoryItemType.FINANCIAL, HistoryItemType.PAYMENT_TERMS,
+                HistoryItemType.NOTE, HistoryItemType.ENFORCEMENT, HistoryItemType.AMENDMENT),
+            out.getHistoryItems().stream().map(DefendantAccountHistoryItem::getType).toList());
+        assertEquals(LocalDateTime.of(2026, Month.MAY, 12, 10, 15),
+            out.getHistoryItems().get(0).getPostedDetails().getPostedDate());
         assertEquals("PAY123",
-            ((DefendantTransactionDetails) out.getHistoryItems().get(2).getDetails()).getPaymentReference());
-        assertEquals(new BigDecimal("-25.50"), out.getHistoryItems().get(2).getAmount());
-        assertEquals("Account note text",
-            ((NoteDetails) out.getHistoryItems().get(3).getDetails()).getNoteText());
+            ((DefendantTransactionDetails) out.getHistoryItems().get(0).getDetails()).getPaymentReference());
+        assertEquals(new BigDecimal("-25.50"), out.getHistoryItems().get(0).getAmount());
         assertEquals("Extension reason",
-            ((PaymentTermsDetails) out.getHistoryItems().get(4).getDetails()).getReasonForExtension());
+            ((PaymentTermsDetails) out.getHistoryItems().get(1).getDetails()).getReasonForExtension());
         assertEquals(LocalDate.of(2026, Month.MAY, 12),
-            ((PaymentTermsDetails) out.getHistoryItems().get(4).getDetails()).getDateDaysInDefaultImposed());
+            ((PaymentTermsDetails) out.getHistoryItems().get(1).getDetails()).getDateDaysInDefaultImposed());
+        assertEquals("Account note text",
+            ((NoteDetails) out.getHistoryItems().get(2).getDetails()).getNoteText());
+        assertEquals("Reason text",
+            ((EnforcementDetails) out.getHistoryItems().get(3).getDetails()).getReason());
 
         ArgumentCaptor<GetDefendantAccountHistoryLegacyRequest> requestCaptor =
             ArgumentCaptor.forClass(GetDefendantAccountHistoryLegacyRequest.class);
