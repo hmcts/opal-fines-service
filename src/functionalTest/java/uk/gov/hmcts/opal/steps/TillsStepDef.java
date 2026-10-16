@@ -28,6 +28,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
+import uk.gov.hmcts.opal.workflows.defendantaccount.DefendantAccountEnforcementWorkflow;
 
 import static org.hamcrest.Matchers.equalTo;
 
@@ -46,6 +47,8 @@ public class TillsStepDef extends BaseStepDef {
     private static final String TESTING_SUPPORT_TILLS_PATH = "/testing-support/tills";
     private static final String TESTING_SUPPORT_REPORT_INSTANCES_PATH = "/testing-support/report-instances";
     private static final short AUTO_PAYMENT_BUSINESS_UNIT_ID = 77;
+    private static final String MANUAL_TILL_BUSINESS_UNIT_ID = "78";
+    private static final String DEFENDANT_ACCOUNT_FIXTURE = "draftAccounts/accountJson/adultAccount.json";
     private static final String AUTO_PAYMENT_INTERFACE_NAME = "PAYMENTS_IN";
     private static final String CASH_TILL_REPORT_ID = "cash_till";
     private static final String PRE_ALLOCATED_REPORT_NAME = "Cash till report - Pre-allocated (%s)";
@@ -78,7 +81,10 @@ public class TillsStepDef extends BaseStepDef {
     private Long deletedTillId;
     private Long unrelatedTillId;
     private Long deletedUnrelatedTillId;
+    private Long createdDefendantAccountId;
     private String uniquePayerName;
+    private final DefendantAccountEnforcementWorkflow defendantAccountWorkflow =
+        new DefendantAccountEnforcementWorkflow();
 
     /**
      * Submits a request that conforms to the current add-till API schema. The request deliberately
@@ -153,7 +159,7 @@ public class TillsStepDef extends BaseStepDef {
      * from the post-create till list.
      */
     @When("I submit a uniquely identifiable valid request to create a till with one criminal payment")
-    public void submitUniqueTillWithOneCriminalPayment() {
+    public void submitUniqueTillWithOneCriminalPayment() throws Exception {
         submitUniqueTillCreateRequest(1);
     }
 
@@ -162,7 +168,7 @@ public class TillsStepDef extends BaseStepDef {
      * persisted on the created till.
      */
     @When("I submit a uniquely identifiable valid request to create a till with two criminal payments")
-    public void submitUniqueTillWithTwoCriminalPayments() {
+    public void submitUniqueTillWithTwoCriminalPayments() throws Exception {
         submitUniqueTillCreateRequest(2);
     }
 
@@ -200,7 +206,7 @@ public class TillsStepDef extends BaseStepDef {
      * @param businessUnitId business unit in which the unrelated till will be created
      */
     @Given("I create a manual till as unrelated data for business unit {int}")
-    public void createManualTillAsUnrelatedData(int businessUnitId) {
+    public void createManualTillAsUnrelatedData(int businessUnitId) throws Exception {
         recordExistingTillIdentifiers(businessUnitId);
         submitUniqueTillWithOneCriminalPayment();
         then().statusCode(201);
@@ -238,7 +244,7 @@ public class TillsStepDef extends BaseStepDef {
         Map<String, Object> till = assertCreatedTill(78, 1);
         Map<String, Object> payment = createdTillPayments(till).getFirst();
 
-        assertEquals("123", payment.get("associated_record_id"));
+        assertEquals(String.valueOf(createdDefendantAccountId), payment.get("associated_record_id"));
         assertEquals(12.34d, ((Number) payment.get("amount")).doubleValue(), 0.001d);
         assertEquals("NC", payment.get("method"));
         assertEquals("F", payment.get("destination_type"));
@@ -709,26 +715,37 @@ public class TillsStepDef extends BaseStepDef {
             """;
     }
 
-    private void submitUniqueTillCreateRequest(int paymentCount) {
-        uniquePayerName = "PO-3630-functional-" + UUID.randomUUID();
+    private void submitUniqueTillCreateRequest(int paymentCount) throws Exception {
+        createdDefendantAccountId = createDefendantAccount();
+        uniquePayerName = "PO-3630-" + UUID.randomUUID();
         authorisedJsonRequest()
-            .body(uniqueTillCreateRequest(paymentCount))
+            .body(uniqueTillCreateRequest(paymentCount, createdDefendantAccountId))
             .when()
             .post(getTestUrl() + TILLS_PATH);
     }
 
-    private String uniqueTillCreateRequest(int paymentCount) {
-        String firstPayment = criminalPaymentJson(123, "12.34", uniquePayerName + "-1");
+    private String uniqueTillCreateRequest(int paymentCount, long defendantAccountId) {
+        String firstPayment = criminalPaymentJson(defendantAccountId, "12.34", uniquePayerName + "-1");
         if (paymentCount == 1) {
             return """
                 { "business_unit_id": 78, "payments_in": [ %s ] }
                 """.formatted(firstPayment);
         }
 
-        String secondPayment = criminalPaymentJson(124, "23.45", uniquePayerName + "-2");
+        String secondPayment = criminalPaymentJson(defendantAccountId, "23.45", uniquePayerName + "-2");
         return """
             { "business_unit_id": 78, "payments_in": [ %s, %s ] }
             """.formatted(firstPayment, secondPayment);
+    }
+
+    private long createDefendantAccount() throws Exception {
+        defendantAccountWorkflow.createEnforceableDefendantAccount(Map.of(
+            "business_unit_id", MANUAL_TILL_BUSINESS_UNIT_ID,
+            "account", DEFENDANT_ACCOUNT_FIXTURE,
+            "account_type", "Fine",
+            "account_status", "Submitted"
+        ));
+        return Long.parseLong(scenarioContext().getCreatedDefendantAccountIdOrFail());
     }
 
     private String criminalPaymentJson(long defendantAccountId, String amount, String payerName) {
