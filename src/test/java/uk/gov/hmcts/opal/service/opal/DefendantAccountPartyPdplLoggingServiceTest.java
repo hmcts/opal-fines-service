@@ -82,4 +82,58 @@ class DefendantAccountPartyPdplLoggingServiceTest {
         assertThat(queued).isFalse();
         verify(loggingService).personalDataAccessLogAsync(any());
     }
+
+    @Test
+    void logViewedDefendant_queuesExactPdpoDetails() {
+        //Arrange
+        LoggingService loggingService = mock(LoggingService.class);
+        UserState userState = mock(UserState.class);
+        DefendantAccountPartyPdplLoggingService service = new DefendantAccountPartyPdplLoggingService(
+            loggingService, Clock.fixed(OffsetDateTime.parse("2026-10-06T10:15:30Z").toInstant(), ZoneOffset.UTC));
+        when(userState.getUserId()).thenReturn(123L);
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
+        //Act
+        try (MockedStatic<LogUtil> logUtil = mockStatic(LogUtil.class)) {
+            logUtil.when(LogUtil::getIpAddress).thenReturn("192.0.2.1");
+            assertThat(service.logViewedDefendant("98765", userState)).isTrue();
+        }
+
+        //Assert
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+        verify(loggingService).personalDataAccessLogAsync(captor.capture());
+        PersonalDataProcessingLogDetails details = captor.getValue();
+        assertThat(details.getBusinessIdentifier()).isEqualTo("View Defendant");
+        assertThat(details.getCategory()).isEqualTo(PersonalDataProcessingCategory.CONSULTATION);
+        assertThat(details.getIndividuals().getFirst().getIdentifier()).isEqualTo("98765");
+        assertThat(details.getIndividuals().getFirst().getType()).isEqualTo(PdplIdentifierType.DEFENDANT_ACCOUNT);
+    }
+
+    @Test
+    void logViewedParentGuardian_queuesExactPdpoDetails() {
+        //Arrange
+        LoggingService loggingService = mock(LoggingService.class);
+        UserState userState = mock(UserState.class);
+        DefendantAccountPartyPdplLoggingService service = new DefendantAccountPartyPdplLoggingService(
+            loggingService, Clock.fixed(OffsetDateTime.parse("2026-10-06T10:15:30Z").toInstant(), ZoneOffset.UTC));
+        when(userState.getUserId()).thenReturn(123L);
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
+        //Act
+        try (MockedStatic<LogUtil> logUtil = mockStatic(LogUtil.class)) {
+            logUtil.when(LogUtil::getIpAddress).thenReturn("192.0.2.1");
+            assertThat(service.logViewedParentGuardian("98765", userState)).isTrue();
+        }
+
+        //Assert
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+        verify(loggingService).personalDataAccessLogAsync(captor.capture());
+        PersonalDataProcessingLogDetails details = captor.getValue();
+        assertThat(details.getBusinessIdentifier()).isEqualTo("View Parent/Guardian");
+        assertThat(details.getCategory()).isEqualTo(PersonalDataProcessingCategory.CONSULTATION);
+        assertThat(details.getIndividuals().getFirst().getIdentifier()).isEqualTo("98765");
+        assertThat(details.getIndividuals().getFirst().getType()).isEqualTo(PdplIdentifierType.PARENT_GUARDIAN);
+    }
 }

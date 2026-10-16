@@ -13,6 +13,8 @@ import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 public class DefendantAccountPartyPdplLoggingService extends AbstractPdplLoggingService {
 
     private static final String ADD_PARENT_GUARDIAN_BUSINESS_IDENTIFIER = "Add Parent/Guardian";
+    private static final String VIEW_DEFENDANT_BUSINESS_IDENTIFIER = "View Defendant";
+    private static final String VIEW_PARENT_GUARDIAN_BUSINESS_IDENTIFIER = "View Parent/Guardian";
 
     public DefendantAccountPartyPdplLoggingService(LoggingService loggingService, Clock clock) {
         super(loggingService, clock);
@@ -25,6 +27,26 @@ public class DefendantAccountPartyPdplLoggingService extends AbstractPdplLogging
             .build();
 
         return logPdpl(ADD_PARENT_GUARDIAN_BUSINESS_IDENTIFIER, PersonalDataProcessingCategory.COLLECTION,
+            List.of(parentGuardian), null, userState);
+    }
+
+    public boolean logViewedDefendant(String partyId, UserState userState) {
+        ParticipantIdentifier defendant = ParticipantIdentifier.builder()
+            .identifier(partyId)
+            .type(PdplIdentifierType.DEFENDANT_ACCOUNT)
+            .build();
+
+        return logPdpl(VIEW_DEFENDANT_BUSINESS_IDENTIFIER, PersonalDataProcessingCategory.CONSULTATION,
+            List.of(defendant), null, userState);
+    }
+
+    public boolean logViewedParentGuardian(String partyId, UserState userState) {
+        ParticipantIdentifier parentGuardian = ParticipantIdentifier.builder()
+            .identifier(partyId)
+            .type(PdplIdentifierType.PARENT_GUARDIAN)
+            .build();
+
+        return logPdpl(VIEW_PARENT_GUARDIAN_BUSINESS_IDENTIFIER, PersonalDataProcessingCategory.CONSULTATION,
             List.of(parentGuardian), null, userState);
     }
 }
