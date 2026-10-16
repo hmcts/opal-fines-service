@@ -71,12 +71,10 @@ Feature: Defendant Account Search API restrictions
       | address_line_1_only |
     Then each allowed defendant search returns the created account
 
-  @JIRA-TEST-KEY:PO-10055
-  Scenario: AC8 - Postcode without last name or organisation returns the created account
-    Given a published defendant account exists for PO-2970 defendant account search
-    When I search for the PO-2970 account using the allowed payloads
-      | postcode_only |
-    Then each allowed defendant search returns the created account
+#  @JIRA-TEST-KEY:PO-10055
+#  Scenario: AC8 - Postcode without last name or organisation returns the created account
+#  This is has been removed as is it is not functionally possible to do through the ui.
+
 
   @JIRA-TEST-KEY:PO-10056
   Scenario: AC9 - Surname search only returns accounts where the surname starts with the search value
