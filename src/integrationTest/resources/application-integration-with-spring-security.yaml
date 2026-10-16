@@ -41,6 +41,12 @@ testcontainers:
 legacy-gateway:
   url: http://localhost:4553/opal
 
+opal:
+  common:
+    docmosis:
+      url: ${DOCMOSIS_ENDPOINT:http://localhost:4553}
+      api-key: ${DOCMOSIS_API_KEY:test-api-key}
+
 user:
   service:
     url: http://localhost:4553/opal
