@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +20,8 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
     "launchdarkly.default-flag-values.release-1b=true"
 })
 @Slf4j(topic = "opal.LegacyDefendantsIntegrationTest01")
-@Sql(scripts = "classpath:db/insertData/insert_into_minor_creditors.sql", executionPhase = BEFORE_TEST_METHOD)
+@Sql(scripts = {"classpath:db/insertData/insert_into_defendant_accounts.sql",
+    "classpath:db/insertData/insert_into_local_justice_areas_legacy.sql" }, executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_minor_creditors.sql", executionPhase = AFTER_TEST_METHOD)
 @Tag("ExtendedTest")
 public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerIntegrationTest {
