@@ -8,16 +8,18 @@ public final class ReportInstanceContentTestData {
     public static final String CASH_TILL_STORED_REPORT_JSON = """
         {
           "reportData": {
+            "cashier": "opal-test",
+            "cash_till_number": "9011",
+            "business_unit": "Cash Till Business Unit",
+            "source": "BARCLAYCARD",
+            "total_amount": 125.00,
             "rows": [
               {
-                "business_unit": "Cash Till Business Unit",
-                "cash_till_number": "9011",
-                "cashier": "opal-test",
                 "payment_date_time": "2026-05-26T14:30:00",
-                "destination_type": "FA",
+                "destination_type": "Fines Account",
                 "details": "ACC456",
                 "auto_payment": false,
-                "payment_method": "NC",
+                "payment_method": "Notes and coins",
                 "amount": 125.50,
                 "receipt": true,
                 "balance": 124.50,

@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.common.dto.ToJsonString.toJsonString;
 import static uk.gov.hmcts.opal.service.report.FileType.CSV;
 import static uk.gov.hmcts.opal.service.report.FileType.PDF;
 import static uk.gov.hmcts.opal.service.report.ReportId.CASH_TILL;
@@ -33,6 +34,7 @@ import tools.jackson.databind.json.JsonMapper;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.DestinationType;
+import uk.gov.hmcts.opal.entity.InterfaceFileSourceEnum;
 import uk.gov.hmcts.opal.entity.MiscellaneousAccountEntity;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.entity.PaymentMethod;
@@ -48,11 +50,17 @@ import uk.gov.hmcts.opal.repository.TillRepository;
 
 class CashTillReportServiceTest {
 
-    private static final String CSV_HEADER =
-        "Business Unit,Cash Till Number,Cashier,Date,Type,Details,Payment Type,Amount,Receipt,Balance";
+    private static final String CSV_REPORT_HEADER =
+        "HEADER1,report_type,till_number,source,report_amount,cashier,report_created,time_created,business_unit,"
+            + "no_of_records,created_by";
+    private static final String CSV_DETAIL_HEADER =
+        "HEADER2,date,transaction_type,details,method_of_payment,transaction_amount";
+    private static final String CSV_SUMMARY_HEADER =
+        "HEADER3,no_of_records,total_amount";
+
     private static final String NEWER_CSV_ROW =
-        "\"North, Court\",9,\"Cashier \"\"A\"\"\",02/05/2026,FA,*ACC123 - Auto cash input,NC,12.30,R,12.30";
-    private static final String OLDER_CSV_ROW = "Westshire,17,Pedro,01/05/2026,SA,MISC123,PO,7.50,,99.00";
+        "DETAIL,02/05/2026,Fines Account,*ACC123 - Auto cash input,Notes and coins,12.30";
+    private static final String OLDER_CSV_ROW = "DETAIL,01/05/2026,Suspense Account,MISC123,Postal order,7.50";
 
     private static final ReportInstanceEntity REPORT_INSTANCE = new ReportInstanceEntity();
     private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder()
@@ -120,9 +128,14 @@ class CashTillReportServiceTest {
 
         assertThat(reportData.getAllocatedReport()).isTrue();
         assertThat(reportData.getRows()).hasSize(2);
+        assertThat(reportData).extracting(
+            CashTillReportData::getCashTillNumber,
+            CashTillReportData::getCashier,
+            CashTillReportData::getBusinessUnit,
+            CashTillReportData::getSource,
+            CashTillReportData::getTotalAmount
+        ).containsExactly("7", "Jamie", "Central Unit", InterfaceFileSourceEnum.BARCLAYCARD, money("20.70"));
         assertThat(reportData.getRows()).extracting(
-            CashTillReportRow::getCashTillNumber,
-            CashTillReportRow::getCashier,
             CashTillReportRow::getDestinationType,
             CashTillReportRow::getDetails,
             CashTillReportRow::getPaymentMethod,
@@ -130,9 +143,9 @@ class CashTillReportServiceTest {
             CashTillReportRow::getReceipt,
             CashTillReportRow::getAllocated
         ).containsExactly(
-            Tuple.tuple("7", "Jamie", CashTillDestinationType.FA, "ACC-001",
+            Tuple.tuple(CashTillDestinationType.FA, "ACC-001",
                 CashTillPaymentMethod.NC, money("12.30"), true, true),
-            Tuple.tuple("7", "Jamie", CashTillDestinationType.SA, "MISC-002",
+            Tuple.tuple(CashTillDestinationType.SA, "MISC-002",
                 CashTillPaymentMethod.CQ, money("8.40"), false, false));
         assertThat(reportData.getRows()).extracting(CashTillReportRow::getPaymentDateTime).containsExactly(
             LocalDateTime.of(2026, Month.MAY, 3, 10, 15),
@@ -315,7 +328,9 @@ class CashTillReportServiceTest {
 
         String csv = convert(reportData);
 
-        assertThat(csv).isEqualTo(String.join("\n", CSV_HEADER, NEWER_CSV_ROW, OLDER_CSV_ROW, ""));
+        assertThat(csv).isEqualTo(typicalCsvWithRows(List.of(
+            NEWER_CSV_ROW, OLDER_CSV_ROW
+        ), "19.80", "SUMMARY,2,19.80"));
     }
 
     @Test
@@ -324,7 +339,7 @@ class CashTillReportServiceTest {
 
         String csv = convert(reportData);
 
-        assertThat(csv).isEqualTo(CSV_HEADER + "\n");
+        assertThat(csv).isEqualTo(typicalCsvWithNoRows());
     }
 
     @Test
@@ -368,7 +383,7 @@ class CashTillReportServiceTest {
     void convertReportDataToFileType_whenRowIsNull_throwsException() {
         List<CashTillReportRow> rows = new ArrayList<>();
         rows.add(null);
-        CashTillReportData reportData = reportDataWithRows(rows);
+        CashTillReportData reportData = reportDataWithOnlyRows(rows);
 
         assertThatThrownBy(() -> convert(reportData))
             .isInstanceOf(IllegalArgumentException.class)
@@ -409,16 +424,18 @@ class CashTillReportServiceTest {
         CashTillReportData reportData = mapper.readValue("""
             {
               "allocated_report": true,
+              "total_amount": 1.20,
+              "business_unit": "Central",
+              "cash_till_number": "22",
+              "cashier": "Alex",
+              "source": "BARCLAYCARD",
               "rows": [
                 {
-                  "business_unit": "Central",
-                  "cash_till_number": "22",
-                  "cashier": "Alex",
                   "payment_date_time": "2026-05-03T10:15:00",
-                  "destination_type": "FA",
+                  "destination_type": "Fines Account",
                   "details": "ACC999",
                   "auto_payment": false,
-                  "payment_method": "CQ",
+                  "payment_method": "Cheque",
                   "amount": 1.20,
                   "receipt": true,
                   "balance": 1.20,
@@ -430,28 +447,41 @@ class CashTillReportServiceTest {
 
         assertThat(reportData.getAllocatedReport()).isTrue();
         assertThat(reportData.getNumberOfRecords()).isEqualTo(1);
-        assertThat(reportData.getRows().getFirst().getCashTillNumber()).isEqualTo("22");
+        assertThat(reportData).extracting(
+            CashTillReportData::getBusinessUnit,
+            CashTillReportData::getCashier,
+            CashTillReportData::getCashTillNumber,
+            CashTillReportData::getSource,
+            CashTillReportData::getTotalAmount
+        ).containsExactly("Central", "Alex", "22", InterfaceFileSourceEnum.BARCLAYCARD, money("1.20"));
         assertThat(reportData.getRows().getFirst().getDestinationType()).isEqualTo(CashTillDestinationType.FA);
         assertThat(reportData.getRows().getFirst().getPaymentMethod()).isEqualTo(CashTillPaymentMethod.CQ);
     }
 
+    @Test
+    void cashTillReportData_usesEnumDisplayName() throws Exception {
+        CashTillReportData reportData = allocatedReportData(List.of(validRow()));
+
+        String jsonReport = toJsonString(reportData);
+
+        assertThat(jsonReport).containsIgnoringWhitespaces("\"destination_type\": \"Fines Account\"");
+        assertThat(jsonReport).containsIgnoringWhitespaces("\"payment_method\": \"Cheque\"");
+    }
+
     private static Stream<Arguments> missingFieldCases() {
         return Stream.of(
-            missingFieldCase("business unit", row -> row.setBusinessUnit(null), "Business Unit"),
-            missingFieldCase("cash till number", row -> row.setCashTillNumber(""), "Cash Till Number"),
-            missingFieldCase("cashier", row -> row.setCashier(" "), "Cashier"),
-            missingFieldCase("date", row -> row.setPaymentDateTime(null), "Date"),
-            missingFieldCase("details", row -> row.setDetails(null), "Details"),
-            missingFieldCase("auto payment", row -> row.setAutoPayment(null), "auto_payment"),
-            missingFieldCase("receipt", row -> row.setReceipt(null), "Receipt"),
-            missingFieldCase("amount", row -> row.setAmount(null), "Amount"),
-            missingFieldCase("balance", row -> row.setBalance(null), "Balance"));
+            missingFieldCase("date", row -> row.setPaymentDateTime(null), "date"),
+            missingFieldCase("details", row -> row.setDetails(null), "details"),
+            missingFieldCase("transaction type", row -> row.setDestinationType(null), "transaction_type"),
+            missingFieldCase("payment method", row -> row.setPaymentMethod(null), "method_of_payment"),
+            missingFieldCase("transaction amount", row -> row.setAmount(null), "transaction_amount")
+        );
     }
 
     private static Stream<Arguments> invalidMoneyCases() {
         return Stream.of(
-            invalidMoneyCase("amount", row -> row.setAmount(money("1.234")), "Amount"),
-            invalidMoneyCase("balance", row -> row.setBalance(money("2.345")), "Balance"));
+            invalidMoneyCase("amount", row -> row.setAmount(money("1.234")), "transaction_amount")
+        );
     }
 
     private static Arguments missingFieldCase(String description, Consumer<CashTillReportRow> change,
@@ -466,7 +496,7 @@ class CashTillReportServiceTest {
     }
 
     private String convert(CashTillReportData reportData) {
-        byte[] csv = service.convertReportDataToFileType(REPORT_INSTANCE, reportData, CSV);
+        byte[] csv = service.convertReportDataToFileType(reportInstanceWithData(), reportData, CSV);
         return new String(csv, StandardCharsets.UTF_8);
     }
 
@@ -476,11 +506,32 @@ class CashTillReportServiceTest {
         return reportInstance;
     }
 
+    private static ReportInstanceEntity reportInstanceWithData() {
+        return ReportInstanceEntity.builder()
+            .createdTimestamp(LocalDateTime.of(1, 2, 3, 4, 5, 6))
+            .requestedByName("John Smith")
+            .build();
+    }
+
     private static CashTillReportData reportData(CashTillReportRow row) {
         return reportDataWithRows(List.of(row));
     }
 
     private static CashTillReportData reportDataWithRows(List<CashTillReportRow> rows) {
+        return CashTillReportData.builder()
+            .businessUnit("Central Unit")
+            .cashier("Alex")
+            .cashTillNumber("22")
+            .source(InterfaceFileSourceEnum.BARCLAYCARD)
+            .allocatedReport(true)
+            .totalAmount(rows == null ? BigDecimal.ZERO :
+                rows.stream().map(row -> row.getAmount() == null
+                                         ? BigDecimal.ZERO : row.getAmount()).reduce(BigDecimal.ZERO, BigDecimal::add))
+            .rows(rows)
+            .build();
+    }
+
+    private static CashTillReportData reportDataWithOnlyRows(List<CashTillReportRow> rows) {
         return CashTillReportData.builder()
             .rows(rows)
             .build();
@@ -488,6 +539,11 @@ class CashTillReportServiceTest {
 
     private static CashTillReportData allocatedReportData(List<CashTillReportRow> rows) {
         return CashTillReportData.builder()
+            .businessUnit("Central Unit")
+            .cashier("Alex")
+            .cashTillNumber("22")
+            .source(InterfaceFileSourceEnum.BARCLAYCARD)
+            .totalAmount(rows.stream().map(CashTillReportRow::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add))
             .allocatedReport(true)
             .rows(rows)
             .build();
@@ -495,9 +551,6 @@ class CashTillReportServiceTest {
 
     private static CashTillReportRow newerRow() {
         return CashTillReportRow.builder()
-            .businessUnit("North, Court")
-            .cashTillNumber("9")
-            .cashier("Cashier \"A\"")
             .paymentDateTime(LocalDateTime.of(2026, Month.MAY, 2, 14, 5))
             .destinationType(CashTillDestinationType.FA)
             .details("ACC123")
@@ -512,9 +565,6 @@ class CashTillReportServiceTest {
 
     private static CashTillReportRow olderRow() {
         return CashTillReportRow.builder()
-            .businessUnit("Westshire")
-            .cashTillNumber("17")
-            .cashier("Pedro")
             .paymentDateTime(LocalDateTime.of(2026, Month.MAY, 1, 9, 30))
             .destinationType(CashTillDestinationType.SA)
             .details("MISC123")
@@ -529,9 +579,6 @@ class CashTillReportServiceTest {
 
     private static CashTillReportRow validRow() {
         return CashTillReportRow.builder()
-            .businessUnit("Central")
-            .cashTillNumber("22")
-            .cashier("Alex")
             .paymentDateTime(LocalDateTime.of(2026, Month.MAY, 3, 10, 15))
             .destinationType(CashTillDestinationType.FA)
             .details("ACC999")
@@ -557,6 +604,7 @@ class CashTillReportServiceTest {
             .tillId(321L)
             .tillNumber((short) 7)
             .ownedBy("Jamie")
+            .source(InterfaceFileSourceEnum.BARCLAYCARD)
             .businessUnit(BusinessUnitEntity.builder()
                 .businessUnitId((short) 66)
                 .businessUnitName("Central Unit")
@@ -620,5 +668,26 @@ class CashTillReportServiceTest {
             .miscellaneousAccountId(22L)
             .accountNumber("MISC-002")
             .build();
+    }
+
+    private static String typicalCsvWithNoRows() {
+        return typicalCsvWithRows(List.of(), "0.00", "SUMMARY,0,0");
+    }
+
+    private static String typicalCsvWithRows(List<String> expectedRows, String totalAmount, String summary) {
+        StringBuilder csv = new StringBuilder(CSV_REPORT_HEADER).append("\n");
+        csv.append(typicalCsvReportRow(totalAmount, String.valueOf(expectedRows.size())));
+        csv.append("\n\n");
+        csv.append(CSV_DETAIL_HEADER).append("\n");
+        expectedRows.forEach(r -> csv.append(r).append("\n"));
+        csv.append("\n");
+        csv.append(CSV_SUMMARY_HEADER).append("\n");
+        csv.append(summary);
+        return csv.toString();
+    }
+
+    private static String typicalCsvReportRow(String totalAmount, String numRecords) {
+        return "REPORT,Allocated,22,BARCLAYCARD," + totalAmount + ",Alex,03/02/0001,04:05,Central Unit,"
+            + numRecords + ",John Smith";
     }
 }

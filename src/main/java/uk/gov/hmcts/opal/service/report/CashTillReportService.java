@@ -3,17 +3,19 @@ package uk.gov.hmcts.opal.service.report;
 import static uk.gov.hmcts.opal.service.report.CommonReportHelper.escapeCsv;
 import static uk.gov.hmcts.opal.service.report.CommonReportHelper.formatMoney;
 import static uk.gov.hmcts.opal.service.report.CommonReportHelper.formatReportDate;
-import static uk.gov.hmcts.opal.service.report.CommonReportHelper.formatReceiptValue;
 import static uk.gov.hmcts.opal.service.report.CommonReportHelper.validateMoney;
 import static uk.gov.hmcts.opal.service.report.CommonReportHelper.validateRequired;
 import static uk.gov.hmcts.opal.service.report.CommonReportHelper.validateText;
 import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.COMMA;
+import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.EMPTY_STRING;
 import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.NEW_LINE;
 import static uk.gov.hmcts.opal.service.report.FileType.CSV;
 import static uk.gov.hmcts.opal.service.report.ReportId.CASH_TILL;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.nio.charset.StandardCharsets;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -38,14 +40,27 @@ public class CashTillReportService implements ReportInterface<CashTillReportData
 
     private static final String REPORT_NAME = "Cash Till report";
     private static final Sort PAYMENT_DATE_DESC = Sort.by(Sort.Direction.DESC, PaymentInEntity_.PAYMENT_DATE);
-    private static final List<String> HEADINGS = List.of(
-        CashTillField.BUSINESS_UNIT.label(), CashTillField.CASH_TILL_NUMBER.label(),
-        CashTillField.CASHIER.label(), CashTillField.DATE.label(), CashTillField.TYPE.label(),
-        CashTillField.DETAILS.label(), CashTillField.PAYMENT_TYPE.label(), CashTillField.AMOUNT.label(),
-        CashTillField.RECEIPT.label(), CashTillField.BALANCE.label());
+    private static final List<String> REPORT_HEADINGS = List.of(
+        "HEADER1", CashTillReportField.REPORT_TYPE.label(), CashTillReportField.TILL_NUMBER.label(),
+        CashTillReportField.SOURCE.label(), CashTillReportField.REPORT_AMOUNT.label(),
+        CashTillReportField.CASHIER.label(), CashTillReportField.REPORT_CREATED.label(),
+        CashTillReportField.TIME_CREATED.label(), CashTillReportField.BUSINESS_UNIT.label(),
+        CashTillReportField.NUMBER_OF_RECORDS.label(), CashTillReportField.CREATED_BY.label()
+    );
+    private static final List<String> DETAIL_HEADINGS = List.of(
+        "HEADER2", CashTillDetailField.DATE.label(), CashTillDetailField.TRANSACTION_TYPE.label(),
+        CashTillDetailField.DETAILS.label(), CashTillDetailField.METHOD_OF_PAYMENT.label(),
+        CashTillDetailField.TRANSACTION_AMOUNT.label()
+    );
+    private static final List<String> SUMMARY_HEADINGS = List.of(
+        "HEADER3", CashTillSummaryField.NUMBER_OF_RECORDS.label(), CashTillSummaryField.TOTAL_AMOUNT.label()
+    );
     private static final String AUTO_CASH_INPUT_SUFFIX = " - Auto cash input";
     private static final String ALLOCATED_PAYMENT_PREFIX = "*";
     private static final String CASH_TILL_REPORT_PARAMETERS_ERROR = "Failed to parse Cash Till report parameters";
+    private static final DateTimeFormatter REPORT_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+    private static final String REPORT_TYPE_ALLOCATED = "Allocated";
+    private static final String REPORT_TYPE_PREALLOCATED = "Pre-allocated";
 
     private final ObjectMapper objectMapper;
     private final TillRepository tillRepository;
@@ -81,28 +96,60 @@ public class CashTillReportService implements ReportInterface<CashTillReportData
             throw new IllegalArgumentException("Cash Till report only supports CSV conversion");
         }
 
+        String csv = "";
         validateReportData(reportData);
-        StringBuilder csv = new StringBuilder(String.join(COMMA, HEADINGS)).append(NEW_LINE);
+        StringBuilder reportCSV = new StringBuilder(String.join(COMMA, REPORT_HEADINGS)).append(NEW_LINE);
+        reportCSV.append(toReportCsvRow(reportInstance, reportData)).append(NEW_LINE);
+        csv += reportCSV.append(NEW_LINE);
+
+        StringBuilder detailsCSV = new StringBuilder(String.join(COMMA, DETAIL_HEADINGS)).append(NEW_LINE);
         reportData.getRows().stream()
             .sorted(Comparator.comparing(CashTillReportRow::getPaymentDateTime).reversed())
-            .map(row -> toCsvRow(reportData, row))
-            .forEach(row -> csv.append(row).append(NEW_LINE));
+            .map(row -> toDetailCsvRow(reportData, row))
+            .forEach(row -> detailsCSV.append(row).append(NEW_LINE));
+        csv += detailsCSV.append(NEW_LINE);
 
-        return csv.toString().getBytes(StandardCharsets.UTF_8);
+        StringBuilder summaryCSV = new StringBuilder(String.join(COMMA, SUMMARY_HEADINGS)).append(NEW_LINE);
+        summaryCSV.append(toSummaryCsvRow(reportData));
+        csv += summaryCSV;
+
+
+        return csv.getBytes(StandardCharsets.UTF_8);
     }
 
-    private static String toCsvRow(CashTillReportData reportData, CashTillReportRow row) {
+    private static String toDetailCsvRow(CashTillReportData reportData, CashTillReportRow row) {
         return String.join(COMMA, List.of(
-            escapeCsv(row.getBusinessUnit()),
-            escapeCsv(row.getCashTillNumber()),
-            escapeCsv(row.getCashier()),
+            "DETAIL",
             escapeCsv(formatReportDate(row.getPaymentDateTime())),
-            escapeCsv(row.getDestinationType().toValue()),
+            escapeCsv(row.getDestinationType().toDisplayName()),
             escapeCsv(formatDetails(reportData, row)),
-            escapeCsv(row.getPaymentMethod().toValue()),
-            escapeCsv(formatMoney(row.getAmount())),
-            escapeCsv(formatReceiptValue(row.getReceipt())),
-            escapeCsv(formatMoney(row.getBalance()))));
+            escapeCsv(row.getPaymentMethod().toDisplayName()),
+            escapeCsv(formatMoney(row.getAmount()))
+        ));
+    }
+
+    private static String toReportCsvRow(ReportInstanceEntity reportInstance, CashTillReportData reportData) {
+        return String.join(COMMA, List.of(
+            "REPORT",
+            escapeCsv(reportData.getAllocatedReport() ? REPORT_TYPE_ALLOCATED : REPORT_TYPE_PREALLOCATED),
+            escapeCsv(reportData.getCashTillNumber()),
+            escapeCsv(reportData.getSource().name()),
+            escapeCsv(formatMoney(reportData.getTotalAmount())),
+            escapeCsv(reportData.getCashier()),
+            escapeCsv(formatReportDate(reportInstance.getCreatedTimestamp())),
+            escapeCsv(formatReportTime(reportInstance.getCreatedTimestamp())),
+            escapeCsv(reportData.getBusinessUnit()),
+            escapeCsv(String.valueOf(reportData.getRows().size())),
+            escapeCsv(reportInstance.getRequestedByName())
+        ));
+    }
+
+    private static String toSummaryCsvRow(CashTillReportData reportData) {
+        return String.join(COMMA, List.of(
+            "SUMMARY",
+            escapeCsv(String.valueOf(reportData.getRows().size())),
+            escapeCsv(reportData.getTotalAmount().toString())
+        ));
     }
 
     private static String formatDetails(CashTillReportData reportData, CashTillReportRow row) {
@@ -114,6 +161,12 @@ public class CashTillReportService implements ReportInterface<CashTillReportData
             details += AUTO_CASH_INPUT_SUFFIX;
         }
         return details;
+    }
+
+    public static String formatReportTime(TemporalAccessor value) {
+        return Optional.ofNullable(value)
+            .map(REPORT_TIME_FORMATTER::format)
+            .orElse(EMPTY_STRING);
     }
 
     private static void validateReportData(CashTillReportData reportData) {
@@ -133,41 +186,70 @@ public class CashTillReportService implements ReportInterface<CashTillReportData
             throw new IllegalArgumentException("Cash Till report row " + rowNumber + " is required");
         }
 
-        validateText(row.getBusinessUnit(), CashTillField.BUSINESS_UNIT.label(), REPORT_NAME, rowNumber);
-        validateText(row.getCashTillNumber(), CashTillField.CASH_TILL_NUMBER.label(), REPORT_NAME, rowNumber);
-        validateText(row.getCashier(), CashTillField.CASHIER.label(), REPORT_NAME, rowNumber);
-        validateText(row.getDetails(), CashTillField.DETAILS.label(), REPORT_NAME, rowNumber);
-        validateRequired(row.getDestinationType(), CashTillField.TYPE.label(), REPORT_NAME, rowNumber);
-        validateRequired(row.getPaymentMethod(), CashTillField.PAYMENT_TYPE.label(), REPORT_NAME, rowNumber);
+        validateText(row.getDetails(), CashTillDetailField.DETAILS.label(), REPORT_NAME, rowNumber);
+        validateRequired(row.getDestinationType(),
+            CashTillDetailField.TRANSACTION_TYPE.label(), REPORT_NAME, rowNumber);
+        validateRequired(row.getPaymentMethod(), CashTillDetailField.METHOD_OF_PAYMENT.label(), REPORT_NAME, rowNumber);
         validateDate(row, rowNumber);
         validateRequired(row.getAutoPayment(), "auto_payment", REPORT_NAME, rowNumber);
-        validateRequired(row.getReceipt(), CashTillField.RECEIPT.label(), REPORT_NAME, rowNumber);
-        validateMoney(row.getAmount(), CashTillField.AMOUNT.label(), REPORT_NAME, rowNumber);
-        validateMoney(row.getBalance(), CashTillField.BALANCE.label(), REPORT_NAME, rowNumber);
+        validateMoney(row.getAmount(), CashTillDetailField.TRANSACTION_AMOUNT.label(), REPORT_NAME, rowNumber);
     }
 
     private static void validateDate(CashTillReportRow row, int rowNumber) {
         if (row.getPaymentDateTime() == null) {
             throw new IllegalArgumentException(
-                CashTillField.DATE.label() + " is required at Cash Till report row " + rowNumber);
+                CashTillDetailField.DATE.label() + " is required at Cash Till report row " + rowNumber);
         }
     }
 
-    private enum CashTillField {
-        BUSINESS_UNIT("Business Unit"),
-        CASH_TILL_NUMBER("Cash Till Number"),
-        CASHIER("Cashier"),
-        DATE("Date"),
-        TYPE("Type"),
-        DETAILS("Details"),
-        PAYMENT_TYPE("Payment Type"),
-        AMOUNT("Amount"),
-        RECEIPT("Receipt"),
-        BALANCE("Balance");
+    private enum CashTillReportField {
+        REPORT_TYPE("report_type"),
+        TILL_NUMBER("till_number"),
+        SOURCE("source"),
+        REPORT_AMOUNT("report_amount"),
+        CASHIER("cashier"),
+        REPORT_CREATED("report_created"),
+        TIME_CREATED("time_created"),
+        BUSINESS_UNIT("business_unit"),
+        NUMBER_OF_RECORDS("no_of_records"),
+        CREATED_BY("created_by");
 
         private final String label;
 
-        CashTillField(String label) {
+        CashTillReportField(String label) {
+            this.label = label;
+        }
+
+        private String label() {
+            return label;
+        }
+    }
+
+    private enum CashTillDetailField {
+        DATE("date"),
+        TRANSACTION_TYPE("transaction_type"),
+        DETAILS("details"),
+        METHOD_OF_PAYMENT("method_of_payment"),
+        TRANSACTION_AMOUNT("transaction_amount");
+
+        private final String label;
+
+        CashTillDetailField(String label) {
+            this.label = label;
+        }
+
+        private String label() {
+            return label;
+        }
+    }
+
+    private enum CashTillSummaryField {
+        NUMBER_OF_RECORDS("no_of_records"),
+        TOTAL_AMOUNT("total_amount");
+
+        private final String label;
+
+        CashTillSummaryField(String label) {
             this.label = label;
         }
 

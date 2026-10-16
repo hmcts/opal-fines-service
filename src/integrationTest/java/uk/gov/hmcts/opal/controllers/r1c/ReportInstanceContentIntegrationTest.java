@@ -60,9 +60,15 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
     private static final UUID EXISTING_PDF_LOCATION =
         UUID.fromString("00000000-0000-0000-0000-000000353003");
     private static final String EXPECTED_CSV_CONTENT =
-        "Business Unit,Cash Till Number,Cashier,Date,Type,Details,Payment Type,Amount,Receipt,"
-            + "Balance\n"
-            + "Cash Till Business Unit,9011,opal-test,26/05/2026,FA,ACC456,NC,125.50,R,124.50\n";
+        "HEADER1,report_type,till_number,source,report_amount,cashier,report_created,time_created,business_unit,"
+            + "no_of_records,created_by\n"
+            + "REPORT,Pre-allocated,9011,BARCLAYCARD,125.00,opal-test,,,Cash Till Business Unit,1,opal-test\n"
+            + "\n"
+            + "HEADER2,date,transaction_type,details,method_of_payment,transaction_amount\n"
+            + "DETAIL,26/05/2026,Fines Account,ACC456,Notes and coins,125.50\n"
+            + "\n"
+            + "HEADER3,no_of_records,total_amount\n"
+            + "SUMMARY,1,125.0";
 
     @Autowired
     private BlobServiceClient blobServiceClient;
@@ -113,8 +119,8 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
                 .andExpectAll(
                     status().isOk(),
                     content().contentTypeCompatibleWith(APPLICATION_JSON),
-                    jsonPath("$.reportData.rows[0].cash_till_number").value("9011"),
-                    jsonPath("$.reportData.rows[0].payment_method").value("NC")
+                    jsonPath("$.reportData.cash_till_number").value("9011"),
+                    jsonPath("$.reportData.rows[0].payment_method").value("Notes and coins")
                 );
         }
 
@@ -217,7 +223,7 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
                 .andExpectAll(
                     status().isOk(),
                     content().contentTypeCompatibleWith(APPLICATION_JSON),
-                    jsonPath("$.reportData.rows[0].cash_till_number").value("9011")
+                    jsonPath("$.reportData.cash_till_number").value("9011")
                 );
 
             assertThat(reportInstanceFileRepository.count()).isEqualTo(fileCountBefore);
