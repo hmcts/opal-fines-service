@@ -42,7 +42,7 @@ class MappingsRelease1bDisabledIT extends AbstractIntegrationTest {
     @DisplayName("Existing mapping types remain Release 1B guarded")
     @JiraStory("PO-10964")
     @JiraEpic("PO-2439")
-    void otherMappingTypes_remainRelease1bProtected(String type) throws Exception {
+    void release1bMappingTypes_remainRelease1bProtected(String type) throws Exception {
         mockMvc.perform(get("/mappings/{type}", type))
             .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
