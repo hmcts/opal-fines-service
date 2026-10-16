@@ -19,13 +19,13 @@ public abstract class AbstractPdplLoggingService {
     protected final LoggingService loggingService;
     protected final Clock clock;
 
-    protected void logPdpl(String businessIdentifier,
+    protected boolean logPdpl(String businessIdentifier,
         PersonalDataProcessingCategory category,
         List<ParticipantIdentifier> individuals,
         ParticipantIdentifier recipient,
         UserState userState) {
 
-        logPdpl(businessIdentifier, category, individuals, recipient, userState.getUserId());
+        return logPdpl(businessIdentifier, category, individuals, recipient, userState.getUserId());
     }
 
     protected boolean logPdpl(String businessIdentifier,
@@ -33,7 +33,6 @@ public abstract class AbstractPdplLoggingService {
         List<ParticipantIdentifier> individuals,
         ParticipantIdentifier recipient,
         Long userId) {
-
 
         // attempt to resolve createdBy from Spring Security
         ParticipantIdentifier createdBy = ParticipantIdentifier.builder()
