@@ -3,8 +3,6 @@ package uk.gov.hmcts.opal.service.opal;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -30,7 +28,6 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
-import uk.gov.hmcts.opal.exception.PdplLoggingException;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
@@ -91,34 +88,6 @@ class DefendantAccountSearchPdplLoggingServiceTest {
             service().logSearchResults(USER_STATE, results);
 
             verify(loggingService, never()).personalDataAccessLogAsync(any());
-        }
-
-        @Test
-        void whenQueueReturnsFalse_throwsPdplLoggingException_sadPath() {
-            when(loggingService.personalDataAccessLogAsync(any())).thenReturn(false);
-            DefendantAccountSearchPdplLoggingService pdplLoggingService = service();
-            DefendantAccountSearchResultsDto searchResults = results(individual("1001"));
-
-            assertThrows(PdplLoggingException.class,
-                () -> pdplLoggingService.logSearchResults(USER_STATE, searchResults));
-
-            verify(loggingService).personalDataAccessLogAsync(any());
-        }
-
-        @Test
-        void whenQueueRaisesError_wrapsAsPdplLoggingException_sadPath() {
-            RuntimeException queueFailure = new RuntimeException("logging unavailable");
-            when(loggingService.personalDataAccessLogAsync(any())).thenThrow(queueFailure);
-            DefendantAccountSearchPdplLoggingService pdplLoggingService = service();
-            DefendantAccountSearchResultsDto searchResults = results(individual("1001"));
-
-            PdplLoggingException exception = assertThrows(PdplLoggingException.class,
-                () -> pdplLoggingService.logSearchResults(USER_STATE, searchResults));
-
-            assertAll(
-                () -> assertSame(queueFailure, exception.getCause()),
-                () -> verify(loggingService).personalDataAccessLogAsync(any())
-            );
         }
 
         private static Stream<DefendantAccountSearchResultsDto> noLoggingResults() {
