@@ -56,6 +56,8 @@ legacy-gateway:
   url: http://localhost:4553/opal
 opal:
   common:
+    docmosis:
+      url: http://localhost:9999
     system-users:
       token-url: http://localhost
       users:
