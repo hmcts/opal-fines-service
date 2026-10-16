@@ -3,6 +3,13 @@ package uk.gov.hmcts.opal.controllers.r1b;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.matchesPattern;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -11,19 +18,27 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.dto.PdplIdentifierType;
+import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -43,9 +58,94 @@ class DefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsInteg
 
     private static final long DEFENDANT_ACCOUNT_ID = 262200L;
 
+    @MockitoBean
+    private LoggingService loggingService;
+
     @BeforeEach
     void authoriseUser() {
         authorise((short) 78, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+    }
+
+    @Test
+    @DisplayName("PDPO: returned history users are logged once without duplicates")
+    @JiraStory("PO-10754")
+    @JiraEpic("PO-10729")
+    void getDefendantAccountHistory_personalData_logsUniqueUsers() throws Exception {
+        mockMvc.perform(get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("Authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk());
+
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+        verify(loggingService).personalDataAccessLogAsync(captor.capture());
+        PersonalDataProcessingLogDetails details = captor.getValue();
+
+        assertAll(
+            () -> assertEquals("View Defendant Account History Item", details.getBusinessIdentifier()),
+            () -> assertEquals(PersonalDataProcessingCategory.CONSULTATION, details.getCategory()),
+            () -> assertEquals("500000000", details.getCreatedBy().getIdentifier()),
+            () -> assertEquals(PdplIdentifierType.OPAL_USER_ID, details.getCreatedBy().getType()),
+            () -> assertEquals(List.of("hist-user-5", "hist-user-4", "hist-user-3", "hist-user-2", "hist-user-1"),
+                details.getIndividuals().stream().map(ParticipantIdentifier::getIdentifier).toList()),
+            () -> assertEquals(List.of(PdplIdentifierType.OPAL_USER_ID, PdplIdentifierType.OPAL_USER_ID,
+                    PdplIdentifierType.OPAL_USER_ID, PdplIdentifierType.OPAL_USER_ID,
+                    PdplIdentifierType.OPAL_USER_ID),
+                details.getIndividuals().stream().map(ParticipantIdentifier::getType).toList()),
+            () -> assertNull(details.getRecipient())
+        );
+    }
+
+    @Test
+    @DisplayName("PDPO: queue rejection prevents history from being returned")
+    @JiraStory("PO-10754")
+    @JiraEpic("PO-10729")
+    void getDefendantAccountHistory_queueReturnsFalse_returnsServiceUnavailable() throws Exception {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(false);
+
+        mockMvc.perform(get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("Authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/pdpl-logging-unavailable"))
+            .andExpect(jsonPath("$.detail").value("The personal data logging queue is currently unavailable"))
+            .andExpect(jsonPath("$.retriable").value(true))
+            .andExpect(jsonPath("$.historyItems").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("PDPO: queue error prevents history from being returned")
+    @JiraStory("PO-10754")
+    @JiraEpic("PO-10729")
+    void getDefendantAccountHistory_queueRaisesError_returnsServiceUnavailable() throws Exception {
+        when(loggingService.personalDataAccessLogAsync(any()))
+            .thenThrow(new RuntimeException("logging unavailable"));
+
+        mockMvc.perform(get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("Authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/pdpl-logging-unavailable"))
+            .andExpect(jsonPath("$.historyItems").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("PDPO: empty history does not emit a log")
+    @JiraStory("PO-10754")
+    @JiraEpic("PO-10729")
+    void getDefendantAccountHistory_emptyResults_doesNotQueueLog() throws Exception {
+        mockMvc.perform(get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
+                .queryParam("dateFrom", "2030-01-01")
+                .queryParam("dateTo", "2030-01-01")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("Authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.historyItems", hasSize(0)));
+
+        verify(loggingService, never()).personalDataAccessLogAsync(any());
     }
 
     @Test
