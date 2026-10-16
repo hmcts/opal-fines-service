@@ -1,5 +1,12 @@
 package uk.gov.hmcts.opal.controllers.r1c;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -18,9 +25,12 @@ import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectEntityNotFoun
 
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
@@ -29,6 +39,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
@@ -50,6 +61,8 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/report-instances";
+    private static final String TEST_DOCMOSIS_API_KEY = "test-api-key";
+    private static final byte[] PDF_CONTENT = "%PDF-1.4\n% integration test\n".getBytes(StandardCharsets.UTF_8);
     private static final Long REPORT_INSTANCE_ID = 99000000353000L;
     private static final short BUSINESS_UNIT_ID = 1778;
     private static final String LOCATION = "00000000-0000-0000-0000-000000353000";
@@ -57,8 +70,10 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
         UUID.fromString("00000000-0000-0000-0000-000000353001");
     private static final UUID EXISTING_CSV_LOCATION =
         UUID.fromString("00000000-0000-0000-0000-000000353002");
-    private static final UUID EXISTING_PDF_LOCATION =
+    private static final UUID GENERATED_PDF_LOCATION =
         UUID.fromString("00000000-0000-0000-0000-000000353003");
+    private static final UUID EXISTING_PDF_LOCATION =
+        UUID.fromString("00000000-0000-0000-0000-000000353004");
     private static final String EXPECTED_CSV_CONTENT =
         "Business Unit,Cash Till Number,Cashier,Date,Type,Details,Payment Type,Amount,Receipt,"
             + "Balance\n"
@@ -97,132 +112,200 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
             blobContainerClient.getBlobClient(LOCATION).deleteIfExists();
             blobContainerClient.getBlobClient(GENERATED_CSV_LOCATION.toString()).deleteIfExists();
             blobContainerClient.getBlobClient(EXISTING_CSV_LOCATION.toString()).deleteIfExists();
-            blobContainerClient.getBlobClient(EXISTING_PDF_LOCATION.toString()).deleteIfExists();
+            blobContainerClient.getBlobClient(GENERATED_PDF_LOCATION.toString()).deleteIfExists();
         }
     }
 
     @Nested
     class GetReportInstanceContentHappyPath {
 
-        @Test
-        @JiraStory("PO-2253")
-        @JiraEpic("PO-2248")
-        @JiraTestKey("PO-9503")
-        void whenJsonRequested_returnsStoredReportContent_happyPath() throws Exception {
-            mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept(APPLICATION_JSON))
-                .andExpectAll(
-                    status().isOk(),
-                    content().contentTypeCompatibleWith(APPLICATION_JSON),
-                    jsonPath("$.reportData.rows[0].cash_till_number").value("9011"),
-                    jsonPath("$.reportData.rows[0].payment_method").value("NC")
-                );
+        @Nested
+        class JsonReports {
+            @Test
+            @JiraStory("PO-2253")
+            @JiraEpic("PO-2248")
+            @JiraTestKey("PO-9503")
+            void whenJsonRequested_returnsStoredReportContent_happyPath() throws Exception {
+                mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept(APPLICATION_JSON))
+                    .andExpectAll(
+                        status().isOk(),
+                        content().contentTypeCompatibleWith(APPLICATION_JSON),
+                        jsonPath("$.reportData.rows[0].cash_till_number").value("9011"),
+                        jsonPath("$.reportData.rows[0].payment_method").value("NC"));
+            }
+
+
+            @Test
+            @JiraStory("PO-10579")
+            @JiraEpic("PO-3516")
+            void whenJsonRequested_doesNotStoreRenderedFileOrBlob() throws Exception {
+                long fileCountBefore = reportInstanceFileRepository.count();
+                long blobCountBefore = blobCount();
+
+                mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept(APPLICATION_JSON))
+                    .andExpectAll(
+                        status().isOk(),
+                        content().contentTypeCompatibleWith(APPLICATION_JSON),
+                        jsonPath("$.reportData.rows[0].cash_till_number").value("9011"));
+
+                assertThat(reportInstanceFileRepository.count()).isEqualTo(fileCountBefore);
+                assertThat(blobCount()).isEqualTo(blobCountBefore);
+                verify(uuidProvider, never()).getUuid();
+            }
         }
 
-        @Test
-        @JiraStory("PO-2253")
-        @JiraEpic("PO-2248")
-        @JiraTestKey("PO-9504")
-        void whenCsvRequested_returnsBinaryContent_happyPath() throws Exception {
-            when(uuidProvider.getUuid()).thenReturn(GENERATED_CSV_LOCATION);
+        @Nested
+        class CsvReports {
+            @Test
+            @JiraStory("PO-2253")
+            @JiraEpic("PO-2248")
+            @JiraTestKey("PO-9504")
+            void whenCsvRequested_returnsBinaryContent_happyPath() throws Exception {
+                when(uuidProvider.getUuid()).thenReturn(GENERATED_CSV_LOCATION);
 
-            mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept("application/csv"))
-                .andExpectAll(
-                    status().isOk(),
-                    content().contentType("application/csv"),
-                    content().string(EXPECTED_CSV_CONTENT)
-                );
+                mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept("application/csv"))
+                    .andExpectAll(
+                        status().isOk(),
+                        content().contentType("application/csv"),
+                        content().string(EXPECTED_CSV_CONTENT));
+            }
+
+            @Test
+            @JiraStory("PO-10579")
+            @JiraEpic("PO-3516")
+            void whenCsvRequestedAndNoRenderedFileExists_generatesStoresAndReturnsReport() throws Exception {
+                when(uuidProvider.getUuid()).thenReturn(GENERATED_CSV_LOCATION);
+                long blobCountBefore = blobCount();
+
+                mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept("application/csv"))
+                    .andExpectAll(
+                        status().isOk(),
+                        content().contentType("application/csv"),
+                        content().string(EXPECTED_CSV_CONTENT)
+                    );
+
+                Optional<ReportInstanceFileEntity> savedFile = reportInstanceFileRepository
+                    .findByReportInstanceIdAndFileType(REPORT_INSTANCE_ID, SupportedFileType.CSV);
+
+                assertThat(savedFile).isPresent();
+                assertThat(savedFile.orElseThrow().getLocationUuid()).isEqualTo(GENERATED_CSV_LOCATION);
+                assertThat(blobContainerClient.getBlobClient(GENERATED_CSV_LOCATION.toString()).exists()).isTrue();
+                assertThat(readBlob(GENERATED_CSV_LOCATION)).isEqualTo(EXPECTED_CSV_CONTENT);
+                assertThat(blobCount()).isEqualTo(blobCountBefore + 1);
+            }
+
+            @Test
+            @JiraStory("PO-10579")
+            @JiraEpic("PO-3516")
+            void whenCsvRequestedAndRenderedFileAlreadyExists_returnsExistingReportWithoutRegenerating()
+                throws Exception {
+                String existingCsvContent = "existing,csv\nfrom,blob\n";
+                uploadBlob(EXISTING_CSV_LOCATION, existingCsvContent);
+                saveReportInstanceFile(SupportedFileType.CSV, EXISTING_CSV_LOCATION);
+                long fileCountBefore = reportInstanceFileRepository.count();
+                long blobCountBefore = blobCount();
+
+                mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept("application/csv"))
+                    .andExpectAll(
+                        status().isOk(),
+                        content().contentType("application/csv"),
+                        content().string(existingCsvContent)
+                    );
+
+                assertThat(reportInstanceFileRepository.count()).isEqualTo(fileCountBefore);
+                assertThat(blobCount()).isEqualTo(blobCountBefore);
+                verify(uuidProvider, never()).getUuid();
+            }
+
+            @Test
+            @JiraStory("PO-10579")
+            @JiraEpic("PO-3516")
+            void whenCsvRequestedAndOnlyPdfFileExists_generatesStoresAndReturnsCsvReport() throws Exception {
+                uploadBlob(GENERATED_PDF_LOCATION, "existing pdf content");
+                saveReportInstanceFile(SupportedFileType.PDF, GENERATED_PDF_LOCATION);
+                when(uuidProvider.getUuid()).thenReturn(GENERATED_CSV_LOCATION);
+                long blobCountBefore = blobCount();
+
+                mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept("application/csv"))
+                    .andExpectAll(
+                        status().isOk(),
+                        content().contentType("application/csv"),
+                        content().string(EXPECTED_CSV_CONTENT)
+                    );
+
+                Optional<ReportInstanceFileEntity> savedCsvFile = reportInstanceFileRepository
+                    .findByReportInstanceIdAndFileType(REPORT_INSTANCE_ID, SupportedFileType.CSV);
+
+                assertThat(savedCsvFile).isPresent();
+                assertThat(savedCsvFile.orElseThrow().getLocationUuid()).isEqualTo(GENERATED_CSV_LOCATION);
+                assertThat(reportInstanceFileRepository
+                    .findByReportInstanceIdAndFileType(REPORT_INSTANCE_ID, SupportedFileType.PDF)).isPresent();
+                assertThat(readBlob(GENERATED_CSV_LOCATION)).isEqualTo(EXPECTED_CSV_CONTENT);
+                assertThat(blobCount()).isEqualTo(blobCountBefore + 1);
+            }
         }
 
-        @Test
-        @JiraStory("PO-10579")
-        @JiraEpic("PO-3516")
-        void whenCsvRequestedAndNoRenderedFileExists_generatesStoresAndReturnsReport() throws Exception {
-            when(uuidProvider.getUuid()).thenReturn(GENERATED_CSV_LOCATION);
-            long blobCountBefore = blobCount();
+        @Nested
+        class PdfReports {
+            @Test
+            @JiraStory("PO-10581")
+            @JiraEpic("PO-3516")
+            void whenPdfRequestedAndNoRenderedFileExists_generatesAndReturnsPdf() throws Exception {
+                when(uuidProvider.getUuid()).thenReturn(GENERATED_PDF_LOCATION);
+                String expectedRenderRequest = objectMapper.writeValueAsString(Map.of(
+                    "templateName", "",
+                    "outputName", "",
+                    "accessKey", TEST_DOCMOSIS_API_KEY));
+                String pdfContent = Arrays.toString(PDF_CONTENT);
 
-            mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept("application/csv"))
-                .andExpectAll(
-                    status().isOk(),
-                    content().contentType("application/csv"),
-                    content().string(EXPECTED_CSV_CONTENT)
-                );
+                stubFor(post(urlEqualTo("/api/render"))
+                    .withHeader("Content-Type", containing(MediaType.APPLICATION_JSON_VALUE))
+                    .withRequestBody(equalToJson(expectedRenderRequest, false, true))
+                    .willReturn(ok()
+                        .withHeader("Content-Type", MediaType.APPLICATION_PDF_VALUE)
+                        .withBody(pdfContent)));
 
-            Optional<ReportInstanceFileEntity> savedFile = reportInstanceFileRepository
-                .findByReportInstanceIdAndFileType(REPORT_INSTANCE_ID, SupportedFileType.CSV);
+                long blobCountBefore = blobCount();
 
-            assertThat(savedFile).isPresent();
-            assertThat(savedFile.orElseThrow().getLocationUuid()).isEqualTo(GENERATED_CSV_LOCATION);
-            assertThat(blobContainerClient.getBlobClient(GENERATED_CSV_LOCATION.toString()).exists()).isTrue();
-            assertThat(readBlob(GENERATED_CSV_LOCATION)).isEqualTo(EXPECTED_CSV_CONTENT);
-            assertThat(blobCount()).isEqualTo(blobCountBefore + 1);
-        }
+                mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept(MediaType.APPLICATION_PDF))
+                    .andExpectAll(
+                        status().isOk(),
+                        content().contentType(MediaType.APPLICATION_PDF),
+                        content().string(pdfContent));
 
-        @Test
-        @JiraStory("PO-10579")
-        @JiraEpic("PO-3516")
-        void whenCsvRequestedAndRenderedFileAlreadyExists_returnsExistingReportWithoutRegenerating() throws Exception {
-            String existingCsvContent = "existing,csv\nfrom,blob\n";
-            uploadBlob(EXISTING_CSV_LOCATION, existingCsvContent);
-            saveReportInstanceFile(SupportedFileType.CSV, EXISTING_CSV_LOCATION);
-            long fileCountBefore = reportInstanceFileRepository.count();
-            long blobCountBefore = blobCount();
+                assertThat(blobContainerClient.getBlobClient(GENERATED_PDF_LOCATION.toString()).exists()).isTrue();
+                assertThat(readBlob(GENERATED_PDF_LOCATION)).isEqualTo(pdfContent);
+                assertThat(blobCount()).isEqualTo(blobCountBefore + 1);
 
-            mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept("application/csv"))
-                .andExpectAll(
-                    status().isOk(),
-                    content().contentType("application/csv"),
-                    content().string(existingCsvContent)
-                );
+                WireMock.verify(1, postRequestedFor(urlEqualTo("/api/render")));
+                Optional<ReportInstanceFileEntity> savedFile = reportInstanceFileRepository
+                    .findByReportInstanceIdAndFileType(REPORT_INSTANCE_ID, SupportedFileType.PDF);
 
-            assertThat(reportInstanceFileRepository.count()).isEqualTo(fileCountBefore);
-            assertThat(blobCount()).isEqualTo(blobCountBefore);
-            verify(uuidProvider, never()).getUuid();
-        }
+                assertThat(savedFile).isPresent();
+                assertThat(savedFile.orElseThrow().getLocationUuid()).isEqualTo(GENERATED_PDF_LOCATION);
+            }
 
-        @Test
-        @JiraStory("PO-10579")
-        @JiraEpic("PO-3516")
-        void whenCsvRequestedAndOnlyPdfFileExists_generatesStoresAndReturnsCsvReport() throws Exception {
-            uploadBlob(EXISTING_PDF_LOCATION, "existing pdf content");
-            saveReportInstanceFile(SupportedFileType.PDF, EXISTING_PDF_LOCATION);
-            when(uuidProvider.getUuid()).thenReturn(GENERATED_CSV_LOCATION);
-            long blobCountBefore = blobCount();
+            @Test
+            @JiraStory("PO-10581")
+            @JiraEpic("PO-3516")
+            void whenPdfRequestedAndRenderedFileExists_generatesAndReturnsPdfWithoutRegenerating() throws Exception {
+                String pdfContent = Arrays.toString(PDF_CONTENT);
+                uploadBlob(EXISTING_PDF_LOCATION, pdfContent);
+                saveReportInstanceFile(SupportedFileType.PDF, EXISTING_PDF_LOCATION);
 
-            mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept("application/csv"))
-                .andExpectAll(
-                    status().isOk(),
-                    content().contentType("application/csv"),
-                    content().string(EXPECTED_CSV_CONTENT)
-                );
+                long fileCountBefore = reportInstanceFileRepository.count();
+                long blobCountBefore = blobCount();
 
-            Optional<ReportInstanceFileEntity> savedCsvFile = reportInstanceFileRepository
-                .findByReportInstanceIdAndFileType(REPORT_INSTANCE_ID, SupportedFileType.CSV);
+                mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept(MediaType.APPLICATION_PDF))
+                    .andExpectAll(
+                        status().isOk(),
+                        content().contentType(MediaType.APPLICATION_PDF),
+                        content().string(pdfContent));
 
-            assertThat(savedCsvFile).isPresent();
-            assertThat(savedCsvFile.orElseThrow().getLocationUuid()).isEqualTo(GENERATED_CSV_LOCATION);
-            assertThat(reportInstanceFileRepository
-                .findByReportInstanceIdAndFileType(REPORT_INSTANCE_ID, SupportedFileType.PDF)).isPresent();
-            assertThat(readBlob(GENERATED_CSV_LOCATION)).isEqualTo(EXPECTED_CSV_CONTENT);
-            assertThat(blobCount()).isEqualTo(blobCountBefore + 1);
-        }
-
-        @Test
-        @JiraStory("PO-10579")
-        @JiraEpic("PO-3516")
-        void whenJsonRequested_doesNotStoreRenderedFileOrBlob() throws Exception {
-            long fileCountBefore = reportInstanceFileRepository.count();
-            long blobCountBefore = blobCount();
-
-            mockMvc.perform(authorisedGetContent(REPORT_INSTANCE_ID).accept(APPLICATION_JSON))
-                .andExpectAll(
-                    status().isOk(),
-                    content().contentTypeCompatibleWith(APPLICATION_JSON),
-                    jsonPath("$.reportData.rows[0].cash_till_number").value("9011")
-                );
-
-            assertThat(reportInstanceFileRepository.count()).isEqualTo(fileCountBefore);
-            assertThat(blobCount()).isEqualTo(blobCountBefore);
-            verify(uuidProvider, never()).getUuid();
+                assertThat(reportInstanceFileRepository.count()).isEqualTo(fileCountBefore);
+                assertThat(blobCount()).isEqualTo(blobCountBefore);
+                verify(uuidProvider, never()).getUuid();
+            }
         }
     }
 

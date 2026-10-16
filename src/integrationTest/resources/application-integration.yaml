@@ -56,6 +56,9 @@ legacy-gateway:
   url: http://localhost:4553/opal
 opal:
   common:
+    docmosis:
+      url: ${DOCMOSIS_ENDPOINT:http://localhost:4553}
+      api_key: ${DOCMOSIS_API_KEY:test-api-key}
     system-users:
       token-url: http://localhost
       users:
