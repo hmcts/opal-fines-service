@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.mapper.history;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
 import uk.gov.hmcts.opal.dto.PostedDetails;
@@ -76,12 +77,15 @@ public interface DefendantAccountHistoryResponseMapper {
     WriteOffTypeReferenceCommon toGeneratedWriteOffType(WriteOffTypeReference writeOffType);
 
     @Named("normalizeTransactionType")
-    default String normalizeTransactionType(DefendantTransactionTypeReference transactionType) {
+    default DefendantTransactionTypeReferenceCommon.TransactionTypeEnum normalizeTransactionType(
+        DefendantTransactionTypeReference transactionType) {
         if (transactionType == null) {
             return null;
         }
         String value = transactionType.getTransactionType();
-        return value == null ? null : value.replace(" ", "");
+        return value == null
+            ? null
+            : DefendantTransactionTypeReferenceCommon.TransactionTypeEnum.fromValue(value.replace(" ", ""));
     }
 
     default DefendantTransactionStatusReferenceCommon toGeneratedTransactionStatus(
