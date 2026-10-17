@@ -7,10 +7,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
@@ -43,9 +40,6 @@ import java.time.LocalDateTime;
 public class LocalJusticeAreaEntity extends AddressEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "local_justice_area_id_seq_generator")
-    @SequenceGenerator(name = "local_justice_area_id_seq_generator", sequenceName = "local_justice_area_id_seq",
-        allocationSize = 1)
     @Column(name = "local_justice_area_id", nullable = false)
     private Short localJusticeAreaId;
 

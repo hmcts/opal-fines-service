@@ -181,6 +181,17 @@ opal:
       queue-name: ${SERVICEBUS_INTERFACE_JOBS_QUEUE_NAME:auto-payments-process-interface-files}
       consumer-enabled: ${INTERFACE_JOBS_CONSUMER_ENABLED:true}
 
+  ref-data:
+    service-bus:
+      consumer-enabled: ${REFDATA_CONSUMER_ENABLED:true}
+      fully-qualified-namespace: ${SERVICEBUS_FULLY_QUALIFIED_NAMESPACE:}
+      topic-name: ${SERVICEBUS_REFDATA_TOPIC_NAME:}
+      subscription-name: ${SERVICEBUS_REFDATA_SUBSCRIPTION_NAME:}
+      max-messages-per-session: ${REFDATA_MAX_MESSAGES_PER_SESSION:}
+      receive-timeout-seconds: ${REFDATA_RECEIVE_TIMEOUT_SECONDS:}
+      initial-delay-seconds: ${REFDATA_INITIAL_DELAY_SECONDS:}
+      fixed-delay-seconds: ${REFDATA_FIXED_DELAY_SECONDS:}
+
   hmrc:
     url: ${OPAL_HMRC_URL:http://localhost:4455}
     auth:

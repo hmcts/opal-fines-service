@@ -47,3 +47,8 @@ user:
 
 security-it:
   key: ...some random string...
+
+opal:
+  ref-data:
+    service-bus:
+      consumer-enabled: false
