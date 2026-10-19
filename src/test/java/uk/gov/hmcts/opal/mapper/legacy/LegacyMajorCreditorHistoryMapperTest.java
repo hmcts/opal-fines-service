@@ -11,11 +11,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyCreditorTransactionStatusReference;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyCreditorTransactionTypeReference;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyMajorCreditorHistoryDetails;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyMajorCreditorHistoryItem;
+import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse.HistoryDetails;
+import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse.HistoryItem;
+import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse.TransactionStatusReference;
+import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse.TransactionTypeReference;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.CreditorTransactionDetailsHistory;
@@ -25,17 +25,17 @@ import uk.gov.hmcts.opal.generated.model.MajorCreditorHistoryItemHistory;
 import uk.gov.hmcts.opal.generated.model.NoteDetailsHistory;
 import uk.gov.hmcts.opal.mapper.AbstractMapperTest;
 
-class GetMajorCreditorAccountHistoryResponseLegacyMapperTest extends AbstractMapperTest {
+class LegacyMajorCreditorHistoryMapperTest extends AbstractMapperTest {
 
     @Autowired
-    private GetMajorCreditorAccountHistoryResponseLegacyMapper mapper;
+    private LegacyMajorCreditorHistoryMapper mapper;
 
     @Test
     void toOpal_mapsLegacyHistoryResponse() {
-        GetMajorCreditorAccountHistoryLegacyResponse legacy =
-            GetMajorCreditorAccountHistoryLegacyResponse.builder()
+        LegacyMajorCreditorHistoryResponse legacy =
+            LegacyMajorCreditorHistoryResponse.builder()
                 .version(BigInteger.valueOf(7L))
-                .historyItems(List.of(LegacyMajorCreditorHistoryItem.builder()
+                .historyItems(List.of(HistoryItem.builder()
                     .postedDetails(new LegacyPostedDetails(
                         LocalDateTime.of(2026, 1, 31, 10, 30),
                         "MJUSR3",
@@ -43,13 +43,13 @@ class GetMajorCreditorAccountHistoryResponseLegacyMapperTest extends AbstractMap
                     ))
                     .type("Financial")
                     .amount(new BigDecimal("-31.00"))
-                    .details(LegacyMajorCreditorHistoryDetails.builder()
-                        .transactionType(LegacyCreditorTransactionTypeReference.builder()
+                    .details(HistoryDetails.builder()
+                        .transactionType(TransactionTypeReference.builder()
                             .transactionType("MADJ")
                             .transactionTypeDisplayName("Manual Adjustment")
                             .build())
                         .paymentReference("MJF003")
-                        .status(LegacyCreditorTransactionStatusReference.builder()
+                        .status(TransactionStatusReference.builder()
                             .creditorTransactionStatus("R")
                             .creditorTransactionStatusDisplayName("Reversed")
                             .build())
@@ -99,24 +99,24 @@ class GetMajorCreditorAccountHistoryResponseLegacyMapperTest extends AbstractMap
     @Test
     void toDetails_preservesMissingStatusDate() {
         CreditorTransactionDetailsHistory details = mapper.toDetails(
-            LegacyMajorCreditorHistoryDetails.builder().build());
+            HistoryDetails.builder().build());
 
         assertNull(details.getStatusDate());
     }
 
     @Test
     void toOpal_mapsLegacyNoteHistoryResponse() {
-        GetMajorCreditorAccountHistoryLegacyResponse legacy =
-            GetMajorCreditorAccountHistoryLegacyResponse.builder()
+        LegacyMajorCreditorHistoryResponse legacy =
+            LegacyMajorCreditorHistoryResponse.builder()
                 .version(BigInteger.valueOf(7L))
-                .historyItems(List.of(LegacyMajorCreditorHistoryItem.builder()
+                .historyItems(List.of(HistoryItem.builder()
                     .postedDetails(new LegacyPostedDetails(
                         LocalDateTime.of(2026, 1, 31, 10, 30),
                         "MJUSR3",
                         "Major User Three"
                     ))
                     .type("Note")
-                    .details(LegacyMajorCreditorHistoryDetails.builder()
+                    .details(HistoryDetails.builder()
                         .noteText("History note")
                         .build())
                     .build()))
@@ -141,8 +141,8 @@ class GetMajorCreditorAccountHistoryResponseLegacyMapperTest extends AbstractMap
 
     @Test
     void toOpal_ordersHistoryItemsNewestFirstWithDeterministicTieHandling() {
-        GetMajorCreditorAccountHistoryLegacyResponse legacy =
-            GetMajorCreditorAccountHistoryLegacyResponse.builder()
+        LegacyMajorCreditorHistoryResponse legacy =
+            LegacyMajorCreditorHistoryResponse.builder()
                 .version(BigInteger.valueOf(7L))
                 .historyItems(List.of(
                     historyItem("MJF002", LocalDateTime.of(2026, 1, 25, 9, 15)),
@@ -163,12 +163,12 @@ class GetMajorCreditorAccountHistoryResponseLegacyMapperTest extends AbstractMap
         );
     }
 
-    private LegacyMajorCreditorHistoryItem historyItem(String paymentReference, LocalDateTime postedDate) {
-        return LegacyMajorCreditorHistoryItem.builder()
+    private HistoryItem historyItem(String paymentReference, LocalDateTime postedDate) {
+        return HistoryItem.builder()
             .postedDetails(new LegacyPostedDetails(postedDate, "MJUSR", "Major User"))
             .type("Financial")
-            .details(LegacyMajorCreditorHistoryDetails.builder()
-                .transactionType(LegacyCreditorTransactionTypeReference.builder()
+            .details(HistoryDetails.builder()
+                .transactionType(TransactionTypeReference.builder()
                     .transactionType("MADJ")
                     .transactionTypeDisplayName("Manual Adjustment")
                     .build())

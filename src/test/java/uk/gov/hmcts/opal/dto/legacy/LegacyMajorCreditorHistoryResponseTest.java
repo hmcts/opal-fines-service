@@ -7,15 +7,15 @@ import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyMajorCreditorHistoryDetails;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyMajorCreditorHistoryItem;
+import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse.HistoryDetails;
+import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse.HistoryItem;
 import uk.gov.hmcts.opal.util.XmlUtil;
 
-class GetMajorCreditorAccountHistoryLegacyResponseTest {
+class LegacyMajorCreditorHistoryResponseTest {
 
     @Test
     void unmarshalXml_readsStatusDate() throws JAXBException {
-        GetMajorCreditorAccountHistoryLegacyResponse response = XmlUtil.unmarshalXmlString("""
+        LegacyMajorCreditorHistoryResponse response = XmlUtil.unmarshalXmlString("""
             <response>
               <history_items>
                 <history_items_element>
@@ -26,7 +26,7 @@ class GetMajorCreditorAccountHistoryLegacyResponseTest {
                 </history_items_element>
               </history_items>
             </response>
-            """, GetMajorCreditorAccountHistoryLegacyResponse.class);
+            """, LegacyMajorCreditorHistoryResponse.class);
 
         assertThat(response.getHistoryItems().getFirst().getDetails().getStatusDate())
             .isEqualTo(LocalDate.of(2026, 1, 31));
@@ -44,17 +44,17 @@ class GetMajorCreditorAccountHistoryLegacyResponseTest {
         assertThat(ToJsonString.toJsonNode(json).at("/history_items/0/details/status_date").asString())
             .isEqualTo("2026-01-31");
 
-        GetMajorCreditorAccountHistoryLegacyResponse response = ToJsonString.toClassInstance(
-            json, GetMajorCreditorAccountHistoryLegacyResponse.class);
+        LegacyMajorCreditorHistoryResponse response = ToJsonString.toClassInstance(
+            json, LegacyMajorCreditorHistoryResponse.class);
         assertThat(response.getHistoryItems().getFirst().getDetails().getStatusDate())
             .isEqualTo(LocalDate.of(2026, 1, 31));
     }
 
-    private GetMajorCreditorAccountHistoryLegacyResponse legacyResponse() {
-        return GetMajorCreditorAccountHistoryLegacyResponse.builder()
-            .historyItems(List.of(LegacyMajorCreditorHistoryItem.builder()
+    private LegacyMajorCreditorHistoryResponse legacyResponse() {
+        return LegacyMajorCreditorHistoryResponse.builder()
+            .historyItems(List.of(HistoryItem.builder()
                 .type("Financial")
-                .details(LegacyMajorCreditorHistoryDetails.builder()
+                .details(HistoryDetails.builder()
                     .statusDate(LocalDate.of(2026, 1, 31))
                     .build())
                 .build()))
