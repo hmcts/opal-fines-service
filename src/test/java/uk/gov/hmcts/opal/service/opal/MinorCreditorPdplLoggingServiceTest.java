@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import java.time.Clock;
 import java.util.List;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,6 +38,13 @@ class MinorCreditorPdplLoggingServiceTest {
     @Mock
     private LoggingService loggingService;
 
+    private MinorCreditorPdplLoggingService service;
+
+    @BeforeEach
+    void setUp() {
+        service = new MinorCreditorPdplLoggingService(loggingService, Clock.systemUTC());
+    }
+
     @Nested
     class LogIndividualMinorCreditor {
 
@@ -45,7 +53,7 @@ class MinorCreditorPdplLoggingServiceTest {
             MinorCreditorAccountResponse response = response(607L, false);
             when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
-            service().logIndividualMinorCreditor(USER_STATE, response);
+            service.logIndividualMinorCreditor(USER_STATE, response);
 
             ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
                 ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
@@ -70,7 +78,7 @@ class MinorCreditorPdplLoggingServiceTest {
         @NullSource
         @MethodSource("responsesNotRequiringLog")
         void whenMinorCreditorIsNotAnIndividual_doesNotQueueLog_happyPath(MinorCreditorAccountResponse response) {
-            service().logIndividualMinorCreditor(USER_STATE, response);
+            service.logIndividualMinorCreditor(USER_STATE, response);
 
             verify(loggingService, never()).personalDataAccessLogAsync(any());
         }
@@ -80,10 +88,6 @@ class MinorCreditorPdplLoggingServiceTest {
             withoutParty.setCreditorAccountId(607L);
             return Stream.of(withoutParty, response(608L, true), response(609L, null));
         }
-    }
-
-    private MinorCreditorPdplLoggingService service() {
-        return new MinorCreditorPdplLoggingService(loggingService, Clock.systemUTC());
     }
 
     private static MinorCreditorAccountResponse response(Long accountId, Boolean organisationFlag) {
