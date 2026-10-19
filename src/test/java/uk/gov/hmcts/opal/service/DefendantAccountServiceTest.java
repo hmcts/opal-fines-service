@@ -37,6 +37,7 @@ import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
+import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
@@ -49,6 +50,7 @@ import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.mapper.request.DefendantAccountSearchRequestMapper;
 import uk.gov.hmcts.opal.mapper.response.DefendantAccountSearchResponseMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountHistoryPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
@@ -84,6 +86,9 @@ class DefendantAccountServiceTest {
 
     @Mock
     private DefendantAccountSearchRequestValidator defendantAccountSearchRequestValidator;
+
+    @Mock
+    private DefendantAccountHistoryPdplLoggingService defendantAccountHistoryPdplLoggingService;
 
     @InjectMocks
     private DefendantAccountService defendantAccountService;
@@ -220,6 +225,21 @@ class DefendantAccountServiceTest {
 
         assertNotNull(result);
         verify(defendantAccountServiceProxy).searchDefendantAccounts(dto);
+    }
+
+    @Test
+    void getHistory_whenUserHasPermission_logsAndReturnsProxyResponse_happyPath() {
+        UserState permittedUser = allPermissionsUser();
+        DefendantAccountHistoryResponse expectedResponse = DefendantAccountHistoryResponse.builder()
+            .historyItems(List.of())
+            .build();
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(permittedUser);
+        when(defendantAccountServiceProxy.getHistory(anyLong(), any())).thenReturn(expectedResponse);
+
+        DefendantAccountHistoryResponse result = defendantAccountService.getHistory(77L, null, null, List.of());
+
+        assertSame(expectedResponse, result);
+        verify(defendantAccountHistoryPdplLoggingService).logHistoryItems(permittedUser, expectedResponse);
     }
 
     @Test
