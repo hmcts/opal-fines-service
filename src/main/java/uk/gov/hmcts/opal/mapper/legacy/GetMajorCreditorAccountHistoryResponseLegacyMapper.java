@@ -24,8 +24,9 @@ import uk.gov.hmcts.opal.generated.model.MajorCreditorHistoryItemHistory;
 import uk.gov.hmcts.opal.generated.model.MajorCreditorHistoryItemHistoryDetails;
 import uk.gov.hmcts.opal.generated.model.NoteDetailsHistory;
 import uk.gov.hmcts.opal.generated.model.PostedDetailsCommon;
+import uk.gov.hmcts.opal.util.DateTimeUtils;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE, imports = DateTimeUtils.class)
 public interface GetMajorCreditorAccountHistoryResponseLegacyMapper {
 
     default GetMajorCreditorHistoryResponse toOpal(GetMajorCreditorAccountHistoryLegacyResponse legacy) {
@@ -50,6 +51,7 @@ public interface GetMajorCreditorAccountHistoryResponseLegacyMapper {
     @Mapping(target = "details", expression = "java(mapDetails(item.getType(), item.getDetails()))")
     MajorCreditorHistoryItemHistory toHistoryItem(LegacyMajorCreditorHistoryItem item);
 
+    @Mapping(target = "statusDate", expression = "java(DateTimeUtils.startOf(details.getStatusDate()))")
     CreditorTransactionDetailsHistory toDetails(LegacyMajorCreditorHistoryDetails details);
 
     PostedDetailsCommon toPostedDetails(LegacyPostedDetails postedDetails);
