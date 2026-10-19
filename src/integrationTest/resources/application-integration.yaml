@@ -70,6 +70,10 @@ opal:
   interface-jobs:
     service-bus:
       consumer-enabled: false
+  ref-data:
+    service-bus:
+      consumer-enabled: false
+
   redis:
     enabled: true
     ttl-duration: 8H

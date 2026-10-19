@@ -192,6 +192,23 @@ You should get a response similar to this:
   {"status":"UP","diskSpace":{"status":"UP","total":249644974080,"free":137188298752,"threshold":10485760}}
 ```
 
+### Publishing a message to the local Service Bus emulator
+
+With the emulator running, publish an inline message to a topic with:
+
+```bash
+./gradlew publishServiceBusMessage --args='topic.refdata {"message":"hello"} session-1'
+```
+
+For a JSON file, prefix the file path with `@`:
+
+```bash
+./gradlew publishServiceBusMessage --args='topic.refdata @message.json session-1'
+```
+
+The utility defaults to the local emulator connection string. Set
+`SERVICEBUS_CONNECTION_STRING` to override it. The session argument is optional.
+
 ### Building the application
 
 The project uses [Gradle](https://gradle.org) as a build tool. It already contains

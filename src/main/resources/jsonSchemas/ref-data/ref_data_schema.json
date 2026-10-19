@@ -1,0 +1,2271 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "published-reference-data-message.schema.json",
+  "title": "Published Reference Data Message",
+  "type": "object",
+  "properties": {
+    "header": {
+      "type": "object",
+      "properties": {
+        "message_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "message_type": {
+          "const": "ReferenceData"
+        },
+        "data_product": {
+          "type": "string",
+          "enum": [
+            "Offence",
+            "Court",
+            "LJA",
+            "Prison",
+            "Enforcer",
+            "CentralAuthority",
+            "MajorCreditor"
+          ]
+        },
+        "operation": {
+          "const": "PUBLISH"
+        },
+        "source_system": {
+          "const": "Semarchy"
+        },
+        "created_date_time": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "release_package_id": {
+          "type": "integer"
+        },
+        "record_count": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "message_id",
+        "message_type",
+        "data_product",
+        "operation",
+        "source_system",
+        "created_date_time",
+        "release_package_id",
+        "record_count"
+      ],
+      "additionalProperties": false
+    },
+    "payload": {
+      "type": "object",
+      "properties": {
+        "records": {
+          "type": "array",
+          "minItems": 1
+        }
+      },
+      "required": [
+        "records"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "header",
+    "payload"
+  ],
+  "oneOf": [
+    {
+      "title": "Offence message",
+      "properties": {
+        "header": {
+          "properties": {
+            "data_product": {
+              "const": "Offence"
+            }
+          }
+        },
+        "payload": {
+          "properties": {
+            "records": {
+              "items": {
+                "$ref": "#/$defs/offenceRecord"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "title": "Court message",
+      "properties": {
+        "header": {
+          "properties": {
+            "data_product": {
+              "const": "Court"
+            }
+          }
+        },
+        "payload": {
+          "properties": {
+            "records": {
+              "items": {
+                "$ref": "#/$defs/courtRecord"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "title": "LJA message",
+      "properties": {
+        "header": {
+          "properties": {
+            "data_product": {
+              "const": "LJA"
+            }
+          }
+        },
+        "payload": {
+          "properties": {
+            "records": {
+              "items": {
+                "$ref": "#/$defs/ljaRecord"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "title": "Prison message",
+      "properties": {
+        "header": {
+          "properties": {
+            "data_product": {
+              "const": "Prison"
+            }
+          }
+        },
+        "payload": {
+          "properties": {
+            "records": {
+              "items": {
+                "$ref": "#/$defs/prisonRecord"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "title": "Enforcer message",
+      "properties": {
+        "header": {
+          "properties": {
+            "data_product": {
+              "const": "Enforcer"
+            }
+          }
+        },
+        "payload": {
+          "properties": {
+            "records": {
+              "items": {
+                "$ref": "#/$defs/enforcerRecord"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "title": "CentralAuthority message",
+      "properties": {
+        "header": {
+          "properties": {
+            "data_product": {
+              "const": "CentralAuthority"
+            }
+          }
+        },
+        "payload": {
+          "properties": {
+            "records": {
+              "items": {
+                "$ref": "#/$defs/centralAuthorityRecord"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "title": "MajorCreditor message",
+      "properties": {
+        "header": {
+          "properties": {
+            "data_product": {
+              "const": "MajorCreditor"
+            }
+          }
+        },
+        "payload": {
+          "properties": {
+            "records": {
+              "items": {
+                "$ref": "#/$defs/majorCreditorRecord"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "offenceRecord": {
+      "title": "Offence record",
+      "type": "object",
+      "properties": {
+        "pnld_standard_offence_wording": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "cjs_title": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "area": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "offence_code": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "second_language_offence_wording_text": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "cjs_code": {
+          "type": "string",
+          "maxLength": 8,
+          "not": {
+            "pattern": "[^A-Za-z0-9]"
+          }
+        },
+        "offence_source": {
+          "type": "string",
+          "enum": [
+            "NSD",
+            "PNLD",
+            "APPS",
+            "MOJ"
+          ],
+          "maxLength": 10
+        },
+        "second_language_cjs_title": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 120
+        },
+        "pnld_prosecution_time_limit": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 40
+        },
+        "pnld_offence_start_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "offence_class": {
+          "type": "string",
+          "enum": [
+            "1",
+            "3",
+            "2",
+            "S"
+          ],
+          "maxLength": 1
+        },
+        "standard_list": {
+          "type": "string",
+          "enum": [
+            "Yes",
+            "No"
+          ],
+          "maxLength": 128
+        },
+        "court_extract_available": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "pnld_welsh_standard_offence_wording": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "pnld_mode_of_trial": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 50
+        },
+        "pnld_date_of_last_update": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "proceedings_code": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "exclusiveMaximum": 100
+        },
+        "ho_sub_class": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": -9999999,
+          "maximum": 99999999
+        },
+        "second_language_offence_act_and_section_text": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 250
+        },
+        "resentencing_activation_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 10
+        },
+        "link_type": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "FIRST_HEARING",
+            "STANDALONE",
+            "SJP",
+            "LINKED",
+            null
+          ],
+          "maxLength": 128
+        },
+        "pnld_max_fine_type_magistrates_court": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 1
+        },
+        "pnld_offence_end_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "court_of_appeal_flag": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "active_offence_order": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "NOT_APPLICABLE",
+            "OFFENCE",
+            "COURT_ORDER",
+            null
+          ],
+          "maxLength": 128
+        },
+        "user_statement_of_facts": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "boxwork_notification_template": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 10
+        },
+        "recordable": {
+          "type": "string",
+          "enum": [
+            "Yes",
+            "No"
+          ],
+          "maxLength": 128
+        },
+        "pnld_principal_offence_category": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 200
+        },
+        "application_synonym": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "APPLICANT",
+            null
+          ],
+          "maxLength": 10
+        },
+        "pnld_location_flag": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "N",
+            "Y",
+            null
+          ],
+          "maxLength": 128
+        },
+        "reportable": {
+          "type": "string",
+          "enum": [
+            "Yes",
+            "No"
+          ],
+          "maxLength": 128
+        },
+        "publishing_status": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "Not Published",
+            "Active",
+            "Submitted",
+            "Added to Release Package",
+            "Inactive",
+            "Error",
+            "Future",
+            "Superseded",
+            null
+          ],
+          "maxLength": 128
+        },
+        "entry_prompt_substitution_ans": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "listing_notification_template": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "POSTAL_NOTIFICATION",
+            "NOT_APPLICABLE",
+            null
+          ],
+          "maxLength": 128
+        },
+        "applicant_appellant_flag": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "Appellant",
+            "Applicant",
+            null
+          ],
+          "maxLength": 128
+        },
+        "second_language_offence_statement_of_facts_text": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "traffic_control": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "plea_applicable_flag": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "pnld_max_fine_type_magistrates_court_description": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 1000
+        },
+        "summons_template_type": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "BREACH",
+            "FIRST_HEARING",
+            "PARENT_GENERIC_CASE",
+            "GENERIC_APPLICATION",
+            "NOT_APPLICABLE",
+            null
+          ],
+          "maxLength": 128
+        },
+        "date_used_to": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "contested_fee": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "obsolete_indicator": {
+          "type": "string",
+          "enum": [
+            "N",
+            "Y"
+          ],
+          "maxLength": 128
+        },
+        "breach_type": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "COMMISSION_OF_NEW_OFFENCE_BREACH",
+            "NOT_APPLICABLE",
+            "GENERIC_BREACH",
+            null
+          ],
+          "maxLength": 128
+        },
+        "can_be_bulk": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "entry_prompt_substitution_sof": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "prefix": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 100
+        },
+        "prosecutor_as_third_party_flag": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "blocked": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "N",
+            "Y",
+            null
+          ],
+          "maxLength": 128
+        },
+        "ho_class": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": -9999999,
+          "maximum": 99999999
+        },
+        "offence_type": {
+          "type": "string",
+          "enum": [
+            "CB",
+            "EF",
+            "VA",
+            "CS",
+            "CR",
+            "EM",
+            "CI",
+            "VP",
+            "EX",
+            "CM",
+            "CE"
+          ],
+          "maxLength": 2
+        },
+        "maximum_penalty": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 100
+        },
+        "pnld_endorsable_flag": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "N",
+            "Y",
+            null
+          ],
+          "maxLength": 128
+        },
+        "appeal_flag": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "sow_reference": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 10
+        },
+        "exparte": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "jurisdiction": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "EITHER",
+            "CROWN",
+            "MAGISTRATES",
+            null
+          ],
+          "maxLength": 128
+        },
+        "custodial_indicator": {
+          "type": "string",
+          "enum": [
+            "Yes",
+            "No"
+          ],
+          "maxLength": 128
+        },
+        "entry_prompt_substitution_sow": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "date_used_from": {
+          "type": "string",
+          "format": "date"
+        },
+        "user_acts_and_section": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "offence_notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "derived_from_cjs_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 10
+        },
+        "dvla_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4
+        },
+        "mis_classification": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "DRU",
+            "FRF",
+            "THG",
+            "VAP",
+            "IMO",
+            "FTS",
+            "DDR",
+            "SNM",
+            "OSM",
+            "DAM",
+            "SEX",
+            "DWC",
+            "XXX",
+            "ROB",
+            "BUR",
+            null
+          ],
+          "maxLength": 4
+        },
+        "user_offence_wording": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "commissioner_of_oath": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "initial_fee_applicable": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "hearing_code": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "cjs_title",
+        "cjs_code",
+        "offence_source",
+        "offence_class",
+        "standard_list",
+        "recordable",
+        "reportable",
+        "obsolete_indicator",
+        "offence_type",
+        "custodial_indicator",
+        "date_used_from"
+      ],
+      "additionalProperties": false,
+      "x-unique-keys": [
+        {
+          "name": "CJSCodeUniqueKey",
+          "key": [
+            "cjs_code"
+          ]
+        }
+      ],
+      "allOf": [
+        {
+          "$comment": "Offence:OffenceRevision.CivilAppDataMandatoryFieldValidation",
+          "if": {
+            "properties": {
+              "offence_source": {
+                "const": "APPS"
+              }
+            },
+            "required": [
+              "offence_source"
+            ]
+          },
+          "then": {
+            "required": [
+              "jurisdiction",
+              "hearing_code",
+              "link_type",
+              "active_offence_order",
+              "summons_template_type",
+              "breach_type"
+            ],
+            "properties": {
+              "jurisdiction": {
+                "not": {
+                  "type": "null"
+                }
+              },
+              "hearing_code": {
+                "not": {
+                  "type": "null"
+                }
+              },
+              "link_type": {
+                "not": {
+                  "type": "null"
+                }
+              },
+              "active_offence_order": {
+                "not": {
+                  "type": "null"
+                }
+              },
+              "summons_template_type": {
+                "not": {
+                  "type": "null"
+                }
+              },
+              "breach_type": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "x-rules": [
+        {
+          "name": "DateUsedToGEDateUsedFromValidation",
+          "left": "date_used_to",
+          "op": ">=",
+          "right": "date_used_from",
+          "compare_as": "date"
+        }
+      ]
+    },
+    "courtRecord": {
+      "title": "Court record",
+      "type": "object",
+      "properties": {
+        "court_location_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 10
+        },
+        "common_platform_uuid": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid"
+        },
+        "court_welsh_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 100
+        },
+        "court_type": {
+          "type": "string",
+          "enum": [
+            "CHOA"
+          ],
+          "maxLength": 6
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "court_name": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "cja_code": {
+          "type": "string",
+          "enum": [
+            "41",
+            "53",
+            "55",
+            "13",
+            "60",
+            "04",
+            "35",
+            "48",
+            "06",
+            "40",
+            "16",
+            "03",
+            "44",
+            "21",
+            "62",
+            "07",
+            "30",
+            "42",
+            "33",
+            "50",
+            "45",
+            "36",
+            "22",
+            "17",
+            "12",
+            "54",
+            "46",
+            "47",
+            "31",
+            "10",
+            "63",
+            "01",
+            "23",
+            "52",
+            "37",
+            "34",
+            "11",
+            "61",
+            "05",
+            "14",
+            "32",
+            "43",
+            "20"
+          ],
+          "maxLength": 2
+        },
+        "start_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "default_duration": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 10,
+          "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$"
+        },
+        "default_start_time": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 10,
+          "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$"
+        },
+        "end_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "publishing_status": {
+          "type": "string",
+          "enum": [
+            "Superseded",
+            "Future",
+            "Active",
+            "Inactive",
+            "Submitted",
+            "Not Published",
+            "Added to Release Package",
+            "Error"
+          ],
+          "maxLength": 128
+        },
+        "division_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "4",
+            "6",
+            "1",
+            "5",
+            "2",
+            "7",
+            "3",
+            null
+          ],
+          "maxLength": 20
+        },
+        "cluster_information_code": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "enforcement_area_code": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "related_lja_code": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "region_code": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "addresses": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "$ref": "#/$defs/address"
+          }
+        },
+        "contact_information": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "minItems": 0,
+          "items": {
+            "$ref": "#/$defs/contactInformation"
+          }
+        }
+      },
+      "required": [
+        "court_type",
+        "court_name",
+        "start_date",
+        "publishing_status",
+        "addresses",
+        "cja_code"
+      ],
+      "additionalProperties": false,
+      "x-unique-keys": [
+        {
+          "name": "CourtLocationCodeUniqueKey",
+          "key": [
+            "court_location_code"
+          ]
+        }
+      ],
+      "x-rules": [
+        {
+          "name": "EndDateNotEarlierThanStartDate",
+          "left": "end_date",
+          "op": ">=",
+          "right": "start_date",
+          "compare_as": "date"
+        }
+      ]
+    },
+    "ljaRecord": {
+      "title": "LJA record",
+      "type": "object",
+      "properties": {
+        "lja_location_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 10
+        },
+        "common_platform_uuid": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid"
+        },
+        "court_short_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 200
+        },
+        "lja_welsh_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 100
+        },
+        "lja_code": {
+          "type": "string",
+          "maxLength": 4,
+          "pattern": "^[0-9]+$"
+        },
+        "lja_type": {
+          "type": "string",
+          "enum": [
+            "PSA",
+            "NICRT",
+            "YCT",
+            "SCDCRT",
+            "SCSCRT",
+            "SJCRT",
+            "CRWCRT"
+          ],
+          "maxLength": 6
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "lja_name": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "cja_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "41",
+            "53",
+            "55",
+            "13",
+            "60",
+            "04",
+            "35",
+            "48",
+            "06",
+            "40",
+            "16",
+            "03",
+            "44",
+            "21",
+            "62",
+            "07",
+            "30",
+            "42",
+            "33",
+            "50",
+            "45",
+            "36",
+            "22",
+            "17",
+            "12",
+            "54",
+            "46",
+            "47",
+            "31",
+            "10",
+            "63",
+            "01",
+            "23",
+            "52",
+            "37",
+            "34",
+            "11",
+            "61",
+            "05",
+            "14",
+            "32",
+            "43",
+            "20",
+            null
+          ],
+          "maxLength": 2
+        },
+        "start_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "default_duration": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 10,
+          "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$"
+        },
+        "default_start_time": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 10,
+          "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$"
+        },
+        "end_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "publishing_status": {
+          "type": "string",
+          "enum": [
+            "Superseded",
+            "Future",
+            "Active",
+            "Inactive",
+            "Submitted",
+            "Not Published",
+            "Added to Release Package",
+            "Error"
+          ],
+          "maxLength": 128
+        },
+        "division_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "4",
+            "6",
+            "1",
+            "5",
+            "2",
+            "7",
+            "3",
+            null
+          ],
+          "maxLength": 20
+        },
+        "cluster_information_code": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "enforcement_area_code": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "region_code": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "addresses": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "$ref": "#/$defs/address"
+          }
+        },
+        "contact_information": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "minItems": 0,
+          "items": {
+            "$ref": "#/$defs/contactInformation"
+          }
+        }
+      },
+      "required": [
+        "lja_type",
+        "lja_name",
+        "start_date",
+        "publishing_status",
+        "addresses",
+        "lja_code"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "lja_type": {
+                "enum": [
+                  "PSA",
+                  "YCT",
+                  "CRWCRT"
+                ]
+              }
+            },
+            "required": [
+              "lja_type"
+            ]
+          },
+          "then": {
+            "required": [
+              "cja_code"
+            ],
+            "properties": {
+              "cja_code": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "x-unique-keys": [
+        {
+          "name": "CourtCodeUniqueKey",
+          "key": [
+            "lja_code"
+          ],
+          "when": {
+            "lja_type": [
+              "PSA",
+              "NICRT",
+              "YCT",
+              "SCSCRT",
+              "SJCRT"
+            ]
+          }
+        },
+        {
+          "name": "CourtLocationCodeUniqueKey",
+          "key": [
+            "lja_location_code"
+          ],
+          "when": {
+            "lja_type": [
+              "CRWCRT"
+            ]
+          }
+        }
+      ],
+      "x-rules": [
+        {
+          "name": "EndDateNotEarlierThanStartDate",
+          "left": "end_date",
+          "op": ">=",
+          "right": "start_date",
+          "compare_as": "date",
+          "when": {
+            "lja_type": [
+              "PSA",
+              "NICRT",
+              "YCT",
+              "SCSCRT",
+              "SJCRT",
+              "CRWCRT"
+            ]
+          }
+        }
+      ]
+    },
+    "prisonRecord": {
+      "title": "Prison record",
+      "type": "object",
+      "properties": {
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "second_language_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "end_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "publishing_status": {
+          "type": "string",
+          "enum": [
+            "Future",
+            "Error",
+            "Submitted",
+            "Inactive",
+            "Superseded",
+            "Active",
+            "Not Published",
+            "Added to Release Package"
+          ],
+          "maxLength": 128
+        },
+        "business_unit": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "1234",
+            "5678",
+            null
+          ],
+          "maxLength": 4
+        },
+        "start_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "bank_account_number": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 10
+        },
+        "bank_account_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 18
+        },
+        "bank_sort_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 6
+        },
+        "organisation_welsh_address": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/orgAddress"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "addresses": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "minItems": 0,
+          "items": {
+            "$ref": "#/$defs/orgAddress"
+          }
+        },
+        "contact_information": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "minItems": 0,
+          "items": {
+            "$ref": "#/$defs/orgContactInformation"
+          }
+        }
+      },
+      "required": [
+        "description",
+        "publishing_status",
+        "start_date"
+      ],
+      "additionalProperties": false,
+      "x-unique-keys": [
+        {
+          "name": "PrisonsUniqueKey",
+          "key": [
+            "description"
+          ]
+        }
+      ],
+      "x-rules": [
+        {
+          "name": "EndDateNotEarlierThanStartDateValidation",
+          "left": "end_date",
+          "op": ">=",
+          "right": "start_date",
+          "compare_as": "date"
+        }
+      ]
+    },
+    "enforcerRecord": {
+      "title": "Enforcer record",
+      "type": "object",
+      "properties": {
+        "second_language_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "end_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "enforcer_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4
+        },
+        "publishing_status": {
+          "type": "string",
+          "enum": [
+            "Future",
+            "Error",
+            "Submitted",
+            "Inactive",
+            "Superseded",
+            "Active",
+            "Not Published",
+            "Added to Release Package"
+          ],
+          "maxLength": 128
+        },
+        "welsh_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 35
+        },
+        "business_unit": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "1234",
+            "5678",
+            null
+          ],
+          "maxLength": 4
+        },
+        "start_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "bank_account_number": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 10
+        },
+        "bank_account_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 18
+        },
+        "bank_sort_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 6
+        },
+        "organisation_welsh_address": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/orgAddress"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "addresses": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "minItems": 0,
+          "items": {
+            "$ref": "#/$defs/orgAddress"
+          }
+        }
+      },
+      "required": [
+        "description",
+        "publishing_status",
+        "start_date"
+      ],
+      "additionalProperties": false,
+      "x-unique-keys": [
+        {
+          "name": "EnforcersUniqueKey",
+          "key": [
+            "description"
+          ]
+        }
+      ],
+      "x-rules": [
+        {
+          "name": "EndDateNotEarlierThanStartDateValidation",
+          "left": "end_date",
+          "op": ">=",
+          "right": "start_date",
+          "compare_as": "date"
+        }
+      ]
+    },
+    "centralAuthorityRecord": {
+      "title": "Central authority record",
+      "type": "object",
+      "properties": {
+        "second_language_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "end_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "publishing_status": {
+          "type": "string",
+          "enum": [
+            "Future",
+            "Error",
+            "Submitted",
+            "Inactive",
+            "Superseded",
+            "Active",
+            "Not Published",
+            "Added to Release Package"
+          ],
+          "maxLength": 128
+        },
+        "business_unit": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "1234",
+            "5678",
+            null
+          ],
+          "maxLength": 4
+        },
+        "start_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "bank_account_number": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 10
+        },
+        "bank_account_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 18
+        },
+        "bank_sort_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 6
+        },
+        "organisation_welsh_address": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/orgAddress"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "addresses": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "minItems": 0,
+          "items": {
+            "$ref": "#/$defs/orgAddress"
+          }
+        },
+        "contact_information": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "minItems": 0,
+          "items": {
+            "$ref": "#/$defs/orgContactInformation"
+          }
+        }
+      },
+      "required": [
+        "description",
+        "publishing_status",
+        "start_date"
+      ],
+      "additionalProperties": false,
+      "x-unique-keys": [
+        {
+          "name": "CentralAuthoritiesUniqueKey",
+          "key": [
+            "description"
+          ]
+        }
+      ],
+      "x-rules": [
+        {
+          "name": "EndDateNotEarlierThanStartDateValidation",
+          "left": "end_date",
+          "op": ">=",
+          "right": "start_date",
+          "compare_as": "date"
+        }
+      ]
+    },
+    "majorCreditorRecord": {
+      "title": "Major creditor record",
+      "type": "object",
+      "properties": {
+        "short_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4
+        },
+        "second_language_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000
+        },
+        "end_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "publishing_status": {
+          "type": "string",
+          "enum": [
+            "Future",
+            "Error",
+            "Submitted",
+            "Inactive",
+            "Superseded",
+            "Active",
+            "Not Published",
+            "Added to Release Package"
+          ],
+          "maxLength": 128
+        },
+        "business_unit": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "1234",
+            "5678",
+            null
+          ],
+          "maxLength": 4
+        },
+        "start_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "bank_account_number": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 10
+        },
+        "bank_account_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 18
+        },
+        "bank_sort_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 6
+        },
+        "organisation_welsh_address": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/orgAddress"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "addresses": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "minItems": 0,
+          "items": {
+            "$ref": "#/$defs/orgAddress"
+          }
+        },
+        "contact_information": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "minItems": 0,
+          "items": {
+            "$ref": "#/$defs/orgContactInformation"
+          }
+        }
+      },
+      "required": [
+        "description",
+        "publishing_status",
+        "start_date"
+      ],
+      "additionalProperties": false,
+      "x-unique-keys": [
+        {
+          "name": "MajorCreditorsUniqueKey",
+          "key": [
+            "description"
+          ]
+        }
+      ],
+      "x-rules": [
+        {
+          "name": "EndDateNotEarlierThanStartDateValidation",
+          "left": "end_date",
+          "op": ">=",
+          "right": "start_date",
+          "compare_as": "date"
+        }
+      ]
+    },
+    "address": {
+      "title": "Address",
+      "type": "object",
+      "properties": {
+        "post_code": {
+          "type": "string",
+          "maxLength": 8,
+          "pattern": "^((?: *[Gg] *[Ii] *[Rr] *0 *[Aa] *[Aa]|(?: *[A-Za-z]){1,2} *[0-9](?: *[0-9A-Za-z])? *[0-9](?: *[AaBbDdEeFfGgHhJjLlNnPpQqRrSsTtUuWwXxYyZz]){2})) *$"
+        },
+        "address_type": {
+          "type": "string",
+          "enum": [
+            "Court Address",
+            "Financial Office Address",
+            "Welsh Court Address"
+          ],
+          "maxLength": 100
+        },
+        "address_line_1": {
+          "type": "string",
+          "maxLength": 35
+        },
+        "address_line_2": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 35
+        },
+        "address_line_3": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 35
+        },
+        "address_line_4": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 35
+        },
+        "address_line_5": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 35
+        }
+      },
+      "required": [
+        "post_code",
+        "address_type",
+        "address_line_1"
+      ],
+      "additionalProperties": false
+    },
+    "orgAddress": {
+      "title": "Address (Organisation)",
+      "type": "object",
+      "properties": {
+        "address_type": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "MCR",
+            "CAT",
+            "PRIS",
+            "ENF",
+            null
+          ],
+          "maxLength": 100
+        },
+        "post_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 8,
+          "pattern": "^((?: *[Gg] *[Ii] *[Rr] *0 *[Aa] *[Aa]|(?: *[A-Za-z]){1,2} *[0-9](?: *[0-9A-Za-z])? *[0-9](?: *[AaBbDdEeFfGgHhJjLlNnPpQqRrSsTtUuWwXxYyZz]){2})) *$"
+        },
+        "address_line_1": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 35
+        },
+        "address_line_2": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 35
+        },
+        "address_line_3": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 35
+        },
+        "address_line_4": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 35
+        },
+        "address_line_5": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 35
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "contactInformation": {
+      "title": "Contact information",
+      "type": "object",
+      "properties": {
+        "contact_value": {
+          "type": "string",
+          "maxLength": 254
+        },
+        "contact_sub_type": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "Informant",
+            "Remittance Advice",
+            "Prosecutor",
+            "Offender Management Unit",
+            "Prisoner Escort and Custody Service",
+            "General",
+            "Contact",
+            "Reception",
+            "National Payment",
+            "Magistrates Court Contact",
+            "NCES Notification",
+            "Crown Prosecution Service Magistrates Court",
+            "Crown Prosecution Service",
+            "Enforcement Area",
+            "Crown Prosecution Service Crown Court",
+            null
+          ],
+          "maxLength": 100
+        },
+        "contact_type": {
+          "type": "string",
+          "enum": [
+            "Mobile",
+            "Destination ID",
+            "Telephone",
+            "Fax",
+            "Email Address"
+          ],
+          "maxLength": 30
+        }
+      },
+      "required": [
+        "contact_value",
+        "contact_type"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "$comment": "Court:ContactInformation.ContactValueValidation",
+          "anyOf": [
+            {
+              "properties": {
+                "contact_type": {
+                  "allOf": [
+                    {
+                      "not": {
+                        "enum": [
+                          "Email Address",
+                          "Telephone",
+                          "Fax"
+                        ]
+                      }
+                    },
+                    {
+                      "not": {
+                        "type": "null"
+                      }
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "contact_type"
+              ]
+            },
+            {
+              "required": [
+                "contact_type"
+              ],
+              "properties": {
+                "contact_type": {
+                  "const": "Email Address"
+                },
+                "contact_value": {
+                  "pattern": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
+                  "maxLength": 254
+                }
+              }
+            },
+            {
+              "required": [
+                "contact_type"
+              ],
+              "properties": {
+                "contact_type": {
+                  "const": "Telephone"
+                },
+                "contact_value": {
+                  "maxLength": 254
+                }
+              }
+            },
+            {
+              "required": [
+                "contact_type"
+              ],
+              "properties": {
+                "contact_type": {
+                  "const": "Fax"
+                },
+                "contact_value": {
+                  "maxLength": 14
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "orgContactInformation": {
+      "title": "Contact information (Organisation)",
+      "type": "object",
+      "properties": {
+        "contact_value": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "contact_sub_type": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "Informant",
+            "Reception",
+            "Offender Management Unit",
+            "NPS",
+            "ATTC",
+            "DDRP",
+            "NPS_Breaches",
+            "National Payment",
+            "Remittance Advice",
+            "REGION",
+            "ENF",
+            "DESLA",
+            "YOT",
+            "PROYO",
+            "EMC",
+            "Enforcement Area",
+            "Crown Prosecution Service Crown Court",
+            "PRIS",
+            "RCU",
+            "DVLA",
+            "NCESCOST",
+            "MCR",
+            "Prosecutor",
+            "Contact",
+            "Crown Prosecution Service Magistrates Court",
+            "NCES Notification",
+            "BULKSCAN",
+            "CAT",
+            "BASS",
+            "GPS",
+            "Magistrates Court Contact",
+            null
+          ],
+          "maxLength": 100
+        },
+        "contact_type": {
+          "type": "string",
+          "enum": [
+            "Telephone",
+            "Email Address",
+            "Mobile",
+            "Fax",
+            "Destination ID"
+          ],
+          "maxLength": 30
+        }
+      },
+      "required": [
+        "contact_value",
+        "contact_type"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "unevaluatedProperties": false
+}
