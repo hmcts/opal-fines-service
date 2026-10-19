@@ -13,6 +13,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,6 +43,14 @@ class DefendantAccountSearchPdplLoggingServiceTest {
     @Mock
     private LoggingService loggingService;
 
+    private DefendantAccountSearchPdplLoggingService service;
+
+    @BeforeEach
+    void setUp() {
+        service = new DefendantAccountSearchPdplLoggingService(
+            loggingService, Clock.fixed(NOW.toInstant(), ZoneOffset.UTC));
+    }
+
     @Nested
     class LogSearchResults {
 
@@ -59,7 +68,7 @@ class DefendantAccountSearchPdplLoggingServiceTest {
             try (MockedStatic<LogUtil> logUtil = Mockito.mockStatic(LogUtil.class)) {
                 logUtil.when(LogUtil::getIpAddress).thenReturn("192.0.2.10");
 
-                service().logSearchResults(USER_STATE, results);
+                service.logSearchResults(USER_STATE, results);
             }
 
             verify(loggingService).personalDataAccessLogAsync(captor.capture());
@@ -85,7 +94,7 @@ class DefendantAccountSearchPdplLoggingServiceTest {
         @ParameterizedTest
         @MethodSource("noLoggingResults")
         void whenNoIndividualResultsReturned_doesNotQueueLog_happyPath(DefendantAccountSearchResultsDto results) {
-            service().logSearchResults(USER_STATE, results);
+            service.logSearchResults(USER_STATE, results);
 
             verify(loggingService, never()).personalDataAccessLogAsync(any());
         }
@@ -96,11 +105,6 @@ class DefendantAccountSearchPdplLoggingServiceTest {
                 results(organisation("2001"))
             );
         }
-    }
-
-    private DefendantAccountSearchPdplLoggingService service() {
-        return new DefendantAccountSearchPdplLoggingService(
-            loggingService, Clock.fixed(NOW.toInstant(), ZoneOffset.UTC));
     }
 
     private static DefendantAccountSearchResultsDto results(DefendantAccountSummaryDto... accounts) {
