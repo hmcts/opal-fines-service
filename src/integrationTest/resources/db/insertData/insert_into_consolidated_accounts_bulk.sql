@@ -63,3 +63,30 @@ SELECT
     'P',
     'PO-2333 User'
   FROM generate_series(0, 19) AS i;
+
+INSERT INTO parties (
+    party_id,
+    organisation,
+    forenames,
+    surname
+)
+SELECT
+    233400 + i,
+    FALSE,
+    'Bulk',
+    'Child'
+  FROM generate_series(0, 19) AS i;
+
+INSERT INTO defendant_account_parties (
+    defendant_account_party_id,
+    defendant_account_id,
+    party_id,
+    association_type,
+    debtor
+)
+SELECT 233400 + i,
+       233400 + i,
+       233400 + i,
+       'Defendant',
+       TRUE
+  FROM generate_series(0, 19) AS i;
