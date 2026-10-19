@@ -31,6 +31,8 @@ launchdarkly:
 
 logging:
   level:
+    com.azure.core.amqp: OFF
+    com.azure.messaging.servicebus: OFF
     org:
       hibernate:
         SQL: INFO
