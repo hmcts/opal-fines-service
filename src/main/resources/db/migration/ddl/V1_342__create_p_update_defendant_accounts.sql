@@ -24,6 +24,7 @@ AS $procedure$
 DECLARE
     v_account_balance       defendant_accounts.account_balance%TYPE;
     v_amount_imposed        defendant_accounts.amount_imposed%TYPE;
+    v_amount_paid           defendant_accounts.amount_paid%TYPE;
     v_resultant_balance     defendant_accounts.account_balance%TYPE;
     v_pg_exception_detail   TEXT;
 BEGIN
@@ -45,8 +46,8 @@ BEGIN
                   DETAIL = 'p_update_defendant_accounts: pi_payment_amount must be a positive value';
     END IF;
 
-    SELECT account_balance, amount_imposed
-    INTO v_account_balance, v_amount_imposed
+    SELECT account_balance, amount_imposed, amount_paid
+    INTO v_account_balance, v_amount_imposed, v_amount_paid
     FROM public.defendant_accounts
     WHERE defendant_account_id = pi_defendant_account_id
     FOR UPDATE;
@@ -71,11 +72,11 @@ BEGIN
                   DETAIL = 'p_update_defendant_accounts: overpayment must be routed to suspense by p_allocate_till';
     END IF;
 
-    v_resultant_balance := v_amount_imposed + pi_payment_amount;
+    v_resultant_balance := v_amount_imposed + v_amount_paid + pi_payment_amount;
 
     UPDATE public.defendant_accounts AS da
        SET amount_paid        = da.amount_paid + pi_payment_amount,
-           account_balance    = da.amount_imposed + pi_payment_amount,
+           account_balance    = da.amount_imposed + da.amount_paid + pi_payment_amount,
            last_movement_date = CURRENT_TIMESTAMP,
            completed_date     = CASE
                                     WHEN v_resultant_balance = 0 THEN CURRENT_TIMESTAMP
