@@ -55,8 +55,8 @@ class DefendantAccountSummaryPdplLoggingServiceTest {
 
         try (MockedStatic<LogUtil> logUtil = mockStatic(LogUtil.class)) {
             logUtil.when(LogUtil::getIpAddress).thenReturn(IP_ADDRESS);
-            pdplLoggingService.logAtAGlance(atAGlanceResponse(AtAGlanceResponseDefendantAccount.DebtorTypeEnum.DEFENDANT),
-                USER_ID);
+            pdplLoggingService.logAtAGlance(
+                atAGlanceResponse(AtAGlanceResponseDefendantAccount.DebtorTypeEnum.DEFENDANT), USER_ID);
         }
 
         assertPdplDetails("12345", PdplIdentifierType.DEFENDANT_ACCOUNT);
@@ -106,8 +106,8 @@ class DefendantAccountSummaryPdplLoggingServiceTest {
         try (MockedStatic<LogUtil> logUtil = mockStatic(LogUtil.class)) {
             logUtil.when(LogUtil::getIpAddress).thenReturn(IP_ADDRESS);
             exception = assertThrows(PdplLoggingException.class,
-                () -> pdplLoggingService.logHeaderSummary(
-                    headerSummary(GetDefendantAccountHeaderSummary200Response.DebtorTypeEnum.PARENT_GUARDIAN), USER_ID));
+                () -> pdplLoggingService.logHeaderSummary(headerSummary(
+                    GetDefendantAccountHeaderSummary200Response.DebtorTypeEnum.PARENT_GUARDIAN), USER_ID));
         }
 
         assertEquals(FAILURE_MESSAGE, exception.getMessage());

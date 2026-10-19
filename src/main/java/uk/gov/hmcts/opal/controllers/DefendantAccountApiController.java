@@ -116,8 +116,6 @@ public class DefendantAccountApiController implements DefendantAccountApi {
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<GetDefendantAccountHeaderSummary200Response> getDefendantAccountHeaderSummary(Long id) {
         log.debug(":GET:getDefendantAccountHeaderSummary: for defendant id: {}", id);
-
-        //todo PO-10756 pdpl logging here
         DefendantAccountHeaderSummary summary = defendantAccountService.getHeaderSummary(id);
 
         return buildResponse(summary, summary.getResponse());
@@ -149,7 +147,6 @@ public class DefendantAccountApiController implements DefendantAccountApi {
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<AtAGlanceResponseDefendantAccount> getDefendantAccountAtAGlance(Long id) {
         log.debug(":GET:getDefendantAccountAtAGlance: for defendant account id: {}", id);
-        //todo PO-10756 pdpl logging here
         GetDefendantAccountAtAGlanceResponse response = defendantAccountService.getAtAGlance(id);
 
         return buildResponse(response, response.getPayload());
