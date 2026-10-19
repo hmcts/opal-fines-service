@@ -27,6 +27,8 @@ import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.exception.PdplLoggingException;
 import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommonStrict;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
@@ -137,6 +139,32 @@ class DefendantAccountSummaryPdplLoggingServiceTest {
         verifyNoInteractions(loggingService);
     }
 
+    @Test
+    void testLogAtAGlance_company_noLoggingSuccess() {
+        GetDefendantAccountAtAGlanceResponse response = GetDefendantAccountAtAGlanceResponse.builder()
+            .payload(AtAGlanceResponseDefendantAccount.builder().defendantAccountId("12345")
+                .partyDetails(PartyDetailsCommonStrict.builder().organisationFlag(true).build())
+                .build())
+            .build();
+
+        assertDoesNotThrow(() -> pdplLoggingService.logAtAGlance(response, USER_ID));
+
+        verifyNoInteractions(loggingService);
+    }
+
+    @Test
+    void testLogHeaderSummary_company_noLoggingSuccess() {
+        DefendantAccountHeaderSummary response = DefendantAccountHeaderSummary.builder()
+            .response(GetDefendantAccountHeaderSummary200Response.builder().defendantAccountId("12345")
+                .partyDetails(PartyDetailsCommon.builder().organisationFlag(true).build())
+                .build())
+            .build();
+
+        assertDoesNotThrow(() -> pdplLoggingService.logHeaderSummary(response, USER_ID));
+
+        verifyNoInteractions(loggingService);
+    }
+
 
     private GetDefendantAccountAtAGlanceResponse atAGlanceResponse(
         AtAGlanceResponseDefendantAccount.DebtorTypeEnum debtorType) {
@@ -145,6 +173,7 @@ class DefendantAccountSummaryPdplLoggingServiceTest {
             .payload(AtAGlanceResponseDefendantAccount.builder()
                 .defendantAccountId("12345")
                 .debtorType(debtorType)
+                .partyDetails(PartyDetailsCommonStrict.builder().organisationFlag(false).build())
                 .build())
             .build();
     }
@@ -156,6 +185,7 @@ class DefendantAccountSummaryPdplLoggingServiceTest {
             .response(GetDefendantAccountHeaderSummary200Response.builder()
                 .defendantAccountId("67890")
                 .debtorType(debtorType)
+                .partyDetails(PartyDetailsCommon.builder().organisationFlag(false).build())
                 .build())
             .build();
     }
