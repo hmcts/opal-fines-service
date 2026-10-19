@@ -45,6 +45,7 @@ public class GetReportInstanceContentService {
     private final ReportRegistry reportRegistry;
     private final ReportBlobStore blobStore;
     private final ObjectMapper mapper;
+    private final ReportCSVService csvService;
 
     @Transactional
     public Object getReportInstanceContent(Long id, FileType fileType) {
@@ -146,7 +147,11 @@ public class GetReportInstanceContentService {
 
         ReportInterface<T> typedReportTemplate = (ReportInterface<T>) reportTemplate;
         T reportData = readStoredReportData(id, instance, storedReport, typedReportTemplate);
-        byte[] data = typedReportTemplate.convertReportDataToFileType(instance, reportData, fileType);
+        typedReportTemplate.validateReportDataForFileType(fileType, reportData);
+        byte[] data = switch (fileType) {
+            case CSV -> csvService.convertReportDtoToCSV(reportData);
+            default -> typedReportTemplate.convertReportDataToFileType(instance, reportData, fileType);
+        };
 
         UUID location = blobStore.storeReport(new ByteArrayInputStream(data));
 
