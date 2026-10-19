@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import java.time.Clock;
 import java.util.List;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,6 +40,13 @@ class MajorCreditorHistoryPdplLoggingServiceTest {
     @Mock
     private LoggingService loggingService;
 
+    private MajorCreditorHistoryPdplLoggingService service;
+
+    @BeforeEach
+    void setUp() {
+        service = new MajorCreditorHistoryPdplLoggingService(loggingService, Clock.systemUTC());
+    }
+
     @Nested
     class LogHistoryItems {
 
@@ -55,7 +63,7 @@ class MajorCreditorHistoryPdplLoggingServiceTest {
                 ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
             when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
-            service().logHistoryItems(USER_STATE, response);
+            service.logHistoryItems(USER_STATE, response);
 
             verify(loggingService).personalDataAccessLogAsync(captor.capture());
             PersonalDataProcessingLogDetails details = captor.getValue();
@@ -76,7 +84,7 @@ class MajorCreditorHistoryPdplLoggingServiceTest {
         @NullSource
         @MethodSource("responsesWithoutUsers")
         void whenHistoryContainsNoUsers_doesNotQueueLog_happyPath(GetMajorCreditorHistoryResponse response) {
-            service().logHistoryItems(USER_STATE, response);
+            service.logHistoryItems(USER_STATE, response);
 
             verify(loggingService, never()).personalDataAccessLogAsync(any());
         }
@@ -93,10 +101,6 @@ class MajorCreditorHistoryPdplLoggingServiceTest {
                 response(historyItem(" "))
             );
         }
-    }
-
-    private MajorCreditorHistoryPdplLoggingService service() {
-        return new MajorCreditorHistoryPdplLoggingService(loggingService, Clock.systemUTC());
     }
 
     private static GetMajorCreditorHistoryResponse response(MajorCreditorHistoryItemHistory... items) {
