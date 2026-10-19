@@ -36,7 +36,7 @@ import uk.gov.hmcts.opal.mapper.response.DefendantAccountSearchResponseMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountSearchPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountHistoryPdplLoggingService;
-import uk.gov.hmcts.opal.service.opal.DefendantAccountPdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountSummaryPdplLoggingService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
@@ -61,7 +61,7 @@ public class DefendantAccountService {
 
     private final DefendantAccountSearchPdplLoggingService defendantAccountSearchPdplLoggingService;
 
-    private final DefendantAccountPdplLoggingService defendantAccountPdplLoggingService;
+    private final DefendantAccountSummaryPdplLoggingService defendantAccountSummaryPdplLoggingService;
 
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
         log.debug(":getHeaderSummary:");
@@ -72,7 +72,7 @@ public class DefendantAccountService {
             throw new PermissionNotAllowedException(SEARCH_AND_VIEW_ACCOUNTS);
         }
         DefendantAccountHeaderSummary response = defendantAccountServiceProxy.getHeaderSummary(defendantAccountId);
-        defendantAccountPdplLoggingService.logHeaderSummary(response, userState.getUserId());
+        defendantAccountSummaryPdplLoggingService.logHeaderSummary(response, userState.getUserId());
         return response;
     }
 
@@ -154,7 +154,7 @@ public class DefendantAccountService {
         if (userState.anyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)) {
             GetDefendantAccountAtAGlanceResponse response = defendantAccountServiceProxy
                 .getAtAGlance(defendantAccountId);
-            defendantAccountPdplLoggingService.logAtAGlance(response,  userState.getUserId());
+            defendantAccountSummaryPdplLoggingService.logAtAGlance(response, userState.getUserId());
             return response;
         } else {
             throw new PermissionNotAllowedException(SEARCH_AND_VIEW_ACCOUNTS);
