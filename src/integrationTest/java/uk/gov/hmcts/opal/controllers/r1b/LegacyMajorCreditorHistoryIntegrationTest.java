@@ -91,7 +91,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(header().string(HttpHeaders.ETAG, "\"7\""))
             .andExpect(jsonPath("$.historyItems", hasSize(3)))
-            .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_date").value("2026-01-31"))
+            .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_date").value("2026-01-31T10:30:00"))
             .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_by").value("MJUSR3"))
             .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_by_name").value("Major User Three"))
             .andExpect(jsonPath("$.historyItems[0].type").value("Financial"))

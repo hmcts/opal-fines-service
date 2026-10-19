@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -45,6 +44,7 @@ public class GetReportInstanceContentService {
     private final ReportRegistry reportRegistry;
     private final ReportBlobStore blobStore;
     private final ObjectMapper mapper;
+    private final ReportCSVService csvService;
 
     @Transactional
     public Object getReportInstanceContent(Long id, FileType fileType) {
@@ -107,7 +107,7 @@ public class GetReportInstanceContentService {
         if (supportedFileTypes == null || !supportedFileTypes.contains(requestedFileType)) {
             List<String> supportedTypes = supportedFileTypes == null ? List.of() : supportedFileTypes.stream()
                 .map(Enum::name)
-                .collect(Collectors.toList());
+                .toList();
 
             throw new UnsupportedContentTypeException(
                 "report '" + instance.getReport().getReportId() + "'",
@@ -146,7 +146,11 @@ public class GetReportInstanceContentService {
 
         ReportInterface<T> typedReportTemplate = (ReportInterface<T>) reportTemplate;
         T reportData = readStoredReportData(id, instance, storedReport, typedReportTemplate);
-        byte[] data = typedReportTemplate.convertReportDataToFileType(instance, reportData, fileType);
+        typedReportTemplate.validateReportDataForFileType(fileType, reportData);
+        byte[] data = switch (fileType) {
+            case CSV -> csvService.convertReportDtoToCSV(reportData);
+            default -> typedReportTemplate.convertReportDataToFileType(instance, reportData, fileType);
+        };
 
         UUID location = blobStore.storeReport(new ByteArrayInputStream(data));
 

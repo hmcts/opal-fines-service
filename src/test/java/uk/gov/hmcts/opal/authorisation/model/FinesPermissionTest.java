@@ -50,14 +50,14 @@ class FinesPermissionTest {
             () -> assertAll(
                 () -> assertEquals(18L, FinesPermission.OPERATIONAL_REPORT_BY_ENFORCEMENT.getId()),
                 () -> assertEquals(
-                    "Operational report (by enforcement)",
+                    "Operational report by enforcement",
                     FinesPermission.OPERATIONAL_REPORT_BY_ENFORCEMENT.getDescription()
                 )
             ),
             () -> assertAll(
                 () -> assertEquals(19L, FinesPermission.OPERATIONAL_REPORT_BY_PAYMENTS.getId()),
                 () -> assertEquals(
-                    "Operational report (by payment)",
+                    "Operational report by payments",
                     FinesPermission.OPERATIONAL_REPORT_BY_PAYMENTS.getDescription()
                 )
             )
