@@ -1,7 +1,13 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
@@ -16,9 +22,11 @@ import static uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil.noPermissi
 import static uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil.permissionUser;
 
 import jakarta.persistence.QueryTimeoutException;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -31,6 +39,11 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.dto.PdplIdentifierType;
+import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -63,12 +76,96 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     @MockitoBean
     private UserStateService userStateService;
 
+    @MockitoBean
+    private LoggingService loggingService;
+
     @BeforeEach
     void setUpAuthorisedUser() {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(permissionUser(
             BUSINESS_UNIT_ID,
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS
         ));
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+    }
+
+    @Test
+    @JiraStory("PO-10762")
+    @JiraEpic("PO-10729")
+    @DisplayName("PO-10762 returned history users are logged once without duplicates")
+    void getMinorCreditorHistory_whenHistoryContainsUsers_queuesPdpoConsultation() throws Exception {
+        getHistory()
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.historyItems.length()").value(8));
+
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+        verify(loggingService).personalDataAccessLogAsync(captor.capture());
+        PersonalDataProcessingLogDetails details = captor.getValue();
+
+        assertAll(
+            () -> assertEquals("View Minor Creditor Account History Item", details.getBusinessIdentifier()),
+            () -> assertEquals(PersonalDataProcessingCategory.CONSULTATION, details.getCategory()),
+            () -> assertEquals("1", details.getCreatedBy().getIdentifier()),
+            () -> assertEquals(PdplIdentifierType.OPAL_USER_ID, details.getCreatedBy().getType()),
+            () -> assertEquals(List.of("AMEND2", "AMEND3", "FINUSR3", "NOTEUSR2", "FINUSR2", "AMEND1",
+                    "NOTEUSR1", "FINUSR1"),
+                details.getIndividuals().stream().map(ParticipantIdentifier::getIdentifier).toList()),
+            () -> assertEquals(List.of(PdplIdentifierType.OPAL_USER_ID, PdplIdentifierType.OPAL_USER_ID,
+                    PdplIdentifierType.OPAL_USER_ID, PdplIdentifierType.OPAL_USER_ID,
+                    PdplIdentifierType.OPAL_USER_ID, PdplIdentifierType.OPAL_USER_ID,
+                    PdplIdentifierType.OPAL_USER_ID, PdplIdentifierType.OPAL_USER_ID),
+                details.getIndividuals().stream().map(ParticipantIdentifier::getType).toList()),
+            () -> assertNull(details.getRecipient())
+        );
+    }
+
+    @Test
+    @JiraStory("PO-10762")
+    @JiraEpic("PO-10729")
+    @DisplayName("PO-10762 queue rejection prevents history from being returned")
+    void getMinorCreditorHistory_whenPdpoQueueReturnsFalse_returnsServiceUnavailable() throws Exception {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(false);
+
+        getHistory()
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/pdpl-logging-unavailable"))
+            .andExpect(jsonPath("$.detail").value("The personal data logging queue is currently unavailable"))
+            .andExpect(jsonPath("$.retriable").value(true))
+            .andExpect(jsonPath("$.historyItems").doesNotExist());
+
+        verify(loggingService).personalDataAccessLogAsync(any());
+    }
+
+    @Test
+    @JiraStory("PO-10762")
+    @JiraEpic("PO-10729")
+    @DisplayName("PO-10762 queue error prevents history from being returned")
+    void getMinorCreditorHistory_whenPdpoQueueRaisesError_returnsServiceUnavailable() throws Exception {
+        when(loggingService.personalDataAccessLogAsync(any()))
+            .thenThrow(new RuntimeException("logging unavailable"));
+
+        getHistory()
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/pdpl-logging-unavailable"))
+            .andExpect(jsonPath("$.detail").value("The personal data logging queue is currently unavailable"))
+            .andExpect(jsonPath("$.retriable").value(true))
+            .andExpect(jsonPath("$.historyItems").doesNotExist());
+
+        verify(loggingService).personalDataAccessLogAsync(any());
+    }
+
+    @Test
+    @JiraStory("PO-10762")
+    @JiraEpic("PO-10729")
+    @DisplayName("PO-10762 empty history does not emit a PDPO log")
+    void getMinorCreditorHistory_whenHistoryIsEmpty_doesNotQueuePdpoLog() throws Exception {
+        getHistory("dateFrom", "2030-01-01")
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.historyItems.length()").value(0));
+
+        verify(loggingService, never()).personalDataAccessLogAsync(any());
     }
 
     @Test
