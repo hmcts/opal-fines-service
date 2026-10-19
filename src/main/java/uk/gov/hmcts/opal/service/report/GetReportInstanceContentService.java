@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -108,7 +107,7 @@ public class GetReportInstanceContentService {
         if (supportedFileTypes == null || !supportedFileTypes.contains(requestedFileType)) {
             List<String> supportedTypes = supportedFileTypes == null ? List.of() : supportedFileTypes.stream()
                 .map(Enum::name)
-                .collect(Collectors.toList());
+                .toList();
 
             throw new UnsupportedContentTypeException(
                 "report '" + instance.getReport().getReportId() + "'",
