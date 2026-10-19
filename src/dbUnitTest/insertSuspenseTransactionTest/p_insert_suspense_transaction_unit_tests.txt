@@ -1,0 +1,25 @@
+NOTICE:  === Cleanup data before tests ===
+NOTICE:  Cleanup completed
+NOTICE:  === Setting up test data ===
+NOTICE:  Test data setup completed
+NOTICE:  === TEST 1: Insert a manual suspense transaction ===
+NOTICE:  TEST 1 PASSED
+NOTICE:  === TEST 2: Insert an auto-payment suspense transaction and link the court fee ===
+NOTICE:  TEST 2 PASSED
+NOTICE:  === TEST 3: Reject a NULL suspense item ID ===
+NOTICE:  Expected error caught: P3309 - pi_suspense_item_id must be provided
+NOTICE:  TEST 3 PASSED
+NOTICE:  === TEST 4: Reject a NULL suspense amount ===
+NOTICE:  Expected error caught: P3310 - pi_suspense_amount must be provided
+NOTICE:  TEST 4 PASSED
+NOTICE:  === TEST 5: Reject a NULL transaction type ===
+NOTICE:  Expected error caught: P3311 - pi_transaction_type must be provided
+NOTICE:  TEST 5 PASSEDKz
+NOTICE:  === TEST 6: Reject an unknown court fee received ID ===
+NOTICE:  Expected error caught: P3312 - court_fees_received record 999900000199 was not found
+NOTICE:  TEST 6 PASSED
+NOTICE:  === Cleanup test data ===
+NOTICE:  Test data cleanup completed
+DO
+
+Query returned successfully in 115 msec.

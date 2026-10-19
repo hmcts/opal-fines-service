@@ -27,8 +27,6 @@ public class DefendantAccountConsolidatedAccountsStepDef extends BaseStepDef {
     private static final String CONSOLIDATED_ACCOUNTS_PATH = "/defendant-accounts/%d/consolidated-accounts";
     private static final long NON_EXISTENT_ACCOUNT_ID = 90_000_000_000_000L;
 
-    private Long lastRequestedAccountId;
-
     /**
      * Requests consolidated accounts for the supplied defendant account using the current scenario
      * user's bearer token.
@@ -114,17 +112,6 @@ public class DefendantAccountConsolidatedAccountsStepDef extends BaseStepDef {
     }
 
     /**
-     * Asserts the latest not-found response detail includes the requested account id.
-     *
-     * @throws Exception if the response body cannot be parsed as JSON.
-     */
-    @Then("the consolidated accounts error detail contains the requested defendant account id")
-    public void consolidatedAccountsErrorDetailContainsRequestedDefendantAccountId() throws Exception {
-        assertTrue(lastRequestedAccountId != null, "No requested defendant account id has been captured");
-        consolidatedAccountsErrorDetailContains(String.valueOf(lastRequestedAccountId));
-    }
-
-    /**
      * Asserts the latest consolidated-accounts error response is explicitly non-retriable.
      *
      * @throws Exception if the response body cannot be parsed as JSON.
@@ -137,7 +124,6 @@ public class DefendantAccountConsolidatedAccountsStepDef extends BaseStepDef {
     }
 
     private Response getConsolidatedAccounts(String token, long defendantAccountId) {
-        lastRequestedAccountId = defendantAccountId;
         RequestSpecification request = given()
             .accept("*/*")
             .contentType("application/json");

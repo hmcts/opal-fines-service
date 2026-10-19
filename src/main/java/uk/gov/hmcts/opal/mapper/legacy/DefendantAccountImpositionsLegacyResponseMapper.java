@@ -14,11 +14,13 @@ import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Creditor;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Imposition;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Offence;
+import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.CreditorAccountDisplayNameEnum;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.CreditorAccountTypeEnum;
 import uk.gov.hmcts.opal.generated.model.CreditorSummaryCommon;
+import uk.gov.hmcts.opal.generated.model.CourtReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
 import uk.gov.hmcts.opal.generated.model.OffenceReferenceCommon;
@@ -33,13 +35,15 @@ public interface DefendantAccountImpositionsLegacyResponseMapper {
     @Mapping(target = "dateAdded", source = "postedDetails.postedDate", qualifiedByName = "toLocalDate")
     @Mapping(target = "imposition", source = "result")
     @Mapping(target = "imposedAmount", source = "imposedAmount", qualifiedByName = "toPositiveAmount")
-    @Mapping(target = "imposedBy", ignore = true)
+    @Mapping(target = "imposedBy", source = "imposingCourt")
     DefendantAccountImpositionCommon toOpal(Imposition legacy);
 
     ResultReferenceCommon toOpal(GetDefendantAccountImpositionsLegacyResponse.Result legacy);
 
     @Mapping(target = "creditorAccountTypeReference", source = ".")
     CreditorSummaryCommon toOpal(Creditor legacy);
+
+    CourtReferenceCommon toOpal(CourtReference legacy);
 
     @Mapping(target = "offenceId", source = "offenceId")
     @Mapping(target = "cjsCode", source = "cjsCode")

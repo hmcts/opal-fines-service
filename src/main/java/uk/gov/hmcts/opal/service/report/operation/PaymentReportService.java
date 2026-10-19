@@ -13,7 +13,6 @@ import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.OperationReportSpecs;
-import uk.gov.hmcts.opal.service.report.ReportCSVService;
 import uk.gov.hmcts.opal.service.report.ReportId;
 import uk.gov.hmcts.opal.service.report.operation.mapper.DetailedResultMapper;
 import uk.gov.hmcts.opal.service.report.operation.mapper.SummaryResultMapper;
@@ -29,9 +28,8 @@ public class PaymentReportService extends AbstractOperationReportService {
 
     public PaymentReportService(DefendantAccountRepository defendantAccountRepository,
         SummaryResultMapper summaryResultMapper, DetailedResultMapper detailedResultMapper, ObjectMapper objectMapper,
-        PaymentReportValidator validator, ReportCSVService reportCSVService) {
+        PaymentReportValidator validator) {
 
-        super(reportCSVService);
         this.defendantAccountRepository = defendantAccountRepository;
         this.summaryResultMapper = summaryResultMapper;
         this.detailedResultMapper = detailedResultMapper;
