@@ -3,15 +3,20 @@ package uk.gov.hmcts.opal.dto.legacy;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import jakarta.xml.bind.JAXBException;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.ClassPathResource;
+import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse.HistoryDetails;
 import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse.HistoryItem;
 import uk.gov.hmcts.opal.util.XmlUtil;
 
 class LegacyMajorCreditorHistoryResponseTest {
+
+    private static final String RESPONSE_SCHEMA = "legacy/majorCreditorHistoryResponse.json";
 
     @Test
     void unmarshalXml_readsStatusDate() throws JAXBException {
@@ -48,6 +53,16 @@ class LegacyMajorCreditorHistoryResponseTest {
             json, LegacyMajorCreditorHistoryResponse.class);
         assertThat(response.getHistoryItems().getFirst().getDetails().getStatusDate())
             .isEqualTo(LocalDate.of(2026, 1, 31));
+    }
+
+    @Test
+    void jsonSchema_definesStatusDateAsDate() throws IOException {
+        JsonNode schema = ToJsonString.getObjectMapper().readTree(
+            new ClassPathResource("jsonSchemas/" + RESPONSE_SCHEMA).getInputStream());
+        JsonNode statusDate = schema.at("/$defs/creditorTransactionDetails/properties/status_date");
+
+        assertThat(statusDate.path("type").asString()).isEqualTo("string");
+        assertThat(statusDate.path("format").asString()).isEqualTo("date");
     }
 
     private LegacyMajorCreditorHistoryResponse legacyResponse() {
