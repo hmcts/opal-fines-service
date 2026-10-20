@@ -16,14 +16,14 @@ Feature: Mappings Reference Data
 
   # PO-10964 AC6: existing defendant account status mappings remain unchanged.
   @JIRA-STORY:PO-3871 @JIRA-EPIC:PO-3372 @R1BDrop1 @JIRA-TEST-KEY:PO-9553
-  @JIRA-STORY:PO-10964 @JIRA-EPIC:PO-2439
+  @JIRA-STORY:PO-10964
   Scenario: Defendant account status mappings can be retrieved
     When I make a request to the mappings api for type "defendant-account-status"
     Then the defendant account status mappings are returned
 
   # PO-10964 AC8: unsupported mapping errors include the complete supported type list in alphabetical order.
   @JIRA-STORY:PO-3871 @JIRA-EPIC:PO-3372 @R1BDrop1 @JIRA-TEST-KEY:PO-9554
-  @R1CPayment @JIRA-STORY:PO-10964 @JIRA-EPIC:PO-2439
+  @R1CPayment @JIRA-STORY:PO-10964
   Scenario: A mappings request with an unsupported type is rejected as bad request
     When I make a request to the mappings api for type "unsupported-type"
     Then the request is rejected as bad request
@@ -31,7 +31,7 @@ Feature: Mappings Reference Data
 
   # PO-10964 AC8: missing mapping type errors include the complete supported type list in alphabetical order.
   @JIRA-STORY:PO-3871 @JIRA-EPIC:PO-3372 @R1BDrop1 @JIRA-TEST-KEY:PO-9555
-  @R1CPayment @JIRA-STORY:PO-10964 @JIRA-EPIC:PO-2439
+  @R1CPayment @JIRA-STORY:PO-10964
   Scenario: A mappings request without a type is rejected as bad request
     When I make a request to the mappings api without a type
     Then the request is rejected as bad request
