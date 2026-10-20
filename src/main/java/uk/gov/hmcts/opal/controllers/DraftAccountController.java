@@ -30,6 +30,7 @@ import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountSource;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.service.DraftAccountService;
@@ -71,13 +72,14 @@ public class DraftAccountController {
         @RequestParam(value = "submitted_by") Optional<List<String>> optionalSubmittedBys,
         @RequestParam(value = "not_submitted_by") Optional<List<String>> optionalNotSubmittedBys,
         @RequestParam(value = "account_status_date_from") Optional<LocalDate> accountStatusDateFrom,
-        @RequestParam(value = "account_status_date_to") Optional<LocalDate> accountStatusDateTo) {
+        @RequestParam(value = "account_status_date_to") Optional<LocalDate> accountStatusDateTo,
+        @RequestParam(value = "source", required = false) Optional<DraftAccountSource> source) {
 
         log.debug(":GET:getDraftAccountSummaries:");
 
         return buildResponse(
             draftAccountService.getDraftAccounts(optionalBusinessUnitIds, optionalStatus, optionalSubmittedBys,
-                optionalNotSubmittedBys, accountStatusDateFrom, accountStatusDateTo));
+                optionalNotSubmittedBys, accountStatusDateFrom, accountStatusDateTo, source));
     }
 
 

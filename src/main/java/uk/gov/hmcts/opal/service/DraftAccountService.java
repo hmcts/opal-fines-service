@@ -21,6 +21,8 @@ import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureFlags;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
@@ -33,6 +35,7 @@ import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountSource;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
 import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService;
@@ -72,6 +75,7 @@ public class DraftAccountService {
     private final DraftAccountPdplLoggingService loggingService;
     private final SecurityEventLoggingService securityEventLoggingService;
     private final Clock clock;
+    private final FeatureToggleApi featureToggleApi;
 
     public DraftAccountResponseDto getDraftAccount(long draftAccountId) {
 
@@ -99,10 +103,15 @@ public class DraftAccountService {
     public DraftAccountsResponseDto getDraftAccounts(
         Optional<List<Short>> optionalBusinessUnitIds, Optional<List<DraftAccountStatus>> optionalStatus,
         Optional<List<String>> optionalSubmittedBys, Optional<List<String>> optionalNotSubmittedBys,
-        Optional<LocalDate> accountStatusDateFrom, Optional<LocalDate> accountStatusDateTo) {
+        Optional<LocalDate> accountStatusDateFrom, Optional<LocalDate> accountStatusDateTo,
+        Optional<DraftAccountSource> source) {
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
         if (userState.anyBusinessUnitUserHasAnyPermission(FinesPermission.DRAFT_ACCOUNT_PERMISSIONS)) {
+
+            if (!featureToggleApi.isFeatureEnabled(FeatureFlags.RELEASE_1C_BANKING_INTERFACES)) {
+                source = source.or(() -> Optional.of(DraftAccountSource.MAC));
+            }
 
             List<String> submittedBys = optionalSubmittedBys.orElse(Collections.emptyList());
             List<String> notSubmitted = optionalNotSubmittedBys.orElse(Collections.emptyList());
@@ -117,8 +126,8 @@ public class DraftAccountService {
             log.debug(":getDraftAccounts: status: {}; business ids: {}", statuses, optionalBusinessUnitIds);
 
             List<DraftAccountEntity> entities = draftAccountTransactional
-                .getDraftAccounts(optionalBusinessUnitIds.orElse(Collections.emptyList()),
-                                  statuses, submittedBys, notSubmitted, accountStatusDateFrom, accountStatusDateTo);
+                .getDraftAccounts(optionalBusinessUnitIds.orElse(Collections.emptyList()), statuses,
+                    submittedBys, notSubmitted, accountStatusDateFrom, accountStatusDateTo, source);
 
             log.debug(":getDraftAccounts: pre-auth summaries count: {}", entities.size());
 
@@ -174,10 +183,15 @@ public class DraftAccountService {
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
                                                         FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
 
-            BusinessUnitUser unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());
-
-            jsonSchemaValidationService.validateOrError(dto.toJson(), ADD_DRAFT_ACCOUNT_REQUEST_JSON);
+            jsonSchemaValidationService.validateOrError(dto.toJson(), addDraftAccountRequestSchema());
             referenceValidationService.validateReferences(dto.getBusinessUnitId(), dto.getAccount());
+            if (!featureToggleApi.isFeatureEnabled(FeatureFlags.RELEASE_1C_BANKING_INTERFACES)) {
+                if (dto.getSource() == null) {
+                    dto.setSource(DraftAccountSource.MAC);
+                }
+            }
+
+            BusinessUnitUser unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());
             DraftAccountEntity entity = draftAccountTransactional.submitDraftAccount(
                 dto, unitUser.getBusinessUnitUserId(), userState.getDisplayName());
             log.debug(":submitDraftAccount: created in DB: {}", entity);
@@ -274,5 +288,12 @@ public class DraftAccountService {
         return userState.getBusinessUnitUserForBusinessUnit(businessUnitId)
             .orElseThrow(() -> new PermissionNotAllowedException(businessUnitId,
                                                                 FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
+    }
+
+    private String addDraftAccountRequestSchema() {
+        if (featureToggleApi.isFeatureEnabled(FeatureFlags.RELEASE_1C_BANKING_INTERFACES)) {
+            return SchemaPaths.ADD_DRAFT_ACCOUNT_REQUEST_RELEASE_1C;
+        }
+        return SchemaPaths.ADD_DRAFT_ACCOUNT_REQUEST;
     }
 }

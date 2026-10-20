@@ -44,6 +44,7 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity_;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountSnapshots;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountSource;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.TimelineData;
 import uk.gov.hmcts.opal.exception.EntityNotSavedException;
@@ -87,13 +88,14 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
     public List<DraftAccountEntity> getDraftAccounts(
         Collection<Short> businessUnitIds, Collection<DraftAccountStatus> statuses,
         Collection<String> submittedBy, Collection<String> notSubmitted,
-        Optional<LocalDate> accountStatusDateFrom, Optional<LocalDate> accountStatusDateTo) {
+        Optional<LocalDate> accountStatusDateFrom, Optional<LocalDate> accountStatusDateTo,
+        Optional<DraftAccountSource> source) {
 
         Sort draftIdSort = Sort.by(Sort.Direction.ASC, DraftAccountEntity_.DRAFT_ACCOUNT_ID);
 
         Page<DraftAccountEntity> page = draftAccountRepository.findBy(
-            specs.findForSummaries(
-                businessUnitIds, statuses, submittedBy, notSubmitted, accountStatusDateFrom, accountStatusDateTo),
+            specs.findForSummaries(businessUnitIds, statuses, submittedBy,
+                notSubmitted, accountStatusDateFrom, accountStatusDateTo, source),
             ffq -> ffq.sortBy(draftIdSort).page(Pageable.unpaged()));
 
         return page.getContent();
@@ -366,6 +368,8 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
             .statusMessage(dto.getStatusMessage())
             .timelineData(createTimelineData(submittedBy, DraftAccountStatus.SUBMITTED, null))
             .draftAccountId(null)
+            .source(dto.getSource())
+            .sourceReference(dto.getSourceReference())
             .build();
     }
 

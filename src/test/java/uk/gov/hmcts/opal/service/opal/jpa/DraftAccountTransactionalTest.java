@@ -109,7 +109,8 @@ class DraftAccountTransactionalTest {
         // Act
         List<DraftAccountEntity> result = draftAccountTransactional.getDraftAccounts(
             List.copyOf(Set.of((short) 1)), List.copyOf(Set.of(DraftAccountStatus.REJECTED)),
-            List.of(), List.of(), Optional.empty(), Optional.empty()
+            List.of(), List.of(), Optional.empty(), Optional.empty(),
+            Optional.empty()
         );
         // Assert
         assertNotNull(result);
