@@ -96,7 +96,7 @@ public class InterfaceFileProcessorService {
             .createdDateTime(LocalDateTime.now(clock))
             .source(sourceJson.getSource().toString())
             .recordCount((short) transformedData.getTransactions().size())
-            .totalAmount(BigDecimal.valueOf(transformedData.getTotalAmount(), 2))
+            .totalAmount(BigDecimal.valueOf(transformedData.getTotalAmount()))
             .sourceJsonId(sourceJson.getInterfaceFileId())
             .transformedJsonId(transformedJson.getInterfaceFileId())
             .build();
