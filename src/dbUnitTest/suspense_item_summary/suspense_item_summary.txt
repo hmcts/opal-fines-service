@@ -1,0 +1,20 @@
+=== Cleanup data before v_suspense_item_summary tests ===
+Cleanup completed
+=== Setting up test data for v_suspense_item_summary ===
+Test data setup completed
+=== TEST 1: Found suspense item returns expected summary ===
+TEST 1 PASSED
+=== TEST 2: Unknown suspense reference returns no rows ===
+TEST 2 PASSED
+=== TEST 3: No transactions returns zero balance ===
+TEST 3 PASSED
+=== TEST 4: Transactions summing to zero return zero balance ===
+TEST 4 PASSED
+=== TEST 5: Multiple transactions calculate correct balance ===
+TEST 5 PASSED
+=== TEST 6: Same suspense reference is isolated by business unit ===
+TEST 6 PASSED
+=== TEST 7: Legacy item without number index record is returned ===
+TEST 7 PASSED
+=== Cleanup data after v_suspense_item_summary tests ===
+Cleanup completed
