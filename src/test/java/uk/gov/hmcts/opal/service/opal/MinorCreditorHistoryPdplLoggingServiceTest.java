@@ -9,6 +9,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +38,7 @@ import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 class MinorCreditorHistoryPdplLoggingServiceTest {
 
     private static final UserState USER_STATE = UserState.builder().userId(42L).build();
+    private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-01-01T12:00:00Z"), ZoneOffset.UTC);
 
     @Mock
     private LoggingService loggingService;
@@ -44,7 +47,7 @@ class MinorCreditorHistoryPdplLoggingServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new MinorCreditorHistoryPdplLoggingService(loggingService, Clock.systemUTC());
+        service = new MinorCreditorHistoryPdplLoggingService(loggingService, CLOCK);
     }
 
     @Nested
@@ -52,6 +55,7 @@ class MinorCreditorHistoryPdplLoggingServiceTest {
 
         @Test
         void whenHistoryContainsUsers_queuesConsultationWithUniqueUsers_happyPath() {
+            when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
             GetMinorCreditorHistoryResponse response = response(
                 historyItem("USER-1"),
                 historyItem("USER-2"),
@@ -61,7 +65,6 @@ class MinorCreditorHistoryPdplLoggingServiceTest {
             );
             ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
                 ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
-            when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
             service.logHistoryItems(USER_STATE, response);
 
