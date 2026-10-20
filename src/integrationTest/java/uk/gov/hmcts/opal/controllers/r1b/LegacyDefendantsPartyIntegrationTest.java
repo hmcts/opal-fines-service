@@ -170,15 +170,21 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-5936")
     void testPutReplaceDefAccParty_500Error() throws Exception {
+
         var res = mockMvc.perform(
             put("/defendant-accounts/500/defendant-account-parties/500")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor()).headers(partyHeaders())
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .headers(partyHeaders())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(PUT_PARTY_REQUEST)
         );
 
-        log.info("PUT DAP missing DAP resp:\n{}", res.andReturn().getResponse().getContentAsString());
+        log.info("PUT DAP missing DAP resp:\n{}",
+            res.andReturn().getResponse().getContentAsString());
 
-        res.andExpect(status().is5xxServerError());
+        res.andExpect(status().isBadGateway())
+            .andExpect(jsonPath("$.status").value(502))
+            .andExpect(jsonPath("$.detail")
+                .value("Legacy exception during replaceDefendantAccountParty"));
     }
 }
