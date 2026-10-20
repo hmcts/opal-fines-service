@@ -59,7 +59,7 @@ class FileHandlerAPIServiceTest {
             .thenAnswer(invocation -> {
                 assertThat(systemUserContext.getCurrentSystemUser()).contains(SystemUserEnum.OPAL_SYSTEM_USER);
                 return ResponseEntity.ok(expected);
-        });
+            });
 
         GetInterfaceFiles200Response actual = service.getInterfaceFiles(SystemUserEnum.OPAL_SYSTEM_USER, params);
 
