@@ -15,6 +15,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -36,6 +37,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommonStrict;
@@ -49,6 +51,7 @@ import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PartyVehicleDetailsDefendantAccount;
 import uk.gov.hmcts.opal.mapper.response.DefendantAccountPartyEntityResponseMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
+import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.persistence.AliasRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
@@ -83,9 +86,37 @@ class OpalDefendantAccountServiceTest03 {
     @Mock
     private DefendantAccountControlValidator defendantAccountControlValidator;
 
+    @Mock
+    private DefendantAccountPartyPdplLoggingService pdplLoggingService;
+
+    @Mock
+    private UserStateService userStateService;
+
     // Service under test
     @InjectMocks
     private OpalDefendantAccountPartyService service;
+
+    @Test
+    void replaceDefendantAccountParty_versionConflictDuringFlush_doesNotLog() {
+        PartyEntity party = PartyEntity.builder().partyId(4001L).organisation(false).build();
+        DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(3001L).associationType(AssociationType.DEFENDANT).party(party).build();
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(3000L).versionNumber(1L)
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 10).build())
+            .parties(List.of(dap)).build();
+        when(defendantAccountRepositoryService.findById(3000L)).thenReturn(account);
+        when(partyRepositoryService.findById(4001L)).thenReturn(party);
+        when(defendantAccountRepositoryService.incrementVersionNumber(3000L, BigInteger.ONE))
+            .thenThrow(new ResourceConflictException("DefendantAccountEntity", 3000L, "Version changed", null));
+        DefendantAccountParty request = DefendantAccountParty.builder().isDebtor(false)
+            .partyDetails(PartyDetailsCommonStrict.builder().partyId("4001").organisationFlag(false).build()).build();
+
+        assertThrows(ResourceConflictException.class, () -> service.replaceDefendantAccountParty(
+            3000L, 3001L, request, "\"1\"", "10", "tester", "Tester Name", null));
+
+        verifyNoInteractions(pdplLoggingService);
+    }
 
     @Test
     void replaceDefendantAccountParty_noExistingParty_andMissingPartyId_throws() {
@@ -618,6 +649,9 @@ class OpalDefendantAccountServiceTest03 {
                 .build())
             .build();
 
+        when(defendantAccountPartiesRepository.deleteByAccountIdAndAssociationTypeExcludingDapId(
+            accountId, AssociationType.PARENT_GUARDIAN, defendantDapId)).thenReturn(1);
+
         try (MockedStatic<VersionUtils> vs = mockStatic(VersionUtils.class)) {
             vs.when(() -> VersionUtils.verifyIfMatch(any(), anyString(), anyLong(), anyString()))
                 .thenAnswer(i -> null);
@@ -635,6 +669,8 @@ class OpalDefendantAccountServiceTest03 {
                 .deleteByAccountIdAndAssociationTypeExcludingDapId(
                     accountId, AssociationType.PARENT_GUARDIAN, defendantDapId
                 );
+            verify(pdplLoggingService).logReplacement(4001L, AssociationType.DEFENDANT, false, true,
+                List.of(4002L), null);
         }
     }
 
