@@ -42,3 +42,31 @@ VALUES (
            NULL,
            'Tyne & Wear LJA'
        )ON CONFLICT (local_justice_area_id) DO NOTHING;
+
+INSERT INTO local_justice_areas_legacy (
+    local_justice_area_id,
+    lja_code,
+    lja_type,
+    address_line_1,
+    address_line_2,
+    address_line_3,
+    address_line_4,
+    address_line_5,
+    postcode,
+    end_date,
+    name
+)
+VALUES (
+           240,
+           'L240',
+           NULL,
+           NULL,
+           NULL,
+           NULL,
+           NULL,
+           NULL,
+           NULL,
+           NULL,
+           'Tyne & Wear LJA'
+       )
+    ON CONFLICT (local_justice_area_id) DO NOTHING;
