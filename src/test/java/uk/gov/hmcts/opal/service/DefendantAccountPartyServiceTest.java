@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -26,6 +27,7 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.exception.PdplLoggingException;
 import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
@@ -69,7 +71,6 @@ class DefendantAccountPartyServiceTest {
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId))
             .thenReturn(expectedResponse);
-        when(pdplLoggingService.logViewedDefendant("12345", userState)).thenReturn(true);
 
         // Act
         PartyResponseDefendantAccount actual = defendantAccountPartyService
@@ -93,7 +94,6 @@ class DefendantAccountPartyServiceTest {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId)).thenReturn(response);
-        when(pdplLoggingService.logViewedParentGuardian("12345", userState)).thenReturn(true);
 
         //Act
         PartyResponseDefendantAccount actual = defendantAccountPartyService.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
@@ -113,13 +113,14 @@ class DefendantAccountPartyServiceTest {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId)).thenReturn(response);
-        when(pdplLoggingService.logViewedDefendant("12345", userState)).thenReturn(false);
-
         //Act & Assert
-        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+        doThrow(new PdplLoggingException("Unable to queue PDPO log for viewing a party"))
+            .when(pdplLoggingService).logViewedDefendant("12345", userState);
+
+        PdplLoggingException exception = assertThrows(PdplLoggingException.class,
             () -> defendantAccountPartyService.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId));
 
-        assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+        assertThat(exception).hasMessage("Unable to queue PDPO log for viewing a party");
     }
 
     @Test
@@ -132,11 +133,12 @@ class DefendantAccountPartyServiceTest {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId)).thenReturn(response);
-        when(pdplLoggingService.logViewedParentGuardian("12345", userState))
-            .thenThrow(new IllegalStateException("queue unavailable"));
+        doThrow(new PdplLoggingException("Unable to queue PDPO log for viewing a party"))
+            .when(pdplLoggingService).logViewedParentGuardian("12345", userState);
 
         //Act & Assert
-        assertThrows(IllegalStateException.class, () -> defendantAccountPartyService.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId));
+        assertThrows(PdplLoggingException.class,
+            () -> defendantAccountPartyService.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId));
     }
 
     @Test
