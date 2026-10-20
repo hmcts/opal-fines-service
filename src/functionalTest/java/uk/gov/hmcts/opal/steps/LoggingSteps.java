@@ -7,11 +7,14 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.response.Response;
 import net.serenitybdd.rest.SerenityRest;
+import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.StreamSupport;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -60,12 +63,50 @@ public class LoggingSteps extends BaseStepDef {
      */
     @Then("the logging service emits PDPO logs for the created draft account id")
     public void loggingServiceEmitsPdpoLogsForTheCreatedDraftAccountId() {
-        latestPdpoSearchResponse = waitForPdpoLogs(Map.of(
-            "created_by_id", PDPO_CREATED_BY_ID,
-            "created_by_type", PDPO_CREATED_BY_TYPE,
-            "business_identifier", PDPO_BUSINESS_IDENTIFIER,
-            "individual_id", scenarioContext().getLastDraftAccountIdOrFail()
-        ));
+        latestPdpoSearchResponse = waitForPdpoLogs(pdpoSearchCriteria(PDPO_BUSINESS_IDENTIFIER,
+            scenarioContext().getLastDraftAccountIdOrFail(), PdplIdentifierType.DRAFT_ACCOUNT.name()));
+    }
+
+    /**
+     * Verifies a party operation reached the logging service with the expected actor and subject.
+     *
+     * @param businessIdentifier TDIA operation recorded by the party endpoint.
+     * @param category processing category, using the logging API's display value.
+     * @param partyType scenario party role whose identifier was retained before replacement or removal.
+     */
+    @Then("the logging service emits {string} with category {string} for the {string} party")
+    public void loggingServiceEmitsPartyOperation(String businessIdentifier, String category, String partyType) {
+        String partyId = scenarioContext().getPartyIdOrFail(partyType);
+        String individualType = switch (partyType) {
+            case "Defendant" -> PdplIdentifierType.DEFENDANT_ACCOUNT.name();
+            case "Parent/Guardian" -> PdplIdentifierType.PARENT_GUARDIAN.name();
+            default -> throw new IllegalArgumentException("Unknown party type: " + partyType);
+        };
+        Map<String, Object> criteria = new LinkedHashMap<>(pdpoSearchCriteria(businessIdentifier,
+            partyId, individualType));
+        criteria.put("category", category);
+        latestPdpoSearchResponse = waitForPdpoLogs(criteria);
+
+        for (JsonNode log : latestPdpoSearchResponse) {
+            assertEquals(businessIdentifier, log.path("business_identifier").asText());
+            assertEquals(category, log.path("category").asText());
+            assertEquals(PDPO_CREATED_BY_ID, log.path("created_by").path("id").asText());
+            assertEquals(PDPO_CREATED_BY_TYPE, log.path("created_by").path("type").asText());
+            assertTrue(StreamSupport.stream(log.path("individuals").spliterator(), false)
+                .anyMatch(individual -> partyId.equals(individual.path("id").asText())
+                    && individualType.equals(individual.path("type").asText())),
+                "Expected the log to identify the scenario's " + partyType + " party " + partyId);
+        }
+    }
+
+    private Map<String, Object> pdpoSearchCriteria(String businessIdentifier, String individualId,
+        String individualType) {
+        return Map.of(
+            "created_by", Map.of("id", PDPO_CREATED_BY_ID, "type", PDPO_CREATED_BY_TYPE),
+            "business_identifier", businessIdentifier,
+            "individual_identifier", individualId,
+            "individual_type", individualType
+        );
     }
 
     /**

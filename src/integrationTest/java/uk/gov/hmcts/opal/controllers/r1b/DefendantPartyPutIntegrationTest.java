@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
 
+import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -19,6 +20,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -63,23 +66,29 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
     @Sql(scripts = "classpath:db/insertData/update_into_parties.sql", executionPhase = BEFORE_TEST_METHOD)
     class PdpoLogging {
 
-        @ParameterizedTest
+        @ParameterizedTest(name = "{0}")
         @CsvSource({
-            "false, false, false, Update Defendant, ALTERATION, 1",
-            "true, false, false, Update Parent/Guardian, ALTERATION, 1",
-            "false, true, false, Convert Company to Individual, COLLECTION, 1",
-            "false, false, true, Convert Individual to Company, ERASURE, 2",
-            "false, true, true, Update Defendant, ALTERATION, 1"
+            "Individual defendant, false, false, false, false, Update Defendant, ALTERATION, 1",
+            "Company defendant, false, true, true, false, Update Defendant, ALTERATION, 1",
+            "Non-paying guardian, true, false, false, false, Update Parent/Guardian, ALTERATION, 1",
+            "Paying guardian, true, false, false, true, Update Parent/Guardian, ALTERATION, 1",
+            "Company to individual, false, true, false, false, Convert Company to Individual, COLLECTION, 1",
+            "Individual to company, false, false, true, false, Convert Individual to Company, ERASURE, 2"
         })
         @DisplayName("PDPO: replacement logs the actual operation and affected parties")
-        @JiraStory("PO-1963")
-        @JiraEpic("PO-1970")
-        void successfulReplacement_logsOperation(boolean guardian, boolean wasOrganisation, boolean organisation,
+        @JiraStory("PO-10767")
+        @JiraEpic("PO-10729")
+        void replaceDefendantAccountParty_whenSuccessful_queuesExpectedPdpoLogs(String scenario,
+            boolean guardian, boolean wasOrganisation, boolean organisation, boolean debtor,
             String businessIdentifier, PersonalDataProcessingCategory category, int logCount) throws Exception {
             prepareParty(guardian, wasOrganisation);
+            if (guardian && debtor) {
+                jdbcTemplate.update("INSERT INTO debtor_detail (party_id) VALUES (920010) ON CONFLICT DO NOTHING");
+            }
             int version = versionFor(20010L);
 
-            replaceParty(guardian, organisation, version).andExpect(status().isOk())
+            replaceParty(guardian, organisation, version, guardian ? "920011" : "20010", debtor)
+                .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.ETAG, "\"" + (version + 1) + "\""));
 
             ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
@@ -90,37 +99,58 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
             assertEquals(category, details.getCategory());
             assertEquals(1, details.getIndividuals().size());
             assertEquals(guardian ? "920010" : "20010", details.getIndividuals().getFirst().getIdentifier());
-            assertEquals(guardian ? PdplIdentifierType.PARENT_GUARDIAN : PdplIdentifierType.DEFENDANT,
+            assertEquals(guardian ? PdplIdentifierType.PARENT_GUARDIAN : PdplIdentifierType.DEFENDANT_ACCOUNT,
                 details.getIndividuals().getFirst().getType());
+            for (PersonalDataProcessingLogDetails queuedLog : captor.getAllValues()) {
+                assertEquals("500000000", queuedLog.getCreatedBy().getIdentifier());
+                assertEquals(PdplIdentifierType.OPAL_USER_ID, queuedLog.getCreatedBy().getType());
+            }
             if (logCount == 2) {
                 PersonalDataProcessingLogDetails removal = captor.getAllValues().get(1);
                 assertEquals("Remove Parent/Guardian", removal.getBusinessIdentifier());
                 assertEquals(PersonalDataProcessingCategory.ERASURE, removal.getCategory());
+                assertEquals(1, removal.getIndividuals().size());
                 assertEquals("920010", removal.getIndividuals().getFirst().getIdentifier());
                 assertEquals(PdplIdentifierType.PARENT_GUARDIAN, removal.getIndividuals().getFirst().getType());
                 assertEquals(0, partyAssociationCountFor(20010L, AssociationType.PARENT_GUARDIAN));
+            } else {
+                assertEquals(1, partyAssociationCountFor(20010L, AssociationType.PARENT_GUARDIAN),
+                    "Updates and company-to-individual conversion must preserve the guardian association");
             }
         }
 
-        @ParameterizedTest
+        @ParameterizedTest(name = "{0}")
         @CsvSource({
-            "false, false, false, false, false", "false, false, false, false, true",
-            "true, false, false, false, false", "true, false, false, false, true",
-            "false, true, false, false, false", "false, true, false, false, true",
-            "false, false, true, false, false", "false, false, true, false, true",
-            "false, false, true, true, false", "false, false, true, true, true"
+            "Defendant log rejected, false, false, false, false, false, false",
+            "Defendant log throws, false, false, false, false, false, true",
+            "Non-paying guardian log rejected, true, false, false, false, false, false",
+            "Non-paying guardian log throws, true, false, false, false, false, true",
+            "Paying guardian log rejected, true, false, false, true, false, false",
+            "Paying guardian log throws, true, false, false, true, false, true",
+            "Company-to-individual log rejected, false, true, false, false, false, false",
+            "Company-to-individual log throws, false, true, false, false, false, true",
+            "Individual-to-company log rejected, false, false, true, false, false, false",
+            "Individual-to-company log throws, false, false, true, false, false, true",
+            "Guardian removal log rejected, false, false, true, false, true, false",
+            "Guardian removal log throws, false, false, true, false, true, true"
         })
         @DisplayName("PDPO: rejection or exception rolls back replacement including guardian removal")
-        @JiraStory("PO-1963")
-        @JiraEpic("PO-1970")
-        void queueFailure_rollsBack(boolean guardian, boolean wasOrganisation, boolean organisation,
+        @JiraStory("PO-10767")
+        @JiraEpic("PO-10729")
+        void replaceDefendantAccountParty_whenQueueFails_returns503AndRollsBack(String scenario,
+            boolean guardian, boolean wasOrganisation, boolean organisation, boolean debtor,
             boolean failRemoval, boolean raisesError) throws Exception {
             prepareParty(guardian, wasOrganisation);
+            if (guardian && debtor) {
+                jdbcTemplate.update("INSERT INTO debtor_detail (party_id) VALUES (920010) ON CONFLICT DO NOTHING");
+            }
             int version = versionFor(20010L);
             final var partiesBefore = jdbcTemplate.queryForList(
                 "SELECT * FROM parties WHERE party_id IN (20010, 920010) ORDER BY party_id");
             final var aliasesBefore = jdbcTemplate.queryForList("SELECT * FROM aliases WHERE party_id = 20010");
-            final var debtorBefore = jdbcTemplate.queryForList("SELECT * FROM debtor_detail WHERE party_id = 20010");
+            final var debtorBefore = jdbcTemplate.queryForList(
+                "SELECT * FROM debtor_detail WHERE party_id IN (20010, 920010) ORDER BY party_id");
+            final var associationsBefore = partyAssociations();
             final var amendmentsBefore = defendantAccountAmendmentsFor(20010L);
             when(loggingService.personalDataAccessLogAsync(any())).thenAnswer(invocation -> {
                 PersonalDataProcessingLogDetails details = invocation.getArgument(0);
@@ -133,26 +163,90 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
                 return true;
             });
 
-            replaceParty(guardian, organisation, version).andExpect(status().isServiceUnavailable())
+            replaceParty(guardian, organisation, version, guardian ? "920011" : "20010", debtor)
+                .andExpect(status().isServiceUnavailable())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/pdpl-logging-unavailable"))
-                .andExpect(jsonPath("$.retriable").value(true));
+                .andExpect(jsonPath("$.detail").value("The personal data logging queue is currently unavailable"))
+                .andExpect(jsonPath("$.retriable").value(true))
+                .andExpect(jsonPath("$.defendant_account_party").doesNotExist());
 
             assertEquals(version, versionFor(20010L));
             assertEquals(partiesBefore, jdbcTemplate.queryForList(
                 "SELECT * FROM parties WHERE party_id IN (20010, 920010) ORDER BY party_id"));
             assertEquals(aliasesBefore, jdbcTemplate.queryForList("SELECT * FROM aliases WHERE party_id = 20010"));
-            assertEquals(debtorBefore, jdbcTemplate.queryForList("SELECT * FROM debtor_detail WHERE party_id = 20010"));
+            assertEquals(debtorBefore, jdbcTemplate.queryForList(
+                "SELECT * FROM debtor_detail WHERE party_id IN (20010, 920010) ORDER BY party_id"));
+            assertEquals(associationsBefore, partyAssociations());
             assertEquals(amendmentsBefore, defendantAccountAmendmentsFor(20010L));
-            assertEquals(1, partyAssociationCountFor(20010L, AssociationType.PARENT_GUARDIAN));
             verify(loggingService, times(failRemoval ? 2 : 1)).personalDataAccessLogAsync(any());
         }
 
         @Test
+        @Sql(scripts = {"classpath:db/insertData/update_into_parties.sql",
+            "classpath:db/insertData/insert_second_pdpo_parent_guardian.sql"}, executionPhase = BEFORE_TEST_METHOD)
+        @Sql(scripts = "classpath:db/deleteData/delete_second_pdpo_parent_guardian.sql",
+            executionPhase = AFTER_TEST_METHOD)
+        @DisplayName("PDPO: conversion logs and removes every guardian association")
+        @JiraStory("PO-10767")
+        @JiraEpic("PO-10729")
+        void replaceDefendantAccountParty_whenMultipleGuardiansExist_logsAllRemovedPartyIds() throws Exception {
+            prepareParty(false, false);
+            assertEquals(2, partyAssociationCountFor(20010L, AssociationType.PARENT_GUARDIAN));
+
+            replaceParty(false, true, versionFor(20010L)).andExpect(status().isOk());
+
+            ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+                ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+            verify(loggingService, times(2)).personalDataAccessLogAsync(captor.capture());
+            PersonalDataProcessingLogDetails removal = captor.getAllValues().get(1);
+            assertEquals("Remove Parent/Guardian", removal.getBusinessIdentifier());
+            assertEquals(PersonalDataProcessingCategory.ERASURE, removal.getCategory());
+            assertEquals(Set.of("920010", "920020"), removal.getIndividuals().stream()
+                .map(individual -> individual.getIdentifier()).collect(toSet()));
+            assertEquals(2, removal.getIndividuals().size());
+            removal.getIndividuals().forEach(individual ->
+                assertEquals(PdplIdentifierType.PARENT_GUARDIAN, individual.getType()));
+            assertEquals(0, partyAssociationCountFor(20010L, AssociationType.PARENT_GUARDIAN));
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @CsvSource({"Removal log rejected, false", "Removal log throws, true"})
+        @Sql(scripts = {"classpath:db/insertData/update_into_parties.sql",
+            "classpath:db/insertData/insert_second_pdpo_parent_guardian.sql"}, executionPhase = BEFORE_TEST_METHOD)
+        @Sql(scripts = "classpath:db/deleteData/delete_second_pdpo_parent_guardian.sql",
+            executionPhase = AFTER_TEST_METHOD)
+        @DisplayName("PDPO: failure of the removal log restores every guardian association")
+        @JiraStory("PO-10767")
+        @JiraEpic("PO-10729")
+        void replaceDefendantAccountParty_whenRemovalLogFails_restoresAllGuardians(String scenario,
+            boolean raisesError) throws Exception {
+            prepareParty(false, false);
+            int version = versionFor(20010L);
+            final var associationsBefore = partyAssociations();
+            final var defendantBefore = jdbcTemplate.queryForList("SELECT * FROM parties WHERE party_id = 20010");
+            assertEquals(2, partyAssociationCountFor(20010L, AssociationType.PARENT_GUARDIAN));
+            if (raisesError) {
+                when(loggingService.personalDataAccessLogAsync(any()))
+                    .thenReturn(true).thenThrow(new IllegalStateException("Queue unavailable"));
+            } else {
+                when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true, false);
+            }
+
+            replaceParty(false, true, version).andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.defendant_account_party").doesNotExist());
+
+            assertEquals(version, versionFor(20010L));
+            assertEquals(associationsBefore, partyAssociations());
+            assertEquals(defendantBefore, jdbcTemplate.queryForList("SELECT * FROM parties WHERE party_id = 20010"));
+            verify(loggingService, times(2)).personalDataAccessLogAsync(any());
+        }
+
+        @Test
         @DisplayName("PDPO: conversion without a guardian queues only the conversion log")
-        @JiraStory("PO-1963")
-        @JiraEpic("PO-1970")
-        void conversionWithoutGuardian_doesNotLogRemoval() throws Exception {
+        @JiraStory("PO-10767")
+        @JiraEpic("PO-10729")
+        void replaceDefendantAccountParty_whenNoGuardianExists_doesNotLogRemoval() throws Exception {
             jdbcTemplate.update("DELETE FROM defendant_account_parties WHERE defendant_account_party_id = 920011");
 
             replaceParty(false, true, versionFor(20010L)).andExpect(status().isOk());
@@ -160,12 +254,13 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
             verify(loggingService).personalDataAccessLogAsync(any());
         }
 
-        @ParameterizedTest
+        @ParameterizedTest(name = "{0}")
         @CsvSource({"permission, 403", "version, 409", "not-found, 404"})
         @DisplayName("PDPO: rejected replacements do not queue success logs")
-        @JiraStory("PO-1963")
-        @JiraEpic("PO-1970")
-        void rejectedReplacement_doesNotLog(String failure, int expectedStatus) throws Exception {
+        @JiraStory("PO-10767")
+        @JiraEpic("PO-10729")
+        void replaceDefendantAccountParty_whenRejected_doesNotQueuePdpoLogs(String failure, int expectedStatus)
+            throws Exception {
             int version = versionFor(20010L);
             if ("permission".equals(failure)) {
                 authorise((short) 78, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
@@ -181,9 +276,9 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
 
         @Test
         @DisplayName("PDPO: invalid request does not queue a success log")
-        @JiraStory("PO-1963")
-        @JiraEpic("PO-1970")
-        void invalidRequest_doesNotLog() throws Exception {
+        @JiraStory("PO-10767")
+        @JiraEpic("PO-10729")
+        void replaceDefendantAccountParty_whenRequestIsInvalid_doesNotQueuePdpoLogs() throws Exception {
             mockMvc.perform(put("/defendant-accounts/20010/defendant-account-parties/20010")
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .headers(authorisedHeaders(userStateStub.getBearerToken(), "78",
@@ -193,6 +288,11 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
                 .andExpect(status().isBadRequest());
 
             verify(loggingService, never()).personalDataAccessLogAsync(any());
+        }
+
+        private List<Map<String, Object>> partyAssociations() {
+            return jdbcTemplate.queryForList("SELECT * FROM defendant_account_parties "
+                + "WHERE defendant_account_id = 20010 ORDER BY defendant_account_party_id");
         }
 
         private void prepareParty(boolean guardian, boolean organisation) {
@@ -208,16 +308,21 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
 
         private ResultActions replaceParty(boolean guardian, boolean organisation, int version, String dapId)
             throws Exception {
+            return replaceParty(guardian, organisation, version, dapId, false);
+        }
+
+        private ResultActions replaceParty(boolean guardian, boolean organisation, int version, String dapId,
+            boolean debtor) throws Exception {
             String details = organisation
                 ? "\"organisation_details\": {\"organisation_name\": \"Converted Co Ltd\"}"
                 : "\"individual_details\": {\"surname\": \"Updated Surname\"}";
             String body = """
                 {
                   "defendant_account_party_type": "%s",
-                  "is_debtor": false,
+                  "is_debtor": %s,
                   "party_details": {"party_id": "%s", "organisation_flag": %s, %s}
                 }
-                """.formatted(guardian ? "Parent/Guardian" : "Defendant", guardian ? "920010" : "20010",
+                """.formatted(guardian ? "Parent/Guardian" : "Defendant", debtor, guardian ? "920010" : "20010",
                     organisation, details);
             return mockMvc.perform(put("/defendant-accounts/20010/defendant-account-parties/" + dapId)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
