@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import net.serenitybdd.rest.SerenityRest;
 import uk.gov.hmcts.opal.assertions.CommonResponseAssertions;
 
@@ -119,10 +120,11 @@ public class DraftAccountAssertions {
     public void assertSummaryFields(Response response, Map<String, String> expectedData, boolean caseSensitive) {
         responseAssertions.assertStatus(response, 200);
 
-        int count = response.jsonPath().getInt("count");
+        List<Map<String, Object>> summaries = response.jsonPath().getList("summaries");
         for (Map.Entry<String, String> entry : expectedData.entrySet()) {
-            for (int i = 0; i < count; i++) {
-                String actual = response.jsonPath().getString("summaries[" + i + "]." + entry.getKey());
+            String[] fieldPath = entry.getKey().split("\\.");
+            for (Map<String, Object> summary : summaries) {
+                String actual = summaryFieldValue(summary, fieldPath);
                 if (caseSensitive) {
                     assertEquals(entry.getValue(), actual, "Values are not equal : ");
                 } else {
@@ -166,14 +168,33 @@ public class DraftAccountAssertions {
      */
     public void assertLatestSummaryFieldDoesNotContainAny(String fieldName, Collection<String> unexpectedValues) {
         Response response = SerenityRest.lastResponse();
-        int count = response.jsonPath().getInt("count");
+        List<Map<String, Object>> summaries = response.jsonPath().getList("summaries");
+        String[] fieldPath = fieldName.split("\\.");
 
-        for (int i = 0; i < count; i++) {
-            String actual = response.jsonPath().getString("summaries[" + i + "]." + fieldName);
+        for (Map<String, Object> summary : summaries) {
+            String actual = summaryFieldValue(summary, fieldPath);
             for (String unexpectedValue : unexpectedValues) {
                 assertNotEquals(unexpectedValue, actual, "should not contain " + unexpectedValue);
             }
         }
+    }
+
+    /**
+     * Resolves a field path through an already parsed summary, including nested snapshot fields.
+     *
+     * @param summary parsed draft-account summary.
+     * @param fieldPath field names identifying the value within the summary.
+     * @return string representation of the value, or null when the path has no value.
+     */
+    private static String summaryFieldValue(Map<String, Object> summary, String[] fieldPath) {
+        Object value = summary;
+        for (String field : fieldPath) {
+            if (!(value instanceof Map<?, ?> fields)) {
+                return null;
+            }
+            value = fields.get(field);
+        }
+        return Objects.toString(value, null);
     }
 
     /**
