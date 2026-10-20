@@ -23,7 +23,6 @@ public class InterfaceFileQueueListener {
 
     private final ObjectMapper objectMapper;
 
-    // TODO PO-6460 placeholder
     private final InterfaceFileProcessorService interfaceFileProcessorService;
 
     @JmsListener(
@@ -43,14 +42,16 @@ public class InterfaceFileQueueListener {
     protected void consume(String messagePayload) {
         InterfaceFileQueueMessage message = parse(messagePayload);
 
-        // TODO PO-6460 placeholder
+
         interfaceFileProcessorService.process(message.interfaceFileId());
 
         log.info(
             "Interface file queue message received. interfaceFileId={}",
             message.interfaceFileId()
         );
+
     }
+
 
     private InterfaceFileQueueMessage parse(String messagePayload) {
         if (messagePayload == null || messagePayload.isBlank()) {
