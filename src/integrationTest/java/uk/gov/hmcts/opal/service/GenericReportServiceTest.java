@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-
 import java.io.InputStream;
 import java.time.Clock;
 import java.time.Duration;
@@ -27,6 +26,8 @@ import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus;
 import uk.gov.hmcts.opal.exception.ReportGenerationException;
+import uk.gov.hmcts.opal.generated.model.CreateReportInstanceRequestReports;
+import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
 import uk.gov.hmcts.opal.repository.ReportInstanceRepository;
 import uk.gov.hmcts.opal.repository.ReportRepository;
 import uk.gov.hmcts.opal.service.blobstore.ReportBlobStore;
@@ -84,6 +85,7 @@ class GenericReportServiceTest extends AbstractIntegrationTest {
         when(clock.getZone()).thenReturn(ZoneOffset.UTC);
     }
 
+
     @Test
     @JiraStory("PO-2257")
     @JiraEpic("PO-2627")
@@ -110,6 +112,38 @@ class GenericReportServiceTest extends AbstractIntegrationTest {
         assertThat(saved.getTemplateName()).isEqualTo("test-template-name.doc");
         assertThat(saved.getErrors()).isNull();
     }
+
+    @Test
+    @JiraStory("PO-2257")
+    @JiraEpic("PO-2627")
+    void addReportInstance_createsReportInstanceSuccessfully() {
+
+        ReportEntity report = reportRepository.save(buildReportEntity("fp_register"));
+
+        CreateReportInstanceRequestReports request =
+            new CreateReportInstanceRequestReports();
+
+        request.setReportId(report.getReportId());
+        request.setBusinessUnitIds(List.of((short) 1));
+        request.setReportName("Test Report");
+
+        CreateReportInstanceResponseReports response =
+            service.addReportInstance(request, 123L, "Test User", false);
+
+        ReportInstanceEntity saved =
+            reportInstanceRepository.findById(response.getReportInstanceId())
+                .orElseThrow();
+
+        assertThat(saved.getReport()).isEqualTo(report);
+        assertThat(saved.getBusinessUnit()).containsExactly((short) 1);
+        assertThat(saved.getRequestedBy()).isEqualTo(123L);
+        assertThat(saved.getRequestedByName()).isEqualTo("Test User");
+        assertThat(saved.getTemplateName()).isEqualTo(report.getTemplateName());
+        assertThat(saved.getReportName()).isEqualTo("Test Report");
+        assertThat(saved.getGenerationStatus())
+            .isEqualTo(ReportInstanceGenerationStatus.READY);
+    }
+
 
     @Test
     @JiraStory("PO-2257")
