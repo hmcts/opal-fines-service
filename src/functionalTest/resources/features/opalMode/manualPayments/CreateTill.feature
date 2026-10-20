@@ -44,7 +44,7 @@ Feature: Create till
   # AC2 — Provisional until PO-10713 exposes till_id in GET /tills and the agreed Testing Support
   # cleanup route is available. Date and receipt are deliberately
   # excluded from the request because they are absent from the delivered PO-8948 API schema.
-  @JIRA-STORY:PO-3630
+  @Ignore @JIRA-STORY:PO-3630
   Scenario: An authorised user creates a till with one criminal payment
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And I record the existing till identifiers for business unit 78
@@ -56,7 +56,7 @@ Feature: Create till
     And I remove the created till using the Testing Support API
 
   # AC2 — Provisional companion scenario proving a till persists every payment submitted in one request.
-  @JIRA-STORY:PO-3630
+  @Ignore @JIRA-STORY:PO-3630
   Scenario: An authorised user creates all criminal payments submitted for a till
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And I record the existing till identifiers for business unit 78
