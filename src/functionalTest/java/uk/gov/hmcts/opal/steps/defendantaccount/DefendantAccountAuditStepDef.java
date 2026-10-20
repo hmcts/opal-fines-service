@@ -245,7 +245,7 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
         JsonNode defendantAccountParty = successfulPartyReplacement();
         assertEquals(
             REPLACED_FORENAMES,
-            defendantAccountParty.path("party_details").path("individual_details").path("forenames").asText(),
+            defendantAccountParty.path("party_details").path("individual_details").path("forenames").asString(),
             "Unexpected forenames after replace"
         );
     }
@@ -260,7 +260,7 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
         JsonNode partyDetails = successfulPartyReplacement().path("party_details");
         assertTrue(partyDetails.path("organisation_flag").asBoolean(), "Expected a company defendant");
         assertEquals(CONVERTED_COMPANY_NAME,
-            partyDetails.path("organisation_details").path("organisation_name").asText());
+            partyDetails.path("organisation_details").path("organisation_name").asString());
     }
 
     private JsonNode successfulPartyReplacement() throws Exception {
@@ -277,7 +277,7 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
             "Unexpected defendant_account_party_type"
         );
         scenarioContext().rememberPartyId("Defendant",
-            defendantAccountParty.path("party_details").path("party_id").asText());
+            defendantAccountParty.path("party_details").path("party_id").asString());
         return defendantAccountParty;
     }
 

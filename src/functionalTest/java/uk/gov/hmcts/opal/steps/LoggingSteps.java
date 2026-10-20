@@ -87,14 +87,14 @@ public class LoggingSteps extends BaseStepDef {
         criteria.put("category", category);
         latestPdpoSearchResponse = waitForPdpoLogs(criteria);
 
-        for (JsonNode log : latestPdpoSearchResponse) {
-            assertEquals(businessIdentifier, log.path("business_identifier").asText());
-            assertEquals(category, log.path("category").asText());
-            assertEquals(PDPO_CREATED_BY_ID, log.path("created_by").path("id").asText());
-            assertEquals(PDPO_CREATED_BY_TYPE, log.path("created_by").path("type").asText());
+        for (JsonNode log : requireLatestPdpoSearchResponse()) {
+            assertEquals(businessIdentifier, log.path("business_identifier").asString());
+            assertEquals(category, log.path("category").asString());
+            assertEquals(PDPO_CREATED_BY_ID, log.path("created_by").path("id").asString());
+            assertEquals(PDPO_CREATED_BY_TYPE, log.path("created_by").path("type").asString());
             assertTrue(StreamSupport.stream(log.path("individuals").spliterator(), false)
-                .anyMatch(individual -> partyId.equals(individual.path("id").asText())
-                    && individualType.equals(individual.path("type").asText())),
+                .anyMatch(individual -> partyId.equals(individual.path("id").asString())
+                    && individualType.equals(individual.path("type").asString())),
                 "Expected the log to identify the scenario's " + partyType + " party " + partyId);
         }
     }

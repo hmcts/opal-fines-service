@@ -44,6 +44,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.debtordetail.Language;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
+import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -203,7 +204,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
             assertEquals("Remove Parent/Guardian", removal.getBusinessIdentifier());
             assertEquals(PersonalDataProcessingCategory.ERASURE, removal.getCategory());
             assertEquals(Set.of("920010", "920020"), removal.getIndividuals().stream()
-                .map(individual -> individual.getIdentifier()).collect(toSet()));
+                .map(ParticipantIdentifier::getIdentifier).collect(toSet()));
             assertEquals(2, removal.getIndividuals().size());
             removal.getIndividuals().forEach(individual ->
                 assertEquals(PdplIdentifierType.PARENT_GUARDIAN, individual.getType()));
