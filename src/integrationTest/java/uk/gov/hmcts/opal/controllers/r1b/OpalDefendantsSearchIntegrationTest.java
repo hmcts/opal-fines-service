@@ -173,7 +173,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.type")
                 .value("https://hmcts.gov.uk/problems/pdpl-logging-unavailable"))
-            .andExpect(jsonPath("$.retriable").value(true));
+            .andExpect(jsonPath("$.retriable").value(true))
+            .andExpect(jsonPath("$.defendant_accounts").doesNotExist())
+            .andExpect(jsonPath("$.count").doesNotExist());
 
         verify(loggingService).personalDataAccessLogAsync(any(PersonalDataProcessingLogDetails.class));
     }
@@ -195,7 +197,9 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.type")
                 .value("https://hmcts.gov.uk/problems/pdpl-logging-unavailable"))
-            .andExpect(jsonPath("$.retriable").value(true));
+            .andExpect(jsonPath("$.retriable").value(true))
+            .andExpect(jsonPath("$.defendant_accounts").doesNotExist())
+            .andExpect(jsonPath("$.count").doesNotExist());
 
         verify(loggingService).personalDataAccessLogAsync(any(PersonalDataProcessingLogDetails.class));
     }
