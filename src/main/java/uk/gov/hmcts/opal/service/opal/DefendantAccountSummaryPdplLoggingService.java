@@ -24,6 +24,7 @@ public class DefendantAccountSummaryPdplLoggingService extends AbstractPdplLoggi
 
     public void logAtAGlance(GetDefendantAccountAtAGlanceResponse response, Long userId) {
         if (response.getPayload().getDebtorType() != null
+            && response.getPayload().getPartyDetails() != null
             && !response.getPayload().getPartyDetails().getOrganisationFlag()) {
             logIndividualDebtorDetails(response.getPayload().getDefendantAccountId(),
                 response.getPayload().getDebtorType().getValue(), userId);
@@ -32,6 +33,7 @@ public class DefendantAccountSummaryPdplLoggingService extends AbstractPdplLoggi
 
     public void logHeaderSummary(DefendantAccountHeaderSummary response, Long userId) {
         if (response.getResponse().getDebtorType() != null
+            && response.getResponse().getPartyDetails() != null
             && !response.getResponse().getPartyDetails().getOrganisationFlag()) {
             logIndividualDebtorDetails(response.getResponse().getDefendantAccountId(),
                 response.getResponse().getDebtorType().getValue(), userId);
