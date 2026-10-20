@@ -26,6 +26,10 @@ public class DefendantAccountPartyPdplLoggingService extends AbstractPdplLogging
     private static final String VIEW_DEFENDANT_BUSINESS_IDENTIFIER = "View Defendant";
     private static final String VIEW_PARENT_GUARDIAN_BUSINESS_IDENTIFIER = "View Parent/Guardian";
     private static final String VIEW_PARTY_QUEUE_FAILURE_MESSAGE = "Unable to queue PDPO log for viewing a party";
+    private static final String UPDATE_DEFENDANT_BUSINESS_IDENTIFIER = "Update Defendant";
+    private static final String UPDATE_PARENT_GUARDIAN_BUSINESS_IDENTIFIER = "Update Parent/Guardian";
+    private static final String CONVERT_COMPANY_TO_INDIVIDUAL_BUSINESS_IDENTIFIER = "Convert Company to Individual";
+    private static final String CONVERT_INDIVIDUAL_TO_COMPANY_BUSINESS_IDENTIFIER = "Convert Individual to Company";
     private static final String REMOVE_PARENT_GUARDIAN_BUSINESS_IDENTIFIER = "Remove Parent/Guardian";
     private static final String REMOVE_PARENT_GUARDIAN_FAILURE =
         "Unable to queue PDPO log for removed Parent/Guardian";
@@ -82,24 +86,21 @@ public class DefendantAccountPartyPdplLoggingService extends AbstractPdplLogging
     }
 
     public void logReplacement(Long partyId, AssociationType associationType, boolean wasOrganisation,
-                               boolean organisation, List<Long> removedParentGuardianIds, UserState userState) {
+        boolean organisation, List<Long> removedParentGuardianIds, UserState userState) {
         if (associationType == AssociationType.PARENT_GUARDIAN) {
-            logPdplOrThrow("Update Parent/Guardian", PersonalDataProcessingCategory.ALTERATION,
-                List.of(participant(partyId.toString(), PdplIdentifierType.PARENT_GUARDIAN)),
-                null, userState.getUserId(), QUEUE_FAILURE_MESSAGE);
+            logParty(UPDATE_PARENT_GUARDIAN_BUSINESS_IDENTIFIER, PersonalDataProcessingCategory.ALTERATION,
+                partyId.toString(), PdplIdentifierType.PARENT_GUARDIAN, userState);
         } else if (associationType == AssociationType.DEFENDANT) {
-            String businessIdentifier = "Update Defendant";
+            String businessIdentifier = UPDATE_DEFENDANT_BUSINESS_IDENTIFIER;
             PersonalDataProcessingCategory category = PersonalDataProcessingCategory.ALTERATION;
             if (wasOrganisation && !organisation) {
-                businessIdentifier = "Convert Company to Individual";
+                businessIdentifier = CONVERT_COMPANY_TO_INDIVIDUAL_BUSINESS_IDENTIFIER;
                 category = PersonalDataProcessingCategory.COLLECTION;
             } else if (!wasOrganisation && organisation) {
-                businessIdentifier = "Convert Individual to Company";
+                businessIdentifier = CONVERT_INDIVIDUAL_TO_COMPANY_BUSINESS_IDENTIFIER;
                 category = PersonalDataProcessingCategory.ERASURE;
             }
-            logPdplOrThrow(businessIdentifier, category,
-                List.of(participant(partyId.toString(), PdplIdentifierType.DEFENDANT)),
-                null, userState.getUserId(), QUEUE_FAILURE_MESSAGE);
+            logParty(businessIdentifier, category, partyId.toString(), PdplIdentifierType.DEFENDANT_ACCOUNT, userState);
         }
 
         if (!removedParentGuardianIds.isEmpty()) {
@@ -107,9 +108,15 @@ public class DefendantAccountPartyPdplLoggingService extends AbstractPdplLogging
                 .distinct()
                 .map(id -> participant(id.toString(), PdplIdentifierType.PARENT_GUARDIAN))
                 .toList();
-            logPdplOrThrow("Remove Parent/Guardian", PersonalDataProcessingCategory.ERASURE,
-                individuals, null, userState.getUserId(), QUEUE_FAILURE_MESSAGE);
+            logPdplOrThrow(REMOVE_PARENT_GUARDIAN_BUSINESS_IDENTIFIER, PersonalDataProcessingCategory.ERASURE,
+                individuals, null, userState, QUEUE_FAILURE_MESSAGE);
         }
+    }
+
+    private void logParty(String businessIdentifier, PersonalDataProcessingCategory category, String partyId,
+        PdplIdentifierType partyType, UserState userState) {
+        logPdplOrThrow(businessIdentifier, category, List.of(participant(partyId, partyType)), null,
+            userState, QUEUE_FAILURE_MESSAGE);
     }
 
     public void logRemovedParentGuardian(Long defendantAccountPartyId,
