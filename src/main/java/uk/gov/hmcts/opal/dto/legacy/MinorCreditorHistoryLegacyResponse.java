@@ -8,6 +8,7 @@ import jakarta.xml.bind.annotation.XmlElementWrapper;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -17,6 +18,7 @@ import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.model.HasErrorResponse;
 import uk.gov.hmcts.opal.dto.ToXmlString;
+import uk.gov.hmcts.opal.util.LocalDateAdapter;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 @Data
@@ -25,7 +27,7 @@ import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 @AllArgsConstructor
 @XmlRootElement(name = "response")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class LegacyGetMinorCreditorAccountHistoryResponse implements ToXmlString, HasErrorResponse {
+public class MinorCreditorHistoryLegacyResponse implements ToXmlString, HasErrorResponse {
 
     @XmlElement(name = "error_response")
     private ErrorResponse errorResponse;
@@ -117,8 +119,8 @@ public class LegacyGetMinorCreditorAccountHistoryResponse implements ToXmlString
 
         @JsonProperty("status_date")
         @XmlElement(name = "status_date")
-        @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
-        private LocalDateTime statusDate;
+        @XmlJavaTypeAdapter(LocalDateAdapter.class)
+        private LocalDate statusDate;
 
         @JsonProperty("associated_record_type")
         @XmlElement(name = "associated_record_type")
