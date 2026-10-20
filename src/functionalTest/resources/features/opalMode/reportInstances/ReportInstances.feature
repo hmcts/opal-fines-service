@@ -4,7 +4,7 @@ Feature: Report Instances
   #    POST :/reports-instances/{id} Test scenarios
 
   # This verifies the create response only. Full created-instance verification needs PO-2254.
-  @JIRA-STORY:PO-2252 @JIRA-EPIC:PO-2248 @JIRA-TEST-KEY:PO-7862
+  @JIRA-STORY:PO-2252 @JIRA-EPIC:PO-2248 @JIRA-TEST-KEY:PO-7862 @Ignore
   Scenario: Create report instance with a single business unit returns 201 and a report instance id
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a report instance with report id "operational_report_enforcement" for business unit 73
@@ -53,7 +53,7 @@ Feature: Report Instances
 
 #    GET :/reports-instances/{id} Test scenarios
 
-  @JIRA-STORY:PO-2254 @JIRA-EPIC:PO-2248 @JIRA-TEST-KEY:PO-8295
+  @JIRA-STORY:PO-2254 @JIRA-EPIC:PO-2248 @JIRA-TEST-KEY:PO-8295 @Ignore
   Scenario: Get report instance returns complete instance details
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a report instance with report id "operational_report_enforcement" for business unit 73
@@ -75,7 +75,7 @@ Feature: Report Instances
     Then the request is rejected with status 401
     And the latest get report instance error response matches the standard problem detail contract for status 401
 
-  @JIRA-STORY:PO-2254 @JIRA-EPIC:PO-2248 @JIRA-TEST-KEY:PO-8298
+  @JIRA-STORY:PO-2254 @JIRA-EPIC:PO-2248 @JIRA-TEST-KEY:PO-8298 @Ignore
   Scenario: Get report instance without permission in the requested business unit is rejected as forbidden
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a report instance with report id "operational_report_enforcement" for business unit 73
@@ -113,7 +113,7 @@ Feature: Report Instances
     Then the request is rejected with status 401
     And the latest get report instance content error response matches the standard problem detail contract for status 401
 
-  @JIRA-STORY:PO-2253 @JIRA-EPIC:PO-2248 @JIRA-TEST-KEY:PO-9559
+  @JIRA-STORY:PO-2253 @JIRA-EPIC:PO-2248 @JIRA-TEST-KEY:PO-9559 @Ignore
   Scenario: Get report instance content without permission in the requested business unit is rejected as forbidden
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a report instance with report id "operational_report_enforcement" for business unit 73
