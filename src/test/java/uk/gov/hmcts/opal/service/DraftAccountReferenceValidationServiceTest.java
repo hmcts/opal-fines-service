@@ -18,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.result.ImpositionCreditor;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
@@ -453,6 +454,34 @@ class DraftAccountReferenceValidationServiceTest {
 
         verify(localJusticeAreaRepository).findById((short)32001);
         verifyNoInteractions(prosecutorRepository);
+    }
+
+    @Test
+    void validateReferences_whenLegacyModeEnabled_shouldUseLegacyJusticeAreaRepository() {
+
+        when(dynamicConfigService.isLegacyMode()).thenReturn(true);
+
+        when(legacyJusticeAreaRepository.findById((short) 32001))
+            .thenReturn(Optional.of(
+                LocalJusticeAreaLegacyEntity.builder()
+                    .localJusticeAreaId((short) 32001)
+                    .name("Draft Account Validation LJA")
+                    .ljaType(LocalJusticeAreaType.LJA)
+                    .build()
+            ));
+
+        assertDoesNotThrow(() -> service.validateReferences(
+            BUSINESS_UNIT_ID,
+            originatorAccountJson(
+                DraftAccountType.FINE,
+                "NEW",
+                32001L,
+                "Draft Account Validation LJA"
+            )
+        ));
+
+        verify(legacyJusticeAreaRepository).findById((short) 32001);
+        verifyNoInteractions(localJusticeAreaRepository);
     }
 
     @Test

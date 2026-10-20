@@ -171,4 +171,79 @@ class LocalJusticeAreaServiceTest {
         verify(legacyJusticeAreaRepository).findById((short) 1);
         verifyNoInteractions(localJusticeAreaRepository);
     }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void testGetReferenceData_usesLegacyRepositoryWhenLegacyModeEnabled() {
+
+        when(dynamicConfigService.isLegacyMode()).thenReturn(true);
+
+        SpecificationFluentQuery sfq = mock(SpecificationFluentQuery.class);
+        when(sfq.sortBy(any())).thenReturn(sfq);
+
+        LocalJusticeAreaLegacyEntity entity =
+            LocalJusticeAreaLegacyEntity.builder()
+                .localJusticeAreaId((short) 1)
+                .name("Legacy LJA")
+                .build();
+
+        Page<LocalJusticeAreaLegacyEntity> mockPage =
+            new PageImpl<>(List.of(entity), Pageable.unpaged(), 1);
+
+        when(legacyJusticeAreaRepository.findBy(
+            any(Specification.class),
+            any())
+        ).thenAnswer(invocation -> {
+            invocation.getArgument(1, Function.class).apply(sfq);
+            return mockPage;
+        });
+
+        localJusticeAreaService.getReferenceData(
+            Optional.empty(),
+            Optional.empty()
+        );
+
+        verify(legacyJusticeAreaRepository)
+            .findBy(any(Specification.class), any());
+
+        verifyNoInteractions(localJusticeAreaRepository);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void testGetReferenceData_usesOpalRepositoryWhenLegacyModeDisabled() {
+
+        when(dynamicConfigService.isLegacyMode()).thenReturn(false);
+
+        SpecificationFluentQuery sfq = mock(SpecificationFluentQuery.class);
+        when(sfq.sortBy(any())).thenReturn(sfq);
+
+        LocalJusticeAreaEntity entity =
+            LocalJusticeAreaEntity.builder()
+                .localJusticeAreaId((short) 1)
+                .name("Opal LJA")
+                .build();
+
+        Page<LocalJusticeAreaEntity> mockPage =
+            new PageImpl<>(List.of(entity), Pageable.unpaged(), 1);
+
+        when(localJusticeAreaRepository.findBy(
+            any(Specification.class),
+            any())
+        ).thenAnswer(invocation -> {
+            invocation.getArgument(1, Function.class).apply(sfq);
+            return mockPage;
+        });
+
+        localJusticeAreaService.getReferenceData(
+            Optional.empty(),
+            Optional.empty()
+        );
+
+        verify(localJusticeAreaRepository)
+            .findBy(any(Specification.class), any());
+
+        verifyNoInteractions(legacyJusticeAreaRepository);
+    }
+
 }
