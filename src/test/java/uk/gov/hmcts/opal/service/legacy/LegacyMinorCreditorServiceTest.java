@@ -38,7 +38,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceRespon
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryRequest;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse;
+import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyCreditorAccountPaymentDetails;
@@ -126,9 +126,9 @@ class LegacyMinorCreditorServiceTest {
                 .toDate(LocalDate.of(2026, 1, 31))
                 .itemTypes(List.of("Amendment", "Note"))
                 .build();
-        LegacyGetMinorCreditorAccountHistoryResponse legacyResponse =
-            LegacyGetMinorCreditorAccountHistoryResponse.builder().build();
-        GatewayService.Response<LegacyGetMinorCreditorAccountHistoryResponse> gatewayResponse =
+        MinorCreditorHistoryLegacyResponse legacyResponse =
+            MinorCreditorHistoryLegacyResponse.builder().build();
+        GatewayService.Response<MinorCreditorHistoryLegacyResponse> gatewayResponse =
             new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
         GetMinorCreditorHistoryResponse mappedResponse = GetMinorCreditorHistoryResponse.builder()
             .payload(new GetMinorCreditorHistory200Response().historyItems(List.of()))
@@ -137,7 +137,7 @@ class LegacyMinorCreditorServiceTest {
         when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, false)).thenReturn(request);
         when(gatewayService.postToGateway(
             "LIBRA.get_minor_creditor_account_history",
-            LegacyGetMinorCreditorAccountHistoryResponse.class,
+            MinorCreditorHistoryLegacyResponse.class,
             request,
             null
         )).thenReturn(gatewayResponse);
@@ -205,7 +205,7 @@ class LegacyMinorCreditorServiceTest {
         verify(minorCreditorHistoryMapper).toLegacyRequest(101L, filters, true);
         verify(gatewayService).postToGateway(
             "LIBRA.get_minor_creditor_account_history",
-            LegacyGetMinorCreditorAccountHistoryResponse.class,
+            MinorCreditorHistoryLegacyResponse.class,
             request,
             null
         );
@@ -220,7 +220,7 @@ class LegacyMinorCreditorServiceTest {
             LegacyGetMinorCreditorAccountHistoryRequest.builder()
                 .creditorAccountId("101")
                 .build();
-        GatewayService.Response<LegacyGetMinorCreditorAccountHistoryResponse> gatewayResponse =
+        GatewayService.Response<MinorCreditorHistoryLegacyResponse> gatewayResponse =
             new GatewayService.Response<>(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 null,
@@ -234,7 +234,7 @@ class LegacyMinorCreditorServiceTest {
         when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, false)).thenReturn(request);
         when(gatewayService.postToGateway(
             "LIBRA.get_minor_creditor_account_history",
-            LegacyGetMinorCreditorAccountHistoryResponse.class,
+            MinorCreditorHistoryLegacyResponse.class,
             request,
             null
         )).thenReturn(gatewayResponse);
@@ -259,9 +259,9 @@ class LegacyMinorCreditorServiceTest {
             LegacyGetMinorCreditorAccountHistoryRequest.builder()
                 .creditorAccountId("101")
                 .build();
-        LegacyGetMinorCreditorAccountHistoryResponse legacyResponse =
-            LegacyGetMinorCreditorAccountHistoryResponse.builder().historyItems(List.of()).build();
-        GatewayService.Response<LegacyGetMinorCreditorAccountHistoryResponse> gatewayResponse =
+        MinorCreditorHistoryLegacyResponse legacyResponse =
+            MinorCreditorHistoryLegacyResponse.builder().historyItems(List.of()).build();
+        GatewayService.Response<MinorCreditorHistoryLegacyResponse> gatewayResponse =
             new GatewayService.Response<>(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 legacyResponse,
@@ -275,7 +275,7 @@ class LegacyMinorCreditorServiceTest {
         when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, false)).thenReturn(request);
         when(gatewayService.postToGateway(
             "LIBRA.get_minor_creditor_account_history",
-            LegacyGetMinorCreditorAccountHistoryResponse.class,
+            MinorCreditorHistoryLegacyResponse.class,
             request,
             null
         )).thenReturn(gatewayResponse);
@@ -300,7 +300,7 @@ class LegacyMinorCreditorServiceTest {
             LegacyGetMinorCreditorAccountHistoryRequest.builder()
                 .creditorAccountId("101")
                 .build();
-        GatewayService.Response<LegacyGetMinorCreditorAccountHistoryResponse> gatewayResponse =
+        GatewayService.Response<MinorCreditorHistoryLegacyResponse> gatewayResponse =
             new GatewayService.Response<>(HttpStatus.OK, null, null, null);
         GetMinorCreditorHistoryResponse mappedResponse = GetMinorCreditorHistoryResponse.builder()
             .payload(new GetMinorCreditorHistory200Response().historyItems(List.of()))
@@ -309,7 +309,7 @@ class LegacyMinorCreditorServiceTest {
         when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, false)).thenReturn(request);
         when(gatewayService.postToGateway(
             "LIBRA.get_minor_creditor_account_history",
-            LegacyGetMinorCreditorAccountHistoryResponse.class,
+            MinorCreditorHistoryLegacyResponse.class,
             request,
             null
         )).thenReturn(gatewayResponse);

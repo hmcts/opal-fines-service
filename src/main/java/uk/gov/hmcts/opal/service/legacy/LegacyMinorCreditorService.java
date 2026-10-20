@@ -19,7 +19,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceRespon
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryRequest;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse;
+import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsRequest;
@@ -187,10 +187,10 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
         LegacyGetMinorCreditorAccountHistoryRequest request =
             minorCreditorHistoryMapper.toLegacyRequest(minorCreditorAccountId, filters, release1b11Enabled);
 
-        Response<LegacyGetMinorCreditorAccountHistoryResponse> response =
+        Response<MinorCreditorHistoryLegacyResponse> response =
             gatewayService.postToGateway(
                 GET_MINOR_CREDITOR_ACCOUNT_HISTORY,
-                LegacyGetMinorCreditorAccountHistoryResponse.class,
+                MinorCreditorHistoryLegacyResponse.class,
                 request,
                 null
             );
