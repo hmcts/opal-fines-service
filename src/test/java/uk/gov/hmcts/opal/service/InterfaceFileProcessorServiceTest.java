@@ -35,6 +35,7 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.SimpleTransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserEnum;
 import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
@@ -219,7 +220,9 @@ class InterfaceFileProcessorServiceTest {
         assertThat(metadata.getShouldPreProcessFile()).isFalse();
         assertThat(fileCaptor.getValue().getOriginalFilename()).isEqualTo("test_123");
         assertThat(fileCaptor.getValue().getContentType()).isEqualTo("application/json");
-        assertThat(objectMapper.readTree(fileCaptor.getValue().getBytes()).path("transactions").size()).isEqualTo(5);
+        JsonNode uploadedContent = objectMapper.readTree(fileCaptor.getValue().getBytes());
+        assertThat(uploadedContent.path("transactions").size()).isEqualTo(5);
+        assertThat(uploadedContent.path("total_amount").asLong()).isEqualTo(5_000L);
     }
 
     private void assertLinkedRowsSaved(PaymentType paymentType) {
@@ -246,7 +249,7 @@ class InterfaceFileProcessorServiceTest {
         assertThat(finesFile.getSourceJsonId()).isEqualTo(SOURCE_ID);
         assertThat(finesFile.getTransformedJsonId()).isEqualTo(988L);
         assertThat(finesFile.getRecordCount()).isEqualTo((short) 5);
-        assertThat(finesFile.getTotalAmount()).isEqualByComparingTo(new BigDecimal("500.00"));
+        assertThat(finesFile.getTotalAmount()).isEqualByComparingTo(new BigDecimal("5000"));
     }
 
     private void stubSuccessfulProcessing(PaymentType paymentType) {
@@ -284,7 +287,7 @@ class InterfaceFileProcessorServiceTest {
             .map(code -> Transaction.builder()
                 .transactionCode(code)
                 .originatorDetails(OriginatorDetails.builder().accountReference("unmatched").name("Payer").build())
-                .amount(10_000L)
+                .amount(1_000L)
                 .build())
             .toList();
 
