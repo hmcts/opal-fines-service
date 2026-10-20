@@ -153,7 +153,7 @@ class LegacyMinorCreditorServiceTest {
         verify(minorCreditorHistoryMapper).toLegacyRequest(101L, filters, false);
         verify(gatewayService).postToGateway(
             "LIBRA.get_minor_creditor_account_history",
-            LegacyGetMinorCreditorAccountHistoryResponse.class,
+            MinorCreditorHistoryLegacyResponse.class,
             request,
             null
         );
@@ -175,9 +175,9 @@ class LegacyMinorCreditorServiceTest {
                 .toDate(LocalDate.of(2026, 1, 31))
                 .itemTypes(List.of("Amendment", "Financial", "Note"))
                 .build();
-        LegacyGetMinorCreditorAccountHistoryResponse legacyResponse =
-            LegacyGetMinorCreditorAccountHistoryResponse.builder().build();
-        GatewayService.Response<LegacyGetMinorCreditorAccountHistoryResponse> gatewayResponse =
+        MinorCreditorHistoryLegacyResponse legacyResponse =
+            MinorCreditorHistoryLegacyResponse.builder().build();
+        GatewayService.Response<MinorCreditorHistoryLegacyResponse> gatewayResponse =
             new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
         GetMinorCreditorHistoryResponse mappedResponse = GetMinorCreditorHistoryResponse.builder()
             .payload(new GetMinorCreditorHistory200Response().historyItems(List.of(
@@ -189,7 +189,7 @@ class LegacyMinorCreditorServiceTest {
         when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, true)).thenReturn(request);
         when(gatewayService.postToGateway(
             "LIBRA.get_minor_creditor_account_history",
-            LegacyGetMinorCreditorAccountHistoryResponse.class,
+            MinorCreditorHistoryLegacyResponse.class,
             request,
             null
         )).thenReturn(gatewayResponse);
