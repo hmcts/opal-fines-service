@@ -60,7 +60,7 @@ import uk.gov.hmcts.opal.service.persistence.PartyRepositoryService;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
 @ExtendWith(MockitoExtension.class)
-class OpalDefendantAccountServiceTest03 {
+class OpalDefendantAccountPartyServiceReplacePartyTest {
 
     @Mock
     private DefendantAccountPartyEntityResponseMapper defendantAccountPartyEntityResponseMapper;
@@ -97,7 +97,7 @@ class OpalDefendantAccountServiceTest03 {
     private OpalDefendantAccountPartyService service;
 
     @Test
-    void replaceDefendantAccountParty_versionConflictDuringFlush_doesNotLog() {
+    void replaceDefendantAccountParty_whenVersionConflictsDuringFlush_doesNotQueuePdpoLogs() {
         PartyEntity party = PartyEntity.builder().partyId(4001L).organisation(false).build();
         DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
             .defendantAccountPartyId(3001L).associationType(AssociationType.DEFENDANT).party(party).build();

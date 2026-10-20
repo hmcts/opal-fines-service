@@ -40,6 +40,7 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
     private static final String LEGACY_ENFORCEMENT_OVERRIDE_RESULT_ID = "ABDC";
     private static final String LEGACY_ENFORCER_ID = "770000000001";
     private static final String REPLACED_FORENAMES = "Audit Party Replace";
+    private static final String CONVERTED_COMPANY_NAME = "PDPO Converted Company";
 
     private final DefendantAccountEnforcementWorkflow enforcementWorkflow = new DefendantAccountEnforcementWorkflow();
     private final DefendantAccountEnforcementsActions enforcementActions = new DefendantAccountEnforcementsActions();
@@ -129,6 +130,20 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
      */
     @When("I replace the defendant party for the created defendant account")
     public void replaceDefendantPartyForCreatedDefendantAccount() throws Exception {
+        replaceDefendantParty(false);
+    }
+
+    /**
+     * Converts the scenario's individual defendant to a company using the current party contract.
+     *
+     * @throws Exception if the current party response cannot be parsed.
+     */
+    @When("I convert the defendant party for the created defendant account to a company")
+    public void convertDefendantPartyForCreatedDefendantAccountToCompany() throws Exception {
+        replaceDefendantParty(true);
+    }
+
+    private void replaceDefendantParty(boolean organisation) throws Exception {
         Response headerSummary = authorisedJsonRequest()
             .when()
             .get(getTestUrl() + "/defendant-accounts/" + createdDefendantAccountId() + "/header-summary");
@@ -150,9 +165,18 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
         ObjectNode requestParty = replacementPartyRequest((ObjectNode) defendantAccountParty);
         ensureOptionalPartySectionsPresent(requestParty);
 
-        JsonNode individualDetails = requestParty.path("party_details").path("individual_details");
-        assertTrue(individualDetails.isObject(), "Expected individual_details object on defendant party");
-        ((ObjectNode) individualDetails).put("forenames", REPLACED_FORENAMES);
+        ObjectNode partyDetails = (ObjectNode) requestParty.path("party_details");
+        if (organisation) {
+            partyDetails.put("organisation_flag", true);
+            partyDetails.remove("individual_details");
+            ObjectNode organisationDetails = partyDetails.putObject("organisation_details");
+            organisationDetails.put("organisation_name", CONVERTED_COMPANY_NAME);
+            organisationDetails.putNull("organisation_aliases");
+        } else {
+            JsonNode individualDetails = partyDetails.path("individual_details");
+            assertTrue(individualDetails.isObject(), "Expected individual_details object on defendant party");
+            ((ObjectNode) individualDetails).put("forenames", REPLACED_FORENAMES);
+        }
         String ifMatch = headerSummary.getHeader("ETag");
 
         authorisedJsonRequest()
@@ -218,6 +242,28 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
      */
     @Then("the replace defendant account party response matches the documented contract")
     public void replaceDefendantAccountPartyResponseMatchesTheDocumentedContract() throws Exception {
+        JsonNode defendantAccountParty = successfulPartyReplacement();
+        assertEquals(
+            REPLACED_FORENAMES,
+            defendantAccountParty.path("party_details").path("individual_details").path("forenames").asText(),
+            "Unexpected forenames after replace"
+        );
+    }
+
+    /**
+     * Checks the conversion response and remembers the defendant identifier for PDPO assertions.
+     *
+     * @throws Exception if the conversion response cannot be parsed.
+     */
+    @Then("the converted defendant party response identifies a company")
+    public void convertedDefendantPartyResponseIdentifiesCompany() throws Exception {
+        JsonNode partyDetails = successfulPartyReplacement().path("party_details");
+        assertTrue(partyDetails.path("organisation_flag").asBoolean(), "Expected a company defendant");
+        assertEquals(CONVERTED_COMPANY_NAME,
+            partyDetails.path("organisation_details").path("organisation_name").asText());
+    }
+
+    private JsonNode successfulPartyReplacement() throws Exception {
         Response response = SerenityRest.lastResponse();
         assertEquals(200, response.statusCode(), "Unexpected replace-party status: " + response.getBody().asString());
         assertFalse(blank(response.getHeader("ETag")), "Expected replace-party response ETag");
@@ -230,11 +276,9 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
             defendantAccountParty.path("defendant_account_party_type").asText(),
             "Unexpected defendant_account_party_type"
         );
-        assertEquals(
-            REPLACED_FORENAMES,
-            defendantAccountParty.path("party_details").path("individual_details").path("forenames").asText(),
-            "Unexpected forenames after replace"
-        );
+        scenarioContext().rememberPartyId("Defendant",
+            defendantAccountParty.path("party_details").path("party_id").asText());
+        return defendantAccountParty;
     }
 
     /**
