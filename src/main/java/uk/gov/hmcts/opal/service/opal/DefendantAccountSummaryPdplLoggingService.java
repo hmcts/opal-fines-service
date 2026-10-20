@@ -16,7 +16,8 @@ import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 @Service
 public class DefendantAccountSummaryPdplLoggingService extends AbstractPdplLoggingService {
     private static final String BUSINESS_IDENTIFIER = "View Defendant Account";
-    private static final String QUEUE_FAILURE_MESSAGE = "Unable to queue PDPO log for viewing a defendant account";
+    private static final String QUEUE_FAILURE_MESSAGE =
+        "Unable to queue PDPO log for viewing a defendant account summary";
 
     public DefendantAccountSummaryPdplLoggingService(LoggingService loggingService, Clock clock) {
         super(loggingService, clock);
