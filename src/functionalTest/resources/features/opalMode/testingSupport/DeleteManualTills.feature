@@ -10,7 +10,9 @@ Feature: Delete manual tills for test support
     When I delete a non-existent manual till using testing support
     Then the request succeeds
 
-  # AC1 & AC6 — Deletes a manually created till and its linked payments.
+  # AC1 & AC6 — Deletes a manually created till and its linked payments. The enforced
+  # payments_in.till_id foreign key means the successful response confirms child rows
+  # were deleted before the till transaction committed; the follow-up GET confirms the till is gone.
   @JIRA-STORY:PO-10810
   Scenario: E2E.02 Deleting a manually created till removes its linked payments
     Given I record the existing till identifiers for business unit 78
@@ -33,7 +35,7 @@ Feature: Delete manual tills for test support
     Then the request succeeds
     And the unrelated manual till remains available
 
-  # AC3 & AC4 — Supports multiple, repeated, and absent IDs.
+  # AC3 — Deletes multiple manual tills, tolerating repeated and absent IDs.
   @JIRA-STORY:PO-10810
   Scenario: E2E.04 Deleting multiple manual tills tolerates repeated and absent IDs
     Given I create a manual till as unrelated data for business unit 78
@@ -45,14 +47,34 @@ Feature: Delete manual tills for test support
     And the created manual till is no longer available
     And the unrelated manual till is no longer available
 
+  # AC4 — An unknown ID does not affect existing manual till data.
+  @JIRA-STORY:PO-10810
+  Scenario: E2E.05 Deleting an unknown manual till leaves existing till data unchanged
+    Given I create a manual till as unrelated data for business unit 78
+    When I delete a non-existent manual till using testing support
+    Then the request succeeds
+    And the unrelated manual till and its linked payment remain available
+
   # AC4 — Rejects an empty IDs value with the standard validation error.
   @JIRA-STORY:PO-10810
-  Scenario: E2E.05 Deleting manual tills with an empty IDs value returns a standard error
+  Scenario: E2E.06 Deleting manual tills with an empty IDs value returns a standard error
     When I delete manual tills using testing support with an empty IDs value
     Then the manual-till deletion error matches the standard problem detail contract for status 400
 
   # AC4 — Rejects a malformed IDs value using the standard type-mismatch error.
   @JIRA-STORY:PO-10810
-  Scenario: E2E.06 Deleting manual tills with a malformed IDs value returns a standard error
+  Scenario: E2E.07 Deleting manual tills with a malformed IDs value returns a standard error
     When I delete manual tills using testing support with a malformed IDs value
     Then the manual-till deletion error matches the standard problem detail contract for status 406
+
+  # AC5 — A failed request containing a valid ID must leave its till and linked payment intact.
+  @JIRA-STORY:PO-10810
+  Scenario: E2E.08 A malformed ID prevents partial manual till deletion
+    Given I record the existing till identifiers for business unit 78
+    When I submit a uniquely identifiable valid request to create a till with one criminal payment
+    Then the request creates a resource
+    And I can retrieve the newly created till
+    And the till belongs to business unit 78 and contains one linked criminal payment
+    When I attempt to delete the created manual till with an additional malformed ID
+    Then the manual-till deletion error matches the standard problem detail contract for status 406
+    And the created manual till and its linked payment remain available

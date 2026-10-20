@@ -265,6 +265,38 @@ public class TillsStepDef extends BaseStepDef {
         deleteCreatedTill();
     }
 
+    /**
+     * Sends a valid till ID together with a malformed ID so request binding fails before deletion.
+     */
+    @When("I attempt to delete the created manual till with an additional malformed ID")
+    public void attemptToDeleteCreatedManualTillWithMalformedId() {
+        authorisedJsonRequest()
+            .queryParam("ids", createdTillIdOrFail(), "not-a-till-id")
+            .when()
+            .delete(getTestUrl() + TESTING_SUPPORT_TILLS_PATH);
+    }
+
+    /**
+     * Confirms a failed delete request left the created till and its linked payments available.
+     */
+    @Then("the created manual till and its linked payment remain available")
+    public void createdManualTillAndPaymentRemainAvailable() {
+        Response response = authorisedJsonRequest()
+            .when()
+            .get(getTestUrl() + TILLS_PATH + "/" + createdTillIdOrFail());
+        assertEquals(200, response.statusCode(), "Expected manual till to remain available");
+
+        Map<String, Object> till = response.as(new TypeRef<>() { });
+        List<Map<String, Object>> payments = createdTillPayments(till);
+        assertNotNull(payments, "The surviving till must still return its linked payments");
+        assertEquals(1, payments.size(), "The failed delete must leave the linked payment intact");
+
+        Map<String, Object> payment = payments.getFirst();
+        assertEquals(String.valueOf(createdDefendantAccountId), payment.get("associated_record_id"));
+        assertEquals(12.34d, ((Number) payment.get("amount")).doubleValue(), 0.001d);
+        assertEquals(uniquePayerName + "-1", payment.get("third_party_payer_name"));
+    }
+
     @Then("the created manual till is no longer available")
     public void createdManualTillIsNoLongerAvailable() {
         assertNotNull(deletedTillId, "A till must be deleted before verifying it is unavailable");
@@ -297,6 +329,27 @@ public class TillsStepDef extends BaseStepDef {
     @Then("the unrelated manual till remains available")
     public void unrelatedManualTillRemainsAvailable() {
         assertTillIsAvailable(unrelatedTillIdOrFail());
+    }
+
+    /**
+     * Confirms deleting an unknown ID leaves the unrelated manual till and its payment unchanged.
+     */
+    @Then("the unrelated manual till and its linked payment remain available")
+    public void unrelatedManualTillAndPaymentRemainAvailable() {
+        Response response = authorisedJsonRequest()
+            .when()
+            .get(getTestUrl() + TILLS_PATH + "/" + unrelatedTillIdOrFail());
+        assertEquals(200, response.statusCode(), "Expected unrelated manual till to remain available");
+
+        Map<String, Object> till = response.as(new TypeRef<>() { });
+        List<Map<String, Object>> payments = createdTillPayments(till);
+        assertNotNull(payments, "The unrelated till must still return its linked payments");
+        assertEquals(1, payments.size(), "Deleting an unknown ID must leave the payment intact");
+
+        Map<String, Object> payment = payments.getFirst();
+        assertEquals(String.valueOf(createdDefendantAccountId), payment.get("associated_record_id"));
+        assertEquals(12.34d, ((Number) payment.get("amount")).doubleValue(), 0.001d);
+        assertEquals(uniquePayerName + "-1", payment.get("third_party_payer_name"));
     }
 
     /**
