@@ -94,7 +94,8 @@ class MajorCreditorHistoryServiceTest {
         assertEquals(1, response.getPayload().getHistoryItems().size());
         MajorCreditorHistoryItemHistory generatedItem = response.getPayload().getHistoryItems().get(0);
         assertEquals(MajorCreditorHistoryItemHistory.TypeEnum.FINANCIAL, generatedItem.getType());
-        assertEquals(LocalDate.of(2026, Month.JANUARY, 2), generatedItem.getPostedDetails().getPostedDate());
+        assertEquals(LocalDateTime.of(2026, Month.JANUARY, 2, 10, 15),
+                     generatedItem.getPostedDetails().getPostedDate());
         assertEquals(BigDecimal.TEN, generatedItem.getAmount());
         CreditorTransactionDetailsHistory details = (CreditorTransactionDetailsHistory)generatedItem.getDetails();
         assertEquals("PAY123", details.getPaymentReference());
