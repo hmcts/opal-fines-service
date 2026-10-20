@@ -18,7 +18,6 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUse
 
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
-import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,7 +46,6 @@ import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchReferenceNumberDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.MasterAccountDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
@@ -371,112 +369,15 @@ class DefendantAccountServiceTest {
     }
 
     @Test
-    void getConsolidatedAccounts_logsDistinctIndividualChildren() {
-        // Arrange
-        Long firstIndividualChildId = 101L;
-        Long secondIndividualChildId = 102L;
-        Long organisationChildId = 103L;
-
-        GetDefendantAccountConsolidatedAccountsResult response = consolidatedResult(firstIndividualChildId,
-            secondIndividualChildId, organisationChildId, firstIndividualChildId);
-        givenConsolidatedAccountsResponse(response);
-        when(defendantAccountServiceProxy.getHeaderSummary(firstIndividualChildId))
-            .thenReturn(headerWithOrganisationFlag(false));
-        when(defendantAccountServiceProxy.getHeaderSummary(secondIndividualChildId))
-            .thenReturn(headerWithOrganisationFlag(false));
-        when(defendantAccountServiceProxy.getHeaderSummary(organisationChildId))
-            .thenReturn(headerWithOrganisationFlag(true));
-
-        // Act
-        defendantAccountService.getConsolidatedAccounts(77L);
-
-        // Assert
-        verify(defendantAccountServiceProxy).getHeaderSummary(firstIndividualChildId);
-        verify(defendantAccountServiceProxy).getHeaderSummary(secondIndividualChildId);
-        verify(defendantAccountServiceProxy).getHeaderSummary(organisationChildId);
-        verify(consolidatedAccountPdplLoggingService).logIndividualChildAccounts(userState, List.of(101L, 102L));
-    }
-
-    @Test
-    void getConsolidatedAccounts_withOrganisationChildren_passesNoIndividualIdsToLogger() {
-        GetDefendantAccountConsolidatedAccountsResult response = consolidatedResult(102L);
-        givenConsolidatedAccountsResponse(response);
-        when(defendantAccountServiceProxy.getHeaderSummary(102L))
-            .thenReturn(headerWithOrganisationFlag(true));
-
-        defendantAccountService.getConsolidatedAccounts(77L);
-
-        verify(consolidatedAccountPdplLoggingService).logIndividualChildAccounts(userState, List.of());
-    }
-
-    @Test
-    void getConsolidatedAccounts_withMissingClassification_failsBeforeLogging() {
-        givenConsolidatedAccountsResponse(consolidatedResult(101L));
-        when(defendantAccountServiceProxy.getHeaderSummary(101L))
-            .thenReturn(headerWithOrganisationFlag(null));
-
-        assertThrows(IllegalStateException.class, () -> defendantAccountService.getConsolidatedAccounts(77L));
-
-        verifyNoInteractions(consolidatedAccountPdplLoggingService);
-    }
-
-    @Test
-    void getConsolidatedAccounts_withMissingPartyDetails_failsBeforeLogging() {
-        givenConsolidatedAccountsResponse(consolidatedResult(101L));
-        DefendantAccountHeaderSummary headerWithoutParty = DefendantAccountHeaderSummary.builder()
-            .response(GetDefendantAccountHeaderSummary200Response.builder().build())
-            .build();
-        when(defendantAccountServiceProxy.getHeaderSummary(101L)).thenReturn(headerWithoutParty);
-
-        assertThrows(IllegalStateException.class, () -> defendantAccountService.getConsolidatedAccounts(77L));
-
-        verifyNoInteractions(consolidatedAccountPdplLoggingService);
-    }
-
-    @Test
-    void getConsolidatedAccounts_withMissingHeader_failsBeforeLogging() {
-        givenConsolidatedAccountsResponse(consolidatedResult(101L));
-        when(defendantAccountServiceProxy.getHeaderSummary(101L)).thenReturn(null);
-
-        IllegalStateException exception = assertThrows(IllegalStateException.class,
-            () -> defendantAccountService.getConsolidatedAccounts(77L));
-
-        assertEquals("Organisation flag is missing for child account 101", exception.getMessage());
-        verifyNoInteractions(consolidatedAccountPdplLoggingService);
-    }
-
-    @Test
-    void getConsolidatedAccounts_withMissingHeaderResponse_failsBeforeLogging() {
-        givenConsolidatedAccountsResponse(consolidatedResult(101L));
-        when(defendantAccountServiceProxy.getHeaderSummary(101L))
-            .thenReturn(DefendantAccountHeaderSummary.builder().build());
-
-        IllegalStateException exception = assertThrows(IllegalStateException.class,
-            () -> defendantAccountService.getConsolidatedAccounts(77L));
-
-        assertEquals("Organisation flag is missing for child account 101", exception.getMessage());
-        verifyNoInteractions(consolidatedAccountPdplLoggingService);
-    }
-
-    @Test
-    void getConsolidatedAccounts_withMissingChildId_failsBeforeLogging() {
-        givenConsolidatedAccountsResponse(consolidatedResult((Long) null));
-
-        IllegalStateException exception = assertThrows(IllegalStateException.class,
-            () -> defendantAccountService.getConsolidatedAccounts(77L));
-
-        assertEquals("Consolidated child account ID is missing", exception.getMessage());
-        verifyNoInteractions(consolidatedAccountPdplLoggingService);
-    }
-
-    @Test
     void getConsolidatedAccounts_whenLoggingFails_propagatesFailure() {
-        givenConsolidatedAccountsResponse(consolidatedResult(101L));
-        when(defendantAccountServiceProxy.getHeaderSummary(101L))
-            .thenReturn(headerWithOrganisationFlag(false));
+        GetDefendantAccountConsolidatedAccountsResult response =
+            GetDefendantAccountConsolidatedAccountsResult.builder()
+                .payload(List.of(ConsolidatedAccountDefendantAccount.builder().accountId(101L).build()))
+                .build();
+        givenConsolidatedAccountsResponse(response);
         RuntimeException failure = new RuntimeException("queue unavailable");
         doThrow(failure).when(consolidatedAccountPdplLoggingService)
-            .logIndividualChildAccounts(userState, List.of(101L));
+            .logIndividualChildAccounts(userState, response);
 
         assertThrows(RuntimeException.class, () -> defendantAccountService.getConsolidatedAccounts(77L));
     }
@@ -601,20 +502,4 @@ class DefendantAccountServiceTest {
         when(defendantAccountServiceProxy.getConsolidatedAccounts(77L)).thenReturn(response);
     }
 
-    private GetDefendantAccountConsolidatedAccountsResult consolidatedResult(Long... childIds) {
-        List<ConsolidatedAccountDefendantAccount> children = Arrays.stream(childIds)
-            .map(id -> ConsolidatedAccountDefendantAccount.builder()
-                .accountId(id).accountNumber("123C")
-                .build())
-            .toList();
-        return GetDefendantAccountConsolidatedAccountsResult.builder().payload(children).build();
-    }
-
-    private DefendantAccountHeaderSummary headerWithOrganisationFlag(Boolean organisationFlag) {
-        return DefendantAccountHeaderSummary.builder()
-            .response(GetDefendantAccountHeaderSummary200Response.builder()
-                .partyDetails(PartyDetailsCommon.builder().organisationFlag(organisationFlag).build())
-                .build())
-            .build();
-    }
 }

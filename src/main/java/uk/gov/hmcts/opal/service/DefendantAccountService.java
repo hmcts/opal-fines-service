@@ -27,9 +27,7 @@ import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
-import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.MasterAccountDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
@@ -92,46 +90,9 @@ public class DefendantAccountService {
 
         GetDefendantAccountConsolidatedAccountsResult result =
             defendantAccountServiceProxy.getConsolidatedAccounts(defendantAccountId);
-        logIndividualChildAccountAccess(userState, result);
+        consolidatedAccountPdplLoggingService.logIndividualChildAccounts(userState, result);
 
         return result;
-    }
-
-    private void logIndividualChildAccountAccess(UserState userState,
-        GetDefendantAccountConsolidatedAccountsResult result) {
-
-        if (result.getPayload() == null || result.getPayload().isEmpty()) {
-            return;
-        }
-
-        consolidatedAccountPdplLoggingService.logIndividualChildAccounts(userState,
-            getIndividualChildAccountIds(result));
-    }
-
-    private List<Long> getIndividualChildAccountIds(GetDefendantAccountConsolidatedAccountsResult result) {
-        return result.getPayload().stream()
-            .map(ConsolidatedAccountDefendantAccount::getAccountId)
-            .distinct()
-            .filter(this::isIndividualChildAccount)
-            .toList();
-    }
-
-    private boolean isIndividualChildAccount(Long childAccountId) {
-        if (childAccountId == null) {
-            throw new IllegalStateException("Consolidated child account ID is missing");
-        }
-
-        DefendantAccountHeaderSummary header = defendantAccountServiceProxy.getHeaderSummary(childAccountId);
-        if (header == null || header.getResponse() == null) {
-            throw new IllegalStateException("Organisation flag is missing for child account " + childAccountId);
-        }
-
-        PartyDetailsCommon partyDetails = header.getResponse().getPartyDetails();
-        if (partyDetails == null || partyDetails.getOrganisationFlag() == null) {
-            throw new IllegalStateException("Organisation flag is missing for child account " + childAccountId);
-        }
-        // An organisation flag of false identifies an individual defendant
-        return !partyDetails.getOrganisationFlag();
     }
 
     public DefendantAccountHistoryResponse getHistory(Long defendantAccountId,
