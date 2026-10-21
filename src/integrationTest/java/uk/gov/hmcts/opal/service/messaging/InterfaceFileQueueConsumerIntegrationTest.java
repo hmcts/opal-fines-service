@@ -1,85 +1,101 @@
 package uk.gov.hmcts.opal.service.messaging;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import jakarta.jms.TextMessage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.service.InterfaceFileProcessorService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
-@DisplayName("Interface File Queue Consumer Integration Tests")
+@ActiveProfiles({"integration"})
+@TestPropertySource(properties = {
+    "opal.interface-file.service-bus.consumer-enabled=true",
+    "opal.report.service-bus.consumer-enabled=true",
+    "opal.automated-task=",
+    "opal.interface-file.service-bus.queue-name=test-queue"
+})
 class InterfaceFileQueueConsumerIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
-    private InterfaceFileQueueListener consumer;
+    private InterfaceFileQueueListener listener;
 
     @MockitoBean
     private InterfaceFileProcessorService interfaceFileProcessorService;
 
+    @MockitoBean
+    private TextMessage textMessage;
+
     @Test
+    @DisplayName("AC1 - Valid message invokes processor service")
     @JiraStory("PO-6459")
     @JiraEpic("PO-6390")
-    @DisplayName("AC1 - Valid message invokes processor service")
-    void ac1ValidMessageInvokesProcessorService() {
+    void ac1ValidMessageInvokesProcessorService() throws Exception {
 
-        assertThatCode(() ->
-                           consumer.consume("""
+        when(textMessage.getText()).thenReturn("""
             {
               "interfaceFileId": 1
             }
-            """)
-        ).doesNotThrowAnyException();
+            """);
+
+        listener.onMessage(textMessage);
 
         verify(interfaceFileProcessorService)
             .process(1L);
     }
 
     @Test
+    @DisplayName("AC2 - Processing failure is propagated")
     @JiraStory("PO-6459")
     @JiraEpic("PO-6390")
-    @DisplayName("AC2 - Processing failure is propagated")
-    void ac2ProcessingFailureIsPropagated() {
+    void ac2ProcessingFailureIsPropagated() throws Exception {
+
+        when(textMessage.getText()).thenReturn("""
+            {
+              "interfaceFileId": 1
+            }
+            """);
 
         doThrow(new RuntimeException("processing failure"))
             .when(interfaceFileProcessorService)
             .process(1L);
 
-        assertThatThrownBy(() ->
-                               consumer.consume("""
-                {
-                  "interfaceFileId": 1
-                }
-                """)
-        )
+        assertThatThrownBy(() -> listener.onMessage(textMessage))
             .isInstanceOf(RuntimeException.class)
             .hasMessageContaining("processing failure");
     }
 
     @Test
+    @DisplayName("Invalid payload throws exception")
     @JiraStory("PO-6459")
     @JiraEpic("PO-6390")
-    @DisplayName("Invalid payload throws exception")
-    void invalidPayloadThrowsException() {
+    void invalidPayloadThrowsException() throws Exception {
 
-        assertThatThrownBy(() -> consumer.consume("{invalid"))
+        when(textMessage.getText()).thenReturn("{invalid");
+
+        assertThatThrownBy(() -> listener.onMessage(textMessage))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("Unable to parse");
     }
 
     @Test
+    @DisplayName("Blank payload throws exception")
     @JiraStory("PO-6459")
     @JiraEpic("PO-6390")
-    @DisplayName("Blank payload throws exception")
-    void blankPayloadThrowsException() {
+    void blankPayloadThrowsException() throws Exception {
 
-        assertThatThrownBy(() -> consumer.consume(" "))
+        when(textMessage.getText()).thenReturn(" ");
+
+        assertThatThrownBy(() -> listener.onMessage(textMessage))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("payload is blank");
     }
