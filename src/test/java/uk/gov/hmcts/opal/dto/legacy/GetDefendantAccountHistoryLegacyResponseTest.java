@@ -47,4 +47,20 @@ class GetDefendantAccountHistoryLegacyResponseTest {
         assertEquals("Flat legacy account note",
             response.getHistoryItems().get(0).getDetails().getNoteText());
     }
+
+    @Test
+    void unmarshalXmlString_whenErrorResponseIsReturned_populatesLegacyError() throws JAXBException {
+        GetDefendantAccountHistoryLegacyResponse response = XmlUtil.unmarshalXmlString("""
+            <response>
+              <error_response>
+                <error_code>-6502</error_code>
+                <error_message>ORA-06502: PL/SQL: numeric or value error: number precision too large</error_message>
+              </error_response>
+            </response>
+            """, GetDefendantAccountHistoryLegacyResponse.class);
+
+        assertEquals("-6502", response.getErrorResponse().getErrorCode());
+        assertEquals("ORA-06502: PL/SQL: numeric or value error: number precision too large",
+            response.getErrorResponse().getErrorMessage());
+    }
 }

@@ -31,8 +31,12 @@ class DefendantAccountPaymentTermsLegacyResponseMapperTest {
         LegacyPaymentTerms paymentTerms = getLegacyPaymentTerms();
 
         LegacyGetDefendantAccountPaymentTermsResponse legacyGetDefendantAccountPaymentTermsResponse =
-            new LegacyGetDefendantAccountPaymentTermsResponse(new BigInteger("5"), paymentTerms,
-                LocalDate.of(2026, 8, 15), "123456");
+            LegacyGetDefendantAccountPaymentTermsResponse.builder()
+                .version(new BigInteger("5"))
+                .paymentTerms(paymentTerms)
+                .paymentCardLastRequested(LocalDate.of(2026, 8, 15))
+                .lastEnforcement("123456")
+                .build();
 
         var defendantAccountPaymentTerm = mapper.toResponse(legacyGetDefendantAccountPaymentTermsResponse);
 
@@ -73,8 +77,12 @@ class DefendantAccountPaymentTermsLegacyResponseMapperTest {
         paymentTerms.setInstalmentPeriod(new LegacyInstalmentPeriod(InstalmentPeriodCode.F));
 
         LegacyGetDefendantAccountPaymentTermsResponse legacyGetDefendantAccountPaymentTermsResponse =
-            new LegacyGetDefendantAccountPaymentTermsResponse(new BigInteger("5"), paymentTerms,
-                LocalDate.of(2026, 8, 15), "123456");
+            LegacyGetDefendantAccountPaymentTermsResponse.builder()
+                .version(new BigInteger("5"))
+                .paymentTerms(paymentTerms)
+                .paymentCardLastRequested(LocalDate.of(2026, 8, 15))
+                .lastEnforcement("123456")
+                .build();
 
         var defendantAccountPaymentTerm = mapper.toResponse(legacyGetDefendantAccountPaymentTermsResponse);
 

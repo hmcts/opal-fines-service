@@ -25,12 +25,13 @@ import uk.gov.hmcts.opal.dto.ToXmlString;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class LegacyCreateDefendantAccountResponse implements ToXmlString, HasErrorResponse {
 
+    @XmlElement(name = "error_response")
+    private ErrorResponse errorResponse;
+
     @XmlElement(name = "defendant_account_id")
     private Long defendantAccountId;
 
     @XmlElement(name = "defendant_account_number")
     private String defendantAccountNumber;
 
-    @XmlElement(name = "error_response")
-    private ErrorResponse errorResponse;
 }

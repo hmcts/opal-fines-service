@@ -3,6 +3,13 @@ package uk.gov.hmcts.opal.controllers.r1b;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -10,18 +17,26 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.SchemaPaths.GET_DEFENDANT_ACCOUNT_IMPOSITIONS_RESPONSE;
+import static uk.gov.hmcts.opal.controllers.shared.util.OpenApiContractAssertions.assertGet200JsonResponseMatchesBundledSpec;
 
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
+import uk.gov.hmcts.opal.dto.PdplIdentifierType;
+import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -39,10 +54,18 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/defendant-accounts";
+    private static final String CREDITOR_ACCOUNT_TYPE =
+        "$.impositions[0].creditor.creditor_account_type_reference.creditor_account_type";
+    private static final String CREDITOR_ACCOUNT_DISPLAY_NAME =
+        "$.impositions[0].creditor.creditor_account_type_reference.creditor_account_display_name";
 
+    @MockitoBean
+    private LoggingService loggingService;
 
-    @MockitoSpyBean
-    private JsonSchemaValidationService jsonSchemaValidationService;
+    @BeforeEach
+    void setUpLogging() {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+    }
 
     @Test
     @DisplayName("OPAL: Get Defendant Account Impositions returns major creditor imposition with schema-valid body")
@@ -59,28 +82,32 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
             .andExpect(jsonPath("$.impositions[0].imposition.result_id").value("IGR001"))
             .andExpect(jsonPath("$.impositions[0].imposition.result_title").value("Imposition Graph Result"))
             .andExpect(jsonPath("$.impositions[0].creditor.creditor_account_id").value(551004))
-            .andExpect(jsonPath("$.impositions[0].creditor.account_type").value("MJ"))
-            .andExpect(jsonPath("$.impositions[0].creditor.display_name").value("Major Creditor"))
-            .andExpect(jsonPath("$.impositions[0].creditor.major_creditor_id").value(551003))
-            .andExpect(jsonPath("$.impositions[0].creditor.minor_creditor_party_id").value(is(nullValue())))
-            .andExpect(jsonPath("$.impositions[0].creditor.name").value("Graph Major Creditor"))
+            .andExpect(jsonPath(CREDITOR_ACCOUNT_TYPE).value("MJ"))
+            .andExpect(jsonPath(CREDITOR_ACCOUNT_DISPLAY_NAME).value("Major Creditor"))
+            .andExpect(jsonPath("$.impositions[0].creditor.major_creditor_name").value("Graph Major Creditor"))
+            .andExpect(jsonPath("$.impositions[0].creditor.minor_creditor_organisation_flag")
+                .value(is(nullValue())))
+            .andExpect(jsonPath("$.impositions[0].creditor.individual_name").value(is(nullValue())))
+            .andExpect(jsonPath("$.impositions[0].creditor.company_name").value(is(nullValue())))
             .andExpect(jsonPath("$.impositions[0].imposed_amount").value(250.00))
             .andExpect(jsonPath("$.impositions[0].paid_amount").value(25.00))
             .andExpect(jsonPath("$.impositions[0].balance").value(225.00))
             .andExpect(jsonPath("$.impositions[0].date_imposed").value("2026-04-16"))
-            .andExpect(jsonPath("$.impositions[0].offence.id").value(5510))
-            .andExpect(jsonPath("$.impositions[0].offence.code").value("IG5510"))
-            .andExpect(jsonPath("$.impositions[0].offence.title").value("Imposition Graph Offence"))
+            .andExpect(jsonPath("$.impositions[0].offence.offence_id").value(5510))
+            .andExpect(jsonPath("$.impositions[0].offence.cjs_code").value("IG5510"))
+            .andExpect(jsonPath("$.impositions[0].offence.offence_title").value("Imposition Graph Offence"))
             .andExpect(jsonPath("$.impositions[0].imposed_by.court_id").value(551001))
             .andExpect(jsonPath("$.impositions[0].imposed_by.court_code").value(101))
             .andExpect(jsonPath("$.impositions[0].imposed_by.court_name").value("Graph Test Court"))
             .andExpect(jsonPath("$.impositions[0].imposition_id").value(551005))
             .andReturn();
 
-        jsonSchemaValidationService.validateOrError(
-            result.getResponse().getContentAsString(),
-            GET_DEFENDANT_ACCOUNT_IMPOSITIONS_RESPONSE
+        assertGet200JsonResponseMatchesBundledSpec(
+            ToJsonString.toJsonNode(result.getResponse().getContentAsString()),
+            "/defendant-accounts/{id}/impositions"
         );
+
+        verify(loggingService, never()).personalDataAccessLogAsync(any());
     }
 
     @Test
@@ -95,22 +122,120 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
             .andExpect(header().string("ETag", "\"8\""))
             .andExpect(jsonPath("$.impositions", hasSize(1)))
             .andExpect(jsonPath("$.impositions[0].creditor.creditor_account_id").value(551007))
-            .andExpect(jsonPath("$.impositions[0].creditor.account_type").value("MN"))
-            .andExpect(jsonPath("$.impositions[0].creditor.display_name").value("Minor Creditor"))
-            .andExpect(jsonPath("$.impositions[0].creditor.major_creditor_id").value(is(nullValue())))
-            .andExpect(jsonPath("$.impositions[0].creditor.minor_creditor_party_id").value(551006))
-            .andExpect(jsonPath("$.impositions[0].creditor.name").value("Ms Creditor Minor"))
+            .andExpect(jsonPath(CREDITOR_ACCOUNT_TYPE).value("MN"))
+            .andExpect(jsonPath(CREDITOR_ACCOUNT_DISPLAY_NAME).value("Minor Creditor"))
+            .andExpect(jsonPath("$.impositions[0].creditor.major_creditor_name").value(is(nullValue())))
+            .andExpect(jsonPath("$.impositions[0].creditor.minor_creditor_organisation_flag").value(false))
+            .andExpect(jsonPath("$.impositions[0].creditor.individual_name.forenames").value("Creditor"))
+            .andExpect(jsonPath("$.impositions[0].creditor.individual_name.surname").value("Minor"))
+            .andExpect(jsonPath("$.impositions[0].creditor.company_name").value(is(nullValue())))
             .andExpect(jsonPath("$.impositions[0].imposed_amount").value(80.00))
             .andExpect(jsonPath("$.impositions[0].paid_amount").value(30.00))
             .andExpect(jsonPath("$.impositions[0].balance").value(50.00))
-            .andExpect(jsonPath("$.impositions[0].imposed_by").value(is(nullValue())))
+            .andExpect(jsonPath("$.impositions[0].imposed_by").doesNotExist())
             .andExpect(jsonPath("$.impositions[0].imposition_id").value(551009))
             .andReturn();
 
-        jsonSchemaValidationService.validateOrError(
-            result.getResponse().getContentAsString(),
-            GET_DEFENDANT_ACCOUNT_IMPOSITIONS_RESPONSE
+        assertGet200JsonResponseMatchesBundledSpec(
+            ToJsonString.toJsonNode(result.getResponse().getContentAsString()),
+            "/defendant-accounts/{id}/impositions"
         );
+
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+        verify(loggingService).personalDataAccessLogAsync(captor.capture());
+        PersonalDataProcessingLogDetails details = captor.getValue();
+
+        assertAll(
+            () -> assertEquals("View Defendant Impositions (Individual Minor Creditor)",
+                details.getBusinessIdentifier()),
+            () -> assertEquals(PersonalDataProcessingCategory.CONSULTATION, details.getCategory()),
+            () -> assertEquals("500000000", details.getCreatedBy().getIdentifier()),
+            () -> assertEquals(PdplIdentifierType.OPAL_USER_ID, details.getCreatedBy().getType()),
+            () -> assertEquals(List.of("551007"), details.getIndividuals().stream()
+                .map(ParticipantIdentifier::getIdentifier).toList()),
+            () -> assertEquals(List.of(PdplIdentifierType.MINOR_CREDITOR), details.getIndividuals().stream()
+                .map(ParticipantIdentifier::getType).toList()),
+            () -> assertNull(details.getRecipient())
+        );
+    }
+
+    @Test
+    @DisplayName("PO-10757: Queue rejection prevents individual minor-creditor impositions from being returned")
+    @JiraStory("PO-10757")
+    @JiraEpic("PO-10729")
+    void getImpositions_queueReturnsFalse_returnsServiceUnavailable() throws Exception {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(false);
+
+        performGetImpositions(551008L)
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/pdpl-logging-unavailable"))
+            .andExpect(jsonPath("$.detail").value("The personal data logging queue is currently unavailable"))
+            .andExpect(jsonPath("$.retriable").value(true))
+            .andExpect(jsonPath("$.impositions").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("PO-10757: Queue error prevents individual minor-creditor impositions from being returned")
+    @JiraStory("PO-10757")
+    @JiraEpic("PO-10729")
+    void getImpositions_queueRaisesError_returnsServiceUnavailable() throws Exception {
+        when(loggingService.personalDataAccessLogAsync(any()))
+            .thenThrow(new IllegalStateException("logging unavailable"));
+
+        performGetImpositions(551008L)
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/pdpl-logging-unavailable"))
+            .andExpect(jsonPath("$.impositions").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("OPAL: Get Defendant Account Impositions returns the UI creditor-name scenarios")
+    @JiraStory("PO-10570")
+    @JiraEpic("PO-979")
+    void getImpositions_returnsUiCreditorNameScenarios() throws Exception {
+        MvcResult result = performGetImpositions(99105710000001L)
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string("ETag", "\"1\""))
+            .andExpect(jsonPath("$.impositions", hasSize(6)))
+            .andExpect(jsonPath("$.impositions[0].imposition_id").value(99105710000301L))
+            .andExpect(jsonPath("$.impositions[0].creditor.minor_creditor_organisation_flag").value(true))
+            .andExpect(jsonPath("$.impositions[0].creditor.company_name.organisation_name")
+                .value("PO10571 Company Ltd"))
+            .andExpect(jsonPath("$.impositions[1].imposition_id").value(99105710000302L))
+            .andExpect(jsonPath("$.impositions[1].creditor.minor_creditor_organisation_flag").value(false))
+            .andExpect(jsonPath("$.impositions[1].creditor.individual_name.forenames").value("Alex James"))
+            .andExpect(jsonPath("$.impositions[1].creditor.individual_name.surname").value("Example"))
+            .andExpect(jsonPath("$.impositions[2].imposition_id").value(99105710000303L))
+            .andExpect(jsonPath("$.impositions[2].creditor.minor_creditor_organisation_flag").value(false))
+            .andExpect(jsonPath("$.impositions[2].creditor.individual_name.forenames").value(is(nullValue())))
+            .andExpect(jsonPath("$.impositions[2].creditor.individual_name.surname").value("SurnameOnly"))
+            .andExpect(jsonPath("$.impositions[3].imposition_id").value(99105710000304L))
+            .andExpect(jsonPath("$.impositions[3].creditor.major_creditor_name")
+                .value("PO10571 Major Creditor"))
+            .andExpect(jsonPath("$.impositions[4].imposition_id").value(99105710000305L))
+            .andExpect(jsonPath("$.impositions[4].creditor.creditor_account_type_reference"
+                + ".creditor_account_type").value("CF"))
+            .andExpect(jsonPath("$.impositions[4].creditor.creditor_account_type_reference"
+                + ".creditor_account_display_name").value("Central Fund"))
+            .andExpect(jsonPath("$.impositions[5].imposition_id").value(99105710000306L))
+            .andExpect(jsonPath("$.impositions[5].creditor.minor_creditor_organisation_flag").value(true))
+            .andExpect(jsonPath("$.impositions[5].creditor.company_name").value(is(nullValue())))
+            .andReturn();
+
+        assertGet200JsonResponseMatchesBundledSpec(
+            ToJsonString.toJsonNode(result.getResponse().getContentAsString()),
+            "/defendant-accounts/{id}/impositions"
+        );
+
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+        verify(loggingService).personalDataAccessLogAsync(captor.capture());
+        assertEquals(List.of("99105710000202", "99105710000203"), captor.getValue().getIndividuals().stream()
+            .map(ParticipantIdentifier::getIdentifier).toList());
     }
 
     @Test
@@ -126,10 +251,12 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
             .andExpect(jsonPath("$.impositions", hasSize(0)))
             .andReturn();
 
-        jsonSchemaValidationService.validateOrError(
-            result.getResponse().getContentAsString(),
-            GET_DEFENDANT_ACCOUNT_IMPOSITIONS_RESPONSE
+        assertGet200JsonResponseMatchesBundledSpec(
+            ToJsonString.toJsonNode(result.getResponse().getContentAsString()),
+            "/defendant-accounts/{id}/impositions"
         );
+
+        verify(loggingService, never()).personalDataAccessLogAsync(any());
     }
 
     @Test
@@ -143,6 +270,8 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
             .andExpect(jsonPath("$.status").value(404));
+
+        verify(loggingService, never()).personalDataAccessLogAsync(any());
     }
 
     @Test
@@ -158,6 +287,8 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"))
             .andExpect(jsonPath("$.status").value(403))
             .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"));
+
+        verify(loggingService, never()).personalDataAccessLogAsync(any());
     }
 
     private ResultActions performGetImpositions(Long defendantAccountId) throws Exception {

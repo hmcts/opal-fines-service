@@ -2,10 +2,15 @@ package uk.gov.hmcts.opal.service.legacy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -19,6 +24,8 @@ import org.mockito.Mockito;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
+import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryFilter;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
@@ -31,7 +38,6 @@ import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse.LegacyDefendantAccountHistoryDetails;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse.LegacyDefendantAccountHistoryItem;
-import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse.LegacyDefendantAccountNoteDetails;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse.LegacyHistoryTypeReference;
 import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
@@ -147,20 +153,19 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
         assertNotNull(out);
         assertEquals(BigInteger.valueOf(9L), out.getVersion());
         assertEquals(5, out.getHistoryItems().size());
-        assertEquals(HistoryItemType.FINANCIAL, out.getHistoryItems().get(0).getType());
-        assertEquals(HistoryItemType.PAYMENT_TERMS, out.getHistoryItems().get(1).getType());
+        assertEquals(HistoryItemType.AMENDMENT, out.getHistoryItems().get(0).getType());
+        assertEquals(HistoryItemType.ENFORCEMENT, out.getHistoryItems().get(1).getType());
         assertEquals("Reason text",
-            ((EnforcementDetails) out.getHistoryItems().get(3).getDetails()).getReason());
-        assertEquals("Account note text",
-            ((NoteDetails) out.getHistoryItems().get(2).getDetails()).getNoteText());
-        assertEquals("Extension reason",
-            ((PaymentTermsDetails) out.getHistoryItems().get(1).getDetails()).getReasonForExtension());
+            ((EnforcementDetails) out.getHistoryItems().get(1).getDetails()).getReason());
         assertEquals("PAY123",
-            ((DefendantTransactionDetails) out.getHistoryItems().get(0).getDetails()).getPaymentReference());
-        assertEquals(new BigDecimal("-25.50"), out.getHistoryItems().get(0).getAmount());
-        assertEquals(LocalDateTime.of(2026, Month.MAY, 12, 10, 15),
-                     out.getHistoryItems().get(0).getEventDateTime());
-        assertEquals(HistoryItemType.AMENDMENT, out.getHistoryItems().get(4).getType());
+            ((DefendantTransactionDetails) out.getHistoryItems().get(2).getDetails()).getPaymentReference());
+        assertEquals(new BigDecimal("-25.50"), out.getHistoryItems().get(2).getAmount());
+        assertEquals("Account note text",
+            ((NoteDetails) out.getHistoryItems().get(3).getDetails()).getNoteText());
+        assertEquals("Extension reason",
+            ((PaymentTermsDetails) out.getHistoryItems().get(4).getDetails()).getReasonForExtension());
+        assertEquals(LocalDate.of(2026, Month.MAY, 12),
+            ((PaymentTermsDetails) out.getHistoryItems().get(4).getDetails()).getDateDaysInDefaultImposed());
 
         ArgumentCaptor<GetDefendantAccountHistoryLegacyRequest> requestCaptor =
             ArgumentCaptor.forClass(GetDefendantAccountHistoryLegacyRequest.class);
@@ -193,6 +198,33 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
         assertEquals(BigInteger.ONE, out.getVersion());
         assertNotNull(out.getHistoryItems());
         assertEquals(0, out.getHistoryItems().size());
+    }
+
+    @Test
+    void getHistory_whenLegacyReturnsAccountNotFoundError_throwsNotFoundException() {
+        GetDefendantAccountHistoryLegacyResponse responseBody = GetDefendantAccountHistoryLegacyResponse.builder()
+            .errorResponse(ErrorResponse.builder()
+                .errorCode("-6502")
+                .errorMessage("ORA-06502: PL/SQL: numeric or value error: number precision too large")
+                .build())
+            .build();
+        GatewayService.Response<GetDefendantAccountHistoryLegacyResponse> response =
+            new GatewayService.Response<>(HttpStatus.OK, responseBody, null, null);
+
+        doReturn(response).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.GET_DEFENDANT_ACCOUNT_HISTORY),
+            eq(GetDefendantAccountHistoryLegacyResponse.class),
+            any(GetDefendantAccountHistoryLegacyRequest.class),
+            isNull(String.class)
+        );
+
+        EntityNotFoundException exception = assertThrows(
+            EntityNotFoundException.class,
+            () -> legacyDefendantAccountService.getHistory(90006695475541L,
+                DefendantAccountHistoryFilter.builder().build())
+        );
+
+        assertEquals("Defendant account history not found", exception.getMessage());
     }
 
     private LegacyDefendantAccountHistoryItem amendmentItem() {
@@ -229,7 +261,7 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
             .postedDetails(postedDetails(2026, 5, 11, 12, 0, "note-user", "Note User"))
             .type("Note")
             .details(LegacyDefendantAccountHistoryDetails.builder()
-                .noteDetails(LegacyDefendantAccountNoteDetails.builder()
+                .noteDetails(LegacyDefendantAccountHistoryDetails.builder()
                     .noteText("Account note text")
                     .build())
                 .build())

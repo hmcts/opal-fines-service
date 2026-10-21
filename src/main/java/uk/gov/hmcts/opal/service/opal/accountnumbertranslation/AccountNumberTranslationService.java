@@ -56,8 +56,8 @@ public class AccountNumberTranslationService {
                     }
                 }
 
-                var apr = lookUpAPR(transaction.getOriginatorDetails().getAccountReference(),
-                    businessUnit.getBusinessUnitCode());
+                Optional<AlternatePaymentReferenceEntity> apr = lookUpAPR(
+                    transaction.getOriginatorDetails().getAccountReference(), businessUnit.getBusinessUnitId());
                 if (apr.isPresent()) {
                     String newReference = String.format("%d", apr.get().getDefendantAccount().getDefendantAccountId());
                     replaceAccountReference(transaction, newReference);
@@ -71,7 +71,7 @@ public class AccountNumberTranslationService {
                     continue;
                 }
 
-                apr = lookUpAPR(transaction.getOriginatorDetails().getName(), businessUnit.getBusinessUnitCode());
+                apr = lookUpAPR(transaction.getOriginatorDetails().getName(), businessUnit.getBusinessUnitId());
                 if (apr.isPresent()) {
                     String newReference = String.format("%d", apr.get().getDefendantAccount().getDefendantAccountId());
                     replaceAccountReference(transaction, newReference);
@@ -126,7 +126,7 @@ public class AccountNumberTranslationService {
         ).isPresent();
     }
 
-    private Optional<AlternatePaymentReferenceEntity> lookUpAPR(String accountReference, String buCode) {
-        return aprRepository.findByAprTextAndBusinessUnitCode(accountReference, buCode);
+    private Optional<AlternatePaymentReferenceEntity> lookUpAPR(String accountReference, short businessUnitId) {
+        return aprRepository.findByAprTextAndBusinessUnit_businessUnitId(accountReference, businessUnitId);
     }
 }
