@@ -5,20 +5,27 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import feign.Contract;
 import feign.Feign;
+import feign.FeignException;
+import feign.Retryer;
 import feign.codec.Encoder;
+import feign.codec.ErrorDecoder;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.openfeign.FeignClientsConfiguration;
+import org.springframework.context.support.GenericApplicationContext;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.AddInterfaceFileRequestMetadata;
@@ -26,6 +33,7 @@ import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.AddInterfaceF
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.AddInterfaceFileRequestMetadata.PaymentTypeEnum;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.InterfaceFileEnum;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.InterfaceFileTypeEnum;
+import uk.gov.hmcts.opal.logging.integration.client.config.PdpoSyncFeignConfig;
 import uk.gov.hmcts.opal.service.filehandler.FileHandlerSystemUserContext;
 import uk.gov.hmcts.opal.service.filehandler.TransformedJsonMultipartFile;
 
@@ -40,6 +48,38 @@ class FileHandlerFeignClientConfigurationTest {
         .withBean(ObjectMapper.class, () -> JsonMapper.builder().build())
         .withBean(FileHandlerSystemUserContext.class, FileHandlerSystemUserContext::new)
         .withUserConfiguration(FileHandlerFeignClientConfiguration.class, FeignClientsConfiguration.class);
+
+    @Test
+    void getInterfaceFile_preservesErrorDetailsWhenParentHasPdpoDecoder() {
+        wireMockServer.stubFor(get(urlEqualTo("/interface-files/987"))
+            .willReturn(aResponse().withStatus(503)
+                .withHeader("Content-Type", "application/problem+json")
+                .withBody("""
+                    {"detail":"File Handler storage is temporarily unavailable. Please retry later."}
+                    """)));
+
+        try (GenericApplicationContext parent = new GenericApplicationContext()) {
+            parent.registerBean(ErrorDecoder.class, () -> new PdpoSyncFeignConfig().pdpoSyncErrorDecoder());
+            parent.refresh();
+
+            contextRunner.withParent(parent).run(context -> {
+                FileHandlerClient client = Feign.builder()
+                    .contract(context.getBean(Contract.class))
+                    .encoder(context.getBean(Encoder.class))
+                    .errorDecoder(context.getBean(ErrorDecoder.class))
+                    .retryer(Retryer.NEVER_RETRY)
+                    .target(FileHandlerClient.class, wireMockServer.baseUrl());
+
+                assertThatThrownBy(() -> client.getInterfaceFile(987L))
+                    .isInstanceOfSatisfying(FeignException.class, failure -> {
+                        assertThat(failure.status()).isEqualTo(503);
+                        assertThat(failure.contentUTF8())
+                            .contains("File Handler storage is temporarily unavailable. Please retry later.");
+                    })
+                    .hasMessageContaining("File Handler storage is temporarily unavailable. Please retry later.");
+            });
+        }
+    }
 
     @Test
     void addInterfaceFile_sendsMetadataAsJsonMultipartPart() {
