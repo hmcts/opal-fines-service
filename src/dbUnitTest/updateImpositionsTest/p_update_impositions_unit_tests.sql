@@ -69,7 +69,7 @@ BEGIN
         imposed_amount, paid_amount, creditor_account_id, completed
     )
     VALUES (999900003448, 999900003448, CURRENT_TIMESTAMP, 'UT3448',
-            100.00, 20.00, 999900003448, FALSE);
+            -100.00, 20.00, 999900003448, FALSE);
 
     -- A second account and imposition must not be affected by the update.
     INSERT INTO defendant_accounts (
@@ -83,18 +83,17 @@ BEGIN
         imposed_amount, paid_amount, creditor_account_id, completed
     )
     VALUES (999900013448, 999900013448, CURRENT_TIMESTAMP, 'UT3448',
-            60.00, 10.00, 999900003448, FALSE);
+            -60.00, 10.00, 999900003448, FALSE);
 END $$;
 
 ----------------------------------------------------------------------------------------------------------------------
--- Test 1: Update the imposition and defendant account
+-- Test 1: Update the imposition
 ----------------------------------------------------------------------------------------------------------------------
 DO LANGUAGE 'plpgsql' $$
 DECLARE
     v_imposition impositions%ROWTYPE;
-    v_account    defendant_accounts%ROWTYPE;
 BEGIN
-    RAISE NOTICE '=== Test 1: Update the imposition and defendant account ===';
+    RAISE NOTICE '=== Test 1: Update the imposition ===';
 
     CALL p_update_impositions(
         pi_imposition_id := 999900003448::BIGINT,
@@ -102,20 +101,12 @@ BEGIN
     );
 
     SELECT * INTO STRICT v_imposition FROM impositions WHERE imposition_id = 999900003448;
-    SELECT * INTO STRICT v_account FROM defendant_accounts WHERE defendant_account_id = 999900003448;
 
     ASSERT v_imposition.paid_amount = 45.50, 'Imposition paid_amount should be 45.50';
-    ASSERT v_imposition.imposed_amount = 100.00, 'Imposition imposed_amount should remain unchanged';
+    ASSERT v_imposition.imposed_amount = -100.00, 'Imposition imposed_amount should remain unchanged';
     ASSERT v_imposition.completed = FALSE, 'completed should remain unchanged';
-    ASSERT v_account.amount_paid = 45.50, 'Account amount_paid should be 45.50';
-    ASSERT v_account.account_balance = 54.50, 'Account balance should be 54.50';
-    ASSERT v_account.amount_imposed = 100.00, 'Account amount_imposed should remain unchanged';
     ASSERT (SELECT paid_amount FROM impositions WHERE imposition_id = 999900013448) = 10.00,
         'The other imposition should remain unchanged';
-    ASSERT (SELECT amount_paid FROM defendant_accounts WHERE defendant_account_id = 999900013448) = 10.00,
-        'The other account amount_paid should remain unchanged';
-    ASSERT (SELECT account_balance FROM defendant_accounts WHERE defendant_account_id = 999900013448) = 50.00,
-        'The other account balance should remain unchanged';
 
     RAISE NOTICE 'TEST 1 PASSED';
 END $$;
@@ -126,7 +117,6 @@ END $$;
 DO LANGUAGE 'plpgsql' $$
 DECLARE
     v_imposition impositions%ROWTYPE;
-    v_account    defendant_accounts%ROWTYPE;
 BEGIN
     RAISE NOTICE '=== Test 2: Add a second payment of one penny ===';
 
@@ -136,32 +126,47 @@ BEGIN
     );
 
     SELECT * INTO STRICT v_imposition FROM impositions WHERE imposition_id = 999900003448;
-    SELECT * INTO STRICT v_account FROM defendant_accounts WHERE defendant_account_id = 999900003448;
 
     ASSERT v_imposition.paid_amount = 45.51, 'Imposition paid_amount should be 45.51';
-    ASSERT v_imposition.imposed_amount = 100.00, 'Imposition imposed_amount should remain unchanged';
+    ASSERT v_imposition.imposed_amount = -100.00, 'Imposition imposed_amount should remain unchanged';
     ASSERT v_imposition.completed = FALSE, 'completed should remain unchanged';
-    ASSERT v_account.amount_paid = 45.51, 'Account amount_paid should be 45.51';
-    ASSERT v_account.account_balance = 54.49, 'Account balance should be 54.49';
-    ASSERT v_account.amount_imposed = 100.00, 'Account amount_imposed should remain unchanged';
     ASSERT (SELECT paid_amount FROM impositions WHERE imposition_id = 999900013448) = 10.00,
         'The other imposition should remain unchanged';
-    ASSERT (SELECT amount_paid FROM defendant_accounts WHERE defendant_account_id = 999900013448) = 10.00,
-        'The other account amount_paid should remain unchanged';
-    ASSERT (SELECT account_balance FROM defendant_accounts WHERE defendant_account_id = 999900013448) = 50.00,
-        'The other account balance should remain unchanged';
 
     RAISE NOTICE 'TEST 2 PASSED';
 END $$;
 
 ----------------------------------------------------------------------------------------------------------------------
--- Test 3: Reject a NULL imposition ID
+-- Test 3: Set completed when paid_amount reaches the imposed amount
+----------------------------------------------------------------------------------------------------------------------
+DO LANGUAGE 'plpgsql' $$
+DECLARE
+    v_imposition impositions%ROWTYPE;
+BEGIN
+    RAISE NOTICE '=== Test 3: Set completed when paid_amount reaches the imposed amount ===';
+
+    CALL p_update_impositions(
+        pi_imposition_id := 999900013448::BIGINT,
+        pi_imposition_allocation_amount := 50.00::NUMERIC
+    );
+
+    SELECT * INTO STRICT v_imposition FROM impositions WHERE imposition_id = 999900013448;
+
+    ASSERT v_imposition.paid_amount = -v_imposition.imposed_amount,
+        'Imposition paid_amount should equal the absolute imposed_amount';
+    ASSERT v_imposition.completed = TRUE, 'completed should be TRUE when paid_amount reaches the absolute imposed_amount';
+
+    RAISE NOTICE 'TEST 3 PASSED';
+END $$;
+
+----------------------------------------------------------------------------------------------------------------------
+-- Test 4: Reject a NULL imposition ID
 ----------------------------------------------------------------------------------------------------------------------
 DO LANGUAGE 'plpgsql' $$
 DECLARE
     v_error_caught BOOLEAN := FALSE;
 BEGIN
-    RAISE NOTICE '=== Test 3: Reject a NULL imposition ID ===';
+    RAISE NOTICE '=== Test 4: Reject a NULL imposition ID ===';
 
     BEGIN
         CALL p_update_impositions(
@@ -176,22 +181,18 @@ BEGIN
     ASSERT v_error_caught, 'Expected SQLSTATE P3601 was not raised';
     ASSERT (SELECT paid_amount FROM impositions WHERE imposition_id = 999900003448) = 45.51,
         'Invalid calls should not change imposition paid_amount';
-    ASSERT (SELECT amount_paid FROM defendant_accounts WHERE defendant_account_id = 999900003448) = 45.51,
-        'Invalid calls should not change account amount_paid';
-    ASSERT (SELECT account_balance FROM defendant_accounts WHERE defendant_account_id = 999900003448) = 54.49,
-        'Invalid calls should not change account_balance';
 
-    RAISE NOTICE 'TEST 3 PASSED';
+    RAISE NOTICE 'TEST 4 PASSED';
 END $$;
 
 ----------------------------------------------------------------------------------------------------------------------
--- Test 4: Reject a NULL amount
+-- Test 5: Reject a NULL amount
 ----------------------------------------------------------------------------------------------------------------------
 DO LANGUAGE 'plpgsql' $$
 DECLARE
     v_error_caught BOOLEAN := FALSE;
 BEGIN
-    RAISE NOTICE '=== Test 4: Reject a NULL amount ===';
+    RAISE NOTICE '=== Test 5: Reject a NULL amount ===';
 
     BEGIN
         CALL p_update_impositions(
@@ -206,22 +207,18 @@ BEGIN
     ASSERT v_error_caught, 'Expected SQLSTATE P3602 was not raised';
     ASSERT (SELECT paid_amount FROM impositions WHERE imposition_id = 999900003448) = 45.51,
         'Invalid calls should not change imposition paid_amount';
-    ASSERT (SELECT amount_paid FROM defendant_accounts WHERE defendant_account_id = 999900003448) = 45.51,
-        'Invalid calls should not change account amount_paid';
-    ASSERT (SELECT account_balance FROM defendant_accounts WHERE defendant_account_id = 999900003448) = 54.49,
-        'Invalid calls should not change account_balance';
 
-    RAISE NOTICE 'TEST 4 PASSED';
+    RAISE NOTICE 'TEST 5 PASSED';
 END $$;
 
 ----------------------------------------------------------------------------------------------------------------------
--- Test 5: Reject a zero amount
+-- Test 6: Reject a zero amount
 ----------------------------------------------------------------------------------------------------------------------
 DO LANGUAGE 'plpgsql' $$
 DECLARE
     v_error_caught BOOLEAN := FALSE;
 BEGIN
-    RAISE NOTICE '=== Test 5: Reject a zero amount ===';
+    RAISE NOTICE '=== Test 6: Reject a zero amount ===';
 
     BEGIN
         CALL p_update_impositions(
@@ -236,22 +233,18 @@ BEGIN
     ASSERT v_error_caught, 'Expected SQLSTATE P3602 was not raised';
     ASSERT (SELECT paid_amount FROM impositions WHERE imposition_id = 999900003448) = 45.51,
         'Invalid calls should not change imposition paid_amount';
-    ASSERT (SELECT amount_paid FROM defendant_accounts WHERE defendant_account_id = 999900003448) = 45.51,
-        'Invalid calls should not change account amount_paid';
-    ASSERT (SELECT account_balance FROM defendant_accounts WHERE defendant_account_id = 999900003448) = 54.49,
-        'Invalid calls should not change account_balance';
 
-    RAISE NOTICE 'TEST 5 PASSED';
+    RAISE NOTICE 'TEST 6 PASSED';
 END $$;
 
 ----------------------------------------------------------------------------------------------------------------------
--- Test 6: Reject a negative amount
+-- Test 7: Reject a negative amount
 ----------------------------------------------------------------------------------------------------------------------
 DO LANGUAGE 'plpgsql' $$
 DECLARE
     v_error_caught BOOLEAN := FALSE;
 BEGIN
-    RAISE NOTICE '=== Test 6: Reject a negative amount ===';
+    RAISE NOTICE '=== Test 7: Reject a negative amount ===';
 
     BEGIN
         CALL p_update_impositions(
@@ -266,22 +259,18 @@ BEGIN
     ASSERT v_error_caught, 'Expected SQLSTATE P3602 was not raised';
     ASSERT (SELECT paid_amount FROM impositions WHERE imposition_id = 999900003448) = 45.51,
         'Invalid calls should not change imposition paid_amount';
-    ASSERT (SELECT amount_paid FROM defendant_accounts WHERE defendant_account_id = 999900003448) = 45.51,
-        'Invalid calls should not change account amount_paid';
-    ASSERT (SELECT account_balance FROM defendant_accounts WHERE defendant_account_id = 999900003448) = 54.49,
-        'Invalid calls should not change account_balance';
 
-    RAISE NOTICE 'TEST 6 PASSED';
+    RAISE NOTICE 'TEST 7 PASSED';
 END $$;
 
 ----------------------------------------------------------------------------------------------------------------------
--- Test 7: Reject an unknown imposition
+-- Test 8: Reject an unknown imposition
 ----------------------------------------------------------------------------------------------------------------------
 DO LANGUAGE 'plpgsql' $$
 DECLARE
     v_error_caught BOOLEAN := FALSE;
 BEGIN
-    RAISE NOTICE '=== Test 7: Reject an unknown imposition ===';
+    RAISE NOTICE '=== Test 8: Reject an unknown imposition ===';
 
     BEGIN
         CALL p_update_impositions(
@@ -296,12 +285,8 @@ BEGIN
     ASSERT v_error_caught, 'Expected SQLSTATE P3603 was not raised';
     ASSERT (SELECT paid_amount FROM impositions WHERE imposition_id = 999900003448) = 45.51,
         'Invalid calls should not change imposition paid_amount';
-    ASSERT (SELECT amount_paid FROM defendant_accounts WHERE defendant_account_id = 999900003448) = 45.51,
-        'Invalid calls should not change account amount_paid';
-    ASSERT (SELECT account_balance FROM defendant_accounts WHERE defendant_account_id = 999900003448) = 54.49,
-        'Invalid calls should not change account_balance';
 
-    RAISE NOTICE 'TEST 7 PASSED';
+    RAISE NOTICE 'TEST 8 PASSED';
 END $$;
 
 ----------------------------------------------------------------------------------------------------------------------
