@@ -199,13 +199,17 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
             isNull()
         )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null));
 
-        performGetImpositions(12345L)
+        MvcResult result = performGetImpositions(12345L)
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.impositions[0].imposed_by").isMap())
             .andExpect(jsonPath("$.impositions[0].imposed_by.court_id").value(nullValue()))
             .andExpect(jsonPath("$.impositions[0].imposed_by.court_code").doesNotExist())
-            .andExpect(jsonPath("$.impositions[0].imposed_by.court_name").value(nullValue()));
+            .andExpect(jsonPath("$.impositions[0].imposed_by.court_name").value(nullValue()))
+            .andReturn();
+
+        assertGet200JsonResponseMatchesBundledSpec(ToJsonString.toJsonNode(result.getResponse().getContentAsString()),
+            "/defendant-accounts/{id}/impositions");
     }
 
     private ResultActions performGetImpositions(Long defendantAccountId) throws Exception {
