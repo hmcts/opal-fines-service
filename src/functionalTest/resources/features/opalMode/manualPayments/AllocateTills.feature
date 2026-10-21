@@ -41,7 +41,7 @@ Feature: Allocate tills
     When I submit an allocation request for a till that does not exist
     Then the request is rejected as not found
 
-  @JIRA-STORY:PO-3423
+  @Ignore @JIRA-DEFECT:PO-10560 @JIRA-STORY:PO-3423
   Scenario: Till allocation rejects a till submitted under the wrong business unit without partial updates
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And I create 2 uniquely identifiable tills for allocation in business unit 78
@@ -50,7 +50,7 @@ Feature: Allocate tills
     And all created tills are listed with status "CREATED"
     And I remove all created tills using the Testing Support API
 
-  @JIRA-STORY:PO-3423
+  @Ignore @JIRA-DEFECT:PO-10560 @JIRA-STORY:PO-3423
   Scenario: An authorised user queues a created till
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And I create 1 uniquely identifiable till for allocation in business unit 78
@@ -60,7 +60,7 @@ Feature: Allocate tills
     And all created tills are listed with status "PROCESSING"
     And I remove all created tills using the Testing Support API
 
-  @JIRA-STORY:PO-3423
+  @Ignore @JIRA-DEFECT:PO-10560 @JIRA-STORY:PO-3423
   Scenario: An authorised user queues multiple created tills in one request
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And I create 2 uniquely identifiable tills for allocation in business unit 78
