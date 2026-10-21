@@ -1174,6 +1174,7 @@ dependencies {
 
   implementation 'uk.gov.hmcts:opal-common-lib:0.3.37'
 
+
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:2.0.1'
   testImplementation 'uk.gov.hmcts:zephyr-automation:2.0.1'
   testImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.17.3'
@@ -1251,7 +1252,7 @@ dependencies {
   annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
   implementation 'org.apache.xmlgraphics:fop:2.11'
-  implementation 'org.apache.xmlgraphics:fop-core:2.11'
+  implementation 'org.apache.xmlgraphics:fop-core:2.12'
   implementation 'org.apache.xmlgraphics:fop-events:2.11'
   implementation 'org.apache.xmlgraphics:xmlgraphics-commons:2.11'
   implementation 'org.apache.pdfbox:pdfbox:3.0.8'
