@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -26,6 +27,7 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.exception.PdplLoggingException;
 import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
@@ -561,6 +563,8 @@ class DefendantAccountPartyServiceTest {
 
         // Assert
         assertThat(actual).isSameAs(expectedResponse);
+        verify(pdplLoggingService).logRemovedParentGuardian(
+            defendantAccountPartyId, request, expectedResponse, userState);
 
         ArgumentCaptor<String> buUserIdCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> postedByCaptor = ArgumentCaptor.forClass(String.class);
@@ -620,6 +624,8 @@ class DefendantAccountPartyServiceTest {
 
         // Assert
         assertThat(actual).isSameAs(expectedResponse);
+        verify(pdplLoggingService).logRemovedParentGuardian(
+            defendantAccountPartyId, request, expectedResponse, userState);
 
         ArgumentCaptor<String> buUserIdCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> postedByCaptor = ArgumentCaptor.forClass(String.class);
@@ -670,5 +676,41 @@ class DefendantAccountPartyServiceTest {
         verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE);
         verifyNoInteractions(defendantAccountPartyServiceProxy);
+        verifyNoInteractions(pdplLoggingService);
+    }
+
+    @Test
+    void removeDefendantAccountParty_whenPdpoQueueFails_doesNotReturnSuccess() {
+        Long defendantAccountId = 99L;
+        Long defendantAccountPartyId = 100L;
+        short businessUnitId = 12;
+        String ifMatch = "W/\"5\"";
+        RemoveDefendantAccountPartyRequestDefendantAccount request =
+            new RemoveDefendantAccountPartyRequestDefendantAccount();
+        RemoveDefendantAccountPartyResponseDefendantAccount response =
+            mock(RemoveDefendantAccountPartyResponseDefendantAccount.class);
+        PdplLoggingException queueFailure = new PdplLoggingException("queue unavailable");
+
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userState.getBusinessUnitUserForBusinessUnit(businessUnitId)).thenReturn(Optional.empty());
+        when(userState.getUserName()).thenReturn("fallback-user");
+        when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
+            .thenReturn(true);
+        when(defendantAccountPartyServiceProxy.removeDefendantAccountParty(
+            defendantAccountId, defendantAccountPartyId, businessUnitId, "", "fallback-user", "fallback-user",
+            ifMatch, request)).thenReturn(response);
+        doThrow(queueFailure).when(pdplLoggingService).logRemovedParentGuardian(
+            defendantAccountPartyId, request, response, userState);
+
+        PdplLoggingException result = assertThrows(PdplLoggingException.class, () ->
+            defendantAccountPartyService.removeDefendantAccountParty(
+                defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, request));
+
+        assertThat(result).isSameAs(queueFailure);
+        verify(defendantAccountPartyServiceProxy).removeDefendantAccountParty(
+            defendantAccountId, defendantAccountPartyId, businessUnitId, "", "fallback-user", "fallback-user",
+            ifMatch, request);
+        verify(pdplLoggingService).logRemovedParentGuardian(
+            defendantAccountPartyId, request, response, userState);
     }
 }
