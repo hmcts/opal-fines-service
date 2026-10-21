@@ -139,6 +139,69 @@ public class DraftAccountVpfpoIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
+        @DisplayName("AC1: Get draft account counts filters on source=MAC")
+        @JiraStory("PO-10308")
+        @JiraEpic("PO-7459")
+        void get_counts_filtersSourceMAC() throws Exception {
+            userStateStub.setupWithNoPermissions();
+            userStateStub.addPermissions((short) 77,
+                FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
+                FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
+
+            ResultActions resultActions = mockMvc.perform(get(getCountsUrlBase("MAC"))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("X-User-IP", "192.168.1.100")
+                .contentType(MediaType.APPLICATION_JSON));
+
+            resultActions.andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.count").value(2));
+        }
+
+        @Test
+        @DisplayName("AC2: Get draft account counts filters on source=VPFPO")
+        @JiraStory("PO-10308")
+        @JiraEpic("PO-7459")
+        void get_counts_filtersSourcevpfpo() throws Exception {
+            userStateStub.setupWithNoPermissions();
+            userStateStub.addPermissions((short) 77,
+                FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
+                FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
+
+            ResultActions resultActions = mockMvc.perform(get(getCountsUrlBase("VPFPO"))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("X-User-IP", "192.168.1.100")
+                .contentType(MediaType.APPLICATION_JSON));
+
+            resultActions.andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.count").value(2));
+        }
+
+        @Test
+        @DisplayName("AC5: Get draft account counts returns all when source is missing")
+        @JiraStory("PO-10308")
+        @JiraEpic("PO-7459")
+        void get_counts_filtersSourceDefault() throws Exception {
+            userStateStub.setupWithNoPermissions();
+            userStateStub.addPermissions((short) 77,
+                FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
+                FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
+
+            ResultActions resultActions = mockMvc.perform(get(getCountsUrlBase(""))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("X-User-IP", "192.168.1.100")
+                .contentType(MediaType.APPLICATION_JSON));
+
+            resultActions.andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.count").value(4));
+        }
+
+        @Test
         @DisplayName("AC1: POST draft account allows null source_reference when source=MAC")
         @JiraStory("PO-10351")
         @JiraEpic("PO-7459")
@@ -243,6 +306,27 @@ public class DraftAccountVpfpoIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Test
+        @DisplayName("AC4: Get draft account counts returns only MAC accounts when source is missing")
+        @JiraStory("PO-10308")
+        @JiraEpic("PO-7459")
+        void get_counts_filtersSourceDefault() throws Exception {
+            userStateStub.setupWithNoPermissions();
+            userStateStub.addPermissions((short) 77,
+                FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
+                FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
+
+            ResultActions resultActions = mockMvc.perform(get(getCountsUrlBase(""))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("X-User-IP", "192.168.1.100")
+                .contentType(MediaType.APPLICATION_JSON));
+
+            resultActions.andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.count").value(2));
+        }
+
+        @Test
         @DisplayName("AC4: POST draft account defaults to source = MAC")
         @JiraStory("PO-10351")
         @JiraEpic("PO-7459")
@@ -331,6 +415,10 @@ public class DraftAccountVpfpoIntegrationTest extends AbstractIntegrationTest {
         return String.format("%s?source=%s", URL_BASE, source);
     }
 
+    private static String getCountsUrlBase(String source) {
+        return String.format("%s?source=%s&restrict=counts", URL_BASE, source);
+    }
+
     private DraftAccountEntity getDraftAccount(long draftAccountId) {
         return draftAccountRepository.findById(draftAccountId).orElseThrow();
     }
@@ -356,8 +444,8 @@ public class DraftAccountVpfpoIntegrationTest extends AbstractIntegrationTest {
             {
               "account_type": "Fine",
               "defendant_type": "Adult",
-              "originator_name": "%s",
-              "originator_id": %d,
+              "originator_name": "Draft Account Validation LJA",
+              "originator_id": 32001,
               "originator_type": "NEW",
               "enforcement_court_id": 260000000048,
               "payment_card_request": true,
@@ -377,7 +465,7 @@ public class DraftAccountVpfpoIntegrationTest extends AbstractIntegrationTest {
                 "default_days_in_jail": 5
               }
             }
-            """.formatted(VALID_FINE_ORIGINATOR_NAME, VALID_FINE_ORIGINATOR_ID);
+            """;
     }
 
 }

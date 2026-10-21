@@ -174,6 +174,14 @@ class TestingSupportControllerTest {
     }
 
     @Test
+    void markInterfaceJobProcessing_shouldMarkJobWithoutQueuing() {
+        ResponseEntity<Void> response = controller.markInterfaceJobProcessing(1L);
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(interfaceJobService).markProcessingForTesting(1L);
+    }
+
+    @Test
     void deleteReportInstances_shouldDeleteRequestedReportInstances() {
         List<Long> reportInstanceIds = List.of(1L, 2L);
 

@@ -136,6 +136,18 @@ public class TestingSupportController {
     }
 
     @Hidden
+    @FeatureToggle(
+        feature = RELEASE_1C_PAYMENT,
+        defaultValueProperty = RELEASE_1C_PAYMENT_ENABLED_PROPERTY
+    )
+    @PostMapping("/testing-support/interface-jobs/{interfaceJobId}/processing")
+    @Operation(summary = "Marks an interface job as processing without queueing it. FOR TESTING ONLY!")
+    public ResponseEntity<Void> markInterfaceJobProcessing(@PathVariable Long interfaceJobId) {
+        interfaceJobService.markProcessingForTesting(interfaceJobId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Hidden
     @DeleteMapping("/testing-support/report-instances")
     @Operation(summary = "Deletes a list of report instances and their stored report content. FOR TESTING ONLY!")
     public ResponseEntity<Void> deleteReportInstances(

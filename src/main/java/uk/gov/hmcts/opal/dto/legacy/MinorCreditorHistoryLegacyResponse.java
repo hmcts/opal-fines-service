@@ -15,6 +15,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
+import uk.gov.hmcts.opal.common.legacy.model.HasErrorResponse;
 import uk.gov.hmcts.opal.dto.ToXmlString;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
@@ -25,7 +27,10 @@ import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 @AllArgsConstructor
 @XmlRootElement(name = "response")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class LegacyGetMinorCreditorAccountHistoryResponse implements ToXmlString {
+public class MinorCreditorHistoryLegacyResponse implements ToXmlString, HasErrorResponse {
+
+    @XmlElement(name = "error_response")
+    private ErrorResponse errorResponse;
 
     @JsonProperty("history_items")
     @XmlElementWrapper(name = "history_items")
@@ -65,8 +70,8 @@ public class LegacyGetMinorCreditorAccountHistoryResponse implements ToXmlString
 
         @JsonProperty("posted_date")
         @XmlElement(name = "posted_date")
-        @XmlJavaTypeAdapter(LocalDateAdapter.class)
-        private LocalDate postedDate;
+        @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
+        private LocalDateTime postedDate;
 
         @JsonProperty("posted_by")
         @XmlElement(name = "posted_by")
@@ -114,8 +119,8 @@ public class LegacyGetMinorCreditorAccountHistoryResponse implements ToXmlString
 
         @JsonProperty("status_date")
         @XmlElement(name = "status_date")
-        @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
-        private LocalDateTime statusDate;
+        @XmlJavaTypeAdapter(LocalDateAdapter.class)
+        private LocalDate statusDate;
 
         @JsonProperty("associated_record_type")
         @XmlElement(name = "associated_record_type")

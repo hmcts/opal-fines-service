@@ -52,18 +52,20 @@ public class InterfaceJobsProcessStepDef extends BaseStepDef {
     }
 
     /**
-     * Creates one already-processing interface job and one unprocessed job for mixed-status processing.
+     * Creates one processing interface job and one unprocessed job for mixed-status processing.
      *
-     * @throws JSONException if an interface-job or process request body cannot be created.
+     * @throws JSONException if an interface-job request body cannot be created.
      */
     @Given("I create an interface job that has already begun processing and an unprocessed interface job")
     public void createMixedStatusInterfaceJobs() throws JSONException {
         alreadyProcessingJob = createInterfaceJob();
         unprocessedJob = createInterfaceJob();
-        submitProcessRequest(buildProcessRequest(alreadyProcessingJob), authorisedJsonRequest());
+        authorisedJsonRequest()
+            .post(getTestUrl() + TESTING_SUPPORT_PATH + "/" + alreadyProcessingJob.id() + "/processing");
         then()
             .log().ifValidationFails()
-            .statusCode(200);
+            .statusCode(204);
+        assertJobStatus(alreadyProcessingJob, "PROCESSING");
     }
 
     /**

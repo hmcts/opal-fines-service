@@ -130,6 +130,14 @@ public class InterfaceJobService {
         interfaceJobRepository.deleteAllById(interfaceJobIds);
     }
 
+    @Transactional
+    public void markProcessingForTesting(Long interfaceJobId) {
+        InterfaceJobEntity job = interfaceJobRepository.findById(interfaceJobId)
+            .orElseThrow(() -> new EntityNotFoundException("Interface job not found: " + interfaceJobId));
+        job.setStatus(InterfaceJobStatus.PROCESSING);
+        job.setStartedDateTime(LocalDateTime.now(clock));
+    }
+
     private List<InterfaceJobsSummaryItem> toResponses(InterfaceJobEntity interfaceJob) {
         return interfaceJob.getInterfaceFiles().stream()
             .map(interfaceFile -> interfaceJobMapper.toSummaryResponse(interfaceJob, interfaceFile))

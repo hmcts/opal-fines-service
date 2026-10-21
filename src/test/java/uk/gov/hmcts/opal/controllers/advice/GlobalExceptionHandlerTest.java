@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers.advice;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
@@ -19,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -45,9 +47,10 @@ import uk.gov.hmcts.opal.exception.JsonSchemaValidationException.JsonSchemaValid
 import uk.gov.hmcts.opal.exception.MissingMappingTypeException;
 import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
+import uk.gov.hmcts.opal.exception.PdplLoggingException;
+import uk.gov.hmcts.opal.exception.ReportGenerationException;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
-import uk.gov.hmcts.opal.exception.ReportGenerationException;
 import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
@@ -156,8 +159,9 @@ class GlobalExceptionHandlerTest {
         );
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("Defendant Account Not Found", response.getBody().getTitle());
-        assertEquals("Defendant account not found with id: 999999999", response.getBody().getDetail());
+        assertEquals("Entity Not Found", response.getBody().getTitle());
+        assertEquals("The requested entity could not be found", response.getBody().getDetail());
+        assertEquals(URI.create("https://hmcts.gov.uk/problems/entity-not-found"), response.getBody().getType());
         assertEquals(false, response.getBody().getProperties().get("retriable"));
     }
 
@@ -176,14 +180,15 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleMissingStoredReportContent_returnsInternalServerErrorProblem() {
-        MissingStoredReportContentException ex = new MissingStoredReportContentException(12L, "blob/path");
+        UUID location = UUID.fromString("00000000-0000-0000-0000-000000000013");
+        MissingStoredReportContentException ex = new MissingStoredReportContentException(12L, location);
 
         ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleMissingStoredReportContentException(ex);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertEquals("Missing Data In Storage Account", response.getBody().getTitle());
         assertEquals(
-            "Stored report content file 'blob/path' was not found for report instance id: 12",
+            "Stored report content file '" + location + "' was not found for report instance id: 12",
             response.getBody().getDetail()
         );
         assertEquals(false, response.getBody().getProperties().get("retriable"));
@@ -213,6 +218,23 @@ class GlobalExceptionHandlerTest {
         assertEquals("Report Generation Failed", response.getBody().getTitle());
         assertEquals("Unable to generate the requested report", response.getBody().getDetail());
         assertEquals(true, response.getBody().getProperties().get("retriable"));
+    }
+
+    @Test
+    void handlePdplLogging_returnsRetriableServiceUnavailableProblem() {
+        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handlePdplLoggingException(
+            new PdplLoggingException("queue unavailable"));
+
+        assertAll(
+            () -> assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode()),
+            () -> assertEquals(MediaType.APPLICATION_PROBLEM_JSON, response.getHeaders().getContentType()),
+            () -> assertEquals("Service Unavailable", response.getBody().getTitle()),
+            () -> assertEquals("The personal data logging queue is currently unavailable",
+                response.getBody().getDetail()),
+            () -> assertEquals(URI.create("https://hmcts.gov.uk/problems/pdpl-logging-unavailable"),
+                response.getBody().getType()),
+            () -> assertEquals(true, response.getBody().getProperties().get("retriable"))
+        );
     }
 
     @Test
