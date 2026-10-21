@@ -125,7 +125,9 @@ class InterfaceFileProcessorServiceIntegrationTest extends AbstractIntegrationTe
         DownstreamServiceUnavailableException failure = assertThrows(
             DownstreamServiceUnavailableException.class, () -> service.process(SOURCE_ID));
 
-        assertThat(failure.getCause()).isInstanceOf(FeignException.class);
+        assertThat(failure.getCause())
+            .isInstanceOf(FeignException.class)
+            .hasMessageContaining("File Handler storage is temporarily unavailable. Please retry later.");
         assertThat(((FeignException) failure.getCause()).status()).isEqualTo(503);
         assertThat(failure.getMessage()).contains("interface file");
 
@@ -154,7 +156,7 @@ class InterfaceFileProcessorServiceIntegrationTest extends AbstractIntegrationTe
 
         assertThat(finesFile.getInterfaceFileId()).isPositive();
         assertThat(finesFile.getFileName()).isEqualTo("test_123");
-        assertThat(finesFile.getSource()).isEqualTo("BTECKOH");
+        assertThat(finesFile.getSource()).isEqualTo("DWP");
         assertThat(finesFile.getSourceJsonId()).isEqualTo(SOURCE_ID);
         assertThat(finesFile.getTransformedJsonId()).isEqualTo(988L);
         assertThat(finesFile.getRecordCount()).isEqualTo((short) 5);
@@ -184,7 +186,7 @@ class InterfaceFileProcessorServiceIntegrationTest extends AbstractIntegrationTe
             .fileName("test_123")
             .checksum("CS123")
             .filestoreUuid(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"))
-            .source(InterfaceFileEnum.BTECKOH)
+            .source(InterfaceFileEnum.DWP)
             .target(InterfaceFileEnum.OPAL)
             .type(InterfaceFileTypeEnum.SOURCE_JSON)
             .domain(InterfaceFileObject.DomainEnum.FINES)
@@ -205,7 +207,14 @@ class InterfaceFileProcessorServiceIntegrationTest extends AbstractIntegrationTe
     private ResponseDefinitionBuilder fileHandlerError() {
         return aResponse()
             .withStatus(503)
-            .withHeader("Content-Type", "application/json");
+            .withHeader("Content-Type", "application/problem+json")
+            .withBody("""
+                {
+                  "title": "File Handler unavailable",
+                  "status": 503,
+                  "detail": "File Handler storage is temporarily unavailable. Please retry later."
+                }
+                """);
     }
 
     private InterfaceFileCommonDataExtract sourceData(PaymentType paymentType) {
