@@ -93,7 +93,8 @@ public class LoggingSteps extends BaseStepDef {
      */
     @Then("the logging service emits {string} with category {string} for the created minor creditor account")
     public void loggingServiceEmitsMinorCreditorOperation(String businessIdentifier, String category) {
-        assertPdpoOperation(businessIdentifier, category, scenarioContext().getCreatedMinorCreditorAccountIdOrFail().toString(),
+        assertPdpoOperation(businessIdentifier, category,
+            scenarioContext().getCreatedMinorCreditorAccountIdOrFail().toString(),
             PdplIdentifierType.MINOR_CREDITOR.name());
     }
 
@@ -105,7 +106,8 @@ public class LoggingSteps extends BaseStepDef {
     @Then("the logging service does not emit {string} for the created minor creditor account")
     public void loggingServiceDoesNotEmitMinorCreditorOperation(String businessIdentifier) {
         Map<String, Object> criteria = pdpoSearchCriteria(businessIdentifier,
-            scenarioContext().getCreatedMinorCreditorAccountIdOrFail().toString(), PdplIdentifierType.MINOR_CREDITOR.name());
+            scenarioContext().getCreatedMinorCreditorAccountIdOrFail().toString(),
+            PdplIdentifierType.MINOR_CREDITOR.name());
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(DEFAULT_TIMEOUT_SECONDS);
         do {
             JsonNode response = searchPdpoLogs(criteria);
