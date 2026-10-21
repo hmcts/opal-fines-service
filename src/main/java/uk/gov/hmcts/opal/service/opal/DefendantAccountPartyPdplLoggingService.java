@@ -32,6 +32,22 @@ public class DefendantAccountPartyPdplLoggingService extends AbstractPdplLogging
 
     public void logReplacement(Long partyId, AssociationType associationType, boolean wasOrganisation,
         boolean organisation, List<Long> removedParentGuardianIds, UserState userState) {
+
+        logReplacementOperation(partyId, associationType, wasOrganisation, organisation, userState);
+
+        if (!removedParentGuardianIds.isEmpty()) {
+            List<ParticipantIdentifier> individuals = removedParentGuardianIds.stream()
+                .distinct()
+                .map(id -> participant(id.toString(), PdplIdentifierType.PARENT_GUARDIAN))
+                .toList();
+            logPdplOrThrow(REMOVE_PARENT_GUARDIAN_BUSINESS_IDENTIFIER, PersonalDataProcessingCategory.ERASURE,
+                individuals, null, userState, QUEUE_FAILURE_MESSAGE);
+        }
+    }
+
+    private void logReplacementOperation(Long partyId, AssociationType associationType, boolean wasOrganisation,
+        boolean organisation, UserState userState) {
+
         if (associationType == AssociationType.PARENT_GUARDIAN) {
             logParty(UPDATE_PARENT_GUARDIAN_BUSINESS_IDENTIFIER, PersonalDataProcessingCategory.ALTERATION,
                 partyId.toString(), PdplIdentifierType.PARENT_GUARDIAN, userState);
@@ -46,15 +62,6 @@ public class DefendantAccountPartyPdplLoggingService extends AbstractPdplLogging
                 category = PersonalDataProcessingCategory.ERASURE;
             }
             logParty(businessIdentifier, category, partyId.toString(), PdplIdentifierType.DEFENDANT_ACCOUNT, userState);
-        }
-
-        if (!removedParentGuardianIds.isEmpty()) {
-            List<ParticipantIdentifier> individuals = removedParentGuardianIds.stream()
-                .distinct()
-                .map(id -> participant(id.toString(), PdplIdentifierType.PARENT_GUARDIAN))
-                .toList();
-            logPdplOrThrow(REMOVE_PARENT_GUARDIAN_BUSINESS_IDENTIFIER, PersonalDataProcessingCategory.ERASURE,
-                individuals, null, userState, QUEUE_FAILURE_MESSAGE);
         }
     }
 
