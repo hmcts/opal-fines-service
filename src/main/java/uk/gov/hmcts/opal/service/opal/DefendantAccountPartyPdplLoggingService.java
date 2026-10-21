@@ -36,11 +36,15 @@ public class DefendantAccountPartyPdplLoggingService extends AbstractPdplLogging
     }
 
     public void logViewedParentGuardian(String partyId, UserState userState) {
-        logViewedParty(VIEW_PARENT_GUARDIAN_BUSINESS_IDENTIFIER, partyId, PdplIdentifierType.PARENT_GUARDIAN, userState);
+        logViewedParty(VIEW_PARENT_GUARDIAN_BUSINESS_IDENTIFIER, partyId, PdplIdentifierType.PARENT_GUARDIAN,
+            userState);
     }
 
-    private void logViewedParty(String businessIdentifier, String partyId, PdplIdentifierType partyType, UserState userState) {
-        logPdplOrThrow(businessIdentifier, PersonalDataProcessingCategory.CONSULTATION, List.of(participant(partyId, partyType)), null,
+    private void logViewedParty(String businessIdentifier, String partyId, PdplIdentifierType partyType,
+        UserState userState) {
+        logPdplOrThrow(businessIdentifier, PersonalDataProcessingCategory.CONSULTATION,
+            List.of(participant(partyId, partyType)),
+            null,
             userState.getUserId(), VIEW_PARTY_QUEUE_FAILURE_MESSAGE);
     }
 }
