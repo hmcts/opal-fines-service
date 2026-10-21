@@ -6,6 +6,8 @@ import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -20,7 +22,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
 import tools.jackson.databind.JsonNode;
@@ -60,7 +61,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
 
-    @MockitoBean
+    @MockitoSpyBean
     private LoggingService loggingService;
 
     @Autowired
@@ -1297,8 +1298,15 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         log.info(":logsViewMinorCreditorAccount: Response body: \n{}", ToJsonString.toPrettyJson(body));
 
         result.andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
-            //.andExpect();
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.business_unit.business_unit_id").value(10))
+            .andExpect(jsonPath("$.creditor.account_id").value(607L))
+            .andExpect(jsonPath("$.party.organisation_flag").value(false))
+            .andExpect(jsonPath("$.party.party_id").value("99008"))
+            .andExpect(jsonPath("$.party.organisation_details").doesNotExist())
+            .andExpect(jsonPath("$.party.individual_details").exists());
+
+        verify(loggingService).personalDataAccessLogAsync(any());
     }
 
     void getHeaderSummaryImpl_DoesNotLogViewMinorCreditorAccountForOrganisation(Logger log) throws Exception {
