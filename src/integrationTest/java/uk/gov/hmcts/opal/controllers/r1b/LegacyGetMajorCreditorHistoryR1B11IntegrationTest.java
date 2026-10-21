@@ -15,8 +15,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.service.opal.MajorCreditorHistoryPdplLoggingService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -24,6 +26,9 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @TestPropertySource(properties = {"launchdarkly.enabled=false", "launchdarkly.default-flag-values.release-1b-1-1=true"})
 @DisplayName("Legacy Get Major Creditor History Release-1B-1-1 Integration Test")
 public class LegacyGetMajorCreditorHistoryR1B11IntegrationTest extends AbstractIntegrationTest {
+
+    @MockitoBean
+    private MajorCreditorHistoryPdplLoggingService pdplLoggingService;
 
     private static final String URL = "/major-creditor-accounts/{id}/history";
 
