@@ -306,12 +306,14 @@ components:
         court_id:
           type: integer
           format: int64
+          nullable: true
         court_code:
           type: integer
           format: int16
           x-extra-annotation: '@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)'
         court_name:
           type: string
+          nullable: true
       required:
         - court_id
         - court_name
@@ -433,7 +435,7 @@ components:
       properties:
         posted_date:
           type: string
-          format: date
+          format: date-time
         posted_by:
           type: string
           maxLength: 20

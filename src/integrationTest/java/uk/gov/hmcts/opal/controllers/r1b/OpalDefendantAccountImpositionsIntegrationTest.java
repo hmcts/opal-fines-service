@@ -3,6 +3,13 @@ package uk.gov.hmcts.opal.controllers.r1b;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -12,15 +19,24 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.shared.util.OpenApiContractAssertions.assertGet200JsonResponseMatchesBundledSpec;
 
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -42,6 +58,14 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
         "$.impositions[0].creditor.creditor_account_type_reference.creditor_account_type";
     private static final String CREDITOR_ACCOUNT_DISPLAY_NAME =
         "$.impositions[0].creditor.creditor_account_type_reference.creditor_account_display_name";
+
+    @MockitoBean
+    private LoggingService loggingService;
+
+    @BeforeEach
+    void setUpLogging() {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+    }
 
     @Test
     @DisplayName("OPAL: Get Defendant Account Impositions returns major creditor imposition with schema-valid body")
@@ -82,6 +106,8 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
             ToJsonString.toJsonNode(result.getResponse().getContentAsString()),
             "/defendant-accounts/{id}/impositions"
         );
+
+        verify(loggingService, never()).personalDataAccessLogAsync(any());
     }
 
     @Test
@@ -114,6 +140,55 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
             ToJsonString.toJsonNode(result.getResponse().getContentAsString()),
             "/defendant-accounts/{id}/impositions"
         );
+
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+        verify(loggingService).personalDataAccessLogAsync(captor.capture());
+        PersonalDataProcessingLogDetails details = captor.getValue();
+
+        assertAll(
+            () -> assertEquals("View Defendant Impositions (Individual Minor Creditor)",
+                details.getBusinessIdentifier()),
+            () -> assertEquals(PersonalDataProcessingCategory.CONSULTATION, details.getCategory()),
+            () -> assertEquals("500000000", details.getCreatedBy().getIdentifier()),
+            () -> assertEquals(PdplIdentifierType.OPAL_USER_ID, details.getCreatedBy().getType()),
+            () -> assertEquals(List.of("551007"), details.getIndividuals().stream()
+                .map(ParticipantIdentifier::getIdentifier).toList()),
+            () -> assertEquals(List.of(PdplIdentifierType.MINOR_CREDITOR), details.getIndividuals().stream()
+                .map(ParticipantIdentifier::getType).toList()),
+            () -> assertNull(details.getRecipient())
+        );
+    }
+
+    @Test
+    @DisplayName("PO-10757: Queue rejection prevents individual minor-creditor impositions from being returned")
+    @JiraStory("PO-10757")
+    @JiraEpic("PO-10729")
+    void getImpositions_queueReturnsFalse_returnsServiceUnavailable() throws Exception {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(false);
+
+        performGetImpositions(551008L)
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/pdpl-logging-unavailable"))
+            .andExpect(jsonPath("$.detail").value("The personal data logging queue is currently unavailable"))
+            .andExpect(jsonPath("$.retriable").value(true))
+            .andExpect(jsonPath("$.impositions").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("PO-10757: Queue error prevents individual minor-creditor impositions from being returned")
+    @JiraStory("PO-10757")
+    @JiraEpic("PO-10729")
+    void getImpositions_queueRaisesError_returnsServiceUnavailable() throws Exception {
+        when(loggingService.personalDataAccessLogAsync(any()))
+            .thenThrow(new IllegalStateException("logging unavailable"));
+
+        performGetImpositions(551008L)
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/pdpl-logging-unavailable"))
+            .andExpect(jsonPath("$.impositions").doesNotExist());
     }
 
     @Test
@@ -155,6 +230,12 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
             ToJsonString.toJsonNode(result.getResponse().getContentAsString()),
             "/defendant-accounts/{id}/impositions"
         );
+
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+        verify(loggingService).personalDataAccessLogAsync(captor.capture());
+        assertEquals(List.of("99105710000202", "99105710000203"), captor.getValue().getIndividuals().stream()
+            .map(ParticipantIdentifier::getIdentifier).toList());
     }
 
     @Test
@@ -174,6 +255,8 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
             ToJsonString.toJsonNode(result.getResponse().getContentAsString()),
             "/defendant-accounts/{id}/impositions"
         );
+
+        verify(loggingService, never()).personalDataAccessLogAsync(any());
     }
 
     @Test
@@ -187,6 +270,8 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
             .andExpect(jsonPath("$.status").value(404));
+
+        verify(loggingService, never()).personalDataAccessLogAsync(any());
     }
 
     @Test
@@ -202,6 +287,8 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"))
             .andExpect(jsonPath("$.status").value(403))
             .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"));
+
+        verify(loggingService, never()).personalDataAccessLogAsync(any());
     }
 
     private ResultActions performGetImpositions(Long defendantAccountId) throws Exception {

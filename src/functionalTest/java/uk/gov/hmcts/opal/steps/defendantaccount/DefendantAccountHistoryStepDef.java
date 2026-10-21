@@ -10,6 +10,8 @@ import io.cucumber.java.en.When;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.json.JSONException;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.http.HttpHeaders;
 import net.serenitybdd.annotations.Steps;
 import uk.gov.hmcts.opal.actions.defendantaccount.DefendantAccountEnforcementsActions;
@@ -21,6 +23,7 @@ import uk.gov.hmcts.opal.workflows.defendantaccount.DefendantAccountEnforcementW
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -119,6 +122,69 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     @When("I request defendant account history for the created defendant account")
     public void requestDefendantAccountHistoryForCreatedDefendantAccount() {
         getHistory(BearerTokenStepDef.getToken(), createdDefendantAccountId(), null);
+    }
+
+    /**
+     * Selects exactly one known legacy dataset by account number and ID, then requests its history.
+     *
+     * @param businessUnitId business unit containing the account.
+     * @param query query string to append to the request URI.
+     * @param dataTable known environment datasets with account numbers, IDs and minimum history counts.
+     * @throws JSONException if the search request cannot be constructed.
+     */
+    @When("I request defendant account history for a known dataset in business unit {int} with query {string}")
+    public void requestKnownDefendantAccountHistory(int businessUnitId, String query, DataTable dataTable)
+        throws JSONException {
+
+        List<Map<String, String>> datasets = dataTable.asMaps(String.class, String.class);
+        List<Map<String, String>> matchingDatasets = new ArrayList<>();
+        Map<String, List<String>> returnedAccountIds = new LinkedHashMap<>();
+        for (Map<String, String> dataset : datasets) {
+            String accountNumber = dataset.get("account_number");
+            List<Map<String, Object>> accounts = searchAccountsByNumber(accountNumber, businessUnitId);
+            List<String> matchingAccountIds = accounts.stream()
+                .filter(account -> accountNumber.equals(account.get("account_number")))
+                .map(account -> String.valueOf(account.get("defendant_account_id")))
+                .toList();
+            returnedAccountIds.put(dataset.get("environment"), matchingAccountIds);
+            if (matchingAccountIds.contains(dataset.get("defendant_account_id"))) {
+                matchingDatasets.add(dataset);
+            }
+        }
+
+        assertEquals(1, matchingDatasets.size(),
+            "Expected exactly one known history dataset; returned account IDs by dataset: " + returnedAccountIds);
+        Map<String, String> selectedDataset = matchingDatasets.getFirst();
+        historyState.setMinimumHistoryItemCounts(Map.of(
+            "Financial", Long.parseLong(selectedDataset.get("minimum_financial_items")),
+            "Note", Long.parseLong(selectedDataset.get("minimum_note_items")),
+            "Payment terms", Long.parseLong(selectedDataset.get("minimum_payment_terms_items"))
+        ));
+        long accountId = Long.parseLong(selectedDataset.get("defendant_account_id"));
+        getHistory(BearerTokenStepDef.getToken(), accountId, query);
+    }
+
+    private List<Map<String, Object>> searchAccountsByNumber(String accountNumber, int businessUnitId)
+        throws JSONException {
+
+        JSONObject referenceNumber = new JSONObject()
+            .put("account_number", accountNumber)
+            .put("organisation", false);
+        JSONObject searchRequest = new JSONObject()
+            .put("active_accounts_only", false)
+            .put("business_unit_ids", new JSONArray().put(businessUnitId))
+            .put("reference_number", referenceNumber)
+            .put("defendant", JSONObject.NULL);
+
+        Response searchResponse = authorisedJsonRequest()
+            .body(searchRequest.toString())
+            .when()
+            .post(getTestUrl() + "/defendant-accounts/search");
+        responseAssertions.assertStatus(searchResponse, 200);
+
+        List<Map<String, Object>> accounts = searchResponse.jsonPath().getList("defendant_accounts");
+        assertNotNull(accounts, "Expected defendant_accounts in the account-number search response");
+        return accounts;
     }
 
     /**
@@ -253,9 +319,23 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     public void defendantAccountHistoryContainsAtLeastTheFollowingItemCounts(DataTable dataTable)
         throws JacksonException {
 
+        assertMinimumHistoryItemCounts(dataTable.asMap(String.class, Long.class));
+    }
+
+    /**
+     * Checks minimum history counts against the dataset selected for this scenario.
+     *
+     * @throws JacksonException if the response body cannot be parsed as JSON.
+     */
+    @Then("the defendant account history contains the minimum item counts for the selected dataset")
+    public void defendantAccountHistoryContainsSelectedDatasetCounts() throws JacksonException {
+        assertNotNull(historyState.getMinimumHistoryItemCounts(), "No history dataset has been selected");
+        assertMinimumHistoryItemCounts(historyState.getMinimumHistoryItemCounts());
+    }
+
+    private void assertMinimumHistoryItemCounts(Map<String, Long> expectedCounts) throws JacksonException {
         Map<String, Long> actualCounts = typeCounts();
-        dataTable.asMap(String.class, String.class).forEach((type, count) -> {
-            long expectedMinimum = Long.parseLong(count);
+        expectedCounts.forEach((type, expectedMinimum) -> {
             long actual = actualCounts.getOrDefault(type, 0L);
             assertTrue(
                 actual >= expectedMinimum,
@@ -265,19 +345,42 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     }
 
     /**
+     * Checks that an instalment payment-terms item includes the expected period code.
+     *
+     * @param periodCode expected instalment period code.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
+     */
+    @Then("the defendant account history contains instalment payment terms with period {string}")
+    public void defendantAccountHistoryContainsInstalmentPeriod(String periodCode)
+        throws JacksonException {
+
+        List<JsonNode> periods = historyItems().stream()
+            .filter(item -> "Payment terms".equals(typeOf(item)))
+            .map(item -> item.path("details"))
+            .map(details -> details.path("instalment_period"))
+            .toList();
+        boolean found = periods.stream()
+            .anyMatch(period -> periodCode.equals(period.path("instalment_period_code").asString()));
+
+        assertTrue(found, "Expected instalment payment terms with period " + periodCode + "; returned: " + periods);
+    }
+
+    /**
      * Stores the oldest and newest posted dates from the latest full history response.
      *
      * @throws JacksonException if the response body cannot be parsed as JSON.
      */
     @Then("I remember the returned defendant account history date range")
     public void rememberReturnedDefendantAccountHistoryDateRange() throws JacksonException {
-        List<LocalDate> postedDates = historyItems().stream()
+        List<LocalDateTime> postedDates = historyItems().stream()
             .map(this::postedDateOf)
             .toList();
 
         assertFalse(postedDates.isEmpty(), "History response should contain dates to remember");
-        historyState.setRememberedDateFrom(postedDates.stream().min(LocalDate::compareTo).orElseThrow());
-        historyState.setRememberedDateTo(postedDates.stream().max(LocalDate::compareTo).orElseThrow());
+        historyState.setRememberedDateFrom(postedDates.stream().min(LocalDateTime::compareTo).orElseThrow()
+                                               .toLocalDate());
+        historyState.setRememberedDateTo(postedDates.stream().max(LocalDateTime::compareTo).orElseThrow()
+                                             .toLocalDate());
     }
 
     /**
@@ -396,9 +499,9 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
      */
     @Then("the defendant account history is ordered newest first")
     public void defendantAccountHistoryIsOrderedNewestFirst() throws JacksonException {
-        LocalDate previous = null;
+        LocalDateTime previous = null;
         for (JsonNode historyItem : historyItems()) {
-            LocalDate current = postedDateOf(historyItem);
+            LocalDateTime current = postedDateOf(historyItem);
             if (previous != null) {
                 assertFalse(
                     current.isAfter(previous),
@@ -607,23 +710,27 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     }
 
     private void assertHistoryContainsOnlyItemsOnOrAfter(LocalDate boundary) throws JacksonException {
+        LocalDateTime inclusiveBoundary = boundary.atStartOfDay();
         for (JsonNode historyItem : historyItems()) {
-            LocalDate postedDate = postedDateOf(historyItem);
-            assertFalse(postedDate.isBefore(boundary), "History item was before dateFrom boundary");
+            LocalDateTime postedDate = postedDateOf(historyItem);
+            assertFalse(postedDate.isBefore(inclusiveBoundary), "History item was before dateFrom boundary");
         }
     }
 
     private void assertHistoryContainsOnlyItemsOnOrBefore(LocalDate boundary) throws JacksonException {
+        LocalDateTime exclusiveBoundary = boundary.plusDays(1).atStartOfDay();
         for (JsonNode historyItem : historyItems()) {
-            LocalDate postedDate = postedDateOf(historyItem);
-            assertFalse(postedDate.isAfter(boundary), "History item was after dateTo boundary");
+            LocalDateTime postedDate = postedDateOf(historyItem);
+            assertTrue(postedDate.isBefore(exclusiveBoundary), "History item was after dateTo boundary");
         }
     }
 
     private void assertHistoryIncludesItemOn(LocalDate expectedDate) throws JacksonException {
+        LocalDateTime inclusiveBoundary = expectedDate.atStartOfDay();
+        LocalDateTime exclusiveBoundary = expectedDate.plusDays(1).atStartOfDay();
         boolean found = historyItems().stream()
             .map(this::postedDateOf)
-            .anyMatch(expectedDate::equals);
+            .anyMatch(postedDate -> !postedDate.isBefore(inclusiveBoundary) && postedDate.isBefore(exclusiveBoundary));
 
         assertTrue(found, "Expected at least one history item on " + expectedDate);
     }
@@ -658,7 +765,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
 
         JsonNode postedDetails = historyItem.path("postedDetails");
         assertTrue(postedDetails.isObject(), "postedDetails should be an object");
-        LocalDate postedDate = LocalDate.parse(
+        LocalDateTime postedDate = LocalDateTime.parse(
             assertText(postedDetails.path("posted_date"), "postedDetails.posted_date")
         );
         assertNotNull(postedDate, "postedDetails.posted_date should be parseable");
@@ -749,8 +856,8 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
         return assertText(historyItem.path("type"), "type");
     }
 
-    private LocalDate postedDateOf(JsonNode historyItem) {
-        return LocalDate.parse(
+    private LocalDateTime postedDateOf(JsonNode historyItem) {
+        return LocalDateTime.parse(
             assertText(historyItem.path("postedDetails").path("posted_date"), "postedDetails.posted_date")
         );
     }

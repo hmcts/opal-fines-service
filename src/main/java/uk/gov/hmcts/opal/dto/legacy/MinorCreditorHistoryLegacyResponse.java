@@ -27,7 +27,7 @@ import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 @AllArgsConstructor
 @XmlRootElement(name = "response")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class LegacyGetMinorCreditorAccountHistoryResponse implements ToXmlString, HasErrorResponse {
+public class MinorCreditorHistoryLegacyResponse implements ToXmlString, HasErrorResponse {
 
     @XmlElement(name = "error_response")
     private ErrorResponse errorResponse;
@@ -70,8 +70,8 @@ public class LegacyGetMinorCreditorAccountHistoryResponse implements ToXmlString
 
         @JsonProperty("posted_date")
         @XmlElement(name = "posted_date")
-        @XmlJavaTypeAdapter(LocalDateAdapter.class)
-        private LocalDate postedDate;
+        @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
+        private LocalDateTime postedDate;
 
         @JsonProperty("posted_by")
         @XmlElement(name = "posted_by")
@@ -119,8 +119,8 @@ public class LegacyGetMinorCreditorAccountHistoryResponse implements ToXmlString
 
         @JsonProperty("status_date")
         @XmlElement(name = "status_date")
-        @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
-        private LocalDateTime statusDate;
+        @XmlJavaTypeAdapter(LocalDateAdapter.class)
+        private LocalDate statusDate;
 
         @JsonProperty("associated_record_type")
         @XmlElement(name = "associated_record_type")

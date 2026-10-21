@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers.advice;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
@@ -46,6 +47,7 @@ import uk.gov.hmcts.opal.exception.JsonSchemaValidationException.JsonSchemaValid
 import uk.gov.hmcts.opal.exception.MissingMappingTypeException;
 import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
+import uk.gov.hmcts.opal.exception.PdplLoggingException;
 import uk.gov.hmcts.opal.exception.ReportGenerationException;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
@@ -219,6 +221,23 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void handlePdplLogging_returnsRetriableServiceUnavailableProblem() {
+        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handlePdplLoggingException(
+            new PdplLoggingException("queue unavailable"));
+
+        assertAll(
+            () -> assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode()),
+            () -> assertEquals(MediaType.APPLICATION_PROBLEM_JSON, response.getHeaders().getContentType()),
+            () -> assertEquals("Service Unavailable", response.getBody().getTitle()),
+            () -> assertEquals("The personal data logging queue is currently unavailable",
+                response.getBody().getDetail()),
+            () -> assertEquals(URI.create("https://hmcts.gov.uk/problems/pdpl-logging-unavailable"),
+                response.getBody().getType()),
+            () -> assertEquals(true, response.getBody().getProperties().get("retriable"))
+        );
+    }
+
+    @Test
     void handleHttpClientError_returnsUpstreamStatus() {
         HttpClientErrorException ex = HttpClientErrorException.create(
             HttpStatusCode.valueOf(404),
@@ -281,6 +300,7 @@ class GlobalExceptionHandlerTest {
     }
 
     static class TestRequestValidationClass {
+
         public void testMethod(String request) {
         }
     }
