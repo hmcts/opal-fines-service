@@ -53,8 +53,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 public class DraftAccountVpfpoIntegrationTest extends AbstractIntegrationTest {
 
     static final String URL_BASE = "/draft-accounts";
-    static final int VALID_FINE_ORIGINATOR_ID = 32001;
-    static final String VALID_FINE_ORIGINATOR_NAME = "Draft Account Validation LJA";
     private static final int[] MAC_DRAFT_ACCOUNT_IDS = {11, 12};
     private static final int[] VPFPO_DRAFT_ACCOUNT_IDS = {21, 22};
 
@@ -274,6 +272,25 @@ public class DraftAccountVpfpoIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.detail").value("The request does not conform to the required JSON schema"));
         }
+
+        @Test
+        @DisplayName("AC2: POST draft account fails when source=VPFPO and source_ref is blank")
+        @JiraStory("PO-10351")
+        @JiraEpic("PO-7459")
+        void post_failsonBlackSourceRefAndvpfo() throws Exception {
+            String validRequestBody = validRawJsonCreateRequestBody(DraftAccountSource.VPFPO, null);
+
+            ResultActions resultActions = mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validRequestBody));
+
+            resultActions.andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail")
+                    .value("source_reference cannot be blank when source is VPFPO"));
+        }
     }
 
     @TestPropertySource(properties = {
@@ -359,7 +376,7 @@ public class DraftAccountVpfpoIntegrationTest extends AbstractIntegrationTest {
         @JiraStory("PO-10351")
         @JiraEpic("PO-7459")
         void post_acceptsSourceOnly() throws Exception {
-            String validRequestBody = validRawJsonCreateRequestBody(DraftAccountSource.VPFPO, null);
+            String validRequestBody = validRawJsonCreateRequestBody(DraftAccountSource.MAC, null);
 
             ResultActions resultActions = mockMvc.perform(post(URL_BASE)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -375,7 +392,7 @@ public class DraftAccountVpfpoIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
             DraftAccountEntity createdEntity = getDraftAccount(response.getDraftAccountId());
-            assertThat(createdEntity.getSource()).isEqualTo(DraftAccountSource.VPFPO);
+            assertThat(createdEntity.getSource()).isEqualTo(DraftAccountSource.MAC);
             assertThat(createdEntity.getSourceReference()).isNull();
 
             // Cleanup
@@ -408,6 +425,25 @@ public class DraftAccountVpfpoIntegrationTest extends AbstractIntegrationTest {
 
             // Cleanup
             draftAccountRepository.deleteById(response.getDraftAccountId());
+        }
+
+        @Test
+        @DisplayName("AC2: POST draft account fails when source=VPFPO and source_ref is blank")
+        @JiraStory("PO-10351")
+        @JiraEpic("PO-7459")
+        void post_failsonBlackSourceRefAndvpfpo() throws Exception {
+            String validRequestBody = validRawJsonCreateRequestBody(DraftAccountSource.VPFPO, null);
+
+            ResultActions resultActions = mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validRequestBody));
+
+            resultActions.andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail")
+                    .value("source_reference cannot be blank when source is VPFPO"));
         }
     }
 

@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.common.exceptions.standard.BadRequestException;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureFlags;
@@ -247,6 +248,11 @@ public class DraftAccountService {
                 if (dto.getSource() == null) {
                     dto.setSource(DraftAccountSource.MAC);
                 }
+            }
+
+            if (dto.getSource() == DraftAccountSource.VPFPO && dto.getSourceReference() == null) {
+                throw new BadRequestException("Missing Parameter",
+                    "source_reference cannot be blank when source is VPFPO");
             }
 
             BusinessUnitUser unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());

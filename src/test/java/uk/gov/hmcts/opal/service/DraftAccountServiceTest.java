@@ -35,6 +35,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.common.exceptions.standard.BadRequestException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureFlags;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
@@ -384,6 +385,30 @@ class DraftAccountServiceTest {
         verify(draftAccountTransactional, times(1)).submitDraftAccount(
             captor.capture(), eq("USER01"), eq("Normal User"));
         verify(pdplLoggingService).pdplForDraftAccount(draftAccountEntity, Action.SUBMIT, userState);
+    }
+
+    @Test
+    void testSubmitDraftAccounts_failsWhenSourceIsvpfpoAndSourceRefIsBlank() {
+        // Arrange
+        var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(featureToggleApi.isFeatureEnabled(eq(FeatureFlags.RELEASE_1C_BANKING_INTERFACES))).thenReturn(false);
+        AddDraftAccountRequestDto addDraftAccountDto = AddDraftAccountRequestDto.builder()
+            .businessUnitId((short) 2)
+            .account(createAccountString())
+            .accountType(DraftAccountType.FINE)
+            .source(DraftAccountSource.VPFPO)
+            .sourceReference(null)
+            .build();
+
+        // Act + Assert
+        BadRequestException ex = assertThrows(
+            BadRequestException.class,
+            () -> draftAccountService.submitDraftAccount(addDraftAccountDto)
+        );
+
+        assertTrue(ex.getMessage().contains("source_reference cannot be blank when source is VPFPO"));
+        verify(draftAccountTransactional, never()).submitDraftAccount(any(), any(), any());
     }
 
     @Test
