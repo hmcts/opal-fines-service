@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE public.p_update_impositions(
+CREATE OR REPLACE PROCEDURE p_update_impositions(
     IN pi_imposition_id                impositions.imposition_id%TYPE,
     IN pi_imposition_allocation_amount impositions.paid_amount%TYPE
 )
@@ -38,7 +38,7 @@ BEGIN
     END IF;
 
     PERFORM 1
-      FROM public.impositions
+      FROM impositions
      WHERE imposition_id = pi_imposition_id
        FOR UPDATE;
 
@@ -48,7 +48,7 @@ BEGIN
                 , DETAIL = 'p_update_impositions: no imposition exists for the passed pi_imposition_id';
     END IF;
 
-    UPDATE public.impositions
+    UPDATE impositions
        SET paid_amount = paid_amount + pi_imposition_allocation_amount
          , completed = CASE
                            WHEN paid_amount + pi_imposition_allocation_amount = -imposed_amount THEN TRUE
