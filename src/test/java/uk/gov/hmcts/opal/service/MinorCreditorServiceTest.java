@@ -45,6 +45,7 @@ import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.service.opal.MinorCreditorPdplLoggingService;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 
 @ExtendWith(MockitoExtension.class)
@@ -55,6 +56,9 @@ class MinorCreditorServiceTest {
 
     @Mock
     MinorCreditorSearchProxy minorCreditorSearchProxy;
+
+    @Mock
+    MinorCreditorPdplLoggingService pdplLoggingService;
 
     @InjectMocks
     private MinorCreditorService minorCreditorService;
@@ -134,6 +138,7 @@ class MinorCreditorServiceTest {
         assertEquals(true, result.getPayment().getPayByBacs());
         assertEquals("123456", result.getPayment().getSortCode());
         verify(minorCreditorSearchProxy).getMinorCreditorAccount(id);
+        verify(pdplLoggingService).logIndividualMinorCreditor(userState, response);
     }
 
     @Test
@@ -150,7 +155,7 @@ class MinorCreditorServiceTest {
             () -> minorCreditorService.getMinorCreditorAccount(123L)
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        verifyNoInteractions(minorCreditorSearchProxy);
+        verifyNoInteractions(minorCreditorSearchProxy, pdplLoggingService);
     }
 
     @Test
