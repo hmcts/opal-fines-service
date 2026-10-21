@@ -6,7 +6,6 @@ import java.time.Clock;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
