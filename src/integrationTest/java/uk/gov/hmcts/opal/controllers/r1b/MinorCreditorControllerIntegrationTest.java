@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -19,6 +20,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
 import tools.jackson.databind.JsonNode;
@@ -33,6 +35,7 @@ import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditor;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.PartyRepository;
@@ -56,6 +59,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
+
+    @MockitoBean
+    private LoggingService loggingService;
 
     @Autowired
     private CreditorAccountRepository creditorAccountRepository;
@@ -1279,6 +1285,41 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.financials.outstanding").value(0));
 
         jsonSchemaValidationService.validate(body, MINOR_CREDITOR_HEADER_SUMMARY_RESPONSE);
+    }
+
+    void getHeaderSummaryImpl_logsViewMinorCreditorAccount(Logger log) throws Exception {
+        ResultActions result = mockMvc.perform(
+            get(URL_BASE + "/{id}/header-summary", 607L).accept(
+                    MediaType.APPLICATION_JSON).with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()));
+
+        String body = result.andReturn().getResponse().getContentAsString();
+        log.info(":logsViewMinorCreditorAccount: Response body: \n{}", ToJsonString.toPrettyJson(body));
+
+        result.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+            //.andExpect();
+    }
+
+    void getHeaderSummaryImpl_DoesNotLogViewMinorCreditorAccountForOrganisation(Logger log) throws Exception {
+        ResultActions result = mockMvc.perform(
+            get(URL_BASE + "/{id}/header-summary", minorCreditorHeaderSummaryAccountId()).accept(
+                    MediaType.APPLICATION_JSON).with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()));
+
+        String body = result.andReturn().getResponse().getContentAsString();
+        log.info(":logsViewMinorCreditorAccount: Response body: \n{}", ToJsonString.toPrettyJson(body));
+
+        result.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.business_unit.business_unit_id").value(77))
+            .andExpect(jsonPath("$.creditor.account_id").value(minorCreditorHeaderSummaryAccountId()))
+            .andExpect(jsonPath("$.party.organisation_flag").value(true))
+            .andExpect(jsonPath("$.party.party_id").value("99000000000900"))
+            .andExpect(jsonPath("$.party.organisation_details").exists())
+            .andExpect(jsonPath("$.party.individual_details").doesNotExist());
+
+        verifyNoInteractions(loggingService);
     }
 
     void legacyGetMinorCreditorHeaderSummaryImpl_500Error(Logger log) throws Exception {

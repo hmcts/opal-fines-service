@@ -283,6 +283,13 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     }
 
     @Test
+    @JiraEpic("PO-10729")
+    @JiraStory("PO-10763")
+    void getHeaderSummary_doesNotLogViewMinorCreditorAccountForOrganisations() throws Exception {
+        super.getHeaderSummaryImpl_DoesNotLogViewMinorCreditorAccountForOrganisation(log);
+    }
+
+    @Test
     @JiraStory("PO-1911")
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6192")
