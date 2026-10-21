@@ -23,6 +23,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.gov.hmcts.opal.workflows.defendantaccount.DefendantAccountEnforcementWorkflow;
 
 /**
  * Defines functional coverage for the allocate-tills endpoint.
@@ -32,14 +33,15 @@ public class TillAllocationStepDef extends BaseStepDef {
     private static final Logger log = LoggerFactory.getLogger(TillAllocationStepDef.class);
     private static final String TILLS_PATH = "/tills";
     private static final String ALLOCATE_TILLS_PATH = "/tills/allocate";
-    // Assumed Testing Support route; enable cleanup when the agreed route is deployed.
-    private static final String TESTING_SUPPORT_TILLS_PATH = "/testing-support/tills/";
+    private static final String TESTING_SUPPORT_TILLS_PATH = "/testing-support/tills";
     private static final short BUSINESS_UNIT_ID = 78;
     private static final long NON_EXISTENT_TILL_ID = Long.MAX_VALUE;
 
     private final Set<Long> existingTillIds = new HashSet<>();
     private final List<Long> createdTillIds = new ArrayList<>();
     private final List<Long> createdTillNumbers = new ArrayList<>();
+    private final DefendantAccountEnforcementWorkflow defendantAccountWorkflow =
+        new DefendantAccountEnforcementWorkflow();
     private Response allocationResponse;
 
     /**
@@ -49,10 +51,11 @@ public class TillAllocationStepDef extends BaseStepDef {
      * @param businessUnitId business unit in which the tills are created
      */
     @Given("I create {int} uniquely identifiable till(s) for allocation in business unit {int}")
-    public void createTillsForAllocation(int count, int businessUnitId) {
+    public void createTillsForAllocation(int count, int businessUnitId) throws Exception {
         assertTrue(count > 0, "At least one till is required for allocation");
         assertEquals(BUSINESS_UNIT_ID, businessUnitId,
             "The allocation test user and manual-till fixture are configured for business unit 78");
+        createDefendantAccount();
         recordExistingTillIds();
 
         for (int index = 0; index < count; index++) {
@@ -60,7 +63,8 @@ public class TillAllocationStepDef extends BaseStepDef {
                 .body(uniqueTillCreateRequest())
                 .when()
                 .post(getTestUrl() + TILLS_PATH);
-            assertEquals(201, createResponse.statusCode(), "Creating a till for allocation must succeed");
+            assertEquals(201, createResponse.statusCode(),
+                "Creating a till for allocation must succeed: " + createResponse.asString());
             captureNewlyCreatedTill();
         }
     }
@@ -74,23 +78,8 @@ public class TillAllocationStepDef extends BaseStepDef {
     @Then("all created tills are listed with status {string}")
     public void allCreatedTillsAreListedWithStatus(String status) {
         assertFalse(createdTillNumbers.isEmpty(), "Create tills before checking their status");
-
-        Response response = authorisedJsonRequest()
-            .queryParam("business_unit_ids", BUSINESS_UNIT_ID)
-            .queryParam("statuses", status)
-            .when()
-            .get(getTestUrl() + TILLS_PATH);
-        assertEquals(200, response.statusCode(), "Filtering tills by status must succeed");
-
-        List<Map<String, Object>> tills = response.jsonPath().getList("tills");
-        assertNotNull(tills, "The filtered tills response must contain a tills list");
-        List<Long> returnedTillNumbers = tills.stream()
-            .map(till -> till.get("till_number"))
-            .filter(Number.class::isInstance)
-            .map(Number.class::cast)
-            .map(Number::longValue)
-            .toList();
-        assertTrue(new HashSet<>(returnedTillNumbers).containsAll(createdTillNumbers),
+        Set<Long> returnedTillNumbers = getTillNumbersForStatus(status);
+        assertTrue(returnedTillNumbers.containsAll(createdTillNumbers),
             "Expected till numbers " + createdTillNumbers + " under status " + status);
     }
 
@@ -127,7 +116,7 @@ public class TillAllocationStepDef extends BaseStepDef {
                 .put("business_unit_id", businessUnitId));
         }
 
-        authorisedJsonRequest()
+        allocationResponse = authorisedJsonRequest()
             .body(new JSONObject().put("tills", tills).toString())
             .when()
             .post(getTestUrl() + ALLOCATE_TILLS_PATH);
@@ -261,13 +250,14 @@ public class TillAllocationStepDef extends BaseStepDef {
     }
 
     private String uniqueTillCreateRequest() {
-        String payerName = "PO-3423-functional-" + UUID.randomUUID();
+        // Keep this below the database's 50-character third_party_payer_name limit.
+        String payerName = "PO-3423-" + UUID.randomUUID();
         return """
             {
               "business_unit_id": 78,
               "payments_in": [
                 {
-                  "defendant_account_id": 123,
+                  "defendant_account_id": %s,
                   "payment_details": {
                     "amount": 12.34,
                     "method": "Notes & Coins",
@@ -279,7 +269,34 @@ public class TillAllocationStepDef extends BaseStepDef {
                 }
               ]
             }
-            """.formatted(payerName);
+            """.formatted(scenarioContext().getCreatedDefendantAccountIdOrFail(), payerName);
+    }
+
+    private void createDefendantAccount() throws Exception {
+        defendantAccountWorkflow.createEnforceableDefendantAccount(Map.of(
+            "business_unit_id", String.valueOf(BUSINESS_UNIT_ID),
+            "account", "draftAccounts/accountJson/adultAccount.json",
+            "account_type", "Fine",
+            "account_status", "Submitted"
+        ));
+    }
+
+    private Set<Long> getTillNumbersForStatus(String status) {
+        Response response = authorisedJsonRequest()
+            .queryParam("business_unit_ids", BUSINESS_UNIT_ID)
+            .queryParam("statuses", status)
+            .when()
+            .get(getTestUrl() + TILLS_PATH);
+        assertEquals(200, response.statusCode(), "Filtering tills by status must succeed");
+
+        List<Map<String, Object>> tills = response.jsonPath().getList("tills");
+        assertNotNull(tills, "The filtered tills response must contain a tills list");
+        return tills.stream()
+            .map(till -> till.get("till_number"))
+            .filter(Number.class::isInstance)
+            .map(Number.class::cast)
+            .map(Number::longValue)
+            .collect(java.util.stream.Collectors.toSet());
     }
 
     private void submitAllocationRequest() throws JSONException {
@@ -293,8 +310,9 @@ public class TillAllocationStepDef extends BaseStepDef {
 
     private void deleteTill(long tillId) {
         Response response = authorisedJsonRequest()
+            .queryParam("ids", tillId)
             .when()
-            .delete(getTestUrl() + TESTING_SUPPORT_TILLS_PATH + tillId);
+            .delete(getTestUrl() + TESTING_SUPPORT_TILLS_PATH);
         assertTrue(response.statusCode() == 200 || response.statusCode() == 204,
             "Testing Support must remove till " + tillId);
         createdTillIds.remove(tillId);

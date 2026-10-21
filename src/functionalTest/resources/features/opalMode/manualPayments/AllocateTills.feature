@@ -1,10 +1,9 @@
 @Opal @R1CPayment @JIRA-LABEL:auto-payments @JIRA-EPIC:PO-2116
 Feature: Allocate tills
 
-  # Till-creating scenarios remain ignored until GET /tills exposes till_id and the agreed Testing
-  # Support cleanup route is available. See PO-10713 and the PO-3630 manual-till tests.
-  # Exact status transitions are verified in integration tests, where database state is controlled;
-  # an external queue consumer could advance Processing before a functional test can observe it.
+  # GET /tills exposes till_id and PO-10810 provides manual-till cleanup. These scenarios verify
+  # that tills are Processing after a successful request; integration tests verify the database
+  # transition and broker interaction. Allocation completion is downstream behavior, outside this endpoint.
 
   @JIRA-STORY:PO-3423
   Scenario: Till allocation rejects a missing access token
@@ -42,7 +41,7 @@ Feature: Allocate tills
     When I submit an allocation request for a till that does not exist
     Then the request is rejected as not found
 
-  @Ignore @JIRA-STORY:PO-3423
+  @JIRA-STORY:PO-3423
   Scenario: Till allocation rejects a till submitted under the wrong business unit without partial updates
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And I create 2 uniquely identifiable tills for allocation in business unit 78
@@ -51,22 +50,24 @@ Feature: Allocate tills
     And all created tills are listed with status "CREATED"
     And I remove all created tills using the Testing Support API
 
-  @Ignore @JIRA-STORY:PO-3423
+  @JIRA-STORY:PO-3423
   Scenario: An authorised user queues a created till
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And I create 1 uniquely identifiable till for allocation in business unit 78
     And all created tills are listed with status "CREATED"
     When I submit the created tills for allocation
     Then till allocation succeeds with no response body
+    And all created tills are listed with status "PROCESSING"
     And I remove all created tills using the Testing Support API
 
-  @Ignore @JIRA-STORY:PO-3423
+  @JIRA-STORY:PO-3423
   Scenario: An authorised user queues multiple created tills in one request
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And I create 2 uniquely identifiable tills for allocation in business unit 78
     Then all created tills are listed with status "CREATED"
     When I submit the created tills for allocation
     Then till allocation succeeds with no response body
+    And all created tills are listed with status "PROCESSING"
     And I remove all created tills using the Testing Support API
 
   # Broker-level tests verify one message per till and a shared session ID for a batch.
