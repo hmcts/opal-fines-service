@@ -82,8 +82,42 @@ public class LoggingSteps extends BaseStepDef {
             case "Parent/Guardian" -> PdplIdentifierType.PARENT_GUARDIAN.name();
             default -> throw new IllegalArgumentException("Unknown party type: " + partyType);
         };
+        assertPdpoOperation(businessIdentifier, category, partyId, individualType);
+    }
+
+    /**
+     * Verifies an update log identifies the scenario's minor-creditor account and current OPAL user.
+     *
+     * @param businessIdentifier operation recorded by the minor-creditor endpoint.
+     * @param category processing category using the logging API's display value.
+     */
+    @Then("the logging service emits {string} with category {string} for the created minor creditor account")
+    public void loggingServiceEmitsMinorCreditorOperation(String businessIdentifier, String category) {
+        assertPdpoOperation(businessIdentifier, category, scenarioContext().getCreatedMinorCreditorAccountIdOrFail().toString(),
+            PdplIdentifierType.MINOR_CREDITOR.name());
+    }
+
+    /**
+     * Checks for unwanted logs throughout the asynchronous logging observation window.
+     *
+     * @param businessIdentifier operation that must not be recorded for the scenario's company account.
+     */
+    @Then("the logging service does not emit {string} for the created minor creditor account")
+    public void loggingServiceDoesNotEmitMinorCreditorOperation(String businessIdentifier) {
+        Map<String, Object> criteria = pdpoSearchCriteria(businessIdentifier,
+            scenarioContext().getCreatedMinorCreditorAccountIdOrFail().toString(), PdplIdentifierType.MINOR_CREDITOR.name());
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(DEFAULT_TIMEOUT_SECONDS);
+        do {
+            JsonNode response = searchPdpoLogs(criteria);
+            assertTrue(response.isArray() && response.isEmpty(), "Unexpected minor-creditor PDPO logs: " + response);
+            sleepBeforeRetry();
+        } while (System.nanoTime() < deadline);
+    }
+
+    private void assertPdpoOperation(String businessIdentifier, String category, String individualId,
+        String individualType) {
         Map<String, Object> criteria = new LinkedHashMap<>(pdpoSearchCriteria(businessIdentifier,
-            partyId, individualType));
+            individualId, individualType));
         criteria.put("category", category);
         latestPdpoSearchResponse = waitForPdpoLogs(criteria);
 
@@ -93,9 +127,9 @@ public class LoggingSteps extends BaseStepDef {
             assertEquals(PDPO_CREATED_BY_ID, log.path("created_by").path("id").asString());
             assertEquals(PDPO_CREATED_BY_TYPE, log.path("created_by").path("type").asString());
             assertTrue(StreamSupport.stream(log.path("individuals").spliterator(), false)
-                .anyMatch(individual -> partyId.equals(individual.path("id").asString())
+                .anyMatch(individual -> individualId.equals(individual.path("id").asString())
                     && individualType.equals(individual.path("type").asString())),
-                "Expected the log to identify the scenario's " + partyType + " party " + partyId);
+                "Expected the log to identify " + individualType + " " + individualId);
         }
     }
 
@@ -210,32 +244,31 @@ public class LoggingSteps extends BaseStepDef {
     private JsonNode waitForPdpoLogs(Map<String, Object> criteria) {
         long timeoutNanos = TimeUnit.SECONDS.toNanos(DEFAULT_TIMEOUT_SECONDS);
         long deadline = System.nanoTime() + timeoutNanos;
-        Response lastResponse = null;
+        JsonNode lastResponse = null;
 
         while (System.nanoTime() < deadline) {
-            lastResponse = SerenityRest.given()
-                .accept("*/*")
-                .contentType("application/json")
-                .body(writeJson(criteria))
-                .when()
-                .post(getLoggingTestUrl() + SEARCH_PATH);
-
-            if (lastResponse.statusCode() != 200) {
-                fail("Expected PDPO log search to return 200 but was " + lastResponse.statusCode()
-                    + " with body: " + lastResponse.asString());
-            }
-
-            JsonNode responseBody = readJson(lastResponse.asString());
-            if (responseBody.isArray() && !responseBody.isEmpty()) {
-                return responseBody;
+            lastResponse = searchPdpoLogs(criteria);
+            if (lastResponse.isArray() && !lastResponse.isEmpty()) {
+                return lastResponse;
             }
 
             sleepBeforeRetry();
         }
 
-        String lastBody = lastResponse == null ? "<no response>" : lastResponse.asString();
+        String lastBody = lastResponse == null ? "<no response>" : lastResponse.toString();
         fail("Timed out waiting for PDPO logs matching " + criteria + ". Last response body: " + lastBody);
         return null;
+    }
+
+    private JsonNode searchPdpoLogs(Map<String, Object> criteria) {
+        Response response = SerenityRest.given()
+            .accept("*/*")
+            .contentType("application/json")
+            .body(writeJson(criteria))
+            .when()
+            .post(getLoggingTestUrl() + SEARCH_PATH);
+        assertEquals(200, response.statusCode(), "PDPO log search failed: " + response.asString());
+        return readJson(response.asString());
     }
 
     /**
