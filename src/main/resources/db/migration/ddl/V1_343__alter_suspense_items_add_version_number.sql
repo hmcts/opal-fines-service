@@ -11,7 +11,7 @@
 *
 * Date          Author      Version     Nature of Change
 * ----------    -------     --------    ---------------------------------------------------------------
-* 14/10/2026    TBD         1.0         PO-10343 Add VERSION_NUMBER column to SUSPENSE_ITEMS table.
+* 14/10/2026    I Chandio    1.0         PO-10343 Add VERSION_NUMBER column to SUSPENSE_ITEMS table.
 *
 **/
 
