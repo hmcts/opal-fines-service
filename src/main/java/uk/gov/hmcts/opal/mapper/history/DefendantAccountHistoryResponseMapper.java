@@ -39,9 +39,6 @@ import uk.gov.hmcts.opal.generated.model.PostedDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.WriteOffTypeReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantTransactionStatusReferenceCommon.DefendantTransactionStatusEnum;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface DefendantAccountHistoryResponseMapper {
 
@@ -53,7 +50,6 @@ public interface DefendantAccountHistoryResponseMapper {
     @Mapping(target = "details", expression = "java(mapDetails(item.getDetails()))")
     DefendantAccountHistoryItemHistory toGeneratedHistoryItem(DefendantAccountHistoryItem item);
 
-    @Mapping(target = "postedDate", source = "postedDate", qualifiedByName = "toLocalDate")
     PostedDetailsCommon toGeneratedPostedDetails(PostedDetails postedDetails);
 
     AmendmentTypeCommon toGeneratedAmendmentType(AmendmentDetails details);
@@ -81,12 +77,15 @@ public interface DefendantAccountHistoryResponseMapper {
     WriteOffTypeReferenceCommon toGeneratedWriteOffType(WriteOffTypeReference writeOffType);
 
     @Named("normalizeTransactionType")
-    default String normalizeTransactionType(DefendantTransactionTypeReference transactionType) {
+    default DefendantTransactionTypeReferenceCommon.TransactionTypeEnum normalizeTransactionType(
+        DefendantTransactionTypeReference transactionType) {
         if (transactionType == null) {
             return null;
         }
         String value = transactionType.getTransactionType();
-        return value == null ? null : value.replace(" ", "");
+        return value == null
+            ? null
+            : DefendantTransactionTypeReferenceCommon.TransactionTypeEnum.fromValue(value.replace(" ", ""));
     }
 
     default DefendantTransactionStatusReferenceCommon toGeneratedTransactionStatus(
@@ -112,11 +111,6 @@ public interface DefendantAccountHistoryResponseMapper {
 
     default DefendantAccountHistoryItemHistory.TypeEnum mapType(HistoryItemType type) {
         return type == null ? null : DefendantAccountHistoryItemHistory.TypeEnum.fromValue(type.getResponseValue());
-    }
-
-    @Named("toLocalDate")
-    default LocalDate toLocalDate(LocalDateTime value) {
-        return value == null ? null : value.toLocalDate();
     }
 
     default DefendantAccountHistoryItemHistoryDetails mapDetails(DefendantAccountHistoryDetails details) {

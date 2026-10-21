@@ -33,6 +33,7 @@ import uk.gov.hmcts.opal.exception.JsonSchemaValidationException.JsonSchemaValid
 import uk.gov.hmcts.opal.exception.MissingMappingTypeException;
 import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
+import uk.gov.hmcts.opal.exception.PdplLoggingException;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.ReportGenerationException;
@@ -179,6 +180,14 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = createProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable",
             "The interface job queue is currently unavailable",
             "interface-job-queue-unavailable", true, ex);
+        return responseWithProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, problemDetail);
+    }
+
+    @ExceptionHandler(PdplLoggingException.class)
+    public ResponseEntity<ProblemDetail> handlePdplLoggingException(PdplLoggingException ex) {
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable",
+            "The personal data logging queue is currently unavailable",
+            "pdpl-logging-unavailable", true, ex);
         return responseWithProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, problemDetail);
     }
 
