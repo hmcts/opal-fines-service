@@ -111,12 +111,5 @@ public class ReportInstanceEntity {
         return report.getReportId();
     }
 
-    public void setLocation(UUID uuid) {
-        location = uuid == null ? null : uuid;
-    }
-
-    public UUID getLocation() {
-        return location == null ? null : location;
-    }
 
 }
