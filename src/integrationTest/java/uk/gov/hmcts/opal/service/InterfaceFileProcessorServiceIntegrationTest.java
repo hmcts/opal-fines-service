@@ -27,8 +27,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -104,11 +104,15 @@ class InterfaceFileProcessorServiceIntegrationTest extends AbstractIntegrationTe
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"metadata", "content", "upload"})
+    @CsvSource({
+        "metadata, Unable to retrieve interface file from file-handler-service",
+        "content, Unable to retrieve interface file content from file-handler service",
+        "upload, unable to add interface file"
+    })
     @DisplayName("Leaves no fines rows when a File Handler call fails")
     @JiraStory("PO-6460")
     @JiraEpic("PO-3497")
-    void process_fileHandlerFailureLeavesNoFinesRows(String failingCall) {
+    void process_fileHandlerFailureLeavesNoFinesRows(String failingCall, String expectedMessage) {
         stubSuccessfulFileHandler(PaymentType.CASH);
         switch (failingCall) {
             case "metadata" -> wireMockServer.stubFor(get(urlEqualTo("/interface-files/987"))
@@ -125,11 +129,11 @@ class InterfaceFileProcessorServiceIntegrationTest extends AbstractIntegrationTe
         DownstreamServiceUnavailableException failure = assertThrows(
             DownstreamServiceUnavailableException.class, () -> service.process(SOURCE_ID));
 
+        assertThat(failure).hasMessage(expectedMessage);
         assertThat(failure.getCause())
             .isInstanceOf(FeignException.class)
             .hasMessageContaining("File Handler storage is temporarily unavailable. Please retry later.");
         assertThat(((FeignException) failure.getCause()).status()).isEqualTo(503);
-        assertThat(failure.getMessage()).contains("interface file");
 
         assertThat(interfaceFileRepository.count()).isEqualTo(filesBefore);
         assertThat(interfaceJobRepository.count()).isEqualTo(jobsBefore);
