@@ -14,11 +14,11 @@ import tools.jackson.databind.annotation.JsonNaming;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@XmlRootElement(name = "installment_period")
+@XmlRootElement(name = "instalment_period")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class LegacyInstalmentPeriod {
 
-    @XmlElement(name = "installment_period_code")
+    @XmlElement(name = "instalment_period_code")
     private InstalmentPeriodCode instalmentPeriodCode;
 
     public enum InstalmentPeriodCode {
