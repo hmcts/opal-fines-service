@@ -1,5 +1,8 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -18,6 +21,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse.DefendantAccountTypeEnum;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountSummaryPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -33,6 +37,8 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
     @MockitoSpyBean
     JsonSchemaValidationService jsonSchemaValidationService;
 
+    @MockitoSpyBean
+    protected DefendantAccountSummaryPdplLoggingService loggingService;
 
 
     @DisplayName("Get header summary for individual defendant account [@PO-2287]")
@@ -60,6 +66,7 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
             .andExpect(jsonPath("$.party_details.individual_details.forenames").value("Anna"))
             .andExpect(jsonPath("$.party_details.individual_details.surname").value("Graham"))
             .andExpect(jsonPath("$.party_details.organisation_details").doesNotExist());
+        verify(loggingService).logHeaderSummary(any(), eq(userStateStub.getUserState().getUserId()));
     }
 
     @DisplayName("Get header summary for organisation defendant account [@PO-2287]")
@@ -102,6 +109,7 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
             .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
             .andExpect(jsonPath("$.party_details.individual_details.forenames").value("Anna"))
             .andExpect(jsonPath("$.party_details.individual_details.surname").value("Graham"));
+        verify(loggingService).logHeaderSummary(any(), eq(userStateStub.getUserState().getUserId()));
     }
 
     @DisplayName("PO-2297: header-summary (organisation) returns correct defendant_party_id from"

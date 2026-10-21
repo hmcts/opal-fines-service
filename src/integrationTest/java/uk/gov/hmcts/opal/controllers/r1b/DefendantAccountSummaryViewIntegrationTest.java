@@ -1,6 +1,9 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -46,6 +49,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
             .andExpect(jsonPath("$.parent_guardian_party_id").value("990002"))
             .andExpect(jsonPath("$.fixed_penalty_ticket_number").value("FPN990001"))
             .andExpect(jsonPath("$.prosecutor_case_reference").value("PCR990001"));
+        verify(loggingService).logHeaderSummary(any(), eq(userStateStub.getUserState().getUserId()));
     }
 
     @Test
@@ -80,6 +84,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
             .andExpect(jsonPath("$.parent_guardian_party_id").isEmpty())
             .andExpect(jsonPath("$.fixed_penalty_ticket_number").value("888"))
             .andExpect(jsonPath("$.prosecutor_case_reference").value("090A"));
+        verify(loggingService).logHeaderSummary(any(), eq(userStateStub.getUserState().getUserId()));
     }
 
     @Test
@@ -103,6 +108,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
             .andExpect(jsonPath("$.prosecutor_case_reference").value("090A"))
             .andExpect(jsonPath("$.payment_state_summary").exists())
             .andExpect(jsonPath("$.party_details").exists());
+        verify(loggingService).logHeaderSummary(any(), eq(userStateStub.getUserState().getUserId()));
     }
 
     @Test
@@ -124,6 +130,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
             .andExpect(jsonPath("$.originator_name").value("Header Summary New Originator"))
             .andExpect(jsonPath("$.collection_order").value(false))
             .andExpect(jsonPath("$.has_consolidated_accounts").value(true));
+        verify(loggingService).logHeaderSummary(any(), eq(userStateStub.getUserState().getUserId()));
     }
 
     @Test
