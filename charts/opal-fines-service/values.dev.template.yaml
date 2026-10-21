@@ -40,6 +40,10 @@ java:
           alias: AZURE_STORAGE_CONNECTION_STRING
         - name: reports-storage-container-name
           alias: REPORTS_AZURE_STORAGE_CONTAINER
+        - name: docmosis-api-key
+          alias: DOCMOSIS_API_KEY
+        - name: docmosis-endpoint
+          alias: DOCMOSIS_ENDPOINT
   environment:
     OPAL_REDIS_ENABLED: true
     REDIS_CONNECTION_STRING: redis://${SERVICE_NAME}-hmcts-redis-master:6379
