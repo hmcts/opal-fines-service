@@ -46,13 +46,13 @@ public class LegacyPaymentTerms {
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate effectiveDate;
 
-    @XmlElement(name = "installment_period")
+    @XmlElement(name = "instalment_period")
     private LegacyInstalmentPeriod instalmentPeriod;
 
     @XmlElement(name = "lump_sum_amount")
     private BigDecimal lumpSumAmount;
 
-    @XmlElement(name = "installment_amount")
+    @XmlElement(name = "instalment_amount")
     private BigDecimal instalmentAmount;
 
     @XmlElement(name = "posted_details")
