@@ -271,9 +271,6 @@ paths:
       responses:
         '200':
           description: Alternate payment reference deleted
-          headers:
-            ETag:
-              $ref: './common.yaml#/components/headers/ETag'
           content:
             application/json:
               schema:
@@ -345,14 +342,9 @@ components:
 
     AlternatePaymentReferencesListResponse:
       title: Alternate Payment References Response
-      type: object
-      required:
-        - alternate_payment_references
-      properties:
-        alternate_payment_references:
-          type: array
-          items:
-            $ref: '#/components/schemas/AlternatePaymentReferencesItem'
+      type: array
+      items:
+        $ref: '#/components/schemas/AlternatePaymentReferencesSingleResponse'
 
     AlternatePaymentReferencesItem:
       title: Alternate Payment Reference
