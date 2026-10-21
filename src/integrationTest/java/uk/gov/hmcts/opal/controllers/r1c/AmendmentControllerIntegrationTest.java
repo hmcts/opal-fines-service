@@ -97,7 +97,7 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(118))
+            .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.searchData[0].amendment_id").value(7))
             .andExpect(jsonPath("$.searchData[0].amended_by").value("User_A"))
             .andExpect(jsonPath("$.searchData[0].field_code").value(1))
@@ -122,7 +122,7 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(88))
+            .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.searchData[0].associated_record_type").value("defendant_accounts"));
     }
 

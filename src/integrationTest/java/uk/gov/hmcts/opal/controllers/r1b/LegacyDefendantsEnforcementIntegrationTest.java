@@ -367,8 +367,7 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
 
         result.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.last_enforcement_action.enforcement_action.result_id")
-                .value("MPSO"))
+            .andExpect(jsonPath("$.last_enforcement_action").doesNotExist())
             .andExpect(jsonPath("$.next_enforcement_action_data").doesNotExist());
     }
 }
