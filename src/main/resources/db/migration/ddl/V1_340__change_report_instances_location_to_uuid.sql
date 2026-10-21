@@ -19,5 +19,6 @@ ALTER TABLE report_instances
 ALTER COLUMN location TYPE UUID
     USING location::uuid;
 
+
 COMMENT ON COLUMN report_instances.location IS
     'The Azure unique identifier of the stored report location.';
