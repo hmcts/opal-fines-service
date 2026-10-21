@@ -140,6 +140,15 @@ paths:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '422':
+          description: >-
+            APR text is already used by an alternate payment reference belonging to any defendant account
+            in the business unit of the specified defendant account, or the specified defendant account
+            already has an alternate payment reference with relationship APR.
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
         '500':
           description: Internal server error
           content:
@@ -224,6 +233,14 @@ paths:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         '412':
           description: Defendant account version does not match If-Match
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '422':
+          description: >-
+            APR text is already used by another alternate payment reference belonging to any defendant
+            account in the business unit of the specified defendant account.
           content:
             application/problem+json:
               schema:
