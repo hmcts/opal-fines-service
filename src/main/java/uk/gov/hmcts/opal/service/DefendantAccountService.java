@@ -34,6 +34,7 @@ import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.mapper.request.DefendantAccountSearchRequestMapper;
 import uk.gov.hmcts.opal.mapper.response.DefendantAccountSearchResponseMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.service.opal.ConsolidatedAccountPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountHistoryPdplLoggingService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 import uk.gov.hmcts.opal.util.VersionUtils;
@@ -57,6 +58,8 @@ public class DefendantAccountService {
 
     private final DefendantAccountHistoryPdplLoggingService defendantAccountHistoryPdplLoggingService;
 
+    private final ConsolidatedAccountPdplLoggingService consolidatedAccountPdplLoggingService;
+
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
         log.debug(":getHeaderSummary:");
 
@@ -78,7 +81,11 @@ public class DefendantAccountService {
             throw new RequiredPermissionException(SEARCH_AND_VIEW_ACCOUNTS);
         }
 
-        return defendantAccountServiceProxy.getConsolidatedAccounts(defendantAccountId);
+        GetDefendantAccountConsolidatedAccountsResult result =
+            defendantAccountServiceProxy.getConsolidatedAccounts(defendantAccountId);
+        consolidatedAccountPdplLoggingService.logIndividualChildAccounts(userState, result);
+
+        return result;
     }
 
     public DefendantAccountHistoryResponse getHistory(Long defendantAccountId,
