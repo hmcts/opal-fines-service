@@ -78,7 +78,7 @@ public class ReportInstanceEntity {
     @Column(name = "report_parameters", columnDefinition = "json", nullable = false)
     private String reportParameters;
 
-    @Column(name = "location", length = 50)
+    @Column(name = "location")
     private String location;
 
     @Column(name = "requested_at", nullable = false)
