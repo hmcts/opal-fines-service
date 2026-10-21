@@ -85,7 +85,6 @@ class GenericReportServiceTest extends AbstractIntegrationTest {
         when(clock.getZone()).thenReturn(ZoneOffset.UTC);
     }
 
-
     @Test
     @JiraStory("PO-2257")
     @JiraEpic("PO-2627")
