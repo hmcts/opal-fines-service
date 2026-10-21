@@ -1,0 +1,82 @@
+openapi: 3.1.1
+
+servers:
+  - url: http://localhost:4550/
+
+info:
+  title: Suspense Accounts Access API
+  description: Suspense Accounts Access API
+  version: 1.0.0
+
+paths:
+  /suspense-accounts/{business_unit_id}/suspense-items/{suspense_item_number}/summary:
+    get:
+      tags:
+        - Suspense Accounts
+      summary: Get suspense item summary
+      description: Get suspense item summary
+      operationId: getSuspenseItemSummary
+      security:
+        - permissions: [
+          'View Suspense Items',
+          'Manage Suspense Items']
+      parameters:
+        - name: business_unit_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: suspense_item_number
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: './CommonStrict.yaml#/components/schemas/suspenseItemSummary'
+        '400':
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
