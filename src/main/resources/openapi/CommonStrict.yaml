@@ -702,3 +702,25 @@ components:
           type:
             - string
             - 'null'
+    suspenseItemSummary:
+      title: Suspense Item Summary Details
+      type: object
+      additionalProperties: false
+      properties:
+        suspense_item_id:
+          type:
+            - integer
+        suspense_item_number:
+          type:
+            - integer
+        created_date:
+          type: string
+          format: date-time
+        suspense_item_type:
+          type:
+            - string
+            - 'null'
+        balance:
+          type:
+            - integer
+            - 'null'
