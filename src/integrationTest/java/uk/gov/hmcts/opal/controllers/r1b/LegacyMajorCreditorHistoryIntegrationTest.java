@@ -48,6 +48,7 @@ import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyMajorCreditorHistoryDetails;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyMajorCreditorHistoryItem;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -71,10 +72,14 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @MockitoBean
     private GatewayService gatewayService;
 
+    @MockitoBean
+    private LoggingService loggingService;
+
     @BeforeEach
     void setUp() {
         when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
     }
 
     @Test

@@ -1,17 +1,18 @@
 package uk.gov.hmcts.opal.mapper.legacy;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse.LegacyCreditorTransactionStatusReference;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse.LegacyCreditorTransactionTypeReference;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse.LegacyMinorCreditorAccountHistoryItem;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse.LegacyMinorCreditorHistoryDetails;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse.LegacyMinorCreditorHistoryPostedDetails;
+import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse.LegacyCreditorTransactionStatusReference;
+import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse.LegacyCreditorTransactionTypeReference;
+import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse.LegacyMinorCreditorAccountHistoryItem;
+import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse.LegacyMinorCreditorHistoryDetails;
+import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse.LegacyMinorCreditorHistoryPostedDetails;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryRequest;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
@@ -43,7 +44,7 @@ public class LegacyMinorCreditorHistoryMapper {
             .build();
     }
 
-    public GetMinorCreditorHistoryResponse toOpal(LegacyGetMinorCreditorAccountHistoryResponse legacy) {
+    public GetMinorCreditorHistoryResponse toOpal(MinorCreditorHistoryLegacyResponse legacy) {
         List<MinorCreditorHistoryItem> historyItems = toHistoryItems(legacy);
 
         return GetMinorCreditorHistoryResponse.builder()
@@ -54,9 +55,9 @@ public class LegacyMinorCreditorHistoryMapper {
             .build();
     }
 
-    private List<MinorCreditorHistoryItem> toHistoryItems(LegacyGetMinorCreditorAccountHistoryResponse legacy) {
+    private List<MinorCreditorHistoryItem> toHistoryItems(MinorCreditorHistoryLegacyResponse legacy) {
         List<LegacyMinorCreditorAccountHistoryItem> historyItems = Optional.ofNullable(legacy)
-            .map(LegacyGetMinorCreditorAccountHistoryResponse::getHistoryItems)
+            .map(MinorCreditorHistoryLegacyResponse::getHistoryItems)
             .orElse(List.of());
 
         return IntStream.range(0, historyItems.size())
@@ -114,7 +115,9 @@ public class LegacyMinorCreditorHistoryMapper {
                 .transactionType(toCreditorTransactionType(details.getTransactionType()))
                 .paymentReference(details.getPaymentReference())
                 .status(toCreditorTransactionStatus(details.getStatus()))
-                .statusDate(details.getStatusDate())
+                .statusDate(Optional.ofNullable(details.getStatusDate())
+                    .map(LocalDate::atStartOfDay)
+                    .orElse(null))
                 .associatedRecordType(details.getAssociatedRecordType())
                 .associatedRecordId(details.getAssociatedRecordId())
                 .accountNumber(details.getAccountNumber())
