@@ -22,6 +22,7 @@ import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.service.opal.MinorCreditorPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.MinorCreditorSummaryPdplLoggingService;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 
@@ -33,6 +34,8 @@ public class MinorCreditorService {
     private final MinorCreditorSearchProxy minorCreditorSearchProxy;
 
     private final UserStateService userStateService;
+
+    private final MinorCreditorPdplLoggingService pdplLoggingService;
 
     private final MinorCreditorSummaryPdplLoggingService minorCreditorSummaryPdplLoggingService;
 
@@ -60,7 +63,9 @@ public class MinorCreditorService {
 
         MinorCreditorAccountResponse response =
             minorCreditorSearchProxy.getMinorCreditorAccount(minorCreditorAccountId);
-        return redactBacsDetailsWhenNotPermitted(minorCreditorAccountId, response, userState);
+        response = redactBacsDetailsWhenNotPermitted(minorCreditorAccountId, response, userState);
+        pdplLoggingService.logIndividualMinorCreditor(userState, response);
+        return response;
     }
 
     public GetMinorCreditorHistoryResponse getMinorCreditorHistory(
