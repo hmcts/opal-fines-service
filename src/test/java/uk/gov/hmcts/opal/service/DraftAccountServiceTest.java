@@ -294,7 +294,7 @@ class DraftAccountServiceTest {
     void testCountsDefaultSourceFeatureFlagOff() {
         // Arrange
         when(draftAccountTransactional.countDraftAccounts(any(), any(), any(), any(), any(), any(), any()))
-            .thenReturn(7l);
+            .thenReturn(7L);
         var userState = UserStateUtil.allPermissionsUser();
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(featureToggleApi.isFeatureEnabled(eq(FeatureFlags.RELEASE_1C_BANKING_INTERFACES))).thenReturn(false);
@@ -317,7 +317,7 @@ class DraftAccountServiceTest {
     void testCountsDefaultSourceFeatureFlagOn() {
         // Arrange
         when(draftAccountTransactional.countDraftAccounts(any(), any(), any(), any(), any(), any(), any()))
-            .thenReturn(7l);
+            .thenReturn(7L);
         var userState = UserStateUtil.allPermissionsUser();
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(featureToggleApi.isFeatureEnabled(eq(FeatureFlags.RELEASE_1C_BANKING_INTERFACES))).thenReturn(true);
