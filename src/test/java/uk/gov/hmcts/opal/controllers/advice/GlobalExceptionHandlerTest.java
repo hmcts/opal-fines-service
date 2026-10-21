@@ -300,6 +300,7 @@ class GlobalExceptionHandlerTest {
     }
 
     static class TestRequestValidationClass {
+
         public void testMethod(String request) {
         }
     }
