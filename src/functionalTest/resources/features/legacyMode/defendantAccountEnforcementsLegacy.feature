@@ -22,11 +22,11 @@ Feature: Defendant Account Enforcement Overrides API In Legacy Mode
       | enforcement_override.enforcer.enforcer_id                                       | 770000000001 |
       | enforcement_overview.enforcement_court.court_id                                 | 770000000001 |
 
-  @NightlyOnly @JIRA-STORY:PO-11108 @JIRA-EPIC:PO-2063
+  @DemoOnly @JIRA-STORY:PO-11108 @JIRA-EPIC:PO-2063
   Scenario: Enforcement status remains available when Legacy omits the enforcement court
     # Requires pre-prod Legacy account 1300000008894 to retain the missing-court data reported in PO-11108.
     # No equivalent missing-court fixture is available on JCDE yet.
-    # Selected by the nightly R1A/R1B tagged stages; excluded from normal Legacy functional runs.
+    # Selected by the demo R1A/R1B stages; excluded from the regular functional stage, including nightly runs.
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I request legacy enforcement status for defendant account "1300000008894"
     Then the request succeeds
