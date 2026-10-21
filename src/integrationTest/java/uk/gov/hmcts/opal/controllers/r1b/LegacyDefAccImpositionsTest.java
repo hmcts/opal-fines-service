@@ -186,7 +186,7 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
 
     @Test
     @JiraEpic("PO-979")
-    @JiraStory("PO-PO-11114")
+    @JiraStory("PO-11114")
     @DisplayName("LEGACY: Get Defendant Account Impositions returns null imposing court details")
     void getImpositions_whenImposingCourtIsMissing_returnsNullCourtDetails() throws Exception {
         GetDefendantAccountImpositionsLegacyResponse legacyResponse = legacyResponse();
