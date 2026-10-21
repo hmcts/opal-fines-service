@@ -1,10 +1,19 @@
 package uk.gov.hmcts.opal.steps.defendantaccount;
 
+import static net.serenitybdd.rest.SerenityRest.lastResponse;
+import static net.serenitybdd.rest.SerenityRest.then;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import io.restassured.http.ContentType;
 import org.json.JSONException;
+import uk.gov.hmcts.opal.assertions.CommonResponseAssertions;
+import uk.gov.hmcts.opal.steps.BaseStepDef;
 import uk.gov.hmcts.opal.workflows.defendantaccount.DefendantAccountEnforcementWorkflow;
 
 import java.io.IOException;
@@ -13,8 +22,43 @@ import java.util.Map;
 /**
  * Defines Cucumber steps for defendant-account enforcement scenarios.
  */
-public class DefendantAccountEnforcementsStepDef {
+public class DefendantAccountEnforcementsStepDef extends BaseStepDef {
     private final DefendantAccountEnforcementWorkflow workflow = new DefendantAccountEnforcementWorkflow();
+    private final CommonResponseAssertions responseAssertions = new CommonResponseAssertions();
+
+    /**
+     * Retrieves enforcement status for an existing Legacy defendant account without changing its data.
+     *
+     * @param defendantAccountId identifier of the Legacy account to retrieve.
+     */
+    @When("I request legacy enforcement status for defendant account {string}")
+    public void requestLegacyEnforcementStatus(String defendantAccountId) {
+        authorisedJsonRequest()
+            .when()
+            .get(getTestUrl() + "/defendant-accounts/" + defendantAccountId + "/enforcement-status");
+    }
+
+    /**
+     * Distinguishes a JSON null court from an absent property or an empty court object.
+     */
+    @Then("the enforcement status includes an explicitly null enforcement court")
+    public void enforcementStatusIncludesNullCourt() {
+        then().contentType(ContentType.JSON);
+        Map<String, Object> overview = lastResponse().jsonPath().getMap("enforcement_overview");
+        assertNotNull(overview, "Expected enforcement overview to remain available");
+        assertTrue(overview.containsKey("enforcement_court"), "Expected enforcement_court property to be present");
+        assertNull(overview.get("enforcement_court"), "Expected enforcement_court to be JSON null");
+    }
+
+    /**
+     * Checks available enforcement information in the response already retrieved by the scenario.
+     *
+     * @param dataTable expected JSON paths and values.
+     */
+    @Then("the enforcement status response contains the following data")
+    public void enforcementStatusResponseContains(DataTable dataTable) {
+        responseAssertions.assertResponseContains(lastResponse(), dataTable.asMap(String.class, String.class));
+    }
 
     /**
      * Creates and publishes a draft account so the scenario has a defendant account available for
