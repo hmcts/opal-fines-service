@@ -11,6 +11,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
+import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
+import uk.gov.hmcts.opal.common.legacy.model.HasErrorResponse;
 import uk.gov.hmcts.opal.dto.ToXmlString;
 import uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.legacy.common.CreditorAccountTypeReference;
@@ -21,7 +23,10 @@ import uk.gov.hmcts.opal.dto.legacy.common.CreditorAccountTypeReference;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class GetMajorCreditorAccountHeaderSummaryLegacyResponse implements ToXmlString {
+public class GetMajorCreditorAccountHeaderSummaryLegacyResponse implements ToXmlString, HasErrorResponse {
+
+    @XmlElement(name = "error_response")
+    private ErrorResponse errorResponse;
 
     @XmlElement(name = "major_creditor")
     private MajorCreditorLegacy majorCreditor;

@@ -16,7 +16,7 @@ public class Release1bFeatureToggleStepDef extends BaseStepDef {
     private static final String MINOR_CREDITOR_ACCOUNTS_URI = "/minor-creditor-accounts";
     private static final String NOTES_URI = "/notes";
     private static final String RESULTS_URI = "/results";
-    private static final String PLACEHOLDER_DEFENDANT_ACCOUNT_ID = "999999";
+    private static final String PLACEHOLDER_DEFENDANT_ACCOUNT_ID = "990000999999";
     private static final String PLACEHOLDER_DEFENDANT_ACCOUNT_PARTY_ID = "999999";
     private static final String PLACEHOLDER_MINOR_CREDITOR_ACCOUNT_ID = "999999";
     private static final String PLACEHOLDER_RESULT_ID = "FCOMP";

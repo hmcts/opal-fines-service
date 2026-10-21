@@ -26,14 +26,14 @@ import uk.gov.hmcts.opal.dto.ToXmlString;
 @Builder
 public class LegacyAddNoteResponse implements ToXmlString, HasErrorResponse {
 
+    @XmlElement(name = "error_response")
+    private ErrorResponse errorResponse;
+
     @NotNull
     @XmlElement(name = "version", required = true)
     private BigInteger version;
 
     @XmlElement(name = "activity_note", required = true)
     private LegacyNote note;
-
-    @XmlElement(name = "error_response")
-    private ErrorResponse errorResponse;
 
 }

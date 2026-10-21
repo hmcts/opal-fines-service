@@ -4,6 +4,7 @@ import tools.jackson.core.JacksonException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
@@ -17,10 +18,12 @@ import uk.gov.hmcts.opal.entity.draft.TimelineData;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.service.iface.DraftAccountPublishInterface;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 import java.time.LocalDate;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +38,7 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
 
     private final GatewayService gatewayService;
     private final DraftAccountTransactional draftAccountTransactional;
+    private final FeatureToggleApi featureToggleApi;
 
     @Override
     public DraftAccountEntity publishDefendantAccount(DraftAccountEntity publishEntity, BusinessUnitUser unitUser) {
@@ -98,8 +102,8 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
         return publishEntity;
     }
 
-    public static LegacyCreateDefendantAccountRequest createDefendantAccountRequest(DraftAccountEntity entity,
-                                                                                    BusinessUnitUser unitUser) {
+    public LegacyCreateDefendantAccountRequest createDefendantAccountRequest(DraftAccountEntity entity,
+        BusinessUnitUser unitUser) {
         String accountJson = entity.getAccount();
         Object account;
         try {
@@ -112,10 +116,31 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
             );
         }
 
+        if (featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)) {
+            defaultFpRegistrationNumber(account);
+        }
+
         return LegacyCreateDefendantAccountRequest.builder()
             .businessUnitId(entity.getBusinessUnit().getBusinessUnitId())
             .businessUnitUserId(unitUser.getBusinessUnitUserId())
             .defendantAccount(account)
             .build();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void defaultFpRegistrationNumber(Object account) {
+        if (!(account instanceof Map<?, ?> accountMap)
+            || !(accountMap.get("fp_ticket_detail") instanceof Map<?, ?> fpTicketDetail)) {
+            return;
+        }
+
+        Object registrationNumber = fpTicketDetail.get("fp_registration_number");
+        boolean hasNoContent = registrationNumber == null
+            || registrationNumber instanceof String value && value.trim().isEmpty();
+
+        if (hasNoContent) {
+            ((Map<String, Object>) fpTicketDetail).put("fp_registration_number", "NV");
+        }
     }
 }

@@ -21,6 +21,7 @@ import uk.gov.hmcts.opal.workflows.defendantaccount.DefendantAccountEnforcementW
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -271,13 +272,15 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
      */
     @Then("I remember the returned defendant account history date range")
     public void rememberReturnedDefendantAccountHistoryDateRange() throws JacksonException {
-        List<LocalDate> postedDates = historyItems().stream()
+        List<LocalDateTime> postedDates = historyItems().stream()
             .map(this::postedDateOf)
             .toList();
 
         assertFalse(postedDates.isEmpty(), "History response should contain dates to remember");
-        historyState.setRememberedDateFrom(postedDates.stream().min(LocalDate::compareTo).orElseThrow());
-        historyState.setRememberedDateTo(postedDates.stream().max(LocalDate::compareTo).orElseThrow());
+        historyState.setRememberedDateFrom(postedDates.stream().min(LocalDateTime::compareTo).orElseThrow()
+                                               .toLocalDate());
+        historyState.setRememberedDateTo(postedDates.stream().max(LocalDateTime::compareTo).orElseThrow()
+                                             .toLocalDate());
     }
 
     /**
@@ -317,6 +320,32 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
             containsSeededEnforcement,
             "Expected seeded enforcement action " + SEEDED_ENFORCEMENT_ACTION
         );
+    }
+
+    /**
+     * Asserts an enforcement history item exposes the hearing court and date saved with that enforcement.
+     *
+     * @param enforcementAction expected enforcement result ID.
+     * @param expectedCourtId expected resolved court ID.
+     * @param expectedHearingDate expected hearing date in ISO-8601 date format.
+     * @throws JacksonException if the history response body cannot be parsed.
+     */
+    @Then("the defendant account history contains enforcement action {string} with hearing court id {long} "
+        + "and hearing date {string}")
+    public void defendantAccountHistoryContainsEnforcementWithHearingDetails(
+        String enforcementAction,
+        long expectedCourtId,
+        String expectedHearingDate
+    ) throws JacksonException {
+        JsonNode enforcementDetails = historyItems().stream()
+            .filter(item -> "Enforcement".equals(typeOf(item)))
+            .map(item -> item.path("details"))
+            .filter(details -> enforcementAction.equals(details.path("enforcementAction").asString()))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("Expected enforcement action " + enforcementAction));
+
+        assertEquals(expectedCourtId, enforcementDetails.path("hearingCourt").path("court_id").asLong());
+        assertEquals(expectedHearingDate, enforcementDetails.path("hearingDate").asString());
     }
 
     /**
@@ -370,9 +399,9 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
      */
     @Then("the defendant account history is ordered newest first")
     public void defendantAccountHistoryIsOrderedNewestFirst() throws JacksonException {
-        LocalDate previous = null;
+        LocalDateTime previous = null;
         for (JsonNode historyItem : historyItems()) {
-            LocalDate current = postedDateOf(historyItem);
+            LocalDateTime current = postedDateOf(historyItem);
             if (previous != null) {
                 assertFalse(
                     current.isAfter(previous),
@@ -581,23 +610,27 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     }
 
     private void assertHistoryContainsOnlyItemsOnOrAfter(LocalDate boundary) throws JacksonException {
+        LocalDateTime inclusiveBoundary = boundary.atStartOfDay();
         for (JsonNode historyItem : historyItems()) {
-            LocalDate postedDate = postedDateOf(historyItem);
-            assertFalse(postedDate.isBefore(boundary), "History item was before dateFrom boundary");
+            LocalDateTime postedDate = postedDateOf(historyItem);
+            assertFalse(postedDate.isBefore(inclusiveBoundary), "History item was before dateFrom boundary");
         }
     }
 
     private void assertHistoryContainsOnlyItemsOnOrBefore(LocalDate boundary) throws JacksonException {
+        LocalDateTime exclusiveBoundary = boundary.plusDays(1).atStartOfDay();
         for (JsonNode historyItem : historyItems()) {
-            LocalDate postedDate = postedDateOf(historyItem);
-            assertFalse(postedDate.isAfter(boundary), "History item was after dateTo boundary");
+            LocalDateTime postedDate = postedDateOf(historyItem);
+            assertTrue(postedDate.isBefore(exclusiveBoundary), "History item was after dateTo boundary");
         }
     }
 
     private void assertHistoryIncludesItemOn(LocalDate expectedDate) throws JacksonException {
+        LocalDateTime inclusiveBoundary = expectedDate.atStartOfDay();
+        LocalDateTime exclusiveBoundary = expectedDate.plusDays(1).atStartOfDay();
         boolean found = historyItems().stream()
             .map(this::postedDateOf)
-            .anyMatch(expectedDate::equals);
+            .anyMatch(postedDate -> !postedDate.isBefore(inclusiveBoundary) && postedDate.isBefore(exclusiveBoundary));
 
         assertTrue(found, "Expected at least one history item on " + expectedDate);
     }
@@ -632,7 +665,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
 
         JsonNode postedDetails = historyItem.path("postedDetails");
         assertTrue(postedDetails.isObject(), "postedDetails should be an object");
-        LocalDate postedDate = LocalDate.parse(
+        LocalDateTime postedDate = LocalDateTime.parse(
             assertText(postedDetails.path("posted_date"), "postedDetails.posted_date")
         );
         assertNotNull(postedDate, "postedDetails.posted_date should be parseable");
@@ -684,7 +717,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
         JsonNode transactionType = details.path("transactionType");
         assertTrue(transactionType.isObject(), "details.transactionType should be an object");
         assertText(transactionType.path("transactionType"), "details.transactionType.transactionType");
-        assertText(
+        assertOptionalText(
             transactionType.path("transactionTypeDisplayName"),
             "details.transactionType.transactionTypeDisplayName"
         );
@@ -723,8 +756,8 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
         return assertText(historyItem.path("type"), "type");
     }
 
-    private LocalDate postedDateOf(JsonNode historyItem) {
-        return LocalDate.parse(
+    private LocalDateTime postedDateOf(JsonNode historyItem) {
+        return LocalDateTime.parse(
             assertText(historyItem.path("postedDetails").path("posted_date"), "postedDetails.posted_date")
         );
     }

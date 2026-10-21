@@ -41,6 +41,17 @@ public class DefendantAccountEnforcementsStepDef {
     }
 
     /**
+     * Adds an enforcement action to the defendant account created earlier in the scenario.
+     *
+     * @param dataTable Cucumber table containing the enforcement values for the request.
+     * @throws JSONException if the JSON payload cannot be created from the supplied values.
+     */
+    @When("I add the following enforcement action to the created defendant account")
+    public void addEnforcementToCreatedDefendantAccount(DataTable dataTable) throws JSONException {
+        workflow.addEnforcement(dataTable.asMap(String.class, String.class));
+    }
+
+    /**
      * Asserts that the latest enforcement status contains the expected override values.
      *
      * @param dataTable Cucumber table containing the expected values for the assertion.

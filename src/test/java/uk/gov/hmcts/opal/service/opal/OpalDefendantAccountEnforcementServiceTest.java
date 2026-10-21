@@ -21,6 +21,8 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_1_1;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.lang.reflect.Method;
@@ -36,6 +38,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
@@ -49,6 +52,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
@@ -60,6 +64,7 @@ import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
@@ -77,6 +82,8 @@ import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsTypeCommonStrict
 import uk.gov.hmcts.opal.generated.model.EnforcementResultIdCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementResultResponseDefendantAccount;
 import uk.gov.hmcts.opal.mapper.EnforcementPaymentTermsMapper;
+import uk.gov.hmcts.opal.repository.CourtRepository;
+import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
@@ -131,10 +138,19 @@ class OpalDefendantAccountEnforcementServiceTest {
     private DefendantAccountRepositoryService defendantAccountRepositoryService;
 
     @Mock
+    private CourtRepository courtRepository;
+
+    @Mock
+    private EnforcerRepository enforcerRepository;
+
+    @Mock
     private OpalDefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
 
     @Mock
     private DefendantAccountControlValidator defendantAccountControlValidator;
+
+    @Mock
+    private FeatureToggleApi featureToggleApi;
 
     @Spy
     private EnforcementPaymentTermsMapper enforcementPaymentTermsMapper =
@@ -234,6 +250,10 @@ class OpalDefendantAccountEnforcementServiceTest {
             null,
             "{}",
             null,
+            null,
+            null,
+            null,
+            null,
             VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
 
@@ -264,15 +284,23 @@ class OpalDefendantAccountEnforcementServiceTest {
     @Test
     void testAddEnforcement_whenGivenAllFields_createsEnforcement() throws JacksonException {
         mockAuthorisedUser();
-        mockDefendantAccount();
+        DefendantAccountEntity defendant = mock(DefendantAccountEntity.class);
+        when(defendant.getProsecutorCaseReference()).thenReturn(PROSECUTOR_CASE_REFERENCE);
+        when(defendantAccountRepositoryService.findById(DEFENDANT_ACCOUNT_ID)).thenReturn(defendant);
+        when(courtRepository.findByCourtCodeAndBusinessUnitId((short) 123, BUSINESS_UNIT_ID))
+            .thenReturn(Optional.of(CourtEntity.builder().courtId(654L).build()));
         mockCreatedEnforcement();
+        whenFeatureIsEnabled(false);
 
         List<EnforcementResultResponseDefendantAccount> responses = List.of(
             new EnforcementResultResponseDefendantAccount().parameterName("reason").response("test reason"),
             new EnforcementResultResponseDefendantAccount().parameterName("jail_days").response("14"),
             new EnforcementResultResponseDefendantAccount().parameterName("enforcer_id").response("55"),
             new EnforcementResultResponseDefendantAccount().parameterName("earliest_release_date")
-                .response("2026-05-01T00:00:00")
+                .response("2026-05-01T00:00:00"),
+            new EnforcementResultResponseDefendantAccount().parameterName("courtcode").response("123"),
+            new EnforcementResultResponseDefendantAccount().parameterName("hearingdate")
+                .response("2026-06-01")
         );
 
         AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
@@ -293,7 +321,9 @@ class OpalDefendantAccountEnforcementServiceTest {
             "reason", "test reason",
             "jail_days", "14",
             "enforcer_id", "55",
-            "earliest_release_date", "2026-05-01T00:00:00"
+            "earliest_release_date", "2026-05-01T00:00:00",
+            "courtcode", "123",
+            "hearingdate", "2026-06-01"
         ));
 
         verify(enforcementRepositoryService).addDefendantAccountEnforcement(
@@ -309,6 +339,10 @@ class OpalDefendantAccountEnforcementServiceTest {
             55L,
             responsesJson,
             LocalDateTime.of(2026, 5, 1, 0, 0, 0),
+            654L,
+            LocalDateTime.of(2026, 6, 1, 0, 0, 0),
+            654L,
+            LocalDateTime.of(2026, 6, 1, 0, 0, 0),
             VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
 
@@ -338,8 +372,13 @@ class OpalDefendantAccountEnforcementServiceTest {
             nullable(Long.class),
             anyString(),
             nullable(LocalDateTime.class),
+            nullable(Long.class),
+            nullable(LocalDateTime.class),
+            nullable(Long.class),
+            nullable(LocalDateTime.class),
             anyLong()
         )).thenReturn(ENFORCEMENT_ID);
+        whenFeatureIsEnabled(false);
 
         List<EnforcementResultResponseDefendantAccount> responses = List.of(
             new EnforcementResultResponseDefendantAccount().parameterName("reason").response("test reason")
@@ -376,6 +415,10 @@ class OpalDefendantAccountEnforcementServiceTest {
             null,
             responsesJson,
             null,
+            null,
+            null,
+            null,
+            null,
             VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
 
@@ -405,8 +448,13 @@ class OpalDefendantAccountEnforcementServiceTest {
             nullable(Long.class),
             anyString(),
             nullable(LocalDateTime.class),
+            nullable(Long.class),
+            nullable(LocalDateTime.class),
+            nullable(Long.class),
+            nullable(LocalDateTime.class),
             anyLong()
         )).thenReturn(ENFORCEMENT_ID);
+        whenFeatureIsEnabled(false);
 
         List<EnforcementResultResponseDefendantAccount> responses = List.of(
             new EnforcementResultResponseDefendantAccount().parameterName("jail_days").response("14")
@@ -443,6 +491,10 @@ class OpalDefendantAccountEnforcementServiceTest {
             null,
             responsesJson,
             null,
+            null,
+            null,
+            null,
+            null,
             VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
 
@@ -472,8 +524,13 @@ class OpalDefendantAccountEnforcementServiceTest {
             nullable(Long.class),
             anyString(),
             nullable(LocalDateTime.class),
+            nullable(Long.class),
+            nullable(LocalDateTime.class),
+            nullable(Long.class),
+            nullable(LocalDateTime.class),
             anyLong()
         )).thenReturn(ENFORCEMENT_ID);
+        whenFeatureIsEnabled(false);
 
         List<EnforcementResultResponseDefendantAccount> responses = List.of(
             new EnforcementResultResponseDefendantAccount().parameterName("enforcer_id").response("55")
@@ -510,6 +567,10 @@ class OpalDefendantAccountEnforcementServiceTest {
             55L,
             responsesJson,
             null,
+            null,
+            null,
+            null,
+            null,
             VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
 
@@ -517,7 +578,68 @@ class OpalDefendantAccountEnforcementServiceTest {
     }
 
     @Test
-    void testAddEnforcement_whenOnlyGivenReleaseDate_createsEnforcement() throws JacksonException {
+    void testAddEnforcement_whenScMapsNewResultResponseNames() throws JacksonException {
+        mockAuthorisedUser();
+        mockDefendantAccount();
+        mockCreatedEnforcement();
+        whenFeatureIsEnabled(true);
+        when(enforcerRepository.findByEnforcerCodeAndBusinessUnit_businessUnitId((short) 21, BUSINESS_UNIT_ID))
+            .thenReturn(Optional.of(EnforcerEntity.builder().enforcerId(55L).build()));
+
+        List<EnforcementResultResponseDefendantAccount> responses = List.of(
+            EnforcementResultResponseDefendantAccount.builder().parameterName("reason").response("test reason").build(),
+            EnforcementResultResponseDefendantAccount.builder().parameterName("jail_days").response("7").build(),
+            EnforcementResultResponseDefendantAccount.builder().parameterName("daysindefault").response("14").build(),
+            EnforcementResultResponseDefendantAccount.builder().parameterName("enforcer").response("21").build()
+        );
+
+        AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
+            .resultId(EnforcementResultIdCommonStrict.SC)
+            .enforcementResultResponses(responses)
+            .paymentTerms((EnforcementPaymentTermsCommonStrict) null)
+            .build();
+
+        AddEnforcementResponseDefendantAccount response = service.addEnforcement(
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            BUSINESS_UNIT_USER_ID,
+            IF_MATCH,
+            request
+        );
+
+        String responsesJson = objectMapper.writeValueAsString(resultResponsesMap(
+            "reason", "test reason",
+            "jail_days", "7",
+            "daysindefault", "14",
+            "enforcer", "21"
+        ));
+
+        verify(enforcementRepositoryService).addDefendantAccountEnforcement(
+            "SC",
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            PROSECUTOR_CASE_REFERENCE,
+            "ACCOUNT_ENQUIRY",
+            14,
+            BUSINESS_UNIT_USER_ID,
+            USER_NAME,
+            "test reason",
+            55L,
+            responsesJson,
+            null,
+            null,
+            null,
+            null,
+            null,
+            VersionUtils.extractBigInteger(IF_MATCH).longValue()
+        );
+
+        verify(enforcerRepository).findByEnforcerCodeAndBusinessUnit_businessUnitId((short) 21, BUSINESS_UNIT_ID);
+        assertCommonResponse(response);
+    }
+
+    @Test
+    void testAddEnforcement_whenPrisMapsEarliestReleaseDate_createsEnforcement() throws JacksonException {
         UserState userState = mock(UserState.class);
         when(userState.getUserName()).thenReturn(USER_NAME);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
@@ -539,16 +661,21 @@ class OpalDefendantAccountEnforcementServiceTest {
             nullable(Long.class),
             anyString(),
             nullable(LocalDateTime.class),
+            nullable(Long.class),
+            nullable(LocalDateTime.class),
+            nullable(Long.class),
+            nullable(LocalDateTime.class),
             anyLong()
         )).thenReturn(ENFORCEMENT_ID);
+        whenFeatureIsEnabled(true);
 
         List<EnforcementResultResponseDefendantAccount> responses = List.of(
-            new EnforcementResultResponseDefendantAccount().parameterName("earliest_release_date")
+            new EnforcementResultResponseDefendantAccount().parameterName("earliestreleasedate")
                 .response("2026-05-01T00:00:00")
         );
 
         AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
-            .resultId(EnforcementResultIdCommonStrict.ABDC)
+            .resultId(EnforcementResultIdCommonStrict.PRIS)
             .enforcementResultResponses(responses)
             .paymentTerms((EnforcementPaymentTermsCommonStrict) null)
             .build();
@@ -562,8 +689,126 @@ class OpalDefendantAccountEnforcementServiceTest {
         );
 
         String responsesJson = objectMapper.writeValueAsString(resultResponsesMap(
-            "earliest_release_date", "2026-05-01T00:00:00"
+            "earliestreleasedate", "2026-05-01T00:00:00"
         ));
+
+        verify(enforcementRepositoryService).addDefendantAccountEnforcement(
+            "PRIS",
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            PROSECUTOR_CASE_REFERENCE,
+            "ACCOUNT_ENQUIRY",
+            null,
+            BUSINESS_UNIT_USER_ID,
+            USER_NAME,
+            null,
+            null,
+            responsesJson,
+            LocalDateTime.of(2026, 5, 1, 0, 0, 0),
+            null,
+            null,
+            null,
+            null,
+            VersionUtils.extractBigInteger(IF_MATCH).longValue()
+        );
+
+        assertCommonResponse(response);
+    }
+
+    @Test
+    void addEnforcement_whenRelease1b11Enabled_prefersNewResponseNamesAndMapsHearingDetails()
+        throws JacksonException {
+        mockAuthorisedUser();
+        mockDefendantAccount();
+        mockCreatedEnforcement();
+        whenFeatureIsEnabled(true);
+        when(enforcerRepository.findByEnforcerCodeAndBusinessUnit_businessUnitId((short) 21, BUSINESS_UNIT_ID))
+            .thenReturn(Optional.of(EnforcerEntity.builder().enforcerId(55L).build()));
+        when(courtRepository.findByCourtCodeAndBusinessUnitId((short) 123, BUSINESS_UNIT_ID))
+            .thenReturn(Optional.of(CourtEntity.builder().courtId(654L).build()));
+
+        List<EnforcementResultResponseDefendantAccount> responses = List.of(
+            new EnforcementResultResponseDefendantAccount().parameterName("enforcer_id").response("999"),
+            new EnforcementResultResponseDefendantAccount().parameterName("enforcer").response("21"),
+            new EnforcementResultResponseDefendantAccount().parameterName("earliest_release_date")
+                .response("2026-05-01T00:00:00"),
+            new EnforcementResultResponseDefendantAccount().parameterName("earliestreleasedate")
+                .response("2026-05-02T00:00:00"),
+            new EnforcementResultResponseDefendantAccount().parameterName("courtcode").response("123"),
+            new EnforcementResultResponseDefendantAccount().parameterName("hearingdate").response("2026-06-01")
+        );
+
+        AddEnforcementResponseDefendantAccount response = service.addEnforcement(
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            BUSINESS_UNIT_USER_ID,
+            IF_MATCH,
+            AddEnforcementRequestDefendantAccount.builder()
+                .resultId(EnforcementResultIdCommonStrict.ABDC)
+                .enforcementResultResponses(responses)
+                .paymentTerms((EnforcementPaymentTermsCommonStrict) null)
+                .build()
+        );
+
+        verify(enforcementRepositoryService).addDefendantAccountEnforcement(
+            RESULT_ID_AS_STRING,
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            PROSECUTOR_CASE_REFERENCE,
+            "ACCOUNT_ENQUIRY",
+            null,
+            BUSINESS_UNIT_USER_ID,
+            USER_NAME,
+            null,
+            55L,
+            objectMapper.writeValueAsString(resultResponsesMap(
+                "enforcer_id", "999",
+                "enforcer", "21",
+                "earliest_release_date", "2026-05-01T00:00:00",
+                "earliestreleasedate", "2026-05-02T00:00:00",
+                "courtcode", "123",
+                "hearingdate", "2026-06-01"
+            )),
+            LocalDateTime.of(2026, 5, 2, 0, 0),
+            654L,
+            LocalDateTime.of(2026, 6, 1, 0, 0),
+            654L,
+            LocalDateTime.of(2026, 6, 1, 0, 0),
+            VersionUtils.extractBigInteger(IF_MATCH).longValue()
+        );
+
+        assertCommonResponse(response);
+    }
+
+    @Test
+    void addEnforcement_whenRelease1b11Enabled_andLookupsFail_persistsResponsesWithoutMappedValues()
+        throws JacksonException {
+        mockAuthorisedUser();
+        mockDefendantAccount();
+        mockCreatedEnforcement();
+        whenFeatureIsEnabled(true);
+        when(enforcerRepository.findByEnforcerCodeAndBusinessUnit_businessUnitId((short) 21, BUSINESS_UNIT_ID))
+            .thenReturn(Optional.empty());
+        when(courtRepository.findByCourtCodeAndBusinessUnitId((short) 123, BUSINESS_UNIT_ID))
+            .thenReturn(Optional.empty());
+
+        List<EnforcementResultResponseDefendantAccount> responses = List.of(
+            new EnforcementResultResponseDefendantAccount().parameterName("enforcer").response("21"),
+            new EnforcementResultResponseDefendantAccount().parameterName("courtcode").response("123"),
+            new EnforcementResultResponseDefendantAccount().parameterName("unrecognised").response("value")
+        );
+
+        service.addEnforcement(
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            BUSINESS_UNIT_USER_ID,
+            IF_MATCH,
+            AddEnforcementRequestDefendantAccount.builder()
+                .resultId(EnforcementResultIdCommonStrict.ABDC)
+                .enforcementResultResponses(responses)
+                .paymentTerms((EnforcementPaymentTermsCommonStrict) null)
+                .build()
+        );
 
         verify(enforcementRepositoryService).addDefendantAccountEnforcement(
             RESULT_ID_AS_STRING,
@@ -576,12 +821,117 @@ class OpalDefendantAccountEnforcementServiceTest {
             USER_NAME,
             null,
             null,
-            responsesJson,
-            LocalDateTime.of(2026, 5, 1, 0, 0, 0),
+            objectMapper.writeValueAsString(resultResponsesMap(
+                "enforcer", "21",
+                "courtcode", "123",
+                "unrecognised", "value"
+            )),
+            null,
+            null,
+            null,
+            null,
+            null,
             VersionUtils.extractBigInteger(IF_MATCH).longValue()
         );
+    }
 
-        assertCommonResponse(response);
+    @Test
+    void addEnforcement_whenRelease1b11Enabled_mapsLegacyResponseNamesWhenNewNamesAreAbsent()
+        throws JacksonException {
+        mockAuthorisedUser();
+        mockDefendantAccount();
+        mockCreatedEnforcement();
+        whenFeatureIsEnabled(true);
+
+        List<EnforcementResultResponseDefendantAccount> responses = List.of(
+            new EnforcementResultResponseDefendantAccount().parameterName("reason").response("test reason"),
+            new EnforcementResultResponseDefendantAccount().parameterName("jail_days").response("14"),
+            new EnforcementResultResponseDefendantAccount().parameterName("enforcer_id").response("55"),
+            new EnforcementResultResponseDefendantAccount().parameterName("earliest_release_date")
+                .response("2026-05-01T00:00:00")
+        );
+
+        service.addEnforcement(
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            BUSINESS_UNIT_USER_ID,
+            IF_MATCH,
+            AddEnforcementRequestDefendantAccount.builder()
+                .resultId(EnforcementResultIdCommonStrict.ABDC)
+                .enforcementResultResponses(responses)
+                .paymentTerms((EnforcementPaymentTermsCommonStrict) null)
+                .build()
+        );
+
+        verify(enforcementRepositoryService).addDefendantAccountEnforcement(
+            RESULT_ID_AS_STRING,
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            PROSECUTOR_CASE_REFERENCE,
+            "ACCOUNT_ENQUIRY",
+            14,
+            BUSINESS_UNIT_USER_ID,
+            USER_NAME,
+            "test reason",
+            55L,
+            objectMapper.writeValueAsString(resultResponsesMap(
+                "reason", "test reason",
+                "jail_days", "14",
+                "enforcer_id", "55",
+                "earliest_release_date", "2026-05-01T00:00:00"
+            )),
+            LocalDateTime.of(2026, 5, 1, 0, 0),
+            null,
+            null,
+            null,
+            null,
+            VersionUtils.extractBigInteger(IF_MATCH).longValue()
+        );
+    }
+
+    @Test
+    void addEnforcement_whenRelease1b11Disabled_andCourtDoesNotResolve_persistsResponsesWithoutCourt()
+        throws JacksonException {
+        mockAuthorisedUser();
+        mockDefendantAccount();
+        mockCreatedEnforcement();
+        whenFeatureIsEnabled(false);
+        when(courtRepository.findByCourtCodeAndBusinessUnitId((short) 123, BUSINESS_UNIT_ID))
+            .thenReturn(Optional.empty());
+
+        service.addEnforcement(
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            BUSINESS_UNIT_USER_ID,
+            IF_MATCH,
+            AddEnforcementRequestDefendantAccount.builder()
+                .resultId(EnforcementResultIdCommonStrict.ABDC)
+                .enforcementResultResponses(List.of(
+                    new EnforcementResultResponseDefendantAccount().parameterName("courtcode").response("123")
+                ))
+                .paymentTerms((EnforcementPaymentTermsCommonStrict) null)
+                .build()
+        );
+
+        verify(enforcementRepositoryService).addDefendantAccountEnforcement(
+            RESULT_ID_AS_STRING,
+            DEFENDANT_ACCOUNT_ID,
+            BUSINESS_UNIT_ID,
+            PROSECUTOR_CASE_REFERENCE,
+            "ACCOUNT_ENQUIRY",
+            null,
+            BUSINESS_UNIT_USER_ID,
+            USER_NAME,
+            null,
+            null,
+            objectMapper.writeValueAsString(resultResponsesMap("courtcode", "123")),
+            null,
+            null,
+            null,
+            null,
+            null,
+            VersionUtils.extractBigInteger(IF_MATCH).longValue()
+        );
     }
 
     @Test
@@ -606,6 +956,10 @@ class OpalDefendantAccountEnforcementServiceTest {
             nullable(String.class),
             nullable(Long.class),
             anyString(),
+            nullable(LocalDateTime.class),
+            nullable(Long.class),
+            nullable(LocalDateTime.class),
+            nullable(Long.class),
             nullable(LocalDateTime.class),
             anyLong()
         )).thenReturn(ENFORCEMENT_ID);
@@ -652,6 +1006,10 @@ class OpalDefendantAccountEnforcementServiceTest {
             eq(null),
             eq(null),
             eq("{}"),
+            eq(null),
+            eq(null),
+            eq(null),
+            eq(null),
             eq(null),
             eq(VersionUtils.extractBigInteger(IF_MATCH).longValue())
         );
@@ -1056,8 +1414,20 @@ class OpalDefendantAccountEnforcementServiceTest {
             nullable(Long.class),
             anyString(),
             nullable(LocalDateTime.class),
+            nullable(Long.class),
+            nullable(LocalDateTime.class),
+            nullable(Long.class),
+            nullable(LocalDateTime.class),
             anyLong()
         )).thenReturn(ENFORCEMENT_ID);
+    }
+
+    private void whenFeatureIsEnabled(boolean enabled) {
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
+            RELEASE_1B_1_1,
+            RELEASE_1B_1_1_ENABLED_PROPERTY,
+            false
+        )).thenReturn(enabled);
     }
 
     private Map<String, String> resultResponsesMap(String... keyValues) {

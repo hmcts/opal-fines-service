@@ -18,6 +18,13 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 public class OpalDefendantEnforcementIntegrationTest extends DefendantEnforcementIntegrationTest {
 
     @Test
+    @JiraStory("PO-10826")
+    @JiraEpic("PO-978")
+    public void testAddEnforcement_withNawtHearingDetails_persistsHearingDetails() throws Exception {
+        super.postEnforcementImpl_nawtWithHearingDetails_Success(log);
+    }
+
+    @Test
     @JiraStory("PO-5757")
     @JiraEpic("PO-2990")
     @JiraTestKey("PO-9443")

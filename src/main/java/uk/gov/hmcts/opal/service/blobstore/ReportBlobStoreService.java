@@ -4,11 +4,11 @@ import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.models.BlobStorageException;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -30,30 +30,30 @@ public class ReportBlobStoreService implements ReportBlobStore {
         this.uuidProvider = uuidProvider;
     }
 
-    public String storeReport(String report) {
+    public UUID storeReport(InputStream report) {
         BlobContainerClient container = blobServiceClient.getBlobContainerClient(containerName);
         if (!container.exists()) {
             throw new IllegalArgumentException("Blob container does not exist");
         }
-        String location = String.valueOf(uuidProvider.getUuid());
-        BlobClient blob = container.getBlobClient(location);
-        byte[] bytes = report.getBytes(StandardCharsets.UTF_8);
-        blob.upload(new ByteArrayInputStream(bytes), bytes.length);
+        UUID location = uuidProvider.getUuid();
+        BlobClient blob = container.getBlobClient(String.valueOf(location));
+        blob.upload(report);
         log.info("Stored report at location: {}", location);
         return location;
     }
 
-    public String getReport(String location) {
+    public byte[] getReport(UUID locationUUID) {
+        String location = String.valueOf(locationUUID);
         BlobContainerClient container = blobServiceClient.getBlobContainerClient(containerName);
         BlobClient blob = container.getBlobClient(location);
 
         log.info("Reading report from location: {}", location);
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             blob.downloadStream(outputStream);
-            return outputStream.toString(StandardCharsets.UTF_8);
+            return outputStream.toByteArray();
         } catch (BlobStorageException blobStorageException) {
             if (blobStorageException.getStatusCode() == 404) {
-                throw new MissingStoredReportContentException(location);
+                throw new MissingStoredReportContentException(locationUUID);
             }
             throw blobStorageException;
         } catch (IOException e) {
@@ -61,7 +61,8 @@ public class ReportBlobStoreService implements ReportBlobStore {
         }
     }
 
-    public void deleteReport(String location) {
+    public void deleteReport(UUID locationUUID) {
+        String location = String.valueOf(locationUUID);
         BlobContainerClient container = blobServiceClient.getBlobContainerClient(containerName);
         BlobClient blob = container.getBlobClient(location);
 

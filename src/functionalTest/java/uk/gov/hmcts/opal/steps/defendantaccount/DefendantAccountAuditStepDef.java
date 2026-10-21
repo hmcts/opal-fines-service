@@ -5,7 +5,6 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.response.Response;
 import net.serenitybdd.rest.SerenityRest;
-import org.json.JSONObject;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ObjectNode;
@@ -33,14 +32,18 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String TEST_USER = "opal-test@dev.platform.hmcts.net";
     private static final String BUSINESS_UNIT_ID = "77";
+    private static final String LEGACY_SAFE_COURT_ID = "770000000001";
     private static final String EXPECTED_BUSINESS_USER_ID = "L077JG";
     private static final String ACCOUNT_FIXTURE = "draftAccounts/accountJson/auditableAccount.json";
     private static final String POSITIVE_BALANCE_ACCOUNT_FIXTURE = "draftAccounts/accountJson/adultAccount.json";
     private static final String ENFORCEMENT_OVERRIDE_RESULT_ID = "FWEC";
+    private static final String LEGACY_ENFORCEMENT_OVERRIDE_RESULT_ID = "ABDC";
+    private static final String LEGACY_ENFORCER_ID = "770000000001";
     private static final String REPLACED_FORENAMES = "Audit Party Replace";
 
     private final DefendantAccountEnforcementWorkflow enforcementWorkflow = new DefendantAccountEnforcementWorkflow();
     private final DefendantAccountEnforcementsActions enforcementActions = new DefendantAccountEnforcementsActions();
+    private String enforcementOverrideResultId;
 
     /**
      * Creates a published defendant account that can be mutated by the write endpoints under test.
@@ -86,20 +89,20 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
      */
     @When("I patch the created defendant account with an enforcement override")
     public void patchCreatedDefendantAccountWithEnforcementOverride() throws Exception {
+        // Match the mode-specific reference data used by the defendant-account history scenarios.
+        boolean legacyMode = isLegacyMode();
+        enforcementOverrideResultId = legacyMode
+            ? LEGACY_ENFORCEMENT_OVERRIDE_RESULT_ID : ENFORCEMENT_OVERRIDE_RESULT_ID;
         Response statusResponse = enforcementActions.getCreatedDefendantAccountEnforcementStatus();
         assertEquals(200, statusResponse.statusCode(), "Expected enforcement-status request to succeed");
 
-        JSONObject requestBody = new JSONObject()
-            .put("enforcement_override", new JSONObject()
-                .put("enforcement_override_result", new JSONObject()
-                    .put("enforcement_override_result_id", ENFORCEMENT_OVERRIDE_RESULT_ID)));
-
-        authorisedJsonRequest()
-            .header("Business-Unit-Id", BUSINESS_UNIT_ID)
-            .header("If-Match", scenarioContext().getDefendantAccountEtag())
-            .body(requestBody.toString())
-            .when()
-            .patch(getTestUrl() + "/defendant-accounts/" + createdDefendantAccountId());
+        Map<String, String> overrideData = new LinkedHashMap<>();
+        overrideData.put("business_unit_id", BUSINESS_UNIT_ID);
+        overrideData.put("enforcement_override_result_id", enforcementOverrideResultId);
+        if (legacyMode) {
+            overrideData.put("enforcer_id", LEGACY_ENFORCER_ID);
+        }
+        enforcementActions.patchCreatedDefendantAccountEnforcementOverride(overrideData);
     }
 
     /**
@@ -177,7 +180,7 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
         assertEquals(createdDefendantAccountId(), root.path("id").asLong(), "Unexpected PATCH response id");
         assertTrue(root.path("enforcement_override").isObject(), "Expected enforcement_override object");
         assertEquals(
-            ENFORCEMENT_OVERRIDE_RESULT_ID,
+            enforcementOverrideResultId,
             root.path("enforcement_override").path("enforcement_override_result")
                 .path("enforcement_override_result_id").asText(),
             "Unexpected enforcement override result id"
@@ -201,8 +204,11 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
 
         JsonNode postedDetails = root.path("payment_terms").path("posted_details");
         assertTrue(postedDetails.isObject(), "Expected payment_terms.posted_details object");
-        assertEquals(EXPECTED_BUSINESS_USER_ID, postedDetails.path("posted_by").asText());
-        assertEquals(TEST_USER, postedDetails.path("posted_by_name").asText());
+        // Legacy returns the posting business user ID as the username too.
+        boolean legacyMode = isLegacyMode();
+        assertEquals(EXPECTED_BUSINESS_USER_ID, postedDetails.path("posted_by").asText(), "Unexpected posted_by");
+        assertEquals(legacyMode ? EXPECTED_BUSINESS_USER_ID : TEST_USER,
+            postedDetails.path("posted_by_name").asText(), "Unexpected posted_by_name");
     }
 
     /**
@@ -236,7 +242,7 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
      * audit identity.
      *
      * @param expectedBusinessUserId expected posted_by value.
-     * @param expectedUserName expected posted_by_name value.
+     * @param expectedUserName expected Opal posted_by_name value; Legacy uses the business user ID.
      * @throws Exception if the history response body cannot be parsed.
      */
     @Then("the created defendant account amendment history is recorded for business user {string} "
@@ -245,6 +251,8 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
         String expectedBusinessUserId,
         String expectedUserName
     ) throws Exception {
+        // Legacy history exposes the business user ID in both audit identity fields.
+        String expectedPostedByName = isLegacyMode() ? expectedBusinessUserId : expectedUserName;
         List<JsonNode> items = amendmentHistoryItems();
         if (!items.isEmpty()) {
             for (JsonNode item : items) {
@@ -252,7 +260,7 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
                 JsonNode postedDetails = item.path("postedDetails");
                 assertTrue(postedDetails.isObject(), "Expected postedDetails object");
                 assertEquals(expectedBusinessUserId, postedDetails.path("posted_by").asText());
-                assertEquals(expectedUserName, postedDetails.path("posted_by_name").asText());
+                assertEquals(expectedPostedByName, postedDetails.path("posted_by_name").asText());
             }
             return;
         }
@@ -270,8 +278,18 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
 
         for (JsonNode row : rows) {
             assertEquals(expectedBusinessUserId, row.path("amended_by").asText(), "Unexpected amended_by");
-            assertEquals(expectedUserName, row.path("amended_by_name").asText(), "Unexpected amended_by_name");
+            assertEquals(expectedPostedByName, row.path("amended_by_name").asText(), "Unexpected amended_by_name");
         }
+    }
+
+    /**
+     * Asserts amendment history contains the enforcement override result sent in the PATCH.
+     *
+     * @throws Exception if the history response body cannot be parsed.
+     */
+    @Then("the created defendant account amendment history contains the patched enforcement override result")
+    public void createdDefendantAccountAmendmentHistoryContainsPatchedEnforcementOverrideResult() throws Exception {
+        createdDefendantAccountAmendmentHistoryContainsNewValue(enforcementOverrideResultId);
     }
 
     /**
@@ -315,7 +333,19 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
         accountData.put("account", accountFixture);
         accountData.put("account_type", "Fine");
         accountData.put("account_status", "Submitted");
+        if (isLegacyMode()) {
+            accountData.put("account_enforcement_court_id", LEGACY_SAFE_COURT_ID);
+        }
         return accountData;
+    }
+
+    private boolean isLegacyMode() {
+        Response response = given()
+            .accept("*/*")
+            .when()
+            .get(getTestUrl() + "/testing-support/is-legacy-mode");
+        assertEquals(200, response.statusCode(), "Unexpected legacy-mode status");
+        return Boolean.parseBoolean(response.asString());
     }
 
     private String addPaymentTermsRequestBody() {

@@ -8,16 +8,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.notFound;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
-import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import feign.FeignException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -48,7 +45,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @Slf4j(topic = "opal.FileHandlerAPIServiceIntegrationTest")
 @DisplayName("FileHandler API Service Integration Test")
-@WireMockTest(httpPort = 4075)
 public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTest {
 
     private static final String WIREMOCK_SCENARIO = "GET FileHandler service test";
@@ -89,6 +85,7 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
         registry.add("opal.common.system-users.token-url", wireMockServer::baseUrl);
+        registry.add("file-handler.service.url", wireMockServer::baseUrl);
     }
 
     @BeforeEach
@@ -101,59 +98,59 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
 
         // Success'
 
-        stubFor(get(urlEqualTo("/interface-files/0/content"))
+        wireMockServer.stubFor(get(urlEqualTo("/interface-files/0/content"))
             .inScenario(WIREMOCK_SCENARIO)
             .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
             .willReturn(okJson(objectMapper.writeValueAsString(interfaceFileObject))));
 
-        stubFor(get(urlEqualTo("/interface-files/0"))
+        wireMockServer.stubFor(get(urlEqualTo("/interface-files/0"))
             .inScenario(WIREMOCK_SCENARIO)
             .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
             .willReturn(okJson(objectMapper.writeValueAsString(interfaceFileObject))));
 
-        stubFor(get(urlEqualTo("/interface-files"))
+        wireMockServer.stubFor(get(urlEqualTo("/interface-files"))
             .inScenario(WIREMOCK_SCENARIO)
             .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
             .willReturn(okJson(objectMapper.writeValueAsString(getInterfaceFiles200Response))));
 
-        stubFor(post(urlEqualTo("/interface-files"))
+        wireMockServer.stubFor(post(urlEqualTo("/interface-files"))
             .inScenario(WIREMOCK_SCENARIO)
             .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
             .willReturn(okJson(objectMapper.writeValueAsString(interfaceFileObject))));
 
         // Errors
 
-        stubFor(get(urlEqualTo("/interface-files/0/content"))
+        wireMockServer.stubFor(get(urlEqualTo("/interface-files/0/content"))
             .inScenario(WIREMOCK_SCENARIO)
             .whenScenarioStateIs(WIREMOCK_STATE_ERROR)
             .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
             .willReturn(badRequest()));
 
-        stubFor(get(urlEqualTo("/interface-files/0/content"))
+        wireMockServer.stubFor(get(urlEqualTo("/interface-files/0/content"))
             .inScenario(WIREMOCK_SCENARIO)
             .whenScenarioStateIs(WIREMOCK_STATE_NOT_FOUND)
             .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
             .willReturn(notFound()));
 
-        stubFor(get(urlEqualTo("/interface-files/0"))
+        wireMockServer.stubFor(get(urlEqualTo("/interface-files/0"))
             .inScenario(WIREMOCK_SCENARIO)
             .whenScenarioStateIs(WIREMOCK_STATE_ERROR)
             .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
             .willReturn(badRequest()));
 
-        stubFor(get(urlEqualTo("/interface-files/0"))
+        wireMockServer.stubFor(get(urlEqualTo("/interface-files/0"))
             .inScenario(WIREMOCK_SCENARIO)
             .whenScenarioStateIs(WIREMOCK_STATE_NOT_FOUND)
             .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
             .willReturn(notFound()));
 
-        stubFor(get(urlEqualTo("/interface-files"))
+        wireMockServer.stubFor(get(urlEqualTo("/interface-files"))
             .inScenario(WIREMOCK_SCENARIO)
             .whenScenarioStateIs(WIREMOCK_STATE_ERROR)
             .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
             .willReturn(badRequest()));
 
-        stubFor(post(urlEqualTo("/interface-files"))
+        wireMockServer.stubFor(post(urlEqualTo("/interface-files"))
             .inScenario(WIREMOCK_SCENARIO)
             .whenScenarioStateIs(WIREMOCK_STATE_ERROR)
             .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
@@ -172,7 +169,7 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
 
         assertEquals(responseObject, interfaceFileObject);
 
-        WireMock.verify(1, getRequestedFor(urlPathEqualTo("/interface-files/0/content")));
+        wireMockServer.verify(1, getRequestedFor(urlPathEqualTo("/interface-files/0/content")));
     }
 
     @Test
@@ -184,7 +181,7 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
 
         assertEquals(response, interfaceFileObject);
 
-        WireMock.verify(1, getRequestedFor(urlPathEqualTo("/interface-files/0")));
+        wireMockServer.verify(1, getRequestedFor(urlPathEqualTo("/interface-files/0")));
     }
 
     @Test
@@ -197,7 +194,7 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
 
         assertEquals(response, getInterfaceFiles200Response);
 
-        WireMock.verify(1, getRequestedFor(urlPathEqualTo("/interface-files")));
+        wireMockServer.verify(1, getRequestedFor(urlPathEqualTo("/interface-files")));
     }
 
     @Test
@@ -209,7 +206,7 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
 
         assertEquals(response, interfaceFileObject);
 
-        WireMock.verify(1, postRequestedFor(urlEqualTo("/interface-files")));
+        wireMockServer.verify(1, postRequestedFor(urlEqualTo("/interface-files")));
     }
 
 
@@ -218,7 +215,7 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
     @JiraStory("PO-6497")
     @JiraEpic("PO-3497")
     void addInterfaceFile_downstreamError() {
-        WireMock.setScenarioState(WIREMOCK_SCENARIO, WIREMOCK_STATE_ERROR);
+        wireMockServer.setScenarioState(WIREMOCK_SCENARIO, WIREMOCK_STATE_ERROR);
 
         assertThrows(
             DownstreamServiceUnavailableException.class,
@@ -231,7 +228,7 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
     @JiraStory("PO-6497")
     @JiraEpic("PO-3497")
     void getInterfaceFiles_downstreamError() {
-        WireMock.setScenarioState(WIREMOCK_SCENARIO, WIREMOCK_STATE_ERROR);
+        wireMockServer.setScenarioState(WIREMOCK_SCENARIO, WIREMOCK_STATE_ERROR);
 
         assertThrows(
             DownstreamServiceUnavailableException.class,
@@ -244,7 +241,7 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
     @JiraStory("PO-6497")
     @JiraEpic("PO-3497")
     void getInterfaceFile_downstreamError() {
-        WireMock.setScenarioState(WIREMOCK_SCENARIO, WIREMOCK_STATE_ERROR);
+        wireMockServer.setScenarioState(WIREMOCK_SCENARIO, WIREMOCK_STATE_ERROR);
 
         assertThrows(
             DownstreamServiceUnavailableException.class,
@@ -256,7 +253,7 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
     @JiraStory("PO-6497")
     @JiraEpic("PO-3497")
     void getInterfaceFileContent_downstreamError() {
-        WireMock.setScenarioState(WIREMOCK_SCENARIO, WIREMOCK_STATE_ERROR);
+        wireMockServer.setScenarioState(WIREMOCK_SCENARIO, WIREMOCK_STATE_ERROR);
 
         assertThrows(
             DownstreamServiceUnavailableException.class,
@@ -268,7 +265,7 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
     @JiraStory("PO-6497")
     @JiraEpic("PO-3497")
     void getInterfaceFile_notFoundError() {
-        WireMock.setScenarioState(WIREMOCK_SCENARIO, WIREMOCK_STATE_NOT_FOUND);
+        wireMockServer.setScenarioState(WIREMOCK_SCENARIO, WIREMOCK_STATE_NOT_FOUND);
 
         assertThrows(
             FeignException.NotFound.class,
@@ -280,7 +277,7 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
     @JiraStory("PO-6497")
     @JiraEpic("PO-3497")
     void getInterfaceFileContent_notFoundError() {
-        WireMock.setScenarioState(WIREMOCK_SCENARIO, WIREMOCK_STATE_NOT_FOUND);
+        wireMockServer.setScenarioState(WIREMOCK_SCENARIO, WIREMOCK_STATE_NOT_FOUND);
 
         assertThrows(
             FeignException.NotFound.class,
