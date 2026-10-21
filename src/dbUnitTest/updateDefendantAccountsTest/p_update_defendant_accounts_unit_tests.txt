@@ -1,0 +1,45 @@
+NOTICE:  === Cleanup data before tests ===
+NOTICE:  Cleanup completed
+NOTICE:  === Setting up test data ===
+NOTICE:  Test data setup completed
+NOTICE:  === TEST 1: A partial payment updates the account ===
+NOTICE:  TEST 1 PASSED
+NOTICE:  === TEST 2: Paying an account in full sets completed_date and last_movement_date ===
+NOTICE:  TEST 2 PASSED
+NOTICE:  === TEST 3: null account ID ===
+NOTICE:  Error in p_update_defendant_accounts: P3501 - Defendant account ID cannot be null
+NOTICE:  Expected error caught: P3501 - Defendant account ID cannot be null
+NOTICE:  TEST 3 PASSED
+NOTICE:  === TEST 4: null payment ===
+NOTICE:  Error in p_update_defendant_accounts: P3502 - Payment amount cannot be null
+NOTICE:  Expected error caught: P3502 - Payment amount cannot be null
+NOTICE:  TEST 4 PASSED
+NOTICE:  === TEST 5: zero payment ===
+NOTICE:  Error in p_update_defendant_accounts: P3503 - Payment amount must be greater than zero
+NOTICE:  Expected error caught: P3503 - Payment amount must be greater than zero
+NOTICE:  TEST 5 PASSED
+NOTICE:  === TEST 6: negative payment ===
+NOTICE:  Error in p_update_defendant_accounts: P3503 - Payment amount must be greater than zero
+NOTICE:  Expected error caught: P3503 - Payment amount must be greater than zero
+NOTICE:  TEST 6 PASSED
+NOTICE:  === TEST 7: missing account ===
+NOTICE:  Error in p_update_defendant_accounts: P3504 - Defendant account 999900003459 was not found
+NOTICE:  Expected error caught: P3504 - Defendant account 999900003459 was not found
+NOTICE:  TEST 7 PASSED
+NOTICE:  === TEST 8: positive balance ===
+NOTICE:  Error in p_update_defendant_accounts: P3505 - Defendant account 999900003452 has an invalid positive account balance
+NOTICE:  Expected error caught: P3505 - Defendant account 999900003452 has an invalid positive account balance
+NOTICE:  TEST 8 PASSED
+NOTICE:  === TEST 9: overpayment by one penny ===
+NOTICE:  Error in p_update_defendant_accounts: P3506 - Payment amount 80.01 exceeds the outstanding balance for defendant account 999900003451
+NOTICE:  Expected error caught: P3506 - Payment amount 80.01 exceeds the outstanding balance for defendant account 999900003451
+NOTICE:  TEST 9 PASSED
+NOTICE:  === TEST 10: payment to a settled account ===
+NOTICE:  Error in p_update_defendant_accounts: P3506 - Payment amount 0.01 exceeds the outstanding balance for defendant account 999900003453
+NOTICE:  Expected error caught: P3506 - Payment amount 0.01 exceeds the outstanding balance for defendant account 999900003453
+NOTICE:  TEST 10 PASSED
+NOTICE:  === Cleanup test data ===
+NOTICE:  Test data cleanup completed
+DO
+
+Query returned successfully in 59 msec.

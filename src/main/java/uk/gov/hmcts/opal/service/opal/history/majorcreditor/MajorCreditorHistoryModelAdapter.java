@@ -137,7 +137,7 @@ public final class MajorCreditorHistoryModelAdapter {
         }
 
         return new PostedDetailsCommon()
-            .postedDate(postedDetails.getPostedDate() == null ? null : postedDetails.getPostedDate().toLocalDate())
+            .postedDate(postedDetails.getPostedDate())
             .postedBy(postedDetails.getPostedBy())
             .postedByName(postedDetails.getPostedByName());
     }

@@ -46,6 +46,7 @@ import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
 import uk.gov.hmcts.opal.service.opal.OpalCreditorAccountService;
 import uk.gov.hmcts.opal.service.report.ReportInstanceDeletionService;
+import uk.gov.hmcts.opal.service.opal.till.TestingSupportTillService;
 
 /**
  * Endpoints used for testing purposes. I've moved single endpoints from other controller here (and kept all paths the
@@ -74,6 +75,7 @@ public class TestingSupportController {
     private final DraftAccountService draftAccountService;
     private final LocalJusticeAreaService opalLocalJusticeAreaService;
     private final ReportInstanceDeletionService reportInstanceDeletionService;
+    private final TestingSupportTillService testingSupportTillService;
 
     @GetMapping("/testing-support/is-legacy-mode")
     @Operation(summary = "Retrieves whether legacy mode is enabled.")
@@ -155,6 +157,18 @@ public class TestingSupportController {
         log.warn("TEST ENDPOINT: Request to delete report instances with ids: {}", reportInstanceIds);
 
         reportInstanceDeletionService.deleteReportInstances(reportInstanceIds);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @Hidden
+    @DeleteMapping("/testing-support/tills")
+    @Operation(summary = "Deletes a list of manual tills and their payments. FOR TESTING ONLY!")
+    public ResponseEntity<Void> deleteManualTills(
+        @RequestParam(value = "ids", required = false) List<Long> tillIds) {
+        log.warn("TEST ENDPOINT: Request to delete manual tills with ids: {}", tillIds);
+
+        testingSupportTillService.deleteManualTills(tillIds);
 
         return ResponseEntity.ok().build();
     }
