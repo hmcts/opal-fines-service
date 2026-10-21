@@ -9,7 +9,7 @@ AS $procedure$
 *
 * MODULE      : create_p_update_impositions.sql
 *
-* DESCRIPTION : Apply an allocated payment amount to an imposition and its defendant account.
+* DESCRIPTION : Apply an allocated payment amount to an imposition.
 *
 * PARAMETERS  : pi_imposition_id                - Imposition receiving the allocated payment
 *               pi_imposition_allocation_amount - Positive payment amount allocated to the imposition
@@ -22,8 +22,7 @@ AS $procedure$
 *
 **/
 DECLARE
-    v_defendant_account_id defendant_accounts.defendant_account_id%TYPE;
-    v_pg_exception_detail  TEXT;
+    v_pg_exception_detail TEXT;
 BEGIN
     IF pi_imposition_id IS NULL THEN
         RAISE EXCEPTION 'Imposition ID cannot be null'
@@ -38,8 +37,7 @@ BEGIN
                 , DETAIL = 'p_update_impositions: pi_imposition_allocation_amount must be a positive value';
     END IF;
 
-    SELECT defendant_account_id
-      INTO v_defendant_account_id
+    PERFORM 1
       FROM public.impositions
      WHERE imposition_id = pi_imposition_id
        FOR UPDATE;
@@ -52,12 +50,11 @@ BEGIN
 
     UPDATE public.impositions
        SET paid_amount = paid_amount + pi_imposition_allocation_amount
+         , completed = CASE
+                           WHEN paid_amount + pi_imposition_allocation_amount = -imposed_amount THEN TRUE
+                           ELSE completed
+                       END
      WHERE imposition_id = pi_imposition_id;
-
-    UPDATE public.defendant_accounts AS da
-       SET amount_paid     = da.amount_paid + pi_imposition_allocation_amount
-         , account_balance = da.amount_imposed - (da.amount_paid + pi_imposition_allocation_amount)
-     WHERE da.defendant_account_id = v_defendant_account_id;
 
 EXCEPTION
     WHEN SQLSTATE 'P3601' OR SQLSTATE 'P3602' OR SQLSTATE 'P3603' THEN
