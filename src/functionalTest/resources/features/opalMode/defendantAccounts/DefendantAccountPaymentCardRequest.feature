@@ -18,9 +18,9 @@ Feature: Defendant Account Payment Card Request
 
   @cleanUpData
   @JIRA-STORY:PO-6449 @JIRA-EPIC:PO-977
-  Scenario: Payment card request is rejected for a positive-balance account
+  Scenario: Payment card request is rejected for a zero-balance account
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    And a positive-balance defendant account exists for submitted by "PCR6449-POSITIVE"
+    And a zero-balance defendant account exists for submitted by "PCR6449-ZERO"
     When I request a payment card for the created defendant account with business unit user id "caller-controlled-user"
     Then the request is rejected with status 422
-    And the payment card request response reports the positive-balance account is not eligible
+    And the payment card request response reports the zero-balance account is not eligible

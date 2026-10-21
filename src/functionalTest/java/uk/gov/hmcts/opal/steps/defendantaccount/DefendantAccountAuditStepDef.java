@@ -35,7 +35,7 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
     private static final String LEGACY_SAFE_COURT_ID = "770000000001";
     private static final String EXPECTED_BUSINESS_USER_ID = "L077JG";
     private static final String ACCOUNT_FIXTURE = "draftAccounts/accountJson/auditableAccount.json";
-    private static final String POSITIVE_BALANCE_ACCOUNT_FIXTURE = "draftAccounts/accountJson/adultAccount.json";
+    private static final String ZERO_BALANCE_ACCOUNT_FIXTURE = "draftAccounts/accountJson/zeroBalanceAccount.json";
     private static final String ENFORCEMENT_OVERRIDE_RESULT_ID = "FWEC";
     private static final String LEGACY_ENFORCEMENT_OVERRIDE_RESULT_ID = "ABDC";
     private static final String LEGACY_ENFORCER_ID = "770000000001";
@@ -58,17 +58,17 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
     }
 
     /**
-     * Creates a published defendant account with a non-negative balance for negative mutation
+     * Creates a published defendant account with a zero balance for negative mutation
      * scenarios.
      *
      * @param submittedBy value used to keep scenario setup distinct.
      * @throws Exception if the draft-account fixture cannot be published.
      */
-    @Given("a positive-balance defendant account exists for submitted by {string}")
-    public void positiveBalanceDefendantAccountExistsForSubmittedBy(String submittedBy) throws Exception {
+    @Given("a zero-balance defendant account exists for submitted by {string}")
+    public void zeroBalanceDefendantAccountExistsForSubmittedBy(String submittedBy) throws Exception {
         actAsAuditTestUser();
         enforcementWorkflow.createEnforceableDefendantAccount(
-            auditableAccountData(submittedBy, POSITIVE_BALANCE_ACCOUNT_FIXTURE)
+            auditableAccountData(submittedBy, ZERO_BALANCE_ACCOUNT_FIXTURE)
         );
     }
 
