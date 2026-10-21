@@ -93,10 +93,12 @@ class DefendantAccountPartyServiceTest {
             "12345", DefendantAccountParty.DefendantAccountPartyTypeEnum.PARENT_GUARDIAN);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
-        when(defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId)).thenReturn(response);
+        when(defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId))
+            .thenReturn(response);
 
         //Act
-        PartyResponseDefendantAccount actual = defendantAccountPartyService.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
+        PartyResponseDefendantAccount actual = defendantAccountPartyService
+            .getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
 
         //Assert
         assertThat(actual).isSameAs(response);
@@ -111,8 +113,10 @@ class DefendantAccountPartyServiceTest {
         PartyResponseDefendantAccount response = responseWithParty(
             "12345", DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
-        when(defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId)).thenReturn(response);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
+            .thenReturn(true);
+        when(defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId))
+            .thenReturn(response);
         //Act & Assert
         doThrow(new PdplLoggingException("Unable to queue PDPO log for viewing a party"))
             .when(pdplLoggingService).logViewedDefendant("12345", userState);
@@ -131,8 +135,10 @@ class DefendantAccountPartyServiceTest {
         PartyResponseDefendantAccount response = responseWithParty(
             "12345", DefendantAccountParty.DefendantAccountPartyTypeEnum.PARENT_GUARDIAN);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
-        when(defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId)).thenReturn(response);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
+            .thenReturn(true);
+        when(defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId))
+            .thenReturn(response);
         doThrow(new PdplLoggingException("Unable to queue PDPO log for viewing a party"))
             .when(pdplLoggingService).logViewedParentGuardian("12345", userState);
 
@@ -148,8 +154,10 @@ class DefendantAccountPartyServiceTest {
         Long defendantAccountPartyId = 2L;
         ResponseStatusException notFound = new ResponseStatusException(HttpStatus.NOT_FOUND);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
-        when(defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId)).thenThrow(notFound);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
+            .thenReturn(true);
+        when(defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId))
+            .thenThrow(notFound);
 
         //Act
         ResponseStatusException actual = assertThrows(ResponseStatusException.class,
