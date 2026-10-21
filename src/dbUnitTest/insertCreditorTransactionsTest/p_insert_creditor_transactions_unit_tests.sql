@@ -123,7 +123,7 @@ BEGIN
 END $$;
 
 ----------------------------------------------------------------------------------------------------------------------
--- Test 2: Allow NULL optional fields and a one penny payment
+-- Test 2: Insert a one penny payment with required posting fields
 ----------------------------------------------------------------------------------------------------------------------
 DO LANGUAGE 'plpgsql' $$
 DECLARE
@@ -131,17 +131,17 @@ DECLARE
     v_before      TIMESTAMP;
     v_after       TIMESTAMP;
 BEGIN
-    RAISE NOTICE '=== Test 2: Allow NULL optional fields and a one penny payment ===';
+    RAISE NOTICE '=== Test 2: Insert a one penny payment with required posting fields ===';
 
     v_before := CLOCK_TIMESTAMP();
     CALL p_insert_creditor_transactions(
         pi_creditor_account_id := 999900003450::BIGINT,
-        pi_posted_by := NULL::VARCHAR,
-        pi_posted_by_name := NULL::VARCHAR,
+        pi_posted_by := 'UT3450'::VARCHAR,
+        pi_posted_by_name := 'Unit Test User'::VARCHAR,
         pi_transaction_type := 'PAYMNT'::t_creditor_transaction_type_enum,
         pi_imposition_allocation_amount := 0.01::NUMERIC,
         pi_result_id := 'UT3450'::VARCHAR,
-        pi_payment_reference := NULL::VARCHAR,
+        pi_payment_reference := 'REF3450'::VARCHAR,
         pi_imposition_id := 999900003450::BIGINT
     );
     v_after := CLOCK_TIMESTAMP();
@@ -156,13 +156,13 @@ BEGIN
     ASSERT v_transaction.creditor_transaction_id IS NOT NULL, 'A transaction ID should be generated';
     ASSERT v_transaction.creditor_account_id = 999900003450, 'creditor_account_id should match';
     ASSERT v_transaction.posted_date BETWEEN v_before AND v_after, 'posted_date should be generated during the call';
-    ASSERT v_transaction.posted_by IS NULL, 'posted_by should match';
-    ASSERT v_transaction.posted_by_name IS NULL, 'posted_by_name should match';
+    ASSERT v_transaction.posted_by = 'UT3450'::VARCHAR, 'posted_by should match';
+    ASSERT v_transaction.posted_by_name = 'Unit Test User'::VARCHAR, 'posted_by_name should match';
     ASSERT v_transaction.transaction_type = 'PAYMNT'::t_creditor_transaction_type_enum, 'transaction_type should match';
     ASSERT v_transaction.transaction_amount = 0.01, 'transaction_amount should match';
     ASSERT v_transaction.imposition_result_id = 'UT3450', 'imposition_result_id should match';
     ASSERT v_transaction.payment_processed = FALSE, 'payment_processed should be FALSE';
-    ASSERT v_transaction.payment_reference IS NULL, 'payment_reference should match';
+    ASSERT v_transaction.payment_reference = 'REF3450'::VARCHAR, 'payment_reference should match';
     ASSERT v_transaction.status IS NULL, 'status should be NULL';
     ASSERT v_transaction.status_date IS NULL, 'status_date should be NULL';
     ASSERT v_transaction.associated_record_type = 'impositions'::t_associated_record_type_enum, 'associated_record_type should be impositions';
@@ -521,6 +521,134 @@ BEGIN
         'Invalid calls should not insert a row';
 
     RAISE NOTICE 'TEST 13 PASSED';
+END $$;
+
+----------------------------------------------------------------------------------------------------------------------
+-- Test 14: Reject an unknown result ID
+----------------------------------------------------------------------------------------------------------------------
+DO LANGUAGE 'plpgsql' $$
+DECLARE
+    v_error_caught BOOLEAN := FALSE;
+BEGIN
+    RAISE NOTICE '=== Test 14: Reject an unknown result ID ===';
+
+    BEGIN
+        CALL p_insert_creditor_transactions(
+            pi_creditor_account_id := 999900003450::BIGINT,
+            pi_posted_by := 'UT3450'::VARCHAR,
+            pi_posted_by_name := 'Unit Test User'::VARCHAR,
+            pi_transaction_type := 'PAYMNT'::t_creditor_transaction_type_enum,
+            pi_imposition_allocation_amount := 25.50::NUMERIC,
+            pi_result_id := 'UT9999'::VARCHAR,
+            pi_payment_reference := 'REF3450'::VARCHAR,
+            pi_imposition_id := 999900003450::BIGINT
+        );
+    EXCEPTION
+        WHEN SQLSTATE 'P3808' THEN
+            v_error_caught := TRUE;
+    END;
+
+    ASSERT v_error_caught, 'Expected SQLSTATE P3808 was not raised';
+    ASSERT (SELECT COUNT(*) FROM creditor_transactions WHERE creditor_account_id = 999900003450) = 2,
+        'Invalid calls should not insert a row';
+
+    RAISE NOTICE 'TEST 14 PASSED';
+END $$;
+
+----------------------------------------------------------------------------------------------------------------------
+-- Test 15: Reject a NULL posted by
+----------------------------------------------------------------------------------------------------------------------
+DO LANGUAGE 'plpgsql' $$
+DECLARE
+    v_error_caught BOOLEAN := FALSE;
+BEGIN
+    RAISE NOTICE '=== Test 15: Reject a NULL posted by ===';
+
+    BEGIN
+        CALL p_insert_creditor_transactions(
+            pi_creditor_account_id := 999900003450::BIGINT,
+            pi_posted_by := NULL::VARCHAR,
+            pi_posted_by_name := 'Unit Test User'::VARCHAR,
+            pi_transaction_type := 'PAYMNT'::t_creditor_transaction_type_enum,
+            pi_imposition_allocation_amount := 25.50::NUMERIC,
+            pi_result_id := 'UT3450'::VARCHAR,
+            pi_payment_reference := 'REF3450'::VARCHAR,
+            pi_imposition_id := 999900003450::BIGINT
+        );
+    EXCEPTION
+        WHEN SQLSTATE 'P3809' THEN
+            v_error_caught := TRUE;
+    END;
+
+    ASSERT v_error_caught, 'Expected SQLSTATE P3809 was not raised';
+    ASSERT (SELECT COUNT(*) FROM creditor_transactions WHERE creditor_account_id = 999900003450) = 2,
+        'Invalid calls should not insert a row';
+
+    RAISE NOTICE 'TEST 15 PASSED';
+END $$;
+
+----------------------------------------------------------------------------------------------------------------------
+-- Test 16: Reject a NULL posted by name
+----------------------------------------------------------------------------------------------------------------------
+DO LANGUAGE 'plpgsql' $$
+DECLARE
+    v_error_caught BOOLEAN := FALSE;
+BEGIN
+    RAISE NOTICE '=== Test 16: Reject a NULL posted by name ===';
+
+    BEGIN
+        CALL p_insert_creditor_transactions(
+            pi_creditor_account_id := 999900003450::BIGINT,
+            pi_posted_by := 'UT3450'::VARCHAR,
+            pi_posted_by_name := NULL::VARCHAR,
+            pi_transaction_type := 'PAYMNT'::t_creditor_transaction_type_enum,
+            pi_imposition_allocation_amount := 25.50::NUMERIC,
+            pi_result_id := 'UT3450'::VARCHAR,
+            pi_payment_reference := 'REF3450'::VARCHAR,
+            pi_imposition_id := 999900003450::BIGINT
+        );
+    EXCEPTION
+        WHEN SQLSTATE 'P3810' THEN
+            v_error_caught := TRUE;
+    END;
+
+    ASSERT v_error_caught, 'Expected SQLSTATE P3810 was not raised';
+    ASSERT (SELECT COUNT(*) FROM creditor_transactions WHERE creditor_account_id = 999900003450) = 2,
+        'Invalid calls should not insert a row';
+
+    RAISE NOTICE 'TEST 16 PASSED';
+END $$;
+
+----------------------------------------------------------------------------------------------------------------------
+-- Test 17: Reject a NULL payment reference
+----------------------------------------------------------------------------------------------------------------------
+DO LANGUAGE 'plpgsql' $$
+DECLARE
+    v_error_caught BOOLEAN := FALSE;
+BEGIN
+    RAISE NOTICE '=== Test 17: Reject a NULL payment reference ===';
+
+    BEGIN
+        CALL p_insert_creditor_transactions(
+            pi_creditor_account_id := 999900003450::BIGINT,
+            pi_posted_by := 'UT3450'::VARCHAR,
+            pi_posted_by_name := 'Unit Test User'::VARCHAR,
+            pi_transaction_type := 'PAYMNT'::t_creditor_transaction_type_enum,
+            pi_imposition_allocation_amount := 25.50::NUMERIC,
+            pi_result_id := 'UT3450'::VARCHAR,
+            pi_payment_reference := NULL::VARCHAR,
+            pi_imposition_id := 999900003450::BIGINT
+        );
+    EXCEPTION
+        WHEN SQLSTATE 'P3811' THEN
+            v_error_caught := TRUE;
+    END;
+
+    ASSERT v_error_caught, 'Expected SQLSTATE P3811 was not raised';
+    ASSERT (SELECT COUNT(*) FROM creditor_transactions WHERE creditor_account_id = 999900003450) = 2,
+        'Invalid calls should not insert a row';
+
+    RAISE NOTICE 'TEST 17 PASSED';
 END $$;
 
 ----------------------------------------------------------------------------------------------------------------------

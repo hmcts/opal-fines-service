@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE public.p_insert_creditor_transactions(
+CREATE OR REPLACE PROCEDURE p_insert_creditor_transactions(
     IN pi_creditor_account_id           creditor_transactions.creditor_account_id%TYPE,
     IN pi_posted_by                     creditor_transactions.posted_by%TYPE,
     IN pi_posted_by_name                creditor_transactions.posted_by_name%TYPE,
@@ -55,6 +55,34 @@ BEGIN
                 , DETAIL = 'p_insert_creditor_transactions: pi_result_id is required';
     END IF;
 
+    PERFORM 1
+      FROM results
+     WHERE result_id = pi_result_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Result ID % was not found', pi_result_id
+            USING ERRCODE = 'P3808'
+                , DETAIL = 'p_insert_creditor_transactions: no result exists for the passed pi_result_id';
+    END IF;
+
+    IF NULLIF(BTRIM(pi_posted_by), '') IS NULL THEN
+        RAISE EXCEPTION 'Posted by cannot be null or blank'
+            USING ERRCODE = 'P3809'
+                , DETAIL = 'p_insert_creditor_transactions: pi_posted_by is required';
+    END IF;
+
+    IF NULLIF(BTRIM(pi_posted_by_name), '') IS NULL THEN
+        RAISE EXCEPTION 'Posted by name cannot be null or blank'
+            USING ERRCODE = 'P3810'
+                , DETAIL = 'p_insert_creditor_transactions: pi_posted_by_name is required';
+    END IF;
+
+    IF NULLIF(BTRIM(pi_payment_reference), '') IS NULL THEN
+        RAISE EXCEPTION 'Payment reference cannot be null or blank'
+            USING ERRCODE = 'P3811'
+                , DETAIL = 'p_insert_creditor_transactions: pi_payment_reference is required';
+    END IF;
+
     IF pi_transaction_type IS NULL THEN
         RAISE EXCEPTION 'Transaction type cannot be null'
             USING ERRCODE = 'P3804'
@@ -68,7 +96,7 @@ BEGIN
     END IF;
 
     PERFORM 1
-      FROM public.creditor_accounts
+      FROM creditor_accounts
      WHERE creditor_account_id = pi_creditor_account_id;
 
     IF NOT FOUND THEN
@@ -78,7 +106,7 @@ BEGIN
     END IF;
 
     PERFORM 1
-      FROM public.impositions
+      FROM impositions
      WHERE imposition_id = pi_imposition_id;
 
     IF NOT FOUND THEN
@@ -87,7 +115,7 @@ BEGIN
                 , DETAIL = 'p_insert_creditor_transactions: no imposition exists for the passed pi_imposition_id';
     END IF;
 
-    INSERT INTO public.creditor_transactions (
+    INSERT INTO creditor_transactions (
           creditor_transaction_id
         , creditor_account_id
         , posted_date
@@ -104,7 +132,7 @@ BEGIN
         , associated_record_id
     )
     VALUES (
-          NEXTVAL('public.creditor_transaction_id_seq')
+          NEXTVAL('creditor_transaction_id_seq')
         , pi_creditor_account_id
         , CLOCK_TIMESTAMP()
         , pi_posted_by
@@ -116,14 +144,15 @@ BEGIN
         , pi_payment_reference
         , NULL
         , NULL
-        , 'impositions'::public.t_associated_record_type_enum
+        , 'impositions'::t_associated_record_type_enum
         , pi_imposition_id::TEXT
     );
 
 EXCEPTION
     WHEN SQLSTATE 'P3801' OR SQLSTATE 'P3802' OR SQLSTATE 'P3803'
       OR SQLSTATE 'P3804' OR SQLSTATE 'P3805' OR SQLSTATE 'P3806'
-      OR SQLSTATE 'P3807' THEN
+      OR SQLSTATE 'P3807' OR SQLSTATE 'P3808' OR SQLSTATE 'P3809'
+      OR SQLSTATE 'P3810' OR SQLSTATE 'P3811' THEN
         RAISE NOTICE 'Error in p_insert_creditor_transactions: % - %', SQLSTATE, SQLERRM;
         RAISE;
     WHEN OTHERS THEN
