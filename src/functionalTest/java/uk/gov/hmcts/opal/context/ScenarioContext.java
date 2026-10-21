@@ -29,6 +29,7 @@ public class ScenarioContext {
     private TestHttpResponse latestHttpResponse;
     private String createdDefendantAccountId;
     private String defendantAccountEtag;
+    private String createdMinorCreditorAccountId;
 
     /**
      * Resets the scenario context to a clean state.
@@ -46,6 +47,7 @@ public class ScenarioContext {
         latestHttpResponse = null;
         createdDefendantAccountId = null;
         defendantAccountEtag = null;
+        createdMinorCreditorAccountId = null;
     }
 
     /**
@@ -294,6 +296,26 @@ public class ScenarioContext {
      */
     public String getDefendantAccountEtag() {
         return defendantAccountEtag;
+    }
+
+    /**
+     * Records the minor-creditor account created for the current scenario.
+     *
+     * @param accountId created creditor-account identifier.
+     */
+    public void setCreatedMinorCreditorAccountId(String accountId) {
+        createdMinorCreditorAccountId = accountId;
+    }
+
+    /**
+     * Returns the scenario's created minor-creditor account, failing when it has not been recorded.
+     *
+     * @return created creditor-account identifier.
+     */
+    public String getCreatedMinorCreditorAccountIdOrFail() {
+        assertNotNull(createdMinorCreditorAccountId, "No created minor creditor account ID found in scenario context");
+        assertFalse(createdMinorCreditorAccountId.isBlank(), "Created minor creditor account ID is blank");
+        return createdMinorCreditorAccountId;
     }
 
     /**
