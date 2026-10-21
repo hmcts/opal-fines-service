@@ -1,7 +1,7 @@
-@Legacy @R1BDrop1 @JIRA-STORY:PO-2078 @JIRA-EPIC:PO-979
+@Legacy @R1BDrop1 @JIRA-STORY:PO-2078
 Feature: Defendant Account Impositions API In Legacy Mode
 
-  @cleanUpData @JIRA-STORY:PO-11114
+  @cleanUpData @JIRA-DEFECT:PO-11114 @JIRA-EPIC:PO-979
   Scenario: Get impositions for a defendant account created with an offence
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And an enforceable defendant account exists with the following details
@@ -17,6 +17,7 @@ Feature: Defendant Account Impositions API In Legacy Mode
     And the response must include a strong quoted ETag header
     And every legacy imposition has an imposed by object with null court details
 
+  @JIRA-EPIC:PO-979 @JIRA-DEFECT:PO-11114
   Scenario: Existing defendant account impositions are returned from the legacy stub
     When I request legacy defendant account impositions for defendant account "770000006113"
 
