@@ -184,6 +184,30 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.status").value(404));
     }
 
+    @Test
+    @JiraEpic("PO-979")
+    @JiraStory("PO-PO-11114")
+    @DisplayName("LEGACY: Get Defendant Account Impositions returns null imposing court details")
+    void getImpositions_whenImposingCourtIsMissing_returnsNullCourtDetails() throws Exception {
+        GetDefendantAccountImpositionsLegacyResponse legacyResponse = legacyResponse();
+        legacyResponse.getImpositions().getFirst().setImposingCourt(null);
+
+        when(gatewayService.postToGateway(
+            eq(LegacyImpositionService.GET_IMPOSITIONS),
+            eq(GetDefendantAccountImpositionsLegacyResponse.class),
+            any(),
+            isNull()
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null));
+
+        performGetImpositions(12345L)
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.impositions[0].imposed_by").isMap())
+            .andExpect(jsonPath("$.impositions[0].imposed_by.court_id").value(nullValue()))
+            .andExpect(jsonPath("$.impositions[0].imposed_by.court_code").doesNotExist())
+            .andExpect(jsonPath("$.impositions[0].imposed_by.court_name").value(nullValue()));
+    }
+
     private ResultActions performGetImpositions(Long defendantAccountId) throws Exception {
         return mockMvc.perform(get(URL_BASE + "/" + defendantAccountId + "/impositions")
                                    .header("Authorization", AUTH_HEADER)
