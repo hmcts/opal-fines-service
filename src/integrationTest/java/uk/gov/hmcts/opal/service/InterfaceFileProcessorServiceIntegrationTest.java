@@ -160,7 +160,7 @@ class InterfaceFileProcessorServiceIntegrationTest extends AbstractIntegrationTe
         assertThat(finesFile.getSourceJsonId()).isEqualTo(SOURCE_ID);
         assertThat(finesFile.getTransformedJsonId()).isEqualTo(988L);
         assertThat(finesFile.getRecordCount()).isEqualTo((short) 5);
-        assertThat(finesFile.getTotalAmount()).isEqualByComparingTo(new BigDecimal("5000"));
+        assertThat(finesFile.getTotalAmount()).isEqualByComparingTo(new BigDecimal("500"));
         assertThat(finesFile.getCreatedDateTime()).isBetween(before, after);
         assertThat(job.getBusinessUnit().getBusinessUnitId()).isEqualTo((short) 6460);
         assertThat(job.getInterfaceName())
@@ -226,7 +226,7 @@ class InterfaceFileProcessorServiceIntegrationTest extends AbstractIntegrationTe
             .map(code -> Transaction.builder()
                 .transactionCode(code)
                 .originatorDetails(OriginatorDetails.builder().accountReference("unmatched").name("Payer").build())
-                .amount(1_000L)
+                .amount(100L)
                 .build())
             .toList();
 
