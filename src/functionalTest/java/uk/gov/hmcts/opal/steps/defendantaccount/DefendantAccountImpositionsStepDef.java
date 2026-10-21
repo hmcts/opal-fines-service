@@ -2,11 +2,8 @@ package uk.gov.hmcts.opal.steps.defendantaccount;
 
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import io.cucumber.datatable.DataTable;
-import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.path.json.JsonPath;
@@ -15,22 +12,6 @@ import java.util.Map;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 
 public class DefendantAccountImpositionsStepDef extends BaseStepDef {
-
-    /**
-     * Skips environment-specific scenarios after identifying the target using a known Legacy dataset.
-     *
-     * @param environment required Legacy environment.
-     * @param defendantAccountId account with known impositions in both environments.
-     * @param datasets environment names mapped to their known imposition identifiers.
-     */
-    @Given("the Legacy environment is {string} based on impositions for defendant account {string}")
-    public void requireLegacyEnvironment(String environment, String defendantAccountId, DataTable datasets) {
-        requestLegacyDefendantAccountImpositions(defendantAccountId);
-        then().statusCode(200);
-        String actualEnvironment = environmentForImpositions(datasets.asMap(String.class, String.class));
-        assumeTrue(environment.equals(actualEnvironment),
-            "Scenario requires Legacy " + environment + " fixture; target dataset is " + actualEnvironment);
-    }
 
     /**
      * Requests legacy impositions for the supplied defendant-account identifier.
@@ -81,21 +62,7 @@ public class DefendantAccountImpositionsStepDef extends BaseStepDef {
             .filter(row -> "imposition_id".equals(row.get("field")))
             .findFirst().orElseThrow();
         JsonPath response = then().extract().body().jsonPath();
-        String environment = environmentForImpositions(expectedIds);
-        String impositionId = expectedIds.get(environment);
-        long expectedImpositionId = Long.parseLong(impositionId);
-        String impositionPath = "impositions.find { it.imposition_id == " + expectedImpositionId + " }";
-
-        for (Map<String, String> row : rows) {
-            String field = row.get("field");
-            assertEquals(row.get(environment), response.getString(impositionPath + "." + field),
-                "Unexpected " + field + " for imposition " + impositionId + " in " + environment);
-        }
-    }
-
-    private String environmentForImpositions(Map<String, String> expectedIds) {
-        List<Long> actualIds = then().extract().body().jsonPath().getList("impositions.imposition_id", Long.class);
-        assertNotNull(actualIds, "Expected impositions when identifying the Legacy environment");
+        List<Long> actualIds = response.getList("impositions.imposition_id", Long.class);
         // Choose one complete known dataset rather than allowing field-by-field alternatives.
         List<String> matchingEnvironments = expectedIds.entrySet().stream()
             .filter(entry -> !"field".equals(entry.getKey()))
@@ -106,6 +73,15 @@ public class DefendantAccountImpositionsStepDef extends BaseStepDef {
             "Expected exactly one known Legacy impositions dataset, but found " + matchingEnvironments
                 + " for returned imposition IDs " + actualIds);
 
-        return matchingEnvironments.getFirst();
+        String environment = matchingEnvironments.getFirst();
+        String impositionId = expectedIds.get(environment);
+        long expectedImpositionId = Long.parseLong(impositionId);
+        String impositionPath = "impositions.find { it.imposition_id == " + expectedImpositionId + " }";
+
+        for (Map<String, String> row : rows) {
+            String field = row.get("field");
+            assertEquals(row.get(environment), response.getString(impositionPath + "." + field),
+                "Unexpected " + field + " for imposition " + impositionId + " in " + environment);
+        }
     }
 }
