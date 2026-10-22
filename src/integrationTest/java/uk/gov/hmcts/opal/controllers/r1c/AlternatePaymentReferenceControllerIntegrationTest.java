@@ -465,48 +465,63 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
 
         private static final long REFERENCE_ID = 10877001L;
 
-        @Test
+        @ParameterizedTest(name = "Delete a reference with relationship {2}")
+        @CsvSource({
+            "1087701, 10877001, APR",
+            "1087701, 10877002, CONSOLIDATED",
+            "1087703, 10877003, AMALGAMATED"
+        })
         @JiraStory("PO-10880")
         @JiraEpic("PO-7465")
-        @DisplayName("Deletes the APR, returns its details and ETag, and adds an activity note")
-        void deletesReferenceAndAddsActivityNote() throws Exception {
+        @DisplayName("Deletes each APR relationship type, returns its details, and adds an activity note")
+        void deletesReferenceAndAddsActivityNote(long accountId, long referenceId, Relationship relationship)
+            throws Exception {
+            AlternatePaymentReferenceEntity reference = alternatePaymentReferenceRepository.findById(referenceId)
+                .orElseThrow();
+            List<AlternatePaymentReferenceEntity> existingReferences = findReferencesInBusinessUnit();
+            String expectedEtag = "\"" + reference.getVersionNumber() + "\"";
+            assertThat(reference.getRelationship()).isEqualTo(relationship);
             LocalDateTime beforeRequest = LocalDateTime.now(ZoneOffset.UTC);
 
-            deleteReference(ACCOUNT_WITH_REFERENCES, REFERENCE_ID, "\"2\"")
+            deleteReference(accountId, referenceId, expectedEtag)
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(header().string(HttpHeaders.ETAG, "\"2\""))
-                .andExpect(jsonPath("$.alternate_payment_reference_id").value(REFERENCE_ID))
-                .andExpect(jsonPath("$.defendant_account_id").value(ACCOUNT_WITH_REFERENCES))
+                .andExpect(header().string(HttpHeaders.ETAG, expectedEtag))
+                .andExpect(jsonPath("$.alternate_payment_reference_id").value(referenceId))
+                .andExpect(jsonPath("$.defendant_account_id").value(accountId))
                 .andExpect(jsonPath("$.business_unit_id").value((int) BUSINESS_UNIT_ID))
-                .andExpect(jsonPath("$.apr_text").value("APR-REFERENCE-1"))
-                .andExpect(jsonPath("$.relationship").value("APR"))
-                .andExpect(jsonPath("$.category").value("APR"))
-                .andExpect(jsonPath("$.created_at").value("2026-10-20T09:15:30"))
-                .andExpect(jsonPath("$.updated_at").value("2026-10-21T10:20:40"))
-                .andExpect(jsonPath("$.version").value(2));
+                .andExpect(jsonPath("$.apr_text").value(reference.getAprText()))
+                .andExpect(jsonPath("$.relationship").value(relationship.name()))
+                .andExpect(jsonPath("$.category").value(reference.getCategory().name()))
+                .andExpect(jsonPath("$.created_at").value(reference.getCreatedDatetime().toString()))
+                .andExpect(jsonPath("$.updated_at").value(reference.getUpdatedDatetime().toString()))
+                .andExpect(jsonPath("$.version").value(reference.getVersionNumber().intValue()));
 
             LocalDateTime afterRequest = LocalDateTime.now(ZoneOffset.UTC);
-            assertThat(alternatePaymentReferenceRepository.existsById(REFERENCE_ID)).isFalse();
+            assertThat(alternatePaymentReferenceRepository.existsById(referenceId)).isFalse();
             assertThat(findReferencesInBusinessUnit())
                 .extracting(AlternatePaymentReferenceEntity::getAlternatePaymentReferenceId,
                     AlternatePaymentReferenceEntity::getAprText, AlternatePaymentReferenceEntity::getVersionNumber)
-                .containsExactlyInAnyOrder(
-                    tuple(10877002L, "APR-REFERENCE-2", 4L),
-                    tuple(10877003L, "APR-OTHER-ACCOUNT", 1L));
+                .containsExactlyInAnyOrderElementsOf(existingReferences.stream()
+                    .filter(existing -> existing.getAlternatePaymentReferenceId() != referenceId)
+                    .map(existing -> tuple(existing.getAlternatePaymentReferenceId(),
+                        existing.getAprText(), existing.getVersionNumber()))
+                    .toList());
             assertThat(findFixtureAccountNotes()).singleElement().satisfies(note -> {
                 assertThat(note.getNoteId()).isPositive();
-                assertThat(note.getAssociatedRecordId()).isEqualTo(String.valueOf(ACCOUNT_WITH_REFERENCES));
+                assertThat(note.getAssociatedRecordId()).isEqualTo(String.valueOf(accountId));
                 assertThat(note.getAssociatedRecordType()).isEqualTo(AssociatedRecordType.DEFENDANT_ACCOUNTS);
                 assertThat(note.getNoteType()).isEqualTo(NoteType.AA);
-                assertThat(note.getNoteText()).isEqualTo("Alternate payment reference deleted | APR-REFERENCE-1");
+                assertThat(note.getNoteText())
+                    .isEqualTo("Alternate payment reference deleted | " + reference.getAprText());
                 assertThat(note.getBusinessUnitUserId()).isEqualTo("L010877JG");
                 assertThat(note.getPostedByUsername()).isEqualTo(userStateStub.getUserState().getUsername());
                 assertThat(note.getPostedDate()).isBetween(beforeRequest, afterRequest);
             });
-            assertThat(defendantAccountVersionFor(ACCOUNT_WITH_REFERENCES)).isEqualTo(1);
-            assertThat(defendantAccountVersionFor(ACCOUNT_WITHOUT_REFERENCES)).isZero();
-            assertThat(defendantAccountVersionFor(1087703L)).isZero();
+            assertThat(defendantAccountVersionFor(accountId)).isEqualTo(1);
+            assertThat(defendantAccountRepository.findAllByBusinessUnit_BusinessUnitId(BUSINESS_UNIT_ID))
+                .filteredOn(account -> account.getDefendantAccountId() != accountId)
+                .allSatisfy(account -> assertThat(account.getVersionNumber()).isZero());
         }
 
         @Test
