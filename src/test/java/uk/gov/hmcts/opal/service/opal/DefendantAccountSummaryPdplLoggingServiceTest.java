@@ -38,7 +38,7 @@ class DefendantAccountSummaryPdplLoggingServiceTest {
     private static final long USER_ID = 123L;
     private static final String IP_ADDRESS = "192.0.2.1";
     private static final OffsetDateTime NOW = OffsetDateTime.parse("2026-10-06T10:15:30Z");
-    private static final String FAILURE_MESSAGE = "Unable to queue PDPO log for viewing a defendant account";
+    private static final String FAILURE_MESSAGE = "Unable to queue PDPO log for viewing a defendant account summary";
 
     @Mock
     private LoggingService loggingService;
