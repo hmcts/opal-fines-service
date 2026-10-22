@@ -23,7 +23,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 public class AlternatePaymentReferenceRepositoryIntegrationTest extends AbstractIntegrationTest {
 
-    private static final long TYPICAL_ID = 920001L;
     private static final short NE_REGION_BU_ID = 78;
 
     @Autowired
@@ -43,7 +42,6 @@ public class AlternatePaymentReferenceRepositoryIntegrationTest extends Abstract
         BusinessUnitEntity bu = entityManager.getReference(BusinessUnitEntity.class, NE_REGION_BU_ID);
 
         return AlternatePaymentReferenceEntity.builder()
-            .alternatePaymentReferenceId(TYPICAL_ID)
             .defendantAccount(t)
             .relationship(Relationship.AMALGAMATED)
             .category(Category.ACC)
@@ -68,7 +66,8 @@ public class AlternatePaymentReferenceRepositoryIntegrationTest extends Abstract
 
         entityManager.clear();
 
-        AlternatePaymentReferenceEntity fetched = repository.findById(TYPICAL_ID).orElseThrow();
+        AlternatePaymentReferenceEntity fetched = repository.findById(original.getAlternatePaymentReferenceId())
+            .orElseThrow();
 
         assertThat(fetched.getAlternatePaymentReferenceId()).isEqualTo(original.getAlternatePaymentReferenceId());
         assertThat(fetched.getBusinessUnit()).isEqualTo(original.getBusinessUnit());
@@ -101,4 +100,3 @@ public class AlternatePaymentReferenceRepositoryIntegrationTest extends Abstract
     }
 
 }
-
