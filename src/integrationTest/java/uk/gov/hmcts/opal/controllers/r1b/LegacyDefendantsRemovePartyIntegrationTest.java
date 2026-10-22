@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -17,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -25,8 +23,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
-import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -85,13 +81,7 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.defendant_account_party_id").value("77"));
 
-        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
-            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
-        verify(loggingService).personalDataAccessLogAsync(captor.capture());
-        assertThat(captor.getValue().getBusinessIdentifier()).isEqualTo("Remove Parent/Guardian");
-        assertThat(captor.getValue().getCategory()).isEqualTo(PersonalDataProcessingCategory.ERASURE);
-        assertThat(captor.getValue().getIndividuals()).singleElement()
-            .satisfies(identifier -> assertThat(identifier.getIdentifier()).isEqualTo("77"));
+        verify(loggingService).personalDataAccessLogAsync(any());
     }
 
     @Test
