@@ -1,0 +1,412 @@
+openapi: 3.1.1
+
+servers:
+  - url: http://localhost:4550/
+
+info:
+  description: Opal Fines Service - Alternate Payment References
+  version: v0.0.1
+  title: Opal Fines Service
+
+paths:
+  /defendant-accounts/{defendantAccountId}/alternate-payment-references:
+    get:
+      tags:
+        - Alternate Payment References
+      summary: Get Alternate Payment References
+      description: Returns the alternate payment references for a defendant account.
+      operationId: getAlternatePaymentReferences
+      security:
+        - permissions:
+            - Manage Alternative Payment References (in the business unit that the account resides in)
+      parameters:
+        - in: path
+          name: defendantAccountId
+          description: DB Mapping - defendant_accounts.defendant_account_id
+          required: true
+          schema:
+            $ref: './types.yaml#/components/schemas/BigInt'
+      responses:
+        '200':
+          description: Alternate payment references returned; the collection is empty when none exist.
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlternatePaymentReferencesListResponse'
+        '400':
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Defendant account or alternate payment reference not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+    post:
+      tags:
+        - Alternate Payment References
+      summary: Create Alternate Payment Reference
+      description: Creates an alternate payment reference for a defendant account.
+      operationId: createAlternatePaymentReference
+      security:
+        - permissions:
+            - Manage Alternative Payment References (in the business unit that the account resides in)
+      parameters:
+        - in: path
+          name: defendantAccountId
+          description: DB Mapping - defendant_accounts.defendant_account_id
+          required: true
+          schema:
+            $ref: './types.yaml#/components/schemas/BigInt'
+        - in: header
+          name: If-Match
+          description: Current version of the defendant account for optimistic locking.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlternatePaymentReferencesWriteRequest'
+      responses:
+        '201':
+          description: Alternate payment reference created
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlternatePaymentReferencesSingleResponse'
+        '400':
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Defendant account or alternate payment reference not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '412':
+          description: Defendant account version does not match If-Match
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '422':
+          description: >-
+            APR text is already used by an alternate payment reference belonging to any defendant account
+            in the business unit of the specified defendant account, or the specified defendant account
+            already has an alternate payment reference with relationship APR.
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+  /defendant-accounts/{defendantAccountId}/alternate-payment-references/{alternatePaymentReferenceId}:
+    patch:
+      tags:
+        - Alternate Payment References
+      summary: Update Alternate Payment Reference
+      description: Updates an alternate payment reference for a defendant account.
+      operationId: updateAlternatePaymentReference
+      security:
+        - permissions:
+            - Manage Alternative Payment References (in the business unit that the account resides in)
+      parameters:
+        - in: path
+          name: defendantAccountId
+          description: DB Mapping - defendant_accounts.defendant_account_id
+          required: true
+          schema:
+            $ref: './types.yaml#/components/schemas/BigInt'
+        - in: path
+          name: alternatePaymentReferenceId
+          description: DB Mapping - alternate_payment_references.alternate_payment_reference_id
+          required: true
+          schema:
+            $ref: './types.yaml#/components/schemas/BigInt'
+        - in: header
+          name: If-Match
+          description: Current version of the defendant account for optimistic locking.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlternatePaymentReferencesWriteRequest'
+      responses:
+        '200':
+          description: Alternate payment reference updated
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlternatePaymentReferencesSingleResponse'
+        '400':
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Defendant account or alternate payment reference not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '412':
+          description: Defendant account version does not match If-Match
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '422':
+          description: >-
+            APR text is already used by another alternate payment reference belonging to any defendant
+            account in the business unit of the specified defendant account.
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+    delete:
+      tags:
+        - Alternate Payment References
+      summary: Delete Alternate Payment Reference
+      description: Deletes an alternate payment reference for a defendant account.
+      operationId: deleteAlternatePaymentReference
+      security:
+        - permissions:
+            - Manage Alternative Payment References (in the business unit that the account resides in)
+      parameters:
+        - in: path
+          name: defendantAccountId
+          description: DB Mapping - defendant_accounts.defendant_account_id
+          required: true
+          schema:
+            $ref: './types.yaml#/components/schemas/BigInt'
+        - in: path
+          name: alternatePaymentReferenceId
+          description: DB Mapping - alternate_payment_references.alternate_payment_reference_id
+          required: true
+          schema:
+            $ref: './types.yaml#/components/schemas/BigInt'
+        - in: header
+          name: If-Match
+          description: Current version of the defendant account for optimistic locking.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Alternate payment reference deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlternatePaymentReferencesSingleResponse'
+        '400':
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Defendant account or alternate payment reference not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '412':
+          description: Defendant account version does not match If-Match
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+components:
+  schemas:
+    AlternatePaymentReferencesWriteRequest:
+      title: Alternate Payment Reference Write Request
+      type: object
+      required:
+        - apr_text
+      properties:
+        apr_text:
+          type: string
+          maxLength: 18
+          description: DB Mapping - alternate_payment_references.apr_text
+
+    AlternatePaymentReferencesSingleResponse:
+      title: Alternate Payment Reference Response
+      type: object
+      required:
+        - alternate_payment_reference
+      properties:
+        alternate_payment_reference:
+          $ref: '#/components/schemas/AlternatePaymentReferencesItem'
+
+    AlternatePaymentReferencesListResponse:
+      title: Alternate Payment References Response
+      type: array
+      items:
+        $ref: '#/components/schemas/AlternatePaymentReferencesSingleResponse'
+
+    AlternatePaymentReferencesItem:
+      title: Alternate Payment Reference
+      type: object
+      required:
+        - alternate_payment_reference_id
+        - defendant_account_id
+        - relationship
+        - category
+        - business_unit_id
+        - apr_text
+        - created_at
+        - updated_at
+      properties:
+        alternate_payment_reference_id:
+          description: DB Mapping - alternate_payment_references.alternate_payment_reference_id
+          $ref: './types.yaml#/components/schemas/BigInt'
+        defendant_account_id:
+          description: DB Mapping - alternate_payment_references.defendant_account_id
+          $ref: './types.yaml#/components/schemas/BigInt'
+        relationship:
+          type: string
+          enum:
+            - APR
+            - CONSOLIDATED
+            - AMALGAMATED
+          description: DB Mapping - alternate_payment_references.relationship
+        category:
+          type: string
+          enum:
+            - APR
+            - ACC
+          description: DB Mapping - alternate_payment_references.category
+        business_unit_id:
+          description: Business unit identifier for the defendant account.
+          $ref: './types.yaml#/components/schemas/BusinessUnitId'
+        apr_text:
+          type: string
+          maxLength: 18
+          description: DB Mapping - alternate_payment_references.apr_text
+        created_at:
+          type: string
+          format: date-time
+          description: DB Mapping - alternate_payment_references.created_datetime
+        updated_at:
+          type: string
+          format: date-time
+          description: DB Mapping - alternate_payment_references.updated_datetime
