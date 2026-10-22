@@ -8,8 +8,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
-import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
@@ -59,7 +59,7 @@ public class AlternatePaymentReferenceEntity implements VersionedLong {
 
     @Column
     @NotNull
-    @Max(18)
+    @Size(max = 18)
     private String aprText;
 
     @Column
