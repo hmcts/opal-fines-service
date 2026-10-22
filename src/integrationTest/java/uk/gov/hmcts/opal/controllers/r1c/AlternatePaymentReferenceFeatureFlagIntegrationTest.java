@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers.r1c;
 
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -29,6 +30,39 @@ class AlternatePaymentReferenceFeatureFlagIntegrationTest extends AbstractIntegr
 
     @MockitoSpyBean
     private AlternatePaymentReferenceService alternatePaymentReferenceService;
+
+    @Nested
+    @DisplayName("Create an alternate payment reference for a defendant account")
+    class CreateAlternatePaymentReference {
+
+        @Test
+        @JiraStory("PO-10878")
+        @JiraEpic("PO-7465")
+        @DisplayName("Returns the feature-disabled problem without creating a reference for an authorised user")
+        void returnsFeatureDisabledWithoutCallingService() throws Exception {
+            userStateStub.setupWithNoPermissions();
+            userStateStub.addPermissions((short) 78, MANAGE_ALTERNATE_PAYMENT_REFERENCES);
+
+            mockMvc.perform(post("/defendant-accounts/{defendantAccountId}/alternate-payment-references", 77L)
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                    .header(HttpHeaders.IF_MATCH, "\"0\"")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .content("""
+                        {"apr_text": "NEW-APR-REFERENCE"}
+                        """))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(header().doesNotExist(HttpHeaders.ETAG))
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.title").value("Feature Disabled"))
+                .andExpect(jsonPath("$.detail").value("The requested feature is not currently available"))
+                .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/feature-disabled"))
+                .andExpect(jsonPath("$.retriable").value(false));
+
+            verifyNoInteractions(alternatePaymentReferenceService);
+        }
+    }
 
     @Nested
     @DisplayName("Get alternate payment references for a defendant account")
