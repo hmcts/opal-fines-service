@@ -20,6 +20,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @ActiveProfiles({"integration"})
 @TestPropertySource(properties = {
     "launchdarkly.default-flag-values.release-1b=true",
+    "launchdarkly.default-flag-values.release-1c-payment=true",
     "launchdarkly.enabled=false"
 })
 @DisplayName("MappingsController Integration Test")
@@ -86,11 +87,13 @@ class MappingsControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.title").value("Unsupported Mapping Type"))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/unsupported-mapping-type"))
             .andExpect(jsonPath("$.detail").value(
-                "Unsupported mapping type: unsupported-type. Supported types: defendant-account-status, file-type"
+                "Unsupported mapping type: unsupported-type. Supported types: defendant-account-status, file-type,"
+                    + " method-of-payment, source, suspense-reason"
             ))
             .andExpect(jsonPath("$.mapping_type").value("unsupported-type"))
-            .andExpect(jsonPath("$.supported_types", hasSize(2)))
-            .andExpect(jsonPath("$.supported_types", contains("defendant-account-status", "file-type")));
+            .andExpect(jsonPath("$.supported_types", hasSize(5)))
+            .andExpect(jsonPath("$.supported_types", contains("defendant-account-status", "file-type",
+                "method-of-payment", "source", "suspense-reason")));
     }
 
     @Test
@@ -105,9 +108,54 @@ class MappingsControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.title").value("Missing Mapping Type"))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/missing-mapping-type"))
             .andExpect(jsonPath("$.detail").value(
-                "Required mapping type is missing. Supported types: defendant-account-status, file-type"
+                "Required mapping type is missing. Supported types: defendant-account-status, file-type,"
+                    + " method-of-payment, source, suspense-reason"
             ))
-            .andExpect(jsonPath("$.supported_types", hasSize(2)))
-            .andExpect(jsonPath("$.supported_types", contains("defendant-account-status", "file-type")));
+            .andExpect(jsonPath("$.supported_types", hasSize(5)))
+            .andExpect(jsonPath("$.supported_types", contains("defendant-account-status", "file-type",
+                "method-of-payment", "source", "suspense-reason")));
+    }
+
+    @Test
+    @DisplayName("GET /mappings/method-of-payment returns the payment methods")
+    @JiraStory("PO-10964")
+    @JiraEpic("PO-2439")
+    void getMappings_returnsMethodOfPaymentMappings() throws Exception {
+        mockMvc.perform(get("/mappings/method-of-payment"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$", hasSize(4)))
+            .andExpect(jsonPath("$[*].code", contains("NC", "PO", "CQ", "CT")))
+            .andExpect(jsonPath("$[*].display_name", contains(
+                "Notes and coins", "Postal order", "Cheque", "Credit transfer")));
+    }
+
+    @Test
+    @DisplayName("GET /mappings/source returns the payment sources")
+    @JiraStory("PO-10964")
+    @JiraEpic("PO-2439")
+    void getMappings_returnsSourceMappings() throws Exception {
+        mockMvc.perform(get("/mappings/source"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$", hasSize(6)))
+            .andExpect(jsonPath("$[*].code", contains(
+                "ALLPAY", "BARCLAYCARD", "BTECKOH", "DWP", "NATWEST", "OTHER")))
+            .andExpect(jsonPath("$[*].display_name", contains(
+                "allpay", "Barclaycard", "British Telecom", "DWP/AEA", "NatWest", "Other")));
+    }
+
+    @Test
+    @DisplayName("GET /mappings/suspense-reason returns the suspense reasons")
+    @JiraStory("PO-10964")
+    @JiraEpic("PO-2439")
+    void getMappings_returnsSuspenseReasonMappings() throws Exception {
+        mockMvc.perform(get("/mappings/suspense-reason"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$", hasSize(4)))
+            .andExpect(jsonPath("$[*].code", contains("OF", "FA", "MS", "UN")))
+            .andExpect(jsonPath("$[*].display_name", contains(
+                "Fines overpayment", "Fine paid in advance", "Miscellaneous payment", "Unidentified Amount")));
     }
 }

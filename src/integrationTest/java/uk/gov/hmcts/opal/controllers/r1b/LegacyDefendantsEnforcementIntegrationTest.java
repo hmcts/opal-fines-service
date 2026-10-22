@@ -1,5 +1,12 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -7,12 +14,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountEnforcementService.REMOVE_ENFORCEMENT_HOLD;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
 import java.math.BigInteger;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -200,6 +211,48 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
             )
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+    }
+
+    @ParameterizedTest(name = "If-Match {0}")
+    @CsvSource(value = {"1|1", "\"9223372036854775808\"|9223372036854775808"}, delimiter = '|')
+    @DisplayName("LEGACY: PATCH Remove Enforcement Hold - sends the expected JSON request to legacy")
+    @JiraStory("PO-11051")
+    @JiraEpic("PO-1675")
+    void testPatchRemoveEnforcementHold_RequestShape(String ifMatch, String expectedVersion) throws Exception {
+        stubFor(WireMock.post(urlPathEqualTo("/opal"))
+            .withQueryParam("actionType", equalTo(REMOVE_ENFORCEMENT_HOLD))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML_VALUE)
+                .withBody("""
+                    <response>
+                      <defendant_account_id>72</defendant_account_id>
+                      <version>1</version>
+                    </response>
+                    """)));
+
+        HttpHeaders headers = removeEnforcementHeaders(userStateStub.getBearerToken());
+        headers.set(HttpHeaders.IF_MATCH, ifMatch);
+
+        mockMvc.perform(MockMvcRequestBuilders.patch("/defendant-accounts/72/remove-enf-hold")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(REMOVE_ENFORCEMENT_REQUEST))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        verify(1, postRequestedFor(urlPathEqualTo("/opal"))
+            .withQueryParam("actionType", equalTo(REMOVE_ENFORCEMENT_HOLD))
+            .withRequestBody(equalToJson("""
+                {
+                  "defendant_account_id": "72",
+                  "business_unit_id": "78",
+                  "business_unit_user_id": "L078JG",
+                  "version": %s,
+                  "reason": "remove hold reason"
+                }
+                """.formatted(expectedVersion), false, false)));
     }
 
     @Test

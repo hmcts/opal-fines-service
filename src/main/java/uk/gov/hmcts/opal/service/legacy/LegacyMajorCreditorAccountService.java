@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
@@ -20,6 +21,7 @@ import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountAtAGlanceLegacyRespon
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse.MajorCreditorLegacy;
+import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
@@ -28,6 +30,7 @@ import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHeaderSummaryRespo
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHistoryRequestLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHistoryResponseLegacyMapper;
 import uk.gov.hmcts.opal.service.iface.MajorCreditorAccountServiceInterface;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @Service
 @RequiredArgsConstructor
@@ -47,6 +50,7 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
     private final GetMajorCreditorAccountHistoryRequestLegacyMapper historyRequestMapper;
     private final GetMajorCreditorAccountHistoryResponseLegacyMapper historyResponseMapper;
     private final LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
+    private final FeatureToggleApi featureToggleApi;
 
     @Override
     public GetMajorCreditorAccountAtAGlanceResponse getAtAGlance(Long majorCreditorAccountId) {
@@ -93,19 +97,14 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
     }
 
     @Override
-    public GetMajorCreditorHistoryResponse getHistory(
-        Long majorCreditorAccountId,
-        LocalDate dateFrom,
-        LocalDate dateTo,
-        List<String> itemTypes
-    ) {
+    public GetMajorCreditorHistoryResponse getHistory(Long majorCreditorAccountId, LocalDate dateFrom,
+        LocalDate dateTo, List<String> itemTypes) {
+        GetMajorCreditorAccountHistoryLegacyRequest majorCreditorAccountHistoryRequest =
+            buildLegacyRequest(majorCreditorAccountId, dateFrom, dateTo, itemTypes);
+
         Response<GetMajorCreditorAccountHistoryLegacyResponse> response =
-            gatewayService.postToGateway(
-                GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
-                GetMajorCreditorAccountHistoryLegacyResponse.class,
-                historyRequestMapper.toLegacyRequest(majorCreditorAccountId, dateFrom, dateTo),
-                null
-            );
+            gatewayService.postToGateway(GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
+                GetMajorCreditorAccountHistoryLegacyResponse.class, majorCreditorAccountHistoryRequest, null);
 
         checkResponseForError(response, "getHistory");
 
@@ -174,5 +173,21 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
             body,
             StandardCharsets.UTF_8
         );
+    }
+
+    private GetMajorCreditorAccountHistoryLegacyRequest buildLegacyRequest(Long majorCreditorAccountId,
+        LocalDate dateFrom, LocalDate dateTo, List<String> itemTypes) {
+        itemTypes = isItemTypeFilteringEnabled() ? itemTypes : List.of("Financial");
+        return historyRequestMapper.toLegacyRequest(majorCreditorAccountId, dateFrom, dateTo, itemTypes);
+    }
+
+    private boolean isItemTypeFilteringEnabled() {
+        boolean enabled = featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false);
+        if (!enabled) {
+            log.debug(":isItemTypeFilteringEnabled: default item type filtering is being used because {} is disabled",
+                FeatureFlags.RELEASE_1B_1_1);
+        }
+        return enabled;
     }
 }
