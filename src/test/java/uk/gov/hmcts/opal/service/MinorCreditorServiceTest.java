@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -27,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
@@ -49,6 +51,7 @@ import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.service.opal.MinorCreditorHistoryPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.MinorCreditorPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.MinorCreditorSummaryPdplLoggingService;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
@@ -65,6 +68,9 @@ class MinorCreditorServiceTest {
     @Mock
     private MinorCreditorSummaryPdplLoggingService minorCreditorSummaryPdplLoggingService;
 
+    @Mock
+    MinorCreditorHistoryPdplLoggingService historyPdplLoggingService;
+  
     @Mock
     MinorCreditorPdplLoggingService pdplLoggingService;
 
@@ -232,9 +238,10 @@ class MinorCreditorServiceTest {
         GetMinorCreditorHistoryResponse response = GetMinorCreditorHistoryResponse.builder()
             .version(BigInteger.ONE)
             .build();
+        UserState userState = UserStateUtil.permissionUser(
+            (short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
 
-        when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(UserStateUtil.permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(minorCreditorSearchProxy.getMinorCreditorHistory(eq(id), any(MinorCreditorHistoryFilters.class)))
             .thenReturn(response);
 
@@ -246,8 +253,10 @@ class MinorCreditorServiceTest {
         assertEquals(response, result);
         ArgumentCaptor<MinorCreditorHistoryFilters> filtersCaptor =
             ArgumentCaptor.forClass(MinorCreditorHistoryFilters.class);
+        InOrder responseOrder = inOrder(minorCreditorSearchProxy, historyPdplLoggingService);
         verify(userStateService).getUserStateV1FromSecurityContext();
-        verify(minorCreditorSearchProxy).getMinorCreditorHistory(eq(id), filtersCaptor.capture());
+        responseOrder.verify(minorCreditorSearchProxy).getMinorCreditorHistory(eq(id), filtersCaptor.capture());
+        responseOrder.verify(historyPdplLoggingService).logHistoryItems(userState, response);
         assertEquals(LocalDateTime.of(2026, Month.JANUARY, 1, 0, 0),
             filtersCaptor.getValue().postedFromInclusive());
         assertEquals(LocalDateTime.of(2026, Month.FEBRUARY, 1, 0, 0),
