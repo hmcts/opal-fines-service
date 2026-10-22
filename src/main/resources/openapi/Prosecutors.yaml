@@ -79,7 +79,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProsecutorsDetail'
+                $ref: '#/components/schemas/ProsecutorsObject'
         '400':
           description: Invalid prosecutor identifier
           content:
@@ -135,60 +135,10 @@ components:
           type: array
           description: Prosecutors sorted by name ascending.
           items:
-            $ref: '#/components/schemas/ProsecutorsSummary'
+            $ref: '#/components/schemas/ProsecutorsObject'
 
-    ProsecutorsDetail:
+    ProsecutorsObject:
       title: Prosecutor
-      type: object
-      additionalProperties: false
-      x-json-include: NON_NULL
-      required:
-        - prosecutor_id
-        - name
-      properties:
-        prosecutor_id:
-          type: integer
-          format: int64
-          description: DB Mapping - prosecutors.prosecutor_id
-        name:
-          type: string
-          maxLength: 200
-          description: DB Mapping - prosecutors.name
-        prosecutor_code:
-          type: string
-          maxLength: 4
-          description: DB Mapping - prosecutors.prosecutor_code
-        address_line_1:
-          type: string
-          maxLength: 60
-          description: DB Mapping - prosecutors.address_line_1
-        address_line_2:
-          type: string
-          maxLength: 35
-          description: DB Mapping - prosecutors.address_line_2
-        address_line_3:
-          type: string
-          maxLength: 35
-          description: DB Mapping - prosecutors.address_line_3
-        address_line_4:
-          type: string
-          maxLength: 35
-          description: DB Mapping - prosecutors.address_line_4
-        address_line_5:
-          type: string
-          maxLength: 35
-          description: DB Mapping - prosecutors.address_line_5
-        postcode:
-          type: string
-          maxLength: 8
-          description: DB Mapping - prosecutors.postcode
-        end_date:
-          type: string
-          format: date-time
-          description: DB Mapping - prosecutors.end_date
-
-    ProsecutorsSummary:
-      title: Prosecutor Summary
       type: object
       additionalProperties: false
       x-json-include: NON_NULL
