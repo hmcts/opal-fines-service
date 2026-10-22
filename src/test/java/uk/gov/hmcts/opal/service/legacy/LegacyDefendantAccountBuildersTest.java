@@ -129,6 +129,31 @@ class LegacyDefendantAccountBuildersTest {
     }
 
     @Test
+    void toEnforcementStatusResponse_withMissingEnforcementCourt_returnsNullCourt() {
+        LegacyGetDefendantAccountEnforcementStatusResponse legacyDefendantAccountStatus =
+            LegacyGetDefendantAccountEnforcementStatusResponse.builder()
+                .version(BigInteger.ONE)
+                .enforcementOverview(EnforcementOverview.builder()
+                    .daysInDefault(10)
+                    .collectionOrder(CollectionOrder.builder().build())
+                    .build())
+                .accountStatusReference(AccountStatusReference.builder()
+                    .accountStatusCode("WO")
+                    .accountStatusDisplayName("WO")
+                    .build())
+                .employerFlag("true")
+                .build();
+
+        EnforcementStatus result = LegacyDefendantAccountBuilders
+            .toEnforcementStatusResponse(legacyDefendantAccountStatus, null);
+
+        assertNotNull(result);
+        assertNotNull(result.getEnforcementOverview());
+        assertNull(result.getEnforcementOverview().getEnforcementCourt());
+        assertTrue(result.toJson().contains("\"enforcement_court\":null"));
+    }
+
+    @Test
     void toEnforcementStatusResponse_withValidNextEnforcementActionData() {
         LegacyGetDefendantAccountEnforcementStatusResponse legacyDefendantAccountStatus =
             LegacyGetDefendantAccountEnforcementStatusResponse.builder()
