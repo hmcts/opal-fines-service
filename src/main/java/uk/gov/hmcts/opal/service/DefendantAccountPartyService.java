@@ -41,32 +41,11 @@ public class DefendantAccountPartyService {
             PartyResponseDefendantAccount response = defendantAccountPartyServiceProxy.getDefendantAccountParty(
                 defendantAccountId,
                 defendantAccountPartyId);
-            queuePdpoForViewedParty(response, userState);
+            pdplLoggingService.queuePdpoForViewedParty(response, userState);
             return response;
         } else {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }
-    }
-
-    private void queuePdpoForViewedParty(PartyResponseDefendantAccount response, UserState userState) {
-        DefendantAccountParty party = response.getDefendantAccountParty();
-        DefendantAccountPartyTypeEnum partyType = party.getDefendantAccountPartyType();
-
-        switch (partyType) {
-            case DEFENDANT -> pdplLoggingService.logViewedDefendant(requirePartyId(response, "Defendant"), userState);
-            case PARENT_GUARDIAN -> pdplLoggingService.logViewedParentGuardian(
-                requirePartyId(response, "Parent/Guardian"), userState);
-        }
-    }
-
-    private String requirePartyId(PartyResponseDefendantAccount response, String partyType) {
-        String partyId = response.getDefendantAccountParty().getPartyDetails().getPartyId();
-        if (partyId == null || partyId.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                "Unable to record required " + partyType + " PDPO log");
-        }
-
-        return partyId;
     }
 
     public PartyResponseDefendantAccount addDefendantAccountParty(
@@ -107,7 +86,7 @@ public class DefendantAccountPartyService {
         PartyResponseDefendantAccount response, UserState userState) {
 
         if (isNonPayingParentGuardian(request)) {
-            String partyId = requireAddedPartyId(response);
+            String partyId = pdplLoggingService.requireAddedPartyId(response);
             if (!pdplLoggingService.logAddedParentGuardian(partyId, userState)) {
                 throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                     "Unable to queue Parent/Guardian PDPO log");
@@ -119,10 +98,6 @@ public class DefendantAccountPartyService {
         DefendantAccountParty party = request.getDefendantAccountParty();
         return party.getDefendantAccountPartyType() == DefendantAccountPartyTypeEnum.PARENT_GUARDIAN
             && Boolean.FALSE.equals(party.getIsDebtor());
-    }
-
-    private String requireAddedPartyId(PartyResponseDefendantAccount response) {
-        return requirePartyId(response, "Parent/Guardian");
     }
 
 
