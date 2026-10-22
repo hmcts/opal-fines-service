@@ -1,22 +1,68 @@
 package uk.gov.hmcts.opal.util;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.springframework.security.access.AccessDeniedException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.util.SecurityUtil;
+
 
 class PermissionUtilTest {
+
+    @Test
+    void testCheckPermissionInBusinessUnit_permissionGranted() {
+        FinesPermission permission = FinesPermission.MANAGE_ALTERNATE_PAYMENT_REFERENCES;
+        Short businessUnitId = 50;
+        OpalJwtAuthenticationToken token = mock(OpalJwtAuthenticationToken.class);
+        when(token.hasPermissionInBusinessUnit(permission, businessUnitId)).thenReturn(true);
+
+        try (MockedStatic<SecurityUtil> securityUtil = mockStatic(SecurityUtil.class)) {
+            securityUtil.when(SecurityUtil::getOpalJwtAuthenticationTokenForCurrentUser).thenReturn(token);
+
+            assertDoesNotThrow(() -> PermissionUtil.checkPermissionInBusinessUnit(permission, businessUnitId));
+
+            verify(token).hasPermissionInBusinessUnit(permission, businessUnitId);
+        }
+    }
+
+    @Test
+    void testCheckPermissionInBusinessUnit_permissionDenied() {
+        FinesPermission permission = FinesPermission.MANAGE_ALTERNATE_PAYMENT_REFERENCES;
+        Short businessUnitId = 50;
+        OpalJwtAuthenticationToken token = mock(OpalJwtAuthenticationToken.class);
+        when(token.hasPermissionInBusinessUnit(permission, businessUnitId)).thenReturn(false);
+
+        try (MockedStatic<SecurityUtil> securityUtil = mockStatic(SecurityUtil.class)) {
+            securityUtil.when(SecurityUtil::getOpalJwtAuthenticationTokenForCurrentUser).thenReturn(token);
+
+            AccessDeniedException exception = assertThrows(
+                AccessDeniedException.class,
+                () -> PermissionUtil.checkPermissionInBusinessUnit(permission, businessUnitId));
+
+            assertEquals(
+                "User does not have the required permission: Manage Alternate Payment References in business unit: 50",
+                exception.getMessage());
+            verify(token).hasPermissionInBusinessUnit(permission, businessUnitId);
+        }
+    }
 
     @Test
     void findsRequiredBusinessUnitUserInDomain() {
@@ -106,7 +152,7 @@ class PermissionUtilTest {
     private static BusinessUnitUser createBusinessUnitUser(Set<Permission> permissions) {
         return BusinessUnitUser.builder()
             .businessUnitUserId("JK0320")
-            .businessUnitId((short)50)
+            .businessUnitId((short) 50)
             .permissions(permissions)
             .build();
     }
