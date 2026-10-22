@@ -109,7 +109,13 @@ class DefendantAccountImpositionsLegacyResponseMapperTest extends AbstractMapper
                 () -> assertNull(imposition.getCreditor()),
                 () -> assertNull(imposition.getImposedAmount()),
                 () -> assertNull(imposition.getOffence()),
-                () -> assertNull(imposition.getImposedBy())
+                () -> {
+                    var courtRef = imposition.getImposedBy();
+                    assertNotNull(courtRef);
+                    assertNull(courtRef.getCourtId());
+                    assertNull(courtRef.getCourtCode());
+                    assertNull(courtRef.getCourtName());
+                }
             );
         }
 

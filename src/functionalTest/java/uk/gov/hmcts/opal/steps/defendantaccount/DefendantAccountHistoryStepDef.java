@@ -10,6 +10,8 @@ import io.cucumber.java.en.When;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.json.JSONException;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.http.HttpHeaders;
 import net.serenitybdd.annotations.Steps;
 import uk.gov.hmcts.opal.actions.defendantaccount.DefendantAccountEnforcementsActions;
@@ -120,6 +122,69 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     @When("I request defendant account history for the created defendant account")
     public void requestDefendantAccountHistoryForCreatedDefendantAccount() {
         getHistory(BearerTokenStepDef.getToken(), createdDefendantAccountId(), null);
+    }
+
+    /**
+     * Selects exactly one known legacy dataset by account number and ID, then requests its history.
+     *
+     * @param businessUnitId business unit containing the account.
+     * @param query query string to append to the request URI.
+     * @param dataTable known environment datasets with account numbers, IDs and minimum history counts.
+     * @throws JSONException if the search request cannot be constructed.
+     */
+    @When("I request defendant account history for a known dataset in business unit {int} with query {string}")
+    public void requestKnownDefendantAccountHistory(int businessUnitId, String query, DataTable dataTable)
+        throws JSONException {
+
+        List<Map<String, String>> datasets = dataTable.asMaps(String.class, String.class);
+        List<Map<String, String>> matchingDatasets = new ArrayList<>();
+        Map<String, List<String>> returnedAccountIds = new LinkedHashMap<>();
+        for (Map<String, String> dataset : datasets) {
+            String accountNumber = dataset.get("account_number");
+            List<Map<String, Object>> accounts = searchAccountsByNumber(accountNumber, businessUnitId);
+            List<String> matchingAccountIds = accounts.stream()
+                .filter(account -> accountNumber.equals(account.get("account_number")))
+                .map(account -> String.valueOf(account.get("defendant_account_id")))
+                .toList();
+            returnedAccountIds.put(dataset.get("environment"), matchingAccountIds);
+            if (matchingAccountIds.contains(dataset.get("defendant_account_id"))) {
+                matchingDatasets.add(dataset);
+            }
+        }
+
+        assertEquals(1, matchingDatasets.size(),
+            "Expected exactly one known history dataset; returned account IDs by dataset: " + returnedAccountIds);
+        Map<String, String> selectedDataset = matchingDatasets.getFirst();
+        historyState.setMinimumHistoryItemCounts(Map.of(
+            "Financial", Long.parseLong(selectedDataset.get("minimum_financial_items")),
+            "Note", Long.parseLong(selectedDataset.get("minimum_note_items")),
+            "Payment terms", Long.parseLong(selectedDataset.get("minimum_payment_terms_items"))
+        ));
+        long accountId = Long.parseLong(selectedDataset.get("defendant_account_id"));
+        getHistory(BearerTokenStepDef.getToken(), accountId, query);
+    }
+
+    private List<Map<String, Object>> searchAccountsByNumber(String accountNumber, int businessUnitId)
+        throws JSONException {
+
+        JSONObject referenceNumber = new JSONObject()
+            .put("account_number", accountNumber)
+            .put("organisation", false);
+        JSONObject searchRequest = new JSONObject()
+            .put("active_accounts_only", false)
+            .put("business_unit_ids", new JSONArray().put(businessUnitId))
+            .put("reference_number", referenceNumber)
+            .put("defendant", JSONObject.NULL);
+
+        Response searchResponse = authorisedJsonRequest()
+            .body(searchRequest.toString())
+            .when()
+            .post(getTestUrl() + "/defendant-accounts/search");
+        responseAssertions.assertStatus(searchResponse, 200);
+
+        List<Map<String, Object>> accounts = searchResponse.jsonPath().getList("defendant_accounts");
+        assertNotNull(accounts, "Expected defendant_accounts in the account-number search response");
+        return accounts;
     }
 
     /**
@@ -254,15 +319,50 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     public void defendantAccountHistoryContainsAtLeastTheFollowingItemCounts(DataTable dataTable)
         throws JacksonException {
 
+        assertMinimumHistoryItemCounts(dataTable.asMap(String.class, Long.class));
+    }
+
+    /**
+     * Checks minimum history counts against the dataset selected for this scenario.
+     *
+     * @throws JacksonException if the response body cannot be parsed as JSON.
+     */
+    @Then("the defendant account history contains the minimum item counts for the selected dataset")
+    public void defendantAccountHistoryContainsSelectedDatasetCounts() throws JacksonException {
+        assertNotNull(historyState.getMinimumHistoryItemCounts(), "No history dataset has been selected");
+        assertMinimumHistoryItemCounts(historyState.getMinimumHistoryItemCounts());
+    }
+
+    private void assertMinimumHistoryItemCounts(Map<String, Long> expectedCounts) throws JacksonException {
         Map<String, Long> actualCounts = typeCounts();
-        dataTable.asMap(String.class, String.class).forEach((type, count) -> {
-            long expectedMinimum = Long.parseLong(count);
+        expectedCounts.forEach((type, expectedMinimum) -> {
             long actual = actualCounts.getOrDefault(type, 0L);
             assertTrue(
                 actual >= expectedMinimum,
                 "Expected at least " + expectedMinimum + " " + type + " item(s), found " + actual
             );
         });
+    }
+
+    /**
+     * Checks that an instalment payment-terms item includes the expected period code.
+     *
+     * @param periodCode expected instalment period code.
+     * @throws JacksonException if the response body cannot be parsed as JSON.
+     */
+    @Then("the defendant account history contains instalment payment terms with period {string}")
+    public void defendantAccountHistoryContainsInstalmentPeriod(String periodCode)
+        throws JacksonException {
+
+        List<JsonNode> periods = historyItems().stream()
+            .filter(item -> "Payment terms".equals(typeOf(item)))
+            .map(item -> item.path("details"))
+            .map(details -> details.path("instalment_period"))
+            .toList();
+        boolean found = periods.stream()
+            .anyMatch(period -> periodCode.equals(period.path("instalment_period_code").asString()));
+
+        assertTrue(found, "Expected instalment payment terms with period " + periodCode + "; returned: " + periods);
     }
 
     /**

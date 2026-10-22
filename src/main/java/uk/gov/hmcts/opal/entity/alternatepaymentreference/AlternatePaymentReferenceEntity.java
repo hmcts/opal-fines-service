@@ -17,6 +17,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
@@ -47,9 +48,9 @@ public class AlternatePaymentReferenceEntity {
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private Category category;
 
-    @Column
-    @NotNull
-    private String businessUnitCode;
+    @ManyToOne
+    @JoinColumn(name = "business_unit_id", referencedColumnName = "business_unit_id", nullable = false)
+    private BusinessUnitEntity businessUnit;
 
     @Column
     @NotNull
