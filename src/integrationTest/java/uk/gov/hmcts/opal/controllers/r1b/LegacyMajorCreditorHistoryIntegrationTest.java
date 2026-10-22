@@ -17,14 +17,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
 import static uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService.GET_MAJOR_CREDITOR_ACCOUNT_HISTORY;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
+import com.github.tomakehurst.wiremock.WireMockServer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -38,9 +37,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.wiremock.spring.InjectWireMock;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
-import uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyCreditorTransactionStatusReference;
@@ -48,7 +47,6 @@ import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyMajorCreditorHistoryDetails;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyMajorCreditorHistoryItem;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -61,21 +59,15 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @DisplayName("Major Creditor History Legacy Integration Tests")
 class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
 
-    private static final String AUTH_HEADER = "Bearer test-token";
+    private static final String AUTH_HEADER_VALUE = "Bearer " + AUTH_HEADER;
     private static final String URL = "/major-creditor-accounts/{id}/history";
     private static final long MAJOR_CREDITOR_ACCOUNT_ID = 99264300000001L;
 
-    @MockitoBean
-    private UserStateService userStateService;
+    @InjectWireMock("user-service")
+    private WireMockServer userServiceWireMock;
 
     @MockitoBean
     private GatewayService gatewayService;
-
-    @BeforeEach
-    void setUp() {
-        when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
-    }
 
     @Test
     @DisplayName("PO-2659 INT.01 returns transaction history for major creditor from legacy")
@@ -155,7 +147,8 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @JiraEpic("PO-2655")
     @JiraTestKey("PO-10089")
     void getHistory_enforcesPermission() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.noPermissionsUser());
+        userStateStub.setupWithNoPermissions();
+        userStateStub.createAuthentication(userServiceWireMock);
 
         getHistory()
             .andExpect(status().isForbidden())
@@ -303,7 +296,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     private ResultActions getHistory(String... queryParams) throws Exception {
         var request = get(URL, MAJOR_CREDITOR_ACCOUNT_ID)
             .accept(MediaType.APPLICATION_JSON)
-            .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER);
+            .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER_VALUE);
 
         for (int index = 0; index < queryParams.length; index += 2) {
             request.queryParam(queryParams[index], queryParams[index + 1]);

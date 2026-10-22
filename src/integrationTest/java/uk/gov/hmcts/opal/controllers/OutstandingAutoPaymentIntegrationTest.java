@@ -3,7 +3,7 @@ package uk.gov.hmcts.opal.controllers;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,16 +21,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
+import org.wiremock.spring.InjectWireMock;
+import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
-import tools.jackson.databind.JsonNode;
 
 @ActiveProfiles({"integration"})
 @TestPropertySource(properties = {
@@ -46,8 +46,8 @@ class OutstandingAutoPaymentIntegrationTest extends AbstractIntegrationTest {
     private static final List<Short> LUTON_AND_CARDIFF = List.of((short) 2470, (short) 2471);
     private static final List<Short> LUTON_ONLY = List.of((short) 2470);
 
-    @MockitoBean
-    private UserStateService userStateService;
+    @InjectWireMock("user-service")
+    private WireMockServer userServiceWireMock;
 
     @Test
     @DisplayName("PO-2470 INT.01 - Returns outstanding counts")
@@ -55,10 +55,9 @@ class OutstandingAutoPaymentIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-2470")
     void returnsOutstandingCounts() throws Exception {
-        when(userStateService.getBusinessUnitIdsFor(
-            FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(LUTON_AND_CARDIFF);
+        permitBusinessUnits(LUTON_AND_CARDIFF);
 
-        mockMvc.perform(get(URL))
+        mockMvc.perform(get(URL).header(AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.business_units", hasSize(2)))
@@ -77,10 +76,9 @@ class OutstandingAutoPaymentIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-2470")
     void filtersByPermission() throws Exception {
-        when(userStateService.getBusinessUnitIdsFor(
-            FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(LUTON_ONLY);
+        permitBusinessUnits(LUTON_ONLY);
 
-        mockMvc.perform(get(URL))
+        mockMvc.perform(get(URL).header(AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.business_units", hasSize(1)))
@@ -96,10 +94,9 @@ class OutstandingAutoPaymentIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-2470")
     void returnsEmptyResponseWhenUserHasNoPermission() throws Exception {
-        when(userStateService.getBusinessUnitIdsFor(
-            FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(List.of());
+        permitBusinessUnits(List.of());
 
-        mockMvc.perform(get(URL))
+        mockMvc.perform(get(URL).header(AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.business_units", hasSize(0)));
@@ -111,8 +108,7 @@ class OutstandingAutoPaymentIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-2470")
     void repeatedGetReturnsIdenticalResponse() throws Exception {
-        when(userStateService.getBusinessUnitIdsFor(
-            FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(LUTON_AND_CARDIFF);
+        permitBusinessUnits(LUTON_AND_CARDIFF);
 
         String firstResponse = performSuccessfulRequest();
         String secondResponse = performSuccessfulRequest();
@@ -126,10 +122,9 @@ class OutstandingAutoPaymentIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-2470")
     void returnsOnlyDocumentedFields() throws Exception {
-        when(userStateService.getBusinessUnitIdsFor(
-            FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(LUTON_ONLY);
+        permitBusinessUnits(LUTON_ONLY);
 
-        MvcResult result = mockMvc.perform(get(URL))
+        MvcResult result = mockMvc.perform(get(URL).header(AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andReturn();
@@ -144,7 +139,7 @@ class OutstandingAutoPaymentIntegrationTest extends AbstractIntegrationTest {
     }
 
     private String performSuccessfulRequest() throws Exception {
-        return mockMvc.perform(get(URL))
+        return mockMvc.perform(get(URL).header(AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.business_units[*].business_unit_name", contains("Cardiff", "Luton")))
@@ -157,5 +152,12 @@ class OutstandingAutoPaymentIntegrationTest extends AbstractIntegrationTest {
         return jsonNode.properties().stream()
             .map(Map.Entry::getKey)
             .collect(Collectors.toSet());
+    }
+
+    private void permitBusinessUnits(List<Short> businessUnitIds) {
+        userStateStub.setupWithNoPermissions();
+        businessUnitIds.forEach(businessUnitId -> userStateStub.addPermissions(
+            businessUnitId, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS));
+        userStateStub.createAuthentication(userServiceWireMock);
     }
 }

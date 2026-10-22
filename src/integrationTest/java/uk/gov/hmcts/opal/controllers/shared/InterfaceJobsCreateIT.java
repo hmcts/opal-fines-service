@@ -2,8 +2,7 @@ package uk.gov.hmcts.opal.controllers.shared;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -12,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.SchemaPaths.POST_INTERFACE_JOBS_CREATE_RESPONSE;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -26,9 +26,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.wiremock.spring.InjectWireMock;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ObjectNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
@@ -38,7 +39,6 @@ import uk.gov.hmcts.opal.entity.InterfaceJobEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobStatus;
 import uk.gov.hmcts.opal.repository.InterfaceFileRepository;
 import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -70,8 +70,8 @@ class InterfaceJobsCreateIT extends AbstractIntegrationTest {
     @Autowired
     private JsonSchemaValidationService jsonSchemaValidationService;
 
-    @MockitoBean
-    private UserStateService userStateService;
+    @InjectWireMock("user-service")
+    private WireMockServer userServiceWireMock;
 
     @Test
     @DisplayName("PO-2577 INT.04/05 - Returns documented response")
@@ -81,7 +81,7 @@ class InterfaceJobsCreateIT extends AbstractIntegrationTest {
     void returnsDocumentedResponse() throws Exception {
         stubPermission();
 
-        MvcResult result = mockMvc.perform(post(URL)
+        MvcResult result = mockMvc.perform(authorisedPost()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(requestBody("auto-payments-in-endpoint.dat", INTERFACE_NAME)))
@@ -112,7 +112,7 @@ class InterfaceJobsCreateIT extends AbstractIntegrationTest {
     void persistsMappedJobAndFile() throws Exception {
         stubPermission();
 
-        mockMvc.perform(post(URL)
+        mockMvc.perform(authorisedPost()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(requestBody("auto-payments-in-endpoint.dat", INTERFACE_NAME)))
@@ -141,12 +141,12 @@ class InterfaceJobsCreateIT extends AbstractIntegrationTest {
         stubPermission();
         String requestBody = requestBody("auto-payments-in-duplicate.dat", DUPLICATE_INTERFACE_NAME);
 
-        mockMvc.perform(post(URL)
+        mockMvc.perform(authorisedPost()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(requestBody))
             .andExpect(status().isOk());
-        mockMvc.perform(post(URL)
+        mockMvc.perform(authorisedPost()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(requestBody))
@@ -162,7 +162,7 @@ class InterfaceJobsCreateIT extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-10083")
     void rejectsInvalidRequest() throws Exception {
-        mockMvc.perform(post(URL)
+        mockMvc.perform(authorisedPost()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .content("""
@@ -179,11 +179,9 @@ class InterfaceJobsCreateIT extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-10081")
     void rejectsCreateWithoutPermission() throws Exception {
-        when(userStateService.getPermittedBusinessUnitIds(
-            List.of(BUSINESS_UNIT_ID), FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS))
-            .thenReturn(List.of());
+        stubNoPermissions();
 
-        mockMvc.perform(post(URL)
+        mockMvc.perform(authorisedPost()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(requestBody("auto-payments-in-forbidden.dat", "Forbidden Interface Jobs")))
@@ -205,12 +203,11 @@ class InterfaceJobsCreateIT extends AbstractIntegrationTest {
         JsonNode request = objectMapper.readTree(requestBody("auto-payments-in-endpoint.dat", INTERFACE_NAME));
         ((ObjectNode) request.get("interface_jobs").get(0)).remove(field);
 
-        mockMvc.perform(post(URL)
+        mockMvc.perform(authorisedPost()
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isBadRequest());
 
-        verifyNoInteractions(userStateService);
     }
 
     @ParameterizedTest
@@ -222,12 +219,11 @@ class InterfaceJobsCreateIT extends AbstractIntegrationTest {
         JsonNode request = objectMapper.readTree(requestBody("auto-payments-in-endpoint.dat", INTERFACE_NAME));
         ((ObjectNode) request.get("interface_jobs").get(0)).putNull(field);
 
-        mockMvc.perform(post(URL)
+        mockMvc.perform(authorisedPost()
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isBadRequest());
 
-        verifyNoInteractions(userStateService);
     }
 
     @ParameterizedTest
@@ -239,12 +235,11 @@ class InterfaceJobsCreateIT extends AbstractIntegrationTest {
         JsonNode request = objectMapper.readTree(requestBody("auto-payments-in-endpoint.dat", INTERFACE_NAME));
         ((ObjectNode) request.get("interface_jobs").get(0)).put(field, value);
 
-        mockMvc.perform(post(URL)
+        mockMvc.perform(authorisedPost()
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isBadRequest());
 
-        verifyNoInteractions(userStateService);
     }
 
     @Test
@@ -259,7 +254,7 @@ class InterfaceJobsCreateIT extends AbstractIntegrationTest {
             .put("record_count", 0)
             .put("total_amount", 0);
 
-        mockMvc.perform(post(URL)
+        mockMvc.perform(authorisedPost()
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isOk());
@@ -289,9 +284,18 @@ class InterfaceJobsCreateIT extends AbstractIntegrationTest {
     }
 
     private void stubPermission() {
-        when(userStateService.getPermittedBusinessUnitIds(
-            List.of(BUSINESS_UNIT_ID), FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS))
-            .thenReturn(List.of(BUSINESS_UNIT_ID));
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
+        userStateStub.createAuthentication(userServiceWireMock);
+    }
+
+    private void stubNoPermissions() {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.createAuthentication(userServiceWireMock);
+    }
+
+    private MockHttpServletRequestBuilder authorisedPost() {
+        return post(URL).header(AUTHORIZATION, "Bearer " + AUTH_HEADER);
     }
 
     private InterfaceJobEntity singleJob(String interfaceName) {

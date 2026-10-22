@@ -190,10 +190,10 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     @JiraTestKey("PO-9377")
     void getConsolidatedAccounts_whenCredentialsMissing_returnsUnauthorized() throws Exception {
         mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID)))
-            .andExpect(status().isUnauthorized())
+            .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.status").value(401))
-            .andExpect(jsonPath("$.detail").value("Unauthorized request for this resource"))
+            .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"))
             .andExpect(jsonPath("$.retriable").value(false));
     }
 

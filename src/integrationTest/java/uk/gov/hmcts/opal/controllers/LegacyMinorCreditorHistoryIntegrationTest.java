@@ -12,9 +12,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil.noPermissionsUser;
-import static uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil.permissionUser;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -34,6 +33,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.client.HttpServerErrorException;
+import org.wiremock.spring.InjectWireMock;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
@@ -44,7 +44,6 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse.LegacyMinorCreditorAccountHistoryItem;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse.LegacyMinorCreditorHistoryDetails;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse.LegacyMinorCreditorHistoryPostedDetails;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -61,22 +60,20 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
 
     private static final String HISTORY_URL = "/minor-creditor-accounts/{accountId}/history";
     private static final String LEGACY_ACTION = "LIBRA.get_minor_creditor_account_history";
-    private static final String AUTH_HEADER = "Bearer test-token";
+    private static final String AUTH_HEADER_VALUE = "Bearer " + AUTH_HEADER;
     private static final long MINOR_CREDITOR_ACCOUNT_ID = 99264500000001L;
     private static final short BUSINESS_UNIT_ID = 32645;
-
-    @MockitoBean
-    private UserStateService userStateService;
+    @InjectWireMock("user-service")
+    private WireMockServer userServiceWireMock;
 
     @MockitoBean
     private GatewayService gatewayService;
 
     @BeforeEach
     void setUpAuthorisedUser() {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(permissionUser(
-            BUSINESS_UNIT_ID,
-            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS
-        ));
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        userStateStub.createAuthentication(userServiceWireMock);
     }
 
     @Test
@@ -183,7 +180,8 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @DisplayName("PO-2645 legacy history without permission returns 403")
     @JiraTestKey("PO-8693")
     void getMinorCreditorHistory_whenUserLacksPermission_returnsForbidden() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(noPermissionsUser());
+        userStateStub.setupWithNoPermissions();
+        userStateStub.createAuthentication(userServiceWireMock);
 
         getHistory(MINOR_CREDITOR_ACCOUNT_ID)
             .andExpect(status().isForbidden())
@@ -220,7 +218,7 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     private ResultActions getHistory(long accountId, String... queryParams) throws Exception {
         var request = get(HISTORY_URL, accountId)
             .accept(MediaType.APPLICATION_JSON)
-            .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER);
+            .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER_VALUE);
 
         for (int index = 0; index < queryParams.length; index += 2) {
             request.queryParam(queryParams[index], queryParams[index + 1]);

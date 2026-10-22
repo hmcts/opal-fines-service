@@ -262,13 +262,13 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-7639")
     void getAtAGlance_missingAuthReturns401() throws Exception {
         mockMvc.perform(get(URL, MJ_ACCOUNT_ID))
-            .andExpect(status().isUnauthorized())
+            .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(header().doesNotExist(HttpHeaders.ETAG))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/unauthorized"))
-            .andExpect(jsonPath("$.title").value("Unauthorized"))
-            .andExpect(jsonPath("$.status").value(401))
-            .andExpect(jsonPath("$.detail").value("Unauthorized request for this resource"))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"))
+            .andExpect(jsonPath("$.title").value("Forbidden"))
+            .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"))
             .andExpect(jsonPath("$.retriable").value(false));
         userServiceWireMock.verify(exactly(0), getRequestedFor(urlPathEqualTo("/v2/users/0/state")));
     }

@@ -1,30 +1,25 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil.noPermissionsUser;
-import static uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil.permissionUser;
+import com.github.tomakehurst.wiremock.WireMockServer;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.web.server.ResponseStatusException;
+import org.wiremock.spring.InjectWireMock;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -38,12 +33,19 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Slf4j(topic = "opal.LegacyMajorCreditorAtAGlanceTest")
 class LegacyMajorCreditorAtAGlanceTest extends AbstractIntegrationTest {
 
-    private static final String AUTH_HEADER = "Bearer some_value";
+    private static final String AUTH_HEADER_VALUE = "Bearer " + AUTH_HEADER;
     private static final long MAJOR_CREDITOR_ACCOUNT_ID = 99000000000801L;
     private static final String URL = "/major-creditor-accounts/{id}/at-a-glance";
 
-    @MockitoBean
-    private UserStateService userStateService;
+    @InjectWireMock("user-service")
+    private WireMockServer userServiceWireMock;
+
+    @BeforeEach
+    void setUpAuthorisedUser() {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        userStateStub.createAuthentication(userServiceWireMock);
+    }
 
     @Test
     @DisplayName("PO-2137 INT.01 to INT.04 - valid request returns mapped body and ETag")
@@ -51,12 +53,9 @@ class LegacyMajorCreditorAtAGlanceTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-7588")
     void getAtAGlance_successReturnsMappedResponseAndEtag() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
-
         ResultActions resultActions = mockMvc.perform(get(URL, MAJOR_CREDITOR_ACCOUNT_ID)
             .accept(MediaType.APPLICATION_JSON)
-            .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
+            .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER_VALUE));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":getAtAGlance_successReturnsMappedResponseAndEtag: Response body:\n{}",
@@ -83,15 +82,12 @@ class LegacyMajorCreditorAtAGlanceTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-7590")
     void getAtAGlance_repeatedRequestReturnsConsistentResponse() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
-
         ResultActions first = mockMvc.perform(get(URL, MAJOR_CREDITOR_ACCOUNT_ID)
             .accept(MediaType.APPLICATION_JSON)
-            .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
+            .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER_VALUE));
         ResultActions second = mockMvc.perform(get(URL, MAJOR_CREDITOR_ACCOUNT_ID)
             .accept(MediaType.APPLICATION_JSON)
-            .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
+            .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER_VALUE));
 
         first.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, OVER_LONG_VERSION_ETAG));
         second.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, OVER_LONG_VERSION_ETAG));
@@ -105,11 +101,12 @@ class LegacyMajorCreditorAtAGlanceTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-7591")
     void getAtAGlance_withoutPermissionReturns403() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(noPermissionsUser());
+        userStateStub.setupWithNoPermissions();
+        userStateStub.createAuthentication(userServiceWireMock);
 
         mockMvc.perform(get(URL, MAJOR_CREDITOR_ACCOUNT_ID)
                 .accept(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
+                .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER_VALUE))
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
     }
@@ -120,12 +117,9 @@ class LegacyMajorCreditorAtAGlanceTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-7587")
     void getAtAGlance_permissionInDifferentBusinessUnitReturns200() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
-
         mockMvc.perform(get(URL, MAJOR_CREDITOR_ACCOUNT_ID)
                 .accept(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
+                .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER_VALUE))
             .andExpect(status().isOk())
             .andExpect(header().string(HttpHeaders.ETAG, OVER_LONG_VERSION_ETAG));
     }
@@ -136,13 +130,10 @@ class LegacyMajorCreditorAtAGlanceTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-7589")
     void getAtAGlance_missingTokenReturns401() throws Exception {
-        doThrow(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).getUserStateV1FromSecurityContext();
-
         mockMvc.perform(get(URL, MAJOR_CREDITOR_ACCOUNT_ID).accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isUnauthorized())
+            .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail").value("Unauthorized"));
+            .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"));
     }
 
     @Test
@@ -151,12 +142,9 @@ class LegacyMajorCreditorAtAGlanceTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-7586")
     void getAtAGlance_notFoundReturns404() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(permissionUser((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
-
         mockMvc.perform(get(URL, 999999L)
                 .accept(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
+                .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER_VALUE))
             .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
     }

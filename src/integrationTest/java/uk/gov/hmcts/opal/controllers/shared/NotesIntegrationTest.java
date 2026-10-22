@@ -162,8 +162,6 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
             post(URL_BASE + "/add")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
                 .header("If-Match", "1")
                 .header("Business-Unit-Id", "78")
                 .with(authentication(permissionsToken((short) 78, permission)))

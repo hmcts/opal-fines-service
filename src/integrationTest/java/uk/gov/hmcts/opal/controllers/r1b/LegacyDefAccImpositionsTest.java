@@ -15,11 +15,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.SchemaPaths.GET_DEFENDANT_ACCOUNT_IMPOSITIONS_RESPONSE;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -33,11 +33,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.client.HttpClientErrorException;
+import org.wiremock.spring.InjectWireMock;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
-import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
-import uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCourtReferenceCommon;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountImpositionCommon;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountImpositionsResponseCommon;
@@ -47,7 +45,6 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyOffenceReferenceCommon;
 import uk.gov.hmcts.opal.dto.legacy.LegacyResultReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon.AccountTypeEnum;
 import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon.DisplayNameEnum;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.legacy.LegacyImpositionService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -63,27 +60,16 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/defendant-accounts";
-    private static final String AUTH_HEADER = "Bearer test-token";
+    private static final String AUTH_HEADER_VALUE = "Bearer " + AUTH_HEADER;
 
-    @MockitoBean
-    private UserStateService userStateService;
-
-    @MockitoBean
-    private AccessTokenService accessTokenService;
-
-    @MockitoBean
-    private UserStateClientService userStateClientService;
+    @InjectWireMock("user-service")
+    private WireMockServer userServiceWireMock;
 
     @MockitoBean
     private GatewayService gatewayService;
 
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
-
-    @BeforeEach
-    void setupUserState() {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allPermissionsUser());
-    }
 
     @Test
     @DisplayName("LEGACY: Get Defendant Account Impositions returns schema-valid imposition response")
@@ -143,7 +129,8 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
     @JiraEpic("PO-979")
     @JiraTestKey("PO-8266")
     void getImpositions_whenUserLacksPermission_returnsForbidden() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.noPermissionsUser());
+        userStateStub.setupWithNoPermissions();
+        userStateStub.createAuthentication(userServiceWireMock);
 
         performGetImpositions(12345L)
             .andExpect(status().isForbidden())
@@ -176,7 +163,7 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
 
     private ResultActions performGetImpositions(Long defendantAccountId) throws Exception {
         return mockMvc.perform(get(URL_BASE + "/" + defendantAccountId + "/impositions")
-                                   .header("Authorization", AUTH_HEADER)
+                                   .header("Authorization", AUTH_HEADER_VALUE)
                                    .accept(MediaType.APPLICATION_JSON));
     }
 

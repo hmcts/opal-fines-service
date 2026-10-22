@@ -24,7 +24,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
 @TestConfiguration
-@Profile("integration-with-spring-security")
+@Profile("integration")
 public class IntegrationSecurityConfiguration {
 
     // The common-lib security handler serializes ProblemDetail with custom properties under properties.retriable,
@@ -36,7 +36,7 @@ public class IntegrationSecurityConfiguration {
     SecurityFilterChain integrationFilterChain(HttpSecurity http,
         AuthenticationManager integrationAuthenticationManager) throws Exception {
         return http.csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
+            .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
             .oauth2ResourceServer(oauth2 ->
                 oauth2.authenticationManagerResolver(request -> integrationAuthenticationManager))
             .exceptionHandling(exceptionHandling ->

@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers.shared;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -145,8 +146,10 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2233")
     @JiraTestKey("PO-6277")
     void testParseToken() throws Exception {
+        when(userStateClientService.getUserStateByAuthenticationToken(any()))
+            .thenReturn(Optional.of(userStateStub.getUserState()));
+
         mockMvc.perform(get("/testing-support/token/parse")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("Authorization", userStateStub.getBearerToken()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$").value("opal-test@HMCTS.NET"));
