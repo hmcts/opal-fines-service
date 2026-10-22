@@ -107,31 +107,20 @@ class InterfaceFileProcessorServiceTest {
 
         Resource resource = mock(Resource.class);
 
-        when(interfaceFileRepository.findBySourceJsonId(123L))
-            .thenReturn(Optional.empty());
+        when(interfaceFileRepository.findBySourceJsonId(123L)).thenReturn(Optional.empty());
 
-        when(fileHandlerAPIService.getInterfaceFile(
-            SystemUserEnum.OPAL_SYSTEM_USER,
-            123L
-        )).thenReturn(validSourceJson());
+        when(fileHandlerAPIService.getInterfaceFile(SystemUserEnum.OPAL_SYSTEM_USER,
+            123L)).thenReturn(validSourceJson());
 
-        when(fileHandlerAPIService.getInterfaceFileContent(
-            SystemUserEnum.OPAL_SYSTEM_USER,
-            123L
-        )).thenReturn(resource);
+        when(fileHandlerAPIService.getInterfaceFileContent(SystemUserEnum.OPAL_SYSTEM_USER,
+            123L)).thenReturn(resource);
 
-        when(resource.getContentAsByteArray())
-            .thenThrow(new IOException());
+        when(resource.getContentAsByteArray()).thenThrow(new IOException());
 
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> interfaceFileProcessorService.process(123L)
-        );
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+            () -> interfaceFileProcessorService.process(123L));
 
-        assertEquals(
-            "Unable to read source JSON content",
-            exception.getMessage()
-        );
+        assertEquals("Unable to read source JSON content", exception.getMessage());
     }
 
     @Test
@@ -140,25 +129,18 @@ class InterfaceFileProcessorServiceTest {
         InterfaceFileObject interfaceFile = validSourceJson();
         interfaceFile.setDomain(null);
 
-        when(interfaceFileRepository.findBySourceJsonId(123L))
-            .thenReturn(Optional.empty());
+        when(interfaceFileRepository.findBySourceJsonId(123L)).thenReturn(Optional.empty());
 
-        when(fileHandlerAPIService.getInterfaceFile(
-            SystemUserEnum.OPAL_SYSTEM_USER,
-            123L
-        )).thenReturn(interfaceFile);
+        when(fileHandlerAPIService.getInterfaceFile(SystemUserEnum.OPAL_SYSTEM_USER,
+            123L)).thenReturn(interfaceFile);
 
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> interfaceFileProcessorService.process(123L)
-        );
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+            () -> interfaceFileProcessorService.process(123L));
 
-        assertEquals(
-            "Interface file is not a successful FINES SOURCE_JSON targeted at OPAL",
-            exception.getMessage()
-        );
+        assertEquals("Interface file is not a successful FINES SOURCE_JSON targeted at OPAL",
+            exception.getMessage());
+
     }
-
 
     @Test
     void whenSourceJsonStatusIsNull_throwsIllegalArgumentException() {
@@ -166,23 +148,17 @@ class InterfaceFileProcessorServiceTest {
         InterfaceFileObject interfaceFile = validSourceJson();
         interfaceFile.setStatus(null);
 
-        when(interfaceFileRepository.findBySourceJsonId(123L))
-            .thenReturn(Optional.empty());
+        when(interfaceFileRepository.findBySourceJsonId(123L)) .thenReturn(Optional.empty());
 
-        when(fileHandlerAPIService.getInterfaceFile(
-            SystemUserEnum.OPAL_SYSTEM_USER,
-            123L
-        )).thenReturn(interfaceFile);
+        when(fileHandlerAPIService.getInterfaceFile(SystemUserEnum.OPAL_SYSTEM_USER,
+            123L)).thenReturn(interfaceFile);
 
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> interfaceFileProcessorService.process(123L)
-        );
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+            () -> interfaceFileProcessorService.process(123L));
 
-        assertEquals(
-            "Interface file is not a successful FINES SOURCE_JSON targeted at OPAL",
-            exception.getMessage()
-        );
+        assertEquals("Interface file is not a successful FINES SOURCE_JSON targeted at OPAL",
+            exception.getMessage());
+
     }
 
 
