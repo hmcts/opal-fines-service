@@ -22,7 +22,7 @@ Feature: Mappings Reference Data
     Then the defendant account status mappings are returned
 
   # PO-10964 AC8: unsupported mapping errors include the complete supported type list in alphabetical order.
-  @JIRA-STORY:PO-3871 @JIRA-EPIC:PO-3372 @R1BDrop1 @JIRA-TEST-KEY:PO-9554
+  @JIRA-STORY:PO-3871 @JIRA-EPIC:PO-3372 @JIRA-TEST-KEY:PO-9554
   @R1CPayment @JIRA-STORY:PO-10964
   Scenario: A mappings request with an unsupported type is rejected as bad request
     When I make a request to the mappings api for type "unsupported-type"
@@ -30,7 +30,7 @@ Feature: Mappings Reference Data
     And the mappings error response lists the supported types alphabetically
 
   # PO-10964 AC8: missing mapping type errors include the complete supported type list in alphabetical order.
-  @JIRA-STORY:PO-3871 @JIRA-EPIC:PO-3372 @R1BDrop1 @JIRA-TEST-KEY:PO-9555
+  @JIRA-STORY:PO-3871 @JIRA-EPIC:PO-3372 @JIRA-TEST-KEY:PO-9555
   @R1CPayment @JIRA-STORY:PO-10964
   Scenario: A mappings request without a type is rejected as bad request
     When I make a request to the mappings api without a type

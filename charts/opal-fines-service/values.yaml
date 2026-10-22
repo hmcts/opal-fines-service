@@ -57,6 +57,10 @@ java:
           alias: OPAL_SYSTEM_USER_CLIENT_ID
         - name: opal-system-user-client-secret
           alias: OPAL_SYSTEM_USER_CLIENT_SECRET
+        - name: docmosis-api-key
+          alias: DOCMOSIS_API_KEY
+        - name: docmosis-endpoint
+          alias: DOCMOSIS_ENDPOINT
   environment:
     RUN_DB_MIGRATION_ON_STARTUP: true
     OPAL_FRONTEND_URL: https://opal-frontend.{{ .Values.global.environment }}.apps.hmcts.net

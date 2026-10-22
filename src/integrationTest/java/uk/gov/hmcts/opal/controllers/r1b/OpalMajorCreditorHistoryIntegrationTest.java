@@ -1,11 +1,16 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.aMapWithSize;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -18,14 +23,21 @@ import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_V
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.dto.PdplIdentifierType;
+import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -51,10 +63,14 @@ class OpalMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     private static final long MAJOR_CREDITOR_ACCOUNT_ID = 99264300000001L;
     private static final String URL = "/major-creditor-accounts/{id}/history";
 
+    @MockitoBean
+    private LoggingService loggingService;
+
     @BeforeEach
     void setUpAuthorisedUser() {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions(BUSINESS_UNIT_ID, SEARCH_AND_VIEW_ACCOUNTS);
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
     }
 
     @Test
@@ -89,6 +105,71 @@ class OpalMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.historyItems[2].details.paymentReference").value("MJF002"))
             .andExpect(jsonPath("$.historyItems[3].postedDetails.posted_date").value("2026-01-05T08:00:00"))
             .andExpect(jsonPath("$.historyItems[3].details.paymentReference").value("MJF001"));
+
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+        verify(loggingService).personalDataAccessLogAsync(captor.capture());
+        PersonalDataProcessingLogDetails details = captor.getValue();
+        assertThat(details.getBusinessIdentifier()).isEqualTo("View Major Creditor Account History Item");
+        assertThat(details.getCategory()).isEqualTo(PersonalDataProcessingCategory.CONSULTATION);
+        assertThat(details.getCreatedBy().getIdentifier()).isEqualTo("500000000");
+        assertThat(details.getCreatedBy().getType()).isEqualTo(PdplIdentifierType.OPAL_USER_ID);
+        assertThat(details.getIndividuals())
+            .extracting(ParticipantIdentifier::getIdentifier)
+            .containsExactly("MJUSR3", "MJUSR4", "MJUSR2", "MJUSR1");
+        assertThat(details.getIndividuals())
+            .extracting(ParticipantIdentifier::getType)
+            .containsOnly(PdplIdentifierType.OPAL_USER_ID);
+        assertThat(details.getRecipient()).isNull();
+    }
+
+    @Test
+    @DisplayName("PO-10758 returns 503 without history data when the required PDPO log is rejected")
+    @JiraStory("PO-10758")
+    @JiraEpic("PO-10729")
+    void getHistory_whenPdpoQueueRejectsReturns503() throws Exception {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(false);
+
+        getHistory()
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/pdpl-logging-unavailable"))
+            .andExpect(jsonPath("$.detail").value("The personal data logging queue is currently unavailable"))
+            .andExpect(jsonPath("$.retriable").value(true))
+            .andExpect(jsonPath("$.historyItems").doesNotExist());
+
+        verify(loggingService).personalDataAccessLogAsync(any());
+    }
+
+    @Test
+    @DisplayName("PO-10758 returns 503 without history data when PDPO queueing raises an error")
+    @JiraStory("PO-10758")
+    @JiraEpic("PO-10729")
+    void getHistory_whenPdpoQueueRaisesErrorReturns503() throws Exception {
+        when(loggingService.personalDataAccessLogAsync(any()))
+            .thenThrow(new RuntimeException("queue unavailable"));
+
+        getHistory()
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/pdpl-logging-unavailable"))
+            .andExpect(jsonPath("$.detail").value("The personal data logging queue is currently unavailable"))
+            .andExpect(jsonPath("$.retriable").value(true))
+            .andExpect(jsonPath("$.historyItems").doesNotExist());
+
+        verify(loggingService).personalDataAccessLogAsync(any());
+    }
+
+    @Test
+    @DisplayName("PO-10758 returns empty history without emitting a PDPO log")
+    @JiraStory("PO-10758")
+    @JiraEpic("PO-10729")
+    void getHistory_whenHistoryIsEmptySkipsPdpoLog() throws Exception {
+        getHistory("dateFrom", "2030-01-01")
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.historyItems", hasSize(0)));
+
+        verify(loggingService, never()).personalDataAccessLogAsync(any());
     }
 
     @Test
