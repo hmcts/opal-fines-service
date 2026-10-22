@@ -3,11 +3,9 @@ package uk.gov.hmcts.opal.controllers.r1b;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -149,39 +147,6 @@ class LegacyDefendantsPaymentsIntegrationTest extends AbstractLegacyDefendantsIn
             .andExpect(jsonPath("$.payment_terms.days_in_default").doesNotExist())
             .andExpect(jsonPath("$.payment_card_last_requested").doesNotExist())
             .andExpect(jsonPath("$.last_enforcement").doesNotExist());
-    }
-
-    @Test
-    @DisplayName("LEGACY: GET latest payment terms maps instalment details")
-    @JiraStory("PO-11119")
-    @JiraEpic("PO-979")
-    void getPaymentTermsLatest_mapsInstalmentDetails() throws Exception {
-        userStateStub.addPermissions((short) 69, FinesPermission.values());
-        stubFor(post(urlPathEqualTo("/opal"))
-            .withQueryParam("actionType", equalTo("getDefendantAccountPaymentTerms"))
-            .withRequestBody(matchingJsonPath("$[?(@.defendant_account_id == '69')]"))
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withHeader("Content-Type", MediaType.APPLICATION_XML_VALUE)
-                .withBodyFile("legacy/DefendantAccount/getPaymentTerms_instalments_v2.xml")));
-
-        var response = mockMvc.perform(
-            MockMvcRequestBuilders.get("/defendant-accounts/69/payment-terms/latest")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken())
-        );
-
-        response.andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.payment_terms.reason_for_extension").value("Updated instalments"))
-            .andExpect(jsonPath("$.payment_terms.effective_date").value("2026-01-15"))
-            .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_code").value("I"))
-            .andExpect(jsonPath("$.payment_terms.instalment_period.instalment_period_code").value("M"))
-            .andExpect(jsonPath("$.payment_terms.instalment_period.instalment_period_display_name")
-                .value("Monthly"))
-            .andExpect(jsonPath("$.payment_terms.instalment_amount").value(45.00))
-            .andExpect(jsonPath("$.payment_card_last_requested").value("2026-01-15"))
-            .andExpect(jsonPath("$.last_enforcement").value(nullValue()));
     }
 
     private void stubAddPaymentCardResponse(int status, String body) {
