@@ -14,8 +14,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,7 +21,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import uk.gov.hmcts.opal.generated.model.AlternatePaymentReferencesItem;
-import uk.gov.hmcts.opal.generated.model.AlternatePaymentReferencesWriteRequest;
 import uk.gov.hmcts.opal.generated.model.AlternatePaymentReferencesWriteRequest;
 import uk.gov.hmcts.opal.service.AlternatePaymentReferenceService;
 
