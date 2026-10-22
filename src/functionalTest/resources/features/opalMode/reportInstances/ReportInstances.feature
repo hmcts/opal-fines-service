@@ -4,7 +4,7 @@ Feature: Report Instances
   #    POST :/reports-instances/{id} Test scenarios
 
   # This verifies the create response only. Full created-instance verification needs PO-2254.
-  @JIRA-STORY:PO-2252 @JIRA-EPIC:PO-2248 @JIRA-TEST-KEY:PO-7862 @Ignore
+  @JIRA-STORY:PO-2252 @JIRA-EPIC:PO-2248 @JIRA-TEST-KEY:PO-7862
   Scenario: Create report instance with a single business unit returns 201 and a report instance id
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I create a report instance with report id "operational_report_enforcement" for business unit 73
