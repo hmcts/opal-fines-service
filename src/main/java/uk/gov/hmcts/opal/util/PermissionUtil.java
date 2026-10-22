@@ -9,6 +9,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.common.util.SecurityUtil;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.service.UserStateService;
@@ -18,6 +19,13 @@ public class PermissionUtil {
     public static BusinessUnitUser getRequiredBusinessUnitUser(UserState userState, Short businessUnitId) {
         return userState.getBusinessUnitUserForBusinessUnit(businessUnitId).orElseThrow(() -> new
             AccessDeniedException("User does not have assigned permissions in business unit: " + businessUnitId));
+    }
+
+    public static BusinessUnitUser getRequiredBusinessUnitUser(UserStateV2 userState, Short businessUnitId) {
+        return userState.getDomainBusinessUnitUsers(Domain.FINES)
+            .getBusinessUnitUserForBusinessUnit(businessUnitId)
+            .orElseThrow(() -> new AccessDeniedException(
+                "User does not have assigned permissions in business unit: " + businessUnitId));
     }
 
     public static void checkPermissionInBusinessUnit(FinesPermission finesPermission, Short businessUnitId) {

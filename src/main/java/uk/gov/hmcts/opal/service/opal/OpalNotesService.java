@@ -4,12 +4,16 @@ import static uk.gov.hmcts.opal.util.VersionUtils.verifyIfMatch;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import java.math.BigInteger;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.util.SecurityUtil;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.NoteType;
@@ -21,6 +25,7 @@ import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.AccountNoteContextFactory;
 import uk.gov.hmcts.opal.service.iface.NotesServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
+import uk.gov.hmcts.opal.util.PermissionUtil;
 import uk.gov.hmcts.opal.util.Versioned;
 
 @Service
@@ -39,6 +44,40 @@ public class OpalNotesService implements NotesServiceInterface {
     public String addNote(AddNoteRequestNotes req, String ifMatch, UserState user, Short businessUnitId) {
         AccountNoteContext target = accountNoteContextFactory.from(req.getActivityNote());
         return addNote(req, ifMatch, user, target);
+    }
+
+    @Transactional
+    public void addNote(
+        NoteType noteType,
+        AssociatedRecordType associatedRecordType,
+        long associatedRecordId,
+        BigInteger associatedRecordVersion,
+        String noteText,
+        Short businessUnitId
+    ) {
+
+        NoteEntity note = new NoteEntity();
+        note.setNoteText(noteText);
+        note.setNoteType(noteType);
+        note.setAssociatedRecordId(String.valueOf(associatedRecordId));
+        note.setAssociatedRecordType(associatedRecordType);
+        note.setPostedDate(LocalDateTime.now(clock));
+
+        OpalJwtAuthenticationToken token = SecurityUtil.getOpalJwtAuthenticationTokenForCurrentUser();
+
+        note.setPostedByUsername(token.getUsername());
+        BusinessUnitUser businessUnitUser = PermissionUtil.getRequiredBusinessUnitUser(
+            token.getUserState(),
+            businessUnitId
+        );
+        note.setBusinessUnitUserId(businessUnitUser.getBusinessUnitUserId());
+        repository.save(note);
+        if (AssociatedRecordType.DEFENDANT_ACCOUNTS.equals(associatedRecordType)) {
+            defendantAccountRepositoryService.incrementVersionNumber(
+                associatedRecordId,
+                associatedRecordVersion);
+        }
+
     }
 
     @Transactional
