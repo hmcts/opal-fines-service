@@ -7,6 +7,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.time.LocalDateTime;
@@ -15,19 +17,22 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
+import uk.gov.hmcts.opal.util.VersionedLong;
 
 @Entity
 @Table(name = "alternate_payment_references")
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class AlternatePaymentReferenceEntity {
+public class AlternatePaymentReferenceEntity implements VersionedLong {
 
     @Id
     @Column
@@ -54,6 +59,7 @@ public class AlternatePaymentReferenceEntity {
 
     @Column
     @NotNull
+    @Max(18)
     private String aprText;
 
     @Column
@@ -63,4 +69,8 @@ public class AlternatePaymentReferenceEntity {
     @Column
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime updatedDatetime;
+
+    @Column(name = "version_number")
+    @Version
+    private Long versionNumber;
 }
