@@ -109,7 +109,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AlternatePaymentReferencesSingleResponse'
+                $ref: '#/components/schemas/AlternatePaymentReferencesItem'
         '400':
           description: Bad request
           content:
@@ -206,7 +206,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AlternatePaymentReferencesSingleResponse'
+                $ref: '#/components/schemas/AlternatePaymentReferencesItem'
         '400':
           description: Bad request
           content:
@@ -291,7 +291,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AlternatePaymentReferencesSingleResponse'
+                $ref: '#/components/schemas/AlternatePaymentReferencesItem'
         '400':
           description: Bad request
           content:
@@ -348,20 +348,11 @@ components:
           maxLength: 18
           description: DB Mapping - alternate_payment_references.apr_text
 
-    AlternatePaymentReferencesSingleResponse:
-      title: Alternate Payment Reference Response
-      type: object
-      required:
-        - alternate_payment_reference
-      properties:
-        alternate_payment_reference:
-          $ref: '#/components/schemas/AlternatePaymentReferencesItem'
-
     AlternatePaymentReferencesListResponse:
       title: Alternate Payment References Response
       type: array
       items:
-        $ref: '#/components/schemas/AlternatePaymentReferencesSingleResponse'
+        $ref: '#/components/schemas/AlternatePaymentReferencesItem'
 
     AlternatePaymentReferencesItem:
       title: Alternate Payment Reference
