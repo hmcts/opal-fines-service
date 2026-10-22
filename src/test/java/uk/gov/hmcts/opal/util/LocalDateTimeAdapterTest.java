@@ -14,7 +14,7 @@ class LocalDateTimeAdapterTest {
 
     @Test
     void shouldUnmarshalValidStringToLocalDateTime() throws Exception {
-        LocalDateTime result = adapter.unmarshal("2022-04-01T12:00:00");
+        LocalDateTime result = adapter.unmarshal("2022-04-01 12:00:00.00000");
         assertEquals(LocalDateTime.of(2022, Month.APRIL, 1, 12, 0), result);
     }
 

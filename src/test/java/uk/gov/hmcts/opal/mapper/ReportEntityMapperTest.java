@@ -23,11 +23,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import uk.gov.hmcts.opal.config.JacksonCompatibilityConfiguration;
+import uk.gov.hmcts.opal.config.ObjectMapperConfiguration;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.generated.model.ReportReports;
 
-@SpringJUnitConfig(classes = {JacksonCompatibilityConfiguration.class, ReportEntityMapperImpl.class})
+@SpringJUnitConfig(classes = {ObjectMapperConfiguration.class, ReportEntityMapperImpl.class})
 @DisplayName("ReportEntityMapper Tests")
 class ReportEntityMapperTest {
 

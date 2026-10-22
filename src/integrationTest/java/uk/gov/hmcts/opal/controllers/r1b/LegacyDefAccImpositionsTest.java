@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -13,12 +14,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.SchemaPaths.GET_DEFENDANT_ACCOUNT_IMPOSITIONS_RESPONSE;
+import static uk.gov.hmcts.opal.controllers.shared.util.OpenApiContractAssertions.assertGet200JsonResponseMatchesBundledSpec;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,24 +31,23 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.client.HttpClientErrorException;
 import org.wiremock.spring.InjectWireMock;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
-import uk.gov.hmcts.opal.dto.legacy.LegacyCourtReferenceCommon;
-import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountImpositionCommon;
-import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountImpositionsResponseCommon;
+import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Creditor;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.CreditorAccountType;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Imposition;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Offence;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.PostedDetails;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Result;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetImpositionsRequest;
-import uk.gov.hmcts.opal.dto.legacy.LegacyImpositionCreditorReferenceCommon;
-import uk.gov.hmcts.opal.dto.legacy.LegacyOffenceReferenceCommon;
-import uk.gov.hmcts.opal.dto.legacy.LegacyResultReferenceCommon;
-import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon.AccountTypeEnum;
-import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon.DisplayNameEnum;
+import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
 import uk.gov.hmcts.opal.service.legacy.LegacyImpositionService;
-import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -61,15 +62,16 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/defendant-accounts";
     private static final String AUTH_HEADER_VALUE = "Bearer " + AUTH_HEADER;
+    private static final String CREDITOR_ACCOUNT_TYPE =
+        "$.impositions[0].creditor.creditor_account_type_reference.creditor_account_type";
+    private static final String CREDITOR_ACCOUNT_DISPLAY_NAME =
+        "$.impositions[0].creditor.creditor_account_type_reference.creditor_account_display_name";
 
     @InjectWireMock("user-service")
     private WireMockServer userServiceWireMock;
 
     @MockitoBean
     private GatewayService gatewayService;
-
-    @MockitoSpyBean
-    private JsonSchemaValidationService jsonSchemaValidationService;
 
     @Test
     @DisplayName("LEGACY: Get Defendant Account Impositions returns schema-valid imposition response")
@@ -82,7 +84,7 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
 
         when(gatewayService.postToGateway(
             eq(LegacyImpositionService.GET_IMPOSITIONS),
-            eq(LegacyDefendantAccountImpositionsResponseCommon.class),
+            eq(GetDefendantAccountImpositionsLegacyResponse.class),
             requestCaptor.capture(),
             isNull()
         )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse(), null, null));
@@ -90,33 +92,41 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
         MvcResult result = performGetImpositions(12345L)
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(header().string("ETag", "\"1\""))
+            .andExpect(header().string("ETag", "\"18338687664539878704807506660830801130000030354\""))
             .andExpect(jsonPath("$.impositions", hasSize(1)))
-            .andExpect(jsonPath("$.impositions[0].date_added").value("2026-05-06"))
-            .andExpect(jsonPath("$.impositions[0].imposition.result_id").value("ABDC"))
+            .andExpect(jsonPath("$.impositions[0].date_added").value("2026-08-19"))
+            .andExpect(jsonPath("$.impositions[0].date_imposed").value("2025-05-15"))
+            .andExpect(jsonPath("$.impositions[0].imposition.result_id").value("FO"))
             .andExpect(jsonPath("$.impositions[0].imposition.result_title")
-                .value("Application made for Benefit Deductions"))
-            .andExpect(jsonPath("$.impositions[0].creditor.creditor_account_id").value(99000000000806L))
-            .andExpect(jsonPath("$.impositions[0].creditor.account_type").value("MN"))
-            .andExpect(jsonPath("$.impositions[0].creditor.display_name").value("Minor Creditor"))
-            .andExpect(jsonPath("$.impositions[0].creditor.minor_creditor_party_id").value(99000000000906L))
-            .andExpect(jsonPath("$.impositions[0].creditor.name").value("Metropolitan Traffic Unit"))
-            .andExpect(jsonPath("$.impositions[0].imposed_amount").value(600.00))
-            .andExpect(jsonPath("$.impositions[0].paid_amount").value(60.00))
-            .andExpect(jsonPath("$.impositions[0].balance").value(540.00))
-            .andExpect(jsonPath("$.impositions[0].offence.code").value("OFF0006"))
-            .andExpect(jsonPath("$.impositions[0].offence.title").value("Test Offence 6"))
-            .andExpect(jsonPath("$.impositions[0].imposition_id").value(99000000003006L))
+                .value("FINE"))
+            .andExpect(jsonPath("$.impositions[0].creditor.creditor_account_id").value(77L))
+            .andExpect(jsonPath(CREDITOR_ACCOUNT_TYPE).value("CF"))
+            .andExpect(jsonPath(CREDITOR_ACCOUNT_DISPLAY_NAME).value("Central Fund"))
+            .andExpect(jsonPath("$.impositions[0].creditor.major_creditor_name")
+                .value("HM Courts & Tribunals Service"))
+            .andExpect(jsonPath("$.impositions[0].creditor.minor_creditor_organisation_flag").value(nullValue()))
+            .andExpect(jsonPath("$.impositions[0].creditor.individual_name").value(nullValue()))
+            .andExpect(jsonPath("$.impositions[0].creditor.company_name").value(nullValue()))
+            .andExpect(jsonPath("$.impositions[0].imposed_amount").value(250.00))
+            .andExpect(jsonPath("$.impositions[0].paid_amount").value(300.00))
+            .andExpect(jsonPath("$.impositions[0].balance").value(50.00))
+            .andExpect(jsonPath("$.impositions[0].offence.offence_id").value(33369L))
+            .andExpect(jsonPath("$.impositions[0].offence.cjs_code").value("HY35014"))
+            .andExpect(jsonPath("$.impositions[0].offence.offence_title").value("Riding a bicycle on a footpath"))
+            .andExpect(jsonPath("$.impositions[0].imposed_by.court_id").value(101L))
+            .andExpect(jsonPath("$.impositions[0].imposed_by.court_code").doesNotExist())
+            .andExpect(jsonPath("$.impositions[0].imposed_by.court_name").value("Legacy Court"))
+            .andExpect(jsonPath("$.impositions[0].imposition_id").value(770000027211L))
             .andReturn();
 
-        jsonSchemaValidationService.validateOrError(
-            result.getResponse().getContentAsString(),
-            GET_DEFENDANT_ACCOUNT_IMPOSITIONS_RESPONSE
+        assertGet200JsonResponseMatchesBundledSpec(
+            ToJsonString.toJsonNode(result.getResponse().getContentAsString()),
+            "/defendant-accounts/{id}/impositions"
         );
 
         verify(gatewayService).postToGateway(
             eq(LegacyImpositionService.GET_IMPOSITIONS),
-            eq(LegacyDefendantAccountImpositionsResponseCommon.class),
+            eq(GetDefendantAccountImpositionsLegacyResponse.class),
             eq(requestCaptor.getValue()),
             isNull()
         );
@@ -149,7 +159,7 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
     void getImpositions_whenGatewayReturnsNotFound_returnsNotFound() throws Exception {
         when(gatewayService.postToGateway(
             eq(LegacyImpositionService.GET_IMPOSITIONS),
-            eq(LegacyDefendantAccountImpositionsResponseCommon.class),
+            eq(GetDefendantAccountImpositionsLegacyResponse.class),
             any(),
             isNull()
         )).thenThrow(HttpClientErrorException.create(
@@ -161,43 +171,72 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.status").value(404));
     }
 
+    @Test
+    @JiraEpic("PO-979")
+    @JiraStory("PO-11114")
+    @DisplayName("LEGACY: Get Defendant Account Impositions returns null imposing court details")
+    void getImpositions_whenImposingCourtIsMissing_returnsNullCourtDetails() throws Exception {
+        GetDefendantAccountImpositionsLegacyResponse legacyResponse = legacyResponse();
+        legacyResponse.getImpositions().getFirst().setImposingCourt(null);
+
+        when(gatewayService.postToGateway(
+            eq(LegacyImpositionService.GET_IMPOSITIONS),
+            eq(GetDefendantAccountImpositionsLegacyResponse.class),
+            any(),
+            isNull()
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null));
+
+        MvcResult result = performGetImpositions(12345L)
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.impositions[0].imposed_by").isMap())
+            .andExpect(jsonPath("$.impositions[0].imposed_by.court_id").value(nullValue()))
+            .andExpect(jsonPath("$.impositions[0].imposed_by.court_code").doesNotExist())
+            .andExpect(jsonPath("$.impositions[0].imposed_by.court_name").value(nullValue()))
+            .andReturn();
+
+        assertGet200JsonResponseMatchesBundledSpec(ToJsonString.toJsonNode(result.getResponse().getContentAsString()),
+            "/defendant-accounts/{id}/impositions");
+    }
+
     private ResultActions performGetImpositions(Long defendantAccountId) throws Exception {
         return mockMvc.perform(get(URL_BASE + "/" + defendantAccountId + "/impositions")
                                    .header("Authorization", AUTH_HEADER_VALUE)
                                    .accept(MediaType.APPLICATION_JSON));
     }
 
-    private LegacyDefendantAccountImpositionsResponseCommon legacyResponse() {
-        return LegacyDefendantAccountImpositionsResponseCommon.builder()
-            .version(BigInteger.ONE)
-            .impositions(List.of(LegacyDefendantAccountImpositionCommon.builder()
-                .dateAdded(LocalDate.parse("2026-05-06"))
-                .dateImposed(LocalDate.parse("2026-05-05"))
-                .imposition(LegacyResultReferenceCommon.builder()
-                    .resultId("ABDC")
-                    .resultTitle("Application made for Benefit Deductions")
+    private GetDefendantAccountImpositionsLegacyResponse legacyResponse() {
+        return GetDefendantAccountImpositionsLegacyResponse.builder()
+            .version(new BigInteger("18338687664539878704807506660830801130000030354"))
+            .impositions(List.of(Imposition.builder()
+                .postedDetails(PostedDetails.builder()
+                    .postedDate(LocalDateTime.parse("2026-08-19T00:00:00.00001"))
+                    .postedBy("L077AO")
+                    .postedByName("L077AO")
                     .build())
-                .creditor(LegacyImpositionCreditorReferenceCommon.builder()
-                    .creditorAccountId(99000000000806L)
-                    .accountType(AccountTypeEnum.MN)
-                    .displayName(DisplayNameEnum.MINOR_CREDITOR)
-                    .minorCreditorPartyId(99000000000906L)
-                    .name("Metropolitan Traffic Unit")
+                .dateImposed(LocalDate.parse("2025-05-15"))
+                .result(Result.builder()
+                    .resultId("FO")
+                    .resultTitle("FINE")
                     .build())
-                .imposedAmount(new BigDecimal("600.00"))
-                .paidAmount(new BigDecimal("60.00"))
-                .balance(new BigDecimal("540.00"))
-                .offence(LegacyOffenceReferenceCommon.builder()
-                    .id(5510L)
-                    .code("OFF0006")
-                    .title("Test Offence 6")
+                .creditor(Creditor.builder()
+                    .creditorAccountType(CreditorAccountType.builder().creditorAccountType("CF").build())
+                    .creditorAccountId(77L)
+                    .majorCreditorName("HM Courts & Tribunals Service")
                     .build())
-                .imposedBy(LegacyCourtReferenceCommon.builder()
+                .imposedAmount(new BigDecimal("-250.00"))
+                .paidAmount(new BigDecimal("300.00"))
+                .balance(new BigDecimal("50.00"))
+                .offence(Offence.builder()
+                    .offenceId(33369L)
+                    .cjsCode("HY35014")
+                    .offenceTitle("Riding a bicycle on a footpath")
+                    .build())
+                .imposingCourt(CourtReference.builder()
                     .courtId(101L)
-                    .courtCode(102)
                     .courtName("Legacy Court")
                     .build())
-                .impositionId(99000000003006L)
+                .impositionId(770000027211L)
                 .build()))
             .build();
     }

@@ -1,5 +1,9 @@
 package uk.gov.hmcts.opal;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.Instant;
@@ -19,6 +23,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.web.SecurityFilterChain;
 import uk.gov.hmcts.opal.common.config.OpalCommonConfiguration;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
@@ -73,6 +78,15 @@ public class IntegrationSecurityConfiguration {
 
             return new OpalJwtAuthenticationToken(userState, domain, jwt, authorities, bearer.getDetails());
         };
+    }
+
+    @Bean
+    //Inject dummy bean to prevent errors with SystemUserAuthenticationService
+    public OpalJwtAuthenticationProvider opalJwtAuthenticationProvider() {
+        OpalJwtAuthenticationProvider provider = mock(OpalJwtAuthenticationProvider.class);
+        doThrow(UnsupportedOperationException.class).when(provider).authenticate(any());
+        doThrow(UnsupportedOperationException.class).when(provider).supports(any());
+        return provider;
     }
 
     private static void writeForbidden(HttpServletResponse response) throws IOException {

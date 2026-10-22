@@ -1,7 +1,5 @@
 package uk.gov.hmcts.opal.openapi;
 
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.dataformat.yaml.YAMLFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -11,6 +9,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLFactory;
 
 public class OpenApiBundler {
 
@@ -33,7 +33,11 @@ public class OpenApiBundler {
 
         Map<String, Object> bundled = new LinkedHashMap<>();
         bundled.put("openapi", "3.1.1");
-        bundled.put("info", Map.of("title", "Bundled API", "version", "1.0.0"));
+        // Map.of iteration order varies between JVMs, needlessly invalidating generated sources.
+        Map<String, Object> info = new LinkedHashMap<>();
+        info.put("title", "Bundled API");
+        info.put("version", "1.0.0");
+        bundled.put("info", info);
         bundled.put("paths", new LinkedHashMap<>());
         Map<String, Object> bundledComponents = new LinkedHashMap<>();
         bundled.put("components", bundledComponents);

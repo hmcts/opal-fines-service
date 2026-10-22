@@ -130,6 +130,14 @@ public class InterfaceJobService {
         interfaceJobRepository.deleteAllById(interfaceJobIds);
     }
 
+    @Transactional
+    public void markProcessingForTesting(Long interfaceJobId) {
+        InterfaceJobEntity job = interfaceJobRepository.findById(interfaceJobId)
+            .orElseThrow(() -> new EntityNotFoundException("Interface job not found: " + interfaceJobId));
+        job.setStatus(InterfaceJobStatus.PROCESSING);
+        job.setStartedDateTime(LocalDateTime.now(clock));
+    }
+
     private List<InterfaceJobsSummaryItem> toResponses(InterfaceJobEntity interfaceJob) {
         return interfaceJob.getInterfaceFiles().stream()
             .map(interfaceFile -> interfaceJobMapper.toSummaryResponse(interfaceJob, interfaceFile))
@@ -184,17 +192,19 @@ public class InterfaceJobService {
     private void validateProcessPermissions(List<InterfaceJobsProcessItem> requestedJobs) {
         List<Short> requestedBusinessUnitIds = requestedJobs.stream()
             .map(InterfaceJobsProcessItem::getBusinessUnitId)
+            .filter(Objects::nonNull)
             .distinct()
             .toList();
         List<Short> permittedBusinessUnitIds = userStateService.getPermittedBusinessUnitIds(
             requestedBusinessUnitIds, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
 
-        requestedBusinessUnitIds.stream()
-            .filter(id -> !permittedBusinessUnitIds.contains(id))
-            .findFirst()
-            .ifPresent(id -> {
-                throw new PermissionNotAllowedException(id, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
-            });
+        for (InterfaceJobsProcessItem requestedJob : requestedJobs) {
+            Short requestedBusinessUnitId = requestedJob.getBusinessUnitId();
+            if (permittedBusinessUnitIds == null || !permittedBusinessUnitIds.contains(requestedBusinessUnitId)) {
+                throw new PermissionNotAllowedException(
+                    requestedBusinessUnitId, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
+            }
+        }
     }
 
     private void validateProcessStatuses(List<Long> requestedIds, Map<Long, InterfaceJobEntity> jobsById) {

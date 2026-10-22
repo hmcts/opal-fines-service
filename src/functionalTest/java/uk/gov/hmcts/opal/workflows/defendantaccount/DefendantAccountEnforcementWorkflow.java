@@ -45,6 +45,7 @@ public class DefendantAccountEnforcementWorkflow extends BaseStepDef {
             );
             responseAssertions.assertStatus(publishResponse, 200);
             enforcementActions.storeCreatedDefendantAccountId(publishResponse);
+            scenarioContext().removeDraftAccountId(scenarioContext().getLastDraftAccountIdOrFail());
         } finally {
             actAs(originalUser);
         }
@@ -64,6 +65,20 @@ public class DefendantAccountEnforcementWorkflow extends BaseStepDef {
 
         Response patchResponse = enforcementActions.patchCreatedDefendantAccountEnforcementOverride(overrideData);
         responseAssertions.assertStatus(patchResponse, 200);
+    }
+
+    /**
+     * Adds an enforcement action after retrieving the current account version for the request.
+     *
+     * @param enforcementData field values used to build the enforcement request.
+     * @throws JSONException if the enforcement payload cannot be created.
+     */
+    public void addEnforcement(Map<String, String> enforcementData) throws JSONException {
+        Response getResponse = enforcementActions.getCreatedDefendantAccountEnforcementStatus();
+        responseAssertions.assertStatus(getResponse, 200);
+
+        Response postResponse = enforcementActions.addEnforcementToCreatedDefendantAccount(enforcementData);
+        responseAssertions.assertStatus(postResponse, 200);
     }
 
     /**

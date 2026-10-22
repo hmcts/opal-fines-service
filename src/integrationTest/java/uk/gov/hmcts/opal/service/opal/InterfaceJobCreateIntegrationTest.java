@@ -81,7 +81,6 @@ class InterfaceJobCreateIntegrationTest extends AbstractIntegrationTest {
         assertEquals("Auto Payments In Create", interfaceJob.getInterfaceName());
         assertEquals("auto-payments-in-create.dat", interfaceFile.getFileName());
         assertEquals("NATWEST", interfaceFile.getSource());
-        assertEquals(objectMapper.readTree(paymentRecords()), objectMapper.readTree(interfaceFile.getRecords()));
         assertEquals((short) 1, interfaceFile.getRecordCount());
         assertEquals(new BigDecimal("123.45"), interfaceFile.getTotalAmount());
     }
@@ -133,7 +132,6 @@ class InterfaceJobCreateIntegrationTest extends AbstractIntegrationTest {
         return InterfaceJobsCreateItem.builder()
             .fileName(interfaceName.toLowerCase().replace(" ", "-") + ".dat")
             .source(InterfaceJobsFileSource.NATWEST)
-            .records(paymentRecords())
             .recordCount((short) 1)
             .totalAmount(new BigDecimal("123.45"))
             .businessUnitId(businessUnitId)
@@ -148,23 +146,6 @@ class InterfaceJobCreateIntegrationTest extends AbstractIntegrationTest {
             userStateStub.addPermissions(businessUnitId, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
         }
         SecurityContextHolder.getContext().setAuthentication(userStateStub.getOpalJwtAuthenticationToken());
-    }
-
-    private String paymentRecords() {
-        return """
-            [{
-              "receiving_sort_code": "123456",
-              "receiving_bank_account_number": "01234567",
-              "receiving_account_type": "5",
-              "transaction_code": "68",
-              "originator_sort_code": "654321",
-              "originator_bank_account_number": "98765432",
-              "amount_pence": "12345",
-              "originator_name": "Test Payer",
-              "originator_reference": "99000001A",
-              "originator_beneficiary_name": "Test Court"
-            }]
-            """;
     }
 
     private List<InterfaceJobEntity> jobsByInterfaceName(String interfaceName) {

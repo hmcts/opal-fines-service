@@ -17,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class ScenarioContext {
 
     private final List<String> draftAccountIds = new ArrayList<>();
+    private final List<String> createdDefendantAccountIds = new ArrayList<>();
     private final Map<String, String> draftAccountCreators = new LinkedHashMap<>();
     private final Map<String, String> rememberedEtags = new LinkedHashMap<>();
     private final Map<String, String> queuedHeaders = new LinkedHashMap<>();
@@ -33,6 +34,7 @@ public class ScenarioContext {
      */
     public void reset() {
         draftAccountIds.clear();
+        createdDefendantAccountIds.clear();
         draftAccountCreators.clear();
         rememberedEtags.clear();
         queuedHeaders.clear();
@@ -54,12 +56,40 @@ public class ScenarioContext {
     }
 
     /**
+     * Stops tracking a draft account for draft-account cleanup once the scenario has published it.
+     *
+     * @param id draft-account identifier to forget.
+     */
+    public void removeDraftAccountId(String id) {
+        draftAccountIds.remove(id);
+        draftAccountCreators.remove(id);
+    }
+
+    /**
      * Returns every draft-account ID recorded for the current scenario.
      *
      * @return immutable snapshot of the recorded draft-account IDs.
      */
     public List<String> getDraftAccountIds() {
         return List.copyOf(draftAccountIds);
+    }
+
+    /**
+     * Records a created defendant-account ID for the current scenario.
+     *
+     * @param id created defendant-account identifier to remember.
+     */
+    public void addCreatedDefendantAccountId(String id) {
+        createdDefendantAccountIds.add(id);
+    }
+
+    /**
+     * Returns every defendant-account ID recorded for the current scenario.
+     *
+     * @return immutable snapshot of the recorded defendant-account IDs.
+     */
+    public List<String> getCreatedDefendantAccountIds() {
+        return List.copyOf(createdDefendantAccountIds);
     }
 
     /**

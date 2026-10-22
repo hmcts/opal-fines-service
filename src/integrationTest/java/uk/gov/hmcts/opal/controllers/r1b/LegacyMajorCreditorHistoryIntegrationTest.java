@@ -19,11 +19,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService.GET_MAJOR_CREDITOR_ACCOUNT_HISTORY;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
-import com.github.tomakehurst.wiremock.WireMockServer;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -47,6 +48,7 @@ import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyMajorCreditorHistoryDetails;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyMajorCreditorHistoryItem;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -69,6 +71,14 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @MockitoBean
     private GatewayService gatewayService;
 
+    @MockitoBean
+    private LoggingService loggingService;
+
+    @BeforeEach
+    void setUp() {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+    }
+
     @Test
     @DisplayName("PO-2659 INT.01 returns transaction history for major creditor from legacy")
     @JiraStory("PO-2659")
@@ -83,7 +93,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(header().string(HttpHeaders.ETAG, "\"7\""))
             .andExpect(jsonPath("$.historyItems", hasSize(3)))
-            .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_date").value("2026-01-31"))
+            .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_date").value("2026-01-31T10:30:00"))
             .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_by").value("MJUSR3"))
             .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_by_name").value("Major User Three"))
             .andExpect(jsonPath("$.historyItems[0].type").value("Financial"))
