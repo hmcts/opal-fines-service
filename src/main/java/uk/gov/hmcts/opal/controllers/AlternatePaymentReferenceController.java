@@ -51,4 +51,22 @@ public class AlternatePaymentReferenceController implements AlternatePaymentRefe
             .eTag(String.valueOf(apr.getVersion()))
             .body(apr);
     }
+
+    @Override
+    @FeatureToggle(
+        feature = RELEASE_1C_BANKING_INTERFACES,
+        defaultValueProperty = RELEASE_1C_BANKING_INTERFACES_ENABLED_PROPERTY
+    )
+    public ResponseEntity<AlternatePaymentReferencesItem> updateAlternatePaymentReference(
+        Long defendantAccountId, Long alternatePaymentReferenceId, String expectedVersion,
+        AlternatePaymentReferencesWriteRequest alternatePaymentReferencesUpdateRequest) {
+        AlternatePaymentReferencesItem apr =
+            alternatePaymentReferenceService.updateAlternatePaymentReferences(
+                defendantAccountId, alternatePaymentReferenceId,
+                alternatePaymentReferencesUpdateRequest, expectedVersion
+            );
+        return ResponseEntity.ok()
+            .eTag(String.valueOf(apr.getVersion()))
+            .body(apr);
+    }
 }

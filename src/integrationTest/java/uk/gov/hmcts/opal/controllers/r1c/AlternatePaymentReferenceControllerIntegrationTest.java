@@ -1,10 +1,12 @@
 package uk.gov.hmcts.opal.controllers.r1c;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.Assertions.within;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -24,6 +26,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -162,14 +166,6 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
     @Nested
     @DisplayName("Create an alternate payment reference for a defendant account")
     class CreateAlternatePaymentReference {
-
-        private void assertRejectedRequestHasNoPersistenceSideEffects() {
-            assertThat(findReferencesInBusinessUnit()).hasSize(3);
-            assertThat(findFixtureAccountNotes()).isEmpty();
-            assertThat(defendantAccountRepository.findAllByBusinessUnit_BusinessUnitId(BUSINESS_UNIT_ID))
-                .extracting(DefendantAccountEntity::getVersionNumber)
-                .containsExactlyInAnyOrder(0L, 0L, 0L);
-        }
 
         @Test
         @JiraStory("PO-10878")
@@ -310,6 +306,180 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
                     "https://hmcts.gov.uk/problems/json-schema-validation"));
             assertRejectedRequestHasNoPersistenceSideEffects();
         }
+    }
+
+    @Nested
+    @DisplayName("Update an alternate payment reference for a defendant account")
+    class UpdateAlternatePaymentReference {
+
+        private static final long REFERENCE_ID = 10877001L;
+        private static final String UPDATED_TEXT = "UPDATED-REFERENCE";
+
+        @Test
+        @JiraStory("PO-10879")
+        @JiraEpic("PO-7465")
+        @DisplayName("Updates APR text and version, returns the new ETag, and adds an activity note")
+        void updatesReferenceVersionAndAddsActivityNote() throws Exception {
+            LocalDateTime beforeRequest = LocalDateTime.now(ZoneOffset.UTC);
+
+            updateReference(ACCOUNT_WITH_REFERENCES, REFERENCE_ID, UPDATED_TEXT, "\"2\"")
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(header().string(HttpHeaders.ETAG, "\"3\""))
+                .andExpect(jsonPath("$.alternate_payment_reference_id").value(REFERENCE_ID))
+                .andExpect(jsonPath("$.defendant_account_id").value(ACCOUNT_WITH_REFERENCES))
+                .andExpect(jsonPath("$.business_unit_id").value((int) BUSINESS_UNIT_ID))
+                .andExpect(jsonPath("$.apr_text").value(UPDATED_TEXT))
+                .andExpect(jsonPath("$.relationship").value("APR"))
+                .andExpect(jsonPath("$.category").value("APR"))
+                .andExpect(jsonPath("$.version").value(3));
+
+            LocalDateTime afterRequest = LocalDateTime.now(ZoneOffset.UTC);
+            AlternatePaymentReferenceEntity saved = alternatePaymentReferenceRepository.findById(REFERENCE_ID)
+                .orElseThrow();
+            assertThat(saved.getAprText()).isEqualTo(UPDATED_TEXT);
+            assertThat(saved.getVersionNumber()).isEqualTo(3L);
+            assertThat(saved.getRelationship()).isEqualTo(Relationship.APR);
+            assertThat(saved.getCategory()).isEqualTo(Category.APR);
+            assertThat(saved.getCreatedDatetime()).isEqualTo(LocalDateTime.of(2026, 10, 20, 9, 15, 30));
+            assertThat(findReferencesInBusinessUnit()).hasSize(3);
+            assertThat(alternatePaymentReferenceRepository.findById(10877002L).orElseThrow().getAprText())
+                .isEqualTo("APR-REFERENCE-2");
+            assertThat(alternatePaymentReferenceRepository.findById(10877003L).orElseThrow().getAprText())
+                .isEqualTo("APR-OTHER-ACCOUNT");
+
+            assertThat(findFixtureAccountNotes()).singleElement().satisfies(note -> {
+                assertThat(note.getNoteId()).isPositive();
+                assertThat(note.getAssociatedRecordId()).isEqualTo(String.valueOf(ACCOUNT_WITH_REFERENCES));
+                assertThat(note.getAssociatedRecordType()).isEqualTo(AssociatedRecordType.DEFENDANT_ACCOUNTS);
+                assertThat(note.getNoteType()).isEqualTo(NoteType.AA);
+                assertThat(note.getNoteText()).isEqualTo("Alternate payment reference updated | " + UPDATED_TEXT);
+                assertThat(note.getBusinessUnitUserId()).isEqualTo("L010877JG");
+                assertThat(note.getPostedByUsername()).isEqualTo(userStateStub.getUserState().getUsername());
+                assertThat(note.getPostedDate()).isBetween(beforeRequest, afterRequest);
+            });
+            assertThat(defendantAccountVersionFor(ACCOUNT_WITH_REFERENCES)).isEqualTo(1);
+        }
+
+        @Test
+        @JiraStory("PO-10879")
+        @JiraEpic("PO-7465")
+        @DisplayName("Returns not found when the defendant account does not exist")
+        void returnsNotFoundWhenDefendantAccountDoesNotExist() throws Exception {
+            updateReference(1087799L, REFERENCE_ID, UPDATED_TEXT, "\"2\"")
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(expectEntityNotFound());
+            assertRejectedRequestHasNoPersistenceSideEffects();
+        }
+
+        @Test
+        @JiraStory("PO-10879")
+        @JiraEpic("PO-7465")
+        @DisplayName("Returns forbidden when the authenticated user has no APR permission")
+        void returnsForbiddenWhenUserHasNoPermissions() throws Exception {
+            userStateStub.setupWithNoPermissions();
+
+            assertForbidden(updateReference(ACCOUNT_WITH_REFERENCES, REFERENCE_ID, UPDATED_TEXT, "\"2\""));
+            assertRejectedRequestHasNoPersistenceSideEffects();
+        }
+
+        @Test
+        @JiraStory("PO-10879")
+        @JiraEpic("PO-7465")
+        @DisplayName("Rejects text already used by another APR in the same business unit")
+        void rejectsReferenceTextAlreadyUsedInBusinessUnit() throws Exception {
+            updateReference(ACCOUNT_WITH_REFERENCES, REFERENCE_ID, "APR-OTHER-ACCOUNT", "\"2\"")
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.title")
+                    .value("Alternate Payment Reference text already exists in business unit"))
+                .andExpect(jsonPath("$.detail").value(
+                    "Alternate Payment Reference text: APR-OTHER-ACCOUNT already exists in business unit: 10877"));
+            assertRejectedRequestHasNoPersistenceSideEffects();
+        }
+
+        @Test
+        @JiraStory("PO-10879")
+        @JiraEpic("PO-7465")
+        @DisplayName("Rejects an APR version mismatch even when If-Match matches the defendant account version")
+        void rejectsAprVersionMismatch() throws Exception {
+            updateReference(ACCOUNT_WITH_REFERENCES, REFERENCE_ID, UPDATED_TEXT, "\"0\"")
+                .andExpect(status().isConflict())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/optimistic-locking"));
+            assertRejectedRequestHasNoPersistenceSideEffects();
+        }
+
+        @Test
+        @JiraStory("PO-10879")
+        @JiraEpic("PO-7465")
+        @DisplayName("Returns bad request when updated APR text exceeds eighteen characters")
+        void rejectsReferenceTextLongerThanEighteenCharacters() throws Exception {
+            updateReference(ACCOUNT_WITH_REFERENCES, REFERENCE_ID, "1234567890123456789", "\"2\"")
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(expectError(HttpStatus.BAD_REQUEST, "Bad Request",
+                    "The request does not conform to the required JSON schema",
+                    "https://hmcts.gov.uk/problems/json-schema-validation"));
+            assertRejectedRequestHasNoPersistenceSideEffects();
+        }
+
+        @ParameterizedTest
+        @CsvSource({"1087701, 10877002, CONSOLIDATED, 4", "1087703, 10877003, AMALGAMATED, 1"})
+        @JiraStory("PO-10879")
+        @JiraEpic("PO-7465")
+        @DisplayName("Rejects references with a consolidated or amalgamated relationship")
+        void rejectsNonAprRelationships(long accountId, long referenceId, Relationship relationship, long version)
+            throws Exception {
+            updateReference(accountId, referenceId, UPDATED_TEXT, "\"" + version + "\"")
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.title")
+                    .value("Alternate Payment Reference relationship does not have a relationship of APR"))
+                .andExpect(jsonPath("$.detail").value("Alternate Payment Reference with relationship: " + relationship
+                    + " cannot be updated for defendant account: " + accountId));
+            assertRejectedRequestHasNoPersistenceSideEffects();
+        }
+
+        @ParameterizedTest
+        @CsvSource({"1087701, 10877999", "1087702, 10877001"})
+        @JiraStory("PO-10879")
+        @JiraEpic("PO-7465")
+        @DisplayName("Returns not found when the APR is missing or belongs to another defendant account")
+        void rejectsMissingOrUnrelatedReference(long accountId, long referenceId) throws Exception {
+            updateReference(accountId, referenceId, UPDATED_TEXT, "\"2\"")
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.title").value("Alternate Payment Reference not found"))
+                .andExpect(jsonPath("$.detail").value("Alternate Payment Reference not found for defendantAccountId: "
+                    + accountId + " and alternatePaymentReferenceId: " + referenceId));
+            assertRejectedRequestHasNoPersistenceSideEffects();
+        }
+    }
+
+    private void assertRejectedRequestHasNoPersistenceSideEffects() {
+        assertThat(findReferencesInBusinessUnit())
+            .extracting(AlternatePaymentReferenceEntity::getAlternatePaymentReferenceId,
+                AlternatePaymentReferenceEntity::getAprText, AlternatePaymentReferenceEntity::getVersionNumber)
+            .containsExactlyInAnyOrder(
+                tuple(10877001L, "APR-REFERENCE-1", 2L),
+                tuple(10877002L, "APR-REFERENCE-2", 4L),
+                tuple(10877003L, "APR-OTHER-ACCOUNT", 1L));
+        assertThat(findFixtureAccountNotes()).isEmpty();
+        assertThat(defendantAccountRepository.findAllByBusinessUnit_BusinessUnitId(BUSINESS_UNIT_ID))
+            .extracting(DefendantAccountEntity::getVersionNumber)
+            .containsExactlyInAnyOrder(0L, 0L, 0L);
+    }
+
+    private ResultActions updateReference(long accountId, long referenceId, String aprText, String ifMatch)
+        throws Exception {
+        return mockMvc.perform(patch(ENDPOINT + "/{alternatePaymentReferenceId}", accountId, referenceId)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header(HttpHeaders.IF_MATCH, ifMatch)
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(Map.of("apr_text", aprText))));
     }
 
     private List<AlternatePaymentReferenceEntity> findReferencesInBusinessUnit() {
