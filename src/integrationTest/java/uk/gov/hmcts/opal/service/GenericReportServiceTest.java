@@ -137,7 +137,7 @@ class GenericReportServiceTest extends AbstractIntegrationTest {
         assertThat(saved.getBusinessUnit()).containsExactly((short) 1);
         assertThat(saved.getRequestedBy()).isEqualTo(123L);
         assertThat(saved.getRequestedByName()).isEqualTo("Test User");
-        assertThat(saved.getTemplateName()).isEqualTo(report.getTemplateName());
+        assertThat(saved.getTemplateName()).isEqualTo("test-template-name.doc");
         assertThat(saved.getReportName()).isEqualTo("Test Report");
         assertThat(saved.getGenerationStatus())
             .isEqualTo(ReportInstanceGenerationStatus.READY);
