@@ -2,9 +2,14 @@ package uk.gov.hmcts.opal.service.opal;
 
 import java.time.Clock;
 import java.util.List;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty.DefendantAccountPartyTypeEnum;
+import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
@@ -31,6 +36,17 @@ public class DefendantAccountPartyPdplLoggingService extends AbstractPdplLogging
             List.of(parentGuardian), null, userState);
     }
 
+    public void queuePdpoForViewedParty(PartyResponseDefendantAccount response, UserState userState) {
+        DefendantAccountParty party = response.getDefendantAccountParty();
+        DefendantAccountPartyTypeEnum partyType = party.getDefendantAccountPartyType();
+
+        switch (partyType) {
+            case DEFENDANT -> logViewedDefendant(requirePartyId(response, "Defendant"), userState);
+            case PARENT_GUARDIAN -> logViewedParentGuardian(
+                requirePartyId(response, "Parent/Guardian"), userState);
+        }
+    }
+
     public void logViewedDefendant(String partyId, UserState userState) {
         logViewedParty(VIEW_DEFENDANT_BUSINESS_IDENTIFIER, partyId, PdplIdentifierType.DEFENDANT_ACCOUNT, userState);
     }
@@ -46,5 +62,19 @@ public class DefendantAccountPartyPdplLoggingService extends AbstractPdplLogging
             List.of(participant(partyId, partyType)),
             null,
             userState.getUserId(), VIEW_PARTY_QUEUE_FAILURE_MESSAGE);
+    }
+
+    private String requirePartyId(PartyResponseDefendantAccount response, String partyType) {
+        String partyId = response.getDefendantAccountParty().getPartyDetails().getPartyId();
+        if (partyId == null || partyId.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Unable to record required " + partyType + " PDPO log");
+        }
+
+        return partyId;
+    }
+
+    public String requireAddedPartyId(PartyResponseDefendantAccount response) {
+        return requirePartyId(response, "Parent/Guardian");
     }
 }
