@@ -8,6 +8,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,6 +22,7 @@ import uk.gov.hmcts.opal.generated.model.AlternatePaymentReferencesItem;
 import uk.gov.hmcts.opal.service.AlternatePaymentReferenceService;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("Alternate payment reference controller")
 class AlternatePaymentReferenceControllerTest {
 
     @Mock
@@ -28,57 +31,68 @@ class AlternatePaymentReferenceControllerTest {
     @InjectMocks
     private AlternatePaymentReferenceController controller;
 
-    @Test
-    void getAlternatePaymentReferences_returnsServiceResult() {
-        Long defendantAccountId = 123L;
-        List<AlternatePaymentReferencesItem> expected = List.of(
-            new AlternatePaymentReferencesItem()
-                .alternatePaymentReferenceId(1L)
-                .defendantAccountId(defendantAccountId)
-                .aprText("REFERENCE-1"),
-            new AlternatePaymentReferencesItem()
-                .alternatePaymentReferenceId(2L)
-                .defendantAccountId(defendantAccountId)
-                .aprText("REFERENCE-2")
-        );
-        when(alternatePaymentReferenceService.getAlternatePaymentReferences(defendantAccountId)).thenReturn(expected);
+    @Nested
+    @DisplayName("Get alternate payment references for a defendant account")
+    class GetAlternatePaymentReferences {
 
-        ResponseEntity<List<AlternatePaymentReferencesItem>> response =
-            controller.getAlternatePaymentReferences(defendantAccountId);
+        @Test
+        @DisplayName("Returns the service's payment references with an OK status")
+        void returnsServiceReferencesWithOkStatus() {
+            Long defendantAccountId = 123L;
+            List<AlternatePaymentReferencesItem> expected = List.of(
+                new AlternatePaymentReferencesItem()
+                    .alternatePaymentReferenceId(1L)
+                    .defendantAccountId(defendantAccountId)
+                    .aprText("REFERENCE-1"),
+                new AlternatePaymentReferencesItem()
+                    .alternatePaymentReferenceId(2L)
+                    .defendantAccountId(defendantAccountId)
+                    .aprText("REFERENCE-2")
+            );
+            when(alternatePaymentReferenceService.getAlternatePaymentReferences(defendantAccountId))
+                .thenReturn(expected);
 
-        assertAll(
-            () -> assertEquals(HttpStatus.OK, response.getStatusCode()),
-            () -> assertEquals(expected, response.getBody()),
-            () -> verify(alternatePaymentReferenceService).getAlternatePaymentReferences(defendantAccountId)
-        );
-    }
+            ResponseEntity<List<AlternatePaymentReferencesItem>> response =
+                controller.getAlternatePaymentReferences(defendantAccountId);
 
-    @Test
-    void getAlternatePaymentReferences_returnsOkWithEmptyList() {
-        Long defendantAccountId = 123L;
-        when(alternatePaymentReferenceService.getAlternatePaymentReferences(defendantAccountId)).thenReturn(List.of());
+            assertAll(
+                () -> assertEquals(HttpStatus.OK, response.getStatusCode()),
+                () -> assertEquals(expected, response.getBody()),
+                () -> verify(alternatePaymentReferenceService).getAlternatePaymentReferences(defendantAccountId)
+            );
+        }
 
-        ResponseEntity<List<AlternatePaymentReferencesItem>> response =
-            controller.getAlternatePaymentReferences(defendantAccountId);
+        @Test
+        @DisplayName("Returns an empty list with an OK status when no payment references exist")
+        void returnsEmptyListWithOkStatusWhenNoReferencesExist() {
+            Long defendantAccountId = 123L;
+            when(alternatePaymentReferenceService.getAlternatePaymentReferences(defendantAccountId))
+                .thenReturn(List.of());
 
-        assertAll(
-            () -> assertEquals(HttpStatus.OK, response.getStatusCode()),
-            () -> assertEquals(List.of(), response.getBody()),
-            () -> verify(alternatePaymentReferenceService).getAlternatePaymentReferences(defendantAccountId)
-        );
-    }
+            ResponseEntity<List<AlternatePaymentReferencesItem>> response =
+                controller.getAlternatePaymentReferences(defendantAccountId);
 
-    @Test
-    void getAlternatePaymentReferences_propagatesAccessDeniedException() {
-        Long defendantAccountId = 123L;
-        AccessDeniedException expected = new AccessDeniedException("User does not have the required permission");
-        when(alternatePaymentReferenceService.getAlternatePaymentReferences(defendantAccountId)).thenThrow(expected);
+            assertAll(
+                () -> assertEquals(HttpStatus.OK, response.getStatusCode()),
+                () -> assertEquals(List.of(), response.getBody()),
+                () -> verify(alternatePaymentReferenceService).getAlternatePaymentReferences(defendantAccountId)
+            );
+        }
 
-        AccessDeniedException actual = assertThrows(
-            AccessDeniedException.class,
-            () -> controller.getAlternatePaymentReferences(defendantAccountId));
+        @Test
+        @DisplayName("Propagates access denied when the service rejects the user's permissions")
+        void propagatesAccessDeniedExceptionWhenServiceRejectsUserPermissions() {
+            Long defendantAccountId = 123L;
+            AccessDeniedException expected = new AccessDeniedException("User does not have the required permission");
+            when(alternatePaymentReferenceService.getAlternatePaymentReferences(defendantAccountId))
+                .thenThrow(expected);
 
-        assertSame(expected, actual);
-        verify(alternatePaymentReferenceService).getAlternatePaymentReferences(defendantAccountId);
+            AccessDeniedException actual = assertThrows(
+                AccessDeniedException.class,
+                () -> controller.getAlternatePaymentReferences(defendantAccountId));
+
+            assertSame(expected, actual);
+            verify(alternatePaymentReferenceService).getAlternatePaymentReferences(defendantAccountId);
+        }
     }
 }

@@ -21,6 +21,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @TestPropertySource(properties = "launchdarkly.default-flag-values.release-1c-banking-interfaces=true")
@@ -48,6 +49,7 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
 
         @Test
         @JiraStory("PO-10877")
+        @JiraEpic("PO-7465")
         @DisplayName("Returns multiple APRs with all mapped fields and excludes other accounts")
         void returnsMultipleReferencesForRequestedAccountOnly() throws Exception {
             ResultActions result = getReferences(ACCOUNT_WITH_REFERENCES)
@@ -87,6 +89,7 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
 
         @Test
         @JiraStory("PO-10877")
+        @JiraEpic("PO-7465")
         @DisplayName("Returns an empty array when the defendant account has no APRs")
         void returnsEmptyArrayWhenNoReferencesExist() throws Exception {
             getReferences(ACCOUNT_WITHOUT_REFERENCES)
@@ -98,6 +101,7 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
 
         @Test
         @JiraStory("PO-10877")
+        @JiraEpic("PO-7465")
         @DisplayName("Returns not found when the defendant account does not exist")
         void returnsNotFoundWhenDefendantAccountDoesNotExist() throws Exception {
             getReferences(1087799L)
@@ -108,6 +112,7 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
 
         @Test
         @JiraStory("PO-10877")
+        @JiraEpic("PO-7465")
         @DisplayName("Returns forbidden when the authenticated user has no permissions")
         void returnsForbiddenWhenUserHasNoPermissions() throws Exception {
             userStateStub.setupWithNoPermissions();
@@ -117,6 +122,7 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
 
         @Test
         @JiraStory("PO-10877")
+        @JiraEpic("PO-7465")
         @DisplayName("Returns forbidden when the user has APR permission only in another business unit")
         void returnsForbiddenWhenPermissionIsForAnotherBusinessUnit() throws Exception {
             userStateStub.setupWithNoPermissions();
