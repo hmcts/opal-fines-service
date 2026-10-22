@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.common.exceptions.standard.BadRequestException;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureFlags;
@@ -38,6 +37,7 @@ import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountSource;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
+import uk.gov.hmcts.opal.exception.RequestValidationException;
 import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
 import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService.Action;
@@ -251,8 +251,7 @@ public class DraftAccountService {
             }
 
             if (dto.getSource() == DraftAccountSource.VPFPO && dto.getSourceReference() == null) {
-                throw new BadRequestException("Missing Parameter",
-                    "source_reference cannot be blank when source is VPFPO");
+                throw new RequestValidationException("source_reference cannot be blank when source is VPFPO");
             }
 
             BusinessUnitUser unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());

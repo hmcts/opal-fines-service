@@ -36,7 +36,6 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.client.HttpClientErrorException;
-import uk.gov.hmcts.common.exceptions.standard.BadRequestException;
 import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
@@ -50,6 +49,7 @@ import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
 import uk.gov.hmcts.opal.exception.PdplLoggingException;
 import uk.gov.hmcts.opal.exception.ReportGenerationException;
+import uk.gov.hmcts.opal.exception.RequestValidationException;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
@@ -493,13 +493,14 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void handleBadRequestException_returnsBadRequestProblem() {
-        BadRequestException ex = new BadRequestException("", "parameter X is missing");
+    void handleRequestValidationException_returnsBadRequestProblem() {
+        RequestValidationException ex = new RequestValidationException("parameter X is missing");
 
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleBadRequestException(ex);
+        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleRequestValidationException(ex);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("parameter X is missing", response.getBody().getTitle());
+        assertEquals("parameter X is missing", response.getBody().getDetail());
+        assertEquals("Bad Request", response.getBody().getTitle());
         assertEquals(false, response.getBody().getProperties().get("retriable"));
     }
 
