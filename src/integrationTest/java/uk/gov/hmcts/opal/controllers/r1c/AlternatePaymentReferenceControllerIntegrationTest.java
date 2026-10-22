@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.Assertions.within;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -456,6 +457,126 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
                     + accountId + " and alternatePaymentReferenceId: " + referenceId));
             assertRejectedRequestHasNoPersistenceSideEffects();
         }
+    }
+
+    @Nested
+    @DisplayName("Delete an alternate payment reference for a defendant account")
+    class DeleteAlternatePaymentReference {
+
+        private static final long REFERENCE_ID = 10877001L;
+
+        @Test
+        @JiraStory("PO-10880")
+        @JiraEpic("PO-7465")
+        @DisplayName("Deletes the APR, returns its details and ETag, and adds an activity note")
+        void deletesReferenceAndAddsActivityNote() throws Exception {
+            LocalDateTime beforeRequest = LocalDateTime.now(ZoneOffset.UTC);
+
+            deleteReference(ACCOUNT_WITH_REFERENCES, REFERENCE_ID, "\"2\"")
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(header().string(HttpHeaders.ETAG, "\"2\""))
+                .andExpect(jsonPath("$.alternate_payment_reference_id").value(REFERENCE_ID))
+                .andExpect(jsonPath("$.defendant_account_id").value(ACCOUNT_WITH_REFERENCES))
+                .andExpect(jsonPath("$.business_unit_id").value((int) BUSINESS_UNIT_ID))
+                .andExpect(jsonPath("$.apr_text").value("APR-REFERENCE-1"))
+                .andExpect(jsonPath("$.relationship").value("APR"))
+                .andExpect(jsonPath("$.category").value("APR"))
+                .andExpect(jsonPath("$.created_at").value("2026-10-20T09:15:30"))
+                .andExpect(jsonPath("$.updated_at").value("2026-10-21T10:20:40"))
+                .andExpect(jsonPath("$.version").value(2));
+
+            LocalDateTime afterRequest = LocalDateTime.now(ZoneOffset.UTC);
+            assertThat(alternatePaymentReferenceRepository.existsById(REFERENCE_ID)).isFalse();
+            assertThat(findReferencesInBusinessUnit())
+                .extracting(AlternatePaymentReferenceEntity::getAlternatePaymentReferenceId,
+                    AlternatePaymentReferenceEntity::getAprText, AlternatePaymentReferenceEntity::getVersionNumber)
+                .containsExactlyInAnyOrder(
+                    tuple(10877002L, "APR-REFERENCE-2", 4L),
+                    tuple(10877003L, "APR-OTHER-ACCOUNT", 1L));
+            assertThat(findFixtureAccountNotes()).singleElement().satisfies(note -> {
+                assertThat(note.getNoteId()).isPositive();
+                assertThat(note.getAssociatedRecordId()).isEqualTo(String.valueOf(ACCOUNT_WITH_REFERENCES));
+                assertThat(note.getAssociatedRecordType()).isEqualTo(AssociatedRecordType.DEFENDANT_ACCOUNTS);
+                assertThat(note.getNoteType()).isEqualTo(NoteType.AA);
+                assertThat(note.getNoteText()).isEqualTo("Alternate payment reference deleted | APR-REFERENCE-1");
+                assertThat(note.getBusinessUnitUserId()).isEqualTo("L010877JG");
+                assertThat(note.getPostedByUsername()).isEqualTo(userStateStub.getUserState().getUsername());
+                assertThat(note.getPostedDate()).isBetween(beforeRequest, afterRequest);
+            });
+            assertThat(defendantAccountVersionFor(ACCOUNT_WITH_REFERENCES)).isEqualTo(1);
+            assertThat(defendantAccountVersionFor(ACCOUNT_WITHOUT_REFERENCES)).isZero();
+            assertThat(defendantAccountVersionFor(1087703L)).isZero();
+        }
+
+        @Test
+        @JiraStory("PO-10880")
+        @JiraEpic("PO-7465")
+        @DisplayName("Returns not found when the defendant account does not exist")
+        void returnsNotFoundWhenDefendantAccountDoesNotExist() throws Exception {
+            deleteReference(1087799L, REFERENCE_ID, "\"2\"")
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(expectEntityNotFound());
+            assertRejectedRequestHasNoPersistenceSideEffects();
+        }
+
+        @ParameterizedTest
+        @CsvSource({"1087701, 10877999", "1087702, 10877001"})
+        @JiraStory("PO-10880")
+        @JiraEpic("PO-7465")
+        @DisplayName("Returns not found when the APR is missing or belongs to another defendant account")
+        void rejectsMissingOrUnrelatedReference(long accountId, long referenceId) throws Exception {
+            deleteReference(accountId, referenceId, "\"2\"")
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.title").value("Alternate Payment Reference not found"))
+                .andExpect(jsonPath("$.detail").value("Alternate Payment Reference not found for defendantAccountId: "
+                    + accountId + " and alternatePaymentReferenceId: " + referenceId));
+            assertRejectedRequestHasNoPersistenceSideEffects();
+        }
+
+        @Test
+        @JiraStory("PO-10880")
+        @JiraEpic("PO-7465")
+        @DisplayName("Returns forbidden when the authenticated user has no APR permission")
+        void returnsForbiddenWhenUserHasNoPermissions() throws Exception {
+            userStateStub.setupWithNoPermissions();
+
+            assertForbidden(deleteReference(ACCOUNT_WITH_REFERENCES, REFERENCE_ID, "\"2\""));
+            assertRejectedRequestHasNoPersistenceSideEffects();
+        }
+
+        @Test
+        @JiraStory("PO-10880")
+        @JiraEpic("PO-7465")
+        @DisplayName("Returns forbidden when the user has APR permission only in another business unit")
+        void returnsForbiddenWhenPermissionIsForAnotherBusinessUnit() throws Exception {
+            userStateStub.setupWithNoPermissions();
+            userStateStub.addPermissions((short) 78, MANAGE_ALTERNATE_PAYMENT_REFERENCES);
+
+            assertForbidden(deleteReference(ACCOUNT_WITH_REFERENCES, REFERENCE_ID, "\"2\""));
+            assertRejectedRequestHasNoPersistenceSideEffects();
+        }
+
+        @Test
+        @JiraStory("PO-10880")
+        @JiraEpic("PO-7465")
+        @DisplayName("Rejects an APR version mismatch even when If-Match matches the defendant account version")
+        void rejectsAprVersionMismatch() throws Exception {
+            deleteReference(ACCOUNT_WITH_REFERENCES, REFERENCE_ID, "\"0\"")
+                .andExpect(status().isConflict())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/optimistic-locking"));
+            assertRejectedRequestHasNoPersistenceSideEffects();
+        }
+    }
+
+    private ResultActions deleteReference(long accountId, long referenceId, String ifMatch) throws Exception {
+        return mockMvc.perform(delete(ENDPOINT + "/{alternatePaymentReferenceId}", accountId, referenceId)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header(HttpHeaders.IF_MATCH, ifMatch)
+            .accept(MediaType.APPLICATION_JSON));
     }
 
     private void assertRejectedRequestHasNoPersistenceSideEffects() {
