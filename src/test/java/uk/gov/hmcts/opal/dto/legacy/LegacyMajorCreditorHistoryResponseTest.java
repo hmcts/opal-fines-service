@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import jakarta.xml.bind.JAXBException;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
@@ -34,7 +35,7 @@ class LegacyMajorCreditorHistoryResponseTest {
             """, LegacyMajorCreditorHistoryResponse.class);
 
         assertThat(response.getHistoryItems().getFirst().getDetails().getStatusDate())
-            .isEqualTo(LocalDate.of(2026, 1, 31));
+            .isEqualTo(LocalDate.of(2026, Month.JANUARY, 31));
     }
 
     @Test
@@ -52,7 +53,7 @@ class LegacyMajorCreditorHistoryResponseTest {
         LegacyMajorCreditorHistoryResponse response = ToJsonString.toClassInstance(
             json, LegacyMajorCreditorHistoryResponse.class);
         assertThat(response.getHistoryItems().getFirst().getDetails().getStatusDate())
-            .isEqualTo(LocalDate.of(2026, 1, 31));
+            .isEqualTo(LocalDate.of(2026, Month.JANUARY, 31));
     }
 
     @Test
@@ -70,7 +71,7 @@ class LegacyMajorCreditorHistoryResponseTest {
             .historyItems(List.of(HistoryItem.builder()
                 .type("Financial")
                 .details(HistoryDetails.builder()
-                    .statusDate(LocalDate.of(2026, 1, 31))
+                    .statusDate(LocalDate.of(2026, Month.JANUARY, 31))
                     .build())
                 .build()))
             .build();

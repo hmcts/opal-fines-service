@@ -23,6 +23,7 @@ import static uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -322,11 +323,11 @@ class LegacyMajorCreditorHistoryTest extends AbstractIntegrationTest {
             .version(BigInteger.valueOf(7L))
             .historyItems(List.of(
                 historyItem("MJUSR3", "Major User Three", "MJF003", "MADJ", "Manual Adjustment",
-                            LocalDateTime.of(2026, 1, 31, 10, 30), new BigDecimal("-31.00")),
+                            LocalDateTime.of(2026, Month.JANUARY, 31, 10, 30), new BigDecimal("-31.00")),
                 historyItem("MJUSR4", "Major User Four", "MJF004", "MADJ", "Manual Adjustment",
-                            LocalDateTime.of(2026, 1, 31, 10, 30), new BigDecimal("31.00")),
+                            LocalDateTime.of(2026, Month.JANUARY, 31, 10, 30), new BigDecimal("31.00")),
                 historyItem("MJUSR2", "Major User Two", "MJF002", "PAYMNT", "Payment",
-                            LocalDateTime.of(2026, 1, 25, 9, 15), new BigDecimal("-25.50"))
+                            LocalDateTime.of(2026, Month.JANUARY, 25, 9, 15), new BigDecimal("-25.50"))
             ))
             .build();
     }

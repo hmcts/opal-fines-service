@@ -3,11 +3,13 @@ package uk.gov.hmcts.opal.mapper.legacy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +39,7 @@ class LegacyMajorCreditorHistoryMapperTest extends AbstractMapperTest {
                 .version(BigInteger.valueOf(7L))
                 .historyItems(List.of(HistoryItem.builder()
                     .postedDetails(new LegacyPostedDetails(
-                        LocalDateTime.of(2026, 1, 31, 10, 30),
+                        LocalDateTime.of(2026, Month.JANUARY, 31, 10, 30),
                         "MJUSR3",
                         "Major User Three"
                     ))
@@ -53,7 +55,7 @@ class LegacyMajorCreditorHistoryMapperTest extends AbstractMapperTest {
                             .creditorTransactionStatus("R")
                             .creditorTransactionStatusDisplayName("Reversed")
                             .build())
-                        .statusDate(LocalDate.of(2026, 1, 31))
+                        .statusDate(LocalDate.of(2026, Month.JANUARY, 31))
                         .associatedRecordType("creditor_accounts")
                         .associatedRecordId("99264300000001")
                         .accountNumber("87654321")
@@ -88,7 +90,7 @@ class LegacyMajorCreditorHistoryMapperTest extends AbstractMapperTest {
             details.getStatus().getCreditorTransactionStatus()
         );
         assertEquals("Reversed", details.getStatus().getCreditorTransactionStatusDisplayName());
-        assertEquals(LocalDateTime.of(2026, 1, 31, 0, 0), details.getStatusDate());
+        assertEquals(LocalDateTime.of(2026, Month.JANUARY, 31, 0, 0), details.getStatusDate());
         assertEquals("creditor_accounts", details.getAssociatedRecordType());
         assertEquals("99264300000001", details.getAssociatedRecordId());
         assertEquals("87654321", details.getAccountNumber());
@@ -111,7 +113,7 @@ class LegacyMajorCreditorHistoryMapperTest extends AbstractMapperTest {
                 .version(BigInteger.valueOf(7L))
                 .historyItems(List.of(HistoryItem.builder()
                     .postedDetails(new LegacyPostedDetails(
-                        LocalDateTime.of(2026, 1, 31, 10, 30),
+                        LocalDateTime.of(2026, Month.JANUARY, 31, 10, 30),
                         "MJUSR3",
                         "Major User Three"
                     ))
@@ -145,9 +147,9 @@ class LegacyMajorCreditorHistoryMapperTest extends AbstractMapperTest {
             LegacyMajorCreditorHistoryResponse.builder()
                 .version(BigInteger.valueOf(7L))
                 .historyItems(List.of(
-                    historyItem("MJF002", LocalDateTime.of(2026, 1, 25, 9, 15)),
-                    historyItem("MJF004", LocalDateTime.of(2026, 1, 31, 10, 30)),
-                    historyItem("MJF003", LocalDateTime.of(2026, 1, 31, 10, 30))
+                    historyItem("MJF002", LocalDateTime.of(2026, Month.JANUARY, 25, 9, 15)),
+                    historyItem("MJF004", LocalDateTime.of(2026, Month.JANUARY, 31, 10, 30)),
+                    historyItem("MJF003", LocalDateTime.of(2026, Month.JANUARY, 31, 10, 30))
                 ))
                 .build();
 
@@ -161,6 +163,18 @@ class LegacyMajorCreditorHistoryMapperTest extends AbstractMapperTest {
                 .map(CreditorTransactionDetailsHistory::getPaymentReference)
                 .toList()
         );
+    }
+
+    @Test
+    void mapper_handlesNullAndUnsupportedHistoryDetails() {
+        assertNull(mapper.mapDetails(null, HistoryDetails.builder().build()));
+        assertNull(mapper.mapDetails("Financial", null));
+        assertNull(mapper.toHistoryItemType(null));
+        assertNull(mapper.toTransactionTypeEnum(null));
+        assertNull(mapper.toTransactionStatusEnum(null));
+
+        assertThrows(IllegalArgumentException.class,
+            () -> mapper.mapDetails("Amendment", HistoryDetails.builder().build()));
     }
 
     private HistoryItem historyItem(String paymentReference, LocalDateTime postedDate) {
