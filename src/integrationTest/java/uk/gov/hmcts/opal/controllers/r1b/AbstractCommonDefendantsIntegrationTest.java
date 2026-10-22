@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers.r1b;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -44,6 +45,7 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
     @DisplayName("Get header summary for individual defendant account [@PO-2287]")
     @JiraStory("PO-2287")
     void getHeaderSummary_Individual(Logger log) throws Exception {
+        doNothing().when(loggingService).logHeaderSummary(any(), any());
         ResultActions resultActions =
             mockMvc.perform(get(URL_BASE + "/77/header-summary")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -94,6 +96,8 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
         + "defendantAccountPartyId bug fix validation")
     @JiraStory("PO-2297")
     void testGetHeaderSummary_Individual_UsesDefendantAccountPartyId(Logger log) throws Exception {
+        doNothing().when(loggingService).logHeaderSummary(any(), any());
+
         // Act
         ResultActions resultActions =
             mockMvc.perform(get("/defendant-accounts/77/header-summary")

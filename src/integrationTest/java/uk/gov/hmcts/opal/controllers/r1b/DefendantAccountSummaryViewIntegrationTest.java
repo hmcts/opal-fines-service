@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.controllers.r1b;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -26,7 +27,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
     @DisplayName("PO-2334 INT.01 - Get header summary returns has consolidated accounts true")
     @JiraTestKey("PO-8761")
     void int01_getHeaderSummary_returnsHasConsolidatedAccountsTrue() throws Exception {
-
+        doNothing().when(loggingService).logHeaderSummary(any(), any());
         ResultActions resultActions = mockMvc.perform(
             get("/defendant-accounts/990001/header-summary")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -58,6 +59,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
     @DisplayName("PO-2334 INT.02 - Get header summary returns has consolidated accounts false")
     @JiraTestKey("PO-8763")
     void int02_getHeaderSummary_returnsHasConsolidatedAccountsFalse() throws Exception {
+        doNothing().when(loggingService).logHeaderSummary(any(), any());
 
         ResultActions resultActions = mockMvc.perform(
             get("/defendant-accounts/77/header-summary")
@@ -92,7 +94,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
     @JiraStory("PO-2969")
     @DisplayName("PO-2969 INT.03 - Get header summary returns TFO originator fields and collection order")
     void int03_getHeaderSummary_returnsTfoOriginatorFieldsAndCollectionOrder() throws Exception {
-
+        doNothing().when(loggingService).logHeaderSummary(any(), any());
         ResultActions resultActions = mockMvc.perform(
             get("/defendant-accounts/77/header-summary")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -116,7 +118,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
     @JiraStory("PO-2969")
     @DisplayName("PO-2969 INT.04 - Get header summary returns NEW originator fields and collection order")
     void int04_getHeaderSummary_returnsNewOriginatorFieldsAndCollectionOrder() throws Exception {
-
+        doNothing().when(loggingService).logHeaderSummary(any(), any());
         ResultActions resultActions = mockMvc.perform(
             get("/defendant-accounts/990001/header-summary")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())

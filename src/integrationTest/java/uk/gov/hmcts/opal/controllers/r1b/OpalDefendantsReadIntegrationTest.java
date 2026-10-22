@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -236,6 +237,7 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6076")
     void opalGetAtAGlance_Individual() throws Exception {
+        doNothing().when(loggingService).logAtAGlance(any(), any());
         ResultActions resultActions =
             mockMvc.perform(get(URL_BASE + "/77/at-a-glance")
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -282,6 +284,7 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6073")
     void opalGetAtAGlance_Individual_ParentGuardian() throws Exception {
+        doNothing().when(loggingService).logAtAGlance(any(), any());
         ResultActions resultActions =
             mockMvc.perform(
                 get(URL_BASE + "/10004/at-a-glance")
@@ -516,6 +519,7 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6074")
     void testGetAtAGlance_VerifyAliasesArray_Individual() throws Exception {
+        doNothing().when(loggingService).logAtAGlance(any(), any());
         ResultActions resultActions =
             mockMvc.perform(get(URL_BASE + "/77/at-a-glance")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())

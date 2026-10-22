@@ -4,6 +4,7 @@ package uk.gov.hmcts.opal.controllers.r1b;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
@@ -32,6 +33,7 @@ class DefendantAccountAtAGlanceIntegrationTest extends AbstractOpalDefendantsInt
     @JiraEpic("PO-812")
     @JiraTestKey("PO-5811")
     void int01_getAtAGlance_returnsActivePaymentTermsSummary() throws Exception {
+        doNothing().when(loggingService).logAtAGlance(any(), any());
         ResultActions resultActions = mockMvc.perform(
             get(URL_BASE + "/{defendantAccountId}/at-a-glance", ACCOUNT_MULTI_TERMS_ONE_ACTIVE).with(
                     userStateStub.getAuthenticaitonRequestPostProcessor())
