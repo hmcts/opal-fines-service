@@ -288,8 +288,8 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
         @Test
         @JiraStory("PO-10878")
         @JiraEpic("PO-7465")
-        @DisplayName("Returns precondition failed when If-Match differs from the defendant account version")
-        void returnsPreconditionFailedWhenDefendantAccountVersionDoesNotMatch() throws Exception {
+        @DisplayName("Returns conflict failed when If-Match differs from the defendant account version")
+        void returnsConflictFailedWhenDefendantAccountVersionDoesNotMatch() throws Exception {
             createReference(ACCOUNT_WITHOUT_REFERENCES, "NEW-APR-REFERENCE", "\"1\"")
                 .andExpect(status().isConflict())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))

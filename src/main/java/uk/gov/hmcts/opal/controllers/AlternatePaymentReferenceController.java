@@ -36,6 +36,10 @@ public class AlternatePaymentReferenceController implements AlternatePaymentRefe
     }
 
     @Override
+    @FeatureToggle(
+        feature = RELEASE_1C_BANKING_INTERFACES,
+        defaultValueProperty = RELEASE_1C_BANKING_INTERFACES_ENABLED_PROPERTY
+    )
     public ResponseEntity<AlternatePaymentReferencesItem> createAlternatePaymentReference(
         Long defendantAccountId, String expectedVersion,
         AlternatePaymentReferencesWriteRequest alternatePaymentReferencesWriteRequest) {
