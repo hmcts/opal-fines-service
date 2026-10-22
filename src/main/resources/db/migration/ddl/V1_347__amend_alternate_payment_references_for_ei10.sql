@@ -28,3 +28,5 @@ ALTER TABLE public.alternate_payment_references
 CREATE INDEX apr_apr_text_idx
     ON public.alternate_payment_references
     USING btree (apr_text);
+
+COMMENT ON COLUMN public.alternate_payment_references.version_number IS 'Used to check that related items have not changed since retrieval and prior to being amended.';
