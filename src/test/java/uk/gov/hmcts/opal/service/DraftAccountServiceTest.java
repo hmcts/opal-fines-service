@@ -35,6 +35,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.common.exceptions.standard.BadRequestException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureFlags;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
@@ -55,7 +56,6 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountSource;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
-import uk.gov.hmcts.opal.exception.RequestValidationException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
@@ -244,7 +244,15 @@ class DraftAccountServiceTest {
                 BusinessUnitEntity.builder().businessUnitId((short)77).build())
             .build();
         when(draftAccountMapper.toDto(draftAccountEntity)).thenReturn(DraftAccountSummaryDto.builder().build());
-        when(draftAccountTransactional.getDraftAccounts(any(), any(), any(), any(), any(), any(), any()))
+        when(draftAccountTransactional.getDraftAccounts(
+            List.copyOf(Set.of((short) 1)),
+            List.copyOf(Set.of(DraftAccountStatus.REJECTED)),
+            List.of(),
+            List.of(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.of(DraftAccountSource.MAC)
+        ))
             .thenReturn(List.of(draftAccountEntity));
         var userState = UserStateUtil.allPermissionsUser();
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
@@ -260,7 +268,13 @@ class DraftAccountServiceTest {
         // Assert
         assertNotNull(result);
         verify(draftAccountTransactional).getDraftAccounts(
-            any(), any(), any(), any(), any(), any(), eq(Optional.of(DraftAccountSource.MAC))
+            eq(List.copyOf(Set.of((short) 1))),
+            eq(List.copyOf(Set.of(DraftAccountStatus.REJECTED))),
+            eq(List.of()),
+            eq(List.of()),
+            eq(Optional.empty()),
+            eq(Optional.empty()),
+            eq(Optional.of(DraftAccountSource.MAC))
         );
     }
 
@@ -271,8 +285,15 @@ class DraftAccountServiceTest {
                 BusinessUnitEntity.builder().businessUnitId((short)77).build())
             .build();
         when(draftAccountMapper.toDto(draftAccountEntity)).thenReturn(DraftAccountSummaryDto.builder().build());
-        when(draftAccountTransactional.getDraftAccounts(any(), any(), any(), any(), any(), any(), any()))
-            .thenReturn(List.of(draftAccountEntity));
+        when(draftAccountTransactional.getDraftAccounts(
+            List.copyOf(Set.of((short) 1)),
+            List.copyOf(Set.of(DraftAccountStatus.REJECTED)),
+            List.of(),
+            List.of(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty()
+        )).thenReturn(List.of(draftAccountEntity));
         var userState = UserStateUtil.allPermissionsUser();
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(featureToggleApi.isFeatureEnabled(eq(FeatureFlags.RELEASE_1C_BANKING_INTERFACES))).thenReturn(true);
@@ -280,22 +301,36 @@ class DraftAccountServiceTest {
         // Act
         DraftAccountsResponseDto result = draftAccountService.getDraftAccounts(
             Optional.of(List.copyOf(Set.of((short) 1))), Optional.of(List.copyOf(Set.of(DraftAccountStatus.REJECTED))),
-            Optional.of(List.of()), Optional.of(List.of()), Optional.empty(), Optional.empty(),
+            Optional.of(List.of()), Optional.of(List.of()),
+            Optional.empty(), Optional.empty(),
             Optional.empty()
         );
 
         // Assert
         assertNotNull(result);
-        verify(draftAccountTransactional).getDraftAccounts(
-            any(), any(), any(), any(), any(), any(), eq(Optional.empty())
+        verify(draftAccountTransactional, times(1)).getDraftAccounts(
+            eq(List.copyOf(Set.of((short) 1))),
+            eq(List.copyOf(Set.of(DraftAccountStatus.REJECTED))),
+            eq(List.of()),
+            eq(List.of()),
+            eq(Optional.empty()),
+            eq(Optional.empty()),
+            eq(Optional.empty())
         );
     }
 
     @Test
     void testCountsDefaultSourceFeatureFlagOff() {
         // Arrange
-        when(draftAccountTransactional.countDraftAccounts(any(), any(), any(), any(), any(), any(), any()))
-            .thenReturn(7L);
+        when(draftAccountTransactional.countDraftAccounts(
+            List.copyOf(Set.of((short) 1)),
+            List.copyOf(Set.of(DraftAccountStatus.REJECTED)),
+            List.of(),
+            List.of(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.of(DraftAccountSource.MAC)
+        )).thenReturn(7L);
         var userState = UserStateUtil.allPermissionsUser();
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(featureToggleApi.isFeatureEnabled(eq(FeatureFlags.RELEASE_1C_BANKING_INTERFACES))).thenReturn(false);
@@ -310,15 +345,28 @@ class DraftAccountServiceTest {
         // Assert
         assertNotNull(result);
         verify(draftAccountTransactional).countDraftAccounts(
-            any(), any(), any(), any(), any(), any(), eq(Optional.of(DraftAccountSource.MAC))
+            List.copyOf(Set.of((short) 1)),
+            List.copyOf(Set.of(DraftAccountStatus.REJECTED)),
+            List.of(),
+            List.of(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.of(DraftAccountSource.MAC)
         );
     }
 
     @Test
     void testCountsDefaultSourceFeatureFlagOn() {
         // Arrange
-        when(draftAccountTransactional.countDraftAccounts(any(), any(), any(), any(), any(), any(), any()))
-            .thenReturn(7L);
+        when(draftAccountTransactional.countDraftAccounts(
+            List.copyOf(Set.of((short) 1)),
+            List.copyOf(Set.of(DraftAccountStatus.REJECTED)),
+            List.of(),
+            List.of(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty()
+        )).thenReturn(7L);
         var userState = UserStateUtil.allPermissionsUser();
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(featureToggleApi.isFeatureEnabled(eq(FeatureFlags.RELEASE_1C_BANKING_INTERFACES))).thenReturn(true);
@@ -333,7 +381,13 @@ class DraftAccountServiceTest {
         // Assert
         assertNotNull(result);
         verify(draftAccountTransactional).countDraftAccounts(
-            any(), any(), any(), any(), any(), any(), eq(Optional.empty())
+            List.copyOf(Set.of((short) 1)),
+            List.copyOf(Set.of(DraftAccountStatus.REJECTED)),
+            List.of(),
+            List.of(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty()
         );
     }
 
@@ -392,7 +446,6 @@ class DraftAccountServiceTest {
         // Arrange
         var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(featureToggleApi.isFeatureEnabled(eq(FeatureFlags.RELEASE_1C_BANKING_INTERFACES))).thenReturn(false);
         AddDraftAccountRequestDto addDraftAccountDto = AddDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
             .account(createAccountString())
@@ -402,8 +455,8 @@ class DraftAccountServiceTest {
             .build();
 
         // Act + Assert
-        RequestValidationException ex = assertThrows(
-            RequestValidationException.class,
+        BadRequestException ex = assertThrows(
+            BadRequestException.class,
             () -> draftAccountService.submitDraftAccount(addDraftAccountDto)
         );
 
@@ -458,32 +511,31 @@ class DraftAccountServiceTest {
     void testSubmitDraftAccounts_defaultSourceFeatFlagOff() {
         // Arrange
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().build();
-        when(draftAccountMapper.toResponseDto(draftAccountEntity))
-            .thenReturn(DraftAccountResponseDto.builder().build());
-        when(draftAccountTransactional.submitDraftAccount(any(), any(), any())).thenReturn(draftAccountEntity);
-        var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(featureToggleApi.isFeatureEnabled(eq(FeatureFlags.RELEASE_1C_BANKING_INTERFACES))).thenReturn(false);
         AddDraftAccountRequestDto addDraftAccountDto = AddDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
             .account(createAccountString())
             .accountType(DraftAccountType.FINE)
             .source(null)
             .build();
+        when(draftAccountMapper.toResponseDto(draftAccountEntity))
+            .thenReturn(DraftAccountResponseDto.builder().build());
+        when(draftAccountTransactional.submitDraftAccount(addDraftAccountDto, "USER01","Normal User")).thenReturn(draftAccountEntity);
+        var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(featureToggleApi.isFeatureEnabled(eq(FeatureFlags.RELEASE_1C_BANKING_INTERFACES))).thenReturn(false);
         // Act
         draftAccountService.submitDraftAccount(addDraftAccountDto);
 
         // Assert
         ArgumentCaptor<AddDraftAccountRequestDto> captor = ArgumentCaptor.forClass(AddDraftAccountRequestDto.class);
         verify(draftAccountTransactional, times(1)).submitDraftAccount(
-            captor.capture(), any(), any());
+            captor.capture(), eq("USER01"), eq("Normal User"));
         assertThat(captor.getValue().getSource()).isEqualTo(DraftAccountSource.MAC);
     }
 
     @Test
     void testSubmitDraftAccounts_failsNullSourceFeatFlagOn() {
         // Arrange
-        DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().build();
         var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(featureToggleApi.isFeatureEnabled(eq(FeatureFlags.RELEASE_1C_BANKING_INTERFACES))).thenReturn(true);
@@ -495,8 +547,8 @@ class DraftAccountServiceTest {
             .build();
 
         // Act + Assert
-        JsonSchemaValidationException ex = assertThrows(
-            JsonSchemaValidationException.class,
+        BadRequestException ex = assertThrows(
+            BadRequestException.class,
             () -> draftAccountService.submitDraftAccount(addDraftAccountDto)
         );
 

@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.common.exceptions.standard.BadRequestException;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureFlags;
@@ -37,7 +38,6 @@ import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountSource;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
-import uk.gov.hmcts.opal.exception.RequestValidationException;
 import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
 import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService.Action;
@@ -242,18 +242,21 @@ public class DraftAccountService {
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
                                                         FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
 
-            jsonSchemaValidationService.validateOrError(dto.toJson(), addDraftAccountRequestSchema());
-            referenceValidationService.validateReferences(dto.getBusinessUnitId(), dto.getAccount());
-            if (!featureToggleApi.isFeatureEnabled(FeatureFlags.RELEASE_1C_BANKING_INTERFACES)) {
-                if (dto.getSource() == null) {
+            if (dto.getSource() == null) {
+                if (featureToggleApi.isFeatureEnabled(FeatureFlags.RELEASE_1C_BANKING_INTERFACES)) {
+                    throw new BadRequestException("Missing property source", "required property 'source' not found");
+                }else {
                     dto.setSource(DraftAccountSource.MAC);
                 }
             }
 
             if (dto.getSource() == DraftAccountSource.VPFPO && dto.getSourceReference() == null) {
-                throw new RequestValidationException("source_reference cannot be blank when source is VPFPO");
+                throw new BadRequestException("Missing property source_reference",
+                    "source_reference cannot be blank when source is VPFPO");
             }
 
+            jsonSchemaValidationService.validateOrError(dto.toJson(), ADD_DRAFT_ACCOUNT_REQUEST_JSON);
+            referenceValidationService.validateReferences(dto.getBusinessUnitId(), dto.getAccount());
             BusinessUnitUser unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());
             DraftAccountEntity entity = draftAccountTransactional.submitDraftAccount(
                 dto, unitUser.getBusinessUnitUserId(), userState.getDisplayName());
@@ -351,12 +354,5 @@ public class DraftAccountService {
         return userState.getBusinessUnitUserForBusinessUnit(businessUnitId)
             .orElseThrow(() -> new PermissionNotAllowedException(businessUnitId,
                                                                 FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
-    }
-
-    private String addDraftAccountRequestSchema() {
-        if (featureToggleApi.isFeatureEnabled(FeatureFlags.RELEASE_1C_BANKING_INTERFACES)) {
-            return SchemaPaths.ADD_DRAFT_ACCOUNT_REQUEST_RELEASE_1C;
-        }
-        return SchemaPaths.ADD_DRAFT_ACCOUNT_REQUEST;
     }
 }

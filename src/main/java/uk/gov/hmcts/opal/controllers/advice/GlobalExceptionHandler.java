@@ -22,6 +22,7 @@ import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpClientErrorException;
+import uk.gov.hmcts.common.exceptions.standard.BadRequestException;
 import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.common.controllers.advice.OpalProblemDetailFactory;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
@@ -35,7 +36,6 @@ import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
 import uk.gov.hmcts.opal.exception.PdplLoggingException;
 import uk.gov.hmcts.opal.exception.ReportGenerationException;
-import uk.gov.hmcts.opal.exception.RequestValidationException;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
@@ -289,8 +289,8 @@ public class GlobalExceptionHandler {
         return responseWithProblemDetail(HttpStatus.UNAUTHORIZED, problemDetail);
     }
 
-    @ExceptionHandler(RequestValidationException.class)
-    public ResponseEntity<ProblemDetail> handleRequestValidationException(RequestValidationException ex) {
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ProblemDetail> handleBadRequestException(BadRequestException ex) {
         ProblemDetail problemDetail = createProblemDetail(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage(),
             "bad-request", false, ex);
 

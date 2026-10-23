@@ -53,6 +53,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 public class DraftAccountVpfpoIntegrationTest extends AbstractIntegrationTest {
 
     static final String URL_BASE = "/draft-accounts";
+    static final String RESTRICT_PARAM = "?restrict=counts";
     private static final int[] MAC_DRAFT_ACCOUNT_IDS = {11, 12};
     private static final int[] VPFPO_DRAFT_ACCOUNT_IDS = {21, 22};
 
@@ -121,7 +122,7 @@ public class DraftAccountVpfpoIntegrationTest extends AbstractIntegrationTest {
                 FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
                 FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
 
-            ResultActions resultActions = mockMvc.perform(get(getUrlBase(""))
+            ResultActions resultActions = mockMvc.perform(get(URL_BASE)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("authorization", userStateStub.getBearerToken())
                 .header("X-User-IP", "192.168.1.100")
@@ -154,7 +155,8 @@ public class DraftAccountVpfpoIntegrationTest extends AbstractIntegrationTest {
 
             resultActions.andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.count").value(2));
+                .andExpect(jsonPath("$.count").value(2))
+                .andExpect(jsonPath("$.summaries").doesNotExist());
         }
 
         @Test
@@ -175,7 +177,8 @@ public class DraftAccountVpfpoIntegrationTest extends AbstractIntegrationTest {
 
             resultActions.andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.count").value(2));
+                .andExpect(jsonPath("$.count").value(2))
+                .andExpect(jsonPath("$.summaries").doesNotExist());
         }
 
         @Test
@@ -188,7 +191,7 @@ public class DraftAccountVpfpoIntegrationTest extends AbstractIntegrationTest {
                 FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
                 FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
 
-            ResultActions resultActions = mockMvc.perform(get(getCountsUrlBase(""))
+            ResultActions resultActions = mockMvc.perform(get(URL_BASE + RESTRICT_PARAM)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("authorization", userStateStub.getBearerToken())
                 .header("X-User-IP", "192.168.1.100")
@@ -196,7 +199,8 @@ public class DraftAccountVpfpoIntegrationTest extends AbstractIntegrationTest {
 
             resultActions.andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.count").value(4));
+                .andExpect(jsonPath("$.count").value(4))
+                .andExpect(jsonPath("$.summaries").doesNotExist());
         }
 
         @Test
@@ -309,7 +313,7 @@ public class DraftAccountVpfpoIntegrationTest extends AbstractIntegrationTest {
                 FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
                 FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
 
-            ResultActions resultActions = mockMvc.perform(get(getUrlBase(""))
+            ResultActions resultActions = mockMvc.perform(get(URL_BASE)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("authorization", userStateStub.getBearerToken())
                 .header("X-User-IP", "192.168.1.100")
@@ -332,7 +336,7 @@ public class DraftAccountVpfpoIntegrationTest extends AbstractIntegrationTest {
                 FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS,
                 FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
 
-            ResultActions resultActions = mockMvc.perform(get(getCountsUrlBase(""))
+            ResultActions resultActions = mockMvc.perform(get(URL_BASE + RESTRICT_PARAM)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("authorization", userStateStub.getBearerToken())
                 .header("X-User-IP", "192.168.1.100")
@@ -340,7 +344,8 @@ public class DraftAccountVpfpoIntegrationTest extends AbstractIntegrationTest {
 
             resultActions.andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.count").value(2));
+                .andExpect(jsonPath("$.count").value(2))
+                .andExpect(jsonPath("$.summaries").doesNotExist());
         }
 
         @Test
@@ -452,7 +457,7 @@ public class DraftAccountVpfpoIntegrationTest extends AbstractIntegrationTest {
     }
 
     private static String getCountsUrlBase(String source) {
-        return String.format("%s?source=%s&restrict=counts", URL_BASE, source);
+        return String.format("%s%s&source=%s", URL_BASE, RESTRICT_PARAM, source);
     }
 
     private DraftAccountEntity getDraftAccount(long draftAccountId) {

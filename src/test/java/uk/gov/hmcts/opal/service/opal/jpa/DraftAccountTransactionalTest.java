@@ -48,6 +48,7 @@ import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountSource;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.entity.draft.TimelineData;
@@ -111,6 +112,32 @@ class DraftAccountTransactionalTest {
             List.copyOf(Set.of((short) 1)), List.copyOf(Set.of(DraftAccountStatus.REJECTED)),
             List.of(), List.of(), Optional.empty(), Optional.empty(),
             Optional.empty()
+        );
+        // Assert
+        assertNotNull(result);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void testGetDraftAccounts_withSourceFilter() {
+        // Arrange
+        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        when(sfq.sortBy(any())).thenReturn(sfq);
+
+        DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
+                BusinessUnitEntity.builder().businessUnitId((short) 77).build())
+            .build();
+        Page<DraftAccountEntity> mockPage = new PageImpl<>(List.of(draftAccountEntity), Pageable.unpaged(), 999L);
+        when(draftAccountRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+            iom.getArgument(1, Function.class).apply(sfq);
+            return mockPage;
+        });
+
+        // Act
+        List<DraftAccountEntity> result = draftAccountTransactional.getDraftAccounts(
+            List.copyOf(Set.of((short) 1)), List.copyOf(Set.of(DraftAccountStatus.REJECTED)),
+            List.of(), List.of(), Optional.empty(), Optional.empty(),
+            Optional.of(DraftAccountSource.VPFPO)
         );
         // Assert
         assertNotNull(result);
