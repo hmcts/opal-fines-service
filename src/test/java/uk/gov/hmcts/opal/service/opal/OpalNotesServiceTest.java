@@ -173,9 +173,6 @@ class OpalNotesServiceTest {
 
         @BeforeEach
         void setUpAuthenticatedUser() {
-            when(clock.instant()).thenReturn(Instant.parse("2026-10-22T10:15:30Z"));
-            when(clock.getZone()).thenReturn(ZoneOffset.UTC);
-            when(token.getUsername()).thenReturn(USERNAME);
             when(token.getUserState()).thenReturn(userState);
             securityUtil = mockStatic(SecurityUtil.class);
             permissionUtil = mockStatic(PermissionUtil.class);
@@ -193,6 +190,7 @@ class OpalNotesServiceTest {
         @Test
         @DisplayName("Saves a defendant account note with user details and timestamps before incrementing its version")
         void savesDefendantAccountNoteBeforeIncrementingSuppliedAccountVersion() {
+            stubPostingDetails();
             BigInteger version = BigInteger.valueOf(12L);
 
             service.addNote(NoteType.AA, AssociatedRecordType.DEFENDANT_ACCOUNTS,
@@ -208,6 +206,8 @@ class OpalNotesServiceTest {
         @Test
         @DisplayName("Saves a creditor account note without incrementing a defendant account version")
         void savesCreditorAccountNoteWithoutIncrementingDefendantAccountVersion() {
+            stubPostingDetails();
+
             service.addNote(NoteType.AA, AssociatedRecordType.CREDITOR_ACCOUNTS,
                 104L, BigInteger.valueOf(3L), NOTE_TEXT, BUSINESS_UNIT_ID);
 
@@ -234,6 +234,7 @@ class OpalNotesServiceTest {
         @Test
         @DisplayName("Does not increment the account version when saving the note fails")
         void propagatesSaveFailureWithoutIncrementingAccountVersion() {
+            stubPostingDetails();
             DataIntegrityViolationException expected = new DataIntegrityViolationException("Note could not be saved");
             when(repository.save(any(NoteEntity.class))).thenThrow(expected);
 
@@ -244,6 +245,12 @@ class OpalNotesServiceTest {
             assertSame(expected, actual);
             verify(repository).save(any(NoteEntity.class));
             verifyNoInteractions(defendantAccountRepositoryService);
+        }
+
+        private void stubPostingDetails() {
+            when(clock.instant()).thenReturn(Instant.parse("2026-10-22T10:15:30Z"));
+            when(clock.getZone()).thenReturn(ZoneOffset.UTC);
+            when(token.getUsername()).thenReturn(USERNAME);
         }
 
         private NoteEntity assertSavedNote(AssociatedRecordType recordType, String recordId) {

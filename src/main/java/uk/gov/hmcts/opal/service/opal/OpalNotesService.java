@@ -55,22 +55,17 @@ public class OpalNotesService implements NotesServiceInterface {
         String noteText,
         Short businessUnitId
     ) {
-
-        NoteEntity note = new NoteEntity();
-        note.setNoteText(noteText);
-        note.setNoteType(noteType);
-        note.setAssociatedRecordId(String.valueOf(associatedRecordId));
-        note.setAssociatedRecordType(associatedRecordType);
-        note.setPostedDate(LocalDateTime.now(clock));
-
         OpalJwtAuthenticationToken token = SecurityUtil.getOpalJwtAuthenticationTokenForCurrentUser();
-
-        note.setPostedByUsername(token.getUsername());
         BusinessUnitUser businessUnitUser = PermissionUtil.getRequiredBusinessUnitUser(
             token.getUserState(),
             businessUnitId
         );
+
+        NoteEntity note = new NoteEntity(noteType, noteText, associatedRecordType, String.valueOf(associatedRecordId));
+        note.setPostedDate(LocalDateTime.now(clock));
+        note.setPostedByUsername(token.getUsername());
         note.setBusinessUnitUserId(businessUnitUser.getBusinessUnitUserId());
+
         repository.save(note);
         if (AssociatedRecordType.DEFENDANT_ACCOUNTS.equals(associatedRecordType)) {
             defendantAccountRepositoryService.incrementVersionNumber(
