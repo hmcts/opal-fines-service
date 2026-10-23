@@ -22,21 +22,22 @@ import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpClientErrorException;
+import uk.gov.hmcts.common.exceptions.standard.BadRequestException;
 import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.common.controllers.advice.OpalProblemDetailFactory;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
-import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.InterfaceJobQueueException;
+import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException.JsonSchemaValidationError;
 import uk.gov.hmcts.opal.exception.MissingMappingTypeException;
 import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
 import uk.gov.hmcts.opal.exception.PdplLoggingException;
+import uk.gov.hmcts.opal.exception.ReportGenerationException;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
-import uk.gov.hmcts.opal.exception.ReportGenerationException;
 import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
@@ -287,6 +288,15 @@ public class GlobalExceptionHandler {
             ex.getMessage(), "unauthorized", false, ex);
         return responseWithProblemDetail(HttpStatus.UNAUTHORIZED, problemDetail);
     }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ProblemDetail> handleBadRequestException(BadRequestException ex) {
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage(),
+            "bad-request", false, ex);
+
+        return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
+    }
+
 
     private ProblemDetail createProblemDetail(HttpStatus status, String title, String detail,
                                               String typeUri, boolean retry, Throwable exception) {
