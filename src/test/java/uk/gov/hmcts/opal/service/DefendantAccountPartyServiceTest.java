@@ -81,7 +81,7 @@ class DefendantAccountPartyServiceTest {
         verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verify(defendantAccountPartyServiceProxy).getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
-        verify(pdplLoggingService).logViewedDefendant("12345", userState);
+        verify(pdplLoggingService).queuePdpoForViewedParty(expectedResponse, userState);
     }
 
     @Test
@@ -102,7 +102,7 @@ class DefendantAccountPartyServiceTest {
 
         //Assert
         assertThat(actual).isSameAs(response);
-        verify(pdplLoggingService).logViewedParentGuardian("12345", userState);
+        verify(pdplLoggingService).queuePdpoForViewedParty(response, userState);
     }
 
     @Test
@@ -117,9 +117,10 @@ class DefendantAccountPartyServiceTest {
             .thenReturn(true);
         when(defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId))
             .thenReturn(response);
+
         //Act & Assert
         doThrow(new PdplLoggingException("Unable to queue PDPO log for viewing a party"))
-            .when(pdplLoggingService).logViewedDefendant("12345", userState);
+            .when(pdplLoggingService).queuePdpoForViewedParty(response, userState);
 
         PdplLoggingException exception = assertThrows(PdplLoggingException.class,
             () -> defendantAccountPartyService.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId));
@@ -140,7 +141,7 @@ class DefendantAccountPartyServiceTest {
         when(defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId))
             .thenReturn(response);
         doThrow(new PdplLoggingException("Unable to queue PDPO log for viewing a party"))
-            .when(pdplLoggingService).logViewedParentGuardian("12345", userState);
+            .when(pdplLoggingService).queuePdpoForViewedParty(response, userState);
 
         //Act & Assert
         assertThrows(PdplLoggingException.class,

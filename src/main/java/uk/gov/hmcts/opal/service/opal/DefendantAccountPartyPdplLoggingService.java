@@ -73,8 +73,4 @@ public class DefendantAccountPartyPdplLoggingService extends AbstractPdplLogging
 
         return partyId;
     }
-
-    public String requireAddedPartyId(PartyResponseDefendantAccount response) {
-        return requirePartyId(response, "Parent/Guardian");
-    }
 }
