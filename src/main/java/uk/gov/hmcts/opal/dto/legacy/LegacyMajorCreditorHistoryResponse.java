@@ -9,7 +9,7 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.model.HasErrorResponse;
 import uk.gov.hmcts.opal.dto.ToXmlString;
-import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
+import uk.gov.hmcts.opal.util.LocalDateAdapter;
 
 @Data
 @Builder
@@ -26,7 +26,7 @@ import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 @AllArgsConstructor
 @XmlRootElement(name = "response")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class GetMajorCreditorAccountHistoryLegacyResponse implements ToXmlString, HasErrorResponse {
+public class LegacyMajorCreditorHistoryResponse implements ToXmlString, HasErrorResponse {
 
     @XmlElement(name = "error_response")
     private ErrorResponse errorResponse;
@@ -37,14 +37,14 @@ public class GetMajorCreditorAccountHistoryLegacyResponse implements ToXmlString
     @JsonProperty("history_items")
     @XmlElementWrapper(name = "history_items")
     @XmlElement(name = "history_items_element")
-    private List<LegacyMajorCreditorHistoryItem> historyItems;
+    private List<HistoryItem> historyItems;
 
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     @XmlAccessorType(XmlAccessType.FIELD)
-    public static class LegacyMajorCreditorHistoryItem {
+    public static class HistoryItem {
 
         @JsonProperty("posted_details")
         @XmlElement(name = "posted_details")
@@ -56,7 +56,7 @@ public class GetMajorCreditorAccountHistoryLegacyResponse implements ToXmlString
 
         @JsonProperty("details")
         @XmlElement(name = "details")
-        private LegacyMajorCreditorHistoryDetails details;
+        private HistoryDetails details;
 
         @JsonProperty("amount")
         @XmlElement(name = "amount")
@@ -68,11 +68,11 @@ public class GetMajorCreditorAccountHistoryLegacyResponse implements ToXmlString
     @NoArgsConstructor
     @AllArgsConstructor
     @XmlAccessorType(XmlAccessType.FIELD)
-    public static class LegacyMajorCreditorHistoryDetails {
+    public static class HistoryDetails {
 
         @JsonProperty("transaction_type")
         @XmlElement(name = "transaction_type")
-        private LegacyCreditorTransactionTypeReference transactionType;
+        private TransactionTypeReference transactionType;
 
         @JsonProperty("payment_reference")
         @XmlElement(name = "payment_reference")
@@ -80,12 +80,12 @@ public class GetMajorCreditorAccountHistoryLegacyResponse implements ToXmlString
 
         @JsonProperty("status")
         @XmlElement(name = "status")
-        private LegacyCreditorTransactionStatusReference status;
+        private TransactionStatusReference status;
 
         @JsonProperty("status_date")
         @XmlElement(name = "status_date")
-        @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
-        private LocalDateTime statusDate;
+        @XmlJavaTypeAdapter(LocalDateAdapter.class)
+        private LocalDate statusDate;
 
         @JsonProperty("associated_record_type")
         @XmlElement(name = "associated_record_type")
@@ -117,7 +117,7 @@ public class GetMajorCreditorAccountHistoryLegacyResponse implements ToXmlString
     @NoArgsConstructor
     @AllArgsConstructor
     @XmlAccessorType(XmlAccessType.FIELD)
-    public static class LegacyCreditorTransactionTypeReference {
+    public static class TransactionTypeReference {
 
         @JsonProperty("transaction_type")
         @XmlElement(name = "transaction_type")
@@ -133,7 +133,7 @@ public class GetMajorCreditorAccountHistoryLegacyResponse implements ToXmlString
     @NoArgsConstructor
     @AllArgsConstructor
     @XmlAccessorType(XmlAccessType.FIELD)
-    public static class LegacyCreditorTransactionStatusReference {
+    public static class TransactionStatusReference {
 
         @JsonProperty("creditor_transaction_status")
         @XmlElement(name = "creditor_transaction_status")
