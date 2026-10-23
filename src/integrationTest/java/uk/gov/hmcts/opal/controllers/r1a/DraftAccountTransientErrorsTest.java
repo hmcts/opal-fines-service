@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers.r1a;
 
 import jakarta.persistence.QueryTimeoutException;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -177,7 +178,13 @@ class DraftAccountTransientErrorsTest extends AbstractIntegrationTest {
     void testGetDraftAccountsSummaries_trap408Response() throws Exception {
         shouldReturn408WhenTimeout(
             get(URL_BASE), when(draftAccountService
-                                    .getDraftAccounts(any(), any(), any(), any(), any(), any(), any())));
+                                    .getDraftAccounts(Optional.empty(),
+                                        Optional.empty(),
+                                        Optional.empty(),
+                                        Optional.empty(),
+                                        Optional.empty(),
+                                        Optional.empty(),
+                                        Optional.empty())));
     }
 
     @Test
@@ -188,7 +195,14 @@ class DraftAccountTransientErrorsTest extends AbstractIntegrationTest {
     void testGetDraftAccountsSummaries_trap503Response() throws Exception {
         shouldReturn503WhenDownstreamServiceIsUnavailable(
             get(URL_BASE), when(draftAccountService
-                                    .getDraftAccounts(any(), any(), any(), any(), any(), any(), any())));
+                                    .getDraftAccounts(
+                                        Optional.empty(),
+                                        Optional.empty(),
+                                        Optional.empty(),
+                                        Optional.empty(),
+                                        Optional.empty(),
+                                        Optional.empty(),
+                                        Optional.empty())));
     }
 
     void shouldReturn406WhenResponseContentTypeNotSupported(MockHttpServletRequestBuilder reqBuilder) throws Exception {

@@ -106,7 +106,8 @@ class DraftAccountControllerTest {
         assertEquals(1, dto.getCount());
         assertEquals(toSummaryDto(entity), dto.getSummaries().get(0));
         verify(draftAccountService, times(1))
-            .getDraftAccounts(                Optional.of(List.of(BU_ID)),
+            .getDraftAccounts(
+                Optional.of(List.of(BU_ID)),
                 Optional.of(List.of(DraftAccountStatus.PUBLISHING_PENDING)),
                 Optional.of(List.of()),
                 Optional.of(List.of()),
@@ -155,7 +156,8 @@ class DraftAccountControllerTest {
         assertEquals(1, dto.getCount());
         assertEquals(toSummaryDto(entity), dto.getSummaries().get(0));
         verify(draftAccountService, times(1))
-            .getDraftAccounts(                Optional.of(List.of(BU_ID)),
+            .getDraftAccounts(
+                Optional.of(List.of(BU_ID)),
                 Optional.of(List.of(DraftAccountStatus.PUBLISHING_PENDING)),
                 Optional.of(List.of()),
                 Optional.of(List.of()),

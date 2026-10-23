@@ -155,8 +155,7 @@ public class DraftAccountVpfpoIntegrationTest extends AbstractIntegrationTest {
 
             resultActions.andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.count").value(2))
-                .andExpect(jsonPath("$.summaries").doesNotExist());
+                .andExpect(content().string("{\"count\":2}"));
         }
 
         @Test
@@ -177,8 +176,7 @@ public class DraftAccountVpfpoIntegrationTest extends AbstractIntegrationTest {
 
             resultActions.andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.count").value(2))
-                .andExpect(jsonPath("$.summaries").doesNotExist());
+                .andExpect(content().string("{\"count\":2}"));
         }
 
         @Test
@@ -199,8 +197,7 @@ public class DraftAccountVpfpoIntegrationTest extends AbstractIntegrationTest {
 
             resultActions.andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.count").value(4))
-                .andExpect(jsonPath("$.summaries").doesNotExist());
+                .andExpect(content().string("{\"count\":4}"));
         }
 
         @Test
@@ -344,8 +341,7 @@ public class DraftAccountVpfpoIntegrationTest extends AbstractIntegrationTest {
 
             resultActions.andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.count").value(2))
-                .andExpect(jsonPath("$.summaries").doesNotExist());
+                .andExpect(content().string("{\"count\":2}"));
         }
 
         @Test

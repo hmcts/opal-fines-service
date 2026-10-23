@@ -519,7 +519,9 @@ class DraftAccountServiceTest {
             .build();
         when(draftAccountMapper.toResponseDto(draftAccountEntity))
             .thenReturn(DraftAccountResponseDto.builder().build());
-        when(draftAccountTransactional.submitDraftAccount(addDraftAccountDto, "USER01","Normal User")).thenReturn(draftAccountEntity);
+        when(draftAccountTransactional
+            .submitDraftAccount(addDraftAccountDto, "USER01","Normal User"))
+            .thenReturn(draftAccountEntity);
         var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(featureToggleApi.isFeatureEnabled(eq(FeatureFlags.RELEASE_1C_BANKING_INTERFACES))).thenReturn(false);

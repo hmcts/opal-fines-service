@@ -245,7 +245,7 @@ public class DraftAccountService {
             if (dto.getSource() == null) {
                 if (featureToggleApi.isFeatureEnabled(FeatureFlags.RELEASE_1C_BANKING_INTERFACES)) {
                     throw new BadRequestException("Missing property source", "required property 'source' not found");
-                }else {
+                } else {
                     dto.setSource(DraftAccountSource.MAC);
                 }
             }
