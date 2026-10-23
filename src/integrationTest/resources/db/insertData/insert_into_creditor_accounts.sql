@@ -26,8 +26,9 @@ VALUES
 INSERT INTO creditor_accounts (
   creditor_account_id, business_unit_id, account_number,
   creditor_account_type, prosecution_service, major_creditor_id,
-  minor_creditor_party_id, repayment, hold_payout, pay_by_bacs
+  minor_creditor_party_id, repayment, hold_payout, pay_by_bacs,
+  version_number
 )
 VALUES
   (100000000001,78,'00000001A', 'MJ',
-  false, 1, NULL, false, false, false);
+  false, 1, NULL, false, false, false, 1);
